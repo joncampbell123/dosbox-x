@@ -8485,7 +8485,7 @@ private:
         while ((GetTicks()-lasttick)<1000) {
             void CALLBACK_Idle(void);
             CALLBACK_Idle();
-            emscripten_sleep_with_yield(100);
+            emscripten_sleep(100);
         }
 #else
         bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;

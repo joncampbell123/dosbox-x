@@ -1515,7 +1515,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
         }
 
 #if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
+        emscripten_sleep(0);
         SDL_PollEvent(&event);
 #else
         SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
@@ -4234,7 +4234,7 @@ void GFX_EndTextLines(bool force=false) {
 extern uint8_t rendererCache[];
 void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
+    emscripten_sleep(0);
 #endif
 
     /* don't present our output if 3Dfx is in OpenGL mode */
@@ -5886,7 +5886,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                 /* fall into another loop to process the menu */
                 while (runloop) {
 #if C_EMSCRIPTEN
-                    emscripten_sleep_with_yield(0);
+                    emscripten_sleep(0);
                     if (!SDL_PollEvent(&event)) continue;
 #else
                     if (!SDL_WaitEvent(&event)) break;
@@ -6674,7 +6674,7 @@ void GFX_Events() {
     GFX_EventsMouse();
 
 #if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
+    emscripten_sleep(0);
 #endif
 
     while (SDL_PollEvent(&event)) {
@@ -6805,7 +6805,7 @@ void GFX_Events() {
 
                     while (paused) {
 #if C_EMSCRIPTEN
-                        emscripten_sleep_with_yield(0);
+                        emscripten_sleep(0);
                         SDL_PollEvent(&ev);
 #else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
@@ -6954,7 +6954,7 @@ void GFX_Events() {
     GFX_EventsMouse();
 
 #if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
+    emscripten_sleep(0);
 #endif
 
     while (SDL_PollEvent(&event)) {
@@ -7131,7 +7131,7 @@ void GFX_Events() {
 
                     while (paused) {
 #if C_EMSCRIPTEN
-                        emscripten_sleep_with_yield(0);
+                        emscripten_sleep(0);
                         SDL_PollEvent(&ev);
 #else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
@@ -11851,6 +11851,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
+#endif
 # if (C_SSHOT)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
@@ -11907,7 +11908,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
 			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 		}
-#endif
+
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
             item.set_text("Drive");

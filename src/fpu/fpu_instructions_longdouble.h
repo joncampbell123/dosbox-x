@@ -22,7 +22,7 @@
 #ifdef __GNUC__
 # if defined(__MINGW32__) || (defined(MACOSX) && !defined(__arm64__))
 #  include "fpu_control_x86.h"
-# elif defined(MACOSX) && defined(__arm64__)
+# elif (defined(MACOSX) && defined(__arm64__)) || defined(EMSCRIPTEN)
 /* ? */
 #  define _FPU_SETCW(x) /* dummy */
 # else
