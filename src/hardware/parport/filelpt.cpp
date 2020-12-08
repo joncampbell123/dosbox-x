@@ -27,6 +27,9 @@
 #include <stdio.h>
 
 #include "printer_charmaps.h"
+#if defined(WIN32)
+#include "Shellapi.h"
+#endif
 
 CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr,initIrq) {
@@ -78,6 +81,16 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
+	if (cmd->FindStringBegin("openps:",str,false)) {
+		action1 = str.c_str();
+    }
+	if (cmd->FindStringBegin("openpcl:",str,false)) {
+		action2 = str.c_str();
+    }
+	if (cmd->FindStringBegin("openwith:",str,false)) {
+		action3 = str.c_str();
+    }
+
 	if (cmd->FindStringBegin("timeout:",str,false)) {
 		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
 			LOG_MSG("parallel%d: Invalid timeout parameter.",(int)nr+1);
@@ -99,6 +112,9 @@ CFileLPT::~CFileLPT () {
 	removeEvent(0);
 }
 
+char bufput[105];
+int bufct = 0;
+static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!PS";
 bool CFileLPT::OpenFile() {
 	switch(filetype) {
 	case FILE_DEV:
@@ -127,6 +143,7 @@ bool CFileLPT::OpenFile() {
 	}
 }
 
+
 bool CFileLPT::Putchar(uint8_t val)
 {	
 #if PARALLEL_DEBUG
@@ -136,7 +153,8 @@ bool CFileLPT::Putchar(uint8_t val)
 	
 	// write to file (or not)
 	lastUsedTick = PIC_Ticks;
-	if(!fileOpen) if(!OpenFile()) return false;
+	if(!fileOpen) {bufct = 0;if(!OpenFile()) return false;}
+    if(bufct<100) bufput[bufct++]=val;
 
 	if(codepage_ptr!=NULL) {
 		uint16_t extchar = codepage_ptr[val];
@@ -197,6 +215,41 @@ void CFileLPT::handleUpperEvent(uint16_t type) {
 			lastChar = 0;
 			fileOpen=false;
 			LOG_MSG("Parallel %d: File closed.",(int)port_nr+1);
+            if (action1.size()||action2.size()||action3.size()) {
+                bool isPCL = false;															// For now
+                bool isPS = false;															// Postscript can be embedded (some WP drivers)
+                if ((action1.size()||action2.size())&&bufct>5) {
+                    if (!strncmp(bufput, sig1PCL, sizeof(sig1PCL)-1) || !strncmp(bufput, sig2PCL, sizeof(sig2PCL)-1)) {
+                        isPCL = true;
+                        int max = bufct>65?60:bufct-5;										// A line should start with the signature in the first 60 characters or so
+                        for (int i = 0; i < max; i++)
+                            if (!strncmp(bufput+i, sigPS, sizeof(sigPS)-1)) {
+                                isPS = true;
+                                break;
+                            }
+                    } else {																// Also test for PCL Esc sequence
+                        if (!strncmp(bufput, sigPS+1, sizeof(sigPS)-2))
+                            isPS = true;
+                        char *p = bufput;
+                        int count = bufct;
+                        while (count-- > 1)
+                            if (*(p++) == 0x1b)
+                                if (*p == '@')												// <Esc>@ = Printer reset Epson
+                                    break;
+                                else if (*p > 0x24 && *p < 0x2b && isalpha(*(p+1))) {
+                                    isPCL = true;
+                                    break;
+                                }
+                    }
+                }
+                std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
+#if defined(WIN32)
+                ShellExecute(NULL, "open", action.c_str(), name.c_str(), NULL, SW_SHOWNORMAL);
+#else
+                system((action+" "+name).c_str());
+#endif
+            }
+            bufct = 0;
 		} else {
 			// Port has been touched in the meantime, try again later
 			float new_delay = (float)((timeout + 1) - (PIC_Ticks - lastUsedTick));

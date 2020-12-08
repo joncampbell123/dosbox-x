@@ -136,6 +136,7 @@ extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, boo
 
 extern bool         force_nocachedir;
 extern bool         wpcolon;
+extern bool         lockmount;
 extern bool         clearline;
 
 extern Bitu         frames;
@@ -1020,6 +1021,7 @@ void Init_VGABIOS() {
     else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
     else freesizecap = 1;
     wpcolon = section->Get_bool("leading colon write protect image");
+    lockmount = section->Get_bool("locking disk image mount");
 
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
@@ -1717,6 +1719,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
+
+    Pbool = secprop->Add_bool("locking disk image mount",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, BOOT and IMGMOUNT commands will try to lock the mounted disk image files. As a result, you cannot\n"
+                    "mount the same disk image files in read/write mode at the same time as this can cause possible disk corruptions.");
 
     Pbool = secprop->Add_bool("unmask keyboard on int 16 read",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, INT 16h will unmask IRQ 1 (keyboard) when asked to read keyboard input.\n"
@@ -3472,10 +3478,13 @@ void DOSBOX_SetupConfigSections(void) {
             "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
             "    or append:<file> appends data to the specified file.\n"
             "    Without the above parameters data is written to files in the capture dir.\n"
-            "    Additional parameters: timeout:<milliseconds> = how long to wait before\n"
-            "    closing the file on inactivity (default:500), addFF to add a formfeed when\n"
-            "    closing, addLF to add a linefeed if the app doesn't, cp:<codepage number>\n"
-            "    to perform codepage translation, i.e. cp:437\n"
+            "    Additional parameters:\n"
+            "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:500),\n"
+            "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
+            "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
+            "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
+            "    openpcl:<program>: start a program to open the file if the print output is detected to be PCL.\n"
+            "    openwith:<program>: start a program to open the file in all other conditions.\n"
             "  for printer:\n"
             "    printer still has it's own configuration section above."
     );

@@ -1213,6 +1213,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
+FILE * fopen_lock(const char * fname, const char * mode);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
 	uint32_t filesize;
@@ -1228,8 +1229,8 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
     bool roflag = it!=options.end();
 	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
     const char *fname=readonly?sysFilename+1:sysFilename;
-	diskfile = fopen64(fname, readonly||roflag?"rb":"rb+");
-	if(!diskfile) {created_successfully = false;return;}
+    diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+");
+    if (!diskfile) {created_successfully = false;return;}
     opts.bytesector = bytesector;
     opts.cylsector = cylsector;
     opts.headscyl = headscyl;
