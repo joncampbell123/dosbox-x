@@ -2,10 +2,21 @@
   - DOSBox-X will now pop up a message box to inform
     the user when a Direct3D pixel shader is loaded
     from the menu on the Windows platform. (Wengier)
+  - Enhanced parallel1-3 config options in [parallel]
+    section to allow the generated files to be started
+    with the specified action: "openpcl" to start a
+    program to open the file if the print output is
+    detected to be PCL; "openps" to start a program if
+    the print output is detected to be PostScript (PS);
+    "openwith" to start a program otherwise. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as
-    this can cause possible disk corruptions. (Wengier)
+    this can cause possible disk corruptions. A config
+    option "locking disk image mount" is added to the
+    [dosbox] section which when set to false (or if the
+    user mounts the image files read-only) will bypass
+    the locking of image files. (Wengier)
   - You can now use a single mapper file for both SDL1
     and SDL2 versions of DOSBox-X! The new mapper file
     will be divided to sections [SDL1] and [SDL2] for

@@ -1692,7 +1692,7 @@ void CPrinter::outputPage()
 			DOCINFO docinfo;
 			memset(&docinfo, 0, sizeof(docinfo));
 			docinfo.cbSize = sizeof(docinfo);
-			docinfo.lpszDocName = "DOSBOX Printer";
+			docinfo.lpszDocName = "DOSBox-X Printer";
 			docinfo.lpszOutput = NULL;
 			docinfo.lpszDatatype = NULL;
 			docinfo.fwType = 0;
@@ -1851,7 +1851,7 @@ void CPrinter::outputPage()
 			fprintf(psfile, "%%!PS-Adobe-3.0\n");
 			fprintf(psfile, "%%%%Pages: (atend)\n");
 			fprintf(psfile, "%%%%BoundingBox: 0 0 %i %i\n", (uint16_t)(defaultPageWidth * 72), (uint16_t)(defaultPageHeight * 72));
-			fprintf(psfile, "%%%%Creator: DOSBOX Virtual Printer\n");
+			fprintf(psfile, "%%%%Creator: DOSBox-X Virtual Printer\n");
 			fprintf(psfile, "%%%%DocumentData: Clean7Bit\n");
 			fprintf(psfile, "%%%%LanguageLevel: 2\n");
 			fprintf(psfile, "%%%%EndComments\n");
