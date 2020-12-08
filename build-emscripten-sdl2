@@ -29,11 +29,12 @@ chmod +x configure
 
 # build command borrowed from Yksoft1 vanilla DOSBox-X port with modifications
 ./configure \
-    --host=x86_64-linux --disable-fpu-x86 --disable-unaligned-memory \
+    --host=x86_64-linux --disable-fpu-x86 --disable-dynamic-core \
     --enable-sdl2 --with-sdl-prefix=$EMSDK/upstream/emscripten/system \
-    --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw --disable-x11 "$@"
+    --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw --disable-x11 \
+    --disable-directserial "$@"
 make -j6 || exit 1
 
-cd src
+cd src;
 emcc  -DEMSCRIPTEN=1  -s USE_ZLIB=1 -s TOTAL_MEMORY=95551488 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0 -std=gnu++14  -Os -DFORCE_SDLDRAW  -Wall   -Wextra   -Wunused   -pedantic   -Wlogical-op   -Wsign-promo   -Wconversion-null   -Wno-deprecated-declarations   -Wno-implicit-fallthrough   -Wno-strict-aliasing   -Wno-missing-field-initializers   -Wno-format-zero-length   -Wno-address-of-packed-member   -Wno-int-to-void-pointer-cast  -I/home/rossimo/dosbox-x -I/home/rossimo/dosbox-x/vs2015/sdlnet/linux-host/include -I/home/rossimo/dosbox-x/vs2015/sdlnet/linux-host/include/SDL   -L/home/rossimo/dosbox-x/vs2015/sdlnet/linux-host/lib -o dosbox-x.html dosbox.o  debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a libs/porttalk/libporttalk.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a      -s USE_SDL=2 -lz ;
 cd ..
