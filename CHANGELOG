@@ -1,4 +1,7 @@
 0.83.9
+  - DOSBox-X will now pop up a message box to inform
+    the user when a Direct3D pixel shader is loaded
+    from the menu on the Windows platform. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as

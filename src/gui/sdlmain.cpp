@@ -9411,6 +9411,7 @@ bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
 }
 
 #ifdef C_D3DSHADERS
+extern bool informd3d;
 bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9485,9 +9486,10 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         /* GetOpenFileName() probably changed the current directory.
            This must be done before reinit of GFX because pixelshader might be relative path. */
         SetCurrentDirectory(o_cwd.c_str());
-
+        informd3d=true;
         /* force reinit */
         GFX_ForceRedrawScreen();
+        informd3d=false;
     }
     else {
         /* GetOpenFileName() probably changed the current directory */
