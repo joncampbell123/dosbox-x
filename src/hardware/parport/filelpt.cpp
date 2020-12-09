@@ -250,17 +250,17 @@ void CFileLPT::handleUpperEvent(uint16_t type) {
 #if defined(WIN32)
                 fail=(int)ShellExecute(NULL, "open", action.c_str(), name.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-                fail=system((action+" "+name).c_str())==-1;
+                fail=system((action+" "+name).c_str())!=0;
 #endif
                 if (action4.size()&&fail) {
 #if defined(WIN32)
                     fail=(int)ShellExecute(NULL, "open", action4.c_str(), name.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-                    fail=system((action4+" "+name).c_str())==-1;
+                    fail=system((action4+" "+name).c_str())!=0;
 #endif
                 }
                 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-                if (fail) systemmessagebox("Error", "The requested file printing handler cannot be executed.", "ok","error", 1);
+                if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
             }
             bufct = 0;
 		} else {
