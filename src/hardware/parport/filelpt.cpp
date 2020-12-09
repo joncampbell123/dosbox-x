@@ -90,6 +90,9 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 	if (cmd->FindStringBegin("openwith:",str,false)) {
 		action3 = str.c_str();
     }
+	if (cmd->FindStringBegin("openerror:",str,false)) {
+		action4 = str.c_str();
+    }
 
 	if (cmd->FindStringBegin("timeout:",str,false)) {
 		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
@@ -243,11 +246,21 @@ void CFileLPT::handleUpperEvent(uint16_t type) {
                     }
                 }
                 std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
+                bool fail=false;
 #if defined(WIN32)
-                ShellExecute(NULL, "open", action.c_str(), name.c_str(), NULL, SW_SHOWNORMAL);
+                fail=(int)ShellExecute(NULL, "open", action.c_str(), name.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-                system((action+" "+name).c_str());
+                fail=system((action+" "+name).c_str())==-1;
 #endif
+                if (action4.size()&&fail) {
+#if defined(WIN32)
+                    fail=(int)ShellExecute(NULL, "open", action4.c_str(), name.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+                    fail=system((action4+" "+name).c_str())==-1;
+#endif
+                }
+                bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+                if (fail) systemmessagebox("Error", "The requested file printing handler cannot be executed.", "ok","error", 1);
             }
             bufct = 0;
 		} else {
