@@ -1,4 +1,12 @@
 0.83.9
+  - Added support for starting DOSBox-X in a specific
+    display on a multi-screen setup (Windows builds as
+    well as Linux/macOS SDL2 builds). A config option
+    "display" is added to the [sdl] section that users
+    can specify a display for the DOSBox-X window to
+    start. The option can be combined with the existing
+    "windowposition" config option to specify the
+    position on the specified display/screen. (Wengier)
   - DOSBox-X will now pop up a message box to inform
     the user when a Direct3D pixel shader is loaded
     from the menu on the Windows platform. (Wengier)
