@@ -244,6 +244,7 @@ bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
 void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight);
+int GetNumScreen();
 extern SHELL_Cmd cmd_list[];
 
 SDL_Block sdl;
@@ -288,6 +289,17 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
 #endif
 #if defined(WIN32)
+int curscr;
+RECT monrect;
+typedef struct {
+	int	x, y;
+} xyp;
+BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
+	xyp* xy = reinterpret_cast<xyp*>(lParam);
+	curscr++;
+	if (sdl.displayNumber==curscr) monrect=*pRcMon;
+	return TRUE;
+}
 extern int dos_clipboard_device_access;
 #endif
 extern bool dos_kernel_disabled;
@@ -1695,8 +1707,8 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
         }
 
         sdl.window = SDL_CreateWindow("",
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
+                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
+                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
                                       | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
@@ -2466,6 +2478,27 @@ static Bitu OUTPUT_TTF_SetSize() {
 #endif
     } else
         ttf.inUse = false;
+#if defined(C_SDL2)
+    int bx = 0, by = 0;
+    if (sdl.displayNumber>0) {
+        int displays = SDL_GetNumVideoDisplays();
+        SDL_Rect bound;
+        for( int i = 1; i <= displays; i++ ) {
+            bound = SDL_Rect();
+            SDL_GetDisplayBounds(i-1, &bound);
+            if (i == sdl.displayNumber) {
+                bx = bound.x;
+                by = bound.y;
+                break;
+            }
+        }
+        SDL_DisplayMode dm;
+        if (SDL_GetDesktopDisplayMode(sdl.displayNumber?sdl.displayNumber-1:0,&dm) == 0) {
+            bx += (dm.w - sdl.draw.width - sdl.clip.x)/2;
+            by += (dm.h - sdl.draw.height - sdl.clip.y)/2;
+        }
+    }
+#endif
     if (ttf.inUse && ttf.fullScrn) {
         int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
@@ -2473,7 +2506,8 @@ static Bitu OUTPUT_TTF_SetSize() {
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        else SDL_SetWindowPosition(sdl.window, bx, by);
 #else
         sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|
 #if defined(WIN32)
@@ -2482,6 +2516,20 @@ static Bitu OUTPUT_TTF_SetSize() {
         SDL_FULLSCREEN
 #endif
         );
+#if defined(WIN32) && !defined(C_SDL2)
+        if (sdl.displayNumber>0) {
+            xyp xy={0};
+            xy.x=-1;
+            xy.y=-1;
+            curscr=0;
+            EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+            HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+            MONITORINFO info;
+            info.cbSize = sizeof(MONITORINFO);
+            GetMonitorInfo(monitor, &info);
+            MoveWindow(GetHWND(), info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right-info.rcMonitor.left, info.rcMonitor.bottom-info.rcMonitor.top, true);
+        }
+#endif
 #endif
     } else {
 #if defined(C_SDL2)
@@ -2490,7 +2538,8 @@ static Bitu OUTPUT_TTF_SetSize() {
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
         if (firstsize && (posx < 0 || posy < 0) && text) {
             firstsize=false;
-            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            else SDL_SetWindowPosition(sdl.window, bx, by);
         }
 #else
         sdl.surface = SDL_SetVideoMode(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y, 32, SDL_SWSURFACE);
@@ -3638,8 +3687,28 @@ void GFX_SwitchFullScreen(void)
 #if defined(C_SDL2)
             if (posx >= 0 && posy >= 0)
                 SDL_SetWindowPosition(sdl.window, posx, posy);
-            else
+            else if (sdl.displayNumber==0)
                 SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            else {
+                int bx = 0, by = 0;
+                int displays = SDL_GetNumVideoDisplays();
+                SDL_Rect bound;
+                for( int i = 1; i <= displays; i++ ) {
+                    bound = SDL_Rect();
+                    SDL_GetDisplayBounds(i-1, &bound);
+                    if (i == sdl.displayNumber) {
+                        bx = bound.x;
+                        by = bound.y;
+                        break;
+                    }
+                }
+                SDL_DisplayMode dm;
+                if (SDL_GetDesktopDisplayMode(sdl.displayNumber?sdl.displayNumber-1:0,&dm) == 0) {
+                    bx += (dm.w - sdl.draw.width - sdl.clip.x)/2;
+                    by += (dm.h - sdl.draw.height - sdl.clip.y)/2;
+                }
+                SDL_SetWindowPosition(sdl.window, bx, by);
+            }
 #endif
             resetreq = true;
             GFX_ResetScreen();
@@ -4940,6 +5009,14 @@ static void GUI_StartUp() {
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
 
+    const int display = section->Get_int("display");
+    int numscreen = GetNumScreen();
+    if (display >= 0 && display <= numscreen)
+        sdl.displayNumber = display;
+    else {
+        LOG_MSG("SDL: Display number should be between 0 and %d, fallback to default display", numscreen);
+        sdl.displayNumber = 0;
+    }
     std::string output=section->Get_string("output");
     std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
 
@@ -5081,13 +5158,33 @@ static void GUI_StartUp() {
     // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
     // SDL2 position is set later, using SDL_SetWindowPosition()
 #if !defined(C_SDL2)
+#if defined(WIN32)
+    MONITORINFO info;
+    if (sdl.displayNumber>0) {
+        xyp xy={0};
+        xy.x=-1;
+        xy.y=-1;
+        curscr=0;
+        EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+        HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+        info.cbSize = sizeof(MONITORINFO);
+        GetMonitorInfo(monitor, &info);
+        posx+=info.rcMonitor.left;
+        posy+=info.rcMonitor.top;
+    }
+#endif
+    char pos[100];
     if (posx >= 0 && posy >= 0 && SDL_getenv("SDL_VIDEO_WINDOW_POS") == NULL) {
-        const char* windowposition = section->Get_string("windowposition");
-        char pos[100];
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
-        safe_strcat(pos, windowposition);
+        safe_strcat(pos, (std::to_string(posx)+","+std::to_string(posy)).c_str());
         SDL_putenv(pos);
-    } else if (sdl.desktop.want_type == SCREEN_TTF)
+#if defined(WIN32)
+    } else if (sdl.displayNumber>0) {
+        safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
+        safe_strcat(pos, (std::to_string(info.rcMonitor.left+200)+","+std::to_string(info.rcMonitor.top+200)).c_str());
+        SDL_putenv(pos);
+#endif
+    } else
         putenv("SDL_VIDEO_CENTERED=center");
 #endif
 
@@ -5123,8 +5220,22 @@ static void GUI_StartUp() {
 
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
-    if (posx >= 0 && posy >= 0)
+    if (posx >= 0 && posy >= 0) {
+        if (sdl.displayNumber>0) {
+            int displays = SDL_GetNumVideoDisplays();
+            SDL_Rect bound;
+            for( int i = 1; i <= displays; i++ ) {
+                bound = SDL_Rect();
+                SDL_GetDisplayBounds(i-1, &bound);
+                if (i == sdl.displayNumber) {
+                    posx += bound.x;
+                    posy += bound.y;
+                    break;
+                }
+            }
+        }
         SDL_SetWindowPosition(sdl.window, posx, posy);
+    }
 #else
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
@@ -7270,7 +7381,11 @@ void SDL_SetupConfigSection() {
 #endif
         0 };
 
-	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
+    Pint = sdl_sec->Add_int("display", Property::Changeable::OnlyAtStart, 0);
+    Pint->Set_help("Specify a screen/display number to use for a multi-screen setup (0 = default).");
+    Pint->SetBasic(true);
+
+    Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
@@ -9845,6 +9960,28 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 
+int GetNumScreen() {
+    int numscreen = 1;
+#if defined(C_SDL2)
+    numscreen = SDL_GetNumVideoDisplays();
+#elif defined(WIN32)
+    xyp xy={0};
+    xy.x=-1;
+    xy.y=-1;
+    curscr=0;
+    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+    numscreen = curscr;
+#elif defined(MACOSX)
+    CGDisplayCount nDisplays;
+    CGGetActiveDisplayList(0,0, &nDisplays);
+    numscreen = (int)nDisplays;
+#elif defined(LINUX) && C_X11
+    Display *dpy = XOpenDisplay(NULL);
+    if (dpy) numscreen = XScreenCount(dpy);
+#endif
+    return numscreen;
+}
+
 #if defined(USE_TTF)
 void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
     int maxWidth = sdl.desktop.full.width;
@@ -9852,7 +9989,7 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
 
 #if defined(C_SDL2)
     SDL_DisplayMode dm;
-    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+    if (SDL_GetDesktopDisplayMode(sdl.displayNumber?sdl.displayNumber-1:0,&dm) == 0) {
         maxWidth = dm.w;
         maxHeight = dm.h;
     }
@@ -9864,7 +10001,7 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
     maxWidth = CGDisplayPixelsWide(mainDisplayId);
     maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #elif defined(LINUX) && C_X11
-    Display *dpy = XOpenDisplay(0);
+    Display *dpy = XOpenDisplay(NULL);
     if (dpy) {
         int snum = DefaultScreen(dpy);
         maxWidth = DisplayWidth(dpy, snum);

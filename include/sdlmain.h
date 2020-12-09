@@ -143,12 +143,12 @@ struct SDL_Block {
     SDL_Window * window = NULL;
     SDL_Renderer * renderer = NULL;
     const char * rendererDriver = NULL;
-    int displayNumber = 0;
     struct {
         SDL_Texture * texture = NULL;
         SDL_PixelFormat * pixelFormat = NULL;
     } texture;
 #endif
+    int displayNumber = 0;
     SDL_cond *cond = NULL;
     struct {
         bool autolock = false;
