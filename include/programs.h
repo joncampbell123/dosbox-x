@@ -57,6 +57,7 @@ public:
 	bool FindString(char const * const name,std::string & value,bool remove=false);
 	bool FindCommand(unsigned int which,std::string & value);
 	bool FindStringBegin(char const * const begin,std::string & value, bool remove=false);
+	bool FindStringFullBegin(char const * const begin,std::string & value, bool remove=false);
 	bool FindStringRemain(char const * const name,std::string & value);
 	bool FindStringRemainBegin(char const * const name,std::string & value);
 	bool GetStringRemain(std::string & value);

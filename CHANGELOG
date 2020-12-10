@@ -16,8 +16,10 @@
     program to open the file if the print output is
     detected to be PCL; "openps" to start a program if
     the print output is detected to be PostScript (PS);
-    "openwith" to start a program otherwise. If any of
-    the specified program cannot be executed, DOSBox-X
+    "openwith" to start a program otherwise. If you'd
+    like to specify parameters then be sure to properly
+    quote the string(s). Furthermore, if any of the
+    specified program(s) cannot be executed, DOSBox-X
     will try to start a program as specified with the
     "openerror" action, or show an error. (Wengier)
   - Implemented file locking support for mounting disk
