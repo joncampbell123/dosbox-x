@@ -1,4 +1,6 @@
 0.83.9
+  - Added read-only options to the Drive menu to mount
+    the specified drive in read-only mode. (Wengier)
   - Added support for starting DOSBox-X in a specific
     display on a multi-screen setup (Windows builds as
     well as Linux/macOS SDL2 builds). A config option

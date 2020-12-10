@@ -77,6 +77,7 @@ bool startwait = true;
 bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
+extern bool mountfro[26], mountiro[26];
 
 void DOS_EnableDriveMenu(char drv);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
@@ -307,7 +308,10 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 				return;
 			}
 		}
-	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+	} else {
+        newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+        newdrive->readonly = mountfro[drive-'A'];
+    }
 
 	if (!newdrive) E_Exit("DOS:Can't create drive");
 	Drives[drive-'A']=newdrive;
@@ -419,7 +423,10 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 				return;
 			}
 		}
-	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+	} else {
+        newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+        newdrive->readonly = mountfro[drive-'A'];
+    }
 
 	if (!newdrive) E_Exit("DOS:Can't create drive");
 	if(error && (type==DRIVE_CDROM)) return;
@@ -508,7 +515,8 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
 		if (!multiple) strcat(mountstring,"\"");
 		strcat(mountstring,files.size()?files.c_str():lTheOpenFileName);
 		if (!multiple) strcat(mountstring,"\"");
-		if (boot) strcat(mountstring," -U");
+		if (mountiro[drive-'A']) strcat(mountstring," -ro");
+		if (boot) strcat(mountstring," -u");
 		qmount=true;
 		runImgmount(mountstring);
 		qmount=false;
@@ -524,9 +532,9 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
 			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 			tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
 		} else if (multiple) {
-			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+":\n"+files).c_str(),"ok","info", 1);
+			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+":\n"+files+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		} else {
-			tinyfd_messageBox("Information",("Mounted disk image to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)).c_str(),"ok","info", 1);
+			tinyfd_messageBox("Information",("Mounted disk image to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		}
 	}
 	chdir( Temp_CurrentDir );
