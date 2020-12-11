@@ -81,14 +81,17 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
-	if (cmd->FindStringBegin("openps:",str,false)) {
+	if (cmd->FindStringFullBegin("openps:",str,false)) {
 		action1 = str.c_str();
     }
-	if (cmd->FindStringBegin("openpcl:",str,false)) {
+	if (cmd->FindStringFullBegin("openpcl:",str,false)) {
 		action2 = str.c_str();
     }
-	if (cmd->FindStringBegin("openwith:",str,false)) {
+	if (cmd->FindStringFullBegin("openwith:",str,false)) {
 		action3 = str.c_str();
+    }
+	if (cmd->FindStringFullBegin("openerror:",str,false)) {
+		action4 = str.c_str();
     }
 
 	if (cmd->FindStringBegin("timeout:",str,false)) {
@@ -243,11 +246,33 @@ void CFileLPT::handleUpperEvent(uint16_t type) {
                     }
                 }
                 std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
+                bool fail=false;
 #if defined(WIN32)
-                ShellExecute(NULL, "open", action.c_str(), name.c_str(), NULL, SW_SHOWNORMAL);
+                std::size_t found = action.find_first_of(" ");
+                std::string para = name;
+                if (found!=std::string::npos) {
+                    para=action.substr(found+1)+" "+name;
+                    action=action.substr(0, found);
+                }
+                fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-                system((action+" "+name).c_str());
+                fail=system((action+" "+name).c_str())!=0;
 #endif
+                if (action4.size()&&fail) {
+#if defined(WIN32)
+                    std::size_t found = action4.find_first_of(" ");
+                    para = name;
+                    if (found!=std::string::npos) {
+                        para=action4.substr(found+1)+" "+name;
+                        action4=action4.substr(0, found);
+                    }
+                    fail=(INT_PTR)ShellExecute(NULL, "open", action4.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+                    fail=system((action4+" "+name).c_str())!=0;
+#endif
+                }
+                bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+                if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
             }
             bufct = 0;
 		} else {

@@ -3485,6 +3485,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
             "    openpcl:<program>: start a program to open the file if the print output is detected to be PCL.\n"
             "    openwith:<program>: start a program to open the file in all other conditions.\n"
+            "    openerror:<program>: start a program to open the file if an error had occurred.\n"
             "  for printer:\n"
             "    printer still has it's own configuration section above."
     );

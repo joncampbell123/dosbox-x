@@ -1222,6 +1222,33 @@ bool CommandLine::FindStringBegin(char const* const begin,std::string & value, b
     return false;
 }
 
+bool CommandLine::FindStringFullBegin(char const* const begin,std::string & value, bool remove) {
+    size_t len = strlen(begin);
+    for (cmd_it it=cmds.begin();it!=cmds.end();++it) {
+        if (strncmp(begin,(*it).c_str(),len)==0) {
+            bool q=(*it)[len]=='"';
+            value=((*it).c_str() + len + (q?1:0));
+            if (remove) cmds.erase(it);
+            if (q) {
+                std::string str=value;
+                if (str.back()=='"')
+                    value.pop_back();
+                else while (str.size()&&++it!=cmds.end()) {
+                    str=(*it);
+                    if (remove) cmds.erase(it);
+                    value+=" "+str;
+                    if (str.back()=='"') {
+                        value.pop_back();
+                        break;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CommandLine::FindStringRemain(char const * const name,std::string & value) {
     cmd_it it;value="";
     if (!FindEntry(name,it)) return false;

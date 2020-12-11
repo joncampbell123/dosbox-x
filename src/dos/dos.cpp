@@ -3324,9 +3324,13 @@ void DOS_EnableDriveMenu(char drv) {
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountfd";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountfro";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimgs";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountiro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);

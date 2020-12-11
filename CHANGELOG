@@ -1,4 +1,6 @@
 0.83.9
+  - Added read-only options to the Drive menu to mount
+    the specified drive in read-only mode. (Wengier)
   - Added support for starting DOSBox-X in a specific
     display on a multi-screen setup (Windows builds as
     well as Linux/macOS SDL2 builds). A config option
@@ -16,7 +18,12 @@
     program to open the file if the print output is
     detected to be PCL; "openps" to start a program if
     the print output is detected to be PostScript (PS);
-    "openwith" to start a program otherwise. (Wengier)
+    "openwith" to start a program otherwise. If you'd
+    like to specify parameters then be sure to properly
+    quote the string(s). Furthermore, if any of the
+    specified program(s) cannot be executed, DOSBox-X
+    will try to start a program as specified with the
+    "openerror" action, or show an error. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as

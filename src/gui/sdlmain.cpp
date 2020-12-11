@@ -54,6 +54,7 @@ extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
+bool mountfro[26], mountiro[26];
 
 bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -418,6 +419,17 @@ bool drive_mountfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+bool drive_mountfro_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *mname = menuitem->get_name().c_str();
+    int drive = mname[6] - 'A';
+    mountfro[drive] = !mountfro[drive];
+    mainMenu.get_item("drive_" + std::string(1, drive + 'A') + "_mountfro").check(mountfro[drive]).refresh_item(mainMenu);
+
+    return true;
+}
+
 bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -461,6 +473,18 @@ bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 
     return true;
 }
+
+bool drive_mountiro_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *mname = menuitem->get_name().c_str();
+    int drive = mname[6] - 'A';
+    mountiro[drive] = !mountiro[drive];
+    mainMenu.get_item("drive_" + std::string(1, drive + 'A') + "_mountiro").check(mountiro[drive]).refresh_item(mainMenu);
+
+    return true;
+}
+
 bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -613,9 +637,11 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mounthd_menu_callback,
     drive_mountcd_menu_callback,
     drive_mountfd_menu_callback,
+    drive_mountfro_menu_callback,
     NULL,
     drive_mountimg_menu_callback,
     drive_mountimgs_menu_callback,
+    drive_mountiro_menu_callback,
     NULL,
     drive_unmount_menu_callback,
     drive_rescan_menu_callback,
@@ -657,9 +683,11 @@ const char *drive_opts[][2] = {
 	{ "mounthd",                "Mount folder as hard drive" },
 	{ "mountcd",                "Mount folder as CD drive" },
 	{ "mountfd",                "Mount folder as floppy drive" },
+	{ "mountfro",               "Option: mount folder read-only" },
 	{ "div1",                   "--" },
 	{ "mountimg",               "Mount a disk or CD image file" },
 	{ "mountimgs",              "Mount multiple disk/CD images" },
+	{ "mountiro",               "Option: mount images read-only" },
     { "div2",                   "--" },
     { "unmount",                "Unmount drive" },
     { "rescan",                 "Rescan drive" },
@@ -12051,6 +12079,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Drive");
 
             for (char c='A';c <= 'Z';c++) {
+                mountfro[c-'A']=false;
+                mountiro[c-'A']=false;
                 std::string dmenu = "Drive";
                 dmenu += c;
 
@@ -12062,7 +12092,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 for (size_t i=0;drive_opts[i][0] != NULL;i++) {
                     const std::string name = std::string("drive_") + c + "_" + drive_opts[i][0];
-                    if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg")||!strcmp(drive_opts[i][0], "div3"))&&(c!='A'&&c!='C'&&c!='D')) continue;
+                    if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg")||!strcmp(drive_opts[i][0], "div3"))&&(c!='A'&&c!='C'&&c!='D'))
+                        continue;
                     if (!strcmp(drive_opts[i][1], "--"))
                         mainMenu.alloc_item(DOSBoxMenu::separator_type_id,name);
                     else
