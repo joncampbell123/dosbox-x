@@ -151,6 +151,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
+extern bool         sync_time;
 extern int          freesizecap;
 extern unsigned int page;
 
@@ -1131,6 +1132,8 @@ void DOSBOX_RealInit() {
     // TODO: these should be parsed by BIOS startup
     allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
 
+    sync_time = section->Get_bool("synchronize time");
+
     // TODO: should be parsed by motherboard emulation
     allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
@@ -1444,6 +1447,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select the key the mapper SendKey function will send.");
     Pstring->Set_values(sendkeys);
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will tries to automatically synchronize time with the host, unless you decide to change the date/time manually.");
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host.");
@@ -3460,7 +3466,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
     Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help(
-            "parallel1-3 -- set type of device connected to the parallel (LPT) port.\n"
+            "parallel1-9 -- set type of device connected to the parallel (LPT) port.\n"
             "Can be:\n"
             "   reallpt (direct parallel port passthrough),\n"
             "   file (records data to a file or passes it to a device),\n"
@@ -3488,6 +3494,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    openerror:<program>: start a program to open the file if an error had occurred.\n"
             "  for printer:\n"
             "    printer still has it's own configuration section above."
+            "Note: LPT1-3 are standard LPT ports. For LPT4-9 you will need to specify a base address if enabled."
     );
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");
@@ -3496,6 +3503,18 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("parallel3",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
     Pstring->SetBasic(true);
+    Pstring = secprop->Add_string("parallel4",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring = secprop->Add_string("parallel5",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring = secprop->Add_string("parallel6",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring = secprop->Add_string("parallel7",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring = secprop->Add_string("parallel8",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring = secprop->Add_string("parallel9",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
 
     Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable dongle");

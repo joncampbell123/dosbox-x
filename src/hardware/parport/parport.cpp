@@ -37,6 +37,8 @@
 #include "filelpt.h"
 #include "dos_inc.h"
 
+uint16_t parallel_baseaddr[9] = {0x378,0x278,0x3bc,0,0,0,0,0,0};
+
 bool device_LPT::Read(uint8_t * data,uint16_t * size) {
     (void)data;//UNUSED
 	*size=0;
@@ -67,7 +69,7 @@ uint16_t device_LPT::GetInformation(void) {
 	return 0x80A0;
 }
 
-const char* lptname[]={"LPT1","LPT2","LPT3"};
+const char* lptname[]={"LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9"};
 device_LPT::device_LPT(uint8_t num, class CParallel* pp) {
 	pportclass = pp;
 	SetName(lptname[num]);
@@ -104,7 +106,7 @@ void CParallel::handleEvent(uint16_t type) {
 
 static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
     (void)iolen;//UNUSED
-	for(Bitu i = 0; i < 3; i++) {
+	for(Bitu i = 0; i < 9; i++) {
 		if(parallel_baseaddr[i]==(port&0xfffc) && (parallelPortObjects[i]!=0)) {
 			Bitu retval=0xff;
 			switch (port & 0x7) {
@@ -131,7 +133,7 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 }
 
 static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
-	for(Bitu i = 0; i < 3; i++) {
+	for(Bitu i = 0; i < 9; i++) {
 		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 #if PARALLEL_DEBUG
 			const char* const dbgtext[]={"DAT","IOS","CON","???"};
@@ -181,9 +183,9 @@ void CParallel::log_par(bool active, char const* format,...) {
 // Initialisation
 CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
     (void)cmd;//UNUSED
-	base = parallel_baseaddr[portnr];
-	irq = initirq;
-	port_nr = portnr;
+    base = parallel_baseaddr[portnr];
+    irq = initirq;
+    port_nr = portnr;
 
 #if PARALLEL_DEBUG
 	dbg_data	= cmd->FindExist("dbgdata", false);
@@ -286,7 +288,7 @@ void CParallel::initialize()
 
 
 
-CParallel* parallelPortObjects[3]={NULL,NULL,NULL};
+CParallel* parallelPortObjects[]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 bool DISNEY_HasInit();
 Bitu DISNEY_BasePort();
@@ -297,7 +299,7 @@ Bitu bios_post_parport_count() {
 	Bitu count = 0;
 	unsigned int i;
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (parallelPortObjects[i] != NULL)
 			count++;
 		else if (DISNEY_HasInit() && parallel_baseaddr[i] == DISNEY_BasePort())
@@ -333,17 +335,25 @@ public:
 #endif
 
 		// default ports & interrupts
-		uint8_t defaultirq[] = { 7, 5, 12};
+		uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 		
 		char pname[]="parallelx";
 		// iterate through all 3 lpt ports
-		for (Bitu i = 0; i < 3; i++) {
+		for (Bitu i = 0; i < 9; i++) {
 			pname[8] = '1' + (char)i;
 			CommandLine cmd(0,section->Get_string(pname));
 
 			std::string str;
+            if(cmd.FindStringBegin("base:",str,true))
+				parallel_baseaddr[i] = strtol(str.c_str(), NULL, 16);
+            if(cmd.FindStringBegin("irq:",str,true))
+				defaultirq[i] = strtol(str.c_str(), NULL, 10);
 			cmd.FindCommand(1,str);
+            if (parallel_baseaddr[i]==0) {
+				if (str!="disabled") LOG_MSG("LPT%d: A valid base address is required",(int)i+1);
+				parallelPortObjects[i] = 0;
+            } else
 #if C_DIRECTLPT
 			if(str=="reallpt") {
 				CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
@@ -353,8 +363,7 @@ public:
 					delete cdlpt;
 					parallelPortObjects[i]=0;
 				}
-			}
-			else
+			} else
 #endif
 			if(!str.compare("file")) {
 				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd);
@@ -364,8 +373,7 @@ public:
 					delete cflpt;
 					parallelPortObjects[i]=0;
 				}
-			}
-			else 
+			} else
 #if C_PRINTER
             // allow printer redirection on a single port
             if (str == "printer" && !printer_used)
@@ -382,8 +390,7 @@ public:
                     delete cprd;
                     parallelPortObjects[i] = 0;
                 }
-            }
-            else
+            } else
 #endif				
             if(str=="disabled") {
 				parallelPortObjects[i] = 0;
@@ -404,7 +411,7 @@ public:
 
 	~PARPORTS () {
 //		LOG_MSG("Parports destructor\n");
-		for (Bitu i = 0; i < 3; i++) {
+		for (Bitu i = 0; i < 9; i++) {
 			if (parallelPortObjects[i]) {
 				delete parallelPortObjects[i];
 				parallelPortObjects[i] = 0;
@@ -433,7 +440,7 @@ void PARALLEL_OnPowerOn (Section * sec) {
 	/* Mainline DOSBox 0.74 compatible support for "disney=true" setting.
 	 * But, don't allocate the Disney Sound Source if LPT1 is already taken. */
 	if (!DISNEY_HasInit() && DISNEY_ShouldInit() && parallelPortObjects[0] == NULL) {
-		LOG_MSG("LPT: LPT1 not taken, and dosbox.conf says to emulate Disney Sound Source");
+		LOG_MSG("LPT: LPT1 not taken, and dosbox-x.conf says to emulate Disney Sound Source");
 		DISNEY_Init(parallel_baseaddr[0]);
 	}
 }
@@ -444,7 +451,7 @@ void PARALLEL_OnDOSKernelInit (Section * sec) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating LPTx devices");
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (parallelPortObjects[i] != NULL)
 			parallelPortObjects[i]->registerDOSDevice();
 	}
@@ -454,7 +461,7 @@ void PARALLEL_OnDOSKernelExit (Section * sec) {
     (void)sec;//UNUSED
 	unsigned int i;
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (parallelPortObjects[i] != NULL)
 			parallelPortObjects[i]->unregisterDOSDevice();
 	}
@@ -465,7 +472,7 @@ void PARALLEL_OnReset (Section * sec) {
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (parallelPortObjects[i] != NULL)
 			parallelPortObjects[i]->unregisterDOSDevice();
 	}

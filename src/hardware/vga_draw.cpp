@@ -98,7 +98,6 @@ extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
-
 extern bool pc98_31khz_mode;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
@@ -2784,6 +2783,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
@@ -2993,6 +2993,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
+
+    if (sync_time&&!manualtime) {
+        void BIOS_HostTimeSync();
+        BIOS_HostTimeSync();
+    }
 
 #if defined(USE_TTF)
     if (ttf.inUse) {

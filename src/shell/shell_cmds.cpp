@@ -109,6 +109,7 @@ SHELL_Cmd cmd_list[]={
 
 extern int enablelfn, lfn_filefind_handle;
 extern bool date_host_forced, usecon, rsize;
+extern bool sync_time, manualtime;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
@@ -2590,6 +2591,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 
 		reg_ah=0x2b; // set system date
 		CALLBACK_RunRealInt(0x21);
+		if (sync_time) manualtime=false;
 		return;
 	}
 	// check if a date was passed in command line
@@ -2668,6 +2670,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
+		if (sync_time) manualtime=false;
 		return;
 	}
 	uint32_t newhour,newminute,newsecond;
@@ -2689,6 +2692,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
 		}
+		if (sync_time) manualtime=true;
 		return;
 	}
 	bool timeonly = ScanCMDBool(args,"T");

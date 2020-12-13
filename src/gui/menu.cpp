@@ -695,7 +695,7 @@ static const char *def_menu_drive[] =
 /* help DOS commands ("HelpCommandMenu") */
 #define MENU_HELP_COMMAND_MAX 512
 static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
-char help_command_temp[512][30];
+char help_command_temp[MENU_HELP_COMMAND_MAX][30];
 
 /* help output debug ("HelpDebugMenu") */
 static const char *def_menu_help_debug[] =

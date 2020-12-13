@@ -1,4 +1,15 @@
 0.83.9
+  - DOSBox-X will now automatically synchronize the
+    date/time with the host system by default, which
+    can be turned off by setting the new config option
+    "synchronize time" to "false" in [dosbox] section,
+    or if you manually change the date/time. (Wengier)
+  - Improved compatability with Watcom C++ 2.0 when
+    long filename (LFN) support is enabled. (Wengier)
+  - Extended parallel (LPT) ports from LPT1-LPT3 to
+    LPT1-LPT9. Since LPT4-9 are not backed by the BIOS,
+    you will need to specify base addresses for these
+    ports if they are enabled. (Wengier)
   - Added read-only options to the Drive menu to mount
     the specified drive in read-only mode. (Wengier)
   - Added support for starting DOSBox-X in a specific
