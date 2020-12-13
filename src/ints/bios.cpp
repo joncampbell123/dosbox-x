@@ -5297,7 +5297,7 @@ static Bitu INT11_Handler(void) {
 #define DOSBOX_CLOCKSYNC 0
 #endif
 
-static void BIOS_HostTimeSync() {
+void BIOS_HostTimeSync() {
     uint32_t milli = 0;
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
     struct timespec tp;

@@ -228,6 +228,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 	return true;	
 }
 
+bool checkwat=false;
 bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char pdir[LFN_NAMELENGTH+4], *p;
     uint8_t drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
@@ -282,6 +283,10 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			dta.GetResult(name,lname,size,date,time,attr);
 			strcat(SFNPath,name);
 			strcat(LFNPath,lname);
+        } else if (checkwat) {
+            lfn_filefind_handle=fbak;
+            dos.dta(save_dta);
+            return false;
 		} else {
 			strcat(SFNPath,p);
 			strcat(LFNPath,p);

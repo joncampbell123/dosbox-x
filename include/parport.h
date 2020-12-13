@@ -97,8 +97,7 @@ public:
 };
 
 extern CParallel* parallelPortObjects[];
-
-const uint16_t parallel_baseaddr[3] = {0x378,0x278,0x3bc};
+extern uint16_t parallel_baseaddr[9];
 
 #endif
 

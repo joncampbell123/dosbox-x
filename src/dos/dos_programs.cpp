@@ -2848,7 +2848,7 @@ restart_int:
 
             bool setdir=false;
             char dirCur[512], dirNew[512];
-            if (getcwd(dirCur, 512)!=NULL&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
+            if (!dos_kernel_disabled&&getcwd(dirCur, 512)!=NULL&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
                 Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
                 strcpy(dirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
                 strcat(dirNew, Drives[DOS_GetDefaultDrive()]->curdir);
@@ -2912,6 +2912,8 @@ restart_int:
             c = 489; h = 16; s = 63;
         } else if(disktype=="hd_520") {
             c = 1023; h = 16; s = 63;
+        } else if(disktype=="hd_1gig") {
+            c = 1023; h = 32; s = 63;
         } else if(disktype=="hd_2gig") {
             c = 1023; h = 64; s = 63;
         } else if(disktype=="hd_4gig") { // fseek only supports 2gb
@@ -3008,7 +3010,7 @@ restart_int:
 
         bool setdir=false;
         char dirCur[512], dirNew[512];
-        if (getcwd(dirCur, 512)!=NULL&&!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local directory", 15)) {
+        if (!dos_kernel_disabled&&getcwd(dirCur, 512)!=NULL&&!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local directory", 15)) {
             Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
             strcpy(dirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
             strcat(dirNew, Drives[DOS_GetDefaultDrive()]->curdir);
@@ -3029,13 +3031,13 @@ restart_int:
         if (f){
             fclose(f);
             if (!ForceOverwrite) {
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
                 if (setdir) chdir(dirCur);
                 return;
             }
         }
 
-        WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
+        if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
         // do it again for fixed chs values
@@ -3044,7 +3046,7 @@ restart_int:
         // create the image file
         f = fopen64(temp_line.c_str(),"wb+");
         if (!f) {
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
+            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             if (setdir) chdir(dirCur);
             return;
         }
@@ -3054,7 +3056,7 @@ restart_int:
 #else
         if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
 #endif
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
+            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
             unlink(temp_line.c_str());
             if (setdir) chdir(dirCur);
@@ -3062,7 +3064,7 @@ restart_int:
         }
         uint8_t bufferbyte=0;
         if(fwrite(&bufferbyte,1,1,f)!=1) {
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
+            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
             unlink(temp_line.c_str());
             if (setdir) chdir(dirCur);
@@ -3522,6 +3524,12 @@ restart_int:
 
 static void IMGMAKE_ProgramStart(Program * * make) {
     *make=new IMGMAKE;
+}
+
+void runImgmake(const char *str) {
+	IMGMAKE imgmake;
+	imgmake.cmd=new CommandLine("IMGMAKE", str);
+	imgmake.Run();
 }
 
 // LOADFIX
@@ -7154,8 +7162,8 @@ void DOS_SetupPrograms(void) {
         "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in KB or fd=fd_1440):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
         "    \033[33;1mHard disk templates:\033[0m\n"
-        "     hd_250: 250MB image, hd_520: 520MB image, hd_2gig: 2GB image\n"
-        "     hd_4gig:  4GB image, hd_8gig: 8GB image (maximum size)\n"
+        "     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image\n"
+        "     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image\n"
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
         "    \033[33;1mCustom hard disk images:\033[0m hd (requires -size or -chs)\n"
         "  -size: Size of a custom hard disk image in MB.\n"

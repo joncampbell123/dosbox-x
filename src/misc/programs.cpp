@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1073,6 +1073,8 @@ void CONFIG::Run(void) {
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
 							force_nocachedir = section->Get_bool("nocachedir");
+                            sync_time = section->Get_bool("synchronize time");
+                            if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) manualtime=false;
 							std::string freesizestr = section->Get_string("freesizecap");
                             if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
                             else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;

@@ -41,6 +41,7 @@
 #include "render.h"
 
 extern bool log_int21, log_fileio;
+extern bool sync_time, manualtime;
 extern int lfn_filefind_handle;
 extern int autofixwarn;
 unsigned long totalc, freec;
@@ -1084,6 +1085,7 @@ static Bitu DOS_21Handler(void) {
             dos.date.month=reg_dh;
             dos.date.day=reg_dl;
             reg_al=0;
+            if (sync_time) manualtime=true;
             break;
         case 0x2c: {    /* Get System Time */
             if(date_host_forced || IS_PC98_ARCH) {
@@ -1205,6 +1207,7 @@ static Bitu DOS_21Handler(void) {
 				mem_writed(BIOS_TIMER,ticks);
                 reg_al = 0;
             }
+            if (sync_time) manualtime=true;
             break;
         case 0x2e:      /* Set Verify flag */
             dos.verify=(reg_al==1);
@@ -3741,8 +3744,15 @@ void DOS_Int21_7156(char *name1, char *name2) {
 				CALLBACK_SCF(true);
 		}
 }
+
+extern bool checkwat;
 void DOS_Int21_7160(char *name1, char *name2) {
-		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+        MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+        if (*(name1+1)>=0 && *(name1+1)<32) {
+            reg_ax=!*(name1+1)?2:3;
+            CALLBACK_SCF(true);
+            return;
+        }
 		*name1='\"';
 		char *p=name1+strlen(name1);
 		while (*p==' '||*p==0) p--;
@@ -3760,6 +3770,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 								CALLBACK_SCF(false);
 								break;
 						case 1:         // SFN path name
+                                checkwat=true;
 								if (DOS_GetSFNPath(name1,name2,false)) {
 									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
 									reg_ax=0;
@@ -3768,6 +3779,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 									reg_ax=2;
 									CALLBACK_SCF(true);
 								}
+                                checkwat=false;
 								break;
 						case 2:         // LFN path name
 								if (DOS_GetSFNPath(name1,name2,true)) {
