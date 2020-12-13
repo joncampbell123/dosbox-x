@@ -1,4 +1,10 @@
 0.83.9
+  - Added menu option "Create blank disk images..."
+    (under "DOS" menu) to create blank floppy or hard
+    disk images of a common disk size, including 1.2MB,
+    1.44MB, 2.88MB for floppy images and 250MB, 520MB,
+    1GB, 2GB, 4GB & 8GB for hard disk images. The 1GB
+    option is also added to IMGMAKE command. (Wengier)
   - DOSBox-X will now automatically synchronize the
     date/time with the host system by default, which
     can be turned off by setting the new config option

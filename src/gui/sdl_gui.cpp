@@ -50,6 +50,10 @@
 #include "SDL_syswm.h"
 #include "sdlmain.h"
 
+#if !defined(HX_DOS)
+#include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
+
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu guiMenu, nullMenu;
 #endif
@@ -807,7 +811,7 @@ std::string RestoreName(std::string name) {
     return dispname;
 }
 
-GUI::Checkbox *advopt, *saveall;
+GUI::Checkbox *advopt, *saveall, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -1828,6 +1832,170 @@ public:
     }
 };
 
+class MakeDiskImage : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    MakeDiskImage(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 500, 270, title) {
+            new GUI::Label(this, 100, 30, "Select a floppy disk image size:");
+            imgfd1200 = new GUI::Checkbox(this, 110, 60, "1.2MB");
+            imgfd1200->addActionHandler(this);
+            imgfd1440 = new GUI::Checkbox(this, 210, 60, "1.44MB");
+            imgfd1440->addActionHandler(this);
+            imgfd2880 = new GUI::Checkbox(this, 310, 60, "2.88MB");
+            imgfd2880->addActionHandler(this);
+            new GUI::Label(this, 100, 90, "Select a hard disk image size:");
+            imghd250 = new GUI::Checkbox(this, 110, 120, "250MB");
+            imghd250->addActionHandler(this);
+            imghd520 = new GUI::Checkbox(this, 210, 120, "520MB");
+            imghd520->addActionHandler(this);
+            imghd1gig = new GUI::Checkbox(this, 310, 120, "1GB");
+            imghd1gig->addActionHandler(this);
+            imghd2gig = new GUI::Checkbox(this, 110, 150, "2GB");
+            imghd2gig->addActionHandler(this);
+            imghd4gig = new GUI::Checkbox(this, 210, 150, "4GB");
+            imghd4gig->addActionHandler(this);
+            imghd8gig = new GUI::Checkbox(this, 310, 150, "8GB");
+            imghd8gig->addActionHandler(this);
+            (new GUI::Button(this, 160, 190, "OK", 70))->addActionHandler(this);
+            (new GUI::Button(this, 260, 190, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "1.2MB" && imgfd1200->isChecked()) {
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "1.44MB" && imgfd1440->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "2.88MB" && imgfd2880->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "250MB" && imghd250->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "520MB" && imghd520->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "1GB" && imghd1gig->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "2GB" && imghd2gig->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "4GB" && imghd4gig->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "8GB" && imghd8gig->isChecked()) {
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+        }
+        if (arg == "OK") {
+            std::string temp="";
+            if (imgfd1200->isChecked())
+               temp="fd_1200";
+            else if (imgfd1440->isChecked())
+               temp="fd_1440";
+            else if (imgfd2880->isChecked())
+               temp="fd_2880";
+            else if (imghd250->isChecked())
+               temp="hd_250";
+            else if (imghd520->isChecked())
+               temp="hd_520";
+            else if (imghd1gig->isChecked())
+               temp="hd_1gig";
+            else if (imghd2gig->isChecked())
+               temp="hd_2gig";
+            else if (imghd4gig->isChecked())
+               temp="hd_4gig";
+            else if (imghd8gig->isChecked())
+               temp="hd_8gig";
+            if (temp.size()) {
+#if !defined(HX_DOS)
+                char CurrentDir[512];
+                char * Temp_CurrentDir = CurrentDir;
+                getcwd(Temp_CurrentDir, 512);
+                const char *lFilterPatterns[] = {"*.img","*.IMG"};
+                const char *lFilterDescription = "Disk image files (*.img)";
+                char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a disk image file","IMGMAKE.IMG",2,lFilterPatterns,lFilterDescription);
+                if (lTheSaveFileName!=NULL) {
+                    temp="-force -t "+temp+" "+std::string(lTheSaveFileName);
+                    void runImgmake(const char *str);
+                    runImgmake(temp.c_str());
+                    if (!dos_kernel_disabled) {
+                        DOS_Shell shell;
+                        shell.ShowPrompt();
+                    }
+                }
+                chdir( Temp_CurrentDir );
+#endif
+            }
+            if (shortcut) running = false;
+        }
+        else if (arg == "Close") {
+            close();
+            if (shortcut) running = false;
+        }
+    }
+};
+
 class ShowHelpIntro : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2318,6 +2486,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 37: {
             auto *np14 = new ShowHelpNIC(screen, 70, 70, "Network interface list");
             np14->raise();
+            } break;
+        case 38: {
+            auto *np15 = new MakeDiskImage(screen, 110, 70, "Create blank disk image");
+            np15->raise();
             } break;
         default:
             break;

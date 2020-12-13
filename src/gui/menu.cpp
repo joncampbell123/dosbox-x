@@ -492,8 +492,9 @@ static const char *def_menu_dos[] =
     "--",
     "mapper_swapimg",
     "mapper_swapcd",
-    "--",
     "mapper_rescanall",
+    "--",
+    "make_diskimage",
     "list_drivenum",
     "list_ideinfo",
 #if C_PRINTER || C_DEBUG

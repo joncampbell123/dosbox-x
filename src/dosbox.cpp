@@ -3493,7 +3493,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    openwith:<program>: start a program to open the file in all other conditions.\n"
             "    openerror:<program>: start a program to open the file if an error had occurred.\n"
             "  for printer:\n"
-            "    printer still has it's own configuration section above."
+            "    printer still has it's own configuration section above.\n"
             "Note: LPT1-3 are standard LPT ports. For LPT4-9 you will need to specify a base address if enabled."
     );
     Pstring->SetBasic(true);
