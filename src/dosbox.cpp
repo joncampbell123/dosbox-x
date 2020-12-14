@@ -3494,7 +3494,8 @@ void DOSBOX_SetupConfigSections(void) {
             "    openerror:<program>: start a program to open the file if an error had occurred.\n"
             "  for printer:\n"
             "    printer still has it's own configuration section above.\n"
-            "Note: LPT1-3 are standard LPT ports. For LPT4-9 you will need to specify a base address if enabled."
+            "Note: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports.\n"
+            "      You can optionally specify base addresses and IRQs for them with base: and irq: options."
     );
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");

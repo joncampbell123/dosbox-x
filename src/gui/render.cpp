@@ -954,7 +954,7 @@ void RENDER_SetForceUpdate(bool f) {
 #if C_OPENGL
 static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	char* src;
-	std::stringstream buf, tmp;
+	std::stringstream buf;
 	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
 	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
     bool empty=true;
@@ -962,7 +962,7 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
         buf << fshader.rdbuf();
         empty=buf.str().empty();
         fshader.close();
-        if (empty) buf.swap(tmp);
+        if (empty) buf=std::stringstream();
     }
 	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
