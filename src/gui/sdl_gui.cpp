@@ -116,7 +116,7 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #endif
 	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
-const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
+const char *intromsg = "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.";
 
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
@@ -811,7 +811,7 @@ std::string RestoreName(std::string name) {
     return dispname;
 }
 
-GUI::Checkbox *advopt, *saveall, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
+GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -847,6 +847,7 @@ public:
             name += "_CONFIGFILE_HELP";
             setText(MSG_Get(name.c_str()));
         }
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 
     ~HelpWindow() {
@@ -979,6 +980,7 @@ public:
             resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + /*wiw->vscroll_display_width*//*scrollbar*/ + 10,
                     button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
         }
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     ~SectionEditor() {
@@ -1196,6 +1198,7 @@ public:
             resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + /*wiw->vscroll_display_width*//*scrollbar*/ + 10,
                     button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
         }
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     ~ConfigEditor() {
@@ -1281,6 +1284,7 @@ public:
         if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     ~AutoexecEditor() {
@@ -1347,6 +1351,7 @@ public:
         saveall->setChecked(section->Get_bool("show advanced options"));
         (new GUI::Button(this, 220, 120, "OK", 70))->addActionHandler(this);
         (new GUI::Button(this, 310, 120, "Cancel", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1392,6 +1397,7 @@ public:
         name->setText("messages.txt");
         (new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1450,6 +1456,7 @@ public:
         name->setText(cycles.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
         name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
@@ -1485,6 +1492,7 @@ public:
             name->setText("");
         (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1521,6 +1529,7 @@ public:
             name->setText(buffer);
             (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
             (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1556,6 +1565,7 @@ public:
             name->setText(buffer);
             (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
             (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1837,35 +1847,80 @@ protected:
     GUI::Input *name;
 public:
     MakeDiskImage(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 500, 270, title) {
+        ToplevelWindow(parent, x, y, 500, 300, title) {
             new GUI::Label(this, 100, 30, "Select a floppy disk image size:");
-            imgfd1200 = new GUI::Checkbox(this, 110, 60, "1.2MB");
+            imgfd360 = new GUI::Checkbox(this, 110, 60, "360KB");
+            imgfd360->addActionHandler(this);
+            imgfd400 = new GUI::Checkbox(this, 210, 60, "400KB");
+            imgfd400->addActionHandler(this);
+            imgfd720 = new GUI::Checkbox(this, 310, 60, "720KB");
+            imgfd720->addActionHandler(this);
+            imgfd1200 = new GUI::Checkbox(this, 110, 90, "1.2MB");
             imgfd1200->addActionHandler(this);
-            imgfd1440 = new GUI::Checkbox(this, 210, 60, "1.44MB");
+            imgfd1440 = new GUI::Checkbox(this, 210, 90, "1.44MB");
             imgfd1440->addActionHandler(this);
-            imgfd2880 = new GUI::Checkbox(this, 310, 60, "2.88MB");
+            imgfd2880 = new GUI::Checkbox(this, 310, 90, "2.88MB");
             imgfd2880->addActionHandler(this);
-            new GUI::Label(this, 100, 90, "Select a hard disk image size:");
-            imghd250 = new GUI::Checkbox(this, 110, 120, "250MB");
+            new GUI::Label(this, 100, 120, "Select a hard disk image size:");
+            imghd250 = new GUI::Checkbox(this, 110, 150, "250MB");
             imghd250->addActionHandler(this);
-            imghd520 = new GUI::Checkbox(this, 210, 120, "520MB");
+            imghd520 = new GUI::Checkbox(this, 210, 150, "520MB");
             imghd520->addActionHandler(this);
-            imghd1gig = new GUI::Checkbox(this, 310, 120, "1GB");
+            imghd1gig = new GUI::Checkbox(this, 310, 150, "1GB");
             imghd1gig->addActionHandler(this);
-            imghd2gig = new GUI::Checkbox(this, 110, 150, "2GB");
+            imghd2gig = new GUI::Checkbox(this, 110, 180, "2GB");
             imghd2gig->addActionHandler(this);
-            imghd4gig = new GUI::Checkbox(this, 210, 150, "4GB");
+            imghd4gig = new GUI::Checkbox(this, 210, 180, "4GB");
             imghd4gig->addActionHandler(this);
-            imghd8gig = new GUI::Checkbox(this, 310, 150, "8GB");
+            imghd8gig = new GUI::Checkbox(this, 310, 180, "8GB");
             imghd8gig->addActionHandler(this);
-            (new GUI::Button(this, 160, 190, "OK", 70))->addActionHandler(this);
-            (new GUI::Button(this, 260, 190, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 160, 220, "OK", 70))->addActionHandler(this);
+            (new GUI::Button(this, 260, 220, "Cancel", 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "1.2MB" && imgfd1200->isChecked()) {
+        if (arg == "360KB" && imgfd360->isChecked()) {
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "720KB" && imgfd720->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "400KB" && imgfd400->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd720->setChecked(false);
+            imgfd1200->setChecked(false);
+            imgfd1440->setChecked(false);
+            imgfd2880->setChecked(false);
+            imghd250->setChecked(false);
+            imghd520->setChecked(false);
+            imghd1gig->setChecked(false);
+            imghd2gig->setChecked(false);
+            imghd4gig->setChecked(false);
+            imghd8gig->setChecked(false);
+        } else if (arg == "1.2MB" && imgfd1200->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
             imghd250->setChecked(false);
@@ -1875,6 +1930,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "1.44MB" && imgfd1440->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd2880->setChecked(false);
             imghd250->setChecked(false);
@@ -1884,6 +1942,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "2.88MB" && imgfd2880->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imghd250->setChecked(false);
@@ -1893,6 +1954,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "250MB" && imghd250->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1902,6 +1966,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "520MB" && imghd520->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1911,6 +1978,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "1GB" && imghd1gig->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1920,6 +1990,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "2GB" && imghd2gig->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1929,6 +2002,9 @@ public:
             imghd4gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "4GB" && imghd4gig->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1938,6 +2014,9 @@ public:
             imghd2gig->setChecked(false);
             imghd8gig->setChecked(false);
         } else if (arg == "8GB" && imghd8gig->isChecked()) {
+            imgfd360->setChecked(false);
+            imgfd400->setChecked(false);
+            imgfd720->setChecked(false);
             imgfd1200->setChecked(false);
             imgfd1440->setChecked(false);
             imgfd2880->setChecked(false);
@@ -1949,7 +2028,13 @@ public:
         }
         if (arg == "OK") {
             std::string temp="";
-            if (imgfd1200->isChecked())
+            if (imgfd360->isChecked())
+               temp="fd_360";
+            else if (imgfd400->isChecked())
+               temp="fd_400";
+            else if (imgfd720->isChecked())
+               temp="fd_720";
+            else if (imgfd1200->isChecked())
                temp="fd_1200";
             else if (imgfd1440->isChecked())
                temp="fd_1440";
@@ -1968,13 +2053,16 @@ public:
             else if (imghd8gig->isChecked())
                temp="hd_8gig";
             if (temp.size()) {
-#if !defined(HX_DOS)
+#if defined(HX_DOS)
+                char const * lTheSaveFileName = "IMGMAKE.IMG";
+#else
                 char CurrentDir[512];
                 char * Temp_CurrentDir = CurrentDir;
                 getcwd(Temp_CurrentDir, 512);
                 const char *lFilterPatterns[] = {"*.img","*.IMG"};
                 const char *lFilterDescription = "Disk image files (*.img)";
                 char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a disk image file","IMGMAKE.IMG",2,lFilterPatterns,lFilterDescription);
+#endif
                 if (lTheSaveFileName!=NULL) {
                     temp="-force -t "+temp+" "+std::string(lTheSaveFileName);
                     void runImgmake(const char *str);
@@ -1985,11 +2073,10 @@ public:
                     }
                 }
                 chdir( Temp_CurrentDir );
-#endif
             }
             if (shortcut) running = false;
         }
-        else if (arg == "Close") {
+        else if (arg == "Close" || arg == "Cancel") {
             close();
             if (shortcut) running = false;
         }
@@ -2170,6 +2257,7 @@ public:
                closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     ~ConfigurationWindow() { running = false; cfg_windows_active.clear(); }
@@ -2242,9 +2330,11 @@ public:
             system(("open "+url).c_str());
 #endif
         } else if (arg == "About") {
-            new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
+            //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
+            //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, "Introduction", intromsg);
         } else if (arg == "Getting Started") {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -2254,9 +2344,11 @@ public:
 #endif
             msg += MSG_Get("PROGRAM_INTRO_MOUNT_END");
 
-            new GUI::MessageBox2(getScreen(), 0, 50, 680, std::string("Getting Started"), msg);
+            //new GUI::MessageBox2(getScreen(), 0, 50, 680, std::string("Getting Started"), msg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>680?(parent->getWidth()-680)/2:0, 50, 680, std::string("Getting Started"), msg);
         } else if (arg == "CD-ROM Support") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
+            //new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>640?(parent->getWidth()-640)/2:0, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
         } else if (arg == "Save...") {
             new SaveDialog(getScreen(), 50, 100, "Save Configuration...");
         } else if (arg == "Save Language File...") {

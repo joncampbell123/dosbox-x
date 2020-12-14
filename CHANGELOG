@@ -1,10 +1,13 @@
 0.83.9
   - Added menu option "Create blank disk images..."
     (under "DOS" menu) to create blank floppy or hard
-    disk images of a common disk size, including 1.2MB,
-    1.44MB, 2.88MB for floppy images and 250MB, 520MB,
-    1GB, 2GB, 4GB & 8GB for hard disk images. The 1GB
-    option is also added to IMGMAKE command. (Wengier)
+    disk images of a common disk size, including 360KB,
+    400KB, 720KB, 1.2MB, 1.44MB and 2.88MB for floppy
+    disk images and 250MB, 520MB, 1GB, 2GB, 4GB and 8GB
+    for hard disk images. The 1GB option (-t hd_1gig)
+    is also added to IMGMAKE command. (Wengier)
+  - The Configuration Tool will now be centered within
+    the DOSBox-X window for a better looking. (Wengier)
   - DOSBox-X will now automatically synchronize the
     date/time with the host system by default, which
     can be turned off by setting the new config option
@@ -12,10 +15,6 @@
     or if you manually change the date/time. (Wengier)
   - Improved compatability with Watcom C++ 2.0 when
     long filename (LFN) support is enabled. (Wengier)
-  - Extended parallel (LPT) ports from LPT1-LPT3 to
-    LPT1-LPT9. Since LPT4-9 are not backed by the BIOS,
-    you will need to specify base addresses for these
-    ports if they are enabled. (Wengier)
   - Added read-only options to the Drive menu to mount
     the specified drive in read-only mode. (Wengier)
   - Added support for starting DOSBox-X in a specific
@@ -29,6 +28,9 @@
   - DOSBox-X will now pop up a message box to inform
     the user when a Direct3D pixel shader is loaded
     from the menu on the Windows platform. (Wengier)
+  - Extended parallel (LPT) ports from LPT1-LPT3 to
+    LPT1-LPT9. You can also optionally specify base
+    addresses and IRQs for these ports. (Wengier)
   - Enhanced parallel1-3 config options in [parallel]
     section to allow the generated files to be started
     with the specified action: "openpcl" to start a
@@ -74,7 +76,8 @@
     cache is allocated and to support dual mapping.
   - Added OPL3Duo support, which passes OPL3 output
     to an OPL3Duo Arduino board with a specific
-    configuration if desired. (josephillips85)
+    configuration if desired. Set the config option
+    "oplemu=opl3duoboard" to use it. (josephillips85)
 0.83.8
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"

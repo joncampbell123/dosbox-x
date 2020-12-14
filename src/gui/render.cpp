@@ -304,34 +304,7 @@ static void RENDER_ClearCacheHandler(const void * src) {
     render.scale.lineHandler( src );
 }
 
-#define RENDER_MAXWIDTH 800
-#define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
-void SimpleRenderer(const void *s) {
-	render.cache.curr_y++;
-	if (render.cache.invalid) {
-		wmemcpy((wchar_t*)render.cache.pointer, (wchar_t*)s, render.cache.width>>1);
-		render.cache.past_y = render.cache.curr_y;
-		render.cache.start_x = 0;
-	} else {
-		uint32_t *cache = (uint32_t *)render.cache.pointer;
-		uint32_t *source = (uint32_t *)s;
-		for (Bitu index = render.cache.width/4; index; index--) {
-			if (*source != *cache) {
-				index *= 4;
-				if ((Bitu)render.cache.start_x > render.cache.width - index)
-					render.cache.start_x = render.cache.width - index;
-				wmemcpy((wchar_t*)cache, (wchar_t*)source, index>>1);
-				render.cache.past_y = render.cache.curr_y;
-				break;
-			}
-			source++;
-			cache++;
-		}
-	}
-	render.cache.pointer += render.cache.width;
-}
 
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
@@ -353,20 +326,7 @@ bool RENDER_StartUpdate(void) {
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
-#if defined(USE_TTF)
-    if (ttf.inUse) {
-        if (render.cache.nextInvalid) {		// Always do a full screen update
-            render.cache.nextInvalid = false;
-            render.cache.invalid = true;
-            if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
-                return false;
-            RENDER_DrawLine = SimpleRenderer;
-        } else
-            RENDER_DrawLine = RENDER_StartLineHandler;
-    /* Clearing the cache will first process the line to make sure it's never the same */
-    } else
-#endif
-        if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -836,10 +796,7 @@ forcenormal:
 
     last_gfx_flags = gfx_flags;
 #if defined(USE_TTF)
-    if (sdl.desktop.want_type == SCREEN_TTF) {
-        render.cache.nextInvalid = true;
-        if (resetreq) resetFontSize();
-    }
+    if (sdl.desktop.want_type == SCREEN_TTF && resetreq) resetFontSize();
 #endif
 }
 
@@ -954,7 +911,7 @@ void RENDER_SetForceUpdate(bool f) {
 #if C_OPENGL
 static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	char* src;
-	std::stringstream buf, tmp;
+	std::stringstream buf;
 	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
 	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
     bool empty=true;
@@ -962,7 +919,7 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
         buf << fshader.rdbuf();
         empty=buf.str().empty();
         fshader.close();
-        if (empty) buf.swap(tmp);
+        if (empty) buf=std::stringstream();
     }
 	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;

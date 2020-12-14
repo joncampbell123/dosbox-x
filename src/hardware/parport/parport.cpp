@@ -350,10 +350,6 @@ public:
             if(cmd.FindStringBegin("irq:",str,true))
 				defaultirq[i] = strtol(str.c_str(), NULL, 10);
 			cmd.FindCommand(1,str);
-            if (parallel_baseaddr[i]==0) {
-				if (str!="disabled") LOG_MSG("LPT%d: A valid base address is required",(int)i+1);
-				parallelPortObjects[i] = 0;
-            } else
 #if C_DIRECTLPT
 			if(str=="reallpt") {
 				CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
