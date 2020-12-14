@@ -4339,7 +4339,6 @@ void GFX_EndTextLines(bool force=false) {
 }
 #endif
 
-extern uint8_t rendererCache[];
 void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep(0);
@@ -4348,48 +4347,6 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
-
-#if defined(USE_TTF)
-    if (sdl.desktop.want_type == SCREEN_TTF) {
-        if (!sdl.updating)
-            return;
-        sdl.updating = false;
-        if (ttf.inUse)
-            GFX_EndTextLines();
-        else {
-            int pixs = sdl.surface->w/render.cache.width;								// parachute/more safe than sdl.scale???
-            uint32_t *pointer = (uint32_t *)sdl.surface->pixels + (render.cache.start_y*sdl.surface->w + render.cache.start_x)*pixs;
-            uint8_t *cache = rendererCache + render.cache.start_y*render.cache.width + render.cache.start_x;
-
-            for (int i = render.cache.past_y - render.cache.start_y; i; i--)			// build all changed lines
-                {
-                uint32_t *cPointer = pointer;
-                uint8_t *cCache = cache;
-                for (int j = render.cache.width-render.cache.start_x; j; j--)			// build one line
-                    {
-                    for (int k = pixs; k; k--)
-                        *cPointer++ = ((uint32_t *)render.pal.rgb)[*cCache];
-                    cCache++;
-                    }
-                pointer += sdl.surface->w;
-                for (int j = pixs-1; j; j--)											// duplicate line pixs
-                    {
-                    wmemcpy((wchar_t*)pointer, (wchar_t*)(pointer-sdl.surface->w), (render.cache.width-render.cache.start_x)*pixs*2);
-                    pointer += sdl.surface->w;
-                    }
-                cache += render.cache.width;
-                }
-            SDL_Rect *rect = &sdl.updateRects[0];
-            rect->x = render.cache.start_x*pixs; rect->y = render.cache.start_y*pixs; rect->w = (render.cache.past_x-render.cache.start_x)*pixs; rect->h = (render.cache.past_y - render.cache.start_y)*pixs;
-#if defined(C_SDL2)
-            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-        }
-        return;
-    }
-#endif
 
 #if C_DIRECT3D
     // we may have to do forced update in D3D case
@@ -4401,11 +4358,12 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     bool actually_updating = sdl.updating;
     sdl.updating = false;
 #if defined(USE_TTF)
-	if (ttf.inUse) {
-		GFX_EndTextLines();
+    if (ttf.inUse) {
+        GFX_EndTextLines();
         return;
     }
 #endif
+
     switch (sdl.desktop.type) 
     {
         case SCREEN_SURFACE:

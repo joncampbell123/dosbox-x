@@ -98,11 +98,8 @@ typedef struct Render_t {
 		Bitu inHeight, inLine, outLine;
 	} scale;
 	struct {
-		bool invalid;
-		bool nextInvalid;
 		uint8_t *pointer;
 		Bitu width, height;
-		int start_x, past_x, start_y, past_y, curr_y;
 	} cache;
 #if C_OPENGL
 	char* shader_src;

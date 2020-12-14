@@ -2053,13 +2053,16 @@ public:
             else if (imghd8gig->isChecked())
                temp="hd_8gig";
             if (temp.size()) {
-#if !defined(HX_DOS)
+#if defined(HX_DOS)
+                char const * lTheSaveFileName = "IMGMAKE.IMG";
+#else
                 char CurrentDir[512];
                 char * Temp_CurrentDir = CurrentDir;
                 getcwd(Temp_CurrentDir, 512);
                 const char *lFilterPatterns[] = {"*.img","*.IMG"};
                 const char *lFilterDescription = "Disk image files (*.img)";
                 char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a disk image file","IMGMAKE.IMG",2,lFilterPatterns,lFilterDescription);
+#endif
                 if (lTheSaveFileName!=NULL) {
                     temp="-force -t "+temp+" "+std::string(lTheSaveFileName);
                     void runImgmake(const char *str);
@@ -2070,7 +2073,6 @@ public:
                     }
                 }
                 chdir( Temp_CurrentDir );
-#endif
             }
             if (shortcut) running = false;
         }
