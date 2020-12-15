@@ -3317,8 +3317,16 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x0C: /* text layer enable */
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_MASTER].display_enable = true;
+#if defined(USE_TTF)
+            void ttf_switch_on(bool ss);
+            ttf_switch_on(false);
+#endif
             break;
         case 0x0D: /* text layer disable */
+#if defined(USE_TTF)
+            void ttf_switch_off(bool ss);
+            ttf_switch_off(false);
+#endif
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_MASTER].display_enable = false;
             break;

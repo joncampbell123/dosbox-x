@@ -74,6 +74,8 @@
     section are being ignored. (Wengier)
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
+  - Added support for automatic switching from TTF
+    ouptut to another output in PC-98 mode. (Wengier)
   - Added OPL3Duo support, which passes OPL3 output
     to an OPL3Duo Arduino board with a specific
     configuration if desired. Set the config option

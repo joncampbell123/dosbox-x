@@ -1116,13 +1116,73 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 }
 
 #if defined(USE_TTF)
-extern bool resetreq, colorChanged;
 bool GFX_IsFullscreen(void), Direct3D_using(void);
 void ttf_reset(void), resetFontSize(), setVGADAC(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
+bool ttfswitch=false, switch_output_from_ttf=false;
+extern bool resetreq, colorChanged;
+extern int switchoutput;
+
+void ttf_switch_off(bool ss=true) {
+    if (ttf.inUse) {
+        std::string output="surface";
+        int out=switchoutput;
+        if (switchoutput==0)
+            output = "surface";
+#if C_OPENGL
+        else if (switchoutput==3)
+            output = "opengl";
+        else if (switchoutput==4)
+            output = "openglnb";
+#endif
+#if C_DIRECT3D
+        else if (switchoutput==5)
+            output = "direct3d";
+#endif
+        else {
+#if C_DIRECT3D
+            out = 5;
+            output = "direct3d";
+#elif C_OPENGL
+            out = 3;
+            output = "opengl";
+#else
+            out = 0;
+            output = "surface";
+#endif
+        }
+        KEYBOARD_Clear();
+        change_output(out);
+        SetVal("sdl", "output", output);
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = true;
+        else switch_output_from_ttf = true;
+        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
+        RENDER_Reset();
+    }
+}
+
+void ttf_switch_on(bool ss=true) {
+    if (ss&&ttfswitch||!ss&&switch_output_from_ttf) {
+        change_output(10);
+        SetVal("sdl", "output", "ttf");
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = false;
+        else switch_output_from_ttf = false;
+        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
+        if (ttf.fullScrn) {
+            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+            OUTPUT_TTF_Select(2);
+            resetreq = true;
+        }
+        resetFontSize();
+    }
+}
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
-bool switch_output_from_ttf = false;
 bool INT10_SetVideoMode(uint16_t mode) {
     if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
         VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:ModeList_EGA));
@@ -2023,57 +2083,10 @@ dac_text16:
 #if defined(USE_TTF)
         if (ttf.inUse)
             ttf_reset();
-        else if (switch_output_from_ttf) {
-            change_output(10);
-            if (colorChanged) setVGADAC();
-            SetVal("sdl", "output", "ttf");
-            void OutputSettingMenuUpdate(void);
-            OutputSettingMenuUpdate();
-            switch_output_from_ttf = false;
-            mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
-            if (ttf.fullScrn) {
-                if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-                OUTPUT_TTF_Select(2);
-                resetreq = true;
-            }
-            resetFontSize();
-        }
-	} else if (ttf.inUse) {
-        std::string output="surface";
-        int out=switchoutput;
-        if (switchoutput==0)
-            output = "surface";
-#if C_OPENGL
-        else if (switchoutput==3)
-            output = "opengl";
-        else if (switchoutput==4)
-            output = "openglnb";
-#endif
-#if C_DIRECT3D
-        else if (switchoutput==5)
-            output = "direct3d";
-#endif
-        else {
-#if C_DIRECT3D
-            out = 5;
-            output = "direct3d";
-#elif C_OPENGL
-            out = 3;
-            output = "opengl";
-#else
-            out = 0;
-            output = "surface";
-#endif
-        }
-        KEYBOARD_Clear();
-        change_output(out);
-        SetVal("sdl", "output", output);
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        switch_output_from_ttf = true;
-        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
-        RENDER_Reset();
+        else
+            ttf_switch_on(false);
+	} else {
+        ttf_switch_off(false);
 #endif
     }
 	// Enable screen memory access

@@ -919,7 +919,10 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
         buf << fshader.rdbuf();
         empty=buf.str().empty();
         fshader.close();
-        if (empty) buf=std::stringstream();
+        if (empty) {
+            buf.clear();
+            buf.str("");
+        }
     }
 	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
