@@ -76,7 +76,11 @@ void LoadMessageFile(const char * fname) {
 	FILE * mfile=fopen(fname,"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
-		E_Exit("MSG:Can't load messages: %s",fname);
+		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
+		bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+		LOG_MSG("MSG:Cannot load language file: %s",fname);
+		return;
 	}
 	char linein[LINE_IN_MAXLEN];
 	char name[LINE_IN_MAXLEN];
