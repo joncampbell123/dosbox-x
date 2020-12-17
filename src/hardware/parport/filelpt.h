@@ -65,6 +65,7 @@ public:
 	bool ack;
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
+	void doAction();
 	virtual void handleUpperEvent(uint16_t type);
 };
 
