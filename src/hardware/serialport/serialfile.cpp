@@ -23,6 +23,9 @@
 #include "serialdummy.h"
 #include "serialport.h"
 #include "serialfile.h"
+#if defined(WIN32)
+#include "Shellapi.h"
+#endif
 
 CSerialFile::CSerialFile(Bitu id,CommandLine* cmd):CSerial(id, cmd) {
 	CSerial::Init_Registers();
@@ -35,14 +38,62 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd):CSerial(id, cmd) {
     filename = "serial"; // Default output filename
     cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
     LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
-	
+
+	std::string str;
+	if (cmd->FindStringFullBegin("openwith:",str,false)) {
+		action = str.c_str();
+    }
+	if (cmd->FindStringFullBegin("openerror:",str,false)) {
+		acterr = str.c_str();
+    }
+
+	if (cmd->FindStringBegin("timeout:",str,false)) {
+		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
+			LOG_MSG("parallel%d: Invalid timeout parameter.",(int)id);
+			return;
+		}
+	}
+
     InstallationSuccessful=true;
+}
+
+void CSerialFile::doAction() {
+    if (action.size()) {
+        bool fail=false;
+#if defined(WIN32)
+        std::size_t found = action.find_first_of(" ");
+        std::string para = filename;
+        if (found!=std::string::npos) {
+            para=action.substr(found+1)+" "+filename;
+            action=action.substr(0, found);
+        }
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+        fail=system((action+" "+filename).c_str())!=0;
+#endif
+        if (acterr.size()&&fail) {
+#if defined(WIN32)
+            std::size_t found = acterr.find_first_of(" ");
+            para = filename;
+            if (found!=std::string::npos) {
+                para=acterr.substr(found+1)+" "+filename;
+                acterr=acterr.substr(0, found);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", acterr.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+            fail=system((acterr+" "+filename).c_str())!=0;
+#endif
+        }
+        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+        if (fail) systemmessagebox("Error", "The requested file handler failed to complete.", "ok","error", 1);
+    }
 }
 
 CSerialFile::~CSerialFile() {
     if (fp != NULL) {
         fclose(fp);
         fp = NULL;
+        doAction();
     }
 
 	// clear events
@@ -50,6 +101,18 @@ CSerialFile::~CSerialFile() {
 }
 
 void CSerialFile::handleUpperEvent(uint16_t type) {
+	if(fp != NULL && timeout != 0) {
+		if(lastUsedTick + timeout < PIC_Ticks) {
+			fclose(fp);
+			fp = NULL;
+			LOG_MSG("File %s for serial port closed.",filename.c_str());
+			doAction();
+		} else {
+			// Port has been touched in the meantime, try again later
+			float new_delay = (float)((timeout + 1) - (PIC_Ticks - lastUsedTick));
+			setEvent(SERIAL_TX_EVENT, new_delay);
+		}
+	}
 	if(type==SERIAL_TX_EVENT) {
 	//LOG_MSG("SERIAL_TX_EVENT");
 		ByteTransmitted(); // tx timeout
@@ -79,6 +142,8 @@ void CSerialFile::transmitByte(uint8_t val, bool first) {
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 
+	lastUsedTick = PIC_Ticks;
+	if(timeout != 0) setEvent(SERIAL_TX_EVENT, (float)(timeout + 1));
     if (fp == NULL) {
         fp = fopen(filename.c_str(),"wb");
         if (fp != NULL) setbuf(fp,NULL); // disable buffering

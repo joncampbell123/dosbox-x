@@ -3458,6 +3458,41 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->Set_help("see serial1");
     Pmulti_remain->SetBasic(true);
 
+    Pmulti_remain = secprop->Add_multiremain("serial5",Property::Changeable::WhenIdle," ");
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
+    Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pstring->Set_values(serials);
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->Set_help("see serial1");
+
+    Pmulti_remain = secprop->Add_multiremain("serial6",Property::Changeable::WhenIdle," ");
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
+    Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pstring->Set_values(serials);
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->Set_help("see serial1");
+
+    Pmulti_remain = secprop->Add_multiremain("serial7",Property::Changeable::WhenIdle," ");
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
+    Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pstring->Set_values(serials);
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->Set_help("see serial1");
+
+    Pmulti_remain = secprop->Add_multiremain("serial8",Property::Changeable::WhenIdle," ");
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
+    Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pstring->Set_values(serials);
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->Set_help("see serial1");
+
+    Pmulti_remain = secprop->Add_multiremain("serial9",Property::Changeable::WhenIdle," ");
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
+    Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pstring->Set_values(serials);
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->Set_help("see serial1");
+
     Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-dosbox-x.txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
     Pstring->SetBasic(true);

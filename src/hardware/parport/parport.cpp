@@ -300,7 +300,7 @@ Bitu bios_post_parport_count() {
 	unsigned int i;
 
 	for (i=0;i < 9;i++) {
-		if (parallelPortObjects[i] != NULL)
+		if (parallelPortObjects[i] != NULL && parallel_baseaddr[i])
 			count++;
 		else if (DISNEY_HasInit() && parallel_baseaddr[i] == DISNEY_BasePort())
 			count++;
@@ -313,8 +313,8 @@ Bitu bios_post_parport_count() {
 void BIOS_Post_register_parports() {
 	unsigned int i;
 
-	for (i=0;i < 3;i++) {
-		if (parallelPortObjects[i] != NULL)
+	for (i=0;i < 9;i++) {
+		if (parallelPortObjects[i] != NULL && parallel_baseaddr[i])
 			BIOS_SetLPTPort(i,(uint16_t)parallelPortObjects[i]->base);
 		else if (DISNEY_HasInit() && parallel_baseaddr[i] == (uint16_t)DISNEY_BasePort())
 			BIOS_SetLPTPort(i,(uint16_t)DISNEY_BasePort());

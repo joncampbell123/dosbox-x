@@ -28,11 +28,21 @@
   - DOSBox-X will now pop up a message box to inform
     the user when a Direct3D pixel shader is loaded
     from the menu on the Windows platform. (Wengier)
+  - Extended serial (COM) ports from COM1-COM3 to COM1-
+    COM9 in the [serial] section. The serial4-9 are
+    advanced config options. You can optionally specify
+    base addresses and IRQs for all the serial ports.
+    When the "file" option is used, you can additonally
+    specify a program to open the file with "openwith"
+    option. If the specified program cannot be executed
+    due to some problem, DOSBox-X will try to start a
+    program as specified with the "openerror" action,
+    or show an error. (Wengier)
   - Extended parallel (LPT) ports from LPT1-LPT3 to
-    LPT1-LPT9. You can also optionally specify base
-    addresses and IRQs for these ports. (Wengier)
-  - Enhanced parallel1-3 config options in [parallel]
-    section to allow the generated files to be started
+    LPT1-LPT9 in the [parallel] section. You can also
+    optionally specify base addresses and IRQs for
+    these ports. The parallel1-9 config options are
+    enhanced to allow the generated files to be started
     with the specified action: "openpcl" to start a
     program to open the file if the print output is
     detected to be PCL; "openps" to start a program if
@@ -66,6 +76,8 @@
     palette for the TTF output. (Wengier)
   - The "Show menu bar" option now appears in system
     menu of the Windows SDL2 build too. (Wengier)
+  - If a language file fails to load, DOSBox-X will now
+    show a warning dialog instead of exiting. (Wengier)
   - Fixed the color palette problem when switching to
     graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover
@@ -75,7 +87,8 @@
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
   - Added support for automatic switching from TTF
-    ouptut to another output in PC-98 mode. (Wengier)
+    ouptut to another output in PC-98 mode, allowing
+    Windows 3.1 to run in this mode. (Wengier)
   - Added OPL3Duo support, which passes OPL3 output
     to an OPL3Duo Arduino board with a specific
     configuration if desired. Set the config option

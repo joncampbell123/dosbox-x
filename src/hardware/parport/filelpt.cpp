@@ -107,17 +107,81 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 	InstallationSuccessful = true;
 }
 
+char bufput[105];
+int bufct = 0;
+static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!PS";
+void CFileLPT::doAction() {
+    if (action1.size()||action2.size()||action3.size()) {
+        bool isPCL = false;															// For now
+        bool isPS = false;															// Postscript can be embedded (some WP drivers)
+        if ((action1.size()||action2.size())&&bufct>5) {
+            if (!strncmp(bufput, sig1PCL, sizeof(sig1PCL)-1) || !strncmp(bufput, sig2PCL, sizeof(sig2PCL)-1)) {
+                isPCL = true;
+                int max = bufct>65?60:bufct-5;										// A line should start with the signature in the first 60 characters or so
+                for (int i = 0; i < max; i++)
+                    if (!strncmp(bufput+i, sigPS, sizeof(sigPS)-1)) {
+                        isPS = true;
+                        break;
+                    }
+            } else {																// Also test for PCL Esc sequence
+                if (!strncmp(bufput, sigPS+1, sizeof(sigPS)-2))
+                    isPS = true;
+                char *p = bufput;
+                int count = bufct;
+                while (count-- > 1)
+                    if (*(p++) == 0x1b)
+                        if (*p == '@')												// <Esc>@ = Printer reset Epson
+                            break;
+                        else if (*p > 0x24 && *p < 0x2b && isalpha(*(p+1))) {
+                            isPCL = true;
+                            break;
+                        }
+            }
+        }
+        std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
+        bool fail=false;
+#if defined(WIN32)
+        std::size_t found = action.find_first_of(" ");
+        std::string para = name;
+        if (found!=std::string::npos) {
+            para=action.substr(found+1)+" "+name;
+            action=action.substr(0, found);
+        }
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+        fail=system((action+" "+name).c_str())!=0;
+#endif
+        if (action4.size()&&fail) {
+#if defined(WIN32)
+            std::size_t found = action4.find_first_of(" ");
+            para = name;
+            if (found!=std::string::npos) {
+                para=action4.substr(found+1)+" "+name;
+                action4=action4.substr(0, found);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", action4.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+            fail=system((action4+" "+name).c_str())!=0;
+#endif
+        }
+        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+        if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
+    }
+    bufct = 0;
+}
+
 CFileLPT::~CFileLPT () {
 	// close file
-	if(fileOpen)
+	if(fileOpen) {
 		fclose(file);
+		lastChar = 0;
+		fileOpen=false;
+		doAction();
+	}
 	// remove tick handler
 	removeEvent(0);
 }
 
-char bufput[105];
-int bufct = 0;
-static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!PS";
 bool CFileLPT::OpenFile() {
 	switch(filetype) {
 	case FILE_DEV:
@@ -218,63 +282,7 @@ void CFileLPT::handleUpperEvent(uint16_t type) {
 			lastChar = 0;
 			fileOpen=false;
 			LOG_MSG("Parallel %d: File closed.",(int)port_nr+1);
-            if (action1.size()||action2.size()||action3.size()) {
-                bool isPCL = false;															// For now
-                bool isPS = false;															// Postscript can be embedded (some WP drivers)
-                if ((action1.size()||action2.size())&&bufct>5) {
-                    if (!strncmp(bufput, sig1PCL, sizeof(sig1PCL)-1) || !strncmp(bufput, sig2PCL, sizeof(sig2PCL)-1)) {
-                        isPCL = true;
-                        int max = bufct>65?60:bufct-5;										// A line should start with the signature in the first 60 characters or so
-                        for (int i = 0; i < max; i++)
-                            if (!strncmp(bufput+i, sigPS, sizeof(sigPS)-1)) {
-                                isPS = true;
-                                break;
-                            }
-                    } else {																// Also test for PCL Esc sequence
-                        if (!strncmp(bufput, sigPS+1, sizeof(sigPS)-2))
-                            isPS = true;
-                        char *p = bufput;
-                        int count = bufct;
-                        while (count-- > 1)
-                            if (*(p++) == 0x1b)
-                                if (*p == '@')												// <Esc>@ = Printer reset Epson
-                                    break;
-                                else if (*p > 0x24 && *p < 0x2b && isalpha(*(p+1))) {
-                                    isPCL = true;
-                                    break;
-                                }
-                    }
-                }
-                std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
-                bool fail=false;
-#if defined(WIN32)
-                std::size_t found = action.find_first_of(" ");
-                std::string para = name;
-                if (found!=std::string::npos) {
-                    para=action.substr(found+1)+" "+name;
-                    action=action.substr(0, found);
-                }
-                fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
-#else
-                fail=system((action+" "+name).c_str())!=0;
-#endif
-                if (action4.size()&&fail) {
-#if defined(WIN32)
-                    std::size_t found = action4.find_first_of(" ");
-                    para = name;
-                    if (found!=std::string::npos) {
-                        para=action4.substr(found+1)+" "+name;
-                        action4=action4.substr(0, found);
-                    }
-                    fail=(INT_PTR)ShellExecute(NULL, "open", action4.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
-#else
-                    fail=system((action4+" "+name).c_str())!=0;
-#endif
-                }
-                bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-                if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
-            }
-            bufct = 0;
+			doAction();
 		} else {
 			// Port has been touched in the meantime, try again later
 			float new_delay = (float)((timeout + 1) - (PIC_Ticks - lastUsedTick));
