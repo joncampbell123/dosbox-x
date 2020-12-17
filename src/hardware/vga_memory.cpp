@@ -1776,15 +1776,18 @@ public:
 
     /* byte-wise */
 	uint8_t readb(PhysPt addr) {
+        VGAMEM_USEC_read_delay();
         return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
     }
 	void writeb(PhysPt addr,uint8_t val) {
+        VGAMEM_USEC_write_delay();
         writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
     }
 
     /* word-wise.
      * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
 	uint16_t readw(PhysPt addr) {
+        VGAMEM_USEC_read_delay();
         addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             return readc<uint16_t>(addr);
@@ -1794,6 +1797,7 @@ public:
         }
     }
 	void writew(PhysPt addr,uint16_t val) {
+        VGAMEM_USEC_write_delay();
         addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             writec<uint16_t>(addr,val);
