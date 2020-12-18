@@ -580,6 +580,14 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 	FT_Glyph_Metrics* metrics;
 	FT_Outline* outline;
 
+	if (!font) return FT_Err_Invalid_Handle;
+	if (ttf.SDL_fontb != NULL && TTF_HANDLE_STYLE_BOLD(font) && !TTF_HANDLE_STYLE_ITALIC(font))
+        font = ttf.SDL_fontb;
+	else if (ttf.SDL_fonti != NULL && !TTF_HANDLE_STYLE_BOLD(font) && TTF_HANDLE_STYLE_ITALIC(font))
+        font = ttf.SDL_fonti;
+	else if (ttf.SDL_fontbi != NULL && TTF_HANDLE_STYLE_BOLD(font) && TTF_HANDLE_STYLE_ITALIC(font))
+        font = ttf.SDL_fontbi;
+
 	if ( !font || !font->face ) {
 		return FT_Err_Invalid_Handle;
 	}

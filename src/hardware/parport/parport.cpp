@@ -86,18 +86,18 @@ device_LPT::~device_LPT() {
 }
 
 static void Parallel_EventHandler(Bitu val) {
-	Bitu serclassid=val&0x3;
+	Bitu serclassid=val&0xf;
 	if(parallelPortObjects[serclassid]!=0)
-		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>2ul));
+		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>4ul));
 }
 
 void CParallel::setEvent(uint16_t type, float duration) {
-    PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<2u)|(Bitu)port_nr);
+    PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<4u)|(Bitu)port_nr);
 }
 
 void CParallel::removeEvent(uint16_t type) {
     // TODO
-	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<2u)|(Bitu)port_nr);
+	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<4u)|(Bitu)port_nr);
 }
 
 void CParallel::handleEvent(uint16_t type) {

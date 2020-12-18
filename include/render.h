@@ -121,8 +121,10 @@ typedef struct Render_t {
 #define txtMaxLins 60
 typedef struct {
 	bool	inUse;
-	char	fontName[32];
 	TTF_Font *SDL_font;
+	TTF_Font *SDL_fontb;
+	TTF_Font *SDL_fonti;
+	TTF_Font *SDL_fontbi;
 	bool	DOSBox;								// is DOSBox-X internal TTF loaded, pointsizes should be even to look really nice
 	int		pointsize;
 	int		height;								// height of character cell

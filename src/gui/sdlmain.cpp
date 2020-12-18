@@ -268,8 +268,8 @@ int wpVersion = 0;
 int wpBG = -1;
 bool wpExtChar = false;
 
-static unsigned long ttfSize= sizeof(DOSBoxTTFbi);
-static void * ttfFont = DOSBoxTTFbi;
+static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
+static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern bool resetreq;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
@@ -1396,7 +1396,7 @@ bool CheckQuit(void) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
                 return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
+    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
         return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
 #endif
     return true;
@@ -3293,7 +3293,7 @@ bool setColors(const char *colorArray, int n) {
 }
 
 std::string failName="";
-bool readTTF(const char *fName) {
+bool readTTF(const char *fName, bool bold, bool ital) {
 	FILE * ttf_fh = NULL;
 	std::string exepath = "";
 	char ttfPath[1024];
@@ -3368,10 +3368,10 @@ bool readTTF(const char *fName) {
     }
 	if (ttf_fh) {
 		if (!fseek(ttf_fh, 0, SEEK_END))
-			if ((ttfSize = ftell(ttf_fh)) != -1L)
-				if (ttfFont = malloc((size_t)ttfSize))
+			if (((bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))) = ftell(ttf_fh)) != -1L)
+				if ((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))) = malloc((size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))))
 					if (!fseek(ttf_fh, 0, SEEK_SET))
-						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize) {
+						if (fread((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))), 1, (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))), ttf_fh) == (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))) {
 							fclose(ttf_fh);
 							return true;
 						}
@@ -3402,9 +3402,29 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     else {
         Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
         const char * fName = render_section->Get_string("ttf.font");
+        const char * fbName = render_section->Get_string("ttf.fontbold");
+        const char * fiName = render_section->Get_string("ttf.fontital");
+        const char * fbiName = render_section->Get_string("ttf.fontboit");
         LOG_MSG("SDL:TTF activated %s", fName);
-        if (!*fName||!readTTF(fName))
+        if (!*fName||!readTTF(fName, false, false)) {
             ttf.DOSBox = true;
+            std::string message="";
+            if (*fbName)
+                message="A valid ttf.font setting is required for the ttf.fontbold setting: "+std::string(fbName);
+            else if (*fiName)
+                message="A valid ttf.font setting is required for the ttf.fontital setting: "+std::string(fiName);
+            else if (*fbiName)
+                message="A valid ttf.font setting is required for the ttf.fontboit setting: "+std::string(fbiName);
+            if (fsize==0&&message.size())
+                systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+        } else {
+            if (!*fbName||!readTTF(fbName, true, false))
+                ttfSizeb = 0;
+            if (!*fiName||!readTTF(fiName, false, true))
+                ttfSizei = 0;
+            if (!*fbiName||!readTTF(fbiName, true, true))
+                ttfSizebi = 0;
+        }
         const char * colors = render_section->Get_string("ttf.colors");
         if (*colors) {
             if (!setColors(colors,-1)) {
@@ -3544,11 +3564,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     int trapLoop = 0;
 
     if (fontSize<10) {
-        while (curSize != lastGood)
-            {
+        while (curSize != lastGood) {
             GFX_SelectFontByPoints(curSize);
-            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
-                {
+            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {				// if it fits on screen
                 lastGood = curSize;
                 float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
                 if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
@@ -3556,10 +3574,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
                 if (curSize < 10)																	// minimum size = 10
                     curSize = 10;
-                }
-            else if (--curSize < 10)																// silly, but OK, one never can tell..
+            } else if (--curSize < 10)																// silly, but OK, one never can tell..
                 E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-            }
+        }
         if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
             curSize &= ~1;
     }
@@ -4704,9 +4721,26 @@ void GFX_SelectFontByPoints(int ptsize) {
 		TTF_CloseFont(ttf.SDL_font);
 		initCP = false;
 	}
+	if (ttf.SDL_fontb != 0) TTF_CloseFont(ttf.SDL_fontb);
+	if (ttf.SDL_fonti != 0) TTF_CloseFont(ttf.SDL_fonti);
+	if (ttf.SDL_fontbi != 0) TTF_CloseFont(ttf.SDL_fontbi);
 	SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFont, (int)ttfSize);
 	ttf.SDL_font = TTF_OpenFontRW(rwfont, 1, ptsize);
-
+    if (ttfSizeb>0) {
+        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFontb, (int)ttfSizeb);
+        ttf.SDL_fontb = TTF_OpenFontRW(rwfont, 1, ptsize);
+    } else
+        ttf.SDL_fontb = NULL;
+    if (ttfSizei>0) {
+        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFonti, (int)ttfSizei);
+        ttf.SDL_fonti = TTF_OpenFontRW(rwfont, 1, ptsize);
+    } else
+        ttf.SDL_fonti = NULL;
+    if (ttfSizebi>0) {
+        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFontbi, (int)ttfSizebi);
+        ttf.SDL_fontbi = TTF_OpenFontRW(rwfont, 1, ptsize);
+    } else
+        ttf.SDL_fontbi = NULL;
 	ttf.pointsize = ptsize;
 	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
 	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
