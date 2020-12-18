@@ -1798,7 +1798,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(-1,100000);
+    Pint->SetMinMax(-1,1000000);
     Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
             "Default off. Enable this option (-1 or nonzero) if you are running a game or\n"
             "demo that needs slower VGA memory (like that of older ISA hardware) to work properly.\n"

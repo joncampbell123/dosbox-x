@@ -2564,11 +2564,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np10->raise();
             } break;
         case 34: {
-            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction");
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction to DOSBox-X");
             np11->raise();
             } break;
         case 35: {
-            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About");
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About DOSBox-X");
             np12->raise();
             } break;
         case 36: {
