@@ -2368,8 +2368,23 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
-                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; simiiar for other TTF fonts.");
+                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
     Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("ttf.fontbold", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify a bold TrueType font for use with the TTF output that will render the bold text style.\n"
+                    "It requires a word processor be set with the ttf.wp option, and this actual bold font will be used for the bold style.\n"
+                    "For example, setting it to \"consolab\" or \"consolab.ttf\" will use the Consolab font; similar for other TTF fonts.");
+
+	Pstring = secprop->Add_string("ttf.fontital", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify an italic TrueType font for use with the TTF output that will render the italic text style.\n"
+                    "It requires a word processor be set with the ttf.wp option, and this actual italic font will be used for the italic style.\n"
+                    "For example, setting it to \"consolai\" or \"consolai.ttf\" will use the Consolai font; similar for other TTF fonts.");
+
+	Pstring = secprop->Add_string("ttf.fontboit", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify a bold italic TrueType font for use with the TTF output that will render the bold italic text style.\n"
+                    "It requires a word processor be set with the ttf.wp option, and this actual bold-italic font will be used for the bold-italic style.\n"
+                    "For example, setting it to \"consolaz\" or \"consolaz.ttf\" will use the Consolaz font; similar for other TTF fonts.");
 
 	Pstring = secprop->Add_string("ttf.colors", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
@@ -2407,10 +2422,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.");
 
 	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.");
+    Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
+                    "This is done either with the actual bold font specified by the ttf.fontbold option, or by making it bold automatically.");
 
 	Pbool = secprop->Add_bool("ttf.italic", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.");
+    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.\n"
+                    "This is done either with the actual italic font specified by the ttf.fontital option, or by slanting the characters automatically.");
 
 	Pbool = secprop->Add_bool("ttf.underline", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
@@ -3418,17 +3435,25 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->SetBasic(true);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help(
-        "set type of device connected to the serial (COM) port.\n"
-        "Can be disabled, dummy, modem, nullmodem, directserial.\n"
+        "serial1-9 -- set type of device connected to the serial (COM) port.\n"
+        "Can be disabled, dummy, file, modem, nullmodem, directserial.\n"
         "Additional parameters must be in the same line in the form of\n"
         "parameter:value. Parameter for all types is irq (optional).\n"
+        "for file: specify an output file\n"
+        "Additional parameters:\n"
+        "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0),\n"
+        "    openwith:<program>: start a program to open the output file.\n"
+        "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
         "for directserial: realport (required), rxdelay (optional).\n"
         "                 (realport:COM1 realport:ttyS0).\n"
         "for modem: listenport (optional).\n"
         "for nullmodem: server, rxdelay, txdelay, telnet, usedtr,\n"
         "               transparent, port, inhsocket, nonlocal (all optional).\n"
         "               connections are limited to localhost unless you specify nonlocal:1\n"
-        "Example: serial1=modem listenport:5000");
+        "Example: serial1=modem listenport:5000\n"
+        "Note: COM1-4 are standard COM ports in DOS, whereas COM5-9 are extended COM ports.\n"
+        "      You can optionally specify base addresses and IRQs for them with base: and irq: options."
+        );
     Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial2",Property::Changeable::WhenIdle," ");
@@ -3520,7 +3545,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    or append:<file> appends data to the specified file.\n"
             "    Without the above parameters data is written to files in the capture dir.\n"
             "    Additional parameters:\n"
-            "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:500),\n"
+            "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0 or 500),\n"
             "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
             "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"

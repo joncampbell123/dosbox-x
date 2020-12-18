@@ -29,17 +29,18 @@
     the user when a Direct3D pixel shader is loaded
     from the menu on the Windows platform. (Wengier)
   - Extended serial (COM) ports from COM1-COM3 to COM1-
-    COM9 in the [serial] section. The serial4-9 are
-    advanced config options. You can optionally specify
-    base addresses and IRQs for all the serial ports.
-    When the "file" option is used, you can additonally
+    COM9 in the [serial] section. The config options
+    serial4-9 are advanced options. You can optionally
+    specify base addresses for any serial ports. When
+    the "file" option is used, you can additionally
     specify a program to open the file with "openwith"
     option. If the specified program cannot be executed
     due to some problem, DOSBox-X will try to start a
     program as specified with the "openerror" action,
-    or show an error. (Wengier)
+    or it will show an error. (Wengier)
   - Extended parallel (LPT) ports from LPT1-LPT3 to
-    LPT1-LPT9 in the [parallel] section. You can also
+    LPT1-LPT9 in the [parallel] section. Config options
+    lpt4-9 are advanced config options. You can also
     optionally specify base addresses and IRQs for
     these ports. The parallel1-9 config options are
     enhanced to allow the generated files to be started
@@ -71,6 +72,14 @@
   - The functions "Load mapper file" & "Stop clipboard
     pasting" are added to the mapper so that you can
     defined shortcut keys for them. (Wengier)
+  - Added ttf.fontbold, ttf.fontital, and ttf.fontboit
+    config options so that you can specify actual bold
+    italic, and bold-italic TrueType fonts for use with
+    the TTF output that will render the bold, italic,
+    and bold-italic text styles using the actual TTF
+    fonts (e.g. consolab, consolai, consolaz instead of
+    consola) instead of making the original TTF font
+    bold, italic, bold-italic automatically. (Wengier)
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
