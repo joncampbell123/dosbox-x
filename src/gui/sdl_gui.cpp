@@ -2072,7 +2072,9 @@ public:
                         shell.ShowPrompt();
                     }
                 }
+#if !defined(HX_DOS)
                 chdir( Temp_CurrentDir );
+#endif
             }
             if (shortcut) running = false;
         }
