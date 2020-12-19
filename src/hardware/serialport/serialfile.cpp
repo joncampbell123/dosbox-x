@@ -42,7 +42,7 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 
     std::string str;
 	if (cmd->FindStringFullBegin("openwith:",str,squote,false)) {
-		action = trim((char *)str.c_str());
+		actstd = trim((char *)str.c_str());
     }
 	if (cmd->FindStringFullBegin("openerror:",str,squote,false)) {
 		acterr = trim((char *)str.c_str());
@@ -59,7 +59,9 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 }
 
 void CSerialFile::doAction() {
-    if (action.size()) {
+    std::string action;
+    if (actstd.size()) {
+        action=actstd;
         bool fail=false;
 #if defined(WIN32)
         bool q=false;
@@ -83,7 +85,6 @@ void CSerialFile::doAction() {
         if (acterr.size()&&fail) {
             action=acterr;
 #if defined(WIN32)
-            std::size_t found = action.find_first_of(" ");
             para = filename;
             pos=-1;
             for (int i=0; i<action.size(); i++) {

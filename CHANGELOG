@@ -57,6 +57,9 @@
     specified program(s) cannot be executed, DOSBox-X
     will try to start a program as specified with the
     "openerror" action, or show an error. (Wengier)
+  - Added "openwith" and "openerror" config options to
+    [printer] section to start the specified program to
+    open the printer output file. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as

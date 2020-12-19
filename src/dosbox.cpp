@@ -3621,6 +3621,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The path where the output files are stored.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("openwith", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Start the specified program to open the output file.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("openerror", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Start the specified program to open the output file if an error had occurred.");
+    Pstring->SetBasic(true);
+
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
     Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");
     Pint->SetBasic(true);

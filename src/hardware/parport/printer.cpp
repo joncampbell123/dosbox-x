@@ -47,6 +47,7 @@ static const char* document_path;
 //static const char* font_path;
 static char confoutputDevice[50];
 static bool confmultipageOutput;
+static std::string actstd, acterr;
 
 void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID, SDL_Palette* pal)
 {
@@ -1656,6 +1657,56 @@ static void findNextName(const char* front, const char* ext, char* fname)
 	while (test != NULL);
 }
 
+void CPrinter::doAction(const char *fname) {
+    std::string action;
+    if (actstd.size()) {
+        action=actstd;
+        bool fail=false;
+#if defined(WIN32)
+        bool q=false;
+        int pos=-1;
+        for (int i=0; i<action.size(); i++) {
+            if (action[i]=='"') q=!q;
+            else if (action[i]==' ' && !q) {
+                pos=i;
+                break;
+            }
+        }
+        std::string para = fname;
+        if (pos>-1) {
+            para=action.substr(pos+1)+" "+fname;
+            action=action.substr(0, pos);
+        }
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+        fail=system((action+" "+fname).c_str())!=0;
+#endif
+        if (acterr.size()&&fail) {
+            action=acterr;
+#if defined(WIN32)
+            para = fname;
+            pos=-1;
+            for (int i=0; i<action.size(); i++) {
+                if (action[i]=='"') q=!q;
+                else if (action[i]==' ' && !q) {
+                    pos=i;
+                    break;
+                }
+            }
+            if (pos>-1) {
+                para=action.substr(pos+1)+" "+fname;
+                action=action.substr(0, pos);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+#else
+            fail=system((action+" "+fname).c_str())!=0;
+#endif
+        }
+        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+        if (fail) systemmessagebox("Error", "The requested file handler failed to complete.", "ok","error", 1);
+    }
+}
+
 void CPrinter::outputPage() 
 {
 	char fname[200];
@@ -1822,6 +1873,7 @@ void CPrinter::outputPage()
 		
 		/*clean up dynamically allocated RAM.*/
 		free(row_pointers);
+		doAction(fname);
 	}
 #endif
 	else if (strcasecmp(output, "ps") == 0)
@@ -1925,6 +1977,7 @@ void CPrinter::outputPage()
 			fprintf(psfile, "%%%%EOF\n");
 			fclose(psfile);
 			outputHandle = NULL;
+			doAction(fname);
 		}
 	}
 	else
@@ -1932,6 +1985,7 @@ void CPrinter::outputPage()
 		// Find a page that does not exists
 		findNextName("page", ".bmp", &fname[0]);
 		SDL_SaveBMP(page, fname);
+		doAction(fname);
 	}
 }
 
@@ -2191,6 +2245,8 @@ void PRINTER_Init()
 	else timeout_dirty = false;
 	strcpy(&confoutputDevice[0], section->Get_string("printoutput"));
 	confmultipageOutput = section->Get_bool("multipage");
+	actstd = section->Get_string("openwith");
+	acterr = section->Get_string("openerror");
 
 	//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);

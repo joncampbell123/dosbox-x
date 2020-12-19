@@ -47,7 +47,7 @@ public:
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
 	std::string filename;
-	std::string action, acterr; // open with a program or batch script
+	std::string actstd, acterr; // open with a program or batch script
 };
 
 #endif // INCLUDEGUARD
