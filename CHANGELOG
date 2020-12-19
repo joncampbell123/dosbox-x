@@ -86,6 +86,9 @@
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
+  - Separated "TTF options" menu group that contains
+    TrueType font (TTF) related menu options from the
+    "Text-mode" menu group in "Video" menu. (Wengier)
   - The "Show menu bar" option now appears in system
     menu of the Windows SDL2 build too. (Wengier)
   - If a language file fails to load, DOSBox-X will now

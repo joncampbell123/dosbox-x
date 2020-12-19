@@ -350,10 +350,16 @@ static const char *def_menu_video_textmode[] =
     "line_132x43",
     "line_132x50",
     "line_132x60",
+    NULL
+};
+
 #if defined(USE_TTF)
-    "--",
+/* video TTF menu ("VideoTTFMenu") */
+static const char *def_menu_video_ttf[] =
+{
     "mapper_ttf_incsize",
     "mapper_ttf_decsize",
+    "--",
     "ttf_showbold",
     "ttf_showital",
     "ttf_showline",
@@ -363,9 +369,9 @@ static const char *def_menu_video_textmode[] =
     "ttf_wpwp",
     "ttf_wpws",
     "ttf_wpxy",
-#endif
     NULL
 };
+#endif
 
 /* video vsync menu ("VideoVsyncMenu") */
 static const char *def_menu_video_vsync[] =
@@ -455,6 +461,9 @@ static const char *def_menu_video[] =
     "VideoOverscanMenu",
     "VideoFrameskipMenu",
     "VideoTextmodeMenu",
+#if defined(USE_TTF)
+    "VideoTTFMenu",
+#endif
     "VideoPC98Menu",
 #if defined(C_D3DSHADERS) || defined(C_OPENGL)
     "--",
@@ -1439,6 +1448,11 @@ void ConstructMenu(void) {
 
     /* video text-mode menu */
     ConstructSubMenu(mainMenu.get_item("VideoTextmodeMenu").get_master_id(), def_menu_video_textmode);
+
+#if defined(USE_TTF)
+    /* video TTF menu */
+    ConstructSubMenu(mainMenu.get_item("VideoTTFMenu").get_master_id(), def_menu_video_ttf);
+#endif
 
     /* video vsync menu */
     ConstructSubMenu(mainMenu.get_item("VideoVsyncMenu").get_master_id(), def_menu_video_vsync);
