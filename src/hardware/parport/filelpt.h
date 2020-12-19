@@ -27,7 +27,7 @@ typedef enum { FILE_DEV, FILE_CAPTURE, FILE_APPEND } DFTYPE;
 
 class CFileLPT : public CParallel {
 public:
-	CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd);
+	CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq = false);
 
 	~CFileLPT();
 	
@@ -41,6 +41,7 @@ public:
 	std::string action1, action2, action3, action4; // open with a program or batch script
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
+    bool squote;
 
 	uint8_t lastChar = 0;				// used to save the previous character to decide wether to add LF
 	const uint16_t* codepage_ptr; // pointer to the translation codepage if not null

@@ -48,7 +48,7 @@ public:
 	};
 public:
 	CommandLine(int argc,char const * const argv[],enum opt_style opt=CommandLine::either);
-	CommandLine(char const * const name,char const * const cmdline,enum opt_style opt=CommandLine::either);
+	CommandLine(char const * const name,char const * const cmdline,enum opt_style opt=CommandLine::either,bool squote=false);
 	const char * GetFileName(){ return file_name.c_str();}
 
 	bool FindExist(char const * const name,bool remove=false);
@@ -57,7 +57,7 @@ public:
 	bool FindString(char const * const name,std::string & value,bool remove=false);
 	bool FindCommand(unsigned int which,std::string & value);
 	bool FindStringBegin(char const * const begin,std::string & value, bool remove=false);
-	bool FindStringFullBegin(char const * const begin,std::string & value, bool remove=false);
+	bool FindStringFullBegin(char const * const begin,std::string & value, bool squote, bool remove=false);
 	bool FindStringRemain(char const * const name,std::string & value);
 	bool FindStringRemainBegin(char const * const name,std::string & value);
 	bool GetStringRemain(std::string & value);

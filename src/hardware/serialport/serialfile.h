@@ -28,7 +28,7 @@
 
 class CSerialFile : public CSerial {
 public:
-	CSerialFile(Bitu id, CommandLine* cmd);
+	CSerialFile(Bitu id, CommandLine* cmd, bool sq = false);
 	virtual ~CSerialFile();
 
 	void setRTSDTR(bool rts, bool dtr);
@@ -43,6 +43,7 @@ public:
 	void handleUpperEvent(uint16_t type);
 
 	FILE* fp = NULL;
+	bool squote;
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
 	std::string filename;

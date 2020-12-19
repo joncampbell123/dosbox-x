@@ -343,8 +343,16 @@ public:
 		for (Bitu i = 0; i < 9; i++) {
 			pname[8] = '1' + (char)i;
 			CommandLine cmd(0,section->Get_string(pname));
+            CommandLine tmp(0,section->Get_string(pname), CommandLine::either, true);
 
 			std::string str;
+            bool squote = false;
+            // single quotes to quote string?
+            if(cmd.FindStringBegin("squote",str,false)) {
+                squote = true;
+                cmd=tmp;
+            }
+
             if(cmd.FindStringBegin("base:",str,true))
 				parallel_baseaddr[i] = strtol(str.c_str(), NULL, 16);
             if(cmd.FindStringBegin("irq:",str,true))
@@ -362,7 +370,7 @@ public:
 			} else
 #endif
 			if(!str.compare("file")) {
-				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd);
+				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd, squote);
 				if(cflpt->InstallationSuccessful)
 					parallelPortObjects[i]=cflpt;
 				else {

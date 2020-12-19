@@ -1351,6 +1351,14 @@ public:
 			Prop_multival* p = section->Get_multival(s_property);
 			std::string type = p->GetSection()->Get_string("type");
 			CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
+            CommandLine tmp(0,p->GetSection()->Get_string("parameters"), CommandLine::either, true);
+            std::string str;
+            bool squote = false;
+            // single quotes to quote string?
+            if(cmd.FindStringBegin("squote",str,false)) {
+                squote = true;
+                cmd=tmp;
+            }
 			
 			// detect the type
 			if (type=="dummy") {
@@ -1360,7 +1368,7 @@ public:
 				serialports[i] = new CSerialLog (i, &cmd);
 			}
 			else if (type=="file") {
-				serialports[i] = new CSerialFile (i, &cmd);
+				serialports[i] = new CSerialFile (i, &cmd, squote);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);

@@ -5200,8 +5200,10 @@ static void GUI_StartUp() {
         HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
         info.cbSize = sizeof(MONITORINFO);
         GetMonitorInfo(monitor, &info);
-        posx+=info.rcMonitor.left;
-        posy+=info.rcMonitor.top;
+        if (posx >=0 && posy >=0) {
+            posx+=info.rcMonitor.left;
+            posy+=info.rcMonitor.top;
+        }
     }
 #endif
     char pos[100];
@@ -6902,6 +6904,9 @@ void GFX_Events() {
                     GFX_CaptureMouse();
                 SetPriority(sdl.priority.focus);
                 CPU_Disable_SkipAutoAdjust();
+#if defined(USE_TTF)
+                resetFontSize();
+#endif
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 if (sdl.mouse.locked) {
@@ -7857,7 +7862,7 @@ void PasteClipboard(bool bPressed) {
         for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
-        for (size_t i = 0; i < clipSize; ++i)
+        for (size_t i = 0; i < clipSize; ++i) {
             if (clipAscii[i] == 9) // Tab to spaces
                 for (int k=0; k<4; k++) {
                     *szFilterNextChar = ' ';
@@ -7868,6 +7873,7 @@ void PasteClipboard(bool bPressed) {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
             }
+        }
         *szFilterNextChar = '\0'; // Cap it.
 
         strPasteBuffer.append(szFilteredText);
@@ -9178,7 +9184,15 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(2);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(28);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
     return true;
 }
 

@@ -87,6 +87,8 @@
     menu of the Windows SDL2 build too. (Wengier)
   - If a language file fails to load, DOSBox-X will now
     show a warning dialog instead of exiting. (Wengier)
+  - Fixed the mouse sensitivity menu option (under the
+    "DOS" menu) not working. (Wengier)
   - Fixed the color palette problem when switching to
     graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover
