@@ -98,6 +98,9 @@ void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
 void runBoot(const char *str);
+#if defined(USE_TTF)
+void ttf_switch_on(bool ss), ttf_switch_off(bool ss);
+#endif
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -3318,13 +3321,11 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_MASTER].display_enable = true;
 #if defined(USE_TTF)
-            void ttf_switch_on(bool ss);
             ttf_switch_on(false);
 #endif
             break;
         case 0x0D: /* text layer disable */
 #if defined(USE_TTF)
-            void ttf_switch_off(bool ss);
             ttf_switch_off(false);
 #endif
             pc98_gdc[GDC_MASTER].force_fifo_complete();

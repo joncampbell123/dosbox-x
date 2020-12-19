@@ -7862,7 +7862,7 @@ void PasteClipboard(bool bPressed) {
         for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
-        for (size_t i = 0; i < clipSize; ++i) {
+        for (size_t i = 0; i < clipSize; ++i)
             if (clipAscii[i] == 9) // Tab to spaces
                 for (int k=0; k<4; k++) {
                     *szFilterNextChar = ' ';
@@ -7873,7 +7873,6 @@ void PasteClipboard(bool bPressed) {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
             }
-        }
         *szFilterNextChar = '\0'; // Cap it.
 
         strPasteBuffer.append(szFilteredText);

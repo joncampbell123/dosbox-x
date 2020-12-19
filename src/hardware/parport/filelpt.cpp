@@ -82,7 +82,6 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
-    LOG_MSG("2 nr+1 %d squote %d\n", nr+1, squote?1:0);
 	if (cmd->FindStringFullBegin("openps:",str,squote,false)) {
 		action1 = trim((char *)str.c_str());
     }
@@ -161,11 +160,9 @@ void CFileLPT::doAction() {
 #else
         fail=system((action+" "+name).c_str())!=0;
 #endif
-        LOG_MSG("action3 %s action4 %s size %d\n", action3.c_str(), action4.c_str(), action4.size());
         if (action4.size()&&fail) {
             action=action4;
 #if defined(WIN32)
-            std::size_t found = action.find_first_of(" ");
             para = name;
             pos=-1;
             for (int i=0; i<action.size(); i++) {

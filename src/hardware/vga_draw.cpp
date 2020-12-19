@@ -3199,29 +3199,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
     }
 
-    // add the draw event
-    switch (vga.draw.mode) {
-    case DRAWLINE:
-    case EGALINE:
-        if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
-            LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d", 
-                (int)(vga.draw.lines_total-vga.draw.lines_done));
-            if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
-            else PIC_RemoveEvents(VGA_DrawSingleLine);
-            vga_mode_frames_since_time_base++;
-
-            if (VGA_IsCaptureEnabled())
-                VGA_ProcessScanline(NULL);
-
-            RENDER_EndUpdate(true);
-        }
-        vga.draw.lines_done = 0;
-        if (vga.draw.mode==EGALINE)
-            PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
-        else PIC_AddEvent(VGA_DrawSingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
-        break;
-    }
-
 #if defined(USE_TTF)
     if (ttf.inUse) {
         GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
@@ -3385,8 +3362,32 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             }
         }
         RENDER_EndUpdate(false);
+        return;
     }
 #endif
+
+    // add the draw event
+    switch (vga.draw.mode) {
+    case DRAWLINE:
+    case EGALINE:
+        if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
+            LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d", 
+                (int)(vga.draw.lines_total-vga.draw.lines_done));
+            if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
+            else PIC_RemoveEvents(VGA_DrawSingleLine);
+            vga_mode_frames_since_time_base++;
+
+            if (VGA_IsCaptureEnabled())
+                VGA_ProcessScanline(NULL);
+
+            RENDER_EndUpdate(true);
+        }
+        vga.draw.lines_done = 0;
+        if (vga.draw.mode==EGALINE)
+            PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
+        else PIC_AddEvent(VGA_DrawSingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
+        break;
+    }
 }
 
 void VGA_CheckScanLength(void) {
