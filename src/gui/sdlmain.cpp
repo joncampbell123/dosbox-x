@@ -5200,8 +5200,10 @@ static void GUI_StartUp() {
         HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
         info.cbSize = sizeof(MONITORINFO);
         GetMonitorInfo(monitor, &info);
-        posx+=info.rcMonitor.left;
-        posy+=info.rcMonitor.top;
+        if (posx >=0 && posy >=0) {
+            posx+=info.rcMonitor.left;
+            posy+=info.rcMonitor.top;
+        }
     }
 #endif
     char pos[100];
@@ -6902,6 +6904,9 @@ void GFX_Events() {
                     GFX_CaptureMouse();
                 SetPriority(sdl.priority.focus);
                 CPU_Disable_SkipAutoAdjust();
+#if defined(USE_TTF)
+                resetFontSize();
+#endif
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 if (sdl.mouse.locked) {
@@ -9178,7 +9183,15 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(2);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(28);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
     return true;
 }
 
@@ -11840,7 +11853,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(lines_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x60").set_text("Screen: 132 columns x 60 lines").
                     set_callback_function(lines_menu_callback);
+            }
 #if defined(USE_TTF)
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
+                item.set_text("TTF options");
+
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -11857,8 +11875,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_wp_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpxy").set_text("TTF word processor: XyWrite").
                     set_callback_function(ttf_wp_change_callback);
-#endif
             }
+#endif
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
                 item.set_text("PC-98 options");

@@ -27,24 +27,25 @@
 #include "Shellapi.h"
 #endif
 
-CSerialFile::CSerialFile(Bitu id,CommandLine* cmd):CSerial(id, cmd) {
+CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 	CSerial::Init_Registers();
 	// DSR+CTS on to make sure the DOS COM device will not get stuck waiting for them
 	setRI(false);
 	setCD(false);
 	setDSR(true);
 	setCTS(true);
+    squote = sq;
 
     filename = "serial"; // Default output filename
     cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
     LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
 
-	std::string str;
-	if (cmd->FindStringFullBegin("openwith:",str,false)) {
-		action = str.c_str();
+    std::string str;
+	if (cmd->FindStringFullBegin("openwith:",str,squote,false)) {
+		actstd = trim((char *)str.c_str());
     }
-	if (cmd->FindStringFullBegin("openerror:",str,false)) {
-		acterr = str.c_str();
+	if (cmd->FindStringFullBegin("openerror:",str,squote,false)) {
+		acterr = trim((char *)str.c_str());
     }
 
 	if (cmd->FindStringBegin("timeout:",str,false)) {
@@ -58,30 +59,48 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd):CSerial(id, cmd) {
 }
 
 void CSerialFile::doAction() {
-    if (action.size()) {
+    std::string action;
+    if (actstd.size()) {
+        action=actstd;
         bool fail=false;
 #if defined(WIN32)
-        std::size_t found = action.find_first_of(" ");
+        bool q=false;
+        int pos=-1;
+        for (int i=0; i<action.size(); i++) {
+            if (action[i]=='"') q=!q;
+            else if (action[i]==' ' && !q) {
+                pos=i;
+                break;
+            }
+        }
         std::string para = filename;
-        if (found!=std::string::npos) {
-            para=action.substr(found+1)+" "+filename;
-            action=action.substr(0, found);
+        if (pos>-1) {
+            para=action.substr(pos+1)+" "+filename;
+            action=action.substr(0, pos);
         }
         fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
         fail=system((action+" "+filename).c_str())!=0;
 #endif
         if (acterr.size()&&fail) {
+            action=acterr;
 #if defined(WIN32)
-            std::size_t found = acterr.find_first_of(" ");
             para = filename;
-            if (found!=std::string::npos) {
-                para=acterr.substr(found+1)+" "+filename;
-                acterr=acterr.substr(0, found);
+            pos=-1;
+            for (int i=0; i<action.size(); i++) {
+                if (action[i]=='"') q=!q;
+                else if (action[i]==' ' && !q) {
+                    pos=i;
+                    break;
+                }
             }
-            fail=(INT_PTR)ShellExecute(NULL, "open", acterr.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+            if (pos>-1) {
+                para=action.substr(pos+1)+" "+filename;
+                action=action.substr(0, pos);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-            fail=system((acterr+" "+filename).c_str())!=0;
+            fail=system((action+" "+filename).c_str())!=0;
 #endif
         }
         bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);

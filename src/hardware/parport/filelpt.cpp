@@ -31,7 +31,7 @@
 #include "Shellapi.h"
 #endif
 
-CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
+CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
                               :CParallel (cmd, nr,initIrq) {
     bool is_file = false;
 	InstallationSuccessful = false;
@@ -40,6 +40,7 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
     timeout = ~0u;
 	std::string str;
 	ack = false;
+    squote = sq;
 
 	// add a formfeed when closing?
 	if(cmd->FindStringBegin("addFF",str,false))	addFF = true;
@@ -81,17 +82,17 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
-	if (cmd->FindStringFullBegin("openps:",str,false)) {
-		action1 = str.c_str();
+	if (cmd->FindStringFullBegin("openps:",str,squote,false)) {
+		action1 = trim((char *)str.c_str());
     }
-	if (cmd->FindStringFullBegin("openpcl:",str,false)) {
-		action2 = str.c_str();
+	if (cmd->FindStringFullBegin("openpcl:",str,squote,false)) {
+		action2 = trim((char *)str.c_str());
     }
-	if (cmd->FindStringFullBegin("openwith:",str,false)) {
-		action3 = str.c_str();
+	if (cmd->FindStringFullBegin("openwith:",str,squote,false)) {
+		action3 = trim((char *)str.c_str());
     }
-	if (cmd->FindStringFullBegin("openerror:",str,false)) {
-		action4 = str.c_str();
+	if (cmd->FindStringFullBegin("openerror:",str,squote,false)) {
+		action4 = trim((char *)str.c_str());
     }
 
 	if (cmd->FindStringBegin("timeout:",str,false)) {
@@ -141,27 +142,43 @@ void CFileLPT::doAction() {
         std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
         bool fail=false;
 #if defined(WIN32)
-        std::size_t found = action.find_first_of(" ");
+        bool q=false;
+        int pos=-1;
+        for (int i=0; i<action.size(); i++) {
+            if (action[i]=='"') q=!q;
+            else if (action[i]==' ' && !q) {
+                pos=i;
+                break;
+            }
+        }
         std::string para = name;
-        if (found!=std::string::npos) {
-            para=action.substr(found+1)+" "+name;
-            action=action.substr(0, found);
+        if (pos>-1) {
+            para=action.substr(pos+1)+" "+name;
+            action=action.substr(0, pos);
         }
         fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
         fail=system((action+" "+name).c_str())!=0;
 #endif
         if (action4.size()&&fail) {
+            action=action4;
 #if defined(WIN32)
-            std::size_t found = action4.find_first_of(" ");
             para = name;
-            if (found!=std::string::npos) {
-                para=action4.substr(found+1)+" "+name;
-                action4=action4.substr(0, found);
+            pos=-1;
+            for (int i=0; i<action.size(); i++) {
+                if (action[i]=='"') q=!q;
+                else if (action[i]==' ' && !q) {
+                    pos=i;
+                    break;
+                }
             }
-            fail=(INT_PTR)ShellExecute(NULL, "open", action4.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+            if (pos>-1) {
+                para=action.substr(pos+1)+" "+name;
+                action=action.substr(0, pos);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
 #else
-            fail=system((action4+" "+name).c_str())!=0;
+            fail=system((action+" "+name).c_str())!=0;
 #endif
         }
         bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);

@@ -1439,6 +1439,48 @@ public:
     }
 };
 
+class SetSensitivity : public GUI::ToplevelWindow {
+protected:
+    InputWithEnterKey *name;
+public:
+    SetSensitivity(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
+        new GUI::Label(this, 5, 10, "Enter mouse sensitivity (x-sen,y-sen):");
+//      name = new GUI::Input(this, 5, 30, 350);
+        name = new InputWithEnterKey(this, 5, 30, width - 10 - border_left - border_right);
+        name->set_trigger_target(this);
+        std::ostringstream str;
+        str << sdl.mouse.xsensitivity << "," << sdl.mouse.ysensitivity;
+
+
+        std::string cycles=str.str();
+        name->setText(cycles.c_str());
+        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+        name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+        name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "OK") {
+            Section* sec = control->GetSection("sdl");
+            if (sec) {
+                std::string tmp("sensitivity=");
+                tmp.append((const char*)(name->getText()));
+                sec->HandleInputline(tmp);
+                Prop_multival* p3 = static_cast<Section_prop *>(sec)->Get_multival("sensitivity");
+                sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
+                sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+            }
+        }
+        close();
+        if(shortcut) running=false;
+    }
+};
+
 class SetCycles : public GUI::ToplevelWindow {
 protected:
     InputWithEnterKey *name;
@@ -2551,6 +2593,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
         case 27: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
+            np7->raise();
+            } break;
+        case 28: {
+            auto *np7 = new SetSensitivity(screen, 90, 100, "Set mouse sensitivity...");
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {

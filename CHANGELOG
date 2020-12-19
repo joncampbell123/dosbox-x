@@ -37,7 +37,10 @@
     option. If the specified program cannot be executed
     due to some problem, DOSBox-X will try to start a
     program as specified with the "openerror" action,
-    or it will show an error. (Wengier)
+    or it will show an error. For both serial (COM) and
+    parallel (LPT) ports options, the program commands
+    can be quoted with double quotes, or with single
+    quotes if the "squote" option is added. (Wengier)
   - Extended parallel (LPT) ports from LPT1-LPT3 to
     LPT1-LPT9 in the [parallel] section. Config options
     lpt4-9 are advanced config options. You can also
@@ -54,6 +57,9 @@
     specified program(s) cannot be executed, DOSBox-X
     will try to start a program as specified with the
     "openerror" action, or show an error. (Wengier)
+  - Added "openwith" and "openerror" config options to
+    [printer] section to start the specified program to
+    open the printer output file. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as
@@ -83,10 +89,15 @@
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
+  - Separated "TTF options" menu group that contains
+    TrueType font (TTF) related menu options from the
+    "Text-mode" menu group in "Video" menu. (Wengier)
   - The "Show menu bar" option now appears in system
     menu of the Windows SDL2 build too. (Wengier)
   - If a language file fails to load, DOSBox-X will now
     show a warning dialog instead of exiting. (Wengier)
+  - Fixed the mouse sensitivity menu option (under the
+    "DOS" menu) not working. (Wengier)
   - Fixed the color palette problem when switching to
     graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover

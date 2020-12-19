@@ -3442,6 +3442,7 @@ void DOSBOX_SetupConfigSections(void) {
         "for file: specify an output file\n"
         "Additional parameters:\n"
         "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0),\n"
+        "    squote to use single quotes instad of double quotes for quoted program commands.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
         "for directserial: realport (required), rxdelay (optional).\n"
@@ -3546,6 +3547,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    Without the above parameters data is written to files in the capture dir.\n"
             "    Additional parameters:\n"
             "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0 or 500),\n"
+            "    squote to use single quotes instad of double quotes for quoted program commands.\n"
             "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
             "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
@@ -3617,6 +3619,14 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
     Pstring->Set_help("The path where the output files are stored.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("openwith", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Start the specified program to open the output file.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("openerror", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Start the specified program to open the output file if an error had occurred.");
     Pstring->SetBasic(true);
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);

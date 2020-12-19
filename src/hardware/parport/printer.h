@@ -149,6 +149,9 @@ private:
 	// Copies the codepage mapping from the constant array to CurMap
 	void selectCodepage(uint16_t cp);
 
+	// Does actions
+    void doAction(const char *fname);
+
 	// Output current page 
 	void outputPage();
 
