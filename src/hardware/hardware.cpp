@@ -642,8 +642,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 	} else {
 		CaptureState |= CAPTURE_VIDEO;
 #if defined(USE_TTF)
-        if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
-            ttf_switch_off();
+        ttf_switch_off();
 #endif
 	}
 

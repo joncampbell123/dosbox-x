@@ -602,7 +602,7 @@ continue_1:
 	dos.dta(save_dta);
 }
 
-static size_t GetPauseCount() {
+size_t GetPauseCount() {
 	uint16_t rows;
 	if (IS_PC98_ARCH)
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
