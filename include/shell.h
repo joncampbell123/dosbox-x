@@ -117,6 +117,10 @@ public:
      */
 	Bitu GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append);
 
+    /*! \brief      Build Tab completion
+     */
+	bool BuildCompletions(char * line, uint16_t str_len);
+
     /*! \brief      Command line input and keyboard handling
      */
 	void InputCommand(char * line);

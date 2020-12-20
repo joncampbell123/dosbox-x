@@ -86,6 +86,9 @@
     fonts (e.g. consolab, consolai, consolaz instead of
     consola) instead of making the original TTF font
     bold, italic, bold-italic automatically. (Wengier)
+  - You can now press the key combination Ctrl+Tab in
+    the shell to see a list of files/directories that
+    can be completed by the Tab completion. (Wengier)
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
