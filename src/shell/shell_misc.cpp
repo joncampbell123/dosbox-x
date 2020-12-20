@@ -140,8 +140,8 @@ void MoveCaretBackwards()
 bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     // build new completion list
     // Lines starting with CD/MD/RD will only get directories in the list
-    bool dir_only = (strncasecmp(line,"CD ",3)==0)||(strncasecmp(line,"MD ",3)==0)||(strncasecmp(line,"RD ",3)==0)||
-            (strncasecmp(line,"CHDIR ",6)==0)||(strncasecmp(line,"MKDIR ",3)==0)||(strncasecmp(line,"RMDIR ",6)==0);
+    bool dir_only = (strncasecmp(ltrim(line),"CD ",3)==0)||(strncasecmp(ltrim(line),"MD ",3)==0)||(strncasecmp(ltrim(line),"RD ",3)==0)||
+            (strncasecmp(ltrim(line),"CHDIR ",6)==0)||(strncasecmp(ltrim(line),"MKDIR ",3)==0)||(strncasecmp(ltrim(line),"RMDIR ",6)==0);
     int q=0, r=0, k=0;
 
     // get completion mask
@@ -601,6 +601,12 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x0F00:	/* Shift-Tab */
+                if (!l_completion.size()) {
+                    if (BuildCompletions(line, str_len))
+                        it_completion = l_completion.end();
+                    else
+                        break;
+                }
                 if (l_completion.size()) {
                     if (it_completion == l_completion.begin()) it_completion = l_completion.end (); 
                     --it_completion;
@@ -666,13 +672,12 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
             case 0x9400:	/* Ctrl-Tab */
             {
-                if (l_completion.size())
-                    ;
-                else if (BuildCompletions(line, str_len))
-                    it_completion = l_completion.begin();
-                else
-                    break;
-
+                if (!l_completion.size()) {
+                    if (BuildCompletions(line, str_len))
+                        it_completion = l_completion.begin();
+                    else
+                        break;
+                }
                 size_t w_count, p_count, col;
                 unsigned int max[15], total, tcols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
                 if (!tcols) tcols=80;
