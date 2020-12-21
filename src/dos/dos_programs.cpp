@@ -1089,8 +1089,12 @@ public:
                 APIRET rc = DosOpen((unsigned char*)temp_line.c_str(), &cdrom_fd, &ulAction, 0L, FILE_NORMAL, OPEN_ACTION_OPEN_IF_EXISTS,
                     OPEN_FLAGS_DASD | OPEN_SHARE_DENYNONE | OPEN_ACCESS_READONLY, 0L);
                 DosClose(cdrom_fd);
-                if (rc != NO_ERROR && rc != ERROR_NOT_READY) {
-                    if (!quiet) {
+                if (rc != NO_ERROR && rc != ERROR_NOT_READY)
+#endif
+                {
+                    is_physfs = true;
+                    temp_line.insert(0, 1, ':');
+                    /*if (!quiet) {
                         WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
                         if (temp_line.length()>4) {
                             char ext[5];
@@ -1100,21 +1104,8 @@ public:
                                 WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
                         }
                     }
-                    return;
+                    return;*/
                 }
-#else
-                if (!quiet) {
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
-                    if (temp_line.length()>4) {
-                        char ext[5];
-                        strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
-                        ext[4]=0;
-                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
-                            WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
-                    }
-                }
-                return;
-#endif
             }
 
             if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
@@ -1151,17 +1142,14 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 #endif
                 }
-                if (is_physfs) {
-					if (!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
-                    LOG_MSG("ERROR:This build does not support physfs");
-					return;
-                } else {
-					if (Drives[drive-'A']) {
-						if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-						return;
-					}
-                    newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
+                if (Drives[drive-'A']) {
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+                    return;
                 }
+                if (is_physfs)
+					newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error,options);
+                else
+                    newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
                 // Check Mscdex, if it worked out...
                 if (!quiet)
                 switch (error) {
@@ -1189,9 +1177,7 @@ public:
 #endif
                 }
                 if (is_physfs) {
-					if (!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
-                    LOG_MSG("ERROR:This build does not support physfs");
-					return;
+					newdrive=new physfsDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
                 } else if(type == "overlay") {
                   //Ensure that the base drive exists:
                   if (!Drives[drive-'A']) { 
@@ -1200,7 +1186,8 @@ public:
                   }
                   localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive-'A']);
                   cdromDrive* cdp = dynamic_cast<cdromDrive*>(Drives[drive-'A']);
-                  if (!ldp || cdp) {
+                  physfsDrive* pdp = dynamic_cast<physfsDrive*>(Drives[drive-'A']);
+                  if (!ldp || cdp || pdp) {
 					  if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
                       return;
                   }

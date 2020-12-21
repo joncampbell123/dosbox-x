@@ -44,7 +44,7 @@ static uint16_t confdpi, confwidth, confheight;
 static Bitu printer_timout;
 static bool timeout_dirty;
 static const char* document_path;
-//static const char* font_path;
+static const char* font_path;
 static char confoutputDevice[50];
 static bool confmultipageOutput;
 static std::string actstd, acterr;
@@ -255,10 +255,12 @@ void CPrinter::updateFont()
 
 	std::string fontName, basedir;
 #if defined(WIN32)
-    basedir = ".\\FONTS\\";
+    basedir = font_path;
 #else
-    basedir = "./FONTS/";
+    basedir = font_path;
 #endif
+    if (basedir.back()!='\\' && basedir.back()!='/')
+        basedir += CROSS_FILESPLIT;
 
 	switch (LQtypeFace)
 	{
@@ -275,7 +277,7 @@ void CPrinter::updateFont()
 		    fontName = basedir + "script.ttf";
 		    break;
 	    case ocra:
-	    case ocrb:
+	    case ocrb:;
 		    fontName = basedir + "ocra.ttf";
 		    break;
 	    default:
@@ -311,7 +313,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "times.ttf";
 #else
                 fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSerif-Regular.ttf";
 #endif
                 break;
             case sansserif:
@@ -319,7 +321,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "arial.ttf";
 #else
                 fontName = basedir + "liberation-sans/LiberationSans-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSans-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSans-Regular.ttf";
 #endif
                 break;
             case courier:
@@ -327,7 +329,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "cour.ttf";
 #else
                 fontName = basedir + "liberation-mono/LiberationMono-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationMono-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationMono-Regular.ttf";
 #endif
                 break;
             case script:
@@ -342,7 +344,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "times.ttf";
 #else
                 fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSerif-Regular.ttf";
 #endif
         }
         if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
@@ -2236,7 +2238,7 @@ void PRINTER_Init()
 	if (!section->Get_bool("printer")) return;
 	inited = true;
 	document_path = section->Get_string("docpath");
-	//font_path = section->Get_string("fontpath");
+	font_path = section->Get_string("fontpath");
 	confdpi = section->Get_int("dpi");
 	confwidth = section->Get_int("width");
 	confheight = section->Get_int("height");
