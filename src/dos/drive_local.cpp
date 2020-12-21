@@ -51,7 +51,6 @@
 #include "../libs/physfs/physfs_archiver_wad.c"
 #include "../libs/physfs/physfs_archiver_zip.c"
 #include "../libs/physfs/physfs_byteorder.c"
-#include "../libs/physfs/physfs_platform_apple.m"
 #include "../libs/physfs/physfs_platform_posix.c"
 #include "../libs/physfs/physfs_platform_unix.c"
 #include "../libs/physfs/physfs_platform_windows.c"
