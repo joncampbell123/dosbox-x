@@ -1537,6 +1537,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\hardware\mame\ymdeltat.h" />
     <ClInclude Include="..\src\hardware\mame\ymf262.h" />
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h" />
+    <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h" />
     <ClInclude Include="..\src\hardware\nukedopl.h" />
     <ClInclude Include="..\src\hardware\opl.h" />
     <ClInclude Include="..\src\hardware\parport\directlpt_win32.h" />

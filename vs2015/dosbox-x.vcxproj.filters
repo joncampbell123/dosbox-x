@@ -1028,6 +1028,7 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
       <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -2319,6 +2320,7 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h">
       <Filter>Sources\hardware</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>

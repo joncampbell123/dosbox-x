@@ -74,11 +74,14 @@ macOS compile (SDL1)
 macOS compile (SDL2)
 ./build-macosx-sdl2
 
-MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
+MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1)
 ./build-mingw
 
-MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
+MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1), lower-end systems that lack MMX/SSE
 ./build-mingw-lowend
+
+MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL2)
+./build-mingw-sdl2
 
 MinGW compile (on Windows, using MinGW, not MinGW64) to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
 ./build-mingw-hx-dos

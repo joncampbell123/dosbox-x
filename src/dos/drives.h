@@ -116,13 +116,12 @@ protected:
     } srchInfo[MAX_OPENDIRS] = {};
 };
 
-#if 0 // nothing uses this
 class physfsDrive : public localDrive {
 private:
 	bool isdir(const char *dir);
 
 public:
-	physfsDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid);
+	physfsDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options);
 	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
@@ -131,22 +130,28 @@ public:
 	virtual bool TestDir(const char * dir);
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual bool FindNext(DOS_DTA & dta);
-	virtual bool GetFileAttr(const char * name,uint16_t * attr);
 	virtual bool Rename(const char * oldname,const char * newname);
+	virtual bool SetFileAttr(const char * name,uint16_t attr);
+	virtual bool GetFileAttr(const char * name,uint16_t * attr);
+	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	virtual unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name);
+	virtual unsigned long GetSerial();
+#endif
 	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters);
 	virtual bool FileExists(const char* name);
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block);
-	virtual uint8_t GetMediaByte(void);
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual void *opendir(const char *dir);
 	virtual void closedir(void *handle);
-	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory);
-	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
+	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
 	virtual const char *GetInfo(void);
+	Bits UnMount();
 	virtual ~physfsDrive(void);
 };
-#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -537,11 +542,10 @@ private:
 	uint8_t subUnit;	char driveLetter;
 };
 
-#if 0 // nothing uses this
 class physfscdromDrive : public physfsDrive
 {
 public:
-	physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error);
+	physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options);
 	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
@@ -559,7 +563,6 @@ private:
 	uint8_t subUnit;
 	char driveLetter;
 };
-#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)

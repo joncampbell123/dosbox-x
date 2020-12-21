@@ -59,7 +59,15 @@
     "openerror" action, or show an error. (Wengier)
   - Added "openwith" and "openerror" config options to
     [printer] section to start the specified program to
-    open the printer output file. (Wengier)
+    open the printer output file. The [printer] section
+    also accepts "fontdir" option where you can change
+    the path ("FONTS" by default) where the printer TTF
+    fonts (including courier.ttf, ocra.ttf, roman.ttf,
+    sansserif.ttf, script.ttf) are located. (Wengier)
+  - Implemented PhysFS support so that you can mount
+    archives (such as zip) as drives in read-only mode,
+    e.g. "MOUNT C TEST.ZIP" or "MOUNT D FILES.7Z". Some
+    code is ported from a custom DOSBox fork. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as
