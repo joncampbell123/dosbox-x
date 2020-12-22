@@ -99,6 +99,7 @@ bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
 void runBoot(const char *str);
 #if defined(USE_TTF)
+bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss);
 #endif
 
@@ -8229,7 +8230,20 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
-        if (control->opt_fastlaunch && machine != MCH_PC98) return CBRET_NONE;
+        if (control->opt_fastlaunch && machine != MCH_PC98) {
+#if defined(USE_TTF)
+            if (TTF_using()) {
+                uint32_t lasttick=GetTicks();
+                while ((GetTicks()-lasttick)<500) {
+                    reg_eax = 0x0100;
+                    CALLBACK_RunRealInt(0x16);
+                }
+                reg_eax = 3;
+                CALLBACK_RunRealInt(0x10);
+            }
+#endif
+            return CBRET_NONE;
+        }
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 
@@ -8543,6 +8557,14 @@ private:
                 if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
                     break;
             }
+#if defined(USE_TTF)
+        } else if (TTF_using() && machine != MCH_PC98) {
+            uint32_t lasttick=GetTicks();
+            while ((GetTicks()-lasttick)<500) {
+                reg_eax = 0x0100;
+                CALLBACK_RunRealInt(0x16);
+            }
+#endif
         }
 #endif
 
