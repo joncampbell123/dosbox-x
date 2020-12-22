@@ -1253,7 +1253,15 @@ static void MY_FAST_CALL CrcGenerateTable()
       #endif
     }
     else if (p[0] != 1 || p[1] != 2)
+      #if CRC_NUM_TABLES < 4
       g_CrcUpdate = CrcUpdateT1;
+      #else
+      g_CrcUpdate = CrcUpdateT4;
+        #ifdef MY_CPU_X86_OR_AMD64
+        if (!CPU_Is_InOrder())
+          g_CrcUpdate = CrcUpdateT8;
+        #endif
+      #endif
     else
     #endif
     {

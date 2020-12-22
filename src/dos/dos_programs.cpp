@@ -1177,7 +1177,7 @@ public:
 #endif
                 }
                 if (is_physfs) {
-					newdrive=new physfsDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+					newdrive=new physfsDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
                 } else if(type == "overlay") {
                   //Ensure that the base drive exists:
                   if (!Drives[drive-'A']) { 

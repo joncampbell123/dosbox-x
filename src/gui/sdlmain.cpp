@@ -3256,6 +3256,12 @@ void setVGADAC() {
 
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
+    if (!colorChanged)
+        for (uint8_t i = 0; i < 0x10; i++) {
+            altBGR1[i].red=rgbColors[i].red;
+            altBGR1[i].green=rgbColors[i].green;
+            altBGR1[i].blue=rgbColors[i].blue;
+        }
 	const char * nextRGB = colorArray;
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int rgbVal[3] = {-1,-1,-1};
