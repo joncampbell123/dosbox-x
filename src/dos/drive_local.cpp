@@ -2010,6 +2010,7 @@ bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) 
 }
 
 struct opendirinfo {
+	char dir[CROSS_LEN];
 	char **files;
 	int pos;
 };
@@ -2029,6 +2030,7 @@ void *physfsDrive::opendir(const char *name) {
 	if (!PHYSFS_isDirectory(myname)) return NULL;
 
 	struct opendirinfo *oinfo = (struct opendirinfo *)malloc(sizeof(struct opendirinfo));
+	strcpy(oinfo->dir, myname);
 	oinfo->files = PHYSFS_enumerateFiles(myname);
 	if (oinfo->files == NULL) {
 		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,PHYSFS_getLastError());
@@ -2036,7 +2038,7 @@ void *physfsDrive::opendir(const char *name) {
 		return NULL;
 	}
 
-	oinfo->pos = (myname[1] == 0?0:-2);
+	oinfo->pos = (myname[4] == 0?0:-2);
 	return (void *)oinfo;
 }
 
@@ -2071,7 +2073,7 @@ bool physfsDrive::read_directory_next(void* dirp, char* entry_name, char* entry_
 	if (!oinfo->files || !oinfo->files[oinfo->pos]) return false;
 	safe_strncpy(entry_name,oinfo->files[oinfo->pos++],CROSS_LEN);
 	*entry_sname=0;
-	is_directory = isdir(entry_name);
+	is_directory = isdir(strlen(oinfo->dir)?(std::string(oinfo->dir)+"/"+std::string(entry_name)).c_str():entry_name);
 	return true;
 }
 
@@ -2118,6 +2120,7 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 	if (!mountarc.size()) {error = 10;return;}
 	strcpy(basedir,"\\");
 	strcat(basedir,mp);
+	strcat(basedir,"\\");
 
 	allocation.bytes_sector=_bytes_sector;
 	allocation.sectors_cluster=_sectors_cluster;

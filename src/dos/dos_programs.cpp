@@ -4398,7 +4398,7 @@ public:
                 newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
             }
             else {
-                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders, roflag);
+                newImage = MountImageNone(paths[0].c_str(), NULL, sizes, reserved_cylinders, roflag);
             }
             if (newImage == NULL) return;
             newImage->Addref();
@@ -4427,7 +4427,7 @@ public:
                             swapInDisksSpecificDrive = driveIndex;
 
                             for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                                imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
+                                imageDisk *img = MountImageNone(paths[si].c_str(), NULL, sizes, reserved_cylinders, roflag);
 
                                 if (img != NULL) {
                                     diskSwap[si] = img;
@@ -4906,6 +4906,8 @@ private:
         std::vector<DOS_Drive*> imgDisks;
         std::vector<std::string>::size_type i;
         std::vector<DOS_Drive*>::size_type ct;
+        FILE *diskfiles[MAX_SWAPPABLE_DISKS];
+        for (i = 0; i < MAX_SWAPPABLE_DISKS; i++) diskfiles[i]=NULL;
 
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
@@ -4997,8 +4999,10 @@ private:
 						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
-                } else if ((vhdImage&&ro)||roflag)
-                    fdrive->readonly=true;
+                } else {
+                    diskfiles[i]=fdrive->loadedDisk->diskimg;
+                    if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
+                }
             }
             if (errorMessage) {
                 if (!qmount) WriteOut(errorMessage);
@@ -5038,7 +5042,7 @@ private:
                         swapInDisksSpecificDrive = driveIndex;
 
                         for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
+                            imageDisk *img = MountImageNone(paths[si].c_str(), diskfiles[si], sizes, reserved_cylinders, roflag);
 
                             if (img != NULL) {
                                 diskSwap[si] = img;
@@ -5395,7 +5399,7 @@ private:
         return true;
     }
 
-    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
+    imageDisk* MountImageNone(const char* fileName, FILE* file, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
         imageDisk* newImage = 0;
         Bitu sizes[4];
         sizes[0] = sizesOriginal[0];
@@ -5432,9 +5436,9 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = fopen_lock(fname, readonly||roflag?"rb":"rb+");
+        FILE *newDisk = file==NULL?fopen_lock(fname, readonly||roflag?"rb":"rb+"):file;
         if (!newDisk) {
-            WriteOut("Unable to open '%s'\n", fname);
+            if (!qmount) WriteOut("Unable to open '%s'\n", fname);
             return NULL;
         }
 
