@@ -2076,7 +2076,7 @@ bool physfsDrive::read_directory_next(void* dirp, char* entry_name, char* entry_
 }
 
 static uint8_t physfs_used = 0;
-physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options)
+physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,int &error,std::vector<std::string> &options)
 		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options)
 {
 	this->driveLetter = driveLetter;
@@ -2114,6 +2114,8 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 		lastdir = dir;
 		dir = strchr(lastdir+(((lastdir[0]|0x20) >= 'a' && (lastdir[0]|0x20) <= 'z')?2:0),':');
 	}
+	error = 0;
+	if (!mountarc.size()) {error = 10;return;}
 	strcpy(basedir,"\\");
 	strcat(basedir,mp);
 
@@ -2424,9 +2426,10 @@ bool physfsFile::UpdateDateTimeFromHost(void) {
 }
 
 physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
-		   :physfsDrive(driveLetter,startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options)
+		   :physfsDrive(driveLetter,startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,error,options)
 {
 	// Init mscdex
+	if (!mountarc.size()) {error = 10;return;}
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
 	this->driveLetter = driveLetter;
 	// Get Volume Label

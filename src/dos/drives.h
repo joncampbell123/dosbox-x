@@ -122,7 +122,7 @@ private:
 	char driveLetter;
 
 public:
-	physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options);
+	physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options);
 	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);

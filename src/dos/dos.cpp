@@ -3329,6 +3329,8 @@ void DOS_EnableDriveMenu(char drv) {
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountfro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountarc";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimgs";
