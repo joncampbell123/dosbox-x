@@ -106,7 +106,9 @@ void GFX_OpenGLRedrawScreen(void);
 #include "inout.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "whereami.c"
+#endif
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #if defined(USE_TTF)
@@ -284,10 +286,10 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
-bool colorChanged = false;
 static int prev_sline = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
+bool colorChanged = false, justChanged = false;
 #endif
 #if defined(WIN32)
 int curscr;
@@ -1021,7 +1023,7 @@ void CPU_Core_Dyn_X86_Shutdown(void);
 std::string dosboxpath="";
 std::string GetDOSBoxXPath() {
     std::string full;
-#if defined(HX_DOS)
+#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
     char exepath[MAX_PATH];
     GetModuleFileName(NULL, exepath, sizeof(exepath));
     full=std::string(exepath);
@@ -3318,7 +3320,7 @@ bool setColors(const char *colorArray, int n) {
 		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
 	}
     setVGADAC();
-    colorChanged=true;
+    colorChanged=justChanged=true;
 	return true;
 }
 
@@ -4231,11 +4233,11 @@ void GFX_EndTextLines(bool force=false) {
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
-	bool draw = false;
 	for (int y = 0; y < ttf.lins; y++) {
+		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && draw) || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped)) {
 				draw = true;
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
@@ -4301,7 +4303,8 @@ void GFX_EndTextLines(bool force=false) {
 		curAC += ttf.cols;
 		newAC += ttf.cols;
 	}
-#if 1 // NTS: Additional fix is needed for PC-98 mode; also expect further cleanup
+    if (!force) justChanged = false;
+    // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
@@ -4373,7 +4376,6 @@ void GFX_EndTextLines(bool force=false) {
 			}
 		}
 	}
-#endif
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
         rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
@@ -12563,8 +12565,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_MAPPER;
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAPPER));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    b.dwMask = (THUMBBUTTONMASK)(THB_TOOLTIP | THB_FLAGS | THB_ICON);
+                    b.dwFlags = (THUMBBUTTONFLAGS)(THBF_ENABLED | THBF_DISMISSONCLICK);
                     wcscpy(b.szTip, L"Mapper editor");
                 }
 
@@ -12573,8 +12575,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_CFG_GUI;
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_CFG_GUI));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    b.dwMask = (THUMBBUTTONMASK)(THB_TOOLTIP | THB_FLAGS | THB_ICON);
+                    b.dwFlags = (THUMBBUTTONFLAGS)(THBF_ENABLED | THBF_DISMISSONCLICK);
                     wcscpy(b.szTip, L"Configuration tool");
                 }
 
@@ -12582,8 +12584,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     THUMBBUTTON &b = buttons[buttoni++];
                     memset(&b, 0, sizeof(b));
                     b.iId = 1;
-                    b.dwMask = THB_FLAGS;
-                    b.dwFlags = THBF_DISABLED | THBF_NONINTERACTIVE | THBF_NOBACKGROUND;
+                    b.dwMask = (THUMBBUTTONMASK)THB_FLAGS;
+                    b.dwFlags = (THUMBBUTTONFLAGS)(THBF_DISABLED | THBF_NONINTERACTIVE | THBF_NOBACKGROUND);
                 }
 
                 {
@@ -12591,8 +12593,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_PAUSE;
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_PAUSE));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED;
+                    b.dwMask = (THUMBBUTTONMASK)(THB_TOOLTIP | THB_FLAGS | THB_ICON);
+                    b.dwFlags = (THUMBBUTTONFLAGS)THBF_ENABLED;
                     wcscpy(b.szTip, L"Pause emulation");
                 }
 

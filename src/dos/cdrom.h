@@ -28,7 +28,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 #include <thread>
 #endif
 
@@ -307,7 +307,7 @@ private:
               uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
               uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
               int          hunk_buffer_index = -1;      // hunk index for buffer
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
               std::thread* hunk_thread       = nullptr; // used for prefetch
               bool         hunk_thread_error = true;
 #endif

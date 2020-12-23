@@ -304,7 +304,7 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
         this->hunk_buffer = nullptr;
     }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
     if (this->hunk_thread) {
         this->hunk_thread->join();
         delete hunk_thread;
@@ -313,7 +313,7 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
 #endif
 }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 void hunk_thread_func(chd_file* chd, int hunk_index, uint8_t* buffer, bool* error)
 {
     // loads one hunk into buffer
@@ -337,7 +337,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
     // read new hunk if needed
     if (needed_hunk != this->hunk_buffer_index) {
-#if defined(HX_DOS)
+#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
         if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE)
             return false;
 #else
@@ -361,7 +361,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
         this->hunk_buffer_index = needed_hunk;
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
         // prefetch: let our thread decode the next hunk
         if (hunk_thread) delete this->hunk_thread;
         this->hunk_thread = new std::thread(
