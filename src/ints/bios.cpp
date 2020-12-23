@@ -5395,6 +5395,8 @@ static Bitu INT8_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+extern bool sync_time, manualtime;
+
 static Bitu INT8_Handler(void) {
     /* Increase the bios tick counter */
     uint32_t value = mem_readd(BIOS_TIMER) + 1;
@@ -5441,6 +5443,12 @@ static Bitu INT8_Handler(void) {
     }
 #endif
     mem_writed(BIOS_TIMER,value);
+
+    /* if the new BIOS_TIMER value is off from realtime, and sync time=true, then allow further adjustments */
+    if (sync_time&&!manualtime) {
+        void BIOS_HostTimeSync();
+        BIOS_HostTimeSync();
+    }
 
     /* decrease floppy motor timer */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
