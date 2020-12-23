@@ -2994,7 +2994,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
-    if (sync_time&&!manualtime) {
+    if (!IS_PC98_ARCH&&sync_time&&!manualtime) {
         void BIOS_HostTimeSync();
         BIOS_HostTimeSync();
     }
