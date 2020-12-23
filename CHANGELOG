@@ -120,6 +120,9 @@
     section are being ignored. (Wengier)
   - Fixed issues with building the code with original
     MinGW using the ./build-mingw script. (Wengier)
+  - IMGMOUNT now assumes the ISO type for .GOG/.INS
+    files (which are equivalent to .CUE/.INS files)
+    if no type is specified by the user. (Wengier)
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
   - Added support for automatic switching from TTF

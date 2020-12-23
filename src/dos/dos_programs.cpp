@@ -479,9 +479,9 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         const char *lFilterDescription = "Archive files (*.zip, *.7z)";
         lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"",4,lFilterPatterns,lFilterDescription,0);
     } else {
-        const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF"};
-        const char *lFilterDescription = "Disk/CD image files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf)";
-        lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",18,lFilterPatterns,lFilterDescription,multiple?1:0);
+        const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS"};
+        const char *lFilterDescription = "Disk/CD image files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins)";
+        lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",22,lFilterPatterns,lFilterDescription,multiple?1:0);
         if (multiple&&lTheOpenFileName) {
             files += "\"";
             for (int i=0; i<strlen(lTheOpenFileName); i++)
@@ -507,7 +507,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
                 strcpy(ext, lTheOpenFileName+strlen(lTheOpenFileName)-4);
             if(!strcasecmp(ext,".ima"))
                 strcpy(type,"-t floppy ");
-            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")))
+            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")))
                 strcpy(type,"-t iso ");
             else
                 strcpy(type,"");
@@ -4344,7 +4344,7 @@ public:
 				char ext[5];
 				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
 				ext[4]=0;
-				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")) {
+				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
 					type="iso";
 					fstype="iso";
 				} else if (!strcasecmp(ext, ".ima")) {
