@@ -15,8 +15,6 @@
     or if you manually change the date/time. (Wengier)
   - Improved compatability with Watcom C++ 2.0 when
     long filename (LFN) support is enabled. (Wengier)
-  - Added read-only options to the Drive menu to mount
-    the specified drive in read-only mode. (Wengier)
   - Added support for starting DOSBox-X in a specific
     display on a multi-screen setup (Windows builds as
     well as Linux/macOS SDL2 builds). A config option
@@ -64,10 +62,15 @@
     the path ("FONTS" by default) where the printer TTF
     fonts (including courier.ttf, ocra.ttf, roman.ttf,
     sansserif.ttf, script.ttf) are located. (Wengier)
+  - Added read-only options to the Drive menu to mount
+    host folders/drives or image files to the specified
+    drive letter in read-only mode. (Wengier)
   - Implemented PhysFS support so that you can mount
     archives (such as zip) as drives in read-only mode,
     e.g. "MOUNT C TEST.ZIP" or "MOUNT D FILES.7Z". Some
-    code is ported from a custom DOSBox fork. (Wengier)
+    code is ported from a custom DOSBox fork. The menu
+    option "Mount an archive file (ZIP/7Z)" is added to
+    Drive menu to mount archives as Drives. (Wengier)
   - Implemented file locking support for mounting disk
     image files so that you cannot mount the same disk
     image files in read/write mode at the same time as

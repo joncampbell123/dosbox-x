@@ -2010,6 +2010,7 @@ bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) 
 }
 
 struct opendirinfo {
+	char dir[CROSS_LEN];
 	char **files;
 	int pos;
 };
@@ -2029,6 +2030,7 @@ void *physfsDrive::opendir(const char *name) {
 	if (!PHYSFS_isDirectory(myname)) return NULL;
 
 	struct opendirinfo *oinfo = (struct opendirinfo *)malloc(sizeof(struct opendirinfo));
+	strcpy(oinfo->dir, myname);
 	oinfo->files = PHYSFS_enumerateFiles(myname);
 	if (oinfo->files == NULL) {
 		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,PHYSFS_getLastError());
@@ -2036,7 +2038,7 @@ void *physfsDrive::opendir(const char *name) {
 		return NULL;
 	}
 
-	oinfo->pos = (myname[1] == 0?0:-2);
+	oinfo->pos = (myname[4] == 0?0:-2);
 	return (void *)oinfo;
 }
 
@@ -2071,14 +2073,17 @@ bool physfsDrive::read_directory_next(void* dirp, char* entry_name, char* entry_
 	if (!oinfo->files || !oinfo->files[oinfo->pos]) return false;
 	safe_strncpy(entry_name,oinfo->files[oinfo->pos++],CROSS_LEN);
 	*entry_sname=0;
-	is_directory = isdir(entry_name);
+	is_directory = isdir(strlen(oinfo->dir)?(std::string(oinfo->dir)+"/"+std::string(entry_name)).c_str():entry_name);
 	return true;
 }
 
 static uint8_t physfs_used = 0;
-physfsDrive::physfsDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options)
+physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,int &error,std::vector<std::string> &options)
 		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options)
 {
+	this->driveLetter = driveLetter;
+	this->mountarc = "";
+	char mp[3] = {'_', driveLetter, 0};
 	char newname[CROSS_LEN+1];
 	strcpy(newname,startdir);
 	CROSS_FILENAME(newname);
@@ -2100,13 +2105,22 @@ physfsDrive::physfsDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _s
 			dir[tmp++] = CROSS_FILESPLIT;
 			dir[tmp] = '\0';
 		}
-		if (*lastdir && PHYSFS_addToSearchPath(lastdir,true) == 0) {
-			LOG_MSG("PHYSFS couldn't add '%s': %s",lastdir,PHYSFS_getLastError());
-		}
+		if (*lastdir) {
+            if (PHYSFS_mount(lastdir,mp,true) == 0)
+                LOG_MSG("PHYSFS couldn't mount '%s': %s",lastdir,PHYSFS_getLastError());
+            else {
+                if (mountarc.size()) mountarc+=", ";
+                mountarc+= lastdir;
+            }
+        }
 		lastdir = dir;
 		dir = strchr(lastdir+(((lastdir[0]|0x20) >= 'a' && (lastdir[0]|0x20) <= 'z')?2:0),':');
 	}
-	strcpy(basedir,lastdir);
+	error = 0;
+	if (!mountarc.size()) {error = 10;return;}
+	strcpy(basedir,"\\");
+	strcat(basedir,mp);
+	strcat(basedir,"\\");
 
 	allocation.bytes_sector=_bytes_sector;
 	allocation.sectors_cluster=_sectors_cluster;
@@ -2130,14 +2144,7 @@ physfsDrive::~physfsDrive(void) {
 }
 
 const char *physfsDrive::GetInfo() {
-	char **files = PHYSFS_getSearchPath(), **list = files;
-	sprintf(info,"PhysFS directory ");
-	while (*files != NULL) {
-		strcat(info,*files++);
-		strcat(info,", ");
-	}
-	if (info[strlen(info)-1]==' '&&info[strlen(info)-2]==',') info[strlen(info)-2]=0;
-	PHYSFS_freeList(list);
+	sprintf(info,"PhysFS directory %s", mountarc.c_str());
 	return info;
 }
 
@@ -2324,6 +2331,8 @@ bool physfsDrive::isRemovable(void) {
 }
 
 Bits physfsDrive::UnMount(void) {
+	char mp[3] = {'_', driveLetter, 0};
+	PHYSFS_unmount(mp);
 	delete this;
 	return 0;
 }
@@ -2420,24 +2429,19 @@ bool physfsFile::UpdateDateTimeFromHost(void) {
 }
 
 physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
-		   :physfsDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options)
+		   :physfsDrive(driveLetter,startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,error,options)
 {
 	// Init mscdex
+	if (!mountarc.size()) {error = 10;return;}
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
+	this->driveLetter = driveLetter;
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 };
 
 const char *physfscdromDrive::GetInfo() {
-	char **files = PHYSFS_getSearchPath(), **list = files;
-	sprintf(info,"PhysFS CDRom ");
-	while (*files != NULL) {
-		strcat(info,*files++);
-		strcat(info,", ");
-	}
-	if (info[strlen(info)-1]==' '&&info[strlen(info)-2]==',') info[strlen(info)-1]=info[strlen(info)-2]=0;
-	PHYSFS_freeList(list);
+	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
 	return info;
 }
 

@@ -2240,14 +2240,14 @@ void POD_Load_DOS_Files( std::istream& stream )
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                         if (strlen(overlaydir)) {
-                            uint8_t o_error = 0;
-                            Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.sectors_cluster,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,o_error,options);
+                            uint8_t error = 0;
+                            Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.sectors_cluster,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,error,options);
                         }
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+16);
                 } else if (!strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS CDRom ",13)) {
                     int num = -1;
-                    int error;
+                    int error = 0;
                     int id, major, minor;
                     DOSBox_CheckOS(id, major, minor);
                     if ((id==VER_PLATFORM_WIN32_NT) && (major>5))
@@ -2268,11 +2268,12 @@ void POD_Load_DOS_Files( std::istream& stream )
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+6);
                 } else if (!strncmp(dinfo,"PhysFS directory ",17)) {
+                    int error = 0;
                     std::string str=std::string(dinfo+17);
                     std::size_t found=str.find(", ");
                     if (found!=std::string::npos)
                         str=str.substr(0,found);
-                    Drives[lcv]=new physfsDrive((":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,options);
+                    Drives[lcv]=new physfsDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
                     if (Drives[lcv]) {
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);

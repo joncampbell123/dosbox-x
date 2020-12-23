@@ -450,7 +450,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 }
 #endif
 
-void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
+void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string str(1, drive);
 	std::string drive_warn;
 	if (Drives[drive-'A']&&!boot) {
@@ -472,29 +472,36 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.ZIP","*.7Z"};
-    const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf, *.zip, *.7z)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
+    char const * lTheOpenFileName;
     std::string files="";
-    if (multiple&&lTheOpenFileName) {
-        files += "\"";
-        for (int i=0; i<strlen(lTheOpenFileName); i++)
-            files += lTheOpenFileName[i]=='|'?"\" \"":std::string(1,lTheOpenFileName[i]);
-        files += "\" ";
-    }
-    while (multiple&&lTheOpenFileName&&tinyfd_messageBox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
-        lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
-        if (lTheOpenFileName) {
+    if (arc) {
+        const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
+        const char *lFilterDescription = "Archive files (*.zip, *.7z)";
+        lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"",4,lFilterPatterns,lFilterDescription,0);
+    } else {
+        const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF"};
+        const char *lFilterDescription = "Disk/CD image files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf)";
+        lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",18,lFilterPatterns,lFilterDescription,multiple?1:0);
+        if (multiple&&lTheOpenFileName) {
             files += "\"";
             for (int i=0; i<strlen(lTheOpenFileName); i++)
                 files += lTheOpenFileName[i]=='|'?"\" \"":std::string(1,lTheOpenFileName[i]);
             files += "\" ";
         }
+        while (multiple&&lTheOpenFileName&&tinyfd_messageBox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
+            lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
+            if (lTheOpenFileName) {
+                files += "\"";
+                for (int i=0; i<strlen(lTheOpenFileName); i++)
+                    files += lTheOpenFileName[i]=='|'?"\" \"":std::string(1,lTheOpenFileName[i]);
+                files += "\" ";
+            }
+        }
     }
 
 	if (lTheOpenFileName||files.size()) {
         char type[15];
-        if (!files.size()) {
+        if (!arc&&!files.size()) {
             char ext[5] = "";
             if (strlen(lTheOpenFileName)>4)
                 strcpy(ext, lTheOpenFileName+strlen(lTheOpenFileName)-4);
@@ -517,9 +524,14 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
 		if (!multiple) strcat(mountstring,"\"");
 		if (mountiro[drive-'A']) strcat(mountstring," -ro");
 		if (boot) strcat(mountstring," -u");
-		qmount=true;
-		runImgmount(mountstring);
-		qmount=false;
+        if (arc) {
+            strcat(mountstring," -q");
+            runMount(mountstring);
+        } else {
+            qmount=true;
+            runImgmount(mountstring);
+            qmount=false;
+        }
 		chdir( Temp_CurrentDir );
 		if (!Drives[drive-'A']) {
 			drive_warn="Drive "+str+": failed to mount.";
@@ -534,7 +546,7 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
 		} else if (multiple) {
 			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+":\n"+files+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		} else {
-			tinyfd_messageBox("Information",("Mounted disk image to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
+			tinyfd_messageBox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		}
 	}
 	chdir( Temp_CurrentDir );
@@ -1159,6 +1171,7 @@ public:
                     case 3  :   WriteOut(MSG_Get("MSCDEX_ERROR_PATH"));             break;
                     case 4  :   WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
                     case 5  :   WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
+                    case 10 :   WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));    break;
                     default :   WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));          break;
                 }
                 if (error && error!=5) {
@@ -1177,7 +1190,13 @@ public:
 #endif
                 }
                 if (is_physfs) {
-					newdrive=new physfsDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
+                    int error = 0;
+					newdrive=new physfsDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
+                    if (error) {
+                        if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));
+                        delete newdrive;
+                        return;
+                    }
                 } else if(type == "overlay") {
                   //Ensure that the base drive exists:
                   if (!Drives[drive-'A']) { 
@@ -4379,7 +4398,7 @@ public:
                 newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
             }
             else {
-                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders, roflag);
+                newImage = MountImageNone(paths[0].c_str(), NULL, sizes, reserved_cylinders, roflag);
             }
             if (newImage == NULL) return;
             newImage->Addref();
@@ -4408,7 +4427,7 @@ public:
                             swapInDisksSpecificDrive = driveIndex;
 
                             for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                                imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
+                                imageDisk *img = MountImageNone(paths[si].c_str(), NULL, sizes, reserved_cylinders, roflag);
 
                                 if (img != NULL) {
                                     diskSwap[si] = img;
@@ -4887,6 +4906,8 @@ private:
         std::vector<DOS_Drive*> imgDisks;
         std::vector<std::string>::size_type i;
         std::vector<DOS_Drive*>::size_type ct;
+        FILE *diskfiles[MAX_SWAPPABLE_DISKS];
+        for (i = 0; i < MAX_SWAPPABLE_DISKS; i++) diskfiles[i]=NULL;
 
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
@@ -4978,8 +4999,10 @@ private:
 						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
-                } else if ((vhdImage&&ro)||roflag)
-                    fdrive->readonly=true;
+                } else {
+                    diskfiles[i]=fdrive->loadedDisk->diskimg;
+                    if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
+                }
             }
             if (errorMessage) {
                 if (!qmount) WriteOut(errorMessage);
@@ -5019,7 +5042,7 @@ private:
                         swapInDisksSpecificDrive = driveIndex;
 
                         for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
+                            imageDisk *img = MountImageNone(paths[si].c_str(), diskfiles[si], sizes, reserved_cylinders, roflag);
 
                             if (img != NULL) {
                                 diskSwap[si] = img;
@@ -5376,7 +5399,7 @@ private:
         return true;
     }
 
-    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
+    imageDisk* MountImageNone(const char* fileName, FILE* file, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
         imageDisk* newImage = 0;
         Bitu sizes[4];
         sizes[0] = sizesOriginal[0];
@@ -5413,9 +5436,9 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = fopen_lock(fname, readonly||roflag?"rb":"rb+");
+        FILE *newDisk = file==NULL?fopen_lock(fname, readonly||roflag?"rb":"rb+"):file;
         if (!newDisk) {
-            WriteOut("Unable to open '%s'\n", fname);
+            if (!qmount) WriteOut("Unable to open '%s'\n", fname);
             return NULL;
         }
 
@@ -6773,6 +6796,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting C:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
+	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");

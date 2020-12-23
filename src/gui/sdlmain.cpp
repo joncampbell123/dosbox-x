@@ -308,7 +308,7 @@ extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
 void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive, bool boot, bool multiple);
+void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void MenuBrowseProgramFile(void);
@@ -430,6 +430,28 @@ bool drive_mountfro_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     return true;
 }
 
+bool drive_mountarc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A', true, false, false);
+
+    return true;
+}
+
 bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -447,7 +469,7 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', false, false);
+    MenuBrowseImageFile(drive+'A', false, false, false);
 
     return true;
 }
@@ -469,7 +491,7 @@ bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', false, true);
+    MenuBrowseImageFile(drive+'A', false, false, true);
 
     return true;
 }
@@ -501,7 +523,7 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', true, false);
+    MenuBrowseImageFile(drive+'A', false, true, false);
 
     return true;
 }
@@ -639,6 +661,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountfd_menu_callback,
     drive_mountfro_menu_callback,
     NULL,
+    drive_mountarc_menu_callback,
     drive_mountimg_menu_callback,
     drive_mountimgs_menu_callback,
     drive_mountiro_menu_callback,
@@ -696,6 +719,7 @@ const char *drive_opts[][2] = {
 	{ "mountfd",                "Mount folder as floppy drive" },
 	{ "mountfro",               "Option: mount folder read-only" },
 	{ "div1",                   "--" },
+	{ "mountarc",               "Mount an archive file (ZIP/7Z)" },
 	{ "mountimg",               "Mount a disk or CD image file" },
 	{ "mountimgs",              "Mount multiple disk/CD images" },
 	{ "mountiro",               "Option: mount images read-only" },
@@ -3256,6 +3280,12 @@ void setVGADAC() {
 
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
+    if (!colorChanged)
+        for (uint8_t i = 0; i < 0x10; i++) {
+            altBGR1[i].red=rgbColors[i].red;
+            altBGR1[i].green=rgbColors[i].green;
+            altBGR1[i].blue=rgbColors[i].blue;
+        }
 	const char * nextRGB = colorArray;
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int rgbVal[3] = {-1,-1,-1};

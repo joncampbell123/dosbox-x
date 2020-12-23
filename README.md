@@ -59,9 +59,11 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for long filenames and FAT32 disk images (DOS 7+ features)
 
-* Support for printer output, either a real or virtual printer
+* Support for TrueType font (TTF) output for text-mode DOS programs
 
-* Support for 3dfx Voodoo chip and Glide emulation
+* Support for printing features, either to a real or to a virtual printer
+
+* Support for 3dfx Voodoo chip and Glide emulation (including Glide wrapper)
 
 * Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
 
