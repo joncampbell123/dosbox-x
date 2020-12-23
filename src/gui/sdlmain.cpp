@@ -284,10 +284,10 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
-bool colorChanged = false;
 static int prev_sline = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
+bool colorChanged = false, justChanged = false;
 #endif
 #if defined(WIN32)
 int curscr;
@@ -3318,7 +3318,7 @@ bool setColors(const char *colorArray, int n) {
 		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
 	}
     setVGADAC();
-    colorChanged=true;
+    colorChanged=justChanged=true;
 	return true;
 }
 
@@ -4231,11 +4231,11 @@ void GFX_EndTextLines(bool force=false) {
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
-	bool draw = false;
 	for (int y = 0; y < ttf.lins; y++) {
+		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && draw) || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped)) {
 				draw = true;
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
@@ -4301,6 +4301,7 @@ void GFX_EndTextLines(bool force=false) {
 		curAC += ttf.cols;
 		newAC += ttf.cols;
 	}
+    if (!force) justChanged = false;
 #if 1 // NTS: Additional fix is needed for PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
