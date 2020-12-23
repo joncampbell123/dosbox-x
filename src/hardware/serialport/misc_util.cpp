@@ -70,7 +70,7 @@ TCPClientSocket::TCPClientSocket(int platformsocket) {
 	socklen_t		sz;
 #endif
 	sz=sizeof(sa);
-	if(getpeername(platformsocket, (sockaddr *)(&sa), &sz)==0) {
+	if(getpeername(platformsocket, (sockaddr *)(&sa), (int *)&sz)==0) {
 		((struct _TCPsocketX*)nativetcpstruct)->
 			remoteAddress.host=/*ntohl(*/sa.sin_addr.s_addr;//);
 		((struct _TCPsocketX*)nativetcpstruct)->
@@ -81,7 +81,7 @@ TCPClientSocket::TCPClientSocket(int platformsocket) {
 		return;
 	}
 	sz=sizeof(sa);
-	if(getsockname(platformsocket, (sockaddr *)(&sa), &sz)==0) {
+	if(getsockname(platformsocket, (sockaddr *)(&sa), (int *)&sz)==0) {
 		((struct _TCPsocketX*)nativetcpstruct)->
 			localAddress.host=/*ntohl(*/sa.sin_addr.s_addr;//);
 		((struct _TCPsocketX*)nativetcpstruct)->

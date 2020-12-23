@@ -20,8 +20,11 @@
 /* MinGW32 special defines */
 #if defined(__MINGW32__)
 #include <stdint.h>
+#if !defined(__MINGW64_VERSION_MAJOR)
+#define DSOUND_SUPPORT 0
+#endif
 //#define snprintf _snprintf
-#define vsnprintf _vsnprintf
+//#define vsnprintf _vsnprintf
 #else
 #if _MSC_VER < 1900
 #define snprintf _snprintf
@@ -29,6 +32,7 @@
 #if _MSC_VER < 1500
 #define vsnprintf _vsnprintf
 #endif
+typedef int socklen_t;
 #endif
 
 #if _MSC_VER
@@ -55,5 +59,3 @@
 #endif
 
 #define DEFAULT_SOUNDFONT "generalmidi.sf2"
-
-typedef int socklen_t;

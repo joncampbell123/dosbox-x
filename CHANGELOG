@@ -118,6 +118,8 @@
     the background screen in Linux. (Wengier)
   - Fixed that lines starting with "%" in [autoexec]
     section are being ignored. (Wengier)
+  - Fixed issues with building the code with original
+    MinGW using the ./build-mingw script. (Wengier)
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
   - Added support for automatic switching from TTF
