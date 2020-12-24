@@ -39,6 +39,7 @@ public:
 	FILE* file = NULL;
 	std::string name;			// name of the thing to open
 	std::string action1, action2, action3, action4; // open with a program or batch script
+	bool shellhide;
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
     bool squote;

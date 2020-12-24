@@ -1,14 +1,4 @@
 0.83.9
-  - synchronize time fixed to synchronize to host time
-    if and only if the timer is running at the standard
-    18.2Hz tick rate. Any other rate does not make
-    sense and will cause only jitter and error. Fix for
-    synchronize time and two Demoscene entries sl_fokus
-    and sl_haloo which use BIOS_TIMER with a faster
-    hardware tick rate.
-  - synchronize time fixed to work from IRQ0 handler
-    (where BIOS_TIMER is processed) rather than from
-    VGA vsync.
   - Added menu option "Create blank disk images..."
     (under "DOS" menu) to create blank floppy or hard
     disk images of a common disk size, including 360KB,
@@ -18,12 +8,23 @@
     is also added to IMGMAKE command. (Wengier)
   - The Configuration Tool will now be centered within
     the DOSBox-X window for a better looking. (Wengier)
-  - DOSBox-X will now automatically synchronize the
-    date/time with the host system by default, which
-    can be turned off by setting the new config option
-    "synchronize time" to "false" in [dosbox] section,
-    or if you manually change the date/time. (Wengier)
-  - Improved compatability with Watcom C++ 2.0 when
+  - Added config option "synchronize time" in [dosbox]
+    section which when set to true will allow DOSBox-X
+    to automatically synchronize the date and time with
+    the host system, unless you manually change date
+    and/or time. A menu option "Synchronize host date/
+    time" is added to the DOS menu. The function uses
+    IRQ0 handler; it will not work in PC-98 mode nor if
+    the timer isn't running at the standard 18.2Hz tick
+    rate, as any other rate does not make sense and
+    will cause only jitter and error. Also fixed two
+    Demoscene entries sl_fokus and sl_haloo which use
+    BIOS_TIMER with a faster hardware tick rate.
+  - Added config option "showdetails" which when set to
+    true enables the menu option "Show FPS and RT speed
+    in title bar" at start. It is equivalent to -showrt
+    and -showcycles command-line options. (Wengier)
+  - Improved compatibility with Watcom C++ 2.0 when
     long filename (LFN) support is enabled. (Wengier)
   - Added support for starting DOSBox-X in a specific
     display on a multi-screen setup (Windows builds as

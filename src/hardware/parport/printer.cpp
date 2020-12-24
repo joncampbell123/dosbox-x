@@ -46,7 +46,7 @@ static bool timeout_dirty;
 static const char* document_path;
 static const char* font_path;
 static char confoutputDevice[50];
-static bool confmultipageOutput;
+static bool confmultipageOutput, shellhide;
 static std::string actstd, acterr;
 
 void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID, SDL_Palette* pal)
@@ -1667,6 +1667,7 @@ void CPrinter::doAction(const char *fname) {
 #if defined(WIN32)
         bool q=false;
         int pos=-1;
+        std::string para=fname;
         for (int i=0; i<action.size(); i++) {
             if (action[i]=='"') q=!q;
             else if (action[i]==' ' && !q) {
@@ -1674,20 +1675,20 @@ void CPrinter::doAction(const char *fname) {
                 break;
             }
         }
-        std::string para = fname;
         if (pos>-1) {
             para=action.substr(pos+1)+" "+fname;
             action=action.substr(0, pos);
         }
-        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
 #else
         fail=system((action+" "+fname).c_str())!=0;
 #endif
         if (acterr.size()&&fail) {
             action=acterr;
 #if defined(WIN32)
-            para = fname;
+            q=false;
             pos=-1;
+            para=fname;
             for (int i=0; i<action.size(); i++) {
                 if (action[i]=='"') q=!q;
                 else if (action[i]==' ' && !q) {
@@ -1699,7 +1700,7 @@ void CPrinter::doAction(const char *fname) {
                 para=action.substr(pos+1)+" "+fname;
                 action=action.substr(0, pos);
             }
-            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
 #else
             fail=system((action+" "+fname).c_str())!=0;
 #endif
@@ -2247,6 +2248,7 @@ void PRINTER_Init()
 	else timeout_dirty = false;
 	strcpy(&confoutputDevice[0], section->Get_string("printoutput"));
 	confmultipageOutput = section->Get_bool("multipage");
+	shellhide = section->Get_bool("shellhide");
 	actstd = section->Get_string("openwith");
 	acterr = section->Get_string("openerror");
 

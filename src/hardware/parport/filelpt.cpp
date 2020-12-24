@@ -41,6 +41,9 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 	std::string str;
 	ack = false;
     squote = sq;
+    shellhide = false;
+
+	if(cmd->FindStringBegin("shellhide",str,false))	shellhide = true;
 
 	// add a formfeed when closing?
 	if(cmd->FindStringBegin("addFF",str,false))	addFF = true;
@@ -144,6 +147,7 @@ void CFileLPT::doAction() {
 #if defined(WIN32)
         bool q=false;
         int pos=-1;
+        std::string para=name;
         for (int i=0; i<action.size(); i++) {
             if (action[i]=='"') q=!q;
             else if (action[i]==' ' && !q) {
@@ -151,20 +155,20 @@ void CFileLPT::doAction() {
                 break;
             }
         }
-        std::string para = name;
         if (pos>-1) {
             para=action.substr(pos+1)+" "+name;
             action=action.substr(0, pos);
         }
-        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
 #else
         fail=system((action+" "+name).c_str())!=0;
 #endif
         if (action4.size()&&fail) {
             action=action4;
 #if defined(WIN32)
-            para = name;
+            q=false;
             pos=-1;
+            para=name;
             for (int i=0; i<action.size(); i++) {
                 if (action[i]=='"') q=!q;
                 else if (action[i]==' ' && !q) {
@@ -176,7 +180,7 @@ void CFileLPT::doAction() {
                 para=action.substr(pos+1)+" "+name;
                 action=action.substr(0, pos);
             }
-            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, SW_SHOWNORMAL)<=32;
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
 #else
             fail=system((action+" "+name).c_str())!=0;
 #endif
