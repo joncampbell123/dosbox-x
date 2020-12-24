@@ -5397,6 +5397,9 @@ static Bitu INT8_PC98_Handler(void) {
 }
 
 extern bool sync_time, manualtime;
+bool sync_time_timerrate_warning = false;
+
+uint32_t PIT0_GetAssignedCounter(void);
 
 static Bitu INT8_Handler(void) {
     /* Increase the bios tick counter */
@@ -5445,8 +5448,35 @@ static Bitu INT8_Handler(void) {
         }
 #endif
 
-        uint32_t BIOS_HostTimeSync(uint32_t ticks);
-        value = BIOS_HostTimeSync(value);
+        /* synchronize time=true is based around the assumption
+         * that the timer is left ticking at the standard 18.2Hz
+         * rate. If that is not true, and this IRQ0 handler is
+         * being called faster, then synchronization will not
+         * work properly.
+         *
+         * Two 1996 demoscene entries sl_fokus.zip and sl_haloo.zip
+         * are known to program the timer to run faster (58Hz and
+         * 150Hz) yet use BIOS_TIMER from the BIOS data area to
+         * track the passage of time. Synchronizing time that way
+         * will only lead to BIOS_TIMER values that repeat or go
+         * backwards and will break the demo. */
+        if (PIT0_GetAssignedCounter() >= 0xFFFF/*Should be 0x10000 but we'll accept some programs might write 0xFFFF*/) {
+            uint32_t BIOS_HostTimeSync(uint32_t ticks);
+            value = BIOS_HostTimeSync(value);
+
+            if (sync_time_timerrate_warning) {
+                sync_time_timerrate_warning = false;
+                LOG(LOG_MISC,LOG_WARN)("IRQ0 timer rate restored to 18.2Hz and synchronize time=true, resuming synchronization. BIOS_TIMER may jump backwards suddenly.");
+            }
+        }
+        else {
+            if (!sync_time_timerrate_warning) {
+                /* Okay, you changed the tick rate. That affects BIOS_TIMER
+                 * and therefore counts as manual time. Sorry. */
+                sync_time_timerrate_warning = true;
+                LOG(LOG_MISC,LOG_WARN)("IRQ0 timer rate is not 18.2Hz and synchronize time=true, disabling synchronization until normal rate restored.");
+            }
+        }
     }
     mem_writed(BIOS_TIMER,value);
 
