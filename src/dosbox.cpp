@@ -1448,8 +1448,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(sendkeys);
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will tries to automatically synchronize time with the host, unless you decide to change the date/time manually.");
+    Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will try to automatically synchronize time with the host, unless you decide to change the date/time manually.");
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host.");
