@@ -5338,13 +5338,17 @@ uint32_t BIOS_HostTimeSync(uint32_t ticks) {
     dos.date.month=(uint8_t)loctime->tm_mon+1;
     dos.date.year=(uint16_t)loctime->tm_year+1900;
 
-    ticks=(uint32_t)(((double)(
+    uint32_t nticks=(uint32_t)(((double)(
         (unsigned int)loctime->tm_hour*3600u*1000u+
         (unsigned int)loctime->tm_min*60u*1000u+
         (unsigned int)loctime->tm_sec*1000u+
         milli))*(((double)PIT_TICK_RATE/65536.0)/1000.0));
 
-    return ticks;
+    /* avoid stepping back from off by one errors */
+    if (nticks == (ticks - 1u))
+        nticks = ticks;
+
+    return nticks;
 }
 
 // TODO: make option
