@@ -306,6 +306,7 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 extern int dos_clipboard_device_access;
 #endif
 extern bool dos_kernel_disabled;
+extern bool sync_time, manualtime;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
@@ -7566,6 +7567,10 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
     Pstring->SetBasic(true);
 
+    Pbool = sdl_sec->Add_bool("showdetails", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will show the cycles count (FPS) and emulation speed relative to realtime in the title bar.");
+    Pbool->SetBasic(true);
+
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
     Pbool->SetBasic(true);
@@ -10447,6 +10452,15 @@ bool quick_reboot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * cons
     return true;
 }
 
+bool sync_host_datetime_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    manualtime=false;
+    sync_time = !sync_time;
+    mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
+    return true;
+}
+
 bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -11976,7 +11990,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMouseMenu");
-                item.set_text("Mouse");
+                item.set_text("Mouse emulation");
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_mouse_enable_int33").set_text("Internal Emulation").
@@ -12237,14 +12251,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 //only switch if not already in fullscreen
                 if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
             }
+
+            // Shows menu bar (window)
+            menu.startup = true;
+
+            menu.showrt = control->opt_showrt||sdl_sec->Get_bool("showdetails");
+            menu.hidecycles = (control->opt_showcycles||sdl_sec->Get_bool("showdetails") ? false : true);
         }
 
         /* Start up main machine */
-
-        // Shows menu bar (window)
-        menu.startup = true;
-        menu.showrt = control->opt_showrt;
-        menu.hidecycles = (control->opt_showcycles ? false : true);
 
 #if defined(WIN32) && !defined(C_SDL2)
         {
@@ -12379,7 +12394,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
@@ -12416,6 +12431,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sync_host_datetime").set_text("Synchronize host date/time").set_callback_function(sync_host_datetime_menu_callback).check(sync_time);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"make_diskimage").set_text("Create blank disk image...").set_callback_function(make_diskimage_menu_callback);
@@ -12453,6 +12469,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("debug_logint21").check(log_int21);
         mainMenu.get_item("debug_logfileio").check(log_fileio);
 
+        mainMenu.get_item("sync_host_datetime").enable(!IS_PC98_ARCH);
         mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
 

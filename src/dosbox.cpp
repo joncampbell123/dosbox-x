@@ -3443,6 +3443,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Additional parameters:\n"
         "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0),\n"
         "    squote to use single quotes instad of double quotes for quoted program commands.\n"
+        "    shellhide to hide the command window when opening programs on the Windows system.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
         "for directserial: realport (required), rxdelay (optional).\n"
@@ -3548,6 +3549,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    Additional parameters:\n"
             "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0 or 500),\n"
             "    squote to use single quotes instad of double quotes for quoted program commands.\n"
+            "    shellhide to hide the command window when opening programs on the Windows system.\n"
             "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
             "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
@@ -3632,6 +3634,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("openerror", Property::Changeable::WhenIdle, "");
     Pstring->Set_help("Start the specified program to open the output file if an error had occurred.");
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("shellhide", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows system.");
+    Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
     Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");

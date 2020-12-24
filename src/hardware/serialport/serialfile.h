@@ -44,6 +44,7 @@ public:
 
 	FILE* fp = NULL;
 	bool squote;
+	bool shellhide;
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
 	std::string filename;
