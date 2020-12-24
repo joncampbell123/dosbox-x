@@ -1,4 +1,14 @@
 0.83.9
+  - synchronize time fixed to synchronize to host time
+    if and only if the timer is running at the standard
+    18.2Hz tick rate. Any other rate does not make
+    sense and will cause only jitter and error. Fix for
+    synchronize time and two Demoscene entries sl_fokus
+    and sl_haloo which use BIOS_TIMER with a faster
+    hardware tick rate.
+  - synchronize time fixed to work from IRQ0 handler
+    (where BIOS_TIMER is processed) rather than from
+    VGA vsync.
   - Added menu option "Create blank disk images..."
     (under "DOS" menu) to create blank floppy or hard
     disk images of a common disk size, including 360KB,
