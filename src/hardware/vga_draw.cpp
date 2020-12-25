@@ -3202,6 +3202,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
+        ttf_cell* drawc = curAttrChar;
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
@@ -3216,6 +3217,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 bool dbw=false;
 
                 *draw = ttf_cell();
+                (*draw).selected = (*drawc).selected;
 
                 /* NTS: PC-98 hardware does not require both cells of a double-wide to match,
                  *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
@@ -3297,15 +3299,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 (*draw).fg = foreground;
                 (*draw).bg = background;
                 draw++;
+                drawc++;
 
                 if (dbw) {
                     /* extra cell. Should not draw */
                     *draw = ttf_cell();
+                    (*draw).selected = (*drawc).selected;
                     (*draw).skipped = 1;
                     (*draw).chr = 'x'; // should not see this
                     (*draw).fg = 4|8; // bright red, in case this is visible
                     (*draw).bg = 4; // dark red, in case this is visible
                     draw++;
+                    drawc++;
                     charram++;
                     attrram++;
                     if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
@@ -3319,6 +3324,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
                         *draw = ttf_cell();
+                        (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
@@ -3331,6 +3337,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).fg = foreground;
                         (*draw).bg = background;
                         draw++;
+                        drawc++;
                     }
                     vidstart += vga.draw.address_add;
                 }
@@ -3339,6 +3346,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw = ttf_cell();
+                        (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem;
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
@@ -3351,6 +3359,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).fg = foreground;
                         (*draw).bg = background;
                         draw++;
+                        drawc++;
                     }
                     vidstart += vga.draw.address_add;
                 }
