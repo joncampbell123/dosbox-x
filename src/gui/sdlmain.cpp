@@ -1019,6 +1019,7 @@ void CopyClipboard(int all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
 void PasteClipStop(bool bPressed);
+void QuickEdit(bool bPressed);
 
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
@@ -5340,6 +5341,9 @@ static void GUI_StartUp() {
     item->set_text("Toggle fullscreen");
 
 #if defined(C_SDL2) || defined(WIN32)
+    MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
+    item->set_text("Quick edit: copy on select and paste text");
+
     MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
@@ -5968,7 +5972,7 @@ void ClipKeySelect(int sym) {
         if (selsrow>-1 && selscol>-1) Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
         selmark = false;
         selsrow = selscol = selerow = selecol = -1;
-    } else if ((sym==SDLK_LEFT || sym==SDLK_RIGHT || sym==SDLK_UP || sym==SDLK_DOWN)) {
+    } else if (sym==SDLK_LEFT || sym==SDLK_RIGHT || sym==SDLK_UP || sym==SDLK_DOWN) {
         if (selsrow==-1 || selscol==-1) {
             int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
             selscol = CURSOR_POS_COL(p);
@@ -10422,14 +10426,6 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 #if defined (WIN32) || defined(C_SDL2)
-bool direct_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    direct_mouse_clipboard = !direct_mouse_clipboard;
-    mainMenu.get_item("clipboard_quick").check(direct_mouse_clipboard).refresh_item(mainMenu);
-    return true;
-}
-
 bool arrow_keys_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10465,6 +10461,13 @@ bool screen_to_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item
     (void)menuitem;//UNUSED
     CopyClipboard(2);
     return true;
+}
+
+void QuickEdit(bool bPressed)
+{
+    if (!bPressed) return;
+    direct_mouse_clipboard = !direct_mouse_clipboard;
+    mainMenu.get_item("mapper_fastedit").check(direct_mouse_clipboard).refresh_item(mainMenu);
 }
 
 void CopyAllClipboard(bool bPressed) {
@@ -12468,7 +12471,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select & paste with mouse button or arrows").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
