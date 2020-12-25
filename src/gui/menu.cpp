@@ -193,6 +193,7 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_quick",
     "clipboard_right",
     "clipboard_middle",
+    "clipboard_arrows",
 #endif
 #if defined(WIN32)
     "--",

@@ -108,6 +108,13 @@
     fonts (e.g. consolab, consolai, consolaz instead of
     consola) instead of making the original TTF font
     bold, italic, bold-italic automatically. (Wengier)
+  - DOSBox-X now supports the use of arrow keys (left,
+    right, up, down, home, end) to select and copy text
+    to the host clipboard in addition to a mouse button
+    (subject to the specified key modifier, or use the
+    QuickEdit function). Set "clip_mouse_button=arrows"
+    to enable it, or select it from "Shared clipboard
+    functions" menu group. (Wengier)
   - You can now press the key combination Ctrl+Tab in
     the shell to see a list of files/directories that
     can be completed by the Tab completion. (Wengier)
