@@ -1951,6 +1951,7 @@ void SDL_Prepare(void) {
 
     SDL_PumpEvents();
     DragAcceptFiles(GetHWND(), TRUE);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 #endif
 }
