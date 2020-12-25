@@ -1,4 +1,7 @@
 0.83.9
+  - INT 13h now obeys the "hard drive data rate limit"
+    setting, using the same disk I/O delay code as
+    INT 21h file I/O.
   - Linux/X11 SDL1 builds: Combine window move/resize
     into one call if possible, and not during window
     manager hints, to avoid resize problems with
