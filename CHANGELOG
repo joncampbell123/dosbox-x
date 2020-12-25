@@ -97,9 +97,10 @@
     with the mapperfile config option, or you can set
     the mapperfile_sdl1 and mapperfile_sdl2 config
     options to override mapperfile option. (Wengier)
-  - The functions "Load mapper file" & "Stop clipboard
-    pasting" are added to the mapper so that you can
-    defined shortcut keys for them. (Wengier)
+  - The menu functions "Load mapper file", "Quick edit
+    mode" and "Stop clipboard pasting" are added to the
+    mapper so that you can now define your own shortcut
+    keys to activate these functions. (Wengier)
   - Added ttf.fontbold, ttf.fontital, and ttf.fontboit
     config options so that you can specify actual bold
     italic, and bold-italic TrueType fonts for use with
@@ -108,6 +109,13 @@
     fonts (e.g. consolab, consolai, consolaz instead of
     consola) instead of making the original TTF font
     bold, italic, bold-italic automatically. (Wengier)
+  - DOSBox-X now supports the use of arrow keys (left,
+    right, up, down, home, end) to select and copy text
+    to the host clipboard in addition to a mouse button
+    (subject to the specified key modifier, or use the
+    QuickEdit function). Set "clip_mouse_button=arrows"
+    to enable it, or select it from "Shared clipboard
+    functions" menu group. (Wengier)
   - You can now press the key combination Ctrl+Tab in
     the shell to see a list of files/directories that
     can be completed by the Tab completion. (Wengier)

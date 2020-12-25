@@ -721,7 +721,13 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
 	}
-	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+    int c1=x1, r1=y1, c2=x2, r2=y2, t;
+    if (w>-1&&h>-1) {
+        c1=c*x1/w;
+        r1=r*y1/h;
+        c2=c*x2/w;
+        r2=r*y2/h;
+    }
 	if (c1>c2) {
 		t=c1;
 		c1=c2;
@@ -769,16 +775,22 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 }
 
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
-	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	uint16_t c=0, r=0;
-	if (IS_PC98_ARCH) {
-		c=80;
-		r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-	} else {
-		c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-		r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
-	}
-	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+    int c1=x1, r1=y1, c2=x2, r2=y2, t;
+    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+    uint16_t c=0, r=0;
+    if (IS_PC98_ARCH) {
+        c=80;
+        r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+    } else {
+        c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+    }
+    if (w>-1&&h>-1) {
+        c1=c*x1/w;
+        r1=r*y1/h;
+        c2=c*x2/w;
+        r2=r*y2/h;
+    }
 	if (c1>c2) {
 		t=c1;
 		c1=c2;

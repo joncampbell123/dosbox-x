@@ -190,9 +190,10 @@ static const char *def_menu_main_wheelarrow[] =
 static const char *def_menu_main_clipboard[] =
 {
 #if defined(WIN32) || defined(C_SDL2)
-    "clipboard_quick",
+    "mapper_fastedit",
     "clipboard_right",
     "clipboard_middle",
+    "clipboard_arrows",
 #endif
 #if defined(WIN32)
     "--",

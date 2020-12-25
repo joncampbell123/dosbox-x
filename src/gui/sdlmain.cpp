@@ -42,6 +42,9 @@ int posx = -1;
 int posy = -1;
 int initgl = 0;
 int switchoutput=-1;
+int selsrow = -1, selscol = -1;
+int selerow = -1, selecol = -1;
+bool selmark = false;
 extern int enablelfn;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -1012,10 +1015,11 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
-void CopyClipboard(bool all);
+void CopyClipboard(int all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
 void PasteClipStop(bool bPressed);
+void QuickEdit(bool bPressed);
 
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
@@ -1947,6 +1951,7 @@ void SDL_Prepare(void) {
 
     SDL_PumpEvents();
     DragAcceptFiles(GetHWND(), TRUE);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 #endif
 }
@@ -5057,6 +5062,7 @@ static void GUI_StartUp() {
     const char *clip_mouse_button = section->Get_string("clip_mouse_button");
     if (!strcmp(clip_mouse_button, "middle")) mbutton=2;
     else if (!strcmp(clip_mouse_button, "right")) mbutton=3;
+    else if (!strcmp(clip_mouse_button, "arrows")) mbutton=4;
     else mbutton=0;
     modifier = section->Get_string("clip_key_modifier");
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
@@ -5336,6 +5342,9 @@ static void GUI_StartUp() {
     item->set_text("Toggle fullscreen");
 
 #if defined(C_SDL2) || defined(WIN32)
+    MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
+    item->set_text("Quick edit: copy on select and paste text");
+
     MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
@@ -5928,6 +5937,60 @@ void MenuFreeScreen(void) {
 }
 #endif
 
+#if defined(WIN32) || defined(C_SDL2)
+bool isModifierApplied() {
+    return direct_mouse_clipboard || !strcmp(modifier,"none") || ((!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN) || ((!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN) || ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) || ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN) || ((!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN) || ((!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN);
+}
+
+void ClipKeySelect(int sym) {
+    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return;
+    if (sym==SDLK_HOME) {
+        if (selsrow==-1 || selscol==-1) {
+            int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            selscol = CURSOR_POS_COL(p);
+            selsrow = CURSOR_POS_ROW(p);
+        } else {
+            if (selsrow>-1 && selscol>-1) Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
+            if (selmark) {
+                selscol = selecol;
+                selsrow = selerow;
+            }
+        }
+        selmark = true;
+        selecol = selscol;
+        selerow = selsrow;
+        Mouse_Select(selscol, selsrow, selecol, selerow, -1, -1, true);
+    } else if (sym==SDLK_END) {
+        if (selmark) {
+            if (selsrow>-1 && selscol>-1 && selerow > -1 && selecol > -1) {
+                Mouse_Select(selscol, selsrow, selecol, selerow, -1, -1, false);
+                CopyClipboard(1);
+            }
+            selmark = false;
+            selsrow = selscol = selerow = selecol = -1;
+        }
+    } else if (sym==SDLK_ESCAPE) {
+        if (selsrow>-1 && selscol>-1) Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
+        selmark = false;
+        selsrow = selscol = selerow = selecol = -1;
+    } else if (sym==SDLK_LEFT || sym==SDLK_RIGHT || sym==SDLK_UP || sym==SDLK_DOWN) {
+        if (selsrow==-1 || selscol==-1) {
+            int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            selscol = CURSOR_POS_COL(p);
+            selsrow = CURSOR_POS_ROW(p);
+            selerow = selecol = -1;
+            selmark = false;
+        } else
+            Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
+        if (sym==SDLK_LEFT && selscol>0) (selmark?selecol:selscol)--;
+        else if (sym==SDLK_RIGHT && selscol<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
+        else if (sym==SDLK_UP && selsrow>0) (selmark?selerow:selsrow)--;
+        else if (sym==SDLK_DOWN && selsrow<real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)) (selmark?selerow:selsrow)++;
+        Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, true);
+    }
+}
+#endif
+
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
 #if !defined(WIN32)
     (void)motion;
@@ -6435,7 +6498,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
 #if defined(WIN32) || defined(C_SDL2)
-		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && !strcmp(modifier,"none") && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && isModifierApplied() && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
 			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
 			mouse_start_x = -1;
 			mouse_start_y = -1;
@@ -6444,11 +6507,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			fx = -1;
 			fy = -1;
 		}
-		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && (direct_mouse_clipboard || !strcmp(modifier,"none")
-			|| ((!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN) || ((!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN)
-			|| ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) || ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN)
-			|| ((!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN) || ((!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN)
-			)) {
+		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && isModifierApplied()) {
 			mouse_start_x=motion->x;
 			mouse_start_y=motion->y;
 			break;
@@ -6529,7 +6588,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
 				} else
-					CopyClipboard(false);
+					CopyClipboard(0);
 			}
 			mouse_start_x = -1;
 			mouse_start_y = -1;
@@ -7098,6 +7157,8 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
+            if (event.type == SDL_KEYDOWN && isModifierApplied())
+                ClipKeySelect(event.key.keysym.sym);
 #endif
 #if defined (MACOSX)
             /* On macs CMD-Q is the default key to close an application */
@@ -7368,6 +7429,8 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
 #if defined(WIN32)
+            if (event.type == SDL_KEYDOWN && isModifierApplied())
+                ClipKeySelect(event.key.keysym.sym);
             if (((event.key.keysym.sym==SDLK_TAB)) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
@@ -7468,17 +7531,18 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
 
-	const char* clipboardbutton[] = { "none", "middle", "right", 0};
+	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", 0};
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
 	Pstring->Set_values(clipboardbutton);
-	Pstring->Set_help("Select the mouse button for the shared clipboard copy/paste function.\n"
-		"The default mouse button is \"right\". Set to \"middle\" if the middle mouse button is desired, or \"none\" to disable this feature.");
+	Pstring->Set_help("Select the mouse button or use arrow keys for the shared clipboard copy/paste function.\n"
+		"The default mouse button is \"right\", which means using the right mouse button to select text, copy to and paste from the host clipboard.\n"
+		"Set to \"middle\" to use the middle mouse button, \"arrows\" to use arrow keys instead of a mouse button, or \"none\" to disable this feature.");
     Pstring->SetBasic(true);
 
 	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", 0};
 	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
 	Pstring->Set_values(clipboardmodifier);
-	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using the right mouse button.\n"
+	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using a mouse button or arrow keys.\n"
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
@@ -8091,9 +8155,9 @@ bool PasteClipboardNext() {
 #endif
 
 #if defined (WIN32)
-void CopyClipboard(bool all) {
+void CopyClipboard(int all) {
 	uint16_t len=0;
-	const char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
+	const char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
@@ -8125,9 +8189,9 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 #elif defined(C_SDL2)
 typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
-void CopyClipboard(bool all) {
+void CopyClipboard(int all) {
 	uint16_t len=0;
-	char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
+	char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
     unsigned int k=0;
     for (unsigned int i=0; i<len; i++)
         if (text[i]&&text[i]!=13)
@@ -10363,11 +10427,13 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 #if defined (WIN32) || defined(C_SDL2)
-bool direct_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+bool arrow_keys_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    direct_mouse_clipboard = !direct_mouse_clipboard;
-    mainMenu.get_item("clipboard_quick").check(direct_mouse_clipboard).refresh_item(mainMenu);
+    mbutton = 4;
+    mainMenu.get_item("clipboard_right").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("clipboard_middle").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("clipboard_arrows").check(true).refresh_item(mainMenu);
     return true;
 }
 
@@ -10377,6 +10443,7 @@ bool right_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::it
     mbutton = 3;
     mainMenu.get_item("clipboard_right").check(true).refresh_item(mainMenu);
     mainMenu.get_item("clipboard_middle").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("clipboard_arrows").check(false).refresh_item(mainMenu);
     return true;
 }
 
@@ -10386,19 +10453,27 @@ bool middle_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::i
     mbutton = 2;
     mainMenu.get_item("clipboard_right").check(false).refresh_item(mainMenu);
     mainMenu.get_item("clipboard_middle").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("clipboard_arrows").check(false).refresh_item(mainMenu);
     return true;
 }
 
 bool screen_to_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    CopyClipboard(true);
+    CopyClipboard(2);
     return true;
+}
+
+void QuickEdit(bool bPressed)
+{
+    if (!bPressed) return;
+    direct_mouse_clipboard = !direct_mouse_clipboard;
+    mainMenu.get_item("mapper_fastedit").check(direct_mouse_clipboard).refresh_item(mainMenu);
 }
 
 void CopyAllClipboard(bool bPressed) {
     if (!bPressed) return;
-    CopyClipboard(true);
+    CopyClipboard(2);
 }
 #else
 void CopyAllClipboard(bool bPressed) {
@@ -12397,9 +12472,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text on the DOS screen").set_callback_function(screen_to_clipboard_menu_callback);
 #endif
 #if defined (WIN32)
