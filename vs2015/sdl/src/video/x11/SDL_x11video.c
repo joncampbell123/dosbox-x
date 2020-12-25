@@ -1043,19 +1043,21 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 
 	/* resize the (possibly new) window manager window */
 	if( !SDL_windowid ) {
-		int x,y;
+		int x = -999,y = -999;
 
 		X11_SetSizeHints(this, w, h, flags);
 		window_w = w;
 		window_h = h;
 
 		/* Center it, if desired */
-		if ( X11_WindowPosition(this, &x, &y, w, h) ) {
-			XMoveWindow(SDL_Display, WMWindow, x, y);
-		}
+		if (!X11_WindowPosition(this, &x, &y, w, h))
+			x = y = -999;
 
-		XResizeWindow(SDL_Display, WMwindow, w, h);
-    }
+		if (x > -999 && y > -999)
+			XMoveResizeWindow(SDL_Display, WMwindow, x, y, w, h);
+		else
+			XResizeWindow(SDL_Display, WMwindow, w, h);
+	}
 
 	/* Create (or use) the X11 display window */
 	if ( !SDL_windowid ) {
@@ -1157,7 +1159,7 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 static int X11_ResizeWindow(_THIS,
 			SDL_Surface *screen, int w, int h, Uint32 flags)
 {
-	int x,y;
+	int x = -999,y = -999;
 
 	if ( ! SDL_windowid ) {
 		/* Resize the window manager window */
@@ -1166,9 +1168,13 @@ static int X11_ResizeWindow(_THIS,
 		window_h = h;
 
 		/* Center it, if desired */
-		if ( X11_WindowPosition(this, &x, &y, w, h) ) {
-			XMoveWindow(SDL_Display, WMWindow, x, y);
-		}
+		if (!X11_WindowPosition(this, &x, &y, w, h))
+			x = y = -999;
+
+		if (x > -999 && y > -999)
+			XMoveResizeWindow(SDL_Display, WMwindow, x, y, w, h);
+		else
+			XResizeWindow(SDL_Display, WMwindow, w, h);
 
 		if ((flags & SDL_HAX_NORESIZEWINDOW) && (flags & SDL_FULLSCREEN) == 0 && (screen->flags & SDL_FULLSCREEN) == 0) {
 			/* do nothing */
