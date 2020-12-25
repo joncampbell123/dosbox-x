@@ -1,4 +1,8 @@
 0.83.9
+  - Linux/X11 SDL1 support, on XWindow resize, now
+    sets window manager hints BEFORE moving and
+    positioning the window. This fixes window resizing
+    problems with XFCE 4.14 and it's window manager.
   - Added menu option "Create blank disk images..."
     (under "DOS" menu) to create blank floppy or hard
     disk images of a common disk size, including 360KB,
