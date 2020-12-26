@@ -22,8 +22,20 @@
 		  <image>https://github.com/joncampbell123/dosbox-x/raw/master/contrib/linux/dosbox-x_configuration_tool.png</image>
 	  </screenshot>
 	  <screenshot>
+		  <caption>Dune II in DOSBox-X</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/raw/master/contrib/linux/dosbox-x_dune2.png</image>
+	  </screenshot>
+	  <screenshot>
 		  <caption>Tomb Raider 3dfx in DOSBox-X</caption>
 		  <image>https://github.com/joncampbell123/dosbox-x/raw/master/contrib/linux/dosbox-x_tombraider.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Flight Simulator 5 in DOSBox-X</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/raw/master/contrib/linux/dosbox-x_fs5.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Windows 3.11 for Workgroups as Guest OS</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/raw/master/contrib/linux/dosbox-x_win311.png</image>
 	  </screenshot>
 	  <screenshot>
 		  <caption>Windows 98SE as Guest OS</caption>
@@ -45,24 +57,27 @@ Compared to DOSBox, DOSBox-X is much more flexible and provides more features.
 DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
 </p>
 	<ul>
-		<li>8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro CPU options</li>
-		<li>IBM PCjr, Tandy 1000 and NEC PC-98 emulation</li>
+		<li>Emulate several PC variants: IBM PC, IBM PCjr, Tandy 1000 and NEC PC-98</li>
+		<li>CPUs: 8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro</li>
+		<li>Graphics chipsets: MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA</li>
+		<li>Sound options: Sound Blaster series, Gravis Ultrasound, Disney Sound source and more audio options</li>
+		<li>MIDI: Roland MT-32 and General MIDI options</li>
+		<li>Serial, Parallel and Game port support</li>
+		<li>Printer support and emulation options</li>
+		<li>3dfx Voodoo emulation with Glide wrapper support</li>
+		<li>Network emulation: IPX over UDP, and serial modem</li>
+		<li>Network adapter emulation: NE2000 (not for Flatpak or Snap installs)</li>
 		<li>Mounting a host directory as a harddisk, floppy or CD-ROM</li>
 		<li>Mounting harddisk images, floppy disk images and CD-ROM images</li>
 		<li>ISO9660, FAT12, FAT16 and FAT32 filesystem support, including long filenames</li>
-		<li>MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA video adapter emulation</li>
-		<li>3dfx Voodoo emulation with Glide wrapper support</li>
-		<li>Various Sound Blaster models, Gravis Ultrasound, Disney Sound source and more audio options</li>
-		<li>Roland MT-32 and General MIDI support and emulation options</li>
-		<li>Serial, Parallel and Game port support</li>
-		<li>Printer support and emulation options</li>
-		<li>Network emulation (IPX, NE2000 (not for Flatpak or Snap installs))</li>
 		<li>Support for running real DOS systems (MS-DOS, IBM PC DOS, FreeDOS)</li>
 		<li>Support for running Windows 1.0 to Windows 3.11, Windows 95 and Windows 98</li>
 		<li>GUI drop-down menu for easier usage</li>
 		<li>Built-in graphical configuration tool</li>
 		<li>Save and load state with support for save files and up to 100 save slots</li>
 		<li>More DOS commands, and ability to add your own programs to the virtual Z: drive</li>
+		<li>Copy and Paste support and support for TrueType fonts</li>
+		<li>Various output options, including output scaling and OpenGL shaders</li>
 	</ul>
 	With the help of DOSBox-X, you can run plenty of the old classics that don't run on your new computer!
   </description>
