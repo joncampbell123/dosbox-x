@@ -411,7 +411,7 @@ static void DestroySubWindows(void) {
         WINDOW* &ref = dbg.get_win_ref((int)wnd);
 
         if (ref != NULL) {
-            if (ref) delwin(ref);
+            delwin(ref);
             ref = NULL;
         }
     }

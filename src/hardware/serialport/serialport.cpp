@@ -1269,7 +1269,7 @@ bool CSerial::Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout) 
 	}
 	// wait for DSR+CTS on
 	if(wait_dsr||wait_cts) {
-		if(wait_dsr||wait_cts) {
+		if(wait_dsr&&wait_cts) {
 			while(((Read_MSR()&0x30)!=0x30)&&(starttime>PIC_FullIndex()-timeout))
 				CALLBACK_Idle();
 		} else if(wait_dsr) {
