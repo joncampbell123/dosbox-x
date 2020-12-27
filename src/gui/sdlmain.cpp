@@ -5944,6 +5944,19 @@ bool isModifierApplied() {
 }
 
 void ClipKeySelect(int sym) {
+    if (sym==SDLK_ESCAPE) {
+        if (mbutton==4 && selsrow>-1 && selscol>-1) {
+            Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
+            selmark = false;
+            selsrow = selscol = selerow = selecol = -1;
+        } else if (mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
+            Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
+            mouse_start_x = mouse_start_y = -1;
+            mouse_end_x = mouse_end_y = -1;
+            fx = fy = -1;
+        }
+        return;
+    }
     if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return;
     if (sym==SDLK_HOME) {
         if (selsrow==-1 || selscol==-1) {
@@ -5970,10 +5983,6 @@ void ClipKeySelect(int sym) {
             selmark = false;
             selsrow = selscol = selerow = selecol = -1;
         }
-    } else if (sym==SDLK_ESCAPE) {
-        if (selsrow>-1 && selscol>-1) Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
-        selmark = false;
-        selsrow = selscol = selerow = selecol = -1;
     } else if (sym==SDLK_LEFT || sym==SDLK_RIGHT || sym==SDLK_UP || sym==SDLK_DOWN) {
         if (selsrow==-1 || selscol==-1) {
             int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -5983,10 +5992,10 @@ void ClipKeySelect(int sym) {
             selmark = false;
         } else
             Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
-        if (sym==SDLK_LEFT && selscol>0) (selmark?selecol:selscol)--;
-        else if (sym==SDLK_RIGHT && selscol<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
-        else if (sym==SDLK_UP && selsrow>0) (selmark?selerow:selsrow)--;
-        else if (sym==SDLK_DOWN && selsrow<real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)) (selmark?selerow:selsrow)++;
+        if (sym==SDLK_LEFT && (selmark?selecol:selscol)>0) (selmark?selecol:selscol)--;
+        else if (sym==SDLK_RIGHT && (selmark?selecol:selscol)<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
+        else if (sym==SDLK_UP && (selmark?selerow:selsrow)>0) (selmark?selerow:selsrow)--;
+        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS))) (selmark?selerow:selsrow)++;
         Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, true);
     }
 }
@@ -6499,14 +6508,17 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
 #if defined(WIN32) || defined(C_SDL2)
-		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && isModifierApplied() && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
-			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
-			mouse_start_x = -1;
-			mouse_start_y = -1;
-			mouse_end_x = -1;
-			mouse_end_y = -1;
-			fx = -1;
-			fy = -1;
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && isModifierApplied()) {
+            if (mbutton==4 && selsrow>-1 && selscol>-1) {
+                Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
+                selmark = false;
+                selsrow = selscol = selerow = selecol = -1;
+            } else if (mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
+                Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
+                mouse_start_x = mouse_start_y = -1;
+                mouse_end_x = mouse_end_y = -1;
+                fx = fy = -1;
+            }
 		}
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && isModifierApplied()) {
 			mouse_start_x=motion->x;
