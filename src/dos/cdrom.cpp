@@ -41,6 +41,10 @@
 #elif defined(MACOSX)
 #define SDL_CDROM_MACOSX
 #include "../../vs2015/sdl/src/cdrom/macosx/SDL_syscdrom.c"
+#include "../../vs2015/sdl/src/cdrom/macosx/AudioFilePlayer.c"
+#include "../../vs2015/sdl/src/cdrom/macosx/AudioFileReaderThread.c"
+#include "../../vs2015/sdl/src/cdrom/macosx/CDPlayer.c"
+#include "../../vs2015/sdl/src/cdrom/macosx/SDLOSXCAGuard.c"
 #else
 #define SDL_CDROM_DUMMY
 #include "../../vs2015/sdl/src/cdrom/dummy/SDL_syscdrom.c"

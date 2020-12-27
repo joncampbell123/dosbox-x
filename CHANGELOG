@@ -1,4 +1,8 @@
 0.83.9
+  - Physical CD drives are now mountable in SDL2 builds
+    just like SDL1 builds, so commands like "MOUNT -CD"
+    should work in both SDL1 and SDL2 builds. Some code
+    is adoptped from the SDL2_CDROM library. (Wengier)
   - INT 13h now obeys the "hard drive data rate limit"
     setting, using the same disk I/O delay code as
     INT 21h file I/O. [Issue #2039]
@@ -139,10 +143,6 @@
     show a warning dialog instead of exiting. (Wengier)
   - Fixed the mouse sensitivity menu option (under the
     "DOS" menu) not working. (Wengier)
-  - Fixed physical CD drives not working in the SDL2
-    version. Now commands like "MOUNT -CD" should work
-    in SDL2 builds just like SDL1 builds. Some code
-    is adoptped from the SDL2_CDROM library.(Wengier)
   - Fixed the color palette problem when switching to
     graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover

@@ -88,13 +88,9 @@ bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD)
 	bool success = CDROM_Interface_SDL::SetDevice(path, forceCD);
 	
 	if (success) {
-#if defined(C_SDL2)
-        strcpy(device_name, "unknown");
-#else
 		const char* tmp = SDL_CDName(forceCD);
 		if (tmp) safe_strncpy(device_name, tmp, 512);
 		else success = false;
-#endif
 	}
 	
 	return success;
