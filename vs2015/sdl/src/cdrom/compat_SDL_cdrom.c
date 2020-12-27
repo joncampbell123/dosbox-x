@@ -23,7 +23,8 @@
 
 /* This is the CD-audio control API for Simple DirectMedia Layer */
 
-#include "config.h"
+/* FIXME: There is no such config.h on Linux at build time, and it does not seem necessary here. */
+/*#include "config.h"*/
 
 #include "compat_SDL_cdrom.h"
 #include "SDL_syscdrom.h"
