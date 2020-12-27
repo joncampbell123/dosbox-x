@@ -1036,7 +1036,7 @@ fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=no)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=yes)
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
