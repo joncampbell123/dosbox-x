@@ -1024,7 +1024,7 @@ fi
 
 dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
-AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),,enable_libfluidsynth=yes)
+AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
 if test x$enable_libfluidsynth = xyes; then
     if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
       LIBS="$LIBS -lfluidsynth"
@@ -1036,7 +1036,7 @@ fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=yes,enable_ffmpeg=no)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=no)
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
@@ -1051,7 +1051,7 @@ fi
 
 dnl FEATURE: Whether to use OpenGL
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),,enable_opengl=yes)
+AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
 AC_MSG_CHECKING(whether opengl display output will be enabled)
 
 # test
