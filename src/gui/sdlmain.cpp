@@ -107,6 +107,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "shell.h"
 #include "glidedef.h"
 #include "inout.h"
+#include "../dos/cdrom.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
 #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
@@ -10600,14 +10601,6 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
-bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
-    systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
-    return true;
-}
-
 void refresh_slots() {
     mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
@@ -11737,11 +11730,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             sdl.num_joysticks = 0;
         }
 
-#if !defined(C_SDL2)
+#if defined(C_SDL2)
+        if (Compat_SDL_CDROMInit() < 0) {
+#else
         if (SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
+#endif
             LOG(LOG_GUI,LOG_WARN)("Failed to init CD-ROM support");
         }
-#endif
 
         /* must redraw after modeset */
         sdl.must_redraw_all = true;
@@ -12192,7 +12187,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "showstate").set_text("Display state information").set_callback_function(show_save_state_menu_callback);
             {
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
@@ -13066,6 +13060,9 @@ fresh_boot:
     sdl_hax_macosx_setmenu(NULL);
 #endif
 
+#if defined(C_SDL2)
+	Compat_SDL_CDROMQuit();
+#endif
     SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
 #if defined(WIN32) && !defined(HX_DOS)

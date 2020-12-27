@@ -4168,7 +4168,7 @@ void BIND_MappingEvents(void) {
                 tmpl = 0;
 #if defined(WIN32)
 # if defined(C_SDL2)
-# else
+# elif defined(SDL_DOSBOX_X_SPECIAL)
                 {
                     char nm[256];
 

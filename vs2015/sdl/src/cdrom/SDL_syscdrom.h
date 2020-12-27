@@ -23,6 +23,8 @@
 
 /* This is the system specific header for the SDL CD-ROM API */
 
+#if !defined(CDCAPSDEF)
+#define CDCAPSDEF 1
 /* Structure of CD audio control functions */
 extern struct CDcaps {
 	/* Get the name of the specified drive */
@@ -60,6 +62,7 @@ extern struct CDcaps {
 	/* Close the specified drive */
 	void (*Close)(SDL_CD *cdrom);
 } SDL_CDcaps;
+#endif
 
 /* The number of available CD-ROM drives on the system */
 extern int SDL_numcds;

@@ -98,9 +98,10 @@
     the mapperfile_sdl1 and mapperfile_sdl2 config
     options to override mapperfile option. (Wengier)
   - The menu functions "Load mapper file", "Quick edit
-    mode" and "Stop clipboard pasting" are added to the
-    mapper so that you can now define your own shortcut
-    keys to activate these functions. (Wengier)
+    mode", "Stop clipboard pasting" and "Display state
+    information" have been added to the key mapper so
+    that you can now define your own shortcut keys to
+    activate these functions. (Wengier)
   - Added ttf.fontbold, ttf.fontital, and ttf.fontboit
     config options so that you can specify actual bold
     italic, and bold-italic TrueType fonts for use with
@@ -131,6 +132,10 @@
     show a warning dialog instead of exiting. (Wengier)
   - Fixed the mouse sensitivity menu option (under the
     "DOS" menu) not working. (Wengier)
+  - Fixed physical CD drives not working in the SDL2
+    version. Now commands like "MOUNT -CD" should work
+    in SDL2 builds just like SDL1 builds. Some code
+    is adoptped from the SDL2_CDROM library.(Wengier)
   - Fixed the color palette problem when switching to
     graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover
