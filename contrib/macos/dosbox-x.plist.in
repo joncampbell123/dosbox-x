@@ -11,11 +11,11 @@
     <key>CFBundleExecutable</key>
     <string>DosBox</string>
     <key>CFBundleGetInfoString</key>
-    <string>@PACKAGE_VERSION@, Copyright 2019 DOSBox-X</string>
+    <string>@PACKAGE_VERSION@, Copyright 2021 DOSBox-X</string>
     <key>CFBundleIconFile</key>
     <string>DosBox.icns</string>
     <key>CFBundleIdentifier</key>
-    <string>com.hackipedia.DOSBoxX</string>
+    <string>com.dosbox-x</string>
     <key>CFBundleDocumentTypes</key>
     <array>
     </array>
@@ -30,7 +30,7 @@
     <key>CFBundleVersion</key>
     <string>@PACKAGE_VERSION@</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright 2019 DOSBox-X</string>
+    <string>Copyright 2021 DOSBox-X</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.8</string>
 </dict>
