@@ -1,11 +1,15 @@
 0.83.9
+  - Physical CD drives are now mountable in SDL2 builds
+    just like SDL1 builds, so commands like "MOUNT -CD"
+    should work in both SDL1 and SDL2 builds. Some code
+    is adoptped from the SDL2_CDROM library. (Wengier)
   - INT 13h now obeys the "hard drive data rate limit"
     setting, using the same disk I/O delay code as
     INT 21h file I/O. [Issue #2039]
   - Linux/X11 SDL1 builds: Combine window move/resize
     into one call if possible, and not during window
-    manager hints, to avoid resize problems with
-    XFCE 4.14
+    manager hints, to avoid resize problems with the
+    XFCE 4.14 platform.
   - Added menu option "Create blank disk images..."
     (under "DOS" menu) to create blank floppy or hard
     disk images of a common disk size, including 360KB,
@@ -105,9 +109,10 @@
     the mapperfile_sdl1 and mapperfile_sdl2 config
     options to override mapperfile option. (Wengier)
   - The menu functions "Load mapper file", "Quick edit
-    mode" and "Stop clipboard pasting" are added to the
-    mapper so that you can now define your own shortcut
-    keys to activate these functions. (Wengier)
+    mode", "Stop clipboard pasting" and "Display state
+    information" have been added to the key mapper so
+    that you can now define your own shortcut keys to
+    activate these functions. (Wengier)
   - Added ttf.fontbold, ttf.fontital, and ttf.fontboit
     config options so that you can specify actual bold
     italic, and bold-italic TrueType fonts for use with

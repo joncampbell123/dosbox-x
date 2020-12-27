@@ -1217,7 +1217,7 @@ void RENDER_Init() {
 
 	DOSBoxMenu::item *item;
 
-	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Aspect ratio", &item);
+	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Fit to aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);

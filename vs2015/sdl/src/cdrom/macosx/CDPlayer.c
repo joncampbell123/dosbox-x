@@ -554,7 +554,11 @@ static OSStatus CheckInit ()
     callbackSem = SDL_CreateSemaphore(0);
 
     /* Start callback thread */
+#if defined(C_SDL2)
+    SDL_CreateThread(RunCallBackThread, "CDPlayer", NULL);
+#else
     SDL_CreateThread(RunCallBackThread, NULL);
+#endif
 
     { /*try {*/
         ComponentDescription desc;

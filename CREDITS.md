@@ -14,8 +14,8 @@ A list of features ported from DOSBox SVN Daum:
 * GUI menu bar (heavily improved since then)
 * Some commands (PROMPT, MOUSE, VOL, DEVICE, etc)
 * Basic support for automatic drive mounting (Windows)
-* Printer output
-* NE2000 Ethernet
+* Printer output (improved since then by Wengier)
+* NE2000 Ethernet (improved since then by Wengier)
 * MT-32 emulation (MUNT)
 * Internal 3dfx Voodoo card emulation (improved since then by Wengier and joncampbell123 along with code ported from DOSBox ECE)
 * Some support for FluidSynth MIDI synthesizer
@@ -80,8 +80,14 @@ SN76496 emulation (MAME project; GPLv2+) src/hardware/sn76496.h src/hardware/tan
 
 3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause) src/hardware/voodoo_emu.cpp
 
+HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templates_hq2x.h
+
 PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
 
 QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
 
-HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templates_hq2x.h
+PhysFS archive support (Ryan Gordon; zlib licence) src/libs/physfs/*
+
+Tiny File Dialogs (vareille; zlib licence) src/libs/tinyfiledialogs/*
+
+MAME CHD support (Romain Tisserand; BSD 3-clause) src/libs/libchdr/*

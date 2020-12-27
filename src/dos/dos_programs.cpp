@@ -908,13 +908,11 @@ public:
         }
         /* Show list of cdroms */
         if (cmd->FindExist("-cd",false)) {
-#if !defined(C_SDL2)
             int num = SDL_CDNumDrives();
             if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
             for (int i=0; i<num; i++) {
                 if (!quiet) WriteOut("%2d. %s\n",i,SDL_CDName(i));
             }
-#endif
             return;
         }
 

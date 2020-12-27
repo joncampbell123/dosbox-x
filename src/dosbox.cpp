@@ -220,6 +220,7 @@ extern double           rtdelta;
 static LoopHandler*     loop;
 
 void increaseticks();
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 /* The whole load of startups for all the subfunctions */
 void                MEM_Init(Section *);
@@ -787,13 +788,7 @@ SlotPos currentSlot;
 void notifyError(const std::string& message, bool log=true)
 {
     if (log) LOG_MSG("%s",message.c_str());
-#if !defined(HX_DOS)
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    tinyfd_messageBox("Error",message.c_str(),"ok","error", 1);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-#endif
+    systemmessagebox("Error",message.c_str(),"ok","error", 1);
 }
 
 size_t GetGameState(void) {
@@ -921,6 +916,12 @@ void SaveGameState_Run(void) { SaveGameState(true); }
 void LoadGameState_Run(void) { LoadGameState(true); }
 void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
+
+void ShowStateInfo(bool pressed) {
+    if (!pressed) return;
+    std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
+    systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
+}
 
 /* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
@@ -1100,6 +1101,8 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
+    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
+        item->set_text("Display state information");
 	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
         item->set_text("Save state");
 	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
@@ -5500,13 +5503,7 @@ delete_all:
 
 void savestatecorrupt(const char* part) {
     LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-#if !defined(HX_DOS)
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    tinyfd_messageBox("Error","Save state corrupted! Program may not work.","ok","error", 1);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-#endif
+    systemmessagebox("Error","Save state corrupted! Program may not work.","ok","error", 1);
 }
 
 bool confres=false;
