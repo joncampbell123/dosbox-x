@@ -6235,7 +6235,12 @@ void SETCOLOR::Run()
 			} else
 				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
 		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||i>0&&i<16) {
-			if (p==NULL) WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR1[i].red,altBGR1[i].green,altBGR1[i].blue,altBGR1[i].red,altBGR1[i].green,altBGR1[i].blue);
+			if (p==NULL) {
+                altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
+                altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
+                altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
+                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+            }
 		} else {
 			WriteOut("Invalid color number - %s\n", trim(args));
 			DOS_SetError(DOSERR_DATA_INVALID);

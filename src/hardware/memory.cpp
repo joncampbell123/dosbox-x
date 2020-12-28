@@ -651,14 +651,14 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
 
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
     phys_page &= memory.mem_alias_pagemask_active;
-    if (phys_page<memory.handler_pages) {
+	if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES))
+		return (PageHandler*)glide.lfb_pagehandler;
+    else if (phys_page<memory.handler_pages) {
         if (memory.phandlers[phys_page] != NULL) /*likely*/
             return memory.phandlers[phys_page];
 
         return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
-    } else if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES)) {
-        return (PageHandler*)glide.lfb_pagehandler;
-    }
+	}
     return &illegal_page_handler;
 }
 
