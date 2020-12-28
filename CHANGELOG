@@ -2,7 +2,7 @@
   - Physical CD drives are now mountable in SDL2 builds
     just like SDL1 builds, so commands like "MOUNT -CD"
     should work in both SDL1 and SDL2 builds. Some code
-    is adoptped from the SDL2_CDROM library. (Wengier)
+    is adopted from the SDL2_CDROM library. (Wengier)
   - INT 13h now obeys the "hard drive data rate limit"
     setting, using the same disk I/O delay code as
     INT 21h file I/O. [Issue #2039]
@@ -125,9 +125,13 @@
     right, up, down, home, end) to select and copy text
     to the host clipboard in addition to a mouse button
     (subject to the specified key modifier, or use the
-    QuickEdit function). Set "clip_mouse_button=arrows"
-    to enable it, or select it from "Shared clipboard
-    functions" menu group. (Wengier)
+    QuickEdit function). The arrow keys will move the
+    selections; press Home key to start the actual text
+    selection and End key to end text selection and to
+    copy to the clipboard; press ESC key to cancel text
+    selection. Set config option "clip_mouse_button" to
+    "arrows" to enable it, or select it from "Shared
+    clipboard functions" menu group. (Wengier)
   - You can now press the key combination Ctrl+Tab in
     the shell to see a list of files/directories that
     can be completed by the Tab completion. (Wengier)
