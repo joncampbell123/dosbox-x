@@ -2753,14 +2753,26 @@ public:
         case MK_printscreen:
             key=SDL_SCANCODE_PRINTSCREEN;
             break;
-        case MK_home: 
+        case MK_home:
             key=SDL_SCANCODE_HOME;
+            break;
+        case MK_end:
+            key=SDL_SCANCODE_END;
+            break;
+        case MK_pageup:
+            key=SDL_SCANCODE_PAGEUP;
+            break;
+        case MK_pagedown:
+            key=SDL_SCANCODE_PAGEDOWN;
             break;
         case MK_comma:
             key=SDL_SCANCODE_COMMA;
             break;
         case MK_period:
             key=SDL_SCANCODE_PERIOD;
+            break;
+        case MK_0:
+            key=SDL_SCANCODE_0;
             break;
         case MK_1:
             key=SDL_SCANCODE_1;
@@ -2774,6 +2786,21 @@ public:
         case MK_4:
             key=SDL_SCANCODE_4;
             break;
+        case MK_5:
+            key=SDL_SCANCODE_5;
+            break;
+        case MK_6:
+            key=SDL_SCANCODE_6;
+            break;
+        case MK_7:
+            key=SDL_SCANCODE_7;
+            break;
+        case MK_8:
+            key=SDL_SCANCODE_8;
+            break;
+        case MK_9:
+            key=SDL_SCANCODE_9;
+            break;
         case MK_a:
             key=SDL_SCANCODE_A;
             break;
@@ -2786,17 +2813,35 @@ public:
         case MK_d:
             key=SDL_SCANCODE_D;
             break;
+        case MK_e:
+            key=SDL_SCANCODE_E;
+            break;
         case MK_f:
             key=SDL_SCANCODE_F;
             break;
+        case MK_g:
+            key=SDL_SCANCODE_G;
+            break;
+        case MK_h:
+            key=SDL_SCANCODE_H;
+            break;
         case MK_i:
             key=SDL_SCANCODE_I;
+            break;
+        case MK_j:
+            key=SDL_SCANCODE_J;
+            break;
+        case MK_k:
+            key=SDL_SCANCODE_K;
             break;
         case MK_l:
             key=SDL_SCANCODE_L;
             break;
         case MK_m:
             key=SDL_SCANCODE_M;
+            break;
+        case MK_n:
+            key=SDL_SCANCODE_N;
             break;
         case MK_o:
             key=SDL_SCANCODE_O;
@@ -2813,11 +2858,26 @@ public:
         case MK_s:
             key=SDL_SCANCODE_S;
             break;
+        case MK_t:
+            key=SDL_SCANCODE_T;
+            break;
+        case MK_u:
+            key=SDL_SCANCODE_U;
+            break;
         case MK_v:
             key=SDL_SCANCODE_V;
             break;
         case MK_w:
             key=SDL_SCANCODE_W;
+            break;
+        case MK_x:
+            key=SDL_SCANCODE_X;
+            break;
+        case MK_y:
+            key=SDL_SCANCODE_Y;
+            break;
+        case MK_z:
+            key=SDL_SCANCODE_Z;
             break;
         case MK_escape:
             key=SDL_SCANCODE_ESCAPE;
@@ -2900,11 +2960,23 @@ public:
         case MK_home:
             key=SDLK_HOME; 
             break;
+        case MK_end:
+            key=SDLK_END;
+            break;
+        case MK_pageup:
+            key=SDLK_PAGEUP;
+            break;
+        case MK_pagedown:
+            key=SDLK_PAGEDOWN;
+            break;
         case MK_comma:
             key=SDLK_COMMA;
             break;
         case MK_period:
             key=SDLK_PERIOD;
+            break;
+        case MK_0:
+            key=SDLK_0;
             break;
         case MK_1:
             key=SDLK_1;
@@ -2918,6 +2990,21 @@ public:
         case MK_4:
             key=SDLK_4;
             break;
+        case MK_5:
+            key=SDLK_5;
+            break;
+        case MK_6:
+            key=SDLK_6;
+            break;
+        case MK_7:
+            key=SDLK_7;
+            break;
+        case MK_8:
+            key=SDLK_8;
+            break;
+        case MK_9:
+            key=SDLK_9;
+            break;
         case MK_a:
             key=SDLK_a;
             break;
@@ -2930,17 +3017,35 @@ public:
         case MK_d:
             key=SDLK_d;
             break;
+        case MK_e:
+            key=SDLK_e;
+            break;
         case MK_f:
             key=SDLK_f;
             break;
+        case MK_g:
+            key=SDLK_g;
+            break;
+        case MK_h:
+            key=SDLK_h;
+            break;
         case MK_i:
             key=SDLK_i;
+            break;
+        case MK_j:
+            key=SDLK_j;
+            break;
+        case MK_k:
+            key=SDLK_k;
             break;
         case MK_l:
             key=SDLK_l;
             break;
         case MK_m:
             key=SDLK_m;
+            break;
+        case MK_n:
+            key=SDLK_n;
             break;
         case MK_o:
             key=SDLK_o;
@@ -2957,11 +3062,26 @@ public:
         case MK_s:
             key=SDLK_s;
             break;
+        case MK_t:
+            key=SDLK_t;
+            break;
+        case MK_u:
+            key=SDLK_u;
+            break;
         case MK_v:
             key=SDLK_v;
             break;
         case MK_w:
             key=SDLK_w;
+            break;
+        case MK_x:
+            key=SDLK_x;
+            break;
+        case MK_y:
+            key=SDLK_y;
+            break;
+        case MK_z:
+            key=SDLK_z;
             break;
         case MK_escape:
             key=SDLK_ESCAPE;
