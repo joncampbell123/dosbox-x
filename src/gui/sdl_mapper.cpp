@@ -2732,6 +2732,36 @@ public:
         case MK_return:
             key=SDL_SCANCODE_RETURN;
             break;
+        case MK_tab:
+            key=SDL_SCANCODE_TAB;
+            break;
+        case MK_slash:
+            key=SDL_SCANCODE_SLASH;
+            break;
+        case MK_backslash:
+            key=SDL_SCANCODE_BACKSLASH;
+            break;
+        case MK_space:
+            key=SDL_SCANCODE_SPACE;
+            break;
+        case MK_backspace:
+            key=SDL_SCANCODE_BACKSPACE;
+            break;
+        case MK_delete:
+            key=SDL_SCANCODE_DELETE;
+            break;
+        case MK_insert:
+            key=SDL_SCANCODE_INSERT;
+            break;
+        case MK_semicolon:
+            key=SDL_SCANCODE_SEMICOLON;
+            break;
+        case MK_quote:
+            key=SDL_SCANCODE_APOSTROPHE;
+            break;
+        case MK_grave:
+            key=SDL_SCANCODE_GRAVE;
+            break;
         case MK_kpminus:
             key=SDL_SCANCODE_KP_MINUS;
             break;
@@ -2882,9 +2912,6 @@ public:
         case MK_escape:
             key=SDL_SCANCODE_ESCAPE;
             break;
-        case MK_delete:
-            key=SDL_SCANCODE_DELETE;
-            break;
         case MK_lbracket:
             key=SDL_SCANCODE_LEFTBRACKET;
             break;
@@ -2927,6 +2954,36 @@ public:
             break;
         case MK_return:
             key=SDLK_RETURN;
+            break;
+        case MK_tab:
+            key=SDLK_TAB;
+            break;
+        case MK_slash:
+            key=SDLK_SLASH;
+            break;
+        case MK_backslash:
+            key=SDLK_BACKSLASH;
+            break;
+        case MK_space:
+            key=SDLK_SPACE;
+            break;
+        case MK_backspace:
+            key=SDLK_BACKSPACE;
+            break;
+        case MK_delete:
+            key=SDLK_DELETE;
+            break;
+        case MK_insert:
+            key=SDLK_INSERT;
+            break;
+        case MK_semicolon:
+            key=SDLK_SEMICOLON;
+            break;
+        case MK_quote:
+            key=SDLK_QUOTE;
+            break;
+        case MK_grave:
+            key=SDLK_BACKQUOTE;
             break;
         case MK_kpminus:
             key=SDLK_KP_MINUS;
@@ -3085,9 +3142,6 @@ public:
             break;
         case MK_escape:
             key=SDLK_ESCAPE;
-            break;
-        case MK_delete:
-            key=SDLK_DELETE;
             break;
         case MK_lbracket:
             key=SDLK_LEFTBRACKET;
