@@ -632,14 +632,7 @@ bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#ifdef WIN32
 	return Files[handle]->LockFile(mode,pos,size);
-#else
-    (void)mode;//UNUSED
-    (void)size;//UNUSED
-    (void)pos;//UNUSED
-	return true;
-#endif
 }
 
 bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {

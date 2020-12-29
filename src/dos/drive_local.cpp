@@ -1586,16 +1586,31 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 }
 
 /* ert, 20100711: Locking extensions */
-#ifdef WIN32
-#include <sys/locking.h>
+#if defined(WIN32)
+#include <fcntl.h>
+#else
+#if defined(MACOSX)
+#define _DARWIN_C_SOURCE
+#endif
+#include <sys/file.h>
+#endif
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
+#if defined(WIN32)
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
 	BOOL bRet;
+#else
+	bool bRet;
+#endif
 
 	switch (mode)
 	{
+#if defined(WIN32)
 	case 0: bRet = ::LockFile (hFile, pos, 0, size, 0); break;
 	case 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); break;
+#else
+	case 0: bRet = flock(fileno(fhandle), LOCK_EX | LOCK_NB) == 0; break;
+	case 1: bRet = flock(fileno(fhandle), LOCK_UN | LOCK_NB) == 0; break;
+#endif
 	default: 
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
@@ -1604,6 +1619,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 
 	if (!bRet)
 	{
+#if defined(WIN32)
 		switch (GetLastError())
 		{
 		case ERROR_ACCESS_DENIED:
@@ -1623,10 +1639,26 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 			DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 			break;
 		}
+#else
+		switch (errno)
+		{
+		case EINTR:
+		case ENOLCK:
+		case EWOULDBLOCK:
+			DOS_SetError(0x21);
+			break;
+		case EBADF:
+			DOS_SetError(DOSERR_INVALID_HANDLE);
+			break;
+		case EINVAL:
+		default:
+			DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+			break;
+		}
+#endif
 	}
 	return bRet;
 }
-#endif
 
 bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
