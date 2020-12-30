@@ -31,7 +31,7 @@ uint32_t DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
 
-extern bool enable_share_exe_fake;
+extern bool enable_share_exe;
 
 extern Bitu XMS_EnableA20(bool enable);
 
@@ -117,7 +117,7 @@ static bool DOS_MultiplexFunctions(void) {
         break;
 	/* ert, 20100711: Locking extensions */
     case 0x1000:    /* SHARE.EXE installation check */
-        if (enable_share_exe_fake) {
+        if (enable_share_exe) {
             reg_al = 0xff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
         }
         return true;

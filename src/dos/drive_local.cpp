@@ -56,9 +56,14 @@
 #include "../libs/physfs/physfs_platform_windows.c"
 #include "../libs/physfs/physfs_platform_winrt.cpp"
 #include "../libs/physfs/physfs_unicode.c"
+#if defined(MACOSX)
+#define _DARWIN_C_SOURCE
+#endif
 #ifndef WIN32
 #include <utime.h>
+#include <sys/file.h>
 #else
+#include <fcntl.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
 #endif
@@ -113,7 +118,7 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
-extern bool rsize, force_sfn;
+extern bool rsize, force_sfn, enable_share_exe;
 extern int lfn_filefind_handle, freesizecap;
 extern unsigned long totalc, freec;
 
@@ -628,13 +633,30 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
         return false;
     }
 
+    FILE * hand;
+#if defined(WIN32)
+    if (enable_share_exe && nocachedir) {
+        int ohFlag = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?GENERIC_READ:((flags&0xf)==OPEN_WRITE?GENERIC_WRITE:GENERIC_READ|GENERIC_WRITE);
+        int shhFlag = (flags&0x70)==0x10?0:((flags&0x70)==0x20?FILE_SHARE_READ:((flags&0x70)==0x30?FILE_SHARE_WRITE:FILE_SHARE_READ|FILE_SHARE_WRITE));
+        HANDLE handle = CreateFileW(host_name, ohFlag, shhFlag, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (handle == INVALID_HANDLE_VALUE) return false;
+        int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
+        if (nHandle == -1) {CloseHandle(handle);return false;}
+        hand = _wfdopen(nHandle, type);
+    } else
+#endif
+    {
 #ifdef host_cnv_use_wchar
-	FILE * hand=_wfopen(host_name,type);
+	hand=_wfopen(host_name,type);
 #else
-	FILE * hand=fopen(host_name,type);
+	hand=fopen(host_name,type);
+#endif
+    }
+#if !defined(WIN32)
+    if (hand && enable_share_exe && nocachedir && (flags&0x70)==0x10 && flock(fileno(hand), LOCK_EX | LOCK_NB)==-1) return false;
 #endif
 //	uint32_t err=errno;
-	if (!hand) { 
+	if (!hand) {
 		if((flags&0xf) != OPEN_READ) {
 #ifdef host_cnv_use_wchar
 			FILE * hmm=_wfopen(host_name,L"rb");
@@ -1585,15 +1607,8 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
     }
 }
 
-/* ert, 20100711: Locking extensions */
-#if defined(WIN32)
-#include <fcntl.h>
-#else
-#if defined(MACOSX)
-#define _DARWIN_C_SOURCE
-#endif
-#include <sys/file.h>
-#endif
+// ert, 20100711: Locking extensions
+// Wengier, 20201230: All platforms
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
