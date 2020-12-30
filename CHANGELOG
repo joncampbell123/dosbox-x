@@ -83,7 +83,10 @@
     also accepts "fontdir" option where you can change
     the path ("FONTS" by default) where the printer TTF
     fonts (including courier.ttf, ocra.ttf, roman.ttf,
-    sansserif.ttf, script.ttf) are located. (Wengier)
+    sansserif.ttf, script.ttf) are located. If no TTF
+    font can be found (either from the custom path or
+    system path) for printing, the internal TTF font
+    for the TTF output will be used. (Wengier)
   - Added read-only options to the Drive menu to mount
     host folders/drives or image files to the specified
     drive letter in read-only mode. (Wengier)
