@@ -122,6 +122,8 @@
     "Paste from clipboard", and the "Reset window size"
     functions are now Ctrl+F5, Ctrl+F6 and Host(F11/F12)
     +BackSpace respectively. (Wengier)
+  - Added -defaultmapper command-line option which will
+    use default key bindings for the mapper. (Wengier)
   - Added ttf.fontbold, ttf.fontital, and ttf.fontboit
     config options so that you can specify actual bold
     italic, and bold-italic TrueType fonts for use with

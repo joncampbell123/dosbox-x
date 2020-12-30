@@ -8617,6 +8617,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -savedir <path>                         Set path for the save slots\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path for DOSBox-X\n");
             fprintf(stderr,"  -defaultconf                            Use the default config settings for DOSBox-X\n");
+            fprintf(stderr,"  -defaultmapper                          Use the default key mappings for DOSBox-X\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -8790,6 +8791,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "printconf") {
             control->opt_printconf = true;
+        }
+        else if (optname == "defaultmapper") {
+            control->opt_defaultmapper = true;
         }
         else if (optname == "erasemapper") {
             control->opt_erasemapper = true;
@@ -12491,6 +12495,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* finally, the mapper */
         MAPPER_Init();
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
 
         /* stop at this point, and show the mapper, if instructed */
         if (control->opt_startmapper) {
@@ -12522,7 +12527,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlalt").set_text("Ctrl+Alt").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlshift").set_text("Ctrl+Shift").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_altshift").set_text("Alt+Shift").set_callback_function(hostkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper \"Send special key\": logo key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper \"Send special key\": menu key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper \"Send special key\": Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
