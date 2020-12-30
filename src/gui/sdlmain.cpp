@@ -8010,7 +8010,11 @@ void PasteClipboard(bool bPressed) {
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8057,12 +8061,17 @@ void PasteClipboard(bool bPressed) {
             result+=asc != NULL?std::string(asc):std::string(1, text[i]);
         }
     }
+    delete text;
     strPasteBuffer.append(result.c_str());
 }
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8162,7 +8171,11 @@ void PasteClipboard(bool bPressed) {
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8182,7 +8195,7 @@ bool PasteClipboardNext() {
 #if defined (WIN32)
 void CopyClipboard(int all) {
 	uint16_t len=0;
-	const char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
+	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
@@ -8216,7 +8229,7 @@ typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 void CopyClipboard(int all) {
 	uint16_t len=0;
-	char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
+	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
     unsigned int k=0;
     for (unsigned int i=0; i<len; i++)
         if (text[i]&&text[i]!=13)
