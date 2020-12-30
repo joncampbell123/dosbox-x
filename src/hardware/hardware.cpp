@@ -1922,11 +1922,11 @@ void CAPTURE_Init() {
 	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Record FM/OPL output",&item);
 	item->set_text("Record FM (OPL) output");
 #if (C_SSHOT)
-	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_p,MMODHOST,"scrshot","Take screenshot", &item);
-	item->set_text("Take screenshot");
-
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_i,MMODHOST,"video","Record video to AVI", &item);
 	item->set_text("Record video to AVI");
+
+	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_p,MMODHOST,"scrshot","Take screenshot", &item);
+	item->set_text("Take screenshot");
 #endif
 #endif
 

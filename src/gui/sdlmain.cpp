@@ -5346,12 +5346,12 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
     item->set_text("Quick edit: copy on select and paste text");
 
-    MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
+    MAPPER_AddHandler(CopyAllClipboard,MK_f5,MMOD1,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
 
 #if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
-    MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
+    MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
@@ -5367,6 +5367,9 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
     item->set_text("Configuration tool");
 
+    MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
+    item->set_text("Reset window size");
+
 #if defined(USE_TTF)
     MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "ttf_incsize", "Increase TTF size", &item);
     item->set_text("Increase TTF font size");
@@ -5374,9 +5377,6 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "ttf_decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
 #endif
-
-    MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "Reset window size", &item);
-    item->set_text("Reset window size");
 
     UpdateWindowDimensions();
 }

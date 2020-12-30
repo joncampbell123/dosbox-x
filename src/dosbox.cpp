@@ -1101,12 +1101,12 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
-    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
-        item->set_text("Display state information");
 	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
         item->set_text("Save state");
 	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
         item->set_text("Load state");
+    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
+        item->set_text("Display state information");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_comma, MMODHOST,"prevslot","Previous save slot", &item);
         item->set_text("Select previous slot");
 	MAPPER_AddHandler(NextSaveSlot, MK_period, MMODHOST,"nextslot","Next save slot", &item);
