@@ -103,9 +103,9 @@
     option "locking disk image mount" is added to the
     [dosbox] section which when set to false (or if the
     user mounts the image files read-only) will bypass
-    the locking of image files. Also improved the file
-    locking function, which can be disabled by setting
-    "share" to "false" in [dos] section. (Wengier)
+    the locking of image files. Also improved the DOS
+    file locking function, which can be disabled by
+    setting "share=false" in [dos] section. (Wengier)
   - You can now use a single mapper file for both SDL1
     and SDL2 versions of DOSBox-X! The new mapper file
     will be divided to sections [SDL1] and [SDL2] for

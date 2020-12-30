@@ -118,7 +118,7 @@ static bool DOS_MultiplexFunctions(void) {
 	/* ert, 20100711: Locking extensions */
     case 0x1000:    /* SHARE.EXE installation check */
         if (enable_share_exe) {
-            reg_al = 0xff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
+            reg_al = 0xff; /* Report that share.exe is installed. Of course not all SHARE functions are emulated. */
         }
         return true;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
