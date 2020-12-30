@@ -1623,7 +1623,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	case 0: bRet = ::LockFile (hFile, pos, 0, size, 0); break;
 	case 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); break;
 #else
-	case 0: bRet = flock(fileno(fhandle), LOCK_EX | LOCK_NB) == 0; break;
+	case 0: bRet = flock(fileno(fhandle), LOCK_SH | LOCK_NB) == 0; break;
 	case 1: bRet = flock(fileno(fhandle), LOCK_UN | LOCK_NB) == 0; break;
 #endif
 	default: 
