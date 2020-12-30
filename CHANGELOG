@@ -169,6 +169,9 @@
     if no type is specified by the user. (Wengier)
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
+  - The FREECG98.BMP file (for PC-98 mode) is now
+    rendered based on a unifont_jp TTF font instead
+    of UnifontFullMediumMono.ttf. (roytam1)
   - Added support for automatic switching from TTF
     ouptut to another output in PC-98 mode, allowing
     Windows 3.1 to run in this mode. (Wengier)
