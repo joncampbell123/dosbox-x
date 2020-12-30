@@ -92,7 +92,7 @@ bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
-bool enable_share_exe_fake = true;
+bool enable_share_exe = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
@@ -1855,20 +1855,19 @@ static Bitu DOS_21Handler(void) {
             uint32_t pos=((unsigned int)reg_cx << 16u) + reg_dx;
             uint32_t size=((unsigned int)reg_si << 16u) + reg_di;
             //LOG_MSG("LockFile: BX=%d, AL=%d, POS=%d, size=%d", reg_bx, reg_al, pos, size);
-            if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
+            if (!enable_share_exe) {
+               DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+               reg_ax = dos.errorcode;
+               CALLBACK_SCF(true);
+            } else if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
                 reg_ax=0;
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            break; }
-            /*
-               DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-               reg_ax = dos.errorcode;
-               CALLBACK_SCF(true);
-               break;
-               */
+            break;
+            }
         case 0x5d:                  /* Network Functions */
             if(reg_al == 0x06) {
                 /* FIXME: I'm still not certain, @emendelson, why this matters so much
@@ -2820,7 +2819,7 @@ public:
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
 		enable_dbcs_tables = section->Get_bool("dbcs");
-		enable_share_exe_fake = section->Get_bool("share");
+		enable_share_exe = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");

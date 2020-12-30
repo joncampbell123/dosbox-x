@@ -83,7 +83,10 @@
     also accepts "fontdir" option where you can change
     the path ("FONTS" by default) where the printer TTF
     fonts (including courier.ttf, ocra.ttf, roman.ttf,
-    sansserif.ttf, script.ttf) are located. (Wengier)
+    sansserif.ttf, script.ttf) are located. If no TTF
+    font can be found (either from the custom path or
+    system path) for printing, the internal TTF font
+    for the TTF output will be used. (Wengier)
   - Added read-only options to the Drive menu to mount
     host folders/drives or image files to the specified
     drive letter in read-only mode. (Wengier)
@@ -100,7 +103,9 @@
     option "locking disk image mount" is added to the
     [dosbox] section which when set to false (or if the
     user mounts the image files read-only) will bypass
-    the locking of image files. (Wengier)
+    the locking of image files. Also improved the DOS
+    file locking function, which can be disabled by
+    setting "share=false" in [dos] section. (Wengier)
   - You can now use a single mapper file for both SDL1
     and SDL2 versions of DOSBox-X! The new mapper file
     will be divided to sections [SDL1] and [SDL2] for
@@ -164,6 +169,9 @@
     if no type is specified by the user. (Wengier)
   - Improved the dynamic core including the way its
     cache is allocated and to support dual mapping.
+  - The FREECG98.BMP file (for PC-98 mode) is now
+    rendered based on a unifont_jp TTF font instead
+    of UnifontFullMediumMono.ttf. (roytam1)
   - Added support for automatic switching from TTF
     ouptut to another output in PC-98 mode, allowing
     Windows 3.1 to run in this mode. (Wengier)

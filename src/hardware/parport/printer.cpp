@@ -28,9 +28,12 @@
 #include "cross.h"
 #include "printer_charmaps.h"
 #include "control.h"
-
 #include "pic.h" // for timeout
+#include "render.h"
 
+#if defined(USE_TTF)
+extern unsigned char DOSBoxTTFbi[48868];
+#endif
 extern void GFX_CaptureMouse(void);
 extern bool mouselocked;
 
@@ -347,7 +350,11 @@ void CPrinter::updateFont()
                 if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSerif-Regular.ttf";
 #endif
         }
-        if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
+        if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)
+#if defined(USE_TTF)
+        && FT_New_Memory_Face(FTlib, DOSBoxTTFbi, sizeof(DOSBoxTTFbi), 0, &curFont)
+#endif
+        ) {
             //LOG(LOG_MISC,LOG_ERROR)("Unable to load font %s", fontName);
             LOG_MSG("Unable to load font %s (or %s)", oldfont.c_str(), fontName.c_str());
             curFont = NULL;

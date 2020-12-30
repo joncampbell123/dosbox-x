@@ -3719,7 +3719,7 @@ void DOSBOX_SetupConfigSections(void) {
             "   direct    Non-standard behavior, encode the CALL FAR directly to the entry point rather than indirectly");
 
     Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
+    Pbool->Set_help("Report SHARE.EXE as resident. This will allow file locking to be performed, although not all SHARE functions are emulated.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
