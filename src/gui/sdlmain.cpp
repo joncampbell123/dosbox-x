@@ -1341,7 +1341,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 //  static Bits internal_frameskip=0;
     static int32_t internal_cycles=0;
 //  static Bits internal_timing=0;
-    char title[200] = {0};
+    char title[250] = {0};
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
     assert(section != NULL);
@@ -1382,6 +1382,12 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
         char *p = title + strlen(title); // append to end of string
 
         sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+    }
+
+    if (sdl.mouse.locked) {
+        std::string get_mapper_shortcut(const char *name);
+        std::string key=get_mapper_shortcut("capmouse");
+        strcat(title, key.size()?(" ["+key+" releases mouse]").c_str():" [mouse locked]");
     }
 
     if (paused) strcat(title," PAUSED");
@@ -3049,6 +3055,8 @@ void GFX_CaptureMouse(bool capture) {
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
         }
 #endif
+
+    GFX_SetTitle(-1,-1,-1,false);
 
     /* keep the menu updated (it might not exist yet) */
     if (mainMenu.item_exists("mapper_capmouse"))
