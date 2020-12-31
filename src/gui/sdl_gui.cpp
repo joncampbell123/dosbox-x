@@ -496,6 +496,10 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     GFX_SetTitle(-1,-1,-1,false);
 
     void GFX_ForceRedrawScreen(void);
+#if defined(USE_TTF)
+    bool TTF_using(void);
+    if (!TTF_using() || ttf.inUse)
+#endif
     GFX_ForceRedrawScreen();
 
     in_gui = false;
@@ -2151,7 +2155,7 @@ public:
     }
 };
 
-std::string niclist="NE2000 networking is not enabled.";
+std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;

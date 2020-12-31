@@ -4702,6 +4702,10 @@ void MAPPER_RunInternal() {
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
+#if defined(USE_TTF)
+    bool TTF_using(void);
+    if (!TTF_using() || ttf.inUse)
+#endif
     GFX_ForceRedrawScreen();
 
     mapper.running = false;
