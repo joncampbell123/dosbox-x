@@ -1386,7 +1386,8 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
     if (sdl.mouse.locked) {
         std::string get_mapper_shortcut(const char *name);
-        strcat(title, (" ["+get_mapper_shortcut("capmouse")+" releases mouse]").c_str());
+        std::string key=get_mapper_shortcut("capmouse");
+        strcat(title, key.size()?(" ["+key+" releases mouse]").c_str():" [mouse locked]");
     }
 
     if (paused) strcat(title," PAUSED");

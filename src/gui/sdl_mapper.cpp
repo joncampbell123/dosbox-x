@@ -280,7 +280,6 @@ static KeyBlock combo_4[11] =
 static bool initjoy=true;
 static int cpage=1, maxpage=1;
 
-
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,uint8_t col);
@@ -2230,6 +2229,7 @@ protected:
 };
 
 class CEventButton;
+static CEventButton * hostbutton = NULL;
 static CEventButton * last_clicked = NULL;
 static std::vector<CEventButton *> ceventbuttons;
 
@@ -3396,6 +3396,10 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     CModEvent * event=new CModEvent(buf,_mod);
     CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
     event->notifybutton(button);
+    if (_mod == 4) {
+        button->Enable(hostkeyalt == 0);
+        hostbutton=button;
+    }
 
     assert(_mod < 8);
     mod_event[_mod] = event;
@@ -4533,6 +4537,7 @@ void MAPPER_ReleaseAllKeys(void) {
 }
 
 void MAPPER_RunEvent(Bitu /*val*/) {
+    if (hostbutton != NULL) hostbutton->Enable(hostkeyalt == 0);
     KEYBOARD_ClrBuffer();   //Clear buffer
     GFX_LosingFocus();      //Release any keys pressed (buffer gets filled again).
     MAPPER_RunInternal();
