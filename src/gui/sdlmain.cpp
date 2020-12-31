@@ -5346,12 +5346,12 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
     item->set_text("Quick edit: copy on select and paste text");
 
-    MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
+    MAPPER_AddHandler(CopyAllClipboard,MK_f5,MMOD1,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
 
 #if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
-    MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
+    MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
@@ -5367,6 +5367,9 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
     item->set_text("Configuration tool");
 
+    MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
+    item->set_text("Reset window size");
+
 #if defined(USE_TTF)
     MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "ttf_incsize", "Increase TTF size", &item);
     item->set_text("Increase TTF font size");
@@ -5374,9 +5377,6 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "ttf_decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
 #endif
-
-    MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "Reset window size", &item);
-    item->set_text("Reset window size");
 
     UpdateWindowDimensions();
 }
@@ -8010,7 +8010,11 @@ void PasteClipboard(bool bPressed) {
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8057,12 +8061,17 @@ void PasteClipboard(bool bPressed) {
             result+=asc != NULL?std::string(asc):std::string(1, text[i]);
         }
     }
+    delete text;
     strPasteBuffer.append(result.c_str());
 }
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8162,7 +8171,11 @@ void PasteClipboard(bool bPressed) {
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
@@ -8182,7 +8195,7 @@ bool PasteClipboardNext() {
 #if defined (WIN32)
 void CopyClipboard(int all) {
 	uint16_t len=0;
-	const char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
+	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
@@ -8216,7 +8229,7 @@ typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 void CopyClipboard(int all) {
 	uint16_t len=0;
-	char* text = (char *)(all==2?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
+	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len)));
     unsigned int k=0;
     for (unsigned int i=0; i<len; i++)
         if (text[i]&&text[i]!=13)
@@ -8604,6 +8617,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -savedir <path>                         Set path for the save slots\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path for DOSBox-X\n");
             fprintf(stderr,"  -defaultconf                            Use the default config settings for DOSBox-X\n");
+            fprintf(stderr,"  -defaultmapper                          Use the default key mappings for DOSBox-X\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -8777,6 +8791,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "printconf") {
             control->opt_printconf = true;
+        }
+        else if (optname == "defaultmapper") {
+            control->opt_defaultmapper = true;
         }
         else if (optname == "erasemapper") {
             control->opt_erasemapper = true;
@@ -12478,6 +12495,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* finally, the mapper */
         MAPPER_Init();
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
 
         /* stop at this point, and show the mapper, if instructed */
         if (control->opt_startmapper) {
@@ -12509,7 +12527,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlalt").set_text("Ctrl+Alt").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlshift").set_text("Ctrl+Shift").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_altshift").set_text("Alt+Shift").set_callback_function(hostkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper \"Send special key\": logo key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper \"Send special key\": menu key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper \"Send special key\": Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);

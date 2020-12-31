@@ -722,7 +722,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
 	}
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
-    if (w>-1&&h>-1) {
+    if (w>0&&h>0) {
         c1=c*x1/w;
         r1=r*y1/h;
         c2=c*x2/w;
@@ -785,7 +785,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
         c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
     }
-    if (w>-1&&h>-1) {
+    if (w>0&&h>0) {
         c1=c*x1/w;
         r1=r*y1/h;
         c2=c*x2/w;

@@ -4817,6 +4817,7 @@ void MAPPER_Init(void) {
 
 std::string GetDOSBoxXPath();
 void ReloadMapper(Section_prop *section, bool init) {
+    if (!init&&control->opt_defaultmapper) return;
     Prop_path* pp;
 #if defined(C_SDL2)
 	pp = section->Get_path("mapperfile_sdl2");
