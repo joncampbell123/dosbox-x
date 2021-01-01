@@ -295,7 +295,7 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
 bool colorChanged = false, justChanged = false;
 #endif
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 int curscr;
 RECT monrect;
 typedef struct {
@@ -2594,7 +2594,7 @@ static Bitu OUTPUT_TTF_SetSize() {
         SDL_FULLSCREEN
 #endif
         );
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
         if (sdl.displayNumber>0) {
             xyp xy={0};
             xy.x=-1;
@@ -5237,7 +5237,7 @@ static void GUI_StartUp() {
     // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
     // SDL2 position is set later, using SDL_SetWindowPosition()
 #if !defined(C_SDL2)
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     MONITORINFO info;
     if (sdl.displayNumber>0) {
         xyp xy={0};
@@ -10159,7 +10159,7 @@ int GetNumScreen() {
     int numscreen = 1;
 #if defined(C_SDL2)
     numscreen = SDL_GetNumVideoDisplays();
-#elif defined(WIN32)
+#elif defined(WIN32) && !defined(HX_DOS)
     xyp xy={0};
     xy.x=-1;
     xy.y=-1;
