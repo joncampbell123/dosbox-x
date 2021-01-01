@@ -37,6 +37,7 @@
 #include "support.h"
 #include "control.h"
 #include "paging.h"
+#include "menu.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
@@ -2591,7 +2592,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 
 		reg_ah=0x2b; // set system date
 		CALLBACK_RunRealInt(0x21);
-		if (sync_time) manualtime=false;
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	// check if a date was passed in command line
@@ -2670,7 +2671,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
-		if (sync_time) manualtime=false;
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	uint32_t newhour,newminute,newsecond;
@@ -2692,7 +2693,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
 		}
-		if (sync_time) manualtime=true;
+		if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
 		return;
 	}
 	bool timeonly = ScanCMDBool(args,"T");

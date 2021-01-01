@@ -1085,7 +1085,7 @@ static Bitu DOS_21Handler(void) {
             dos.date.month=reg_dh;
             dos.date.day=reg_dl;
             reg_al=0;
-            if (sync_time) manualtime=true;
+            if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
         case 0x2c: {    /* Get System Time */
             if(date_host_forced || IS_PC98_ARCH) {
@@ -1207,7 +1207,7 @@ static Bitu DOS_21Handler(void) {
 				mem_writed(BIOS_TIMER,ticks);
                 reg_al = 0;
             }
-            if (sync_time) manualtime=true;
+            if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
         case 0x2e:      /* Set Verify flag */
             dos.verify=(reg_al==1);

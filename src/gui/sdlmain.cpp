@@ -10580,8 +10580,9 @@ bool quick_reboot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * cons
 bool sync_host_datetime_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
+    if (!sync_time) sync_time=true;
+    else if (!manualtime) sync_time=false;
     manualtime=false;
-    sync_time = !sync_time;
     mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
     return true;
 }

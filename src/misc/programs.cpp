@@ -1074,7 +1074,10 @@ void CONFIG::Run(void) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
 							force_nocachedir = section->Get_bool("nocachedir");
                             sync_time = section->Get_bool("synchronize time");
-                            if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) manualtime=false;
+                            if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) {
+                                manualtime=false;
+                                mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
+                            }
 							std::string freesizestr = section->Get_string("freesizecap");
                             if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
                             else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
