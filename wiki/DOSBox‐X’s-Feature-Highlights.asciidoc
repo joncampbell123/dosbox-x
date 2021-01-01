@@ -19,22 +19,25 @@ DOSBox-X provides a fully-featured system for saving and loading states with sup
 DOSBox-X will automatically let you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
 * **Japanese NEC PC-98 mode emulation**
 +
-With DOSBox-X you can now run PC-98 and its games. Set ``machine=pc98`` in the config file to start DOSBox-X in NEC PC-98 mode.
+With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications. Set ``machine=pc98`` in the config file to start DOSBox-X in the PC-98 mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information.
+* **Support for SDL2 in addition to SDL1**
++
+DOSBox-X officially supports both SDL1 and SDL2 and provides both SDL1 and SDL2 builds, so that you can choose either the SDL1 or SDL2 build to use. While most features are common to both SDL builds, certain functions are only found in one of them.
 * **More customizable virtual machine**
 +
-DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X.
+DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, along with a lot more.
 * **CPU speed optimization and Turbo mode**
 +
 DOSBox-X can automatically decide the CPU cycles to use for optimized speed, and it provides a Turbo function to increase the speed of the system inside it.
 * **Improved customization on the title bar**
 +
-DOSBox-X allows you to modify or customize the strings and additional contents displayed in its title bar and its appearance.
+DOSBox-X allows you to modify or customize the strings and additional contents displayed in its title bar and its appearance. The cycles count (FPS) and emulation speed relative to real-time can also be displayed in the title bar.
 * **Better compatibility with DOS applications**
 +
 Aimed to be a complete DOS emulation package, DOSBox-X officially supports DOS applications, not just DOS games. All types of DOS programs are officially supported in DOSBox-X.
 * **Improved Windows 3.x and Windows 9x emulation**
 +
-One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x and 9x and their software. As a result we have made several improvements to their emulations.
+One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x and 9x and their software. As a result we have made several improvements to their emulations. Look at the link:Guide%3AMicrosoft-Windows-in-DOSBox‐X{suffixappend}[Microsoft Windows in DOSBox-X] guide page for more information.
 * **Built-in external tools such as CWSDPMI, DOSIDLE and IMGMAKE**
 +
 DOSBox-X has many useful tools already built-in, such as CWSDPMI, DOS4GW, DOSIDLE and IMGMAKE, which will appear on its Z: drive.
@@ -47,20 +50,26 @@ DOSBox-X supports a [config] section that supports most DOS config.sys commands,
 * **Support for 4DOS as the alternative shell with 4DOS 8.00 features and capabilities**
 +
 You can set SHELL=4DOS.COM so that DOSBox-X will run the 4DOS 8.00 shell at start instead of the default shell.
+* **Support for starting DOSBox-X on a specific display or window position**
++
+DOSBox-X can be started on a specific window position, or on a specific display with a multi-monitor setup. They can work in combination to specify a window position on the specific display.
+* **Support for the mounting ZIP/7Z archives as drives**
++
+You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly, which will operate in read-only mode.
 * **Support for the IDE interface for disk images**
 +
 DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
-* **Support for more CPU types (e.g. Pentium MMX and Pro)**
+* **Support for more CPU types (e.g. Pentium MMX and Pro) and emulating CPU speed**
 +
-DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions.
+DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
 
 * **Support for more video modes (e.g. MDA and MCGA)**
 +
-DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others.
+DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others, in addition to the standard ones.
 
-* **Support for printer output, either a real or virtual printer**
+* **Support for printing functions, either a real or virtual printer**
 +
-DOSBox-X supports parallel ports and printers attached to them, whether they are real printers or emulated printers for PostScript or PNG outputs.
+DOSBox-X supports parallel ports and printers attached to them, whether they are real printers or emulated printers for PostScript or PNG outputs. The parallel ports (which can be extended to LPT9) may be used either for printing or for direct port passthrough. Look at the link:Guide%3ASetting-up-printing-in-DOSBox‐X{suffixappend}[Setting up printing in DOSBox-X] guide page for more information.
 * **Support for long filenames (LFN) in addition to 8.3 filenames**
 +
 DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, not just 8.3 names. Set either ``ver=7.1`` or ``lfn=true`` in the config file to enable this feature.
@@ -69,7 +78,7 @@ DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, 
 FAT32 file system is supported in DOSBox-X in addition to FAT12 and FAT16, so you can make and mount drives larger than 2GB. Set ``ver=7.1`` to enable this feature.
 * **Support for clipboard text selection, copy and paste**
 +
-With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using the right mouse button or using a special device for it. Some clipboard functions are only supported for Windows systems.
+With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special device for it. Some clipboard functions are only supported for Windows systems.
 * **Support for converting mouse wheel movements to arrow keys**
 +
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
@@ -85,15 +94,21 @@ DOSBox-X allows you to set one or more config options from the DOSBox-X command 
 * **Support for Ctrl+C/Ctrl+Break in the shell and DOS programs**
 +
 You can press the Ctrl+C or Ctrl+Break key to break from the current operation when running in the shell, many DOS commands as well as DOS applications.
+* **Support for the mounting VHD, HDI, QCOW2 disk images and MAME CHD CD images**
++
+DOSBox-X supports various different types of disk images, such as Virtual Hard Disk (VHD), HDI (for PC-98 mode) and QEMU copy-on-write v2 (QCOW2) disk images and MAME CHD images for CD images, in addition to the standard disk image types (IMG, ISO, CUE, etc). Look at the link:Guide%3AManaging-image-files-in-DOSBox‐X{suffixappend}[Managing image files in DOSBox‐X] guide page for more information.
 * **Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD audio tracks**
 +
 With DOSBox-X it is possible to mount .cue files (either from the menu or with IMGMOUNT command) that include FLAC, MP3, WAV, OGG Vorbis and Opus music as CD audio tracks.
+* **Support for xBRz scalers and additional scaling options**
++
+DOSBox-X supports many additional scalers such as the xBRz scalers, and other additional scaling options gray, gray2x, hardware_none, hardware2x, hardware3x, hardware4x, hardware5x. 
 * **Support for 3dfx Voodoo chip and Glide emulation**
 +
-DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS).
+DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS). Look at the link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X{suffixappend}[Setting up 3dfx Voodoo in DOSBox-X] guide page for more information.
 * **Support for NE2000 Ethernet for network features**
 +
-DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X.
+DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X. Look at the link:Guide%3ASetting-up-networking-in-DOSBox‐X{suffixappend}[Setting up networking in DOSBox-X] guide page for more information.
 * **Support for phone book mapping for the emulated modem**
 +
 With this feature you can map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.

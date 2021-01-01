@@ -435,6 +435,13 @@ Note: Simply enter RESCAN without any parameters to refresh the current drive. Y
 Displays and sets environment variables.
 +
 Usage: SET [variable=[string]]
+* **SETCOLOR** (external command)
++
+Views or changes the text-mode color scheme settings.
++
+Usage: SETCOLOR [color# [value]]
++
+Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output.
 * **SHIFT** (internal command)
 +
 Left-shifts command-line parameters in a batch script.

@@ -1,0 +1,139 @@
+:toc: macro
+
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend:]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+# PC-98 emulation in DOSBox-X
+
+toc::[]
+
+Since DOSBox-X aims to be complete DOS emulation package, it officially supports the emulations of the Japanese PC-98 system, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese characters. The NEC PC-9800, also known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000. Most of the PC-98 software are games, but there are also non-gaming PC-98 applications such as the PC-98 version of Windows 3.1 released by Microsoft. While these were originally designed for the Japanese market, international users who are influenced by the Japanese culture may also want to check this out. For example, earlier Touhou games are PC-98 games, which are well supported by DOSBox-X's PC-98 system.
+
+image::https://upload.wikimedia.org/wikipedia/zh/3/35/Th04cover.jpg[PC-98 Touhou game: 東方幻想郷 〜 Lotus Land Story]
+
+(PC-98 Touhou game: 東方幻想郷 〜 Lotus Land Story)
+
+## Start PC-98 emulation
+
+By default, DOSBox-X starts the standard IBM-compatible DOS system, not the PC-98 system. But you can specify a different system to start with the "machine" option in DOSBox-X's configuration file (dosbox-x.conf by default), which offers system types including PC-98. So if you set "machine" to "pc98" (or "pc9801"/"pc9821" which are synonyms for "pc98" at this time), then DOSBox-X will start in the PC-98 emulation mode.
+
+Alternative you can specify the PC-98 machine type directly at the command line when starting DOSBox-X, such as ``dosbox-x -set machine=pc98``, which will immediately start DOSBox-X in the PC-98 emulation mode regardless of the settings in the DOSBox-X config file.
+
+## PC-98 font and accessory files
+
+You can start DOSBox-X in PC-98 mode without any additional files apart from the DOSBox-X executable itself. However, in order for DOSBox-X to display Japanese texts (Kana, Kanji, etc) correctly you will need additional files. You can either use the original PC-98 ``FONT.ROM`` ROM file, or use the free alternative ``FREECG98.BMP`` included with DOSBox-X. Make sure the ``FREECG98.BMP`` file or the original PC-98 ``FONT.ROM`` file is located in the DOSBox-X directory, then DOSBox-X will be able to display Japanese texts in the standard PC-98 mode:
+
+* FREECG98.BMP: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/FREECG98.BMP?raw=true[Download here]
+
+If you want to use the TrueType font (TTF) output option (i.e. with "output=ttf"), then you will need a Japanese monospaced TrueType font for PC-98 mode. For example, you can use any of the Japanese TrueType fonts from the Migu or M+ P families:
+
+* Migu 1M Regular: https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/migu1m/migu-1m-regular.ttf?raw=true[Download here]
+
+* Migu 2M Regular: https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/migu2m/migu-2m-regular.ttf?raw=true[Download here]
+
+* M+ P Type-1 Regular: https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/mplus1m/mplus-1m-regular.ttf?raw=true[Download here]
+
+* M+ P Type-2 Regular: https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/mplus2m/mplus-2m-regular.ttf?raw=true[Download here]
+
+Or the ``UnifontFullMediumMono.TTF`` file found in the DOSBox-X repository:
+
+* UnifontFullMediumMono: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/UnifontFullMediumMono.ttf?raw=true[Download here]
+
+Specify the desired Japanese TrueType font with the ttf.font config option for the TTF output, and then DOSBox-X will render the PC-98 text screen using this TTF font.
+
+Apart from the ``FONT.ROM`` ROM image file mentioned above, there is another PC-98 ROM file named ``SOUND.ROM`` which is the ROM image of the PC-98 FM board, which may be needed by some PC-98 games to make music and sound effects. Both of these ROM images can be found online.
+
+## PC-98 config settings
+
+There are quite a few PC-98 related options in the DOSBox-X config file, such as the options to enable or disable EGC and GRCG graphical functions. These config options can be found in the [pc98] section of the DOSBox-X config file, and many of them can also be toggled in the "PC-98 options" menu group under the "Video" menu. The following config options can be found in the dosbox-x.reference.conf file, while more advanced options can be found in the dosbox-x.reference.full.conf file:
+
+** pc-98 BIOS copyright string
+* Default value: false
+* Possible values: true, false
+* If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.
+
+** pc-98 fm board
+* Default value: auto
+* Possible values: auto, off, false, board14, board26k, board86, board86c
+* Select the FM music board to emulate in PC-98 mode.
+
+** pc-98 enable 256-color
+* Default value: true
+* Possible values: true, false
+* Allow 256-color graphics mode if set, disable if not set.
+
+** pc-98 enable 16-color
+* Default value: true
+* Possible values: true, false
+* Allow 16-color graphics mode if set, disable if not set.
+
+** pc-98 enable grcg
+* Default value: true
+* Possible values: true, false
+* Allow GRCG graphics functions if set, disable if not set.
+
+** pc-98 enable egc
+* Default value: true
+* Possible values: true, false
+* Allow EGC graphics functions if set, disable if not set.
+
+** pc-98 bus mouse
+* Default value: true
+* Possible values: true, false
+* Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.
+
+** pc-98 force ibm keyboard layout
+* Default value: true
+* Possible values: true, false
+* Force to use a default keyboard layout like IBM US-English for PC-98 emulation. Works with PC-98 software using BIOS for keyboard.
+
+You may not need to change most config options for PC-98 mode, but you probably want to look at the last one ``pc-98 force ibm keyboard layout`` if you are not a Japanese user. Since PC-98 system was originally designed for the Japanese market, the default keyboard layout for the PC-98 mode will be the Japanese keyboard layout. However, users outside Japan who want to use the PC-98 system probably want to change the setting to the default U.S. keyboard keyboard layout instead, which can be done by setting ``pc-98 force ibm keyboard layout`` to ``true``, or it may be enabled via the ``Use US keyboard layout`` menu option in the "PC-98 options" menu group. With this enabled you will be able to use DOSBox-X's PC-98 system easily with the standard U.S. keyboard layout.
+
+## Running PC-98 games or applications
+
+Once you are in DOSBox-X's PC-98 system, you can start preparing for playing PC-98 games or running PC-98 applications. First you need to mount a drive for use with PC-98 games or applications. The drive can be mounted either from a drive or directory in the host system, or from a disk image. In general mounting drives in PC-98 mode follows the same procedures as in DOSBox-X's standard mode, although disk images for PC-98 systems may come with HDI or FDD formats rather than the IMG format which is typically seen in a standard system. In any case you can mount the drives with either MOUNT or IMGMOUNT command as usual, or it can be done from the "Drive" menu.
+
+An example of using MOUNT command:
+
+```
+MOUNT C C:\PC98
+```
+
+An example of using IMGMOUNT command:
+
+```
+IMGMOUNT C D:\PC98.HDI
+```
+
+Once a drive is mounted, you can enter the drive directory and start the desired game or application, or boot from the drive in the case of bootable disk images. The actual steps are also similar to how they are done in DOSBox-X's standard system. For example, you can install and run the PC-98 version of Windows 3.1 in DOSBox-X's PC-98 system the same way as you install and run the standard version of Windows 3.1 in DOSBox-X's default machine type.
+
+### Example: Touhou games in DOSBox-X
+
+image::https://upload.wikimedia.org/wikipedia/zh/4/46/Mystic_Square.png[The 5th Touhou game: 東方怪綺談 〜 Mystic Square]
+
+(The 5th Touhou game: 東方怪綺談 〜 Mystic Square)
+
+The Touhou games are a series of bullet shooting games that are especially famous in the Doujin world. The first five games were targeted for PC-98, so you can actually run them in DOSBox-X's PC-98 mode.
+
+Assuming you have the HDI images for any of these Touhou games, you can mount them as the C drive and then either start the game directly or boot from the drive. For example:
+
+```
+IMGMOUNT C TOUHOU1.HDI
+C:
+GAME
+```
+
+Or boot from the drive:
+
+```
+IMGMOUNT C TOUHOU1.HDI
+BOOT C:
+```
+
+## External links
+Some external links with useful information:
+
+* link:https://en.wikipedia.org/wiki/PC-9800_series[Wikipedia: PC-9800 series]
+* link:https://en.wikipedia.org/wiki/Touhou_Project#PC-98_games[Wikipedia: Touhou Project - PC-98 games]

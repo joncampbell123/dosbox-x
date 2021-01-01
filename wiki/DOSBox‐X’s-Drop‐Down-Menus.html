@@ -460,7 +460,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Mapper editor</strong>: Enters DOSBox-X&#8217;s keyboard mapper editor, where you can map different keys for use with the emulated DOS. Press the Esc key three times to exit the editor.</p>
 </li>
 <li>
-<p><strong>Load mapper file</strong>: Selects a mapper file for use with DOSBox-X. Make sure to select a SDL1 mapper file for SDL1 builds, and SDL2 mapper file for SDL2 builds.</p>
+<p><strong>Load mapper file&#8230;&#8203;</strong>: Selects a mapper file for use with DOSBox-X to replace the currently loaded mapper file (if any).</p>
 </li>
 <li>
 <p><strong>Send special key</strong>: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.</p>
@@ -580,7 +580,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 rscan border, from 0 to 10. This works only if the video output is set to surface.</p>
 </li>
 <li>
-<p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines. You will also find options for TrueType font (TTF) output here.</p>
+<p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.</p>
+</li>
+<li>
+<p><strong>TTF options</strong>: Changes settings related to the TrueType font (TTF) output, such as increasing or decreasing the TTF font siz, selection of a word processor and toggling of on-screen text styles (bold, italics, etc).</p>
 </li>
 <li>
 <p><strong>PC-98 options</strong>: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions and whether to use the default U.S. keyboard layout for PC-98 mode.</p>
@@ -636,7 +639,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mouse</strong>: Changes the mouse settings for the emulated DOS inside DOSBox-X, such as the mouse sensitivity.</p>
+<p><strong>Quick launch program&#8230;&#8203;</strong> Launches a program selected from the file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.</p>
 </li>
 <li>
 <p><strong>Reported DOS version</strong>: Changes the reported DOS version to the specified version from the list, including 3.3, 5.0, 6.22 and 7.1. Long filename (LFN) and FAT32 disk image support will be enabled when you select 7.1 as the reported DOS version. You can also enter a version with “Edit”.</p>
@@ -645,19 +648,22 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Long filename support</strong>: Changes the long filename (LFN) setting, either enable, disable, or auto per reported DOS version (i.e. enable LFN if the reported DOS version is at least 7).</p>
 </li>
 <li>
+<p><strong>Mouse emulation</strong>: Changes the mouse settings for the emulated DOS inside DOSBox-X, such as the mouse sensitivity.</p>
+</li>
+<li>
 <p><strong>Expanded Memory (EMS)</strong>: Select a mode for the Expanded Memory (EMS), or disables the EMS for some DOS programs or games.</p>
 </li>
 <li>
 <p><strong>Windows host applications</strong>: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.</p>
 </li>
 <li>
-<p><strong>Config options as commands</strong>: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.</p>
-</li>
-<li>
-<p><strong>Quick launch program&#8230;&#8203;</strong> Launches a program selected from the file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.</p>
-</li>
-<li>
 <p><strong>Enable quick reboot</strong>: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when DOS programs (or Windows 9x guest systems) make calls to restart the system.</p>
+</li>
+<li>
+<p><strong>Synchronize host date/time</strong>: Selects whether to force synchronizations with the date/time of the host system.</p>
+</li>
+<li>
+<p><strong>Config options as commands</strong>: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.</p>
 </li>
 <li>
 <p><strong>Swap floppy</strong>: Swaps the floppy image if you are using multiple floppy disk images.</p>
@@ -667,6 +673,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </li>
 <li>
 <p><strong>Rescan all drives</strong>: Refreshes the cache for all DOS drives inside DOSBox-X.</p>
+</li>
+<li>
+<p><strong>Create blank disk image</strong>: Creates blank floppy or hard disk images of common disk sizes for mounting them as drives.</p>
 </li>
 <li>
 <p><strong>Show mounted drive numbers</strong>: Shows details such as the disk name for all mounted drive numbers (0-5).</p>
@@ -790,7 +799,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-12-01 03:27:33 -0500
+Last updated 2021-01-01 03:43:37 -0500
 </div>
 </div>
 </body>

@@ -38,6 +38,10 @@ toc::[]
 
 ## Creating a DOS 5.0x HDD image
 
+Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
 Starting with DOS 5.00, installing DOS in DOSBox-X is much more straight forward, as you can have ``IMGMAKE`` create a HDD image that is already partitioned and formatted.
 
 Maximum HDD size has increased to 7.84GB, but the maximum partition size is basically still 2GB, which is a FAT16 limitation.

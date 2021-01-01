@@ -62,6 +62,9 @@ Uses the specified path as DOSBox-X's default path (instead of the current direc
 * **-defaultconf**
 +
 Uses the default config settings of DOSBox-X (do not try to load default config files such as dosbox-x.conf).
+* **-defaultmapper**
++
+Uses the default key mappings for DOSBox-X (do not try to load a mapper file such as mapper-dosbox-x.map).
 * **-winrun**
 +
 Enables launching Windows programs to run on the host (such as the use of START command), long filenames support and Windows clipboard communications via the CLIP$ device (Windows version only).

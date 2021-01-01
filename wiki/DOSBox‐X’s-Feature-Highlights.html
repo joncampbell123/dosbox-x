@@ -477,13 +477,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Japanese NEC PC-98 mode emulation</strong></p>
 <div class="paragraph">
-<p>With DOSBox-X you can now run PC-98 and its games. Set <code>machine=pc98</code> in the config file to start DOSBox-X in NEC PC-98 mode.</p>
+<p>With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications. Set <code>machine=pc98</code> in the config file to start DOSBox-X in the PC-98 mode. Look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation in DOSBox‐X</a> guide page for more information.</p>
+</div>
+</li>
+<li>
+<p><strong>Support for SDL2 in addition to SDL1</strong></p>
+<div class="paragraph">
+<p>DOSBox-X officially supports both SDL1 and SDL2 and provides both SDL1 and SDL2 builds, so that you can choose either the SDL1 or SDL2 build to use. While most features are common to both SDL builds, certain functions are only found in one of them.</p>
 </div>
 </li>
 <li>
 <p><strong>More customizable virtual machine</strong></p>
 <div class="paragraph">
-<p>DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X.</p>
+<p>DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, along with a lot more.</p>
 </div>
 </li>
 <li>
@@ -495,7 +501,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Improved customization on the title bar</strong></p>
 <div class="paragraph">
-<p>DOSBox-X allows you to modify or customize the strings and additional contents displayed in its title bar and its appearance.</p>
+<p>DOSBox-X allows you to modify or customize the strings and additional contents displayed in its title bar and its appearance. The cycles count (FPS) and emulation speed relative to real-time can also be displayed in the title bar.</p>
 </div>
 </li>
 <li>
@@ -507,7 +513,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Improved Windows 3.x and Windows 9x emulation</strong></p>
 <div class="paragraph">
-<p>One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x and 9x and their software. As a result we have made several improvements to their emulations.</p>
+<p>One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x and 9x and their software. As a result we have made several improvements to their emulations. Look at the <a href="Guide%3AMicrosoft-Windows-in-DOSBox‐X">Microsoft Windows in DOSBox-X</a> guide page for more information.</p>
 </div>
 </li>
 <li>
@@ -535,27 +541,39 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>Support for starting DOSBox-X on a specific display or window position</strong></p>
+<div class="paragraph">
+<p>DOSBox-X can be started on a specific window position, or on a specific display with a multi-monitor setup. They can work in combination to specify a window position on the specific display.</p>
+</div>
+</li>
+<li>
+<p><strong>Support for the mounting ZIP/7Z archives as drives</strong></p>
+<div class="paragraph">
+<p>You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly, which will operate in read-only mode.</p>
+</div>
+</li>
+<li>
 <p><strong>Support for the IDE interface for disk images</strong></p>
 <div class="paragraph">
 <p>DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.</p>
 </div>
 </li>
 <li>
-<p><strong>Support for more CPU types (e.g. Pentium MMX and Pro)</strong></p>
+<p><strong>Support for more CPU types (e.g. Pentium MMX and Pro) and emulating CPU speed</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions.</p>
+<p>DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.</p>
 </div>
 </li>
 <li>
 <p><strong>Support for more video modes (e.g. MDA and MCGA)</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others.</p>
+<p>DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others, in addition to the standard ones.</p>
 </div>
 </li>
 <li>
-<p><strong>Support for printer output, either a real or virtual printer</strong></p>
+<p><strong>Support for printing functions, either a real or virtual printer</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports parallel ports and printers attached to them, whether they are real printers or emulated printers for PostScript or PNG outputs.</p>
+<p>DOSBox-X supports parallel ports and printers attached to them, whether they are real printers or emulated printers for PostScript or PNG outputs. The parallel ports (which can be extended to LPT9) may be used either for printing or for direct port passthrough. Look at the <a href="Guide%3ASetting-up-printing-in-DOSBox‐X">Setting up printing in DOSBox-X</a> guide page for more information.</p>
 </div>
 </li>
 <li>
@@ -573,7 +591,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for clipboard text selection, copy and paste</strong></p>
 <div class="paragraph">
-<p>With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using the right mouse button or using a special device for it. Some clipboard functions are only supported for Windows systems.</p>
+<p>With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special device for it. Some clipboard functions are only supported for Windows systems.</p>
 </div>
 </li>
 <li>
@@ -607,21 +625,33 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>Support for the mounting VHD, HDI, QCOW2 disk images and MAME CHD CD images</strong></p>
+<div class="paragraph">
+<p>DOSBox-X supports various different types of disk images, such as Virtual Hard Disk (VHD), HDI (for PC-98 mode) and QEMU copy-on-write v2 (QCOW2) disk images and MAME CHD images for CD images, in addition to the standard disk image types (IMG, ISO, CUE, etc). Look at the <a href="Guide%3AManaging-image-files-in-DOSBox‐X">Managing image files in DOSBox‐X</a> guide page for more information.</p>
+</div>
+</li>
+<li>
 <p><strong>Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD audio tracks</strong></p>
 <div class="paragraph">
 <p>With DOSBox-X it is possible to mount .cue files (either from the menu or with IMGMOUNT command) that include FLAC, MP3, WAV, OGG Vorbis and Opus music as CD audio tracks.</p>
 </div>
 </li>
 <li>
+<p><strong>Support for xBRz scalers and additional scaling options</strong></p>
+<div class="paragraph">
+<p>DOSBox-X supports many additional scalers such as the xBRz scalers, and other additional scaling options gray, gray2x, hardware_none, hardware2x, hardware3x, hardware4x, hardware5x.</p>
+</div>
+</li>
+<li>
 <p><strong>Support for 3dfx Voodoo chip and Glide emulation</strong></p>
 <div class="paragraph">
-<p>DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS).</p>
+<p>DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS). Look at the <a href="Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X">Setting up 3dfx Voodoo in DOSBox-X</a> guide page for more information.</p>
 </div>
 </li>
 <li>
 <p><strong>Support for NE2000 Ethernet for network features</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X.</p>
+<p>DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X. Look at the <a href="Guide%3ASetting-up-networking-in-DOSBox‐X">Setting up networking in DOSBox-X</a> guide page for more information.</p>
 </div>
 </li>
 <li>
@@ -688,7 +718,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-12-01 03:27:33 -0500
+Last updated 2021-01-01 03:43:37 -0500
 </div>
 </div>
 </body>

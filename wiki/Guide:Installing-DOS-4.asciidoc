@@ -35,6 +35,9 @@ WARNING: First of all, consider if you really, really want to use DOS 4.x as it 
 If you decide to continue with a full install, and you have the choice, do yourself a favour and use the 3.5" version as it will minimize the amount of disk swapping required.
 Also the IBM PC-DOS release is easier to install then the MS-DOS release as it uses fewer disks, but lacks HIMEM.SYS, EMM386.SYS and SMARTDRV.SYS.
 
+WARNING: Do not use the "Create blank disk image..." option from the "DOS" menu in DOSBox-X to create a harddisk image.
+It will create a partitioned and formatted harddisk image, which is incompatible with DOS versions prior to 5.0.
+
 NOTE: Unlike with MS-DOS, there is no obvious way to know if you have IBM DOS 4.00 or 4.01.
 The ``VER`` command will claim Version 4.00 for either, as will the box, manuals and installer.
 The ways to check are either to look at the disk labels, which will say 4.00 or 4.01, or check if some OS files like IBMBIO.COM and IBMDOS.COM are dated 08-03-1988 (MM-DD-YYYY), in which case you have the 4.01 release.

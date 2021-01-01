@@ -87,6 +87,9 @@ The ``IMGMOUNT`` size parameter should have the format of: ``512,<sectors>,<head
 
 First you need to start DOSBox-X, and create an empty HDD image file.
 
+WARNING: Do not use the "Create blank disk image..." option from the "DOS" menu in DOSBox-X to create a harddisk image.
+It will create a partitioned and formatted harddisk image, which is incompatible with DOS versions prior to 5.0.
+
 NOTE: Until the partition is formatted, the use of a device number is necessary.
 Device number 2 represents the first disk on the primary HDD controller.
 ....

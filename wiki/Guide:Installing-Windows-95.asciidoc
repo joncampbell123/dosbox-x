@@ -111,6 +111,12 @@ Copy the above config and save it as *win95.conf*
 * In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional install. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.
 
 ## Creating a Harddisk image
+
+Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
+
 The ``IMGMAKE`` command supports creating diskette or harddisk images with FAT12, FAT16 or FAT32 filesystems.
 Harddisk images greater than 2GB are always created with the FAT32 filesystem.
 If your reported DOS version is set to 7.10 or greater, then harddisk images of 512MB or greater are also created as FAT32.

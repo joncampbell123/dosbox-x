@@ -37,6 +37,11 @@ toc::[]
 * MS-DOS 6.x was available to both OEM's and end-users. However the only version (officially) available to end-users was the "Upgrade" release, which requires that you already have DOS installed. It will refuse to install on a clean system. The workaround to this is fairly simple. You boot from the first disk, at the welcome screen press F3 twice and your at the command prompt. You can now, if necessary, partition and format the HDD and transfer the system files (``SYS C:``). After your done, just run SETUP.EXE or simply reboot from Disk 1 and the installer, because there are now system files on the HDD, will allow you to install MS-DOS 6.x Upgrade edition.
 
 ## Creating a MS-DOS 6.x HDD image
+
+Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
 Starting with DOS 5.00, installing DOS in DOSBox-X is much more straight forward, as you can have ``IMGMAKE`` create a HDD image that is already partitioned and formatted.
 
 Maximum HDD size has increased to 8GB (or more exactly 7.84GB), but the maximum partition size is basically still 2GB, which is a FAT16 limitation.

@@ -27,7 +27,8 @@ The output of the two commands differs somewhat.
 * MOUNT will show all active mounts
 * IMGMOUNT will show mounted images, and the device numbers (drive numbers) in use
 
-You can also see the currently mounted drive numbers from the DOS menu.
+You can also see the currently mounted drive numbers from the "DOS" menu with the "Show mounted drive numbers" option, and the mounted harddisks or CD-ROM's with the "Show IDE disk or CD status" option.
+Note that both of these options will only show image mounts, not folder mounts.
 
 # Diskette (floppy disk) images
 DOSBox-X supports mounting diskette images in the following formats:
@@ -43,16 +44,20 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 
 Some examples of diskette image files that DOSBox-X **does not** support:
 
-* IBM DSKF (.DSK)
-* IBM XDF (.XDF)
-* ImageDisk (.IMD)
+* link:https://github.com/joncampbell123/dosbox-x/issues/1466[IBM DSKF] (.DSK)
+* link:https://github.com/joncampbell123/dosbox-x/issues/1465[IBM XDF] (.XDF)
+* link:https://github.com/joncampbell123/dosbox-x/issues/711[ImageDisk] (.IMD)
 * Interchangeable Preservation Format (.IPF)
 * KryoFlux Stream files (.RAW)
-* Microsoft DMF (.DMF)
+* link:https://github.com/joncampbell123/dosbox-x/issues/1472[Microsoft DMF] (.DMF)
 * Teledisk (.TD0)
 * Transcopy (.TC)
 
 ## Creating diskette images
+NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image...".
+This option allows most common floppy disk types to be created, for less common types you need to use the command line utility.
+
 DOSBox-X has a built-in ``IMGMAKE`` command with which you can create FAT12 formatted diskette images in MFM sector image format from the DOSBox-X command prompt.
 
 Example:
@@ -129,7 +134,6 @@ imgmount 0 disk.ima -fs none
 0 represents drive A: and 1 represents drive B:, but due to the use of drive numbers they cannot be directly accessed from the DOSBox-X integrated DOS. Note that when using drive numbers like 0 and 1 to mount a diskette image the ``-fs none`` flag is automatically assumed in DOSBox-X. For vanilla DOSBox, or other forks, the ``-fs none`` flag will be required.
 
 ### Mounting from the Drive menu
-This is exclusive to the DOSBox-X Windows version.
 The advantage of this option is, that you don't need to mount all the disks before starting your program or game, but you can mount disk images when needed.
 
 To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.
@@ -140,7 +144,10 @@ All the other mount options are host folder mounts.
 Select the Drive menu, and the "A" or "B" drive and "Mount disk image".
 Now a file browser will allow you to select an image file.
 
-This option does not support read-only disk images.
+Limitations of this option, compared to the DOSBox-X command line:
+
+* No support for marking a diskette image as read-only.
+* No ability to specify multiple diskette images for use with the swap-disk functionality.
 
 ### Mounting multiple diskette images
 Some DOS programs or games came on multiple diskettes.
@@ -159,19 +166,20 @@ If you lose track of which disk is currently active, open the 'Drive' menu optio
 
 ### Write protecting diskette images
 By default diskette images are mounted read-write.
-It is possible to make a diskette image read-only (write protected) either by using the -ro option, or by attaching the ``:`` prefix to the filename.
+It is possible to make a diskette image read-only (write protected) either by using the ``-ro`` option, or by attaching the ``:`` prefix to the filename.
 e.g.
 ....
 imgmount a disk.ima -ro
 ....
 
-It is equivalent to:
+This is equivalent to:
 ....
 imgmount a :disk.ima
 ....
 
-They can also be used when mounting multiple diskette images. If you use the -ro option, then all images specified in the command will become read-only.
-On the other hand, if you wish to make individual images (instead of all of them) read-only then you can attach the ``:`` prefix to these images, like this:
+They can also be used when mounting multiple diskette images.
+If you use the ``-ro`` option, then all images specified in the command will become read-only.
+On the other hand, if you wish to make individual images read-only (instead of all of them), then you can attach the ``:`` prefix to these images, like this:
 ....
 imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima
 ....
@@ -230,7 +238,7 @@ Disk images can also be mounted from the Linux Terminal using:
 gnome-disk-image-mounter disk.ima
 ....
 
-### Mounting a diskette image from the shell
+### Mounting a diskette image from the Linux shell
 The more traditional Linux method of mounting diskette image files from a Linux terminal.
 This method requires sudo access.
 
@@ -326,6 +334,10 @@ DOSBox-X supports mounting harddisk images in the following formats:
 Creating and accessing harddisk images is very similar to diskette images, with the exception that they also contain partitions and they may contain other filesystems.
 
 ## Creating harddisk images
+NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows a few common HDD sizes to to be created, for less common types you need to use the command line utility.
+
 DOSBox-X has a built-in ``IMGMAKE`` command with which you can create partitioned and FAT formatted harddisk images in MFM sector image format from the DOSBox-X command prompt.
 ``IMGMAKE`` only creates a single primary DOS partition per harddisk image file.
 
@@ -472,8 +484,6 @@ In addition it needs to be prefixed with the bytes-per-sector, which should alwa
 So a CHS of 992,2,32 becomes ``-size 512,32,2,992``.
 
 ### Mounting from the Drive menu
-This is exclusive to the DOSBox-X Windows version.
-
 To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.
 
 The only mount option that can be used for image files is the "Mount disk image" option.
@@ -530,7 +540,7 @@ Disk images can also be mounted from the Linux Terminal using:
 gnome-disk-image-mounter hdd.img
 ....
 
-### Mounting a harddisk image from the shell
+### Mounting a harddisk image from the Linux shell
 The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires sudo access.
 
 ....
@@ -577,10 +587,10 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 For a IDE CD-ROM driver we recommend either OAKCDROM.SYS or UIDE.SYS.
 
 * OAK stands for OEM Adaptation Kit, and this is the IDE CD-ROM driver shipped on the Windows 95, 98 and ME boot disks.
-* UIDE.SYS is available from FreeDOS.
-* You can also use the VIDE-CDD.SYS driver which loads faster than OAKCDROM.SYS.
+* link:https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/cdrom/uide/[UIDE.SYS] is available from link:https://www.freedos.org/[FreeDOS].
+* You can also use the link:http://vogonsdrivers.com/getfile.php?fileid=1456&menustate=0[Acer VIDE-CDD.SYS] driver which loads faster than OAKCDROM.SYS.
 
-MSCDEX.EXE is included with MS-DOS 6.x, or you can use the SHSUCDX.EXE redirector available from FreeDOS.
+MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the SHSUCDX.EXE redirector available from FreeDOS.
 
 Edit the config.sys file and add the following line to it:
 ....
@@ -594,7 +604,7 @@ device=c:\dos\mscdex.exe /D:cdrom001 /L:D
 The above assumes oakcdrom.sys and mscdex.exe are in the C:\DOS directory in the harddisk image file.
 You can substitute oakcdrom.sys and mscdex.exe with their FreeDOS equivalents with the same parameters.
 
-The ``/L:D`` will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.
+The ``/L:D`` option will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.
 
 ### Mounting multiple CD or DVD images
 Some DOS programs or games came on multiple CD or DVDs, for this purpose it is possible to mount multiple images on one drive letter and swap between them.
@@ -611,7 +621,6 @@ Or from the menu you can select "DOS" followed by "Swap CD".
 If you lose track of which disc is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.
 
 ### Mounting from the Drive menu
-This is exclusive to the DOSBox-X Windows version.
 The advantage of this option is, that you don't need to mount all the CD or DVDs before starting your program or game, but you can mount CD or DVD images when needed.
 
 To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.
@@ -669,7 +678,7 @@ gnome-disk-image-mounter cdrom.iso
 ### CDEmu
 link:https://cdemu.sourceforge.io/[CDEmu] is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO and CUE/BIN.
 
-### Mounting a ISO image from the shell
+### Mounting a ISO image from the Linux shell
 The more traditional Linux method of mounting diskette image files from a Linux terminal.
 This method will not work for CUE/BIN or MDF files.
 This method requires sudo access.

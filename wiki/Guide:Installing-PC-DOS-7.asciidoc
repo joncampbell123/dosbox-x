@@ -38,6 +38,11 @@ toc::[]
 Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X. You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
 
 # Creating a PC DOS 2000 HDD image from CD-ROM
+
+Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
 You have the following installation options:
 
 * Use LOADDSKF to convert the the DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.

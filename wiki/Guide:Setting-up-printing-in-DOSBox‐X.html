@@ -470,14 +470,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_example_print_to_file">Example: Print to file</a></li>
-<li><a href="#_example_printing_to_a_real_parallel_printer">Example: Printing to a real parallel printer</a>
+<li><a href="#_example_printing_to_a_real_printer">Example: Printing to a real printer</a>
 <ul class="sectlevel1">
-<li><a href="#_windows_host_2">Windows host</a></li>
+<li><a href="#_windows_host_method_1">Windows host, method 1</a></li>
+<li><a href="#_windows_host_method_2">Windows host, method 2</a></li>
 <li><a href="#_linux_host_2">Linux host</a></li>
 </ul>
 </li>
-<li><a href="#_example_printing_to_a_real_printer">Example: Printing to a real printer</a></li>
 <li><a href="#_example_print_to_png_bmp_or_postscript">Example: Print to PNG, BMP or PostScript</a></li>
+<li><a href="#_example_redirect_print_output_to_a_program_on_the_host">Example: Redirect print output to a program on the host</a></li>
 </ul>
 </div>
 </div>
@@ -534,7 +535,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Color output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95</p>
 </li>
 <li>
-<p>Data can be output as Windows bitmap, PNG file, Postscript file, or sent to a Windows</p>
+<p>Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows</p>
 </li>
 <li>
 <p>Some older non-conflicting IBM control codes are supported</p>
@@ -632,7 +633,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><code>realport</code> (the parallel port device i.e. /dev/parport0).</p>
+<p><code>realport</code> (the parallel port device i.e. <code>/dev/parport0</code>).</p>
 </li>
 </ul>
 </div>
@@ -662,8 +663,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><code>timeout:&lt;milliseconds&gt;</code> = how long to wait before
-closing the file on inactivity (default:500)</p>
+<p><code>timeout:&lt;milliseconds&gt;</code> = how long to wait before closing the file on inactivity (default:500)</p>
+</li>
+<li>
+<p><code>squote</code> squote to use single quotes instad of double quotes for quoted program commands</p>
 </li>
 <li>
 <p><code>addFF</code> to add a formfeed when closing</p>
@@ -673,6 +676,18 @@ closing the file on inactivity (default:500)</p>
 </li>
 <li>
 <p><code>cp:&lt;codepage number&gt;</code> to perform codepage translation, i.e. cp:437</p>
+</li>
+<li>
+<p><code>openps:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PostScript.</p>
+</li>
+<li>
+<p><code>openpcl:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PCL.</p>
+</li>
+<li>
+<p><code>openwith:&lt;program&gt;</code> start a program to open the file in all other conditions.</p>
+</li>
+<li>
+<p><code>openerror:&lt;program&gt;</code> start a program to open the file if an error had occurred.</p>
 </li>
 </ul>
 </div>
@@ -745,6 +760,32 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 <p>Possible values: disabled, reallpt, file, printer, disney</p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_parallel4_9">parallel4-9</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: disabled</p>
+</li>
+<li>
+<p>Possible values: disabled, reallpt, file, printer, disney</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
+You can optionally specify base addresses and IRQs for them with base: and irq: options.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -888,7 +929,7 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 <p>Default value: png</p>
 </li>
 <li>
-<p>Possible values: png, ps, bmp</p>
+<p>Possible values: png, ps, bmp, printer</p>
 </li>
 </ul>
 </div>
@@ -897,6 +938,9 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </div>
 <div class="paragraph">
 <p>ps = PostScript.</p>
+</div>
+<div class="paragraph">
+<p>Setting the value to <code>printer</code> on a Windows host, will cause it to get redirected to your print queue and a print dialogue will appear.</p>
 </div>
 </div>
 <div class="sect3">
@@ -932,6 +976,35 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </div>
 <div class="paragraph">
 <p>Note: On Linux the use of the ~ character is not allowed to specify the home directory.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_openwith">openwith</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: &lt;blank&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Start the specified program to open the output file.</p>
+</div>
+<div class="paragraph">
+<p>e.g. <code>openwith=notepad</code> will open the file with Notepad on a Windows host.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_openerror">openerror</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: &lt;blank&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Start the specified program to open the output file if an error had occurred.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1130,13 +1203,45 @@ In addition, this may not work if the application expects to be able to have bi-
 </div>
 </div>
 </div>
-<h1 id="_example_printing_to_a_real_parallel_printer" class="sect0">Example: Printing to a real parallel printer</h1>
+<h1 id="_example_printing_to_a_real_printer" class="sect0">Example: Printing to a real printer</h1>
 <div class="sect1">
-<h2 id="_windows_host_2">Windows host</h2>
+<h2 id="_windows_host_method_1">Windows host, method 1</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.</p>
+</div>
+<div class="paragraph">
+<p>This method requires that you have first completed the FONT installation step above.</p>
+</div>
+<div class="paragraph">
+<p>Make sure your DOSBox-X config file contains the statements:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=printer
+timeout=1000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_windows_host_method_2">Windows host, method 2</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This assumes you PC still has a printer port integrated on the systemboard, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.</p>
+</div>
+<div class="paragraph">
+<p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion. Therefore it is important that the printer can understand the control codes that are being sent.
+In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.</p>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
@@ -1174,7 +1279,7 @@ Replace "username" with your Linux username.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Now, similar to the Windows instructions, try the following:</p>
+<p>Now, similar to the Windows parallel printing instructions, try the following:</p>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
@@ -1197,35 +1302,6 @@ parallel1=file dev:/dev/parport0</pre>
 </div>
 <div class="paragraph">
 <p>But while this method seems to work on Windows, it does not seem to work properly on Linux.</p>
-</div>
-</div>
-</div>
-<h1 id="_example_printing_to_a_real_printer" class="sect0">Example: Printing to a real printer</h1>
-<div class="openblock partintro">
-<div class="content">
-<div class="paragraph">
-<p>This method only works on Windows hosts.
-It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.</p>
-</div>
-<div class="paragraph">
-<p>This method requires that you have first completed the FONT installation step above.</p>
-</div>
-<div class="paragraph">
-<p>Make sure your DOSBox-X config file contains the statements:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[parallel]
-parallel1=printer
-
-[printer]
-printer=true
-printoutput=printer
-timeout=1000</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
 </div>
 </div>
 </div>
@@ -1268,10 +1344,56 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 </div>
 </div>
 </div>
+<h1 id="_example_redirect_print_output_to_a_program_on_the_host" class="sect0">Example: Redirect print output to a program on the host</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>In the <code>[parallel]</code> section for the parallel1-9 config options you can use the <code>file</code> option to direct the output to a file, which will then be opened by the specified application on the host.</p>
+</div>
+<div class="paragraph">
+<p>The options available are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>openps:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PostScript.</p>
+</li>
+<li>
+<p><code>openpcl:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PCL.</p>
+</li>
+<li>
+<p><code>openwith:&lt;program&gt;</code> start a program to open the file in all other conditions.</p>
+</li>
+<li>
+<p><code>openerror:&lt;program&gt;</code> start a program to open the file if an error had occurred.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>e.g. when running DOSBox-X on a Windows host:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1 = file file:output1.prn timeout:1000 openpcl:pcl6 openps:gswin32c openwith:notepad</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will cause any output to LPT1 to be written to output.prn, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with <a href="https://www.ghostscript.com/">GhostScript</a> (gswin32c.exe), while for other filetypes it will be opened in notepad.</p>
+</div>
+<div class="paragraph">
+<p>If you need to pass additional parameters to the application you can either enclose the command with quotes and add the parameters. e.g. <code>openwith:"program arg1 arg2"</code>, the printer file will be added as a final parameter.
+If this is not flexible enough, for instance because you need to have the printer filename in the middle of other parameters, then create a shell script or batch file with a content similar to <code>program arg1 %1 arg2</code>, and call this shell script/batch file instead of the program directly.</p>
+</div>
+<div class="paragraph">
+<p>Keep in mind that the output file will be created in your current working directory, if you don&#8217;t specify a path.</p>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-12-01 03:27:33 -0500
+Last updated 2021-01-01 03:43:38 -0500
 </div>
 </div>
 </body>

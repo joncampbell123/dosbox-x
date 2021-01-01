@@ -83,10 +83,6 @@ Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
 Start DOSBox-X's graphical configuration tool.
 * **[F11/F12]+M**
 Start DOSBox-X's mapper editor.
-* **[F11/F12]+A**
-Copy all text on the DOS screen to the host clipboard.
-* **[F11/F12]+V**
-Paste the text in the host clipboard to the DOS screen.
 * **[F11/F12]+Esc**
 Show/hide DOSBox-X’s drop-down menu bar.
 * **[F11/F12]+Del**
@@ -109,6 +105,8 @@ Increase the font size for the TrueType font (TTF) output.
 Decrease the font size for the TrueType font (TTF) output.
 * **[F11/F12]+Left**
 Reset the emulated DOS's current CPU speed to the normal speed.
+* **[F11/F12]+Right**
+Toggle DOSBox-X's speed lock.
 * **[F11/F12]+D**
 Swap between mounted CD images.
 * **[F11/F12]+O**
@@ -119,7 +117,7 @@ Take a screenshot of the current screen in PNG format.
 Start/Stop capturing an AVI video of the current session.
 * **[F11/F12]+W**
 Start/Stop recording a WAV audio of the current session.
-* **LAlt+Pause**
+* **Alt+Pause**
 Start DOSBox-X's Debugger.
 * **[F11/F12]+[,]**
 Select the previous save slot to save to or load from.
@@ -129,18 +127,20 @@ Select the next save slot to save to or load from.
 Save current state to the selected save slot.
 * **[F11/F12]+L**
 Load the state from the selected save slot.
-* **LCtrl+F9**
-Exit DOSBox-X.
-* **LCtrl+F10**
-Capture the mouse for use with the emulated DOS.
-* **LCtrl+Pause**
+* **[F11/F12]+Pause**
 Pause emulation (press again to continue).
+* **Ctrl+F5**
+Copy all text on the DOS screen to the host clipboard.
+* **Ctrl+F6**
+Paste the text in the host clipboard to the DOS screen.
+* **Ctrl+F9**
+Exit DOSBox-X.
+* **Ctrl+F10**
+Capture the mouse for use with the emulated DOS.
 
 Notes:
 
-* **1.** **[F11/F12]** is the host key, meaning either F11 or F12 (depending on the operating system). F11 is the host key in Windows, and F12 is the host key in all other platforms (Linux, macOS, etc). The F12 key is avoided being the host key in Windows because it is used internally by Windows for debugging functions. The host key can be redefined in DOSBox-X's keyboard mapper as needed, if you want to use a different key than F11 or F12.
-
-* **2:** **LCtrl** means the Left Ctrl key, **LShift** means the Left Shift key, and **LAlt** means the Left Alt key.
+* **[F11/F12]** is the host key, meaning either F11 or F12 (depending on the operating system). F11 is the host key in Windows, and F12 is the host key in all other platforms (Linux, macOS, etc). The F12 key is avoided being the host key in Windows because it is used internally by Windows for debugging functions. The host key can be redefined in DOSBox-X's keyboard mapper as needed, if you want to use a different key than F11 or F12.
 
 ### DOSBox-X's Mapper Editor
 You can define or change mappings for input devices such as keyboard shortcuts and joysticks buttons in DOSBox-X using the mapper editor. The mapper editor can be started either from the "Main" menu or with the command-line parameter -startmapper. You are presented with an interface including a virtual keyboard, a virtual mouse, as well as virtual joysticks and a table of functions.
@@ -200,6 +200,9 @@ Explains how to setup and play DOS games in DOSBox-X.
 * link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[Guide: DOS demoscene software in DOSBox-X]
 +
 Explains how to use DOSBox-X with DOS software from the demoscene.
+* link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X]
++
+Explains DOSBox-X's PC-98 system and how to use it to run PC-98 games or applications in DOSBox-X.
 * link:Guide%3AManaging-image-files-in-DOSBox‐X{suffixappend}[Guide: Managing image files in DOSBox‐X]
 +
 Explains how to make and use floppy, hard disk, and optical disc images in DOSBox-X.
@@ -244,9 +247,13 @@ DOS is short for "**D**isk **O**perating **S**ystem". It refers to a family of o
 +
 Currently, new DOSBox-X versions are made public either on the last day of a month, or at the start of the next month, including both binary releases for the supported platforms and the source code of DOSBox-X. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X's build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes. This is DOSBox-X's official release pattern, although it may change later.
 
-* **How can I use the save and load a state in DOSBox-X?**
+* **Can I start to run my DOS program or game immediately?**
 +
-DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" and a "Force load state mode" toggle menu. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" toggle before you try to load the state.
+To start your DOS program or game immediately when DOSBox-X runs, you can put the executable program in the [autoexec] section of DOSBox-X's configuration. Or you can provide the executable program as the parameter to the DOSBox-X program, e.g. ``dosbox-x myapp.exe``. As DOSBox-X is highly customizable, there are also further options to improve your experience. For example, if you want to bypass the DOSBox-X BIOS splash screen, you can set the config option ``fastbioslogo`` to ``true``; if you want to bypass the welcome banner, you can set the config option ``startbanner`` to ``false``. Alternatively, you may want to use the command-line option "-fastlaunch" (see the link:DOSBox‐X’s-Command%E2%80%90Line-Options{suffixappend}[DOSBox-X's Command-Line Options] page for a list of DOSBox-X's supported command-line options), which will bypass both the BIOS splash screen and the welcome banner when DOSBox-X starts.  
+
+* **How can I save and load a state in DOSBox-X?**
++
+DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. Alternatively, you can use your own save files instead of the built-in save slots.
 
 * **Can I change config options from the command line?**
 +

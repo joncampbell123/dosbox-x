@@ -30,7 +30,7 @@ The Virtual Printer emulates a color dot-matrix printer that follows the ESC/P2 
 * Many of the ESC/P and ESC/P2 instructions supported
 * Graphics printing for 24-pin and 48-pin modes supported, up to 360dpi
 * Color output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95
-* Data can be output as Windows bitmap, PNG file, Postscript file, or sent to a Windows
+* Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows
 * Some older non-conflicting IBM control codes are supported
 
 **Limitations:**
@@ -66,7 +66,7 @@ Note: the parallel1 port may be auto-enabled for Disney Sound Source emulation.
 *** Default: 378
 ** ``ecpbase`` (base address of the ECP registers, optional).
 * Linux:
-** ``realport`` (the parallel port device i.e. /dev/parport0).
+** ``realport`` (the parallel port device i.e. ``/dev/parport0``).
 
 **file**
 
@@ -76,11 +76,15 @@ Note: the parallel1 port may be auto-enabled for Disney Sound Source emulation.
 Without one of the above parameters, data is written to files in the capture directory.
 
 * Additional parameters:
-** ``timeout:<milliseconds>`` = how long to wait before
-closing the file on inactivity (default:500)
+** ``timeout:<milliseconds>`` = how long to wait before closing the file on inactivity (default:500)
+** ``squote`` squote to use single quotes instad of double quotes for quoted program commands
 ** ``addFF`` to add a formfeed when closing
 ** ``addLF`` to add a linefeed if the app doesn't
 ** ``cp:<codepage number>`` to perform codepage translation, i.e. cp:437
+** ``openps:<program>`` start a program to open the file if the printer output is detected to be PostScript.
+** ``openpcl:<program>`` start a program to open the file if the printer output is detected to be PCL.
+** ``openwith:<program>`` start a program to open the file in all other conditions.
+** ``openerror:<program>`` start a program to open the file if an error had occurred.
 
 Example:
 ....
@@ -119,6 +123,13 @@ This enables an emulated LPT1 port on IO base address 0x278.
 #### parallel3
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
+
+#### parallel4-9
+* Default value: disabled
+* Possible values: disabled, reallpt, file, printer, disney
+
+NOTE: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
+You can optionally specify base addresses and IRQs for them with base: and irq: options.
 
 #### dongle
 * Default value: false
@@ -173,11 +184,13 @@ Example of standard paper sizes in portrait orientation:
 
 #### printoutput
 * Default value: png
-* Possible values: png, ps, bmp
+* Possible values: png, ps, bmp, printer
 
 Between PNG and BMP, PNG is better. BMP files will be much larger, while the image quality will be identical.
 
 ps = PostScript.
+
+Setting the value to ``printer`` on a Windows host, will cause it to get redirected to your print queue and a print dialogue will appear.
 
 #### multipage
 * Default value: false
@@ -193,6 +206,18 @@ Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
 The path where the output files are stored. Defaults to the current working directory.
 
 Note: On Linux the use of the ~ character is not allowed to specify the home directory.
+
+#### openwith
+* Default value: <blank>
+
+Start the specified program to open the output file.
+
+e.g. ``openwith=notepad`` will open the file with Notepad on a Windows host.
+
+#### openerror
+* Default value: <blank>
+
+Start the specified program to open the output file if an error had occurred.
 
 #### timeout
 * Default value: 0
@@ -276,11 +301,32 @@ Note: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will
 You may be able to use this with more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
 In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.
 
-# Example: Printing to a real parallel printer
+# Example: Printing to a real printer
 
-## Windows host
+## Windows host, method 1
+It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.
+
+This method requires that you have first completed the FONT installation step above.
+
+Make sure your DOSBox-X config file contains the statements:
+....
+[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=printer
+timeout=1000
+....
+
+In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
+
+## Windows host, method 2
 This assumes you PC still has a printer port integrated on the systemboard, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.
+
+Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion. Therefore it is important that the printer can understand the control codes that are being sent.
+In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.
 
 Make sure your DOSBox-X config file contains the statements:
 ....
@@ -306,7 +352,7 @@ Replace "username" with your Linux username.
 sudo usermod -a -G lp username
 ....
 
-Now, similar to the Windows instructions, try the following:
+Now, similar to the Windows parallel printing instructions, try the following:
 
 Make sure your DOSBox-X config file contains the statements:
 ....
@@ -323,26 +369,6 @@ parallel1=file dev:/dev/parport0
 ....
 
 But while this method seems to work on Windows, it does not seem to work properly on Linux.
-
-# Example: Printing to a real printer
-
-This method only works on Windows hosts.
-It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.
-
-This method requires that you have first completed the FONT installation step above.
-
-Make sure your DOSBox-X config file contains the statements:
-....
-[parallel]
-parallel1=printer
-
-[printer]
-printer=true
-printoutput=printer
-timeout=1000
-....
-
-In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
 
 # Example: Print to PNG, BMP or PostScript
 This method prints to a PNG, BMP or PostScript (PS) image file.
@@ -368,3 +394,26 @@ The output will be saved as ``page1.png``, ``page1.bmp`` or ``page1.ps`` in the 
 Alternatively you can specify a different directory using the ``docpath=`` setting as documented above.
 
 When using PostScript output, you can prevent a separate PostScript files from being generated for each page, by setting ``multipage=true``.
+
+# Example: Redirect print output to a program on the host
+
+In the ``[parallel]`` section for the parallel1-9 config options you can use the ``file`` option to direct the output to a file, which will then be opened by the specified application on the host.
+
+The options available are:
+
+** ``openps:<program>`` start a program to open the file if the printer output is detected to be PostScript.
+** ``openpcl:<program>`` start a program to open the file if the printer output is detected to be PCL.
+** ``openwith:<program>`` start a program to open the file in all other conditions.
+** ``openerror:<program>`` start a program to open the file if an error had occurred.
+
+e.g. when running DOSBox-X on a Windows host:
+....
+[parallel]
+parallel1 = file file:output1.prn timeout:1000 openpcl:pcl6 openps:gswin32c openwith:notepad
+....
+This will cause any output to LPT1 to be written to output.prn, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with link:https://www.ghostscript.com/[GhostScript] (gswin32c.exe), while for other filetypes it will be opened in notepad.
+
+If you need to pass additional parameters to the application you can either enclose the command with quotes and add the parameters. e.g. ``openwith:"program arg1 arg2"``, the printer file will be added as a final parameter.
+If this is not flexible enough, for instance because you need to have the printer filename in the middle of other parameters, then create a shell script or batch file with a content similar to ``program arg1 %1 arg2``, and call this shell script/batch file instead of the program directly.
+
+Keep in mind that the output file will be created in your current working directory, if you don't specify a path.

@@ -30,6 +30,10 @@ toc::[]
 * PC DOS 6.3 was delivered on five 3.5" disks
 
 ## Creating a PC DOS 6.x HDD image
+Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
 Note: The below example assumes 4 disks, if you have 5 disks you need to add it to the end of the BOOT command.
 
 Assuming your PC DOS 6.x disk images are in the current working directory, and named as shown below, type the following commands at the DOSBox-X ``Z:\>`` prompt.

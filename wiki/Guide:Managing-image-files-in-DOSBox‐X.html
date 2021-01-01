@@ -471,7 +471,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_diskette_images_in_linux">Using diskette images in Linux</a>
 <ul class="sectlevel2">
 <li><a href="#_gnome_disk_image_mounter">Gnome Disk Image Mounter</a></li>
-<li><a href="#_mounting_a_diskette_image_from_the_shell">Mounting a diskette image from the shell</a></li>
+<li><a href="#_mounting_a_diskette_image_from_the_linux_shell">Mounting a diskette image from the Linux shell</a></li>
 <li><a href="#_gnu_mtools">GNU mtools</a></li>
 </ul>
 </li>
@@ -497,7 +497,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_harddisk_images_in_linux">Using harddisk images in Linux</a>
 <ul class="sectlevel2">
 <li><a href="#_gnome_disk_image_mounter_2">Gnome Disk Image Mounter</a></li>
-<li><a href="#_mounting_a_harddisk_image_from_the_shell">Mounting a harddisk image from the shell</a></li>
+<li><a href="#_mounting_a_harddisk_image_from_the_linux_shell">Mounting a harddisk image from the Linux shell</a></li>
 </ul>
 </li>
 <li><a href="#_using_harddisk_images_in_windows">Using harddisk images in Windows</a></li>
@@ -518,7 +518,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_gnome_disk_image_mounter_3">Gnome Disk Image Mounter</a></li>
 <li><a href="#_cdemu">CDEmu</a></li>
-<li><a href="#_mounting_a_iso_image_from_the_shell">Mounting a ISO image from the shell</a></li>
+<li><a href="#_mounting_a_iso_image_from_the_linux_shell">Mounting a ISO image from the Linux shell</a></li>
 </ul>
 </li>
 <li><a href="#_using_cd_or_dvd_images_in_windows">Using CD or DVD images in Windows</a></li>
@@ -587,7 +587,8 @@ The output of the two commands differs somewhat.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>You can also see the currently mounted drive numbers from the DOS menu.</p>
+<p>You can also see the currently mounted drive numbers from the "DOS" menu with the "Show mounted drive numbers" option, and the mounted harddisks or CD-ROM&#8217;s with the "Show IDE disk or CD status" option.
+Note that both of these options will only show image mounts, not folder mounts.</p>
 </div>
 </div>
 </div>
@@ -639,13 +640,13 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <div class="ulist">
 <ul>
 <li>
-<p>IBM DSKF (.DSK)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1466">IBM DSKF</a> (.DSK)</p>
 </li>
 <li>
-<p>IBM XDF (.XDF)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1465">IBM XDF</a> (.XDF)</p>
 </li>
 <li>
-<p>ImageDisk (.IMD)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/711">ImageDisk</a> (.IMD)</p>
 </li>
 <li>
 <p>Interchangeable Preservation Format (.IPF)</p>
@@ -654,7 +655,7 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <p>KryoFlux Stream files (.RAW)</p>
 </li>
 <li>
-<p>Microsoft DMF (.DMF)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1472">Microsoft DMF</a> (.DMF)</p>
 </li>
 <li>
 <p>Teledisk (.TD0)</p>
@@ -669,6 +670,20 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <div class="sect1">
 <h2 id="_creating_diskette_images">Creating diskette images</h2>
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image&#8230;&#8203;".
+This option allows most common floppy disk types to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create FAT12 formatted diskette images in MFM sector image format from the DOSBox-X command prompt.</p>
 </div>
@@ -891,8 +906,7 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 <div class="sect2">
 <h3 id="_mounting_from_the_drive_menu">Mounting from the Drive menu</h3>
 <div class="paragraph">
-<p>This is exclusive to the DOSBox-X Windows version.
-The advantage of this option is, that you don&#8217;t need to mount all the disks before starting your program or game, but you can mount disk images when needed.</p>
+<p>The advantage of this option is, that you don&#8217;t need to mount all the disks before starting your program or game, but you can mount disk images when needed.</p>
 </div>
 <div class="paragraph">
 <p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
@@ -906,7 +920,17 @@ All the other mount options are host folder mounts.</p>
 Now a file browser will allow you to select an image file.</p>
 </div>
 <div class="paragraph">
-<p>This option does not support read-only disk images.</p>
+<p>Limitations of this option, compared to the DOSBox-X command line:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>No support for marking a diskette image as read-only.</p>
+</li>
+<li>
+<p>No ability to specify multiple diskette images for use with the swap-disk functionality.</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
@@ -937,7 +961,7 @@ Or from the menu you can select "DOS" followed by "Swap floppy".</p>
 <h3 id="_write_protecting_diskette_images">Write protecting diskette images</h3>
 <div class="paragraph">
 <p>By default diskette images are mounted read-write.
-It is possible to make a diskette image read-only (write protected) either by using the -ro option, or by attaching the <code>:</code> prefix to the filename.
+It is possible to make a diskette image read-only (write protected) either by using the <code>-ro</code> option, or by attaching the <code>:</code> prefix to the filename.
 e.g.</p>
 </div>
 <div class="literalblock">
@@ -946,7 +970,7 @@ e.g.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>It is equivalent to:</p>
+<p>This is equivalent to:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -954,8 +978,9 @@ e.g.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>They can also be used when mounting multiple diskette images. If you use the -ro option, then all images specified in the command will become read-only.
-On the other hand, if you wish to make individual images (instead of all of them) read-only then you can attach the <code>:</code> prefix to these images, like this:</p>
+<p>They can also be used when mounting multiple diskette images.
+If you use the <code>-ro</code> option, then all images specified in the command will become read-only.
+On the other hand, if you wish to make individual images read-only (instead of all of them), then you can attach the <code>:</code> prefix to these images, like this:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1111,7 +1136,7 @@ The next time you want to open a .IMA file, the option will be available directl
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mounting_a_diskette_image_from_the_shell">Mounting a diskette image from the shell</h3>
+<h3 id="_mounting_a_diskette_image_from_the_linux_shell">Mounting a diskette image from the Linux shell</h3>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
 This method requires sudo access.</p>
@@ -1375,6 +1400,20 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="sect1">
 <h2 id="_creating_harddisk_images">Creating harddisk images</h2>
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows a few common HDD sizes to to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in MFM sector image format from the DOSBox-X command prompt.
 <code>IMGMAKE</code> only creates a single primary DOS partition per harddisk image file.</p>
@@ -1764,9 +1803,6 @@ So a CHS of 992,2,32 becomes <code>-size 512,32,2,992</code>.
 <div class="sect2">
 <h3 id="_mounting_from_the_drive_menu_2">Mounting from the Drive menu</h3>
 <div class="paragraph">
-<p>This is exclusive to the DOSBox-X Windows version.</p>
-</div>
-<div class="paragraph">
 <p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
 </div>
 <div class="paragraph">
@@ -1933,7 +1969,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mounting_a_harddisk_image_from_the_shell">Mounting a harddisk image from the shell</h3>
+<h3 id="_mounting_a_harddisk_image_from_the_linux_shell">Mounting a harddisk image from the Linux shell</h3>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires sudo access.</p>
 </div>
@@ -2046,15 +2082,15 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 <p>OAK stands for OEM Adaptation Kit, and this is the IDE CD-ROM driver shipped on the Windows 95, 98 and ME boot disks.</p>
 </li>
 <li>
-<p>UIDE.SYS is available from FreeDOS.</p>
+<p><a href="https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/cdrom/uide/">UIDE.SYS</a> is available from <a href="https://www.freedos.org/">FreeDOS</a>.</p>
 </li>
 <li>
-<p>You can also use the VIDE-CDD.SYS driver which loads faster than OAKCDROM.SYS.</p>
+<p>You can also use the <a href="http://vogonsdrivers.com/getfile.php?fileid=1456&amp;menustate=0">Acer VIDE-CDD.SYS</a> driver which loads faster than OAKCDROM.SYS.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>MSCDEX.EXE is included with MS-DOS 6.x, or you can use the SHSUCDX.EXE redirector available from FreeDOS.</p>
+<p>MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the SHSUCDX.EXE redirector available from FreeDOS.</p>
 </div>
 <div class="paragraph">
 <p>Edit the config.sys file and add the following line to it:</p>
@@ -2077,7 +2113,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 You can substitute oakcdrom.sys and mscdex.exe with their FreeDOS equivalents with the same parameters.</p>
 </div>
 <div class="paragraph">
-<p>The <code>/L:D</code> will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.</p>
+<p>The <code>/L:D</code> option will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2106,8 +2142,7 @@ Or from the menu you can select "DOS" followed by "Swap CD".</p>
 <div class="sect2">
 <h3 id="_mounting_from_the_drive_menu_3">Mounting from the Drive menu</h3>
 <div class="paragraph">
-<p>This is exclusive to the DOSBox-X Windows version.
-The advantage of this option is, that you don&#8217;t need to mount all the CD or DVDs before starting your program or game, but you can mount CD or DVD images when needed.</p>
+<p>The advantage of this option is, that you don&#8217;t need to mount all the CD or DVDs before starting your program or game, but you can mount CD or DVD images when needed.</p>
 </div>
 <div class="paragraph">
 <p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
@@ -2240,7 +2275,7 @@ This method will not work for CUE/BIN or MDF files.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mounting_a_iso_image_from_the_shell">Mounting a ISO image from the shell</h3>
+<h3 id="_mounting_a_iso_image_from_the_linux_shell">Mounting a ISO image from the Linux shell</h3>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
 This method will not work for CUE/BIN or MDF files.
@@ -2518,7 +2553,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-12-01 03:27:33 -0500
+Last updated 2021-01-01 03:43:38 -0500
 </div>
 </div>
 </body>

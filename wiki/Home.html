@@ -450,10 +450,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_introduction">Introduction</h3>
 <div class="paragraph">
-<p>DOSBox-X (homepage: <a href="https://dosbox-x.com">https://dosbox-x.com</a> or <a href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
+<p>DOSBox-X (homepage: <a target="_top" href="https://dosbox-x.com">https://dosbox-x.com</a> or <a target="_top" href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a target="_top" href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
+<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a target="_top" href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
 </div>
 <div class="paragraph">
 <p>For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users the Linux Flatpaks are available, which are standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages.</p>
@@ -589,14 +589,6 @@ Start DOSBox-X&#8217;s graphical configuration tool.</p>
 Start DOSBox-X&#8217;s mapper editor.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+A</strong>
-Copy all text on the DOS screen to the host clipboard.</p>
-</li>
-<li>
-<p><strong>[F11/F12]+V</strong>
-Paste the text in the host clipboard to the DOS screen.</p>
-</li>
-<li>
 <p><strong>[F11/F12]+Esc</strong>
 Show/hide DOSBox-X’s drop-down menu bar.</p>
 </li>
@@ -641,6 +633,10 @@ Decrease the font size for the TrueType font (TTF) output.</p>
 Reset the emulated DOS&#8217;s current CPU speed to the normal speed.</p>
 </li>
 <li>
+<p><strong>[F11/F12]+Right</strong>
+Toggle DOSBox-X&#8217;s speed lock.</p>
+</li>
+<li>
 <p><strong>[F11/F12]+D</strong>
 Swap between mounted CD images.</p>
 </li>
@@ -661,7 +657,7 @@ Start/Stop capturing an AVI video of the current session.</p>
 Start/Stop recording a WAV audio of the current session.</p>
 </li>
 <li>
-<p><strong>LAlt+Pause</strong>
+<p><strong>Alt+Pause</strong>
 Start DOSBox-X&#8217;s Debugger.</p>
 </li>
 <li>
@@ -681,16 +677,24 @@ Save current state to the selected save slot.</p>
 Load the state from the selected save slot.</p>
 </li>
 <li>
-<p><strong>LCtrl+F9</strong>
+<p><strong>[F11/F12]+Pause</strong>
+Pause emulation (press again to continue).</p>
+</li>
+<li>
+<p><strong>Ctrl+F5</strong>
+Copy all text on the DOS screen to the host clipboard.</p>
+</li>
+<li>
+<p><strong>Ctrl+F6</strong>
+Paste the text in the host clipboard to the DOS screen.</p>
+</li>
+<li>
+<p><strong>Ctrl+F9</strong>
 Exit DOSBox-X.</p>
 </li>
 <li>
-<p><strong>LCtrl+F10</strong>
+<p><strong>Ctrl+F10</strong>
 Capture the mouse for use with the emulated DOS.</p>
-</li>
-<li>
-<p><strong>LCtrl+Pause</strong>
-Pause emulation (press again to continue).</p>
 </li>
 </ul>
 </div>
@@ -700,10 +704,7 @@ Pause emulation (press again to continue).</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>1.</strong> <strong>[F11/F12]</strong> is the host key, meaning either F11 or F12 (depending on the operating system). F11 is the host key in Windows, and F12 is the host key in all other platforms (Linux, macOS, etc). The F12 key is avoided being the host key in Windows because it is used internally by Windows for debugging functions. The host key can be redefined in DOSBox-X&#8217;s keyboard mapper as needed, if you want to use a different key than F11 or F12.</p>
-</li>
-<li>
-<p><strong>2:</strong> <strong>LCtrl</strong> means the Left Ctrl key, <strong>LShift</strong> means the Left Shift key, and <strong>LAlt</strong> means the Left Alt key.</p>
+<p><strong>[F11/F12]</strong> is the host key, meaning either F11 or F12 (depending on the operating system). F11 is the host key in Windows, and F12 is the host key in all other platforms (Linux, macOS, etc). The F12 key is avoided being the host key in Windows because it is used internally by Windows for debugging functions. The host key can be redefined in DOSBox-X&#8217;s keyboard mapper as needed, if you want to use a different key than F11 or F12.</p>
 </li>
 </ul>
 </div>
@@ -812,6 +813,12 @@ press the X key on your keyboard.</p>
 </div>
 </li>
 <li>
+<p><a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a></p>
+<div class="paragraph">
+<p>Explains DOSBox-X&#8217;s PC-98 system and how to use it to run PC-98 games or applications in DOSBox-X.</p>
+</div>
+</li>
+<li>
 <p><a href="Guide%3AManaging-image-files-in-DOSBox‐X">Guide: Managing image files in DOSBox‐X</a></p>
 <div class="paragraph">
 <p>Explains how to make and use floppy, hard disk, and optical disc images in DOSBox-X.</p>
@@ -871,10 +878,10 @@ press the X key on your keyboard.</p>
 <p>Efforts are also made to aid retro DOS developments, which is why DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we also actively test against other DOS games and applications, as well as PC-98 programs (most of them are games).</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs MS-DOS application test results: <a href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
+<p>DOSBox-X vs MS-DOS application test results: <a target="_top" href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs Demoscene test results: <a href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
+<p>DOSBox-X vs Demoscene test results: <a target="_top" href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
 </div>
 </div>
 <div class="sect2">
@@ -894,9 +901,15 @@ press the X key on your keyboard.</p>
 </div>
 </li>
 <li>
-<p><strong>How can I use the save and load a state in DOSBox-X?</strong></p>
+<p><strong>Can I start to run my DOS program or game immediately?</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" and a "Force load state mode" toggle menu. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" toggle before you try to load the state.</p>
+<p>To start your DOS program or game immediately when DOSBox-X runs, you can put the executable program in the [autoexec] section of DOSBox-X&#8217;s configuration. Or you can provide the executable program as the parameter to the DOSBox-X program, e.g. <code>dosbox-x myapp.exe</code>. As DOSBox-X is highly customizable, there are also further options to improve your experience. For example, if you want to bypass the DOSBox-X BIOS splash screen, you can set the config option <code>fastbioslogo</code> to <code>true</code>; if you want to bypass the welcome banner, you can set the config option <code>startbanner</code> to <code>false</code>. Alternatively, you may want to use the command-line option "-fastlaunch" (see the <a href="DOSBox‐X’s-Command%E2%80%90Line-Options">DOSBox-X&#8217;s Command-Line Options</a> page for a list of DOSBox-X&#8217;s supported command-line options), which will bypass both the BIOS splash screen and the welcome banner when DOSBox-X starts.</p>
+</div>
+</li>
+<li>
+<p><strong>How can I save and load a state in DOSBox-X?</strong></p>
+<div class="paragraph">
+<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. Alternatively, you can use your own save files instead of the built-in save slots.</p>
 </div>
 </li>
 <li>
@@ -923,7 +936,7 @@ press the X key on your keyboard.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-12-01 03:27:33 -0500
+Last updated 2021-01-01 03:43:38 -0500
 </div>
 </div>
 </body>
