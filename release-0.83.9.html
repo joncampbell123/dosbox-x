@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.9 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">January 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+<li><div style="font-weight: 600">Support for unified SDL1/SDL2 mapper files</div>Unified mapper files for both SDL1 and SDL2 builds of DOSBox-X are now supported, in addition to SDL1/SDL2-only mapper files. There are other enhancements to the mapper too, such as a new command-line option (-defaultmapper) to use the default key mappings.</li>
+
+<li><div style="font-weight: 600">Support for starting DOSBox-X on a specific monitor</div>DOSBox-X can now be started on a specific display on a multi-monitor setup. For example, "display=2" will start DOSBox-X on the second display. It can work in combination with the existing windowposition config option to specify a window position on the display.</li>
+
+<li><div style="font-weight: 600">Support for mounting ZIP or 7Z archives</div>You can now mount ZIP or 7Z archives as DOSBox-X drives! You can run your DOS programs or games in these mounted drives directly, although these drives will operate in read-only mode.</li>
+
+<li><div style="font-weight: 600">Support for time synchronization with the host</div>There is now an option (either from the config or from the "DOS" menu) which allows DOSBox-X to automatically synchronize the date and time with the host system, unless you manually change date and/or time.</li>
+
+<li><div style="font-weight: 600">Improved TTF output and on-screen text styles</div>There is now an option (either from the config or from the "DOS" menu) which allows DOSBox-X to automatically synchronize the date and time with the host system, unless you manually change date and/or time.</li>
+
+<li><div style="font-weight: 600">Improved dynamic CPU core</div>The dynamic CPU core (both dynamic_x86 and dynamic_rec) has been improved, such as support for dual mapping and the way its cache is allocated.</li>
+
+<li><div style="font-weight: 600">Much improved printing system</div>The printing system has been greatly improved in this version. New config options "openwith" and "openerror" are added to the [printer] section to start the specified program to open the printer output file. It also allows you to change the path where the printer TTF fonts are located. If no TTF font can be found for printing, the internal TTF font for the TTF output will be used.</li>
+
+<li><div style="font-weight: 600">Enhanced serial and parallel ports and options</div>The serial (COM) and parallel (LPT) ports are extended to COM1-9 and LPT1-9, and the options for all these ports have been enhanced in this version. For example, you can specify programs to open the generated files based on the output type, such as when the output is detected to be PCL or PostScript (PS).</li>
+
+<li><div style="font-weight: 600">Support for selecting and copying text to clipboard via the keyboard</div>The clipboard feature has been further improved. You can now select and copy text to the clipboard via the keyboard (e.g. arrow keys to move the text selection), in addition to use the mouse.</li>
+
+<li><div style="font-weight: 600">File locking functions for disk images and improved DOS SHARE functions</div>File locking support for mounting disk image files is added so that by default you cannot mount the same disk image files in read/write mode at the same time to avoid possible disk corruptions. The DOS SHARE functions are also enhanced for better file and record locking support.</li>
+
+<li><div style="font-weight: 600">Support for mounting physical CD drives in SDL2 builds</div>You can now mount physical CD drives and give hardware access to these CD drives in the DOSBox-X SDL2 builds just like the SDL1 builds. For examples, hardware CD functions like the Audio CD features are now supported for these CD drives in both SDL1 and SDL2 builds (type "INTRO CDROM" for help on mounting physical CD drives).</li>
+
+<li><div style="font-weight: 600">Support for OPL3Duo audio board</div>Support for the OPL3Duo audio board has been added in this version, in addition to the existing OPL options such as Nuked, MAME and OPL2 audio boar. Set "oplemu=opl3duoboard" to use it.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">2. Notable Usability Improvements</div>
+<ul>
+<li><div style="font-weight: 600">Centered Configuration Tool window for better looking</div>The main window and windows for various functions in the Configuration Tool will now be centered within the DOSBox-X window for a better looking. Similar to some other functions such as the "Edit cycles" window.</li>
+
+<li><div style="font-weight: 600">Ctrl+Tab to list files/directories for tab completion</div>You can now press the key combination Ctrl+Tab in DOSBox-X's command shell to see a list of files/directories that can be completed by the Tab completion, which can make the Tab completion feature more convenient to use.</li>
+
+<li><div style="font-weight: 600">Auto-assume CD type for GOG/INS image files</div>Some CD images files are with the .GOG and .INS extensions, which are renamed versions of the .CUE and .BIN image files. DOSBox-X will now automatically assume the CD ISO type for these image files so that you no longer need to specify an image type for them.</li>
+
+<li><div style="font-weight: 600">Read-only menu option for mounting drives</div>Mounting host folders/drives or image files to selected drive(s) in read-only mode from the menu is now supported. You can do so by enabling the toggles in the Drive menu. Previously you can only achieve this from the command-line.</li>
+
+<li><div style="font-weight: 600">Menu option to create blank disk images</div>There is now a menu option to create blank floppy or harddisk images of a common disk size, including 360KB, 400KB, 720KB, 1.2MB, 1.44MB and 2.88MB for floppy disk images and 250MB, 520MB, 1GB, 2GB, 4GB and 8GB for hard disk images. Previously you can only do so from the command-line.</li>
+
+<li><div style="font-weight: 600">Feedback in the title bar when mouse is captured</div>When the mouse is captured, DOSBox-X will now show the shortcut to release the mouse in the title bar to inform the user about this status and the key combination to release it.</li>
+
+<li><div style="font-weight: 600">Improved feedback for selecting Direct3D pixel shader from menu</div>DOSBox-X will now pop up a message box to inform the user when a Direct3D pixel shader is loaded from the menu on the Windows platform, so that users no longer to check the log console to see if the pixel shader has been successfully loaded.</li>
+
+<li><div style="font-weight: 600">Config option to enables menu option "Show FPS and RT speed in title bar"</div>You can now enable the menu option "Show FPS and RT speed in title bar" directly from the config file so that the setting will become permanent. Previously you can only do so from the menu or via two command-line options (-showcyles and -showrt).</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">3. Bugfixes and Other Improvements</div>
+There are also many bugfixes and other improvements, such as fixing the 2D texture not showing for 3dfx games in the Glide passthrough mode and the color palette problem when switching to graphic mode from mono mode and a lot more. Please see the full changelogs below for more information.
+<p />
+
+            <div style="font-size: 20px; font-weight: 800">4. Full Changelog In This Version</div>
+<ul>
+<li>
+    Physical CD drives are now mountable in SDL2 builds
+    just like SDL1 builds, so commands like "MOUNT -CD"
+    should work in both SDL1 and SDL2 builds. Some code
+    is adopted from the SDL2_CDROM library. (Wengier)
+</li><li>
+    Implemented file locking support for mounting disk
+    image files so that you cannot mount the same disk
+    image files in read/write mode at the same time as
+    this can cause possible disk corruptions. A config
+    option "locking disk image mount" is added to the
+    [dosbox] section which when set to false (or if the
+    user mounts the image files read-only) will bypass
+    the locking of image files. Also improved the DOS
+    file locking function, which can be disabled by
+    setting "share=false" in [dos] section. (Wengier)
+</li><li>
+    Implemented PhysFS support so that you can mount
+    archives (e.g. ZIP/7Z) as drives in read-only mode,
+    e.g. "MOUNT C TEST.ZIP" or "MOUNT D FILES.7Z". Some
+    code is ported from a custom DOSBox fork. The menu
+    option "Mount an archive file (ZIP/7Z)" is added to
+    Drive menu to mount archives as Drives. (Wengier)
+</li><li>
+    INT 13h now obeys the "hard drive data rate limit"
+    setting, using the same disk I/O delay code as
+    INT 21h file I/O. [Issue #2039]
+</li><li>
+    Linux/X11 SDL1 builds: Combine window move/resize
+    into one call if possible, and not during window
+    manager hints, to avoid resize problems with the
+    XFCE 4.14 platform.
+</li><li>
+    Added menu option "Create blank disk images..."
+    (under "DOS" menu) to create blank floppy or hard
+    disk images of a common disk size, including 360KB,
+    400KB, 720KB, 1.2MB, 1.44MB and 2.88MB for floppy
+    disk images and 250MB, 520MB, 1GB, 2GB, 4GB and 8GB
+    for hard disk images. The 1GB option (-t hd_1gig)
+    is also added to IMGMAKE command. (Wengier)
+</li><li>
+    The Configuration Tool will now be centered within
+    the DOSBox-X window for a better looking. (Wengier)
+</li><li>
+    Added config option "synchronize time" in [dosbox]
+    section which when set to true will allow DOSBox-X
+    to automatically synchronize the date and time with
+    the host system, unless you manually change date
+    and/or time. A menu option "Synchronize host date/
+    time" is added to the DOS menu. The function uses
+    IRQ0 handler; it will not work in PC-98 mode nor if
+    the timer isn't running at the standard 18.2Hz tick
+    rate, as any other rate does not make sense and
+    will cause only jitter and error. Also fixed two
+    Demoscene entries sl_fokus and sl_haloo which use
+    BIOS_TIMER with a faster hardware tick rate.
+</li><li>
+    Added config option "showdetails" which when set to
+    true enables the menu option "Show FPS and RT speed
+    in title bar" at start. It is equivalent to -showrt
+    and -showcycles command-line options. (Wengier)
+</li><li>
+    Improved compatibility with Watcom C++ 2.0 when
+    long filename (LFN) support is enabled. (Wengier)
+</li><li>
+    Added support for starting DOSBox-X in a specific
+    display on a multi-screen setup (Windows builds as
+    well as Linux/macOS SDL2 builds). A config option
+    "display" is added to the [sdl] section that users
+    can specify a display for the DOSBox-X window to
+    start. The option can be combined with the existing
+    "windowposition" config option to specify the
+    position on the specified display/screen. (Wengier)
+</li><li>
+    DOSBox-X will now pop up a message box to inform
+    the user when a Direct3D pixel shader is loaded
+    from the menu on the Windows platform. (Wengier)
+</li><li>
+    Extended serial (COM) ports from COM1-COM3 to COM1-
+    COM9 in the [serial] section. The config options
+    serial4-9 are advanced options. You can optionally
+    specify base addresses for any serial ports. When
+    the "file" option is used, you can additionally
+    specify a program to open the file with "openwith"
+    option. If the specified program cannot be executed
+    due to some problem, DOSBox-X will try to start a
+    program as specified with the "openerror" action,
+    or it will show an error. For both serial (COM) and
+    parallel (LPT) ports options, the program commands
+    can be quoted with double quotes, or with single
+    quotes if the "squote" option is added. (Wengier)
+</li><li>
+    Extended parallel (LPT) ports from LPT1-LPT3 to
+    LPT1-LPT9 in the [parallel] section. Config options
+    lpt4-9 are advanced config options. You can also
+    optionally specify base addresses and IRQs for
+    these ports. The parallel1-9 config options are
+    enhanced to allow the generated files to be started
+    with the specified action: "openpcl" to start a
+    program to open the file if the print output is
+    detected to be PCL; "openps" to start a program if
+    the print output is detected to be PostScript (PS);
+    "openwith" to start a program otherwise. If you'd
+    like to specify parameters then be sure to properly
+    quote the string(s). Furthermore, if any of the
+    specified program(s) cannot be executed, DOSBox-X
+    will try to start a program as specified with the
+    "openerror" action, or show an error. (Wengier)
+</li><li>
+    Added "openwith" and "openerror" config options to
+    [printer] section to start the specified program to
+    open the printer output file. The [printer] section
+    also accepts "fontdir" option where you can change
+    the path ("FONTS" by default) where the printer TTF
+    fonts (including courier.ttf, ocra.ttf, roman.ttf,
+    sansserif.ttf, script.ttf) are located. If no TTF
+    font can be found (either from the custom path or
+    system path) for printing, the internal TTF font
+    for the TTF output will be used. (Wengier)
+</li><li>
+    Added read-only options to the Drive menu to mount
+    host folders/drives or image files to the specified
+    drive letter in read-only mode. (Wengier)
+</li><li>
+    You can now use a single mapper file for both SDL1
+    and SDL2 versions of DOSBox-X! The new mapper file
+    will be divided to sections [SDL1] and [SDL2] for
+    both versions. The mapper file can be specified
+    with the mapperfile config option, or you can set
+    the mapperfile_sdl1 and mapperfile_sdl2 config
+    options to override mapperfile option. (Wengier)
+</li><li>
+    Added -defaultmapper command-line option which will
+    use default key bindings for the mapper. (Wengier)
+</li><li>
+    The menu functions "Load mapper file", "Quick edit
+    mode", "Stop clipboard pasting" and "Display state
+    information" have been added to the key mapper so
+    that you can now define your own shortcut keys to
+    activate these functions. (Wengier)
+</li><li>
+    The default shortcuts for the "Copy to clipboard",
+    "Paste from clipboard", and the "Reset window size"
+    functions are now Ctrl+F5, Ctrl+F6 and Host(F11/F12)
+    +BackSpace respectively. (Wengier)
+</li><li>
+    Added ttf.fontbold, ttf.fontital, and ttf.fontboit
+    config options so that you can specify actual bold
+    italic, and bold-italic TrueType fonts for use with
+    the TTF output that will render the bold, italic,
+    and bold-italic text styles using the actual TTF
+    fonts (e.g. consolab, consolai, consolaz instead of
+    consola) instead of making the original TTF font
+    bold, italic, bold-italic automatically. (Wengier)
+</li><li>
+    DOSBox-X now supports the use of arrow keys (left,
+    right, up, down, home, end) to select and copy text
+    to the host clipboard in addition to a mouse button
+    (subject to the specified key modifier, or use the
+    QuickEdit function). The arrow keys will move the
+    selections; press Home key to start the actual text
+    selection and End key to end text selection and to
+    copy to the clipboard; press ESC key to cancel text
+    selection. Set config option "clip_mouse_button" to
+    "arrows" to enable it, or select it from "Shared
+    clipboard functions" menu group. (Wengier)
+</li><li>
+    You can now press the key combination Ctrl+Tab in
+    the shell to see a list of files/directories that
+    can be completed by the Tab completion. (Wengier)
+</li><li>
+    Added SETCOLOR command to view or change the text-
+    mode color scheme settings. Also fixed the color
+    palette for the TTF output. (Wengier)
+</li><li>
+    Separated "TTF options" menu group that contains
+    TrueType font (TTF) related menu options from the
+    "Text-mode" menu group in "Video" menu. (Wengier)
+</li><li>
+    The "Show menu bar" option now appears in system
+    menu of the Windows SDL2 build too. (Wengier)
+</li><li>
+    If a language file fails to load, DOSBox-X will now
+    show a warning dialog instead of exiting. (Wengier)
+</li><li>
+    The option "clip_key_modifier" now accepts values
+    like "ctrlalt", "ctrlshift", "altshift". (Wengier)
+</li><li>
+    Fixed 2D texture not showing for 3dfx games in the
+    Glide passthrough mode. (Wengier)
+</li><li>
+    Fixed the mouse sensitivity menu option (under the
+    "DOS" menu) not working. (Wengier)
+</li><li>
+    Fixed the color palette problem when switching to
+    graphic mode from mono mode. (Wengier)
+</li><li>
+    Fixed full-screen TTF output may not fully cover
+    the background screen in Linux. (Wengier)
+</li><li>
+    Fixed that lines starting with "%" in [autoexec]
+    section are being ignored. (Wengier)
+</li><li>
+    Fixed issues with building the code with original
+    MinGW using the ./build-mingw script. (Wengier)
+</li><li>
+    Fixed option "output=ttf" not working properly with
+    -startui/startmapper command-line option. (Wengier)
+</li><li>
+    When the mouse is captured, the title bar will show
+    the shortcut to release the mouse. (Wengier)
+</li><li>
+    IMGMOUNT now assumes the ISO type for .GOG/.INS
+    files (which are equivalent to .CUE/.INS files)
+    if no type is specified by the user. (Wengier)
+</li><li>
+    Improved the dynamic core including the way its
+    cache is allocated and to support dual mapping.
+</li><li>
+    The FREECG98.BMP file (for PC-98 mode) is now
+    rendered based on a unifont_jp TTF font instead
+    of UnifontFullMediumMono.ttf. (roytam1)
+</li><li>
+    Added support for automatic switching from TTF
+    output to another output in PC-98 mode, allowing
+    Windows 3.1 to run in this mode. (Wengier)
+</li><li>
+    Added OPL3Duo support, which passes OPL3 output
+    to an OPL3Duo Arduino board with a specific
+    configuration if desired. Set the config option
+    "oplemu=opl3duoboard" to use it. (josephillips85)
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.8 (<a href="release-0.83.8.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
