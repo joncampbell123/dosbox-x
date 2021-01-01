@@ -295,7 +295,8 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
 bool colorChanged = false, justChanged = false;
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32)
+#if !defined(HX_DOS)
 int curscr;
 RECT monrect;
 typedef struct {
@@ -307,6 +308,7 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 	if (sdl.displayNumber==curscr) monrect=*pRcMon;
 	return TRUE;
 }
+#endif
 extern int dos_clipboard_device_access;
 #endif
 extern bool dos_kernel_disabled;
@@ -5259,7 +5261,7 @@ static void GUI_StartUp() {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(posx)+","+std::to_string(posy)).c_str());
         SDL_putenv(pos);
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     } else if (sdl.displayNumber>0) {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(info.rcMonitor.left+200)+","+std::to_string(info.rcMonitor.top+200)).c_str());
