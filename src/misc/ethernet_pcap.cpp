@@ -131,10 +131,10 @@ PcapEthernetConnection::~PcapEthernetConnection()
 	if(adhandle) pcap_close(adhandle);
 }
 
-bool PcapEthernetConnection::Initialize()
+bool PcapEthernetConnection::Initialize(Section* config)
 {
-	/* TODO: grab from config */
-	const char* realnicstring = "list";
+	Section_prop *section = static_cast<Section_prop*>(config);
+	const char* realnicstring = section->Get_string("realnic");
 
 #ifdef WIN32
 	if(!LoadPcapLibrary()) {

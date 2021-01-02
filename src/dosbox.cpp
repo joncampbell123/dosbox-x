@@ -4027,6 +4027,12 @@ void DOSBOX_SetupConfigSections(void) {
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
 
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
+    Pstring->Set_help("The backend used for Ethernet emulation.");
+    Pstring->SetBasic(true);
+
+    secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
+
     /* TODO: Change default to "nat" and then begin implementing support for emulating
      *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
      *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we

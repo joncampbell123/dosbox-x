@@ -20,6 +20,7 @@
 #define DOSBOX_ETHERNET_H
 
 #include "config.h"
+#include "control.h"
 #include <functional>
 
 /** A virtual Ethernet connection
@@ -38,9 +39,10 @@ class EthernetConnection
          * This is done in a separate function instead of a constructor so any
          * error code may be propagated.
          * Do not call this function twice.
+         * @param config The connection's configuration section
          * @return True if the connection is initialized, false otherwise
          */
-        virtual bool Initialize() = 0;
+        virtual bool Initialize(Section* config) = 0;
 
         /** Closes the connection.
          * Owners of an EthernetConnection are expected to delete it when
