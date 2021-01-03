@@ -4033,16 +4033,49 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
 
-    /* TODO: Change default to "nat" and then begin implementing support for emulating
-     *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
-     *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
-     *       can then compile NE2000 support with and without libpcap/winpcap support. */
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
     Pstring->Set_help("Specifies which of your network interfaces is used for libpcap.\n"
         "Write \'list\' here to see the list of devices in the\n"
         "Status Window. Then make your choice and put either the\n"
         "interface number (2 or something) or a part of your adapters\n"
         "name, e.g. VIA here.");
+    Pstring->SetBasic(true);
+
+    secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
+
+    Pbool = secprop->Add_bool("restricted", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables access to the host from the guest.\n"
+        "Services such as libslirp's DHCP server will no longer work.\n");
+
+    Pbool = secprop->Add_bool("disable_host_loopback", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables guest access to the host's loopback interfaces.\n");
+
+    Pint = secprop->Add_int("mtu", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum transmission unit for Ethernet packets transmitted from the guest.\n"
+        "Specifying 0 will use libslirp's default MTU.");
+
+    Pint = secprop->Add_int("mru", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum recieve unit for Ethernet packets transmitted to the guest.\n"
+        "Specifying 0 will use libslirp's default MRU.");
+
+    Pstring = secprop->Add_string("ipv4_network", Property::Changeable::WhenIdle, "10.0.2.0");
+    Pstring->Set_help("The IPv4 network the guest and host services are on.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_netmask", Property::Changeable::WhenIdle, "255.255.255.0");
+    Pstring->Set_help("The netmask for the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_host", Property::Changeable::WhenIdle, "10.0.2.2");
+    Pstring->Set_help("The address of the guest on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_nameserver", Property::Changeable::WhenIdle, "10.0.2.3");
+    Pstring->Set_help("The address of the nameserver service provided by the host on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_dhcp_start", Property::Changeable::WhenIdle, "10.0.2.15");
+    Pstring->Set_help("The start address used for DHCP by the host services on the IPv4 network.");
     Pstring->SetBasic(true);
 
     /* IDE emulation options and setup */
