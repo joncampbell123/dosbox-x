@@ -9,7 +9,7 @@ Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
 toc::[]
 
-This guide explains how to setup and play DOS games in DOSBox-X.
+This guide explains how to setup and use the TrueType font (TTF) output in DOSBox-X.
 
 Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
 
