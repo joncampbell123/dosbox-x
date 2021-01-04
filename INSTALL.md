@@ -3,7 +3,7 @@ DOSBox-X Installation and Released Packages
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
-The current version of DOSBox-X at this time is DOSBox-X 0.83.9, which was released on January 1, 2021. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the Windows installers and source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+The current version of DOSBox-X at this time is DOSBox-X 0.83.9, which was released on January 1, 2021. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM and Flatpak packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the Windows installers and source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
 
 See also: [DOSBox-X 0.83.9 Release Notes](https://dosbox-x.com/release-0.83.9.html)
 
@@ -12,7 +12,7 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 ## Packages for Supported Platforms
 
 - [Windows Packages (Installer or Portable)](#windows-packages-installer-or-portable)
-- [Linux Packages (Flatpak or RPM)](#linux-packages-flatpak-or-rpm)
+- [Linux Packages (RPM or Flatpak)](#linux-packages-rpm-or-flatpak)
 - [macOS Packages (Portable)](#macos-packages-portable)
 - [DOS Packages (Portable)](#dos-packages-portable)
 - [Source Code Packages (zip or tar.gz)](#source-code-packages-zip-or-targz)
@@ -40,7 +40,7 @@ The Visual Studio builds are the default Windows builds to use, but they only ru
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW build for lower-end systems (mingw-lowend), MinGW SDL2 build (mingw-sdl2) and MinGW build with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
-## Linux Packages (Flatpak or RPM)
+## Linux Packages (RPM or Flatpak)
 
 Both RPM and Flatpak packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you cannot access some system-wide resources.
 
@@ -82,15 +82,17 @@ Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), wh
 
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.9, the official macOS packages are available as zip packages:
 
-For 64-bit x86-based macOS:
+For 64-bit Intel-based macOS:
 * [dosbox-x-macosx-x86_64-20201231203002.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.9/dosbox-x-macosx-x86_64-20201231203002.zip)
 
 For 64-bit ARM-based macOS:
 * [dosbox-x-macosx-arm64-20201231202930.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.9/dosbox-x-macosx-arm64-20201231202930.zip)
 
-The macOS package requires 64-bit x86 or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
+The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
-The 64-bit x86 and ARM-based macOS packages for the previous DOSBox-X version (0.83.8) are also available from:
+If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the command line rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
+
+The 64-bit Intel and ARM-based macOS packages for the previous DOSBox-X version (0.83.8) are also available from:
 
 * [dosbox-x-macosx-x86_64-20201130192748.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.8/dosbox-x-macosx-x86_64-20201130192748.zip)
 * [dosbox-x-macosx-arm64-20201130193800.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.8/dosbox-x-macosx-arm64-20201130193800.zip)
