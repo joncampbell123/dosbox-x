@@ -234,7 +234,7 @@ If non-zero, it specifies the time after which the page will be ejected automati
 You can also manually eject a form-feed when you want to do so, and this option is available from the DOS menu.
 
 # Setting up fonts for the emulated printer
-The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs ``courier.ttf``.
+The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs ``courier.ttf``; if no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
 
 ## Windows host
 DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located. If the fonts cannot be found, then it will search for the system fonts, as follows:
