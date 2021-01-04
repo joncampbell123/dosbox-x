@@ -597,7 +597,18 @@ This option allows for various common harddisk types to be created, for less com
 </div>
 </div>
 <div class="paragraph">
-<p>When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
+<p>If you want to create a HDD image with a size less than 65MB (such as the hd_st251 template which creates a 40MB HDD image) for use with MS-DOS 6 Setup, you may want to specify the option <code>-FAT 12</code> for IMGMAKE command so that the FAT12 file system will be used (instead of FAT16 or FAT32), e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre> IMGMAKE hdd.img -t hd_st251 -fat 12</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Followed by the IMGMOUNT and BOOT commands.</p>
+</div>
+<div class="paragraph">
+<p>In any case, when prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
 </div>
 <div class="paragraph">
 <p>You can now boot these DOS versions directly from the HDD image as follows:</p>
@@ -613,7 +624,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-04 04:43:28 -0500
+Last updated 2021-01-04 14:57:31 -0500
 </div>
 </div>
 </body>

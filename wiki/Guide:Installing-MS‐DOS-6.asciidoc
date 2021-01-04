@@ -52,7 +52,15 @@ Maximum HDD size has increased to 8GB (or more exactly 7.84GB), but the maximum 
  BOOT DISK1.IMG DISK2.IMG DISK3.IMG
 ....
 
-When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X ``Z:\>`` prompt.
+If you want to create a HDD image with a size less than 65MB (such as the hd_st251 template which creates a 40MB HDD image) for use with MS-DOS 6 Setup, you may want to specify the option ``-FAT 12`` for IMGMAKE command so that the FAT12 file system will be used (instead of FAT16 or FAT32), e.g.
+
+....
+ IMGMAKE hdd.img -t hd_st251 -fat 12
+....
+
+Followed by the IMGMOUNT and BOOT commands.
+
+In any case, when prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X ``Z:\>`` prompt.
 
 You can now boot these DOS versions directly from the HDD image as follows:
 ....
