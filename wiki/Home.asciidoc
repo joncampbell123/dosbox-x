@@ -3,7 +3,9 @@
 ifdef::env-github[:suffixappend:]
 ifndef::env-github[:suffixappend:]
 
-**Welcome to the DOSBox-X Wiki!**
+**Welcome to the DOSBox-X online wiki!**
+
+== The DOSBox-X Wiki is now also available from: link:https://dosbox-x.com/wiki[https://dosbox-x.com/wiki]
 
 ### Introduction
 

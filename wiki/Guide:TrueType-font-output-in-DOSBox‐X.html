@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Activating the TrueType font output</title>
+<title>TrueType font output in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -443,6 +443,31 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
+</div>
+</div>
+</div>
+<h1 id="_truetype_font_output_in_dosbox_x" class="sect0">TrueType font output in DOSBox-X</h1>
+<div class="openblock partintro">
+<div class="content">
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_truetype_font_output_in_dosbox_x">TrueType font output in DOSBox-X</a>
+<ul class="sectlevel1">
+<li><a href="#_activating_the_truetype_font_output">Activating the TrueType font output</a></li>
+<li><a href="#_use_your_own_truetype_font_for_the_output">Use your own TrueType font for the output</a></li>
+<li><a href="#_modifying_the_screen_dimension_for_the_output">Modifying the screen dimension for the output</a></li>
+<li><a href="#_on_screen_text_styles_for_dos_applications">On-screen text styles for DOS applications</a></li>
+<li><a href="#_color_scheme_for_the_truetype_font_output">Color scheme for the TrueType font output</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This guide explains how to setup and play DOS games in DOSBox-X.</p>
+</div>
+<div class="paragraph">
 <p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.</p>
 </div>
 </div>
@@ -479,7 +504,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference. If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
 </div>
 <div class="paragraph">
-<p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>VGASYS.FON</code>), and the .TTC fonts (TrueType Collection, such as msgothic.ttc. These can also be used for rendering texts in the TrueType output.</p>
+<p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>). These can also be used for rendering texts in the TrueType output.</p>
 </div>
 <div class="paragraph">
 <p>For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:</p>
@@ -515,7 +540,7 @@ ttf.font=msgothic.ttc</code></pre>
 <p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use.</p>
 </div>
 <div class="paragraph">
-<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
+<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
 </div>
 </div>
 </div>
@@ -658,7 +683,7 @@ SETCOLOR 1 -
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-03 22:39:01 -0500
+Last updated 2021-01-03 22:59:18 -0500
 </div>
 </div>
 </body>

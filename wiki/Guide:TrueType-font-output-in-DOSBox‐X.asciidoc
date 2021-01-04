@@ -1,3 +1,16 @@
+:toc: macro
+
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend:]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+# TrueType font output in DOSBox-X
+
+toc::[]
+
+This guide explains how to setup and play DOS games in DOSBox-X.
+
 Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
 
 ## Activating the TrueType font output
@@ -19,7 +32,7 @@ The blinking cursor in the TrueType output can be optionally disabled with the s
 
 By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference. If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.
 
-Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as ``OratorStd.otf``), the .FON fonts (such as ``VGASYS.FON``), and the .TTC fonts (TrueType Collection, such as msgothic.ttc. These can also be used for rendering texts in the TrueType output.
+Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as ``OratorStd.otf``), the .FON fonts (such as ``vgasys.fon``), and the .TTC fonts (TrueType Collection, such as ``msgothic.ttc``). These can also be used for rendering texts in the TrueType output.
 
 For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:
 
