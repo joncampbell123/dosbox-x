@@ -1,0 +1,150 @@
+:toc: macro
+
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend:]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+# TrueType font output in DOSBox-X
+
+toc::[]
+
+This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.
+
+Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
+
+## Activating the TrueType font output
+You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:
+
+```
+output = ttf
+```
+
+Alternatively, you can force the TTF output when starting DOSBox-X from the command-line such as ``dosbox-x -set output=ttf``. Then the TrueType font output will be used when the DOSBox-X window appears.
+
+You can also switch from a different output (such as the standard surface/opengl/direct3d outputs) to the TrueType font output from DOSBox-X's drop-down menu. Under "Video" menu, from the "Output" menu group select "TrueType font". Then DOSBox-X will automatically switch to the TTF output from another output. You can switch back and forth between these outputs by selecting a output from the "Output" menu group.
+
+Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the ```ttf.outputswitch``` config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.
+
+The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration.
+
+## Use your own TrueType font for the output
+
+By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference. If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.
+
+Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as ``OratorStd.otf``), the .FON fonts (such as ``vgasys.fon``), and the .TTC fonts (TrueType Collection, such as ``msgothic.ttc``). These can also be used for rendering texts in the TrueType output.
+
+For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:
+
+```
+ttf.font=Nouveau_IBM
+```
+
+If the file extension is .ttf you can either omit the extension or put the full file name (e.g. ```ttf.font=Nouveau_IBM.ttf```).
+
+On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:
+
+Windows: ``C:\WINDOWS\Fonts``
+Linux: ``/usr/share/fonts/truetype/``
+macOS: ``/Library/Fonts/``
+
+So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:
+
+```
+ttf.font=Consola
+ttf.font=Lucon
+ttf.font=vgasys.fon
+ttf.font=msgothic.ttc
+```
+
+Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu. There is a menu option "Select TrueType font (TTF)..." under the "Video" menu which allows users to select a TTF font file to use.
+
+If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X] page for more information about this.
+
+## Modifying the screen dimension for the output
+
+You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [render] section to achieve this, namely ``ttf.winperc`` and ``ttf.ptsize``, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, ``ttf.winperc=75`` will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with ``ttf.ptsize``, and in such case ``ttf.winperc`` will be ignored. For example, ```ttf.ptsize=25``` will set the TTF font size to 25px.
+
+The window size for the TrueType font output can also be increased or decreased dynamically from the menu ("Video" => "TTF options" => "Increase TTF font size"/"Decrease TTF font size"), or using keyboard shortcuts.
+
+Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options "ttf.lins" and "ttf.cols". For example, the following will set the text screen to be 100 columns and 50 rows:
+
+```
+ttf.cols=100
+ttf.lins=50
+```
+
+You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE command from DOSBox-X's DOS shell, although in this case the options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60. These can be found in the "Text-mode" menu group under the "Video" menu, or you can do so via the a command like:
+
+```
+MODE CON LINES=50
+MODE CON LINES=60 COLS=132
+```
+
+The above commands will change the screen dimension to 50 lines and 132x60 respectively.
+
+## On-screen text styles for DOS applications
+
+DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, and XyWrite. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:
+
+```
+ttf.wp=XY
+```
+
+Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set ```ttf.strikeout=true``` to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.
+
+For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:
+
+```
+ttf.font=Consola
+ttf.fontbold=Consolab
+ttf.fontital=Consolai
+ttf.fontboit=Consolaz
+```
+
+Then the regular text will be rendered using the Consola.ttf font, whereas the bold text, italic text, and bold-italic text in XyWrite (as specified by ``ttf.wp=XY`` in this case) will be rendered using the Consolab.ttf, Consolai.ttf, Consolaz.ttf respectively.
+
+If you set ``ttf.wp=WP`` which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting ``ttf.char512=false`` in the [render] section of the configuration.
+
+If you set ``ttf.wp=WS`` which sets WordStar as the word processor, then you probably want to ``high intensity blinking=false`` for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" => "Text-mode" => "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option ``BrightBG=Yes`` if you use the 4DOS shell.
+
+## Color scheme for the TrueType font output
+
+There are also other settings related to the TrueType font output, such as changing the default color scheme for the output.
+
+The original DOS colors (0-15) are the following:
+
+* 0 - Black; 1 - Blue; 2 - Green; 3 - Cyan
+* 4 - Red; 5 - Magenta; 6 - Yellow / Brown; 7 - White / Light Gray
+* 8 - Dark Gray / Bright Black; 9 - Bright Blue; 10 - Bright Green; 11 - Bright Cyan
+* 12 - Bright Red; 13 - Bright Magenta; 14 - Bright Yellow; 15 - Bright White
+
+There is a ``ttf.colors`` config option which you can use to optionally specify the different color scheme for the TrueType font output. All 16 color values either in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB are to be supplied in this case.
+
+The default color scheme is:
+
+``
+ttf.colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
+``
+
+You can supply a different color scheme so that it will be used instead of the default one. For example, the following will give a gray-scaled color scheme:
+
+``
+ttf.colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
+``
+
+The color schemes can also be changed when DOSBox-X is running. There is a ``SETCOLOR`` command in DOSBox-X which allows to view or change the current color scheme. For example, entering ``SETCOLOR`` without parameters will display the current color scheme.
+
+To change the scheme of a specific color using SETCOLOR command, just provide the color number and its color value, e.g.
+
+``
+SETCOLOR 1 (50,50,50)
+``
+
+The above command change Color #1 to the specified color value. You can also return it to the default color value using the command:
+
+``
+SETCOLOR 1 -
+``
+
+Entering ``SETCOLOR 1`` will display the current color value of Color #1.

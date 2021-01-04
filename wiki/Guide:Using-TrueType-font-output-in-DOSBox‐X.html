@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Demo description</title>
+<title>TrueType font output in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -443,90 +443,240 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="Guide%3AMS‐DOS%3Ademoscene%3A1992.html">1992</a> demoscene entry.</p>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_demo_description">Demo description</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>(todo)</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_recommended_dosbox_x_configuration">Recommended DOSBox-X configuration</h2>
-<div class="sectionbody">
-<div class="literalblock">
+<h1 id="_truetype_font_output_in_dosbox_x" class="sect0">TrueType font output in DOSBox-X</h1>
+<div class="openblock partintro">
 <div class="content">
-<pre>[dosbox]
-machine=vgaonly
-memsize=1
-
-[cpu]
-core=normal
-cputype=386
-cycles=9000
-
-[dos]
-int33=true # INT 33h mouse emulation
-
-[sblaster]
-sbtype=sbpro2
-sbbase=220
-irq=5
-dma=1
-
-[speaker]
-initial frequency=0</pre>
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_truetype_font_output_in_dosbox_x">TrueType font output in DOSBox-X</a>
+<ul class="sectlevel1">
+<li><a href="#_activating_the_truetype_font_output">Activating the TrueType font output</a></li>
+<li><a href="#_use_your_own_truetype_font_for_the_output">Use your own TrueType font for the output</a></li>
+<li><a href="#_modifying_the_screen_dimension_for_the_output">Modifying the screen dimension for the output</a></li>
+<li><a href="#_on_screen_text_styles_for_dos_applications">On-screen text styles for DOS applications</a></li>
+<li><a href="#_color_scheme_for_the_truetype_font_output">Color scheme for the TrueType font output</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>To run the demo, type RUNME.BAT</p>
+<p>This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>You should enable INT 33h mouse emulation. Some parts of the demo rotate
-an object, then invite you to rotate it with the mouse and play with the
-object.</p>
+<p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_alternate_configuration_for_better_music_quality">Alternate configuration for better music quality</h2>
+<h2 id="_activating_the_truetype_font_output">Activating the TrueType font output</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The demo’s default settings produce very low-fidelity MOD music playback
-(5KHz!). You can get better audio playback by running the demo directly
-and changing the dosbox.conf as follows:</p>
+<p>You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[cpu]
-core=normal
-cputype=386
-cycles=20000</pre>
+<pre class="highlight"><code>output = ttf</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Then type:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>vv odyssey2.mod 22050</pre>
-</div>
+<p>Alternatively, you can force the TTF output when starting DOSBox-X from the command-line such as <code>dosbox-x -set output=ttf</code>. Then the TrueType font output will be used when the DOSBox-X window appears.</p>
 </div>
 <div class="paragraph">
-<p>The demo should run through it’s routines with much better sounding
-music.</p>
+<p>You can also switch from a different output (such as the standard surface/opengl/direct3d outputs) to the TrueType font output from DOSBox-X&#8217;s drop-down menu. Under "Video" menu, from the "Output" menu group select "TrueType font". Then DOSBox-X will automatically switch to the TTF output from another output. You can switch back and forth between these outputs by selecting a output from the "Output" menu group.</p>
+</div>
+<div class="paragraph">
+<p>Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the <code><code>ttf.outputswitch</code></code> config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.</p>
+</div>
+<div class="paragraph">
+<p>The blinking cursor in the TrueType output can be optionally disabled with the setting <code>ttf.blinkc=false</code> in the [render] section of the configuration.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_more_information">More information</h2>
+<h2 id="_use_your_own_truetype_font_for_the_output">Use your own TrueType font for the output</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="http://www.pouet.net/prod.php?which=4256">More information (Pouet)</a></p>
+<p>By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference. If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
+</div>
+<div class="paragraph">
+<p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>). These can also be used for rendering texts in the TrueType output.</p>
+</div>
+<div class="paragraph">
+<p>For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>ttf.font=Nouveau_IBM</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the file extension is .ttf you can either omit the extension or put the full file name (e.g. <code><code>ttf.font=Nouveau_IBM.ttf</code></code>).</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:</p>
+</div>
+<div class="paragraph">
+<p>Windows: <code>C:\WINDOWS\Fonts</code>
+Linux: <code>/usr/share/fonts/truetype/</code>
+macOS: <code>/Library/Fonts/</code></p>
+</div>
+<div class="paragraph">
+<p>So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>ttf.font=Consola
+ttf.font=Lucon
+ttf.font=vgasys.fon
+ttf.font=msgothic.ttc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use.</p>
+</div>
+<div class="paragraph">
+<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_modifying_the_screen_dimension_for_the_output">Modifying the screen dimension for the output</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [render] section to achieve this, namely <code>ttf.winperc</code> and <code>ttf.ptsize</code>, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, <code>ttf.winperc=75</code> will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with <code>ttf.ptsize</code>, and in such case <code>ttf.winperc</code> will be ignored. For example, <code><code>ttf.ptsize=25</code></code> will set the TTF font size to 25px.</p>
+</div>
+<div class="paragraph">
+<p>The window size for the TrueType font output can also be increased or decreased dynamically from the menu ("Video" &#8658; "TTF options" &#8658; "Increase TTF font size"/"Decrease TTF font size"), or using keyboard shortcuts.</p>
+</div>
+<div class="paragraph">
+<p>Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options "ttf.lins" and "ttf.cols". For example, the following will set the text screen to be 100 columns and 50 rows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>ttf.cols=100
+ttf.lins=50</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE command from DOSBox-X&#8217;s DOS shell, although in this case the options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60. These can be found in the "Text-mode" menu group under the "Video" menu, or you can do so via the a command like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>MODE CON LINES=50
+MODE CON LINES=60 COLS=132</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above commands will change the screen dimension to 50 lines and 132x60 respectively.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_on_screen_text_styles_for_dos_applications">On-screen text styles for DOS applications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, and XyWrite. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>ttf.wp=XY</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set <code><code>ttf.strikeout=true</code></code> to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.</p>
+</div>
+<div class="paragraph">
+<p>For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>ttf.font=Consola
+ttf.fontbold=Consolab
+ttf.fontital=Consolai
+ttf.fontboit=Consolaz</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the regular text will be rendered using the Consola.ttf font, whereas the bold text, italic text, and bold-italic text in XyWrite (as specified by <code>ttf.wp=XY</code> in this case) will be rendered using the Consolab.ttf, Consolai.ttf, Consolaz.ttf respectively.</p>
+</div>
+<div class="paragraph">
+<p>If you set <code>ttf.wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>ttf.char512=false</code> in the [render] section of the configuration.</p>
+</div>
+<div class="paragraph">
+<p>If you set <code>ttf.wp=WS</code> which sets WordStar as the word processor, then you probably want to <code>high intensity blinking=false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_color_scheme_for_the_truetype_font_output">Color scheme for the TrueType font output</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are also other settings related to the TrueType font output, such as changing the default color scheme for the output.</p>
+</div>
+<div class="paragraph">
+<p>The original DOS colors (0-15) are the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>0 - Black; 1 - Blue; 2 - Green; 3 - Cyan</p>
+</li>
+<li>
+<p>4 - Red; 5 - Magenta; 6 - Yellow / Brown; 7 - White / Light Gray</p>
+</li>
+<li>
+<p>8 - Dark Gray / Bright Black; 9 - Bright Blue; 10 - Bright Green; 11 - Bright Cyan</p>
+</li>
+<li>
+<p>12 - Bright Red; 13 - Bright Magenta; 14 - Bright Yellow; 15 - Bright White</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There is a <code>ttf.colors</code> config option which you can use to optionally specify the different color scheme for the TrueType font output. All 16 color values either in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB are to be supplied in this case.</p>
+</div>
+<div class="paragraph">
+<p>The default color scheme is:</p>
+</div>
+<div class="paragraph">
+<p><code>
+ttf.colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
+</code></p>
+</div>
+<div class="paragraph">
+<p>You can supply a different color scheme so that it will be used instead of the default one. For example, the following will give a gray-scaled color scheme:</p>
+</div>
+<div class="paragraph">
+<p><code>
+ttf.colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
+</code></p>
+</div>
+<div class="paragraph">
+<p>The color schemes can also be changed when DOSBox-X is running. There is a <code>SETCOLOR</code> command in DOSBox-X which allows to view or change the current color scheme. For example, entering <code>SETCOLOR</code> without parameters will display the current color scheme.</p>
+</div>
+<div class="paragraph">
+<p>To change the scheme of a specific color using SETCOLOR command, just provide the color number and its color value, e.g.</p>
+</div>
+<div class="paragraph">
+<p><code>
+SETCOLOR 1 (50,50,50)
+</code></p>
+</div>
+<div class="paragraph">
+<p>The above command change Color #1 to the specified color value. You can also return it to the default color value using the command:</p>
+</div>
+<div class="paragraph">
+<p><code>
+SETCOLOR 1 -
+</code></p>
+</div>
+<div class="paragraph">
+<p>Entering <code>SETCOLOR 1</code> will display the current color value of Color #1.</p>
 </div>
 </div>
 </div>

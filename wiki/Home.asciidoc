@@ -205,7 +205,7 @@ Explains how to use DOSBox-X with DOS software from the demoscene.
 * link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X]
 +
 Explains DOSBox-X's PC-98 system and how to use it to run PC-98 games or applications in DOSBox-X.
-* link:Guide%3ATrueType-font-output-in-DOSBox‐X{suffixappend}[Guide: TrueType font output in DOSBox‐X]
+* link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Guide: Using TrueType font output in DOSBox‐X]
 +
 Explains DOSBox-X's TrueType font (TTF) output, which is very useful for text-mode DOS applications.
 * link:Guide%3AManaging-image-files-in-DOSBox‐X{suffixappend}[Guide: Managing image files in DOSBox‐X]
