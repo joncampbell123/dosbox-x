@@ -1664,7 +1664,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-            -1,             // read timeout
+            3000,             // read timeout
             NULL,             // authentication on the remote machine
             errbuf            // error buffer
             ) ) == NULL)
@@ -1676,7 +1676,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             true,    // promiscuous mode
-            -1,             // read timeout
+            3000,             // read timeout
             errbuf            // error buffer
             ) ) == NULL)
 
