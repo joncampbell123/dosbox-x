@@ -91,6 +91,8 @@
 
 // access to a general register
 #define DRCD_REG_VAL(reg) (&cpu_regs.regs[reg].dword)
+// access to the flags register
+#define DRCD_REG_FLAGS (&cpu_regs.flags)
 // access to a segment register
 #define DRCD_SEG_VAL(seg) (&Segs.val[seg])
 // access to the physical value of a segment register/selector
@@ -112,7 +114,8 @@ enum BlockReturn {
 #endif
 	BR_Iret,
 	BR_CallBack,
-	BR_SMCBlock
+	BR_SMCBlock,
+	BR_Trap
 };
 
 // identificator to signal self-modification of the currently executed block
@@ -380,6 +383,18 @@ run_block:
 			block=LinkBlocks(ret);
 			if (block) goto run_block;
 			break;
+
+		case BR_Trap:
+			// trapflag is set, switch to the trap-aware decoder
+	#if C_DEBUG
+	#if C_HEAVY_DEBUG
+			if (DEBUG_HeavyIsBreakpoint()) {
+				return debugCallback;
+			}
+	#endif
+	#endif
+			cpudecoder=CPU_Core_Dynrec_Trap_Run;
+			return CBRET_NONE;
 
 		default:
 			E_Exit("Invalid return code %d", ret);

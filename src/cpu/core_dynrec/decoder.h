@@ -361,6 +361,7 @@ restart_prefix:
 		case 0x9d:	// popf
 			gen_call_function_I(CPU_POPF,decode.big_op);
 			dyn_check_exception(FC_RETOP);
+			dyn_check_trapflag();
 			InvalidateFlags();
 			break;
 
