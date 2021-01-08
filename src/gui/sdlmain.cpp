@@ -8857,7 +8857,7 @@ bool DOSBOX_parse_argv() {
             struct stat st;
             const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
             if (stat(tmp.c_str(), &st) == 0) {
-                if (st.st_mode & S_IFDIR) {
+                if (st.st_mode & S_IFDIR || (ext != NULL && S_ISREG(st.st_mode) && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
                     control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
                     control->cmdline->EatCurrentArgv();
                     continue;

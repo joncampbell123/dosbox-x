@@ -3,6 +3,8 @@
     "config -set fullscreen=false" can now switch on or
     off the full-screen mode. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
+  - Fixed incorrect behavior for handling trap flags
+    in the dynamic core. (koolkdev)
   - Updated the Tiny File Dialog library to the latest
     version v3.8.4. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
