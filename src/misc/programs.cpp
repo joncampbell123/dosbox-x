@@ -33,6 +33,7 @@
 #include "control.h"
 #include "shell.h"
 #include "menu.h"
+#include "render.h"
 
 Bitu call_program;
 
@@ -1068,7 +1069,7 @@ void CONFIG::Run(void) {
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "dos")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1178,7 +1179,22 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
 #endif
                             }
-						}
+						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
+                            void GFX_ForceRedrawScreen(void);
+							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
+#if defined(USE_TTF)
+                                void ttf_reset(void);
+                                ttf_reset();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+#if C_OPENGL
+                                std::string LoadGLShader(Section_prop * section);
+                                LoadGLShader(section);
+                                GFX_ForceRedrawScreen();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
+                                GFX_ForceRedrawScreen();
+                        }
 					}
 				}
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
