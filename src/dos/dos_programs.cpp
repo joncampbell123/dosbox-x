@@ -1432,8 +1432,12 @@ FILE * fopen_lock(const char * fname, const char * mode) {
         LockFile(hFile, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF);
 #else
         retfile = fopen64(fname, mode);
-        int lock = flock(fileno(retfile), LOCK_EX | LOCK_NB);
-        if (lock==-1) return NULL;
+        if (retfile == NULL) return NULL; /* did you know fopen returns NULL if it cannot open the file? */
+        int lock = flock(fileno(retfile), LOCK_EX | LOCK_NB); /* did you know fileno() assumes retfile != NULL and you will segfault if that is wrong? */
+        if (lock < 0) {
+            fclose(retfile); /* don't leak file handles on failure to flock() */
+            return NULL;
+        }
 #endif
     } else
         retfile = fopen64(fname, mode);
