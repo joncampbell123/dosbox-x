@@ -297,15 +297,15 @@ bool colorChanged = false, justChanged = false;
 #endif
 #if defined(WIN32)
 #if !defined(HX_DOS)
-int curscr;
+int curscreen;
 RECT monrect;
 typedef struct {
 	int	x, y;
 } xyp;
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
 	xyp* xy = reinterpret_cast<xyp*>(lParam);
-	curscr++;
-	if (sdl.displayNumber==curscr) monrect=*pRcMon;
+	curscreen++;
+	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
 	return TRUE;
 }
 #endif
@@ -2601,7 +2601,7 @@ static Bitu OUTPUT_TTF_SetSize() {
             xyp xy={0};
             xy.x=-1;
             xy.y=-1;
-            curscr=0;
+            curscreen=0;
             EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
             HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
             MONITORINFO info;
@@ -5245,7 +5245,7 @@ static void GUI_StartUp() {
         xyp xy={0};
         xy.x=-1;
         xy.y=-1;
-        curscr=0;
+        curscreen=0;
         EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
         HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
         info.cbSize = sizeof(MONITORINFO);
@@ -10165,9 +10165,9 @@ int GetNumScreen() {
     xyp xy={0};
     xy.x=-1;
     xy.y=-1;
-    curscr=0;
+    curscreen=0;
     EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
-    numscreen = curscr;
+    numscreen = curscreen;
 #elif defined(MACOSX)
     CGDisplayCount nDisplays;
     CGGetActiveDisplayList(0,0, &nDisplays);

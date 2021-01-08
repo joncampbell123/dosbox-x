@@ -26,6 +26,7 @@
 
 #define NUMBER_ANSI_DATA 10
 
+extern bool inshell;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 extern unsigned char pc98_function_row_mode;
@@ -721,7 +722,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		case 0: /* Extended keys in the int 16 0x0 case */
             if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
     			data[count++]=0x03; // CTRL+C
-                if (*size > 1) {
+                if (*size > 1 || !inshell) {
                     dos.errorcode=77;
                     *size=count;
                     reg_ax=oldax;
@@ -743,13 +744,12 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			break;
 		default:
 			data[count++]=reg_al;
-			if (*size > 1 && reg_al == 3)
-				{
+			if ((*size > 1 || !inshell) && reg_al == 3) {
 				dos.errorcode=77;
 				*size=count;
 				reg_ax=oldax;
 				return false;
-				}
+			}
 			break;
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????

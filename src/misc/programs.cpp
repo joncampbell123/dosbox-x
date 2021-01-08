@@ -551,8 +551,8 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program);
-bool set_ver(char *s);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void);
+bool set_ver(char *s), GFX_IsFullscreen(void);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
@@ -1106,6 +1106,11 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
+                                if (section->Get_bool("fullscreen")) {
+                                    if (!GFX_IsFullscreen()) GFX_SwitchFullScreen();
+                                } else if (GFX_IsFullscreen()) GFX_SwitchFullScreen();
+                            }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
