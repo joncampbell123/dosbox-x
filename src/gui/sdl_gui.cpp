@@ -118,6 +118,19 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 
 const char *intromsg = "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.";
 
+void RebootConfig(std::string filename, bool confirm=false) {
+    std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
+    bool CheckQuit(void);
+    if ((!confirm||CheckQuit())&&exepath.size()) {
+#if defined(WIN32)
+        ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#else
+        system((exepath+" "+para).c_str());
+#endif
+        throw(0);
+    }
+}
+
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
     GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -1386,18 +1399,7 @@ public:
             return;
         }
         if (arg == "OK" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
-        if (arg == "Save & Restart") {
-            std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf "+std::string((const char*)name->getText());
-            bool CheckQuit(void);
-            if (CheckQuit()&&exepath.size()) {
-#if defined(WIN32)
-                ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
-#else
-                system((exepath+" "+para).c_str());
-#endif
-                throw(0);
-            }
-        }
+        if (arg == "Save & Restart") RebootConfig((const char*)name->getText(), true);
         close();
         if(shortcut) running=false;
     }

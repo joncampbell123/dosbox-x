@@ -552,17 +552,19 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
-		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
-		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
+		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot",
+		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
 		P_WRITECONF_PORTABLE, P_WRITECONF_DEFAULT, P_WRITECONF, P_WRITECONF2,
+		P_WRITECONF_PORTABLE_REBOOT, P_WRITECONF_DEFAULT_REBOOT, P_WRITECONF_REBOOT, P_WRITECONF2_REBOOT,
 		P_LISTCONF,	P_KILLCONF,
 		P_HELP, P_HELP2, P_HELP3,
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
@@ -636,36 +638,42 @@ void CONFIG::Run(void) {
 			}
 			break;
 		}
-		case P_WRITECONF: case P_WRITECONF2:
+		case P_WRITECONF: case P_WRITECONF2: case P_WRITECONF_REBOOT: case P_WRITECONF2_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
 				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all, norem);
+				if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all, norem);
-				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+				if (control->configfiles.size()) {
+					writeconf(control->configfiles[0], false, all, norem);
+					if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(control->configfiles[0]);
+				} else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
-		case P_WRITECONF_DEFAULT: {
+		case P_WRITECONF_DEFAULT: case P_WRITECONF_DEFAULT_REBOOT: {
 			// write to /userdir/dosbox-x-0.xx.conf
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
 			writeconf(confname, true, all, norem);
+			if (presult==P_WRITECONF_DEFAULT_REBOOT) RebootConfig(confname);
 			break;
 		}
-		case P_WRITECONF_PORTABLE:
+		case P_WRITECONF_PORTABLE: case P_WRITECONF_PORTABLE_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
 				writeconf(pvars[0], false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
 				writeconf(std::string("dosbox-x.conf"), false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(std::string("dosbox-x.conf"));
 			}
 			break;
 
@@ -1265,8 +1273,9 @@ void PROGRAMS_Init() {
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
-		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
+		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
+		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\

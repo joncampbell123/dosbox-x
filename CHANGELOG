@@ -2,7 +2,10 @@
   - Added "Save & Restart" button to the Configuration
     Tool's "Save" option for saving the config file and
     then automatically restarting DOSBox-X with this
-    saved configuration. (Wengier)
+    saved configuration. Command-line options -wcboot,
+    -wcdboot and -wcpboot are added to CONFIG command
+    which resemble -wc, -wcd, and -wcp options but will
+    reboot DOSBox-X after writing configfile. (Wengier)
   - The commands "config -set fullscreen=true" and
     "config -set fullscreen=false" can now switch on or
     off the full-screen mode. You can also change the
