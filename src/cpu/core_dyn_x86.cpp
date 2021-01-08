@@ -119,7 +119,8 @@ enum BlockReturn {
 #endif
 	BR_Iret,
 	BR_CallBack,
-	BR_SMCBlock
+	BR_SMCBlock,
+	BR_Trap
 };
 
 #define SMC_CURRENT_BLOCK	0xffff
@@ -378,6 +379,17 @@ run_block:
 			}
 		}
 		goto restart_core;
+	case BR_Trap:
+			// trapflag is set, switch to the trap-aware decoder
+	#if C_DEBUG
+	#if C_HEAVY_DEBUG
+			if (DEBUG_HeavyIsBreakpoint()) {
+				return debugCallback;
+			}
+	#endif
+	#endif
+			cpudecoder=CPU_Core_Dyn_X86_Trap_Run;
+			return CBRET_NONE;
 	}
 	return CBRET_NONE;
 }
