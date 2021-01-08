@@ -1453,7 +1453,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, false);
     Pbool->Set_help("If set, DOSBox-X will try to automatically synchronize time with the host, unless you decide to change the date/time manually.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host.");
@@ -2372,6 +2372,8 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
+                    "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
+                    "For a font name or relative path, directories such as the working directory and default system font directory will be searched.\n"
                     "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
     Pstring->SetBasic(true);
 
