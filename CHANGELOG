@@ -1,4 +1,8 @@
 0.83.10
+  - Added "Save & Restart" button to the Configuration
+    Tool's "Save" option for saving the config file and
+    then automatically restarting DOSBox-X with this
+    saved configuration. (Wengier)
   - The commands "config -set fullscreen=true" and
     "config -set fullscreen=false" can now switch on or
     off the full-screen mode. (Wengier)

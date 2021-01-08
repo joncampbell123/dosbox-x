@@ -1119,7 +1119,7 @@ void RENDER_UpdateFromScalerSetting(void) {
 
 #if C_OPENGL
 extern int initgl;
-std::string shader_src="", GetDOSBoxXPath();
+std::string shader_src="", GetDOSBoxXPath(bool withexe=false);
 std::string LoadGLShader(Section_prop * section) {
 	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
     render.shader_def = false;

@@ -1353,8 +1353,9 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, "Save all config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (new GUI::Button(this, 220, 120, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 310, 120, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
+        (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);
+        (new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1384,7 +1385,19 @@ public:
             name->setText(fullpath);
             return;
         }
-        if (arg == "OK") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "OK" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "Save & Restart") {
+            std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf "+std::string((const char*)name->getText());
+            bool CheckQuit(void);
+            if (CheckQuit()&&exepath.size()) {
+#if defined(WIN32)
+                ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#else
+                system((exepath+" "+para).c_str());
+#endif
+                throw(0);
+            }
+        }
         close();
         if(shortcut) running=false;
     }

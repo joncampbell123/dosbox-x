@@ -1029,7 +1029,7 @@ void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
 
 std::string dosboxpath="";
-std::string GetDOSBoxXPath() {
+std::string GetDOSBoxXPath(bool withexe=false) {
     std::string full;
 #if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
     char exepath[MAX_PATH];
@@ -1043,11 +1043,15 @@ std::string GetDOSBoxXPath() {
     full=std::string(exepath);
     free(exepath);
 #endif
-    size_t found=full.find_last_of("/\\");
-    if (found!=string::npos)
-        dosboxpath=full.substr(0, found+1);
-    else
-        dosboxpath="";
+    if (withexe)
+        dosboxpath=full;
+    else {
+        size_t found=full.find_last_of("/\\");
+        if (found!=string::npos)
+            dosboxpath=full.substr(0, found+1);
+        else
+            dosboxpath="";
+    }
     return dosboxpath;
 }
 

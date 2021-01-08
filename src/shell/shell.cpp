@@ -57,7 +57,7 @@ bool usecon = true;
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
-std::string GetDOSBoxXPath();
+std::string GetDOSBoxXPath(bool withexe=false);
 void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
