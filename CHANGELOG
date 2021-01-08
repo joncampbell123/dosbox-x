@@ -6,6 +6,9 @@
     -wcdboot and -wcpboot are added to CONFIG command
     which resemble -wc, -wcd, and -wcp options but will
     reboot DOSBox-X after writing configfile. (Wengier)
+  - The config option ttf.font will now search for TTF
+    fonts in the directory as specified by the fontpath
+    option in [printer] section too. (Wengier)
   - The commands "config -set fullscreen=true" and
     "config -set fullscreen=false" can now switch on or
     off the full-screen mode. You can also change the

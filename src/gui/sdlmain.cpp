@@ -3353,25 +3353,28 @@ bool readTTF(const char *fName, bool bold, bool ital) {
 
 	strcpy(ttfPath, fName);													// Try to load it from working directory
 	strcat(ttfPath, ".ttf");
-    ttf_fh = fopen(ttfPath, "rb");
-
+	ttf_fh = fopen(ttfPath, "rb");
+	if (!ttf_fh) {
+		strcpy(ttfPath, fName);
+		ttf_fh = fopen(ttfPath, "rb");
+	}
     if (!ttf_fh) {
         exepath=GetDOSBoxXPath();
         if (exepath.size()) {
             strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
             strcat(ttfPath, ".ttf");
             ttf_fh = fopen(ttfPath, "rb");
+            if (!ttf_fh) {
+                strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);
+                ttf_fh = fopen(ttfPath, "rb");
+            }
         }
-	}
-	if (!ttf_fh) {
-		strcpy(ttfPath, fName);
-		ttf_fh = fopen(ttfPath, "rb");
-	}
-	if (!ttf_fh) {
-		std::string config_path;
-		Cross::GetPlatformConfigDir(config_path);
-		struct stat info;
-		if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
+    }
+    if (!ttf_fh) {
+        std::string config_path;
+        Cross::GetPlatformConfigDir(config_path);
+        struct stat info;
+        if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
             strcpy(ttfPath, config_path.c_str());
             strcat(ttfPath, fName);
             strcat(ttfPath, ".ttf");
@@ -3384,12 +3387,18 @@ bool readTTF(const char *fName, bool bold, bool ital) {
         }
     }
     if (!ttf_fh) {
-        exepath=GetDOSBoxXPath();
-        if (exepath.size()) {
-            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);
+        std::string basedir = static_cast<Section_prop *>(control->GetSection("printer"))->Get_string("fontpath");
+        if (basedir.back()!='\\' && basedir.back()!='/') basedir += CROSS_FILESPLIT;
+        strcpy(ttfPath, basedir.c_str());
+        strcat(ttfPath, fName);
+        strcat(ttfPath, ".ttf");
+        ttf_fh = fopen(ttfPath, "rb");
+        if (!ttf_fh) {
+            strcpy(ttfPath, basedir.c_str());
+            strcat(ttfPath, fName);
             ttf_fh = fopen(ttfPath, "rb");
         }
-	}
+    }
     if (!ttf_fh) {
         char fontdir[300];
 #if defined(WIN32)
