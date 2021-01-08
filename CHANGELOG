@@ -1,3 +1,14 @@
+0.83.10
+  - The commands "config -set fullscreen=true" and
+    "config -set fullscreen=false" can now switch on or
+    off the full-screen mode. (Wengier)
+  - Fixed Ctrl+C not working in GNU ed. (Wengier)
+  - Updated the Tiny File Dialog library to the latest
+    version v3.8.4. (Wengier)
+  - Improved OPL3Duo support, such as adding a buffer
+    thread to get rid of slowdowns & breakups in audio
+    playback when using the board. (DhrBaksteen)
+
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds
     just like SDL1 builds, so commands like "MOUNT -CD"

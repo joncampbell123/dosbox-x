@@ -114,7 +114,7 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #else
 	"32"
 #endif
-	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+	"-bit)\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
 const char *intromsg = "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.";
 
@@ -2379,7 +2379,7 @@ public:
 #endif
         } else if (arg == "About") {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 330, "About DOSBox-X", aboutmsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, "Introduction", intromsg);

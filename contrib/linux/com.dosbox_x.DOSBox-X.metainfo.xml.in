@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2011-2020 Jonathan Campbell -->
+<!-- Copyright 2011-2021 Jonathan Campbell -->
 <component type="desktop">
   <id>com.dosbox_x.DOSBox-X</id>
   <project_license>GPL-2.0</project_license>
@@ -10,7 +10,7 @@
     <category>Emulation</category>
   </categories>
   <releases>
-          <release version="@PACKAGE_VERSION@" date="2020-12-31"/>
+          <release version="@PACKAGE_VERSION@" date="2021-1-8"/>
   </releases>
   <screenshots>
 	  <screenshot type="default">
