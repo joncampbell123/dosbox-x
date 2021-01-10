@@ -12422,7 +12422,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 #endif
 
-        MSG_Init();
         MAPPER_StartUp();
         DOSBOX_InitTickLoop();
         DOSBOX_RealInit();
@@ -12593,6 +12592,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_ideinfo").set_text("Show IDE disk or CD status").set_callback_function(list_ideinfo_menu_callback);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
+        MSG_Init();
 
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
         mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
