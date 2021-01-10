@@ -1204,9 +1204,11 @@ void CONFIG::Run(void) {
 #if defined(USE_TTF)
                                 ttf_reset();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")) {
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
 #if defined(USE_TTF)
-                                if (!CurMode)
+                                if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")&&IS_PC98_ARCH)
+                                    SetVal("render", "ttf.cols", "80");
+                                else if (!CurMode)
                                     ;
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
                                     WriteOut("[2J");
