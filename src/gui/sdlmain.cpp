@@ -3469,6 +3469,12 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         const char * fbiName = render_section->Get_string("ttf.fontboit");
         LOG_MSG("SDL:TTF activated %s", fName);
         if (!*fName||!readTTF(fName, false, false)) {
+            ttfFont = DOSBoxTTFbi;
+            ttfFontb = NULL;
+            ttfFonti = NULL;
+            ttfFontbi = NULL;
+            ttfSize = sizeof(DOSBoxTTFbi);
+            ttfSizeb = ttfSizei = ttfSizebi = 0;
             ttf.DOSBox = true;
             std::string message="";
             if (*fbName)
@@ -3480,12 +3486,18 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             if (fsize==0&&message.size())
                 systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
         } else {
-            if (!*fbName||!readTTF(fbName, true, false))
+            if (!*fbName||!readTTF(fbName, true, false)) {
+                ttfFontb = NULL;
                 ttfSizeb = 0;
-            if (!*fiName||!readTTF(fiName, false, true))
+            }
+            if (!*fiName||!readTTF(fiName, false, true)) {
+                ttfFonti = NULL;
                 ttfSizei = 0;
-            if (!*fbiName||!readTTF(fbiName, true, true))
+            }
+            if (!*fbiName||!readTTF(fbiName, true, true)) {
+                ttfFontbi = NULL;
                 ttfSizebi = 0;
+            }
         }
         const char * colors = render_section->Get_string("ttf.colors");
         if (*colors) {
@@ -10238,6 +10250,7 @@ void ttf_setlines(int cols, int lins) {
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
     vga.draw.address_add = ttf.cols * 2;
+    PIC_AddEvent(ResetTTFSize,0.1);
 }
 #endif
 
