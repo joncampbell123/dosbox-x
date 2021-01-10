@@ -12,9 +12,10 @@
   - The commands "config -set fullscreen=true" and
     "config -set fullscreen=false" can now switch on or
     off the full-screen mode. You can also change the
-    TTF font or the GLSL shader dynamically using the
-    CONFIG command, e.g. "config -set ttf.font=consola"
-    and "config -set glshader=sharp". (Wengier)
+    TTF font, number of rows in the TTF screen or the
+    GLSL shader dynamically using CONFIG command, e.g.
+    "config -set ttf.font=test", "config -set ttf.lins
+    =30", and "config -set glshader=sharp". (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed incorrect behavior for handling trap flags
     in the dynamic core. (koolkdev)

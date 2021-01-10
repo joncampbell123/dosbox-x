@@ -10243,14 +10243,13 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
 }
 
 void ttf_setlines(int cols, int lins) {
-    SetVal("render", "ttf.cols", std::to_string(cols));
-    SetVal("render", "ttf.lins", std::to_string(lins));
+    if (cols>0) SetVal("render", "ttf.cols", std::to_string(cols));
+    if (lins>0) SetVal("render", "ttf.lins", std::to_string(lins));
     firstset=true;
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
     vga.draw.address_add = ttf.cols * 2;
-    PIC_AddEvent(ResetTTFSize,0.1);
 }
 #endif
 

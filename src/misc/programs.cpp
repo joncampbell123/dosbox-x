@@ -34,6 +34,7 @@
 #include "shell.h"
 #include "menu.h"
 #include "render.h"
+#include "../ints/int10.h"
 
 Bitu call_program;
 
@@ -1188,11 +1189,22 @@ void CONFIG::Run(void) {
 #endif
                             }
 						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
-                            void GFX_ForceRedrawScreen(void);
+                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins);
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
 #if defined(USE_TTF)
-                                void ttf_reset(void);
                                 ttf_reset();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")) {
+#if defined(USE_TTF)
+                                if (!CurMode)
+                                    ;
+                                else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+                                    WriteOut("[2J");
+                                else {
+                                    reg_ax=(uint16_t)CurMode->mode;
+                                    CALLBACK_RunRealInt(0x10);
+                                }
+                                ttf_setlines(0, 0);
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
 #if C_OPENGL
