@@ -3787,6 +3787,12 @@ void change_output(int output) {
 extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
 #endif
 
+#if defined(USE_TTF)
+void ResetTTFSize(Bitu /*val*/) {
+    resetFontSize();
+}
+#endif
+
 void GFX_SwitchFullScreen(void)
 {
 #if defined(USE_TTF)
@@ -3798,7 +3804,6 @@ void GFX_SwitchFullScreen(void)
             else
                 OUTPUT_TTF_Select(1);
             resetFontSize();
-            lastfontsize = 0;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             if (lastmenu) DOSBox_SetMenu();
 #endif
@@ -3830,6 +3835,9 @@ void GFX_SwitchFullScreen(void)
 #endif
             resetreq = true;
             GFX_ResetScreen();
+            resetFontSize();
+            if (lastfontsize<1) PIC_AddEvent(ResetTTFSize,0.001);
+            lastfontsize = 0;
         } else {
             lastfontsize = ttf.pointsize;
             sdl.desktop.fullscreen = true;
@@ -4931,7 +4939,7 @@ static void GUI_StartUp() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     assert(section != NULL);
 
-    sdl.desktop.fullscreen=section->Get_bool("fullscreen");
+    sdl.desktop.fullscreen=false;
     sdl.wait_on_error=section->Get_bool("waitonerror");
 
     Prop_multival* p=section->Get_multival("priority");
