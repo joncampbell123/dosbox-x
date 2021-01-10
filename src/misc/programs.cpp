@@ -558,7 +558,7 @@ bool set_ver(char *s), GFX_IsFullscreen(void);
 
 void CONFIG::Run(void) {
 	static const char* const params[] = {
-		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot",
+		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
 		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
@@ -566,7 +566,7 @@ void CONFIG::Run(void) {
 		P_RESTART,
 		P_WRITECONF_PORTABLE, P_WRITECONF_DEFAULT, P_WRITECONF, P_WRITECONF2,
 		P_WRITECONF_PORTABLE_REBOOT, P_WRITECONF_DEFAULT_REBOOT, P_WRITECONF_REBOOT, P_WRITECONF2_REBOOT,
-		P_LISTCONF,	P_KILLCONF,
+		P_BOOTCONF, P_BOOTCONF2, P_LISTCONF, P_KILLCONF,
 		P_HELP, P_HELP2, P_HELP3,
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
@@ -677,7 +677,17 @@ void CONFIG::Run(void) {
 				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(std::string("dosbox-x.conf"));
 			}
 			break;
-
+		case P_BOOTCONF: case P_BOOTCONF2:
+			if (securemode_check()) return;
+			if (pvars.size() > 1) return;
+			else if (pvars.size() == 1) {
+				RebootConfig(pvars[0]);
+			} else {
+				Bitu size = (Bitu)control->configfiles.size();
+				if (size==0) RebootConfig("dosbox-x.conf");
+				else RebootConfig(control->configfiles.front().c_str());
+            }
+			break;
 		case P_NOPARAMS:
 			if (!first) break;
 
@@ -1281,15 +1291,16 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
 		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
-		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
+		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
 		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\

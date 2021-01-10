@@ -5,7 +5,10 @@
     saved configuration. Command-line options -wcboot,
     -wcdboot and -wcpboot are added to CONFIG command
     which resemble -wc, -wcd, and -wcp options but will
-    reboot DOSBox-X after writing configfile. (Wengier)
+    reboot DOSBox-X after writing configfile. Command-
+    line option -bc (-bootconf) is also added to reboot
+    with specified config file (or the primary loaded
+    config file if not specified) directly. (Wengier)
   - The config option ttf.font will now search for TTF
     fonts in the directory as specified by the fontpath
     option in [printer] section too. (Wengier)
