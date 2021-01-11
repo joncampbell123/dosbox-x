@@ -4034,7 +4034,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
 
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
-    Pstring->Set_help("Specifies which of your network interfaces is used for libpcap.\n"
+    Pstring->Set_help("Specifies which host network interface is used for libpcap.\n"
         "Write \'list\' here to see the list of devices in the\n"
         "Status Window. Then make your choice and put either the\n"
         "interface number (2 or something) or a part of your adapters\n"
