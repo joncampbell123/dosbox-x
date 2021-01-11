@@ -3,10 +3,14 @@
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
     translations from the English language. (Wengier)
-  - Added "bannercolortheme" config option [in [dosbox]
-    section]) so that users can change the background
+  - Added "bannercolortheme" config option (in [dosbox]
+    section) so that users can change the background
     color theme of the welcome banner from the default
     blue color when DOSBox-X starts. (Wengier)
+  - Added "pcaptimeout" config option (in the [ne2000]
+    section) to specify a read timeout value for pcap
+    in milliseconds, or default value (-1 on Windows
+    or 3000 otherwise) will be used. (Wengier & Jookia)
   - Added "Save & Restart" button to the Configuration
     Tool's "Save" option for saving the config file and
     then automatically restarting DOSBox-X with this

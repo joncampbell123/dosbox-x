@@ -1657,6 +1657,17 @@ public:
 		if(currentdev->description) desc=currentdev->description;
 		LOG_MSG("Using Network interface:\n%s\n(%s)\n",currentdev->name,desc);
 		
+		const char *timeoutstr = section->Get_string("pcaptimeout");
+        char *end;
+        int timeout = -1;
+        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) {
+#ifdef WIN32
+            timeout = -1;
+#else
+            timeout = 3000;
+#endif
+        } else
+            timeout = strtoul(timeoutstr,&end,10);
 		// attempt to open it
 #ifdef WIN32
 		if ( (adhandle= pcap_open(
@@ -1664,7 +1675,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-            3000,             // read timeout
+            timeout,          // read timeout
             NULL,             // authentication on the remote machine
             errbuf            // error buffer
             ) ) == NULL)
@@ -1676,7 +1687,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             true,    // promiscuous mode
-            3000,             // read timeout
+            timeout,          // read timeout
             errbuf            // error buffer
             ) ) == NULL)
 

@@ -4061,6 +4061,9 @@ void DOSBOX_SetupConfigSections(void) {
         "name, e.g. VIA here.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
+    Pstring->Set_help("Specifies the read timeout for pcap in milliseconds, or the default value will be used.");
+
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
         secprop=control->AddSection_prop(ide_names[i],&Null_Init,false);//done
