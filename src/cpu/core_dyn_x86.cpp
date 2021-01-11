@@ -268,6 +268,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 
 	/* Determine the linear address of CS:EIP */
 restart_core:
+	dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
 #if C_DEBUG
 #if C_HEAVY_DEBUG
@@ -280,6 +281,7 @@ restart_core:
 		goto restart_core;
 	}
 	if (!chandler) {
+		dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
@@ -290,14 +292,16 @@ restart_core:
 		} else {
 			int32_t old_cycles=CPU_Cycles;
 			CPU_Cycles=1;
+			CPU_CycleLeft+=old_cycles;
 			// manually save
 			fpu_saver = auto_dh_fpu();
+			dosbox_allow_nonrecursive_page_fault = true;
 			Bits nc_retcode=CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
+				CPU_CycleLeft-=old_cycles;
 				goto restart_core;
 			}
-			CPU_CycleLeft+=old_cycles;
 			return nc_retcode; 
 		}
 	}
@@ -359,11 +363,13 @@ run_block:
 	case BR_Opcode:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
+		dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 #if (C_DEBUG)
 	case BR_OpcodeFull:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
+		dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Full_Run();
 #endif
 	case BR_Link1:
