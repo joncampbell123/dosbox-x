@@ -1320,6 +1320,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
     const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", 0};
     const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
+    const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -1421,6 +1422,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("bannercolortheme",Property::Changeable::OnlyAtStart,"default");
+    Pstring->Set_values(color_themes);
+    Pstring->Set_help("You can specify a different background color theme for the welcome banner from the default one.");
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("dpi aware",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);

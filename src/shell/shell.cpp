@@ -490,6 +490,26 @@ const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
+    if (machine != MCH_PC98) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        std::string theme = section->Get_string("bannercolortheme");
+        if (theme == "black")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[40;1m");
+        else if (theme == "red")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[41;1m");
+        else if (theme == "green")
+            msg = str_replace(str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[32m", "\033[36m"), "\033[44;1m", "\033[42;1m");
+        else if (theme == "yellow")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[43;1m");
+        else if (theme == "blue")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[44;1m");
+        else if (theme == "magenta")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[45;1m");
+        else if (theme == "cyan")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[46;1m");
+        else if (theme == "white")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
+    }
     if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
         return msg;
     else
