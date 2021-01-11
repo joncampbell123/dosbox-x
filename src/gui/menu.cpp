@@ -936,6 +936,10 @@ void DOSBoxMenu::dump_log_debug(void) {
     dump_log_displaylist(display_list, 1);
 }
 
+std::vector<DOSBoxMenu::item> DOSBoxMenu::get_master_list(void) {
+    return master_list;
+}
+
 void DOSBoxMenu::clear_all_menu_items(void) {
     for (auto &id : master_list) {
         if (id.is_allocated())

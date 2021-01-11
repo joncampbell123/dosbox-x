@@ -4824,7 +4824,7 @@ void MAPPER_Init(void) {
 #endif
 }
 
-std::string GetDOSBoxXPath();
+std::string GetDOSBoxXPath(bool withexe=false);
 void ReloadMapper(Section_prop *section, bool init) {
     if (!init&&control->opt_defaultmapper) return;
     Prop_path* pp;

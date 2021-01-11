@@ -114,9 +114,22 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #else
 	"32"
 #endif
-	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+	"-bit)\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
 const char *intromsg = "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.";
+
+void RebootConfig(std::string filename, bool confirm=false) {
+    std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
+    bool CheckQuit(void);
+    if ((!confirm||CheckQuit())&&exepath.size()) {
+#if defined(WIN32)
+        ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#else
+        system((exepath+" "+para).c_str());
+#endif
+        throw(0);
+    }
+}
 
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
@@ -179,7 +192,8 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     GFX_LosingFocus();//Release any keys pressed (buffer gets filled again). (could be in above if, but clearing the mapper input when exiting the mapper is sensible as well
     SDL_Delay(20);
 
-    LoadMessageFile(static_cast<Section_prop*>(control->GetSection("dosbox"))->Get_string("language"));
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    LoadMessageFile(section->Get_string("language"));
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
@@ -267,9 +281,34 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
                 getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-                int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
-                int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
-                int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
+#if defined(USE_TTF)
+                int r1, g1, b1;
+                if (ttf.inUse) {
+                    std::string theme = section->Get_string("bannercolortheme");
+                    if (theme == "black") {
+                        r1 = 0; g1 = 0; b1 = 0;
+                    } else if (theme == "red") {
+                        r1 = 170; g1 = 0; b1 = 0;
+                    } else if (theme == "green") {
+                        r1 = 0; g1 = 170; b1 = 0;
+                    } else if (theme == "yellow") {
+                        r1 = 170; g1 = 85; b1 = 0;
+                    } else if (theme == "magenta") {
+                        r1 = 170; g1 = 0; b1 = 170;
+                    } else if (theme == "cyan") {
+                        r1 = 0; g1 = 170; b1 = 170;
+                    } else if (theme == "white") {
+                        r1 = 170; g1 = 170; b1 = 170;
+                    } else {
+                        r1 = 0; g1 = 0; b1 = 170;
+                    }
+                } else
+#endif
+                {
+                    r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors
+                    g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice
+                    b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue
+                }
                 bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
                     ((unsigned int)g1 << (unsigned int)gs) |
                     ((unsigned int)b1 << (unsigned int)bs); 
@@ -1353,8 +1392,9 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, "Save all config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (new GUI::Button(this, 220, 120, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 310, 120, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
+        (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);
+        (new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1384,7 +1424,8 @@ public:
             name->setText(fullpath);
             return;
         }
-        if (arg == "OK") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "OK" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "Save & Restart") RebootConfig((const char*)name->getText(), true);
         close();
         if(shortcut) running=false;
     }
@@ -2379,7 +2420,7 @@ public:
 #endif
         } else if (arg == "About") {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 330, "About DOSBox-X", aboutmsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, "Introduction", intromsg);

@@ -57,9 +57,8 @@ bool usecon = true;
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
-std::string GetDOSBoxXPath();
+std::string GetDOSBoxXPath(bool withexe=false);
 void runMount(const char *str);
-void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -491,6 +490,26 @@ const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
+    if (machine != MCH_PC98) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        std::string theme = section->Get_string("bannercolortheme");
+        if (theme == "black")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[40;1m");
+        else if (theme == "red")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[41;1m");
+        else if (theme == "green")
+            msg = str_replace(str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[32m", "\033[36m"), "\033[44;1m", "\033[42;1m");
+        else if (theme == "yellow")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[43;1m");
+        else if (theme == "blue")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[44;1m");
+        else if (theme == "magenta")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[45;1m");
+        else if (theme == "cyan")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[46;1m");
+        else if (theme == "white")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
+    }
     if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
         return msg;
     else
@@ -652,7 +671,7 @@ void DOS_Shell::Run(void) {
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
     }
     else if (!optInit) {
-        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
+        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
     }
 
 	if (optInit) {
@@ -1092,7 +1111,7 @@ void SHELL_Init() {
                 "\x86\x46 Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction.  \x86\x46\n"
                 "\x86\x46 You can also complete various tasks through the \033[33mdrop-down menus\033[37m.   \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n");
-        MSG_Replace("SHELL_STARTUP_BEGIN2",
+        MSG_Add("SHELL_STARTUP_BEGIN2",
                     (std::string("\x86\x46 To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string(" \x86\x46\n")).c_str()
                );
         MSG_Add("SHELL_STARTUP_BEGIN3",
@@ -1111,7 +1130,9 @@ void SHELL_Init() {
 #endif
                 "\x86\x46                                                                    \x86\x46\n"
                );
-        MSG_Add("SHELL_STARTUP_EMPTY", "");
+        MSG_Add("SHELL_STARTUP_EMPTY",
+                "\x86\x46                                                                    \x86\x46\n"
+               );
         MSG_Add("SHELL_STARTUP_END",
                 "\x86\x46 \033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m \x86\x46\n"
                 "\x86\x46 \033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m \x86\x46\n"
@@ -1140,7 +1161,7 @@ void SHELL_Init() {
                 "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
-        MSG_Replace("SHELL_STARTUP_BEGIN2",
+        MSG_Add("SHELL_STARTUP_BEGIN2",
                 (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +

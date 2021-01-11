@@ -635,7 +635,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 
     FILE * hand;
 #if defined(WIN32)
-    if (enable_share_exe && nocachedir) {
+    if (enable_share_exe) {
         int ohFlag = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?GENERIC_READ:((flags&0xf)==OPEN_WRITE?GENERIC_WRITE:GENERIC_READ|GENERIC_WRITE);
         int shhFlag = (flags&0x70)==0x10?0:((flags&0x70)==0x20?FILE_SHARE_READ:((flags&0x70)==0x30?FILE_SHARE_WRITE:FILE_SHARE_READ|FILE_SHARE_WRITE));
         HANDLE handle = CreateFileW(host_name, ohFlag, shhFlag, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -653,7 +653,10 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 #endif
     }
 #if !defined(WIN32)
-    if (hand && enable_share_exe && nocachedir && (flags&0x70)==0x10 && flock(fileno(hand), LOCK_EX | LOCK_NB)==-1) return false;
+    if (hand && enable_share_exe && (flags&0x70)==0x10 && flock(fileno(hand), LOCK_EX | LOCK_NB)==-1) {
+        fclose(hand); // Close the file handle
+        return false;
+    }
 #endif
 //	uint32_t err=errno;
 	if (!hand) {

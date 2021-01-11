@@ -14,9 +14,11 @@ void Opl3DuoBoard::connect(const char* port) {
 		SERIAL_setCommParameters(comport, 115200, 'n', SERIAL_1STOP, 8);
 		printf("OK\n");
 
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
         resetBuffer();
         stopOPL3DuoThread = false;
         thread = std::thread(&Opl3DuoBoard::writeBuffer, this);
+#endif
 	} else {
 		printf("FAIL\n");
 	}
@@ -27,12 +29,14 @@ void Opl3DuoBoard::disconnect() {
     	printf("OPL3 Duo! Board: Disconnect\n");
 	#endif
 
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
     // Stop buffer thread after resetting the OPL3 Duo board.
     if(thread.joinable()) {
         reset();
         stopOPL3DuoThread = true;
         thread.join();
     }
+#endif
 
     // Once buffer thread has stopped close the port.
     if(comport) {
@@ -80,10 +84,12 @@ void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 }
 
 void Opl3DuoBoard::writeBuffer() {
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
     do {
         while(bufferRdPos != bufferWrPos) {
             SERIAL_sendchar(comport, sendBuffer[bufferRdPos]);
             bufferRdPos = (bufferRdPos + 1) % OPL3_DUO_BUFFER_SIZE;
         }
     } while(!stopOPL3DuoThread);
+#endif
 }

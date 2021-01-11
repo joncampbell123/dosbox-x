@@ -3465,6 +3465,9 @@ static Bitu INT18_PC98_Handler(void) {
 
                         b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
 
+#if defined(USE_TTF)
+                        ttf_switch_off(false);
+#endif
                         pc98_gdc[GDC_MASTER].force_fifo_complete();
                         pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
@@ -3540,6 +3543,9 @@ static Bitu INT18_PC98_Handler(void) {
                     void pc98_port6A_command_write(unsigned char b);
                     pc98_port6A_command_write(0x68); // restore 128KB wrap
 
+#if defined(USE_TTF)
+                    ttf_switch_off(false);
+#endif
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
@@ -3753,6 +3759,9 @@ static Bitu INT18_PC98_Handler(void) {
 
                 // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state
                 pc98_gdc[GDC_SLAVE].display_enable = !!(b & 0x80);
+#if defined(USE_TTF)
+                pc98_gdc[GDC_SLAVE].display_enable?ttf_switch_off(false):ttf_switch_on(false);
+#endif
             }
 
             pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);

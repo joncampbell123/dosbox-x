@@ -256,7 +256,7 @@
 #define PACKAGE_NAME "dosbox-x"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "dosbox-x 0.83.9"
+#define PACKAGE_STRING "dosbox-x 0.83.10"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "dosbox-x"
@@ -265,7 +265,7 @@
 #define PACKAGE_URL "https://dosbox-x.com"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.83.9"
+#define PACKAGE_VERSION "0.83.10"
 
 /* Compiling on RISC OS */
 /* #undef RISCOS */
@@ -277,7 +277,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "0.83.9"
+#define VERSION "0.83.10"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

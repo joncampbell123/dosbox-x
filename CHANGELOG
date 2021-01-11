@@ -1,3 +1,46 @@
+0.83.10
+  - You can now translate texts in DOSBox-X's drop-down
+    menus. The message files as written by the config
+    tool (CLI or GUI) will contain the menu texts for
+    translations from the English language. (Wengier)
+  - Added "bannercolortheme" config option (in [dosbox]
+    section) so that users can change the background
+    color theme of the welcome banner from the default
+    blue color when DOSBox-X starts. (Wengier)
+  - Added "pcaptimeout" config option (in the [ne2000]
+    section) to specify a read timeout value for pcap
+    in milliseconds, or default value (-1 on Windows
+    or 3000 otherwise) will be used. (Wengier & Jookia)
+  - Added "Save & Restart" button to the Configuration
+    Tool's "Save" option for saving the config file and
+    then automatically restarting DOSBox-X with this
+    saved configuration. Command-line options -wcboot,
+    -wcdboot and -wcpboot are added to CONFIG command
+    which resemble -wc, -wcd, and -wcp options but will
+    reboot DOSBox-X after writing configfile. Command-
+    line option -bc (-bootconf) is also added to reboot
+    with specified config file (or the primary loaded
+    config file if not specified) directly. (Wengier)
+  - The config option ttf.font will now search for TTF
+    fonts in the directory as specified by the fontpath
+    option in [printer] section too. (Wengier)
+  - The commands "config -set fullscreen=true" and
+    "config -set fullscreen=false" can now switch on or
+    off the full-screen mode. You can also change the
+    TTF font, the number of rows and columns in the TTF
+    screen or the GLSL shader dynamically using CONFIG
+    command, e.g. "config -set ttf.font=test", "config
+    -set ttf.lins=30", "config -set ttf.cols=100", and
+    "config -set glshader=sharp". (Wengier)
+  - Fixed Ctrl+C not working in GNU ed. (Wengier)
+  - Fixed incorrect behavior for handling trap flags
+    in the dynamic core. (koolkdev)
+  - Updated the Tiny File Dialog library to the latest
+    version v3.8.4. (Wengier)
+  - Improved OPL3Duo support, such as adding a buffer
+    thread to get rid of slowdowns & breakups in audio
+    playback when using the board. (DhrBaksteen)
+
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds
     just like SDL1 builds, so commands like "MOUNT -CD"

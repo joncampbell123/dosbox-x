@@ -33,6 +33,8 @@
 #include "control.h"
 #include "shell.h"
 #include "menu.h"
+#include "render.h"
+#include "../ints/int10.h"
 
 Bitu call_program;
 
@@ -551,18 +553,20 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program);
-bool set_ver(char *s);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+bool set_ver(char *s), GFX_IsFullscreen(void);
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
-		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
-		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
+		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
+		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
 		P_WRITECONF_PORTABLE, P_WRITECONF_DEFAULT, P_WRITECONF, P_WRITECONF2,
-		P_LISTCONF,	P_KILLCONF,
+		P_WRITECONF_PORTABLE_REBOOT, P_WRITECONF_DEFAULT_REBOOT, P_WRITECONF_REBOOT, P_WRITECONF2_REBOOT,
+		P_BOOTCONF, P_BOOTCONF2, P_LISTCONF, P_KILLCONF,
 		P_HELP, P_HELP2, P_HELP3,
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
@@ -635,39 +639,55 @@ void CONFIG::Run(void) {
 			}
 			break;
 		}
-		case P_WRITECONF: case P_WRITECONF2:
+		case P_WRITECONF: case P_WRITECONF2: case P_WRITECONF_REBOOT: case P_WRITECONF2_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
 				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all, norem);
+				if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all, norem);
-				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+				if (control->configfiles.size()) {
+					writeconf(control->configfiles[0], false, all, norem);
+					if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(control->configfiles[0]);
+				} else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
-		case P_WRITECONF_DEFAULT: {
+		case P_WRITECONF_DEFAULT: case P_WRITECONF_DEFAULT_REBOOT: {
 			// write to /userdir/dosbox-x-0.xx.conf
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
 			writeconf(confname, true, all, norem);
+			if (presult==P_WRITECONF_DEFAULT_REBOOT) RebootConfig(confname);
 			break;
 		}
-		case P_WRITECONF_PORTABLE:
+		case P_WRITECONF_PORTABLE: case P_WRITECONF_PORTABLE_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
 				writeconf(pvars[0], false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
 				writeconf(std::string("dosbox-x.conf"), false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(std::string("dosbox-x.conf"));
 			}
 			break;
-
+		case P_BOOTCONF: case P_BOOTCONF2:
+			if (securemode_check()) return;
+			if (pvars.size() > 1) return;
+			else if (pvars.size() == 1) {
+				RebootConfig(pvars[0]);
+			} else {
+				Bitu size = (Bitu)control->configfiles.size();
+				if (size==0) RebootConfig("dosbox-x.conf");
+				else RebootConfig(control->configfiles.front().c_str());
+            }
+			break;
 		case P_NOPARAMS:
 			if (!first) break;
 
@@ -904,7 +924,7 @@ void CONFIG::Run(void) {
 					}
 					// it's a property name
 					std::string val = sec->GetPropValue(pvars[0].c_str());
-					WriteOut("%s",val.c_str());
+					WriteOut("%s\n",val.c_str());
 					first_shell->SetEnv("CONFIG",val.c_str());
 				}
 				break;
@@ -950,7 +970,7 @@ void CONFIG::Run(void) {
 						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
 					return;
 				}
-				WriteOut("%s",val.c_str());
+				WriteOut("%s\n",val.c_str());
                 first_shell->SetEnv("CONFIG",val.c_str());
                 break;
 			}
@@ -1068,7 +1088,7 @@ void CONFIG::Run(void) {
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "dos")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1106,6 +1126,11 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
+                                if (section->Get_bool("fullscreen")) {
+                                    if (!GFX_IsFullscreen()) GFX_SwitchFullScreen();
+                                } else if (GFX_IsFullscreen()) GFX_SwitchFullScreen();
+                            }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
@@ -1173,7 +1198,35 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
 #endif
                             }
-						}
+						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
+                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins);
+							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
+#if defined(USE_TTF)
+                                ttf_reset();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
+#if defined(USE_TTF)
+                                if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")&&IS_PC98_ARCH)
+                                    SetVal("render", "ttf.cols", "80");
+                                else if (!CurMode)
+                                    ;
+                                else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+                                    WriteOut("[2J");
+                                else {
+                                    reg_ax=(uint16_t)CurMode->mode;
+                                    CALLBACK_RunRealInt(0x10);
+                                }
+                                ttf_setlines(0, 0);
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+#if C_OPENGL
+                                std::string LoadGLShader(Section_prop * section);
+                                LoadGLShader(section);
+                                GFX_ForceRedrawScreen();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
+                                GFX_ForceRedrawScreen();
+                        }
 					}
 				}
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
@@ -1240,14 +1293,16 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
-		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
+		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
+		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
 		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\

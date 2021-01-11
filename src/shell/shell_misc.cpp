@@ -47,7 +47,7 @@
 # define MAX(a,b) std::max(a,b)
 #endif
 
-bool clearline=false;
+bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
 extern bool DOS_BreakFlag;
@@ -303,6 +303,7 @@ void DOS_Shell::InputCommand(char * line) {
 	bool current_hist=false; // current command stored in history?
     uint16_t cr;
 
+    inshell = true;
     input_eof = false;
 	line[0] = '\0';
 
@@ -818,6 +819,7 @@ void DOS_Shell::InputCommand(char * line) {
         }
     }
 
+    inshell = false;
 	if (!str_len) return;
 	str_len++;
 
