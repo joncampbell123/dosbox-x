@@ -37,6 +37,7 @@ extern std::string niclist;
 #define pcap_open(A,B,C,D,E,F)			PacketOpen(A,B,C,D,E,F)
 #define pcap_next_ex(A,B,C)				PacketNextEx(A,B,C)
 #define pcap_findalldevs_ex(A,B,C,D)	PacketFindALlDevsEx(A,B,C,D)
+#define pcap_geterr(A)	PacketGetError(A)
 
 int (*PacketSendPacket)(pcap_t *, const u_char *, int) = 0;
 void (*PacketClose)(pcap_t *) = 0;
@@ -44,6 +45,7 @@ void (*PacketFreealldevs)(pcap_if_t *) = 0;
 pcap_t* (*PacketOpen)(char const *,int,int,int,struct pcap_rmtauth *,char *) = 0;
 int (*PacketNextEx)(pcap_t *, struct pcap_pkthdr **, const u_char **) = 0;
 int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) = 0;
+char* (*PacketGetError)(pcap_t *) = 0;
 
 char pcap_src_if_string[] = PCAP_SRC_IF_STRING;
 
@@ -97,12 +99,17 @@ bool LoadPcapLibrary() {
 	if(!PacketFindALlDevsEx) PacketFindALlDevsEx =
 		(int (__cdecl *)(char *, struct pcap_rmtauth *, pcap_if_t **, char *)) psp;
 
+	psp = GetProcAddress(pcapinst,"pcap_geterr");
+	if(!PacketGetError) PacketGetError =
+		(char* (__cdecl *)(pcap_t *)) psp;
+
 #ifdef __MINGW32__
 #pragma GCC diagnostic pop
 #endif
 
 	if(PacketFindALlDevsEx==0 || PacketNextEx==0 || PacketOpen==0 || 
-		PacketFreealldevs==0 || PacketClose==0 || PacketSendPacket==0) {
+		PacketFreealldevs==0 || PacketClose==0 || PacketSendPacket==0 ||
+		PacketGetError==0) {
             niclist = "Incorrect or non-functional WinPcap version.";
 			LOG_MSG(niclist.c_str());
 		pcapinst = NULL;
@@ -236,7 +243,8 @@ bool PcapEthernetConnection::Initialize()
 
 void PcapEthernetConnection::SendPacket(const uint8_t* packet, int len)
 {
-	pcap_sendpacket(adhandle, packet, len);
+	int ret = pcap_sendpacket(adhandle, packet, len);
+	if(ret) LOG_MSG("PCAP error: %s", pcap_geterr(adhandle));
 }
 
 void PcapEthernetConnection::GetPackets(std::function<void(const uint8_t*, int)> callback)
