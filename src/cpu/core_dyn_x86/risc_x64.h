@@ -540,6 +540,26 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
+static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
+	int idx = FindDynReg(dr1,size==4)->index;
+	opcode op;
+	uint8_t tmp;
+	switch (size) {
+	case 1:
+		op.setreg(idx,di1);
+		tmp = 0x88; // mov [], r8
+		break;
+	case 2: op.setword(); // mov [], r16
+	case 4: op.setreg(idx);
+		tmp = 0x89; // mov [], r32
+		break;
+	default:
+		IllegalOption("gen_mov_host");
+	}
+	op.setabsaddr(data).Emit8(tmp);
+	dr1->flags|=DYNFLG_CHANGED;
+}
+
 static void gen_load_arg_reg(int argno,DynReg *dr,const char *s) {
 	GenReg *gen = x64gen.regs[reg_args[argno]];
 	GenReg *src = dr->genreg;
@@ -1118,9 +1138,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	gen_load_arg_reg(0,dr,"rd");
 
 	switch (write_size) {
-		case 1: func = (void*)mem_writeb_checked; break;
-		case 2: func = (void*)mem_writew_checked; break;
-		case 4: func = (void*)mem_writed_checked; break;
+		case 1: func = (void*)mem_writeb_checked_pagefault; break;
+		case 2: func = (void*)mem_writew_checked_pagefault; break;
+		case 4: func = (void*)mem_writed_checked_pagefault; break;
 		default: IllegalOption("gen_call_write");
 	}
 

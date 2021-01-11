@@ -325,6 +325,19 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
+static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
+	GenReg * gr1=FindDynReg(dr1,(size==4));
+	switch (size) {
+	case 1:cache_addb(0x88);break;	//mov byte
+	case 2:cache_addb(0x66);		//mov word
+	case 4:cache_addb(0x89);break;	//mov
+	default:
+		IllegalOption("gen_save_host");
+	}
+	cache_addb(0x5+((gr1->index+di1)<<3));
+	cache_addd((uint32_t)data);
+	dr1->flags|=DYNFLG_CHANGED;
+}
 
 static void gen_dop_byte(DualOps op,DynReg * dr1,uint8_t di1,DynReg * dr2,uint8_t di2) {
 	GenReg * gr1=FindDynReg(dr1);GenReg * gr2=FindDynReg(dr2);
@@ -948,9 +961,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
 	switch (write_size) {
-		case 1: cache_addd((uint32_t)mem_writeb_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 2: cache_addd((uint32_t)mem_writew_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 4: cache_addd((uint32_t)mem_writed_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 1: cache_addd((uint32_t)mem_writeb_checked_pagefault - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 2: cache_addd((uint32_t)mem_writew_checked_pagefault - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 4: cache_addd((uint32_t)mem_writed_checked_pagefault - (uint32_t)cache_rwtox(cache.pos)-4); break;
 		default: IllegalOption("gen_call_write");
 	}
 
