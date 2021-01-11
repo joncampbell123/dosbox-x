@@ -192,7 +192,8 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     GFX_LosingFocus();//Release any keys pressed (buffer gets filled again). (could be in above if, but clearing the mapper input when exiting the mapper is sensible as well
     SDL_Delay(20);
 
-    LoadMessageFile(static_cast<Section_prop*>(control->GetSection("dosbox"))->Get_string("language"));
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    LoadMessageFile(section->Get_string("language"));
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
@@ -280,9 +281,34 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
                 getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-                int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
-                int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
-                int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
+#if defined(USE_TTF)
+                int r1, g1, b1;
+                if (ttf.inUse) {
+                    std::string theme = section->Get_string("bannercolortheme");
+                    if (theme == "black") {
+                        r1 = 0; g1 = 0; b1 = 0;
+                    } else if (theme == "red") {
+                        r1 = 170; g1 = 0; b1 = 0;
+                    } else if (theme == "green") {
+                        r1 = 0; g1 = 170; b1 = 0;
+                    } else if (theme == "yellow") {
+                        r1 = 170; g1 = 85; b1 = 0;
+                    } else if (theme == "magenta") {
+                        r1 = 170; g1 = 0; b1 = 170;
+                    } else if (theme == "cyan") {
+                        r1 = 0; g1 = 170; b1 = 170;
+                    } else if (theme == "white") {
+                        r1 = 170; g1 = 170; b1 = 170;
+                    } else {
+                        r1 = 0; g1 = 0; b1 = 170;
+                    }
+                } else
+#endif
+                {
+                    r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors
+                    g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice
+                    b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue
+                }
                 bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
                     ((unsigned int)g1 << (unsigned int)gs) |
                     ((unsigned int)b1 << (unsigned int)bs); 
