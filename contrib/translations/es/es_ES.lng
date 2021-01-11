@@ -25,6 +25,9 @@ Puedes poner tus l¡neas MOUNT aqui.
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
 .
+:EMPTY_SLOT
+Slot vacio
+.
 :PROGRAM_CONFIG_PROPERTY_ERROR
 No existe tal secci¢n o propiedad.
 
@@ -2466,36 +2469,6 @@ Ir a primera pagina de slots
 .
 :MENU:last_page
 Ir a ultima pagina de slots
-.
-:MENU:slot0
-Slot 1 [Slot vacio]
-.
-:MENU:slot1
-Slot 2 [Slot vacio]
-.
-:MENU:slot2
-Slot 3 [Slot vacio]
-.
-:MENU:slot3
-Slot 4 [Slot vacio]
-.
-:MENU:slot4
-Slot 5 [Slot vacio]
-.
-:MENU:slot5
-Slot 6 [Slot vacio]
-.
-:MENU:slot6
-Slot 7 [Slot vacio]
-.
-:MENU:slot7
-Slot 8 [Slot vacio]
-.
-:MENU:slot8
-Slot 9 [Slot vacio]
-.
-:MENU:slot9
-Slot 10 [Slot vacio]
 .
 :MENU:DriveMenu
 Unidad
