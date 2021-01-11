@@ -3959,7 +3959,7 @@ Usando boton derecho del raton
 Usando boton central del raton
 .
 :MENU:clipboard_arrows
-Usando cursores (Inicio=start, Fin=end)
+Usando cursores (Inicio=Start / Fin=End)
 .
 :MENU:screen_to_clipboard
 Copiar todo el texto de la ventana DOS
