@@ -4062,7 +4062,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
-    Pstring->Set_help("Specifies the read timeout for pcap in milliseconds, or the default value will be used.");
+    Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
 
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
@@ -4272,6 +4272,7 @@ void DOSBOX_SetupConfigSections(void) {
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+    MSG_Add("EMPTY_SLOT","Empty slot");
 }
 
 int utf8_encode(char **ptr, const char *fence, uint32_t code) {
@@ -5840,7 +5841,7 @@ void SaveState::removeState(size_t slot) const {
 }
 
 std::string SaveState::getName(size_t slot, bool nl) const {
-	if (slot >= SLOT_COUNT*MAX_PAGE) return "[Empty slot]";
+	if (slot >= SLOT_COUNT*MAX_PAGE) return "["+std::string(MSG_Get("EMPTY_SLOT"))+"]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5864,7 +5865,7 @@ std::string SaveState::getName(size_t slot, bool nl) const {
 	std::string save=nl&&use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return nl?"(Empty state)":"[Empty slot]";
+	if (check_slot.fail()) return nl?"(Empty state)":"["+std::string(MSG_Get("EMPTY_SLOT"))+"]";
 	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 	std::ifstream check_title;
 	int length = 8;

@@ -10687,7 +10687,10 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 void refresh_slots() {
-    mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
+    std::string text=mainMenu.get_item("current_page").get_text();
+    std::size_t found = text.find(":");
+    if (found!=std::string::npos) text = text.substr(0, found);
+    mainMenu.get_item("current_page").set_text(text+": "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
@@ -12281,8 +12284,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				char name[6]="slot0";
 				for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 					name[4]='0'+i;
-					std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);
-					std::string str="Slot "+to_string(page*SaveState::SLOT_COUNT+i+1)+(command==""?"":" "+command);
+					std::string str="Slot "+to_string(page*SaveState::SLOT_COUNT+i+1);
 					mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(str.c_str()).set_callback_function(save_slot_callback);
 				}
             }
@@ -12594,6 +12596,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
         MSG_Init();
 
+        char name[6]="slot0";
+        for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
+            name[4]='0'+i;
+            std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);
+            std::string str="Slot "+to_string(page*SaveState::SLOT_COUNT+i+1)+(command==""?"":" "+command);
+            mainMenu.get_item(name).set_text(str.c_str());
+        }
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
         mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
         mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
@@ -12610,7 +12619,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("hostkey_altshift").check(hostkeyalt==3).refresh_item(mainMenu);
         std::string mapper_keybind = mapper_event_keybind_string("host");
         if (mapper_keybind.empty()) mapper_keybind = "unbound";
-        mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
+        std::string text=mainMenu.get_item("hostkey_mapper").get_text();
+        std::size_t found = text.find(":");
+        if (found!=std::string::npos) text = text.substr(0, found);
+        mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text(text+": "+mapper_keybind).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);

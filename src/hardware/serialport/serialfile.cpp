@@ -39,6 +39,8 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 
     filename = "serial"; // Default output filename
     cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
+    void ResolvePath(std::string& in);
+    ResolvePath(filename);
     LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
 
     std::string str;

@@ -2184,6 +2184,9 @@ public:
 		myGUS.rate=(unsigned int)section->Get_int("gusrate");
 
         ultradir = section->Get_string("ultradir");
+        void ResolvePath(std::string& in);
+        ResolvePath(ultradir);
+
 
 		x = section->Get_int("gusmemsize");
 		if (x >= 0) myGUS.memsize = (unsigned int)x*1024u;
