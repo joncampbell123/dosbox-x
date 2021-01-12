@@ -1036,7 +1036,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	uint8_t *nomap=gen_create_branch(BR_Z);
 	//mov dst, [tmp+src]
 	opcode(gendst->index,dword).setea(tmp,gensrc->index).Emit8(0x8B);
-	uint8_t* jmp_loc = gen_create_short_jump();
+	uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
 	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_unalignedreadd_checked:(void*)mem_unalignedreadw_checked));
@@ -1061,7 +1061,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 
 	dyn_synchstate(&callstate);
 	dst->flags |= DYNFLG_CHANGED;
-	gen_fill_short_jump(jmp_loc);
+	gen_fill_jump(jmp_loc);
 }
 
 static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=false) {
@@ -1091,7 +1091,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	}
 	// mov dst, byte [tmp+src]
 	opcode(gendst->index,true,high?4:0).setea(tmp,src).Emit8(0x8A);
-	uint8_t* jmp_loc=gen_create_short_jump();
+	uint8_t* jmp_loc=gen_create_jump();
 
 	gen_fill_branch(nomap);
 	if (gensrc->index != ARG0_REG) {
@@ -1109,7 +1109,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 
 	dyn_synchstate(&callstate);
 	dst->flags |= DYNFLG_CHANGED;
-	gen_fill_short_jump(jmp_loc);
+	gen_fill_jump(jmp_loc);
 }
 
 static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=false) {
@@ -1145,7 +1145,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	uint8_t *nomap=gen_create_branch(BR_Z);
 	//mov [tmp+src], dst
 	opcode(genval->index,dword).setea(tmp,gendst->index).Emit8(0x89);
-	uint8_t* jmp_loc = gen_create_short_jump();
+	uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
 	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_unalignedwrited_checked:(void*)mem_unalignedwritew_checked));
@@ -1165,7 +1165,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 #endif
 	dyn_check_bool_exception_al();
 	dyn_synchstate(&callstate);
-	gen_fill_short_jump(jmp_loc);
+	gen_fill_jump(jmp_loc);
 }
 
 static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=false) {
