@@ -2255,7 +2255,9 @@ void PRINTER_Init()
 	confmultipageOutput = section->Get_bool("multipage");
 	shellhide = section->Get_bool("shellhide");
 	actstd = section->Get_string("openwith");
+    ResolvePath(actstd);
 	acterr = section->Get_string("openerror");
+    ResolvePath(acterr);
 
 	//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);

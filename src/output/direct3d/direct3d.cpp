@@ -59,11 +59,11 @@ std::string shader_translate_directory(const std::string& path) {
     /* DOSBox fork compatability: if only the name of a file is given, assume it
        exists in the shaders\ directory.
 
-       This fork's variation is to NOT prefix shaders\ to it if it looks like a
+       DOSBox-X's variation is to NOT prefix shaders\ to it if it looks like a
        full path, with or without a drive letter. */
     if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') /* drive letter ex. C:, D:, etc. */
         return path;
-    if (path.length() >= 1 && path[0] == '\\') /* perhaps a UNC path or an absolute path from the current drive */
+    if (path.length() >= 1 && path.find('\\') != std::string::npos) /* perhaps a path with "\" */
         return path;
 
     return std::string("shaders\\") + path;

@@ -1825,7 +1825,7 @@ void CAPTURE_Destroy(Section *sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
-void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value);
+void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
 
@@ -1847,6 +1847,7 @@ void CAPTURE_Init() {
     trim(savefilename);
     if (savefilename.size()) {
         use_save_file=true;
+        ResolvePath(savefilename);
         mainMenu.get_item("usesavefile").set_text("Use save file ("+savefilename+")").check(use_save_file);
         mainMenu.get_item("browsesavefile").enable(use_save_file);
         std::string slot="";

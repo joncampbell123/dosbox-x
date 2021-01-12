@@ -2187,7 +2187,6 @@ public:
         void ResolvePath(std::string& in);
         ResolvePath(ultradir);
 
-
 		x = section->Get_int("gusmemsize");
 		if (x >= 0) myGUS.memsize = (unsigned int)x*1024u;
 		else myGUS.memsize = 1024u*1024u;

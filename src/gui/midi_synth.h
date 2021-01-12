@@ -71,6 +71,7 @@ static void synth_CallBack(Bitu len) {
 #	define PATH_SEP "/"
 #endif
 
+void ResolvePath(std::string& in);
 class MidiHandler_synth: public MidiHandler {
 private:
 	fluid_settings_t *settings;
@@ -175,8 +176,10 @@ public:
 				return false;
 			}
 #endif
-		} else
+		} else {
             sf = std::string(conf);
+            ResolvePath(sf);
+        }
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
@@ -342,7 +345,8 @@ public:
 				return false;
 			}
 #endif
-		}
+		} else
+            ResolvePath(sf);
 		soundfont.assign(sf);
 		settings = new_fluid_settings();
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {

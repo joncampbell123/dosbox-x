@@ -4825,6 +4825,7 @@ void MAPPER_Init(void) {
 }
 
 std::string GetDOSBoxXPath(bool withexe=false);
+void ResolvePath(std::string& in);
 void ReloadMapper(Section_prop *section, bool init) {
     if (!init&&control->opt_defaultmapper) return;
     Prop_path* pp;
@@ -4836,6 +4837,7 @@ void ReloadMapper(Section_prop *section, bool init) {
     mapper.filename = pp->realpath;
 	if (mapper.filename=="") pp = section->Get_path("mapperfile");
     mapper.filename = pp->realpath;
+    ResolvePath(mapper.filename);
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) {
         std::string exepath=GetDOSBoxXPath();
