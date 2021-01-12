@@ -46,8 +46,8 @@ static CPrinter* defaultPrinter = NULL;
 static uint16_t confdpi, confwidth, confheight;
 static Bitu printer_timout;
 static bool timeout_dirty;
-static const char* document_path;
-static const char* font_path;
+static std::string document_path;
+static std::string font_path;
 static char confoutputDevice[50];
 static bool confmultipageOutput, shellhide;
 static std::string actstd, acterr;
@@ -256,12 +256,7 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	std::string fontName, basedir;
-#if defined(WIN32)
-    basedir = font_path;
-#else
-    basedir = font_path;
-#endif
+	std::string fontName, basedir = font_path;
     if (basedir.back()!='\\' && basedir.back()!='/')
         basedir += CROSS_FILESPLIT;
 
@@ -1643,7 +1638,7 @@ void CPrinter::formFeed()
 static void findNextName(const char* front, const char* ext, char* fname)
 {
 	int i = 1;
-	Bitu slen = (Bitu)strlen(document_path);
+	Bitu slen = (Bitu)document_path.size();
 	if(slen > (200 - 15))
     {
 		fname[0] = 0;
@@ -1653,7 +1648,7 @@ static void findNextName(const char* front, const char* ext, char* fname)
     FILE *test = NULL;
 	do
 	{
-		strcpy(fname, document_path);
+		strcpy(fname, document_path.c_str());
 #ifdef WIN32
 		const char* const pathstring = "\\%s%d%s";
 #else 
@@ -2235,6 +2230,7 @@ bool PRINTER_isInited()
 	return inited;
 }
 
+void ResolvePath(std::string& in);
 void PRINTER_Init() 
 {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("printer"));
@@ -2246,7 +2242,9 @@ void PRINTER_Init()
 	if (!section->Get_bool("printer")) return;
 	inited = true;
 	document_path = section->Get_string("docpath");
+	ResolvePath(document_path);
 	font_path = section->Get_string("fontpath");
+	ResolvePath(font_path);
 	confdpi = section->Get_int("dpi");
 	confwidth = section->Get_int("width");
 	confheight = section->Get_int("height");

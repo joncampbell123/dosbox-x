@@ -77,6 +77,8 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 		name = str.c_str();
 		filetype = FILE_DEV;
 	} else if(cmd->FindStringBegin("file:",str,false)) {
+        void ResolvePath(std::string& in);
+        ResolvePath(str);
 		name = str.c_str();
 		filetype = FILE_DEV;
         is_file = true;

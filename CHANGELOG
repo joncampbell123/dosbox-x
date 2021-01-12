@@ -1,4 +1,8 @@
 0.83.10
+  - Added abliity to resolve file paths that include
+    environment variables on Windows or tildes (~) on
+    other platforms for file outputs in the serial and
+    parallel ports and printing options. (Wengier)
   - You can now translate texts in DOSBox-X's drop-down
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for

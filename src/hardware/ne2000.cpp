@@ -1660,11 +1660,11 @@ public:
 		const char *timeoutstr = section->Get_string("pcaptimeout");
         char *end;
         int timeout = -1;
-        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) {
+        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) { // Default timeout values
 #ifdef WIN32
-            timeout = -1;
+            timeout = -1; // For Windows, use -1 which appears to be specific to WinPCap and means "non-blocking mode"
 #else
-            timeout = 3000;
+            timeout = 3000; // For other platforms, use 3000ms as the timeout which should work for platforms like macOS
 #endif
         } else
             timeout = strtoul(timeoutstr,&end,10);

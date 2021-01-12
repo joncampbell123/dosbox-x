@@ -150,8 +150,14 @@ bool MSG_Write(const char * location) {
 	}
 	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
 	for (auto &id : master_list) {
-		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id)
-			fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),id.get_text().c_str());
+		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")) {
+            std::string text = id.get_text();
+            if (id.get_name()=="hostkey_mapper"||id.get_name()=="clipboard_device") {
+                std::size_t found = text.find(":");
+                if (found!=std::string::npos) text = text.substr(0, found);
+            }
+            fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+        }
 	}
 	fclose(out);
 	return true;

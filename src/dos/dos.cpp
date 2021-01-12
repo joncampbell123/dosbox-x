@@ -2863,7 +2863,10 @@ public:
 			}
 			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
-            mainMenu.get_item("clipboard_device").set_text("Enable DOS clipboard device access: "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
+            std::string text=mainMenu.get_item("clipboard_device").get_text();
+            std::size_t found = text.find(":");
+            if (found!=std::string::npos) text = text.substr(0, found);
+            mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
 		} else
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 #else
