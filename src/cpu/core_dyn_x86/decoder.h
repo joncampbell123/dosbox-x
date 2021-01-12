@@ -467,14 +467,7 @@ static void dyn_check_trapflag(void) {
 
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static void dyn_check_pagefault(void) {
-	GenReg tmp_eax_gen = {0};
-	DynReg tmp_eax = {0};
-	tmp_eax.genreg=&tmp_eax_gen;
-	cache_addb(0x50); // push eax
-	gen_mov_host(&core_dyn.pagefault,&tmp_eax,1);
-	gen_dop_byte(DOP_TEST,&tmp_eax,0,&tmp_eax,0);
-	gen_releasereg(&tmp_eax);
-	cache_addb(0x58); // pop eax*/
+	gen_test_host_byte(&core_dyn.pagefault);
 	save_info[used_save_info].branch_pos=gen_create_branch_long(BR_NZ);
 	dyn_savestate(&save_info[used_save_info].state);
 	if (!decode.cycles) decode.cycles++;
@@ -491,33 +484,33 @@ static void dyn_save_stack_for_pagefault(void) {
 	decode.pf_restore.data.stack = 1;
 }
 
-void * call_function_pagefault_safe_0(void * func) {
+Bitu call_function_pagefault_safe_0() {
 	DYN_PAGEFAULT_CHECK({
-		return ((void* (*)())func)();
+		return ((Bitu (*)())core_dyn.call_func)();
 	});
 }
 
-void* call_function_pagefault_safe_1(void * func, void * arg1) {
+Bitu call_function_pagefault_safe_1(Bitu arg1) {
 	DYN_PAGEFAULT_CHECK({
-		return ((void* (*)(void*))func)(arg1);
+		return ((Bitu (*)(Bitu))core_dyn.call_func)(arg1);
 	});
 }
 
-void* call_function_pagefault_safe_2(void * func, void * arg1, void * arg2) {
+Bitu call_function_pagefault_safe_2(Bitu arg1, Bitu arg2) {
 	DYN_PAGEFAULT_CHECK({
-		return ((void* (*)(void*,void*))func)(arg1, arg2);
+		return ((Bitu (*)(Bitu,Bitu))core_dyn.call_func)(arg1, arg2);
 	});
 }
 
-void* call_function_pagefault_safe_3(void * func, void * arg1, void * arg2, void * arg3) {
+Bitu call_function_pagefault_safe_3(Bitu arg1, Bitu arg2, Bitu arg3) {
 	DYN_PAGEFAULT_CHECK({
-		return ((void* (*)(void*,void*,void*))func)(arg1, arg2, arg3);
+		return ((Bitu (*)(Bitu,Bitu,Bitu))core_dyn.call_func)(arg1, arg2, arg3);
 	});
 }
 
-void* call_function_pagefault_safe_4(void * func, void * arg1, void * arg2, void * arg3, void * arg4) {
+Bitu call_function_pagefault_safe_4(Bitu arg1, Bitu arg2, Bitu arg3, Bitu arg4) {
 	DYN_PAGEFAULT_CHECK({
-		return ((void* (*)(void*,void*,void*,void*))func)(arg1, arg2, arg3, arg4);
+		return ((Bitu (*)(Bitu,Bitu,Bitu,Bitu))core_dyn.call_func)(arg1, arg2, arg3, arg4);
 	});
 }
 
@@ -539,7 +532,8 @@ static void * get_wrapped_call_function(const char* ops) {
 }
 
 #define dyn_call_function_pagefault_check(func, ops, ...) {	\
-	gen_call_function(get_wrapped_call_function(ops), "%Ip" ops, func, __VA_ARGS__); \
+	gen_save_host_direct(&core_dyn.call_func, (Bitu)(func)); \
+	gen_call_function(get_wrapped_call_function(ops), ops, __VA_ARGS__); \
 	dyn_check_pagefault(); \
 }
 

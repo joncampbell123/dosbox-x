@@ -168,6 +168,7 @@ static struct {
 	Bitu callback;
 	Bitu readdata;
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
+	void *call_func;
 	Bitu pagefault_old_stack;
 #ifdef CPU_FPU
 	Bitu pagefault_old_fpu_top;

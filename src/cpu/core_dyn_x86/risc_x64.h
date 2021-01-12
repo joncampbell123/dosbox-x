@@ -1229,6 +1229,13 @@ static void gen_save_host_direct(void *data,Bitu imm) {
 		opcode(0).set64().setimm(imm,4).setabsaddr(data).Emit8(0xC7); // mov qword[], int32_t
 }
 
+static void gen_test_host_byte(void * data) {
+	opcode(0).Emit8Reg(0x50); // push rax
+	opcode(0).setabsaddr(data).Emit8(0x8A); // mov al, byte []
+	opcode(0).setrm(0).Emit8(0x84); // test al, al
+	opcode(0).Emit8Reg(0x58); // pop rax
+}
+
 static void gen_return(BlockReturn retcode) {
 	gen_protectflags();
 	opcode(1).setea(4,-1,0,CALLSTACK).Emit8(0x8B); // mov ecx, [rsp+8/40]

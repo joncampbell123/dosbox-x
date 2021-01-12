@@ -1052,6 +1052,14 @@ static void gen_save_host_direct(void * data,Bits imm) {
 	cache_addd(imm);
 }
 
+static void gen_test_host_byte(void * data) {
+	cache_addb(0x50); // push eax
+	cache_addw(0x058a);	//mov al, byte []
+	cache_addd((uint32_t)data);
+	cache_addw(0xc084); // test al, al
+	cache_addb(0x58); // pop eax
+}
+
 static void gen_return(BlockReturn retcode) {
 	gen_protectflags();
 	cache_addb(0x59);			//POP ECX, the flags
