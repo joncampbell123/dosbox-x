@@ -42,6 +42,7 @@
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengeir)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
+  - Fixed large ISO images unable to mount. (Wengier)
   - Fixed incorrect behavior for handling trap flags
     in the dynamic core. (koolkdev)
   - Updated the Tiny File Dialog library to the latest
