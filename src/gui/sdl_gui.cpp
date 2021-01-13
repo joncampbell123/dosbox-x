@@ -281,8 +281,8 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
                 getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-#if defined(USE_TTF)
                 int r1, g1, b1;
+#if defined(USE_TTF)
                 if (ttf.inUse) {
                     std::string theme = section->Get_string("bannercolortheme");
                     if (theme == "black") {
