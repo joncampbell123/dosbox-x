@@ -1119,12 +1119,14 @@ void RENDER_UpdateFromScalerSetting(void) {
 
 #if C_OPENGL
 extern int initgl;
+void ResolvePath(std::string& in);
 std::string shader_src="", GetDOSBoxXPath(bool withexe=false);
 std::string LoadGLShader(Section_prop * section) {
 	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
     render.shader_def = false;
 	Prop_path *sh = section->Get_path("glshader");
 	std::string f = (std::string)sh->GetValue();
+    ResolvePath(f);
     const char *ssrc=shader_src.c_str();
 	if (f.empty() || f=="none" || f=="default") {
         render.shader_src = NULL;

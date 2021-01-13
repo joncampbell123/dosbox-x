@@ -12,7 +12,7 @@ using namespace std;
 #if C_DIRECT3D
 
 CDirect3D* d3d = NULL;
-
+void ResolvePath(std::string& in);
 static void d3d_init(void) 
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
@@ -62,7 +62,9 @@ static void d3d_init(void)
     if (d3d) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
         Prop_multival* prop = section->Get_multival("pixelshader");
-        if (SUCCEEDED(d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), 0, 0)))
+        std::string path = prop->GetSection()->Get_string("type");
+        ResolvePath(path);
+        if (SUCCEEDED(d3d->LoadPixelShader(path.c_str(), 0, 0)))
             if (menu.startup)
                 GFX_ResetScreen();
     }
@@ -214,7 +216,9 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     {
         Prop_multival* prop = section->Get_multival("pixelshader");
         std::string f = prop->GetSection()->Get_string("force");
-        d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), sdl.draw.scalex, sdl.draw.scaley, (f == "forced"));
+        std::string path = prop->GetSection()->Get_string("type");
+        ResolvePath(path);
+        d3d->LoadPixelShader(path.c_str(), sdl.draw.scalex, sdl.draw.scaley, (f == "forced"));
     }
     else 
     {

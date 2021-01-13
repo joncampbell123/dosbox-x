@@ -220,9 +220,11 @@ public:
         mt32emu_return_code rc;
 
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
-        const char *romDir = section->Get_string("mt32.romdir");
-        if (romDir == NULL) romDir = "./"; // Paranoid NULL-check, should never happen
-        size_t romDirLen = strlen(romDir);
+        std::string romDir = section->Get_string("mt32.romdir");
+        void ResolvePath(std::string& in);
+        ResolvePath(romDir);
+        //if (romDir == NULL) romDir = "./"; // Paranoid NULL-check, should never happen
+        size_t romDirLen = romDir.size();
         bool addPathSeparator = false;
         if (romDirLen < 1) {
             romDir = "./";
@@ -230,15 +232,15 @@ public:
             LOG_MSG("MT32: mt32.romdir is too long, using the current dir.");
             romDir = "./";
         } else {
-            char lastChar = romDir[strlen(romDir) - 1];
+            char lastChar = romDir.back();
             addPathSeparator = lastChar != '/' && lastChar != '\\';
         }
 
         char pathName[4096];
 
-        makeROMPathName(pathName, romDir, "CM32L_CONTROL.ROM", addPathSeparator);
+        makeROMPathName(pathName, romDir.c_str(), "CM32L_CONTROL.ROM", addPathSeparator);
         if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
-            makeROMPathName(pathName, romDir, "MT32_CONTROL.ROM", addPathSeparator);
+            makeROMPathName(pathName, romDir.c_str(), "MT32_CONTROL.ROM", addPathSeparator);
             if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
                 delete service;
                 service = NULL;
@@ -247,9 +249,9 @@ public:
                 return false;
             }
         }
-        makeROMPathName(pathName, romDir, "CM32L_PCM.ROM", addPathSeparator);
+        makeROMPathName(pathName, romDir.c_str(), "CM32L_PCM.ROM", addPathSeparator);
         if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
-            makeROMPathName(pathName, romDir, "MT32_PCM.ROM", addPathSeparator);
+            makeROMPathName(pathName, romDir.c_str(), "MT32_PCM.ROM", addPathSeparator);
             if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
                 delete service;
                 service = NULL;
@@ -258,7 +260,7 @@ public:
                 return false;
             }
         }
-        sffile=std::string(romDir);
+        sffile=romDir;
 
         service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));
         service->setAnalogOutputMode((MT32Emu::AnalogOutputMode)section->Get_int("mt32.analog"));

@@ -229,7 +229,7 @@ private:
 		virtual uint16_t   getEndian() = 0;
 		virtual uint32_t   getRate() = 0;
 		virtual uint8_t    getChannels() = 0;
-		virtual int      getLength() = 0;
+		virtual int64_t    getLength() = 0;
 		virtual void setAudioPosition(uint32_t pos) = 0;
 		const uint16_t chunkSize = 0;
 		uint32_t audio_pos = UINT32_MAX; // last position when playing audio
@@ -251,7 +251,7 @@ private:
 		uint16_t          getEndian();
 		uint32_t          getRate() { return 44100; }
 		uint8_t           getChannels() { return 2; }
-		int             getLength();
+		int64_t           getLength();
 		void setAudioPosition(uint32_t pos) { audio_pos = pos; }
 	private:
 		std::ifstream   *file;
@@ -272,7 +272,7 @@ private:
 		uint16_t          getEndian();
 		uint32_t          getRate();
 		uint8_t           getChannels();
-		int             getLength();
+		int64_t           getLength();
         void setAudioPosition(uint32_t pos) { (void)pos;/*unused*/ }
 	private:
 		Sound_Sample    *sample = nullptr;
@@ -293,7 +293,7 @@ private:
         uint16_t        getEndian();
         uint32_t        getRate() { return 44100; }
         uint8_t         getChannels() { return 2; }
-        int             getLength();
+        int64_t         getLength();
         void setAudioPosition(uint32_t pos) { audio_pos = pos; }
         chd_file*       getChd() { return this->chd; }
     private:

@@ -163,6 +163,7 @@ bool MSG_Write(const char * location) {
 	return true;
 }
 
+void ResolvePath(std::string& in);
 void MSG_Init() {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
@@ -171,6 +172,10 @@ void MSG_Init() {
 	}
 	else {
 		Prop_path* pathprop = section->Get_path("language");
-		if (pathprop != NULL) LoadMessageFile(pathprop->realpath.c_str());
+        if (pathprop != NULL) {
+            std::string path = pathprop->realpath;
+            ResolvePath(path);
+            LoadMessageFile(path.c_str());
+        }
 	}
 }

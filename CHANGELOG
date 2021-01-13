@@ -1,8 +1,10 @@
 0.83.10
   - Added abliity to resolve file paths that include
     environment variables on Windows or tildes (~) on
-    other platforms for file outputs in the serial and
-    parallel ports and printing options. (Wengier)
+    other platforms for various options in the config
+    file, such as language and mapper file paths, MT32
+    ROM and FluidSynth soundfont paths, as well as file
+    outputs for the printing functions. (Wengier)
   - You can now translate texts in DOSBox-X's drop-down
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
@@ -36,7 +38,11 @@
     command, e.g. "config -set ttf.font=test", "config
     -set ttf.lins=30", "config -set ttf.cols=100", and
     "config -set glshader=sharp". (Wengier)
+  - You can now supply a ZIP/7Z file as a parameter to
+    DOSBox-X directly so that it will be mounted as C:
+    drive when DOSBox-X starts. (Wengeir)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
+  - Fixed large ISO images unable to mount. (Wengier)
   - Fixed incorrect behavior for handling trap flags
     in the dynamic core. (koolkdev)
   - Updated the Tiny File Dialog library to the latest

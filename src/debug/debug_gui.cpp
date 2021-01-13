@@ -809,6 +809,7 @@ void LOG::ParseEnableSetting(_LogGroup &group,const char *setting) {
 		group.min_severity = LOG_NORMAL;
 }
 
+void ResolvePath(std::string& in);
 void LOG::Init() {
 	char buf[64];
 
@@ -826,14 +827,15 @@ void LOG::Init() {
 	assert(sect != NULL);
 
 	/* do we write to a logfile, or not? */
-	const char *blah = sect->Get_string("logfile");
-	if (blah != NULL && blah[0] != 0) {
-		if ((debuglog=fopen(blah,"wt+")) != NULL) {
-			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to this file.",blah);
+	std::string logfile = sect->Get_string("logfile");
+	if (logfile.size()) {
+		ResolvePath(logfile);
+		if ((debuglog=fopen(logfile.c_str(),"wt+")) != NULL) {
+			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to this file.",logfile.c_str());
 			setbuf(debuglog,NULL);
 		}
 		else {
-			LOG_MSG("Logging: failed to open logfile '%s'. All further logging will be discarded. Error: %s",blah,strerror(errno));
+			LOG_MSG("Logging: failed to open logfile '%s'. All further logging will be discarded. Error: %s",logfile.c_str(),strerror(errno));
 		}
 	}
 	else {
