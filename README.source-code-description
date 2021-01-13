@@ -94,11 +94,11 @@ macOS: If you want to make an .app bundle you can run from the Finder, compile t
 XCode (on macOS, from the Terminal) to target macOS
 ./build-debug
 
-## To compile DOSBox-X in Ubuntu (tested with 20.10):
+## To compile DOSBox-X in Ubuntu (tested with 20.04 and 20.10):
 
 First install the development tools, headers and libraries needed
 
-sudo apt install automake gcc make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-* libswscale-dev libavcodec-* libfreetype-dev libxkbfile-dev libxrandr-dev
+sudo apt install automake gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-dev libavcodec-dev libavcodec-extra libavcodec-extra58 libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev
 
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
 
