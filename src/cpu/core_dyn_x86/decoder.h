@@ -19,11 +19,7 @@
 #define X86_DYNFPU_DH_ENABLED
 #define X86_INLINED_MEMACCESS
 
-#undef X86_DYNREC_MMX_ENABLED
-
-#ifdef X86_DYNREC_MMX_ENABLED
-void dyn_mmx_restore();
-#endif
+#define X86_DYNREC_MMX_ENABLED
 
 enum REP_Type {
 	REP_NONE=0,REP_NZ,REP_Z
