@@ -48,6 +48,7 @@ union pagefault_restore {
 static struct DynDecode {
 	PhysPt code;
 	PhysPt code_start;
+	PhysPt eip_location;
 	PhysPt op_start;
 	bool big_op;
 	bool big_addr;
@@ -341,6 +342,7 @@ static void dyn_set_eip_last_end(DynReg * endreg) {
 	gen_protectflags();
 	gen_lea(endreg,DREG(EIP),0,0,decode.code-decode.code_start);
 	gen_dop_word_imm(DOP_ADD,decode.big_op,DREG(EIP),decode.op_start-decode.code_start);
+	decode.eip_location=decode.op_start; // this is the only place where a pagefault can happen after chaning eip
 }
 
 static INLINE void dyn_set_eip_end(void) {
@@ -472,7 +474,7 @@ static void dyn_check_pagefault(void) {
 	dyn_savestate(&save_info[used_save_info].state);
 	if (!decode.cycles) decode.cycles++;
 	save_info[used_save_info].cycles=decode.cycles;
-	save_info[used_save_info].eip_change=decode.op_start-decode.code_start;
+	save_info[used_save_info].eip_change=decode.op_start-decode.eip_location;
 	if (!cpu.code.big) save_info[used_save_info].eip_change&=0xffff;
 	save_info[used_save_info].type=page_fault;
 	save_info[used_save_info].pf_restore=decode.pf_restore;
@@ -2381,6 +2383,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 
 /* Init a load of variables */
 	decode.code_start=start;
+	decode.eip_location=start;
 	decode.code=start;
 	Bitu cycles=0;
 	decode.page.code=codepage;
