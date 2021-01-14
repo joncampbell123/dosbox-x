@@ -68,6 +68,9 @@ static struct DynDecode {
 	DynReg * segprefix;
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	pagefault_restore pf_restore;
+#ifdef DYN_DEBUG_PAGEFAULT
+	const char * debug_message;
+#endif
 #endif
 } decode;
 
@@ -371,6 +374,9 @@ static struct {
 	uint8_t * return_pos;
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	pagefault_restore pf_restore;
+#ifdef DYN_DEBUG_PAGEFAULT
+	const char * debug_message;
+#endif
 #endif
 } save_info[512];
 
@@ -409,6 +415,12 @@ static BlockReturn DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t 
 	dosbox_allow_nonrecursive_page_fault = saved_allow;
 	return BR_Normal;
 }
+
+#ifdef DYN_DEBUG_PAGEFAULT
+static void DynDebugPageFault(uint32_t eip_add,const char * debug_message) {
+	LOG_MSG("Page fault during dynamic. EIP=%08X caller: %s", reg_eip + eip_add, debug_message);
+}
+#endif
 #endif
 
 static void dyn_check_bool_exception(DynReg * check) {
@@ -474,6 +486,9 @@ static void dyn_check_pagefault(void) {
 	if (!cpu.code.big) save_info[used_save_info].eip_change&=0xffff;
 	save_info[used_save_info].type=page_fault;
 	save_info[used_save_info].pf_restore=decode.pf_restore;
+#ifdef DYN_DEBUG_PAGEFAULT
+	save_info[used_save_info].debug_message=decode.debug_message;
+#endif
 	used_save_info++;
 }
 
@@ -529,11 +544,22 @@ static void * get_wrapped_call_function(const char* ops) {
 	}
 }
 
-#define dyn_call_function_pagefault_check(func, ops, ...) {	\
+#define dyn_call_function_pagefault_check_impl(func, ops, ...) {	\
 	gen_save_host_direct(&core_dyn.call_func, (Bitu)(func)); \
 	gen_call_function(get_wrapped_call_function(ops), ops, __VA_ARGS__); \
 	dyn_check_pagefault(); \
 }
+
+#ifdef DYN_DEBUG_PAGEFAULT
+#define STRINGIZE_DETAIL(x) #x
+#define STRINGIZE(x) STRINGIZE_DETAIL(x)
+#define dyn_call_function_pagefault_check(...) { \
+	decode.debug_message = __FILE__ ":" STRINGIZE(__LINE__); \
+	dyn_call_function_pagefault_check_impl(__VA_ARGS__); \
+}
+#else
+#define dyn_call_function_pagefault_check dyn_call_function_pagefault_check_impl
+#endif
 
 #else
 #define dyn_call_function_pagefault_check(...) { gen_call_function(__VA_ARGS__); }
@@ -565,6 +591,9 @@ static void dyn_fill_blocks(void) {
 #ifdef X86_DYNFPU_DH_ENABLED
 				if (save_info[sct].pf_restore.data.dh_fpu_inst)
 					dh_fpu_mem_revert(save_info[sct].pf_restore.data.dh_fpu_inst, save_info[sct].pf_restore.data.dh_fpu_group);
+#endif
+#ifdef DYN_DEBUG_PAGEFAULT
+				gen_call_function((void *)&DynDebugPageFault,"%Id%Ip",save_info[sct].eip_change,save_info[sct].debug_message);
 #endif
 				if (cpu.code.big) gen_call_function((void *)&DynRunPageFault,"%Id%Id%Id%F",save_info[sct].eip_change,save_info[sct].cycles,save_info[sct].pf_restore.dword);
 				else gen_call_function((void *)&DynRunPageFault,"%Iw%Id%Id%F",save_info[sct].eip_change,save_info[sct].cycles,save_info[sct].pf_restore.dword);
@@ -2421,6 +2450,9 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 		decode.op_start=decode.code;
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
 		decode.pf_restore.dword=0;
+#ifdef DYN_DEBUG_PAGEFAULT
+		decode.debug_message = "";
+#endif
 #endif
 restart_prefix:
 		Bitu opcode;

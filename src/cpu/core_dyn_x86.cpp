@@ -209,6 +209,13 @@ static struct dyn_dh_fpu {
 #endif
 
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
+#define DYN_DEBUG_PAGEFAULT
+
+#ifdef DYN_DEBUG_PAGEFAULT
+#define DYN_PF_LOG_MSG LOG_MSG
+#else
+#define DYN_PF_LOG_MSG(...)
+#endif
 
 #define DYN_PAGEFAULT_CHECK(x) { \
 	try { \
@@ -216,6 +223,7 @@ static struct dyn_dh_fpu {
 	} catch (const GuestPageFaultException &pf) { \
 		core_dyn.pagefault_faultcode = pf.faultcode; \
 		core_dyn.pagefault = true; \
+		DYN_PF_LOG_MSG("Catched pagefault at %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__); \
 	} \
 	return 0; \
 }
