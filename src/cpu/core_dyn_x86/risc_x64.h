@@ -541,7 +541,7 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 }
 
 static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
-	int idx = FindDynReg(dr1,size==4)->index;
+	int idx = FindDynReg(dr1)->index;
 	opcode op;
 	uint8_t tmp;
 	switch (size) {
