@@ -311,6 +311,8 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 #include "core_dyn_x86/decoder.h"
 
+extern int dynamic_core_cache_block_size;
+
 Bits CPU_Core_Dyn_X86_Run(void) {
 	// helper class to auto-save DH_FPU state on function exit
 	class auto_dh_fpu {
@@ -355,11 +357,16 @@ restart_core:
 			// We can't throw exception during the creation of the block, as it will corrupt things
 			// If a page fault occoured, invalidated the block and throw exception from here
 #endif
-			block = CreateCacheBlock(chandler,ip_point,32);
+			int cache_size = dynamic_core_cache_block_size;
+			block = CreateCacheBlock(chandler,ip_point,cache_size);
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			if (decoder_pagefault.had_pagefault) {
+			while (decoder_pagefault.had_pagefault) {
 				block->Clear();
-				throw GuestPageFaultException(decoder_pagefault.lin_addr, decoder_pagefault.page_addr, decoder_pagefault.faultcode);
+				if (cache_size == 1)
+					throw GuestPageFaultException(decoder_pagefault.lin_addr, decoder_pagefault.page_addr, decoder_pagefault.faultcode);
+				cache_size /= 2;
+				decoder_pagefault.had_pagefault = false;
+				block = CreateCacheBlock(chandler,ip_point,cache_size);
 			}
 #endif
 		} else {
