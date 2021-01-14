@@ -482,7 +482,7 @@ static void dyn_check_pagefault(void) {
 }
 
 static void dyn_save_stack_for_pagefault(void) {
-	gen_save_host(&core_dyn.pagefault_old_stack, DREG(ESP), 1);
+	gen_save_host(&core_dyn.pagefault_old_stack, DREG(ESP), 4);
 	decode.pf_restore.data.stack = 1;
 }
 

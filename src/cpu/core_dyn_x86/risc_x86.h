@@ -326,7 +326,7 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 }
 
 static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
-	GenReg * gr1=FindDynReg(dr1,(size==4));
+	GenReg * gr1=FindDynReg(dr1);
 	switch (size) {
 	case 1:cache_addb(0x88);break;	//mov byte
 	case 2:cache_addb(0x66);		//mov word
