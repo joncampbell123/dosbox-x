@@ -196,7 +196,6 @@ static void dyn_string(STRING_OP op) {
 			if (usedi) gen_dop_word(DOP_ADD,decode.big_addr,DREG(EDI),DREG(TMPW));
 
 			gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-			gen_sop_word(SOP_DEC,true,DREG(CYCLES));
 
 			dyn_synchstate(&rep_state);
 		}
