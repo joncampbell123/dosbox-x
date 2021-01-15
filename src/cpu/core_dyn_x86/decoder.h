@@ -2820,9 +2820,9 @@ restart_prefix:
 				decode.big_addr ? decode_fetchd() : decode_fetchw());
 			dyn_write_word_release(DREG(EA),DREG(EAX),decode.big_op);
 			break;
-		/* MOVSB/W/D*/
-		case 0xa4:dyn_string(STR_MOVSB);break;
-		case 0xa5:dyn_string(decode.big_op ? STR_MOVSD : STR_MOVSW);break;
+		/* CMPSB/W/D*/
+		case 0xa6:dyn_string(STR_CMPSB);break;
+		case 0xa7:dyn_string(decode.big_op ? STR_CMPSD : STR_CMPSW);break;
 		/* TEST AL,AX Imm */
 		case 0xa8:gen_discardflags();gen_dop_byte_imm(DOP_TEST,DREG(EAX),0,decode_fetchb());break;
 		case 0xa9:gen_discardflags();gen_dop_word_imm(DOP_TEST,decode.big_op,DREG(EAX),decode.big_op ? decode_fetchd() :  decode_fetchw());break;
@@ -2832,6 +2832,9 @@ restart_prefix:
 		/* LODSB/W/D*/
 		case 0xac:dyn_string(STR_LODSB);break;
 		case 0xad:dyn_string(decode.big_op ? STR_LODSD : STR_LODSW);break;
+		/* SCASB/W/D*/
+		case 0xae:dyn_string(STR_SCASB);break;
+		case 0xaf:dyn_string(decode.big_op ? STR_SCASD : STR_SCASW);break;
 		//Mov Byte reg,Imm byte
 		case 0xb0:case 0xb1:case 0xb2:case 0xb3:case 0xb4:case 0xb5:case 0xb6:case 0xb7:	
 			gen_dop_byte_imm(DOP_MOV,&DynRegs[opcode&3],opcode&4,decode_fetchb());

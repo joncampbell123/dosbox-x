@@ -75,7 +75,7 @@ enum {
 	G_ES,G_CS,G_SS,G_DS,G_FS,G_GS,
 	G_FLAGS,G_NEWESP,G_EIP,
 	G_EA,G_STACK,G_CYCLES,
-	G_TMPB,G_TMPW,G_SHIFT,
+	G_TMPB,G_TMPW,G_TMPD,G_SHIFT,
 	G_EXIT,
 	G_MAX,
 };
@@ -157,7 +157,7 @@ static DynReg DynRegs[G_MAX];
 #define DREG(_WHICH_) &DynRegs[G_ ## _WHICH_ ]
 
 static struct {
-	uint32_t ea,tmpb,tmpd,stack,shift,newesp;
+	uint32_t ea,tmpb,tmpw,tmpd,stack,shift,newesp;
 } extra_regs;
 
 #define IllegalOption(msg) E_Exit("DYNX86: illegal option in " msg)
@@ -566,8 +566,10 @@ void CPU_Core_Dyn_X86_Init(void) {
 	DynRegs[G_CYCLES].flags=DYNFLG_LOAD|DYNFLG_SAVE;
 	DynRegs[G_TMPB].data=&extra_regs.tmpb;
 	DynRegs[G_TMPB].flags=DYNFLG_HAS8|DYNFLG_HAS16;
-	DynRegs[G_TMPW].data=&extra_regs.tmpd;
+	DynRegs[G_TMPW].data=&extra_regs.tmpw;
 	DynRegs[G_TMPW].flags=DYNFLG_HAS16;
+	DynRegs[G_TMPD].data=&extra_regs.tmpd;
+	DynRegs[G_TMPD].flags=DYNFLG_HAS16;
 	DynRegs[G_SHIFT].data=&extra_regs.shift;
 	DynRegs[G_SHIFT].flags=DYNFLG_HAS8|DYNFLG_HAS16;
 	DynRegs[G_EXIT].data=0;
