@@ -1669,6 +1669,32 @@ static void dyn_dop_gvev(DualOps op) {
 	}
 }
 
+static void dyn_set_cc(BranchTypes btype) {
+	DynReg * rm_reg = DREG(TMPB); Bitu rm_regi = 0;
+
+	dyn_get_modrm();
+	if (decode.modrm.mod<3)  { 
+		dyn_fill_ea();
+	} else {
+		rm_reg=&DynRegs[decode.modrm.rm&3];
+		rm_regi=decode.modrm.rm&4;
+	}
+	
+	gen_needflags();
+	gen_preloadreg(rm_reg);
+	uint8_t * mov_1_start = gen_create_branch(btype);
+	gen_dop_byte_imm(DOP_MOV,rm_reg,rm_regi,0);
+	uint8_t * mov_0_end = gen_create_short_jump();
+	gen_fill_branch(mov_1_start);
+	gen_dop_byte_imm(DOP_MOV,rm_reg,rm_regi,1);
+	gen_fill_short_jump(mov_0_end);
+
+	if (decode.modrm.mod<3) {
+		dyn_write_byte_release(DREG(EA),DREG(TMPB),false);
+		gen_releasereg(DREG(TMPB));
+	}
+}
+
 static void dyn_mov_evgv(void) {
 	dyn_get_modrm();
 	DynReg * rm_reg=&DynRegs[decode.modrm.reg];
@@ -2499,6 +2525,10 @@ restart_prefix:
 				dyn_branched_exit((BranchTypes)(dual_code&0xf),
 					decode.big_op ? (int32_t)decode_fetchd() : (int16_t)decode_fetchw());	
 				goto finish_block;
+			/* SETcc */
+			case 0x90:case 0x91:case 0x92:case 0x93:case 0x94:case 0x95:case 0x96:case 0x97:	
+			case 0x98:case 0x99:case 0x9a:case 0x9b:case 0x9c:case 0x9d:case 0x9e:case 0x9f:
+				dyn_set_cc((BranchTypes)(dual_code&0xf)); break;
 			/* PUSH/POP FS */
 			case 0xa0:dyn_push_seg(fs);break;
 			case 0xa1:dyn_pop_seg(fs);break;

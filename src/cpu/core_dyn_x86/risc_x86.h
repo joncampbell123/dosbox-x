@@ -1014,6 +1014,20 @@ static void gen_fill_jump(uint8_t * data,uint8_t * to=cache.pos) {
 	*(uint32_t*)data=(to-data-4);
 }
 
+static uint8_t * gen_create_short_jump(void) {
+	cache_addw(0x00EB);
+	return cache.pos-1;
+}
+
+static void gen_fill_short_jump(uint8_t * data, uint8_t * to=cache.pos) {
+#if C_DEBUG
+	Bits len=to-data-1;
+	if (len<0) len=~len;
+	if (len>127)
+		LOG_MSG("Big jump %d",len);
+#endif
+	data[0] = (uint8_t)(to-data-1);
+}
 
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 	cache_addb(0xa1);
