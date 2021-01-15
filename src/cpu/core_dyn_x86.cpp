@@ -223,7 +223,7 @@ static struct dyn_dh_fpu {
 	} catch (const GuestPageFaultException &pf) { \
 		core_dyn.pagefault_faultcode = pf.faultcode; \
 		core_dyn.pagefault = true; \
-		DYN_PF_LOG_MSG("Catched pagefault at %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__); \
+		DYN_PF_LOG_MSG("Caught pagefault at %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__); \
 	} \
 	return 0; \
 }
