@@ -59,6 +59,7 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 void runMount(const char *str);
+void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -593,6 +594,7 @@ void DOS_Shell::Run(void) {
 			}
 			const char * extra = const_cast<char*>(section->data.c_str());
 			if (extra) {
+				std::string vstr;
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
 				char *cmd=cmdstr, *val=valstr, *tmp=tmpstr, *p;
@@ -615,10 +617,14 @@ void DOS_Shell::Run(void) {
 							strcat(config_data, val);
 							strcat(config_data, "\r\n");
 						}
-						if (!strncasecmp(cmd, "set ", 4))
-							DoCommand((char *)(std::string(cmd)+"="+std::string(val)).c_str());
-						else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
-							strcpy(tmp, val);
+						if (!strncasecmp(cmd, "set ", 4)) {
+							vstr=std::string(val);
+							ResolvePath(vstr);
+							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
+						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
+							vstr=std::string(val);
+							ResolvePath(vstr);
+							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
 							if (!DOS_FileExists(name)) {
@@ -626,13 +632,13 @@ void DOS_Shell::Run(void) {
 								continue;
 							}
 							if (!strcasecmp(cmd, "install"))
-								DoCommand(val);
+								DoCommand((char *)vstr.c_str());
 							else if (!strcasecmp(cmd, "installhigh"))
-								DoCommand((char *)("lh "+std::string(val)).c_str());
+								DoCommand((char *)("lh "+vstr).c_str());
 							else if (!strcasecmp(cmd, "device"))
-								DoCommand((char *)("device "+std::string(val)).c_str());
+								DoCommand((char *)("device "+vstr).c_str());
 							else if (!strcasecmp(cmd, "devicehigh"))
-								DoCommand((char *)("lh device "+std::string(val)).c_str());
+								DoCommand((char *)("lh device "+vstr).c_str());
 						}
 					} else if (!strncasecmp(line.c_str(), "rem ", 4)) {
 						strcat(config_data, line.c_str());

@@ -1128,8 +1128,8 @@ void CONFIG::Run(void) {
 							}
 							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
                                 if (section->Get_bool("fullscreen")) {
-                                    if (!GFX_IsFullscreen()) GFX_SwitchFullScreen();
-                                } else if (GFX_IsFullscreen()) GFX_SwitchFullScreen();
+                                    if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                                } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                             }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
@@ -1146,7 +1146,7 @@ void CONFIG::Run(void) {
                                 if (pp->realpath=="") ReloadMapper(section,true);
                             }
 							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
-								void setScanCode(Section_prop * section), loadScanCode(), GFX_LosingFocus(), MAPPER_Init();
+								void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
 								setScanCode(section);
 								loadScanCode();
 								GFX_LosingFocus();
