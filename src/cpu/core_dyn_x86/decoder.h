@@ -2079,7 +2079,6 @@ static void dyn_load_seg_off_ea(SegNames seg) {
 }
 
 static void dyn_mov_seg_ev(void) {
-	dyn_get_modrm();
 	SegNames seg=(SegNames)decode.modrm.reg;
 	if (GCC_UNLIKELY(seg==cs)) IllegalOption("dyn_mov_seg_ev");
 	if (decode.modrm.mod<3) {
@@ -2749,7 +2748,11 @@ restart_prefix:
 			}
 			break;
 		/* Mov seg,ev */
-		case 0x8e:dyn_mov_seg_ev();break;
+		case 0x8e:
+			dyn_get_modrm();
+			if (GCC_UNLIKELY((SegNames)decode.modrm.reg==cs)) goto illegalopcode;
+			dyn_mov_seg_ev();
+			break;
 		/* POP Ev */
 		case 0x8f:dyn_pop_ev();break;
 		case 0x90:	//NOP
