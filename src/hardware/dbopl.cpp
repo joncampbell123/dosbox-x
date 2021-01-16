@@ -995,7 +995,7 @@ Chip::Chip() {
 /*INLINE*/ uint32_t Chip::ForwardNoise() {
 	noiseCounter += noiseAdd;
 	Bitu count = noiseCounter >> LFO_SH;
-	noiseCounter &= WAVE_MASK;
+	noiseCounter &= ((1<<LFO_SH) - 1);
 	for ( ; count > 0; --count ) {
 		//Noise calculation from mame
 		noiseValue ^= ( 0x800302 ) & ( 0 - (noiseValue & 1 ) );
