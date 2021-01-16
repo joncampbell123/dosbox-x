@@ -1102,7 +1102,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	if (release) gen_releasereg(addr);
 	dyn_savestate(&callstate);
 
-	if (gendst->index>3) IllegalOption("dyn_read_byte");
+	if (high && gendst->index>3) IllegalOption("dyn_read_byte");
 
 	opcode(tmp).setrm(gensrc->index).Emit8(0x8B); // mov tmp, src
 	opcode(5).setrm(tmp).setimm(12,1).Emit8(0xC1); // shr tmp,12
