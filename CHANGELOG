@@ -52,6 +52,16 @@
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
+  - Integrated SVN commits (Allofich)
+    - r4392: Improve capturing of Zeliard and fix a
+    few percussion-related capturing problems as well.
+    - r4393: Remove video page check when drawing
+    internal mouse pointer, as the BIOS current page
+    is not updated in some cases. Fixes QQP games: Lost
+    Admiral, Conquered Kingdoms, and Solitaire's
+    Journey. Also be a bit smarter about enabling
+    autolock, supporting more cases where the mouse
+    is used for input without resetting it.
 
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds
