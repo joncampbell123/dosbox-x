@@ -3,9 +3,9 @@ The code is 100% compatible C C++
 (just comment out << extern "C" >> in the header file) */
 
 /*_________
- /         \ tinyfiledialogs.c v3.8.4 [Dec 23, 2020] zlib licence
+ /         \ tinyfiledialogs.c v3.8.5 [Jan 17, 2021] zlib licence
  |tiny file| Unique code file created [November 9, 2014]
- | dialogs | Copyright (c) 2014 - 2020 Guillaume Vareille http://ysengrin.com
+ | dialogs | Copyright (c) 2014 - 2021 Guillaume Vareille http://ysengrin.com
  \____  ___/ http://tinyfiledialogs.sourceforge.net
       \|     git clone http://git.code.sf.net/p/tinyfiledialogs/code tinyfd
               ____________________________________________
@@ -99,7 +99,7 @@ Thanks for contributions, bug corrections & thorough testing to:
 #endif
 #define LOW_MULTIPLE_FILES 32
 
-char tinyfd_version[8] = "3.8.4";
+char tinyfd_version[8] = "3.8.5";
 
 /******************************************************************************************************/
 /**************************************** UTF-8 on Windows ********************************************/
@@ -465,6 +465,68 @@ int tinyfd_setGlobalInt(char const * aIntVariableName, int aValue) /* to be call
 
 
 #ifdef _WIN32
+static int powershellPresent(void)
+{
+    static int lPowershellPresent = -1;
+    char lBuff[MAX_PATH_OR_CMD];
+    FILE* lIn;
+    char const* lString = "powershell.exe";
+
+    if (lPowershellPresent < 0)
+    {
+        if (!(lIn = _popen("where powershell.exe", "r")))
+        {
+            lPowershellPresent = 0;
+            return 0;
+        }
+        while (fgets(lBuff, sizeof(lBuff), lIn) != NULL)
+        {
+        }
+        _pclose(lIn);
+        if (lBuff[strlen(lBuff) - 1] == '\n')
+        {
+            lBuff[strlen(lBuff) - 1] = '\0';
+        }
+        if (strcmp(lBuff + strlen(lBuff) - strlen(lString), lString))
+        {
+            lPowershellPresent = 0;
+        }
+        else
+        {
+            lPowershellPresent = 1;
+        }
+    }
+    return lPowershellPresent;
+}
+
+
+static int windowsVersion(void)
+{
+#ifndef __MINGW32__
+    typedef LONG NTSTATUS;
+    typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+    HMODULE hMod;
+    RtlGetVersionPtr lFxPtr;
+    RTL_OSVERSIONINFOW lRovi = { 0 };
+
+    hMod = GetModuleHandleW(L"ntdll.dll");
+    if (hMod) {
+        lFxPtr = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
+        if (lFxPtr)
+        {
+            lRovi.dwOSVersionInfoSize = sizeof(lRovi);
+            if (!lFxPtr(&lRovi))
+            {
+                return lRovi.dwMajorVersion;
+            }
+        }
+    }
+#else
+    if ( powershellPresent() ) return 6; /*minimum is vista*/
+#endif
+    return 0;
+}
+
 
 static void replaceChr(char * aString, char aOldChr, char aNewChr)
 {
@@ -485,7 +547,7 @@ static void replaceChr(char * aString, char aOldChr, char aNewChr)
 
 #if !defined(WC_ERR_INVALID_CHARS)
 /* undefined prior to Vista, so not yet in MINGW header file */
-#define WC_ERR_INVALID_CHARS 0x00000080
+#define WC_ERR_INVALID_CHARS 0x00000000 /* 0x00000080 for MINGW maybe ? */
 #endif
 
 static int sizeUtf16From8(char const * aUtf8string)
@@ -615,7 +677,8 @@ char * tinyfd_mbcsTo8(char const * aMbcsString)
 
 void tinyfd_beep(void)
 {
-        Beep(440,300);
+    if (windowsVersion() > 5) Beep(440, 300);
+    else MessageBeep(-1);
 }
 
 
@@ -1051,9 +1114,9 @@ int tinyfd_notifyPopupW(
         size_t lMessageLen;
         size_t lDialogStringLen;
 
-        if (aTitle&&!wcscmp(aTitle, L"tinyfd_query")){ strcpy(tinyfd_response, "windows_wchar"); return 1; }
-
-		if (quoteDetectedW(aTitle)) return tinyfd_notifyPopupW(L"INVALID TITLE WITH QUOTES", aMessage, aIconType);
+        if (aTitle && !wcscmp(aTitle, L"tinyfd_query")) { strcpy(tinyfd_response, "windows_wchar"); return 1; }
+        
+        if (quoteDetectedW(aTitle)) return tinyfd_notifyPopupW(L"INVALID TITLE WITH QUOTES", aMessage, aIconType);
 		if (quoteDetectedW(aMessage)) return tinyfd_notifyPopupW(aTitle, L"INVALID MESSAGE WITH QUOTES", aIconType);
 
         lTitleLen = aTitle ? wcslen(aTitle) : 0;
@@ -1080,7 +1143,7 @@ $balloon.Icon = $icon ; \
 $balloon.BalloonTipIcon = $IconType ; \
 $balloon.BalloonTipText = $Message ; \
 $balloon.BalloonTipTitle = $Title ; \
-$balloon.Text = 'lalala' ; \
+$balloon.Text = 'tinyfiledialogs' ; \
 $balloon.Visible = $true ; \
 $balloon.ShowBalloonTip(5000)};\
 Show-BalloonTip");
@@ -1144,7 +1207,7 @@ wchar_t * tinyfd_inputBoxW(
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                 lDialogStringLen,
 #endif
-                L"%ls\\AppData\\Local\\Temp\\tinyfd.vbs", _wgetenv(L"USERPROFILE"));
+                L"%ls\\tinyfd.vbs", _wgetenv(L"TEMP"));
         }
         else
         {
@@ -1152,7 +1215,7 @@ wchar_t * tinyfd_inputBoxW(
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                         lDialogStringLen,
 #endif
-                        L"%ls\\AppData\\Local\\Temp\\tinyfd.hta", _wgetenv(L"USERPROFILE"));
+                L"%ls\\tinyfd.hta", _wgetenv(L"TEMP"));
         }
         lIn = _wfopen(lDialogString, L"w");
         if (!lIn)
@@ -1216,8 +1279,8 @@ End Sub\n\
 Sub Window_onUnload\n\
 Set objFSO = CreateObject(\"Scripting.FileSystemObject\")\n\
 Set oShell = CreateObject(\"WScript.Shell\")\n\
-strHomeFolder = oShell.ExpandEnvironmentStrings(\"%USERPROFILE%\")\n\
-Set objFile = objFSO.CreateTextFile(strHomeFolder & \"\\AppData\\Local\\Temp\\tinyfd.txt\",True,True)\n\
+strTempFolder = oShell.ExpandEnvironmentStrings(\"%TEMP%\")\n\
+Set objFile = objFSO.CreateTextFile(strTempFolder & \"\\tinyfd.txt\",True,True)\n\
 If result = 1 Then\n\
 objFile.Write 1 & txt_input.Value\n\
 Else\n\
@@ -1287,7 +1350,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                         lDialogStringLen,
 #endif
-                        L"%ls\\AppData\\Local\\Temp\\tinyfd.txt",_wgetenv(L"USERPROFILE"));
+                        L"%ls\\tinyfd.txt",_wgetenv(L"TEMP"));
 
 #ifdef TINYFD_NOCCSUNICODE
 				lFile = _wfopen(lDialogString, L"w");
@@ -1299,13 +1362,13 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 				fclose(lFile);
 
                 wcscpy(lDialogString, L"cmd.exe /c cscript.exe //U //Nologo ");
-                wcscat(lDialogString, L"\"%USERPROFILE%\\AppData\\Local\\Temp\\tinyfd.vbs\" ");
-                wcscat(lDialogString, L">> \"%USERPROFILE%\\AppData\\Local\\Temp\\tinyfd.txt\"");
+                wcscat(lDialogString, L"\"%TEMP%\\tinyfd.vbs\" ");
+                wcscat(lDialogString, L">> \"%TEMP%\\tinyfd.txt\"");
         }
         else
         {
                 wcscpy(lDialogString,
-                        L"cmd.exe /c mshta.exe \"%USERPROFILE%\\AppData\\Local\\Temp\\tinyfd.hta\"");
+                        L"cmd.exe /c mshta.exe \"%TEMP%\\tinyfd.hta\"");
         }
 
         /* wprintf ( "lDialogString: %ls\n" , lDialogString ) ; */
@@ -1316,7 +1379,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                 lDialogStringLen,
 #endif
-				L"%ls\\AppData\\Local\\Temp\\tinyfd.txt", _wgetenv(L"USERPROFILE"));
+				L"%ls\\tinyfd.txt", _wgetenv(L"TEMP"));
 		/* wprintf(L"lDialogString: %ls\n", lDialogString); */
 #ifdef TINYFD_NOCCSUNICODE
 		if (!(lIn = _wfopen(lDialogString, L"r")))
@@ -1346,8 +1409,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                         lDialogStringLen,
 #endif
-                        L"%ls\\AppData\\Local\\Temp\\tinyfd.vbs",
-                        _wgetenv(L"USERPROFILE"));
+                        L"%ls\\tinyfd.vbs", _wgetenv(L"TEMP"));
         }
         else
         {
@@ -1355,8 +1417,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
                         lDialogStringLen,
 #endif
-                        L"%ls\\AppData\\Local\\Temp\\tinyfd.hta",
-                        _wgetenv(L"USERPROFILE"));
+                        L"%ls\\tinyfd.hta", _wgetenv(L"TEMP"));
         }
         _wremove(lDialogString);
         free(lDialogString);
@@ -2271,8 +2332,8 @@ static int messageBoxWinConsole(
                 strcat(lDialogString, " && echo 1 > ");
         }
 
-        strcpy(lDialogFile, getenv("USERPROFILE"));
-        strcat(lDialogFile, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lDialogFile, getenv("TEMP"));
+        strcat(lDialogFile, "\\tinyfd.txt");
         strcat(lDialogString, lDialogFile);
 
         /*if (tinyfd_verbose) printf( "lDialogString: %s\n" , lDialogString ) ;*/
@@ -2319,8 +2380,8 @@ static int inputBoxWinConsole(
         FILE * lIn;
         int lResult;
 
-        strcpy(lDialogFile, getenv("USERPROFILE"));
-        strcat(lDialogFile, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lDialogFile, getenv("TEMP"));
+        strcat(lDialogFile, "\\tinyfd.txt");
         strcpy(lDialogString , "echo|set /p=1 >" ) ;
         strcat(lDialogString, lDialogFile);
         strcat( lDialogString , " & " ) ;
@@ -2364,8 +2425,8 @@ static int inputBoxWinConsole(
         }
 
         strcat(lDialogString, "2>>");
-        strcpy(lDialogFile, getenv("USERPROFILE"));
-        strcat(lDialogFile, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lDialogFile, getenv("TEMP"));
+        strcat(lDialogFile, "\\tinyfd.txt");
         strcat(lDialogString, lDialogFile);
         strcat(lDialogString, " || echo 0 > ");
         strcat(lDialogString, lDialogFile);
@@ -2442,8 +2503,8 @@ static char * saveFileDialogWinConsole(
         }
         strcat(lDialogString, lPathAndFile) ;
         strcat(lDialogString, "\" 0 60 2>");
-        strcpy(lPathAndFile, getenv("USERPROFILE"));
-        strcat(lPathAndFile, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lPathAndFile, getenv("TEMP"));
+        strcat(lPathAndFile, "\\tinyfd.txt");
         strcat(lDialogString, lPathAndFile);
 
         /* printf( "lDialogString: %s\n" , lDialogString ) ; */
@@ -2507,8 +2568,8 @@ static char * openFileDialogWinConsole(
         }
         strcat(lDialogString, lFilterPatterns) ;
         strcat(lDialogString, "\" 0 60 2>");
-        strcpy(lFilterPatterns, getenv("USERPROFILE"));
-        strcat(lFilterPatterns, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lFilterPatterns, getenv("TEMP"));
+        strcat(lFilterPatterns, "\\tinyfd.txt");
         strcat(lDialogString, lFilterPatterns);
 
         /* printf( "lDialogString: %s\n" , lDialogString ) ; */
@@ -2566,8 +2627,8 @@ static char * selectFolderDialogWinConsole(
                 strcat(lDialogString, "./") ;
         }
         strcat(lDialogString, "\" 0 60 2>");
-        strcpy(lString, getenv("USERPROFILE"));
-        strcat(lString, "\\AppData\\Local\\Temp\\tinyfd.txt");
+        strcpy(lString, getenv("TEMP"));
+        strcat(lString, "\\tinyfd.txt");
         strcat(lDialogString, lString);
 
         /* printf( "lDialogString: %s\n" , lDialogString ) ; */
@@ -2728,16 +2789,16 @@ int tinyfd_notifyPopup(
 	if (tfd_quoteDetected(aTitle)) return tinyfd_notifyPopup("INVALID TITLE WITH QUOTES", aMessage, aIconType);
 	if (tfd_quoteDetected(aMessage)) return tinyfd_notifyPopup(aTitle, "INVALID MESSAGE WITH QUOTES", aIconType);
 
-        if ((!tinyfd_forceConsole || !(
-                GetConsoleWindow() ||
-                dialogPresent()))
-				&& (!getenv("SSH_CLIENT") || getenvDISPLAY()))
-        {
-                if (aTitle&&!strcmp(aTitle,"tinyfd_query")){strcpy(tinyfd_response,"windows");return 1;}
-                return notifyWinGui(aTitle, aMessage, aIconType);
-        }
-        else
-		return tinyfd_messageBox(aTitle, aMessage, "ok" , aIconType, 0);
+    if ( (windowsVersion() > 5) && (!tinyfd_forceConsole || !(
+            GetConsoleWindow() ||
+            dialogPresent()))
+			&& (!getenv("SSH_CLIENT") || getenvDISPLAY()))
+    {
+            if (aTitle&&!strcmp(aTitle,"tinyfd_query")){strcpy(tinyfd_response,"windows");return 1;}
+            return notifyWinGui(aTitle, aMessage, aIconType);
+    }
+    else
+	    return tinyfd_messageBox(aTitle, aMessage, "ok" , aIconType, 0);
 }
 
 

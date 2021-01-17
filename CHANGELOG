@@ -61,7 +61,8 @@
   - Fixed incorrect behavior for handling trap flags
     in the dynamic core. (koolkdev)
   - Updated the Tiny File Dialog library to the latest
-    version v3.8.4. (Wengier)
+    version v3.8.5, which fixes issues such as the
+    compatibility problem with Windows XP. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
