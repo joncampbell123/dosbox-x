@@ -2,9 +2,9 @@
 with a C++ compiler, then comment out << extern "C" >> bellow in this header file) */
 
 /*_________
- /         \ tinyfiledialogs.h v3.8.4 [Dec 23, 2020] zlib licence
+ /         \ tinyfiledialogs.h v3.8.5 [Jan 17, 2021] zlib licence
  |tiny file| Unique header file created [November 9, 2014]
- | dialogs | Copyright (c) 2014 - 2020 Guillaume Vareille http://ysengrin.com
+ | dialogs | Copyright (c) 2014 - 2021 Guillaume Vareille http://ysengrin.com
  \____  ___/ http://tinyfiledialogs.sourceforge.net
       \|     git clone http://git.code.sf.net/p/tinyfiledialogs/code tinyfd
  ____________________________________________
@@ -52,7 +52,7 @@ misrepresented as being the original software.
 #ifdef	__cplusplus
 /* if tinydialogs.c is compiled as C++ code rather than C code, you may need to comment this out
 				and the corresponding closing bracket near the end of this file. */
-extern "C" { 
+extern "C" {
 #endif
 
 /******************************************************************************************************/
