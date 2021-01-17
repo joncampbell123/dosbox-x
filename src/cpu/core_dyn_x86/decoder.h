@@ -477,7 +477,7 @@ static void dyn_check_trapflag(void) {
 
 #ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static void dyn_check_pagefault(void) {
-	gen_test_host_byte(&core_dyn.pagefault);
+	gen_test_host_byte(&core_dyn.pagefault, 1);
 	save_info[used_save_info].branch_pos=gen_create_branch_long(BR_NZ);
 	dyn_savestate(&save_info[used_save_info].state);
 	if (!decode.cycles) decode.cycles++;

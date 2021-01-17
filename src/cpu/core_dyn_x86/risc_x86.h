@@ -1066,12 +1066,10 @@ static void gen_save_host_direct(void * data,Bits imm) {
 	cache_addd(imm);
 }
 
-static void gen_test_host_byte(void * data) {
-	cache_addb(0x50); // push eax
-	cache_addw(0x058a);	//mov al, byte []
+static void gen_test_host_byte(void * data, uint8_t imm) {
+	cache_addw(0x05f6); // test [],byte
 	cache_addd((uint32_t)data);
-	cache_addw(0xc084); // test al, al
-	cache_addb(0x58); // pop eax
+	cache_addb(imm);
 }
 
 static void gen_return(BlockReturn retcode) {
