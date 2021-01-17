@@ -1728,6 +1728,14 @@ void PauseDOSBox(bool pressed) {
     }
 }
 
+int GetDisplayNumber(void) {
+    return sdl.displayNumber;
+}
+
+void SetDisplayNumber(int display) {
+    sdl.displayNumber = display;
+}
+
 #if defined(C_SDL2)
 static bool SDL2_resize_enable = false;
 
@@ -10212,7 +10220,11 @@ int GetNumScreen() {
     return numscreen;
 }
 
-#if defined(USE_TTF)
+void GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight) {
+    *pdrawWidth = sdl.draw.width;
+    *pdrawHeight = sdl.draw.height;
+}
+
 void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
     int maxWidth = sdl.desktop.full.width;
     int maxHeight = sdl.desktop.full.height;
@@ -10242,6 +10254,7 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
     *pmaxHeight = maxHeight;
 }
 
+#if defined(USE_TTF)
 void ttf_setlines(int cols, int lins) {
     if (cols>0) SetVal("render", "ttf.cols", std::to_string(cols));
     if (lins>0) SetVal("render", "ttf.lins", std::to_string(lins));
