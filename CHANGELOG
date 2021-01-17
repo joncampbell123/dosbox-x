@@ -6,6 +6,11 @@
     ROM & FluidSynth soundfont paths, [config] section
     options as well as file outputs for the printing
     and serial/parallel port functions. (Wengier)
+  - Added calculator for DOS (EVAL.EXE), which appears
+    on Z drive and can calculate both simple (such as
+    sin(0) and cos(0)) and many advanced mathematical
+    expressions in either command-line mode and or the
+    interactive mode. (Wengier)
   - You can now translate texts in DOSBox-X's drop-down
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
@@ -31,14 +36,22 @@
   - The config option ttf.font will now search for TTF
     fonts in the directory as specified by the fontpath
     option in [printer] section too. (Wengier)
-  - The commands "config -set fullscreen=true" and
-    "config -set fullscreen=false" can now switch on or
-    off the full-screen mode. You can also change the
-    TTF font, the number of rows and columns in the TTF
-    screen or the GLSL shader dynamically using CONFIG
-    command, e.g. "config -set ttf.font=test", "config
-    -set ttf.lins=30", "config -set ttf.cols=100", and
-    "config -set glshader=sharp". (Wengier)
+  - Added special properties to CONFIG command such as
+    "screenwidth", "screenheight", "windowwidth", and
+    "windowheight" so that commmands like "CONFIG -GET
+    screenwidth" and "CONFIG -GET screenheight" will
+    get the current screen width and height. (Wengier)
+  - You can now change properties such as "fullscreen",
+    "glshader" and "windowposition" dynamically with
+    CONFIG command. For example, command "config -set
+    fullscreen=true" and "config -set windowposition="
+    will now switch on the full-screen mode and center
+    the window position respectively. For TrueType font
+    output, you can now also change the TTF font and
+    the number of rows and columns on the TTF screen
+    dynamically using CONFIG command, e.g. "config -set
+    ttf.font=test", "config -set ttf.lins=30", and
+    "config -set ttf.cols=100". (Wengier)
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengeir)

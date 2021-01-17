@@ -1636,6 +1636,7 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
@@ -1647,6 +1648,7 @@ void SHELL_Init() {
 		else
 			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
 	}
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)

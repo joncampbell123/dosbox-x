@@ -35,9 +35,16 @@
 #include "menu.h"
 #include "render.h"
 #include "../ints/int10.h"
+#if defined(WIN32)
+#include "windows.h"
+extern RECT monrect;
+extern int curscreen;
+typedef struct {
+	int	x, y;
+} xyp;
+#endif
 
 Bitu call_program;
-
 extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
@@ -79,7 +86,7 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void EMS_Startup(Section* sec), EMS_DoShutDown();
+void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -919,7 +926,53 @@ void CONFIG::Run(void) {
 					// no: maybe it's a property?
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
 					if (!sec) {
-						WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+                        int maxWidth, maxHeight;
+                        void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight), GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight);
+                        if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
+                            GetMaxWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxWidth);
+                        } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
+                            GetMaxWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxHeight);
+                        } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
+                            GetDrawWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxWidth);
+                        } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
+                            GetDrawWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxHeight);
+#if defined(C_SDL2)
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+                            int w = 640,h = 480;
+                            SDL_Window* GFX_GetSDLWindow(void);
+                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                            WriteOut("%d\n",w);
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+                            int w = 640,h = 480;
+                            SDL_Window* GFX_GetSDLWindow(void);
+                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                            WriteOut("%d\n",h);
+#elif defined(WIN32)
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+                            RECT rect;
+                            GetClientRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.right-rect.left);
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+                            RECT rect;
+                            GetClientRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.bottom-rect.top);
+#endif
+#if defined(WIN32)
+                        } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
+                            RECT rect;
+                            GetWindowRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.right-rect.left);
+                        } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
+                            RECT rect;
+                            GetWindowRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.bottom-rect.top);
+#endif
+                        } else
+                            WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
 					}
 					// it's a property name
@@ -1154,6 +1207,89 @@ void CONFIG::Run(void) {
 								load=true;
 							}
 #endif
+#endif
+                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
+                                void SetDisplayNumber(int display);
+                                int GetNumScreen();
+                                int numscreen = GetNumScreen();
+                                const int display = section->Get_int("display");
+                                if (display >= 0 && display <= numscreen)
+                                    SetDisplayNumber(display);
+                            }
+                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
+                                const char* windowposition = section->Get_string("windowposition");
+                                int GetDisplayNumber(void);
+                                int posx = -1, posy = -1;
+                                if (windowposition && *windowposition) {
+                                    char result[100];
+                                    safe_strncpy(result, windowposition, sizeof(result));
+                                    char* y = strchr(result, ',');
+                                    if (y && *y) {
+                                        *y = 0;
+                                        posx = atoi(result);
+                                        posy = atoi(y + 1);
+                                    }
+                                }
+#if defined(C_SDL2)
+                                SDL_Window* GFX_GetSDLWindow(void);
+                                SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
+                                if (posx < 0 || posy < 0) {
+                                    SDL_DisplayMode dm;
+                                    int w = 640,h = 480;
+                                    SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                                    if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
+                                        posx = (dm.w - w)/2;
+                                        posy = (dm.h - h)/2;
+                                    }
+                                }
+                                if (GetDisplayNumber()>0) {
+                                    int displays = SDL_GetNumVideoDisplays();
+                                    SDL_Rect bound;
+                                    for( int i = 1; i <= displays; i++ ) {
+                                        bound = SDL_Rect();
+                                        SDL_GetDisplayBounds(i-1, &bound);
+                                        if (i == GetDisplayNumber()) {
+                                            posx += bound.x;
+                                            posy += bound.y;
+                                            break;
+                                        }
+                                    }
+                                }
+                                SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
+#elif defined(WIN32)
+                                RECT rect;
+                                MONITORINFO info;
+                                GetWindowRect(GetHWND(), &rect);
+#if !defined(HX_DOS)
+                                if (GetDisplayNumber()>0) {
+                                    xyp xy={0};
+                                    xy.x=-1;
+                                    xy.y=-1;
+                                    curscreen=0;
+                                    BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
+                                    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+                                    HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+                                    info.cbSize = sizeof(MONITORINFO);
+                                    GetMonitorInfo(monitor, &info);
+                                    if (posx >=0 && posy >=0) {
+                                        posx+=info.rcMonitor.left;
+                                        posy+=info.rcMonitor.top;
+                                    } else {
+                                        posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
+                                        posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
+                                    }
+                                } else
+#endif
+                                if (posx < 0 && posy < 0) {
+                                    posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
+                                    posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
+                                }
+                                MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
+#endif
+                            }
+
+#if defined(USE_TTF)
+							resetFontSize();
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							mountwarning = section->Get_bool("mountwarning");
