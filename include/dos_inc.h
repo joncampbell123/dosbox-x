@@ -282,7 +282,7 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
 }
 
 /* fopen64, ftello64, fseeko64 */
-#if defined(__APPLE__) || defined(__MINGW32__)
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(__HAIKU__)
  #define fopen64 fopen
  #define ftello64 ftell
  #define fseeko64 fseek

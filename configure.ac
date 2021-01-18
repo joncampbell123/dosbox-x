@@ -384,6 +384,11 @@ case "$host" in
        dnl which ones are needed for BSD
        AC_DEFINE(BSD, 1, [Compiling on BSD])
        ;;
+    *-*-haiku*)
+       AC_DEFINE(BSD, 1, [Compiling on BSD])
+       LIBS="$LIBS -lbsd -lnetwork"
+       CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
+       ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        ;;
