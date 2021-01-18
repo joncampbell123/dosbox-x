@@ -491,6 +491,7 @@ case "$host" in
        AC_DEFINE(BSD, 1, [Compiling on BSD])
        LIBS="$LIBS -lbsd -lnetwork"
        CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
+       ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        dnl FEATURE: Whether to support direct serial port passthrough
