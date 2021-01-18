@@ -77,6 +77,7 @@ public:
         opt_startui = false;
         initialised = false;
         opt_console = false;
+        opt_display2 = false;
         opt_logint21 = false;
         opt_userconf = false;
         opt_noconfig = false;
@@ -150,6 +151,7 @@ public:
     bool opt_resetconf;
     bool opt_printconf;
     bool opt_logint21;
+    bool opt_display2;
     bool opt_userconf;
     bool opt_noconfig;
     bool opt_console;

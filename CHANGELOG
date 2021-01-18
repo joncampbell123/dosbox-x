@@ -11,6 +11,11 @@
     sin(0) and cos(0)) and many advanced mathematical
     expressions in either command-line mode and or the
     interactive mode. (Wengier)
+  - Added support for standard (VGA/EGA/CGA) and mono
+    mode dual-screen setup by porting the patch. You
+    can now start DOSBox-X with the option -display2
+    followed by a color (white, green, amber) to enable
+    this feature on debug builds. (Wengier)
   - You can now translate texts in DOSBox-X's drop-down
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
@@ -41,6 +46,8 @@
     "windowheight" so that commmands like "CONFIG -GET
     screenwidth" and "CONFIG -GET screenheight" will
     get the current screen width and height. (Wengier)
+  - BOOT command without a parameter will now try to
+    boot the current drive if possible. (Wengier)
   - You can now change properties such as "fullscreen",
     "glshader" and "windowposition" dynamically with
     CONFIG command. For example, command "config -set

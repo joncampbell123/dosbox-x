@@ -115,6 +115,9 @@ void GFX_OpenGLRedrawScreen(void);
 #endif
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
+#if C_DEBUG
+#include "display2.cpp"
+#endif
 #if defined(USE_TTF)
 #include "sdl_ttf.c"
 #include "DOSBoxTTF.h"
@@ -8616,6 +8619,8 @@ void DOSBox_ConsolePauseWait() {
 
 bool DOSBOX_parse_argv() {
     std::string optname,tmp;
+    uint8_t disp2_color=0;
+    std::string disp2_opt;
 
     assert(control != NULL);
     assert(control->cmdline != NULL);
@@ -8673,6 +8678,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
+#if C_DEBUG
+            fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>.\n");
+#endif
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
@@ -8866,6 +8874,15 @@ bool DOSBOX_parse_argv() {
             control->opt_noconsole = false;
             control->opt_console = true;
         }
+#if C_DEBUG
+        else if (optname == "display2") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            if (strcasecmp(tmp.c_str(),"amber")==0) disp2_color=1;
+            else if (strcasecmp(tmp.c_str(),"green")==0) disp2_color=2;
+            DISP2_Init(disp2_color);
+            control->opt_display2 = true;
+        }
+#endif
         else if (optname == "nomenu") {
             control->opt_nomenu = true;
         }
@@ -8885,6 +8902,10 @@ bool DOSBOX_parse_argv() {
         } else {
             printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
         }
+    }
+    if (control->opt_display2) {
+        control->opt_break_start = false;
+        control->opt_console = false;
     }
 
     /* now that the above loop has eaten all the options from the command
@@ -11144,6 +11165,7 @@ bool custom_bios = false;
 #define SDL_MAIN_NOEXCEPT
 #endif
 
+void DISP2_Init(uint8_t color);
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
@@ -12708,6 +12730,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
+        if (control->opt_display2) {
+            mainMenu.get_item("show_console").enable(false).refresh_item(mainMenu);
+            mainMenu.get_item("wait_on_error").enable(false).refresh_item(mainMenu);
+        }
+#endif
+#if C_DEBUG
+        if (control->opt_display2) mainMenu.get_item("mapper_debugger").enable(false).refresh_item(mainMenu);
 #endif
 
         OutputSettingMenuUpdate();

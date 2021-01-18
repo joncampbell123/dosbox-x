@@ -663,10 +663,18 @@ static void SetTextLines(void) {
 	}
 }
 
+bool DISP2_Active(void);
 bool INT10_SetCurMode(void) {
 	bool mode_changed=false;
 	uint16_t bios_mode=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
+#if C_DEBUG
+		if (bios_mode==7 && DISP2_Active()) {
+			if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
+			CurMode=&Hercules_Mode;
+			return true;
+		}
+#endif
 		switch (machine) {
 		case MCH_CGA:
 			if (bios_mode<7) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
@@ -797,7 +805,11 @@ static void FinishSetMode(bool clearmem) {
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
 
 	// this is an index into the dcc table:
+#if C_DEBUG
+	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
+#else
 	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
+#endif
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
@@ -1215,6 +1227,17 @@ bool INT10_SetVideoMode(uint16_t mode) {
 
 	int10.vesa_setmode=0xffff;
 	LOG(LOG_INT10,LOG_NORMAL)("Set Video Mode %X",mode);
+#if C_DEBUG
+	if (mode==7 && DISP2_Active()) {
+		if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
+		CurMode=&Hercules_Mode;
+		FinishSetMode(clearmem);
+		// EGA/VGA inactive
+		if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x68|(clearmem?0:0x80)));
+		INT10_SetCursorShape(0x0b,0x0c);
+		return true;
+	}
+#endif
 	if (!IS_EGAVGA_ARCH) return INT10_SetVideoMode_OTHER(mode,clearmem);
 
 	/* First read mode setup settings from bios area */
