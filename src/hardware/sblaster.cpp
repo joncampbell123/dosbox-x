@@ -122,6 +122,7 @@ struct SB_INFO {
     uint8_t timeconst;
     Bitu dma_dac_srcrate;
     struct {
+        bool recording;
         bool stereo,sign,autoinit;
         bool force_autoinit;
         DMA_MODES mode_assigned;
@@ -1204,6 +1205,7 @@ static void DSP_Reset(void) {
     sb.dma.left=0;
     sb.dma.total=0;
     sb.dma.stereo=false;
+    sb.dma.recording=false;
     sb.dma.sign=false;
     sb.dma.autoinit=false;
     sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
