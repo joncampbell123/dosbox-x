@@ -1731,8 +1731,14 @@ public:
             stack_seg = max_seg - 0x20;
 
         if(!cmd->GetCount()) {
-            printError();
-            return;
+            uint8_t drv = dos_kernel_disabled?26:DOS_GetDefaultDrive();
+            if (drv < 4 && Drives[drv] && !strncmp(Drives[drv]->GetInfo(), "fatDrive ", 9)) {
+                drive = 'A' + drv;
+                bootbyDrive = true;
+            } else {
+                printError();
+                return;
+            }
         } else if (cmd->GetCount()==1) {
 			cmd->FindCommand(1, temp_line);
 			if (temp_line.length()==2&&toupper(temp_line[0])>='A'&&toupper(temp_line[0])<='Z'&&temp_line[1]==':') {
@@ -7051,12 +7057,12 @@ void DOS_SetupPrograms(void) {
         "For this command, one can specify a succession of floppy disks swappable\n"
         "by the menu command, and drive: specifies the mounted drive to boot from.\n"
         "If no drive letter is specified, this defaults to boot from the A drive.\n"
+        "If no parameter is specified, it will try to boot from the current drive.\n"
         "The only bootable drive letters are A, C, and D.  For booting from a hard\n"
         "drive (C or D), ensure the image is already mounted by \033[34;1mIMGMOUNT\033[0m command.\n\n"
-        "The syntax of this command is:\n\n"
+        "The syntax of this command is one of the following:\n\n"
+        "\033[34;1mBOOT [driveletter:]\033[0m\n\n"
         "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
-		"Or:\n\n"
-        "\033[34;1mBOOT driveletter:\033[0m\n\n"
         "Note: An image file with a leading colon (:) will be booted in write-protected\n"
 		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
         "Examples:\n\n"

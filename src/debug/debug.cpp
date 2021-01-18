@@ -52,6 +52,7 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "setup.h"
+#include "control.h"
 
 #ifdef WIN32
 void WIN32_Console();
@@ -3408,7 +3409,7 @@ void DEBUG_FlushInput(void);
 
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
-	if (!pressed)
+	if (!pressed || control->opt_display2)
 		return;
 
 #if defined(WIN32)

@@ -46,6 +46,8 @@
     "windowheight" so that commmands like "CONFIG -GET
     screenwidth" and "CONFIG -GET screenheight" will
     get the current screen width and height. (Wengier)
+  - BOOT command without a parameter will now try to
+    boot the current drive if possible. (Wengier)
   - You can now change properties such as "fullscreen",
     "glshader" and "windowposition" dynamically with
     CONFIG command. For example, command "config -set
