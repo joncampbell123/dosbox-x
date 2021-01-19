@@ -3,6 +3,8 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
+## DOSBox‐X’s Feature Highlights
+
 As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X's unique features include:
 
 * **GUI drop-down menu for easier usage**
@@ -25,7 +27,7 @@ With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applicat
 DOSBox-X officially supports both SDL1 and SDL2 and provides both SDL1 and SDL2 builds, so that you can choose either the SDL1 or SDL2 build to use. While most features are common to both SDL builds, certain functions are only found in one of them.
 * **More customizable virtual machine**
 +
-DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, along with a lot more.
+DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, or even starting DOSBox-X in silent mode (-silent), along with a lot more.
 * **CPU speed optimization and Turbo mode**
 +
 DOSBox-X can automatically decide the CPU cycles to use for optimized speed, and it provides a Turbo function to increase the speed of the system inside it.
@@ -78,7 +80,7 @@ DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, 
 FAT32 file system is supported in DOSBox-X in addition to FAT12 and FAT16, so you can make and mount drives larger than 2GB. Set ``ver=7.1`` to enable this feature.
 * **Support for clipboard text selection, copy and paste**
 +
-With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special device for it. Some clipboard functions are only supported for Windows systems.
+With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special DOS device for it. Some clipboard functions are only supported for Windows systems. Look at the link:Guide%3AClipboard-support-in-DOSBox‐X{suffixappend}[Clipboard support in DOSBox-X] guide page for more information.
 * **Support for converting mouse wheel movements to arrow keys**
 +
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
@@ -87,7 +89,7 @@ You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, 
 It is possible to launch a Windows application from inside DOSBox-X to run on the Windows host, either using START command or run it directly from the shell. Set ``startcmd=true`` to enable this feature.
 * **Support for quick-launch programs to run inside DOSBox-X**
 +
-DOSBox-X lets you use the system file browser to select a DOS program to quickly run inside DOSBox-X, and file associations for DOS programs are supported for the Windows Explorer as well.
+DOSBox-X lets you use the system file browser to select a DOS program to quickly run inside DOSBox-X on all supported platforms, and file associations for DOS programs are supported for the Windows Explorer as well.
 * **Support for setting config options from the DOSBox-X command line**
 +
 DOSBox-X allows you to set one or more config options from the DOSBox-X command line, overriding any preset config options that may be specified in the config file. For example, ``dosbox-x -set machine=pc98`` forces DOSBox-X to start in PC-98 mode.
@@ -129,7 +131,7 @@ Advanced OpenGL features including OpenGL-HQ and GLSL shaders are supported by D
 DOSBox-X supports Direct3D along with pixel shaders which provides many more output flexibilities on Windows systems.
 * **Support for TrueType fonts (TTF) for text-mode DOS applications**
 +
-DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display for DOS shell and program running in text-mode. Features such as on-screen text styles are supported in this output mode too.
+DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display for DOS shell and program running in text-mode. Features such as on-screen text styles are supported in this output mode too. Look at the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page for more information.
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**

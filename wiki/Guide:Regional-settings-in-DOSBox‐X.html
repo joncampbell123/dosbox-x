@@ -750,6 +750,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><code>language=C:\message.txt</code></p>
 </div>
 <div class="paragraph">
+<p>For example, the Spanish language file for DOSBox-X is available from:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng?raw=true">es_ES.lng</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
 <p>Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:</p>
 </div>
 <div class="paragraph">
@@ -784,7 +794,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>This command writes the current language settings to a file in a specified location. "filename" is located on the local drive, not a mounted drive in DOSBox-X. It is located in the DOSBox-X directory by default.</p>
 </div>
 <div class="paragraph">
-<p>The language file controls all visible output of the internal commands and the internal DOS. Please read the language file that you just created from the above, and you will hopefully understand how to change it.</p>
+<p>The language file controls all visible output of the internal commands and the internal DOS, as well as the menu options. Please read the language file that you just created from the above, and you will hopefully understand how to change it.</p>
 </div>
 <div class="paragraph">
 <p>Once you finished the customization or translation of the language file, you can save it for use with DOSBox-X, using the instructions mentioned above.</p>
@@ -1053,7 +1063,7 @@ For using layouts marked with * you must have ten ega.cpx files (from FreeDOS) i
 <p>Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.</p>
 </div>
 <div class="paragraph">
-<p>The Japanese keyboard layout is also supported in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting <code>machine=pc98</code> in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters.</p>
+<p>The Japanese keyboard layout is supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting <code>machine=pc98</code> in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation in DOSBox‐X</a> guide page.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1182,7 +1192,7 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-04 14:57:31 -0500
+Last updated 2021-01-19 00:41:08 -0500
 </div>
 </div>
 </body>

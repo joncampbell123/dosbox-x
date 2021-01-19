@@ -468,7 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.</p>
+<p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.</p>
 </div>
 </div>
 </div>
@@ -495,6 +495,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>The blinking cursor in the TrueType output can be optionally disabled with the setting <code>ttf.blinkc=false</code> in the [render] section of the configuration.</p>
 </div>
+<div class="paragraph">
+<p>A screenshot showing the TrueType output with the default TTF font:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/DOSBox-X:TrueType_Font_Default.png" alt="TrueType font output with the default TTF font">
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -520,10 +528,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:</p>
 </div>
-<div class="paragraph">
-<p>Windows: <code>C:\WINDOWS\Fonts</code>
-Linux: <code>/usr/share/fonts/truetype/</code>
-macOS: <code>/Library/Fonts/</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Windows: <code>C:\WINDOWS\Fonts</code></p>
+</li>
+<li>
+<p>Linux: <code>/usr/share/fonts/truetype/</code></p>
+</li>
+<li>
+<p>macOS: <code>/Library/Fonts/</code></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:</p>
@@ -537,10 +553,27 @@ ttf.font=msgothic.ttc</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use.</p>
+<p>A screenshot showing the TrueType output with the Lucon TTF font:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/DOSBox-X:TrueType_Font_Lucon.png" alt="TrueType font output with the Lucon TTF font">
+</div>
 </div>
 <div class="paragraph">
-<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
+<p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu or the command line. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use. Alternatively, you can do so with CONFIG command, such as the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>CONFIG -set ttf.font=Consola
+CONFIG -set ttf.font=</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above commands will change the TTF font to Consola.ttf and the built-in TrueType font respectively.</p>
+</div>
+<div class="paragraph">
+<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC-98-emulation-in-DOSBox-X">Guide: PC-98 emulation in DOSBox-X</a> page for more information about this.</p>
 </div>
 </div>
 </div>
@@ -563,7 +596,10 @@ ttf.lins=50</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE command from DOSBox-X&#8217;s DOS shell, although in this case the options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60. These can be found in the "Text-mode" menu group under the "Video" menu, or you can do so via the a command like:</p>
+<p>You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE and/or CONFIG commands from DOSBox-X&#8217;s DOS shell, although the menu options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60, which can be found in the "Text-mode" menu group under the "Video" menu.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can do so using MODE or CONFIG command from the a command line. With MODE command you can change the screen dimensions to those supported by the above menu options. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -573,6 +609,18 @@ MODE CON LINES=60 COLS=132</code></pre>
 </div>
 <div class="paragraph">
 <p>The above commands will change the screen dimension to 50 lines and 132x60 respectively.</p>
+</div>
+<div class="paragraph">
+<p>With CONFIG command, you can change the values of ttf.cols and ttf.lins dynamically, but one at a time. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>CONFIG -set ttf.lins=30
+CONFIG -set ttf.cols=100</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above commands will change the screen dimension to 30 lines and 100 columns respectively.</p>
 </div>
 </div>
 </div>
@@ -683,7 +731,7 @@ SETCOLOR 1 -
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-04 14:57:31 -0500
+Last updated 2021-01-19 00:41:08 -0500
 </div>
 </div>
 </body>

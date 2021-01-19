@@ -478,7 +478,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_example_print_to_png_bmp_or_postscript">Example: Print to PNG, BMP or PostScript</a></li>
-<li><a href="#_example_redirect_print_output_to_a_program_on_the_host">Example: Redirect print output to a program on the host</a></li>
+<li><a href="#_example_redirect_print_output_to_a_program_on_the_host">Example: Redirect print output to a program on the host</a>
+<ul class="sectlevel2">
+<li><a href="#_macos_example">macOS example</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -490,13 +494,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>DOSBox-X has support for printing to either a real printer, redirect to a file, or create a PNG, BMP or PostScript file.</p>
 </div>
 <div class="paragraph">
-<p>Printer options in the config are split over two config options, <code>[parallel]</code> and <code>[printer]</code>.</p>
+<p>Printer options in the DOSBox-X config file are split over two sections, <code>[parallel]</code> and <code>[printer]</code>.</p>
 </div>
 <div class="paragraph">
-<p>The Virtual Printer emulates a color dot-matrix printer that follows the ESC/P2 printing standard.</p>
+<p>The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson <a href="https://en.wikipedia.org/wiki/ESC/P">ESC/P2</a> printing standard.</p>
 </div>
 <div class="paragraph">
 <p><strong>Example of printers that may work:</strong></p>
+</div>
+<div class="paragraph">
+<p>These are examples of printers that you may be able to select in a DOS application, which may work with the virtual printer option.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -526,13 +533,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>Many of the ESC/P and ESC/P2 instructions supported</p>
+<p>Many of the Epson ESC/P and ESC/P2 instructions are supported</p>
 </li>
 <li>
 <p>Graphics printing for 24-pin and 48-pin modes supported, up to 360dpi</p>
 </li>
 <li>
-<p>Color output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95</p>
+<p>Colour output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95</p>
 </li>
 <li>
 <p>Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows</p>
@@ -554,16 +561,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Not all ESC/P commands are supported, like custom fonts</p>
 </li>
 <li>
-<p>Needed TrueType font filenames and locations are hard-coded</p>
+<p>Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected</p>
 </li>
 <li>
-<p>Due to overexact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected</p>
+<p>When set to use a Windows printer, the printer dialogue will only show up once at start</p>
 </li>
 <li>
-<p>When set to use a Windows printer, the printer dialog will only show up once at start</p>
-</li>
-<li>
-<p>Country code setup and other configuration buttons found on a printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing</p>
+<p>Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing</p>
 </li>
 </ul>
 </div>
@@ -585,7 +589,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This enables an emulated LPT1 port on IO base address 0x378.</p>
+<p>This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on LPT1 port.</p>
 </div>
 <div class="paragraph">
 <p>Some values have additional parameters, which if specified must be on the same line in the form of <code>parameter:value</code>.</p>
@@ -746,7 +750,7 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </ul>
 </div>
 <div class="paragraph">
-<p>This enables an emulated LPT1 port on IO base address 0x278.</p>
+<p>This enables an emulated LPT2 port on IO base address 0x278.</p>
 </div>
 </div>
 <div class="sect3">
@@ -760,6 +764,9 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 <p>Possible values: disabled, reallpt, file, printer, disney</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>This enables an emulated LPT3 port.</p>
 </div>
 </div>
 <div class="sect3">
@@ -782,7 +789,7 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </td>
 <td class="content">
 LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
-You can optionally specify base addresses and IRQs for them with base: and irq: options.
+You can optionally specify base addresses and IRQs for them with <code>base:</code> and <code>irq:</code> options.
 </td>
 </tr>
 </table>
@@ -959,7 +966,8 @@ You can optionally specify base addresses and IRQs for them with base: and irq: 
 <p>Only applicable if <code>printoutput=ps</code>.</p>
 </div>
 <div class="paragraph">
-<p>Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.</p>
+<p>Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
+See also the <code>timeout</code> option below.</p>
 </div>
 </div>
 <div class="sect3">
@@ -983,7 +991,7 @@ You can optionally specify base addresses and IRQs for them with base: and irq: 
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: &lt;blank&gt;</p>
+<p>Default value: \&lt;blank\&gt;</p>
 </li>
 </ul>
 </div>
@@ -993,13 +1001,20 @@ You can optionally specify base addresses and IRQs for them with base: and irq: 
 <div class="paragraph">
 <p>e.g. <code>openwith=notepad</code> will open the file with Notepad on a Windows host.</p>
 </div>
+<div class="paragraph">
+<p>Some examples:
+- Linux host: <code>openwith=xdg-open</code> will cause the file to be opened with the application associated with the file extension
+- Windows host: <code>openwith=start</code> will cause the file to be opened with the application associated with the file extension
+- Windows host: <code>openwith=notepad</code> will open the file with the Notepad application
+- macOS host: <code>openwith=open -s "Preview"</code> will cause the file to be opened with the application associated with the file extension</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_openerror">openerror</h4>
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: &lt;blank&gt;</p>
+<p>Default value: \&lt;blank\&gt;</p>
 </li>
 </ul>
 </div>
@@ -1041,14 +1056,17 @@ You can optionally specify base addresses and IRQs for them with base: and irq: 
 <h1 id="_setting_up_fonts_for_the_emulated_printer" class="sect0">Setting up fonts for the emulated printer</h1>
 <div class="openblock partintro">
 <div class="content">
-The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs <code>courier.ttf</code>; if no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
+The emulated printer requires TrueType fonts in order to be able to print text.
+At a minimum it needs <code>courier.ttf</code>.
+If no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
 </div>
 </div>
 <div class="sect1">
 <h2 id="_windows_host">Windows host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located. If the fonts cannot be found, then it will search for the system fonts, as follows:</p>
+<p>DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located.
+If the fonts cannot be found, then it will search for the system fonts, as follows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1092,7 +1110,8 @@ The emulated printer requires TrueType fonts in order to be able to print text. 
 </tbody>
 </table>
 <div class="paragraph">
-<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table. Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
+<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.
+Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
 </div>
 <div class="paragraph">
 <p>Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
@@ -1198,7 +1217,7 @@ The exact save location is dependent on the <code>captures=</code> setting in th
 <p>Note: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <code>guest os_000.prt</code> instead.</p>
 </div>
 <div class="paragraph">
-<p>You may be able to use this with more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
+<p>You may be able to use this with a more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
 In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.</p>
 </div>
 </div>
@@ -1236,7 +1255,7 @@ timeout=1000</pre>
 <h2 id="_windows_host_method_2">Windows host, method 2</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you PC still has a printer port integrated on the systemboard, or a legacy ISA printer adapter.
+<p>This assumes you PC still has a parallel printer port integrated on the systemboard, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.</p>
 </div>
 <div class="paragraph">
@@ -1262,7 +1281,7 @@ parallel1=reallpt directlpt:378</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Another alternative are to install either <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (Open Source), or <a href="http://www.dosprn.com/">DOSPRN</a>, a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
+<p>Other alternatives are to install either <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (Open Source), or <a href="http://www.dosprn.com/">DOSPRN</a>, a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
 </div>
 </div>
 </div>
@@ -1302,6 +1321,9 @@ parallel1=file dev:/dev/parport0</pre>
 </div>
 <div class="paragraph">
 <p>But while this method seems to work on Windows, it does not seem to work properly on Linux.</p>
+</div>
+<div class="paragraph">
+<p>Again, just like in the "Windows host, method 2" above, the output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.</p>
 </div>
 </div>
 </div>
@@ -1390,10 +1412,23 @@ If this is not flexible enough, for instance because you need to have the printe
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_macos_example">macOS example</h3>
+<div class="paragraph">
+<p>In this example, it is assumed that your printing to a PostScript printer in your DOS application.
+The output is saved to a file on the host, and when the file is closed (when no output is received for 1 second), the file will be opened by the macOS Preview application such that it can be printed.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s "Preview"'</pre>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-04 14:57:31 -0500
+Last updated 2021-01-19 00:41:08 -0500
 </div>
 </div>
 </body>

@@ -68,6 +68,9 @@ Uses the default key mappings for DOSBox-X (do not try to load a mapper file suc
 * **-winrun**
 +
 Enables launching Windows programs to run on the host (such as the use of START command), long filenames support and Windows clipboard communications via the CLIP$ device (Windows version only).
+* **-display2 <color>**
++
+Enables standard (VGA/EGA/CGA) and monochrome dual-screen mode with the specified color: white, green, amber.
 * **-disable-numlock-check**
 +
 Disables check of the NumLock key (Windows version only).
@@ -104,6 +107,9 @@ Starts and terminates DOSBox-X after 'n' seconds.
 * **-fastlaunch**
 +
 Enables fast launch mode by skipping the BIOS pause and welcome banner when DOSBox-X starts. Especially use for launching a specific program or game at start.
+* **-silent**
++
+Runs DOSBox-X silently without showing the DOSBox-X window and then automatically exits after executing AUTOEXEC.BAT. Useful for batch operations.
 * **-helpdebug**
 +
 Shows debug-related command-line options.

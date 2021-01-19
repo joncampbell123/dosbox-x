@@ -88,6 +88,10 @@ If you already have a DOSBox-X language file available, you can specify its file
 
 ``language=C:\message.txt``
 
+For example, the Spanish language file for DOSBox-X is available from:
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng?raw=true[es_ES.lng]
+
 Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:
 
 ``dosbox-x -lang C:\message.txt``
@@ -106,7 +110,7 @@ Alternatively, you can let DOSBox-X generate the language file with its built-in
 
 This command writes the current language settings to a file in a specified location. "filename" is located on the local drive, not a mounted drive in DOSBox-X. It is located in the DOSBox-X directory by default.
 
-The language file controls all visible output of the internal commands and the internal DOS. Please read the language file that you just created from the above, and you will hopefully understand how to change it.
+The language file controls all visible output of the internal commands and the internal DOS, as well as the menu options. Please read the language file that you just created from the above, and you will hopefully understand how to change it.
 
 Once you finished the customization or translation of the language file, you can save it for use with DOSBox-X, using the instructions mentioned above.
 
@@ -190,7 +194,7 @@ Most western European countries would have used codepage 850 back in the day, bu
 
 Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
 
-The Japanese keyboard layout is also supported in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters.
+The Japanese keyboard layout is supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page.
 
 ### Support for the Euro symbol
 

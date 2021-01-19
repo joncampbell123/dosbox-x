@@ -12,11 +12,13 @@ toc::[]
 ## Overview
 DOSBox-X has support for printing to either a real printer, redirect to a file, or create a PNG, BMP or PostScript file.
 
-Printer options in the config are split over two config options, ``[parallel]`` and ``[printer]``.
+Printer options in the DOSBox-X config file are split over two sections, ``[parallel]`` and ``[printer]``.
 
-The Virtual Printer emulates a color dot-matrix printer that follows the ESC/P2 printing standard.
+The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson link:https://en.wikipedia.org/wiki/ESC/P[ESC/P2] printing standard.
 
 **Example of printers that may work:**
+
+These are examples of printers that you may be able to select in a DOS application, which may work with the virtual printer option.
 
 * Epson MX-80
 * Epson SQ-860
@@ -27,9 +29,9 @@ The Virtual Printer emulates a color dot-matrix printer that follows the ESC/P2 
 
 **Features:**
 
-* Many of the ESC/P and ESC/P2 instructions supported
+* Many of the Epson ESC/P and ESC/P2 instructions are supported
 * Graphics printing for 24-pin and 48-pin modes supported, up to 360dpi
-* Color output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95
+* Colour output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95
 * Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows
 * Some older non-conflicting IBM control codes are supported
 
@@ -37,10 +39,9 @@ The Virtual Printer emulates a color dot-matrix printer that follows the ESC/P2 
 
 * Windows printer output in black & white only
 * Not all ESC/P commands are supported, like custom fonts
-* Needed TrueType font filenames and locations are hard-coded
-* Due to overexact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected
-* When set to use a Windows printer, the printer dialog will only show up once at start
-* Country code setup and other configuration buttons found on a printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing
+* Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected
+* When set to use a Windows printer, the printer dialogue will only show up once at start
+* Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing
 
 ### [parallel] section options
 This section lists the available configuration options for the ``[parallel]`` section that DOSBox-X provides.
@@ -49,7 +50,7 @@ This section lists the available configuration options for the ``[parallel]`` se
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
-This enables an emulated LPT1 port on IO base address 0x378.
+This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on LPT1 port.
 
 Some values have additional parameters, which if specified must be on the same line in the form of ``parameter:value``.
 
@@ -118,18 +119,20 @@ If you set ``disney=true`` and have ``parallel1=`` set to a different value, the
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
-This enables an emulated LPT1 port on IO base address 0x278.
+This enables an emulated LPT2 port on IO base address 0x278.
 
 #### parallel3
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
+
+This enables an emulated LPT3 port.
 
 #### parallel4-9
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
 NOTE: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
-You can optionally specify base addresses and IRQs for them with base: and irq: options.
+You can optionally specify base addresses and IRQs for them with ``base:`` and ``irq:`` options.
 
 #### dongle
 * Default value: false
@@ -199,6 +202,7 @@ Setting the value to ``printer`` on a Windows host, will cause it to get redirec
 Only applicable if ``printoutput=ps``.
 
 Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
+See also the ``timeout`` option below.
 
 #### docpath
 * Default value: .
@@ -208,14 +212,20 @@ The path where the output files are stored. Defaults to the current working dire
 Note: On Linux the use of the ~ character is not allowed to specify the home directory.
 
 #### openwith
-* Default value: <blank>
+* Default value: \<blank\>
 
 Start the specified program to open the output file.
 
 e.g. ``openwith=notepad`` will open the file with Notepad on a Windows host.
 
+Some examples:
+- Linux host: ``openwith=xdg-open`` will cause the file to be opened with the application associated with the file extension
+- Windows host: ``openwith=start`` will cause the file to be opened with the application associated with the file extension
+- Windows host: ``openwith=notepad`` will open the file with the Notepad application
+- macOS host: ``openwith=open -s "Preview"`` will cause the file to be opened with the application associated with the file extension
+
 #### openerror
-* Default value: <blank>
+* Default value: \<blank\>
 
 Start the specified program to open the output file if an error had occurred.
 
@@ -234,22 +244,26 @@ If non-zero, it specifies the time after which the page will be ejected automati
 You can also manually eject a form-feed when you want to do so, and this option is available from the DOS menu.
 
 # Setting up fonts for the emulated printer
-The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs ``courier.ttf``; if no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
+The emulated printer requires TrueType fonts in order to be able to print text.
+At a minimum it needs ``courier.ttf``.
+If no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
 
 ## Windows host
-DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located. If the fonts cannot be found, then it will search for the system fonts, as follows:
+DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located.
+If the fonts cannot be found, then it will search for the system fonts, as follows:
 
 |===
-|Font file in FONTS directory|Font file in system directory|Notes
+|Font file in FONTS directory | Font file in system directory | Notes
 
-|FONTS\courier.ttf|C:\Windows\Fonts\cour.ttf|
-|FONTS\roman.ttf|C:\Windows\Fonts\times.ttf|
-|FONTS\sansserif.ttf|C:\Windows\Fonts\arial.ttf|
-|FONTS\ocra.ttf|C:\Windows\Fonts\Ocraext.ttf|Download Ocraext.ttf if not installed
-|FONTS\script.ttf|C:\Windows\Fonts\freescpt.ttf|Installed by MS Office
+|FONTS\courier.ttf | C:\Windows\Fonts\cour.ttf|
+|FONTS\roman.ttf | C:\Windows\Fonts\times.ttf|
+|FONTS\sansserif.ttf | C:\Windows\Fonts\arial.ttf|
+|FONTS\ocra.ttf|C:\Windows\Fonts\Ocraext.ttf | Download Ocraext.ttf if not installed
+|FONTS\script.ttf|C:\Windows\Fonts\freescpt.ttf | Installed by MS Office
 |===
 
-You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table. Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.
+You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.
+Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.
 
 Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
 They are however rarely needed, and can typically be ignored.
@@ -258,13 +272,13 @@ If you need them you may need to find those online.
 ## Linux host
 DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory. If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:
 |===
-|Font file in FONTS directory|Font file in system directory|Notes
+|Font file in FONTS directory | Font file in system directory | Notes
 
-|~/.config/dosbox-x/FONTS/courier.ttf|/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf|
-|~/.config/dosbox-x/FONTS/roman.ttf|/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf|
-|~/.config/dosbox-x/FONTS/sansserif.ttf|/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf|
-|~/.config/dosbox-x/FONTS/ocra.ttf|/usr/share/fonts/Ocraext.ttf|Download Ocraext.ttf if not installed
-|~/.config/dosbox-x/FONTS/script.ttf|/usr/share/fonts/freescpt.ttf|Download a Script (cursive) font
+|~/.config/dosbox-x/FONTS/courier.ttf|/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf |
+|~/.config/dosbox-x/FONTS/roman.ttf|/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf |
+|~/.config/dosbox-x/FONTS/sansserif.ttf|/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf |
+|~/.config/dosbox-x/FONTS/ocra.ttf|/usr/share/fonts/Ocraext.ttf | Download Ocraext.ttf if not installed
+|~/.config/dosbox-x/FONTS/script.ttf|/usr/share/fonts/freescpt.ttf | Download a Script (cursive) font
 |===
 
 You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table. Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.
@@ -298,7 +312,7 @@ You can also use this in most DOS programs, by selecting a generic text printer,
 
 Note: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be ``guest os_000.prt`` instead.
 
-You may be able to use this with more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
+You may be able to use this with a more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
 In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.
 
 # Example: Printing to a real printer
@@ -322,7 +336,7 @@ timeout=1000
 In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
 
 ## Windows host, method 2
-This assumes you PC still has a printer port integrated on the systemboard, or a legacy ISA printer adapter.
+This assumes you PC still has a parallel printer port integrated on the systemboard, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.
 
 Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion. Therefore it is important that the printer can understand the control codes that are being sent.
@@ -341,7 +355,7 @@ Alternatively you can try to set it up as follows, but this reportedly only work
 parallel1=reallpt directlpt:378
 ....
 
-Another alternative are to install either link:http://sourceforge.net/projects/winprint/[WinPrint] (Open Source), or link:http://www.dosprn.com/[DOSPRN], a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.
+Other alternatives are to install either link:http://sourceforge.net/projects/winprint/[WinPrint] (Open Source), or link:http://www.dosprn.com/[DOSPRN], a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.
 
 ## Linux host
 
@@ -369,6 +383,8 @@ parallel1=file dev:/dev/parport0
 ....
 
 But while this method seems to work on Windows, it does not seem to work properly on Linux.
+
+Again, just like in the "Windows host, method 2" above, the output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.
 
 # Example: Print to PNG, BMP or PostScript
 This method prints to a PNG, BMP or PostScript (PS) image file.
@@ -417,3 +433,12 @@ If you need to pass additional parameters to the application you can either encl
 If this is not flexible enough, for instance because you need to have the printer filename in the middle of other parameters, then create a shell script or batch file with a content similar to ``program arg1 %1 arg2``, and call this shell script/batch file instead of the program directly.
 
 Keep in mind that the output file will be created in your current working directory, if you don't specify a path.
+
+### macOS example
+In this example, it is assumed that your printing to a PostScript printer in your DOS application.
+The output is saved to a file on the host, and when the file is closed (when no output is received for 1 second), the file will be opened by the macOS Preview application such that it can be printed.
+
+....
+[parallel]
+parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s "Preview"'
+....

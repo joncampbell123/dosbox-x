@@ -11,7 +11,7 @@ toc::[]
 
 This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.
 
-Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
+Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
 
 ## Activating the TrueType font output
 You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:
@@ -27,6 +27,10 @@ You can also switch from a different output (such as the standard surface/opengl
 Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the ```ttf.outputswitch``` config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.
 
 The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration.
+
+A screenshot showing the TrueType output with the default TTF font: 
+
+image::images/DOSBox-X:TrueType_Font_Default.png[TrueType font output with the default TTF font]
 
 ## Use your own TrueType font for the output
 
@@ -44,9 +48,9 @@ If the file extension is .ttf you can either omit the extension or put the full 
 
 On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:
 
-Windows: ``C:\WINDOWS\Fonts``
-Linux: ``/usr/share/fonts/truetype/``
-macOS: ``/Library/Fonts/``
+* Windows: ``C:\WINDOWS\Fonts``
+* Linux: ``/usr/share/fonts/truetype/``
+* macOS: ``/Library/Fonts/``
 
 So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:
 
@@ -57,9 +61,20 @@ ttf.font=vgasys.fon
 ttf.font=msgothic.ttc
 ```
 
-Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu. There is a menu option "Select TrueType font (TTF)..." under the "Video" menu which allows users to select a TTF font file to use.
+A screenshot showing the TrueType output with the Lucon TTF font: 
 
-If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X] page for more information about this.
+image::images/DOSBox-X:TrueType_Font_Lucon.png[TrueType font output with the Lucon TTF font]
+
+Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu or the command line. There is a menu option "Select TrueType font (TTF)..." under the "Video" menu which allows users to select a TTF font file to use. Alternatively, you can do so with CONFIG command, such as the following:
+
+```
+CONFIG -set ttf.font=Consola
+CONFIG -set ttf.font=
+```
+
+The above commands will change the TTF font to Consola.ttf and the built-in TrueType font respectively.
+
+If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC-98-emulation-in-DOSBox-X{suffixappend}[Guide: PC-98 emulation in DOSBox-X] page for more information about this.
 
 ## Modifying the screen dimension for the output
 
@@ -74,7 +89,9 @@ ttf.cols=100
 ttf.lins=50
 ```
 
-You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE command from DOSBox-X's DOS shell, although in this case the options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60. These can be found in the "Text-mode" menu group under the "Video" menu, or you can do so via the a command like:
+You can also dynamically change the number of columns and rows on the text screen from the menu, or using the MODE and/or CONFIG commands from DOSBox-X's DOS shell, although the menu options are limited to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60, which can be found in the "Text-mode" menu group under the "Video" menu.
+
+Alternatively, you can do so using MODE or CONFIG command from the a command line. With MODE command you can change the screen dimensions to those supported by the above menu options. For example:
 
 ```
 MODE CON LINES=50
@@ -82,6 +99,15 @@ MODE CON LINES=60 COLS=132
 ```
 
 The above commands will change the screen dimension to 50 lines and 132x60 respectively.
+
+With CONFIG command, you can change the values of ttf.cols and ttf.lins dynamically, but one at a time. For example:
+
+```
+CONFIG -set ttf.lins=30
+CONFIG -set ttf.cols=100
+```
+
+The above commands will change the screen dimension to 30 lines and 100 columns respectively.
 
 ## On-screen text styles for DOS applications
 
