@@ -85,12 +85,15 @@
     using IMGMOUNT command. (Wengier)
   - Fixed incorrect behavior for handling trap flags
     in the dynamic core. (koolkdev)
-  - Updated the Tiny File Dialog library to the latest
-    version v3.8.5, which fixes issues such as the
-    compatibility problem with Windows XP. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
+  - Updated the Tiny File Dialog library to the latest
+    version v3.8.5, which fixes issues such as the
+    compatibility problem with Windows XP. (Wengier)
+  - Updated FLAC and WAV CD-DA decoder libraries to the
+    latest versions (0.12.26 and 0.12.18 respectively;
+    per David Reid). (Wengier)
   - Integrated SVN commits (Allofich)
     - r4392: Improve capturing of Zeliard and fix a
     few percussion-related capturing problems as well.
