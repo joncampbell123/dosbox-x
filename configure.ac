@@ -487,6 +487,11 @@ case "$host" in
        dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
+    *-*-haiku*)
+       AC_DEFINE(BSD, 1, [Compiling on BSD])
+       LIBS="$LIBS -lbsd -lnetwork"
+       CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
+       ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        dnl FEATURE: Whether to support direct serial port passthrough

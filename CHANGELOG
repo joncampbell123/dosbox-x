@@ -1,7 +1,7 @@
 0.83.10
   - DOSBox-X now natively supports the pixel-perfect
-    scaling! Set output=openglpp in [sdl] section to
-    enable this output. Alternatively, the output can
+    scaling! Set "output=openglpp" in [sdl] section to
+    enable this output. Alternatively, this output can
     be selected from the menu ("Video" => "Output" =>
     "OpenGL perfect") at run-time. (ant_222 & Wengier)
   - Added abliity to resolve file paths that include
@@ -67,8 +67,9 @@
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengier)
-  - Fixed the DOSBox-X window size when restoring from
-    a maximized window in SDL2 builds. (Wengier)
+  - Fixed an issue that the DOSBox-X window size may be
+    incorrect when restoring from a maximized window in
+    the SDL2 builds. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
