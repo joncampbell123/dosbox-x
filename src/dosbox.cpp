@@ -1361,7 +1361,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* switchoutputs[] = {
         "auto", "surface",
 #if C_OPENGL
-        "opengl", "openglnb", "openglhq",
+        "opengl", "openglnb", "openglhq", "openglpp",
 #endif
 #if C_DIRECT3D
         "direct3d",
@@ -2317,7 +2317,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
                      "then the scaler will be used even if the result might not be desired.\n"
                      "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
-                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.");
+                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
+                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font output.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);

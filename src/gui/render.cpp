@@ -469,6 +469,9 @@ void RENDER_Reset( void ) {
         }
     }
 
+    if( sdl.desktop.isperfect ) /* Handle scaling if no pixel-perfect mode */
+        goto forcenormal;
+
     if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
@@ -576,7 +579,8 @@ void RENDER_Reset( void ) {
             else
                 simpleBlock = &ScaleNormalDh;
         }
-    } else  {
+    }
+    if( simpleBlock == NULL && complexBlock == NULL ) {
 forcenormal:
         complexBlock = 0;
         if(scalerOpGray==render.scale.op){
