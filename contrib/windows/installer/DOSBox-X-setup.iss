@@ -188,7 +188,7 @@ var
   msg: string;
   build64: Boolean;    
   HelpButton: TNewButton;
-  PageBuild, PageVer: TInputOptionWizardPage;
+  PageBuild, PageOutput, PageVer: TInputOptionWizardPage;
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
 var
   Version: TWindowsVersion;
@@ -241,8 +241,14 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
+    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output on the SDL1 version and the standard OpenGL output on the SDL2 version. But you may want to select the OpenGL output with pixel-perfect scaling for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
+    PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
+    PageOutput.Add('Default output (SDL1: Direct3D / SDL2: OpenGL)');
+    PageOutput.Add('OpenGL perfect: pixel-perfect scaling mode');
+    PageOutput.Add('TrueType font output for text-mode applications');
+    PageOutput.Values[0] := True;
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
-    PageVer:=CreateInputOptionPage(100, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
+    PageVer:=CreateInputOptionPage(101, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
     PageVer.Add('DOS version 5.00');
     PageVer.Add('DOS version 6.22');
@@ -263,7 +269,7 @@ begin
 end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := (PageID = 101) and FileExists(ExpandConstant('{app}\dosbox-x.conf'));
+  Result := ((PageID = 101) or (PageID = 102)) and FileExists(ExpandConstant('{app}\dosbox-x.conf'));
 end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
@@ -284,7 +290,7 @@ begin
   else if (CurPageID = wpReady) then
   begin
     Wizardform.ReadyMemo.Lines.Add('');
-    Wizardform.ReadyMemo.Lines.Add('Default build:');
+    Wizardform.ReadyMemo.Lines.Add('Default DOSBox-X build:');
     if (build64) then
       begin
         msg:='64';
@@ -309,20 +315,34 @@ begin
     if (PageBuild.Values[7]) then
       msg:=msg+'MinGW build SDL2';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
-    if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
+    if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
-      Wizardform.ReadyMemo.Lines.Add('');
-      Wizardform.ReadyMemo.Lines.Add('Reported DOS version:');
-      msg:='Default';
-      if (PageVer.Values[0]) then
-        msg:='3.30';
-      if (PageVer.Values[1]) then
-        msg:='5.00';
-      if (PageVer.Values[2]) then
-        msg:='6.22';
-      if (PageVer.Values[3]) then
-        msg:='7.10';
-      Wizardform.ReadyMemo.Lines.Add('      '+msg);
+      if PageOutput.Values[0] or PageOutput.Values[1] or PageOutput.Values[2] then
+      begin
+        Wizardform.ReadyMemo.Lines.Add('');
+        Wizardform.ReadyMemo.Lines.Add('Video output for DOSBox-X:');
+        msg:='Default output (SDL1: Direct3D / SDL2: OpenGL)';
+        if (PageOutput.Values[1]) then
+          msg:='OpenGL perfect: pixel-perfect scaling mode';
+        if (PageOutput.Values[2]) then
+          msg:='TrueType font output for text-mode applications';
+        Wizardform.ReadyMemo.Lines.Add('      '+msg);
+      end
+      if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
+      begin
+        Wizardform.ReadyMemo.Lines.Add('');
+        Wizardform.ReadyMemo.Lines.Add('Reported DOS version:');
+        msg:='Default';
+        if (PageVer.Values[0]) then
+          msg:='3.30';
+        if (PageVer.Values[1]) then
+          msg:='5.00';
+        if (PageVer.Values[2]) then
+          msg:='6.22';
+        if (PageVer.Values[3]) then
+          msg:='7.10';
+        Wizardform.ReadyMemo.Lines.Add('      '+msg);
+      end
     end
   end;
 end;
@@ -356,6 +376,32 @@ begin
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
+      begin
+        FileLines := TStringList.Create;
+        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
+        for i := 0 to FileLines.Count - 1 do
+        begin
+          line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
+          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+            if (CompareText(linetmp, 'output') = 0) and (CompareText(section, 'sdl') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              if (PageOutput.Values[1]) then
+                FileLines[i] := linetmp+' openglpp';
+              if (PageOutput.Values[2]) then
+                FileLines[i] := linetmp+' ttf';
+              break;
+            end
+          end
+        end
+        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3]) then
       begin
         FileLines := TStringList.Create;
@@ -371,14 +417,15 @@ begin
             linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
             if (CompareText(linetmp, 'ver') = 0) and (CompareText(section, 'dos') = 0) then
             begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
               if (PageVer.Values[0]) then
-                FileLines[i] := line+' 3.3';
+                FileLines[i] := linetmp+' 3.3';
               if (PageVer.Values[1]) then
-                FileLines[i] := line+' 5.0';
+                FileLines[i] := linetmp+' 5.0';
               if (PageVer.Values[2]) then
-                FileLines[i] := line+' 6.22';
+                FileLines[i] := linetmp+' 6.22';
               if (PageVer.Values[3]) then
-                FileLines[i] := line+' 7.1';
+                FileLines[i] := linetmp+' 7.1';
               break;
             end
           end

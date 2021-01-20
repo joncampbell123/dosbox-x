@@ -335,7 +335,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     } else if (initgl!=2) {
         initgl = 1;
         sdl_opengl.kind = kind;
-        sdl.desktop.isperfect = true;
+        sdl.desktop.isperfect = kind == GLPerfect;
         sdl_opengl.program_object = 0;
         glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
         glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
@@ -392,7 +392,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)
 {
     if (!(flags & GFX_CAN_32)) return 0; // OpenGL requires 32-bit output mode
-    flags |=  GFX_SCALING;
+    flags |= GFX_SCALING;
     flags &= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_16);
     return flags;
 }

@@ -1,9 +1,17 @@
 0.83.10
   - DOSBox-X now natively supports the pixel-perfect
-    scaling! Set "output=openglpp" in [sdl] section to
-    enable this output. Alternatively, this output can
-    be selected from the menu ("Video" => "Output" =>
-    "OpenGL perfect") at run-time. (ant_222 & Wengier)
+    scaling! Set the option "output=openglpp" in [sdl]
+    section of the config file to enable this output.
+    Alternatively, the output can be selected from the
+    menu ("Video" => "Output" => "OpenGL perfect") at
+    run-time. This feature was implemented by ant_222
+    with some code cleanups by Wengier.
+  - Updated the Windows installer to add a page for
+    new users to select a video system output - the
+    default output (Direct3D on SDL1 builds / standard
+    OpenGL on x86/x64 SDL2 builds), OpenGL output with
+    pixel-perfect scaling for improved image quality,
+    and the TrueType font (TTF) output. (Wengier)
   - Added abliity to resolve file paths that include
     environment variables on Windows or tildes (~) on
     other platforms for various options in the config
@@ -70,6 +78,8 @@
   - Fixed an issue that the DOSBox-X window size may be
     incorrect when restoring from a maximized window in
     the SDL2 builds. (Wengier)
+  - Fixed that the menu option "Select OpenGL (GLSL)
+    shader.." not working properly sometimes. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)

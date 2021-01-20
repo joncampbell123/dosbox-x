@@ -1142,13 +1142,20 @@ std::string LoadGLShader(Section_prop * section) {
             std::string exePath = GetDOSBoxXPath();
             if (exePath.size()) path = exePath + std::string("glshaders") + CROSS_FILESPLIT + f;
             else path = "";
-        } else path = "";
+        } else {
+            if (initgl==2) sdl_opengl.use_shader=true;
+            LOG_MSG("Loaded GLSL shader: %s\n", path.c_str());
+            path = "";
+        }
         if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
             Cross::GetPlatformConfigDir(path);
             path = path + "glshaders" + CROSS_FILESPLIT + f;
             if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
                 sh->SetValue("none");
                 LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            } else {
+                if (initgl==2) sdl_opengl.use_shader=true;
+                LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
             }
         }
 	} else {
