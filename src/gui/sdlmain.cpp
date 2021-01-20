@@ -7612,7 +7612,7 @@ void SDL_SetupConfigSection() {
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output.");
+    Pstring->Set_help("What video system to use for output (openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 

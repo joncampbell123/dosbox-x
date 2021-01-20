@@ -2318,7 +2318,7 @@ void DOSBOX_SetupConfigSections(void) {
                      "then the scaler will be used even if the result might not be desired.\n"
                      "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
                      "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
-                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font output.");
+                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);
