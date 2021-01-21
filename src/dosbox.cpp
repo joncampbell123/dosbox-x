@@ -1361,7 +1361,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* switchoutputs[] = {
         "auto", "surface",
 #if C_OPENGL
-        "opengl", "openglnb", "openglhq",
+        "opengl", "openglnb", "openglhq", "openglpp",
 #endif
 #if C_DIRECT3D
         "direct3d",
@@ -1433,6 +1433,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Set this option (auto by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(quit_settings);
@@ -1728,9 +1729,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("freesizecap",Property::Changeable::WhenIdle,"cap");
     Pstring->Set_values(freesizeopt);
-    Pstring->Set_help("If set to \"cap\", the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
+    Pstring->Set_help("If set to \"cap\" (=\"true\"), the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
                     "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
-                    "If set to \"fixed\", the value of MOUNT -freesize will be a fixed one to be reported all the time.");
+                    "If set to \"fixed\" (=\"false\"), the value of MOUNT -freesize will be a fixed one to be reported all the time.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
@@ -2317,7 +2318,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
                      "then the scaler will be used even if the result might not be desired.\n"
                      "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
-                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.");
+                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
+                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);
@@ -3729,6 +3731,15 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report SHARE.EXE as resident. This will allow file locking to be performed, although not all SHARE functions are emulated.");
+    Pbool->SetBasic(true);
+
+    Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on the Windows system.");
+    Pint->SetBasic(true);
+
+    Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Report DOS network redirector as resident. This will allow the host name to be returned unless the secure mode is enabled.\n"
+            "Set either \"ipx=true\" in [ipx] section or \"ne2000=true\" in [ne2000] section for a full network redirector environment.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);

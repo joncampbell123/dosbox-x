@@ -3541,11 +3541,13 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         const char *outputstr=render_section->Get_string("ttf.outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))
-            switchoutput = 5;
+            switchoutput = 6;
         else
 #endif
 #if C_OPENGL
-        if (!strcasecmp(outputstr, "openglnb"))
+        if (!strcasecmp(outputstr, "openglpp"))
+            switchoutput = 5;
+        else if (!strcasecmp(outputstr, "openglnb"))
             switchoutput = 4;
         else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
             switchoutput = 3;
@@ -3679,6 +3681,7 @@ void change_output(int output) {
     Section_prop * section=static_cast<Section_prop *>(sec);
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
     UpdateOverscanMenu();
+    sdl.desktop.isperfect = false; /* Reset before selection */
 
     switch (output) {
     case 0:
@@ -3692,37 +3695,41 @@ void change_output(int output) {
     case 3:
 #if C_OPENGL
         change_output(2);
-        OUTPUT_OPENGL_Select();
-        sdl_opengl.bilinear = true;
+        OUTPUT_OPENGL_Select(GLBilinear);
 #endif
         break;
     case 4:
 #if C_OPENGL
         change_output(2);
-        OUTPUT_OPENGL_Select();
-        sdl_opengl.bilinear = false; //NB
+        OUTPUT_OPENGL_Select(GLNearest);
 #endif
         break;
-#if C_DIRECT3D
     case 5:
+#if C_OPENGL
+        change_output(2);
+        OUTPUT_OPENGL_Select(GLPerfect);
+#endif
+        break;
+    #if C_DIRECT3D
+    case 6:
         OUTPUT_DIRECT3D_Select();
         break;
 #endif
-    case 6:
-        break;
     case 7:
-        // do not set want_type
         break;
     case 8:
+        // do not set want_type
+        break;
+    case 9:
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) 
             OUTPUT_DIRECT3D_Select();
 #endif
         break;
 #if defined(USE_TTF)
-    case 9:
-        OUTPUT_TTF_Select();
     case 10:
+        OUTPUT_TTF_Select();
+    case 11:
         sdl.desktop.want_type = SCREEN_TTF;
         ttf.inUse = true;
         break;
@@ -5201,7 +5208,7 @@ static void GUI_StartUp() {
 
     if (sdl_xbrz.enable) {
         // xBRZ requirements
-        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
+        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp"))
             output = "surface";
     }
 #endif
@@ -5219,6 +5226,8 @@ static void GUI_StartUp() {
 #endif
     }
 
+    // FIXME: this selection of output is duplicated in change_output:
+    sdl.desktop.isperfect = false; /* Reset before selection */
     if (output == "surface") 
     {
         OUTPUT_SURFACE_Select();
@@ -5230,13 +5239,15 @@ static void GUI_StartUp() {
     } 
     else if (output == "opengl" || output == "openglhq") 
     {
-        OUTPUT_OPENGL_Select();
-        sdl_opengl.bilinear = true;
+        OUTPUT_OPENGL_Select(GLBilinear);
     }
     else if (output == "openglnb") 
     {
-        OUTPUT_OPENGL_Select();
-        sdl_opengl.bilinear = false;
+        OUTPUT_OPENGL_Select(GLNearest);
+    }
+    else if (output == "openglpp")
+    {
+        OUTPUT_OPENGL_Select(GLPerfect);
 #endif
 #if C_DIRECT3D
     } 
@@ -5568,6 +5579,10 @@ void GFX_HandleVideoResize(int width, int height) {
     }
     else {
         UpdateWindowDimensions();
+        if (window_was_maximized && !menu.maxwindow) {
+            userResizeWindowWidth = currentWindowWidth==sdl.surface->w?0:(unsigned int)currentWindowWidth;
+            userResizeWindowHeight = currentWindowHeight==sdl.surface->h?0:(unsigned int)currentWindowHeight;
+        }
     }
 
     /* TODO: Only if FULLSCREEN_DESKTOP */
@@ -6727,10 +6742,10 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
         if (isget) return (void*) sdl.wait_on_error;
         else sdl.wait_on_error = setval;
     }
-    else if (target == "opengl.bilinear") {
+    else if (target == "opengl.kind") {
 #if C_OPENGL
-        if (isget) return (void*) sdl_opengl.bilinear;
-        else sdl_opengl.bilinear = setval;
+        if (isget) return (void*) sdl_opengl.kind;
+        else sdl_opengl.kind = (GLKind)(intptr_t)setval;
 #else
         if (isget) return (void*) 0;
 #endif
@@ -7581,7 +7596,7 @@ void SDL_SetupConfigSection() {
     const char* outputs[] = {
         "default", "surface", "overlay",
 #if C_OPENGL
-        "opengl", "openglnb", "openglhq",
+        "opengl", "openglnb", "openglhq", "openglpp",
 #endif
         "ddraw",
 #if C_DIRECT3D
@@ -7597,7 +7612,7 @@ void SDL_SetupConfigSection() {
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output.");
+    Pstring->Set_help("What video system to use for output (openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
@@ -10061,7 +10076,7 @@ bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
 
     sprintf(tmp,"%d",f);
     SetVal("sdl", "overscan", tmp);
-    change_output(7);
+    change_output(8);
     return true;
 }
 
@@ -10086,7 +10101,7 @@ bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     SetVal("vsync", "vsyncmode", val);
 
     void change_output(int output);
-    change_output(8);
+    change_output(9);
 
     VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);
     void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
@@ -10126,20 +10141,26 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.bilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return true;
         change_output(3);
 #endif
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && !sdl_opengl.bilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return true;
         change_output(4);
+#endif
+    }
+    else if (!strcmp(what,"openglpp")) {
+#if C_OPENGL
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return true;
+        change_output(5);
 #endif
     }
     else if (!strcmp(what,"direct3d")) {
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
-        change_output(5);
+        change_output(6);
 #endif
     }
     else if (!strcmp(what,"ttf")) {
@@ -10162,7 +10183,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
         putenv("SDL_VIDEO_CENTERED=center");
 #endif
         firstset=false;
-        change_output(9);
+        change_output(10);
 #endif
     }
     if (reset) RENDER_Reset();
@@ -11150,8 +11171,9 @@ void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type == SCREEN_DIRECT3D).refresh_item(mainMenu);
 #endif
 #if C_OPENGL
-    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.bilinear).refresh_item(mainMenu);
-    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type == SCREEN_OPENGL && !sdl_opengl.bilinear).refresh_item(mainMenu);
+    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear).refresh_item(mainMenu);
+    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest).refresh_item(mainMenu);
+    mainMenu.get_item("output_openglpp").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect).refresh_item(mainMenu);
 #endif
 #if defined(USE_TTF)
     mainMenu.get_item("output_ttf").check(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
@@ -12024,7 +12046,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_opengl").set_text("OpenGL").
                     set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL nearest").
+                    set_callback_function(output_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglpp").set_text("OpenGL perfect").
                     set_callback_function(output_menu_callback);
 #if defined(USE_TTF)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_ttf").set_text("TrueType font").

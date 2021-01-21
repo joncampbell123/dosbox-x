@@ -237,7 +237,7 @@ public:
         }
 
         char pathName[4096];
-
+        std::string roms = "";
         makeROMPathName(pathName, romDir.c_str(), "CM32L_CONTROL.ROM", addPathSeparator);
         if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
             makeROMPathName(pathName, romDir.c_str(), "MT32_CONTROL.ROM", addPathSeparator);
@@ -247,8 +247,11 @@ public:
                 LOG_MSG("MT32: Control ROM file not found");
                 user_romhelp();
                 return false;
-            }
-        }
+            } else
+                roms = "MT32_CONTROL.ROM";
+        } else
+            roms = "CM32L_CONTROL.ROM";
+        if (roms.size()) roms += " and ";
         makeROMPathName(pathName, romDir.c_str(), "CM32L_PCM.ROM", addPathSeparator);
         if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
             makeROMPathName(pathName, romDir.c_str(), "MT32_PCM.ROM", addPathSeparator);
@@ -258,8 +261,11 @@ public:
                 LOG_MSG("MT32: PCM ROM file not found");
                 user_romhelp();
                 return false;
-            }
-        }
+            } else
+                roms += "MT32_PCM.ROM";
+        } else
+            roms += "CM32L_PCM.ROM";
+        LOG_MSG("MT32: Found ROM pair in %s: %s", romDir.c_str(), roms.c_str());
         sffile=romDir;
 
         service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));

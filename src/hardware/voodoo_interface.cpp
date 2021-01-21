@@ -286,10 +286,8 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 
 	v = new voodoo_state;
 	v->ogl = false;
-	extern bool OpenGL_using(void);
-	if (emulation_type == 2) v->ogl = OpenGL_using();
-
-	LOG(LOG_VOODOO,LOG_DEBUG)("voodoo: ogl=%u",v->ogl);
+    extern bool OpenGL_using(void), Direct3D_using();
+    if (emulation_type == 2) v->ogl = OpenGL_using() || Direct3D_using();
 
 	vdraw.vfreq = 1000.0f/60.0f;
 
@@ -323,4 +321,3 @@ void Voodoo_PCI_Enable(bool enable) {
 PageHandler* Voodoo_GetPageHandler() {
 	return voodoo_pagehandler;
 }
-

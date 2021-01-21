@@ -39,7 +39,13 @@
 #include "serialport.h"
 #include "dos_network.h"
 #include "render.h"
+#if defined(WIN32)
+#include <winsock.h>
+#else
+#include <unistd.h>
+#endif
 
+extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
 extern int lfn_filefind_handle;
@@ -91,11 +97,13 @@ bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
-bool enable_filenamechar = true;
 bool enable_share_exe = true;
+bool enable_filenamechar = true;
+bool enable_network_redirector = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
+int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
@@ -1881,8 +1889,24 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x5e:                  /* Network and printer functions */
-            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:5E Network and printer functions not implemented");
-            goto default_fallthrough;
+            if (reg_al == 0 && !control->SecureMode() && enable_network_redirector) {	// Get machine name
+                int result = gethostname(name1, DOSNAMEBUF);
+                if (!result) {
+                    strcat(name1, "               ");									// Simply add 15 spaces
+                    if (!strcmp(RunningProgram, "4DOS") || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
+                        name1[16] = 0;
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 17);
+                    } else {
+                        name1[15] = 0;													// ASCIIZ
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 16);
+                    }
+                    reg_cx = 0x1ff;														// 01h name valid, FFh NetBIOS number for machine name
+                    CALLBACK_SCF(false);
+                    break;
+                }
+            }
+            CALLBACK_SCF(true);
+            break;
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS)
             switch(reg_al)
@@ -2818,9 +2842,11 @@ public:
 
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
+		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
+		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
@@ -3355,8 +3381,6 @@ void DOS_EnableDriveMenu(char drv) {
 		}
     }
 }
-
-extern const char* RunningProgram;
 
 void DOS_DoShutDown() {
 	if (test != NULL) {

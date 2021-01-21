@@ -119,7 +119,7 @@ static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
 extern bool rsize, force_sfn, enable_share_exe;
-extern int lfn_filefind_handle, freesizecap;
+extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -1575,6 +1575,22 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        uint32_t bytesRead;
+        for (int tries = file_access_tries; tries; tries--) {							// Try specified number of times
+            if (ReadFile(hFile,static_cast<LPVOID>(data), (uint32_t)*size, (LPDWORD)&bytesRead, NULL)) {
+                *size = (uint16_t)bytesRead;
+                return true;
+            }
+            Sleep(25);																	// If failed (should be region locked), wait 25 millisecs
+        }
+        DOS_SetError((uint16_t)GetLastError());
+        *size = 0;
+        return false;
+    }
+#endif
 	if (last_action==WRITE) {
         fseek(fhandle,ftell(fhandle),SEEK_SET);
         if (!newtime) UpdateLocalDateTime();
@@ -1598,6 +1614,31 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        if (*size == 0)
+            if (SetEndOfFile(hFile)) {
+                UpdateLocalDateTime();
+                return true;
+            } else {
+                DOS_SetError((uint16_t)GetLastError());
+                return false;
+            }
+        uint32_t bytesWritten;
+        for (int tries = file_access_tries; tries; tries--) {							// Try three times
+            if (WriteFile(hFile, data, (uint32_t)*size, (LPDWORD)&bytesWritten, NULL)) {
+                *size = (uint16_t)bytesWritten;
+                UpdateLocalDateTime();
+                return true;
+            }
+            Sleep(25);																	// If failed (should be region locked? (not documented in MSDN)), wait 25 millisecs
+        }
+        DOS_SetError((uint16_t)GetLastError());
+        *size = 0;
+        return false;
+    }
+#endif
 	if (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
 	last_action=WRITE;
 	if(*size==0){  
@@ -1612,9 +1653,33 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
+static bool lockWarn = true;
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+    if (file_access_tries>0) {
+        if (mode > 1) {
+            DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+            return false;
+        }
+        if (!mode)																		// Lock, try 3 tries
+            for (int tries = file_access_tries; tries; tries--) {
+                if (::LockFile(hFile, pos, 0, size, 0)) {
+                    if (lockWarn && ::LockFile(hFile, pos, 0, size, 0)) {
+                        lockWarn = false;
+                        char caption[512];
+                        strcat(strcpy(caption, "Windows reference: "), dynamic_cast<localDrive*>(Drives[GetDrive()])->getBasedir());
+                        MessageBox(NULL, "Record locking seems incorrectly implemented!\nConsult ...", caption, MB_OK|MB_ICONSTOP);
+                    }
+                    return true;
+                }
+                Sleep(25);																// If failed, wait 25 millisecs
+            }
+        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanet condition!
+            return true;
+        DOS_SetError((uint16_t)GetLastError());
+        return false;
+    }
 	BOOL bRet;
 #else
 	bool bRet;
@@ -1688,6 +1753,19 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	//TODO Give some doserrorcode;
 		return false;//ERROR
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
+        if (dwPtr != INVALID_SET_FILE_POINTER)											// If success
+            {
+            *pos = (uint32_t)dwPtr;
+            return true;
+            }
+        DOS_SetError((uint16_t)GetLastError());
+        return false;
+    }
+#endif
 	int ret=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype);
 	if (ret!=0) {
 		// Out of file range, pretend everythings ok 
@@ -1843,6 +1921,9 @@ bool localFile::UpdateLocalDateTime(void) {
 
 
 void localFile::Flush(void) {
+#if defined(WIN32)
+    if (file_access_tries>0) return;
+#endif
 	if (last_action==WRITE) {
 		fseek(fhandle,ftell(fhandle),SEEK_SET);
         fflush(fhandle);

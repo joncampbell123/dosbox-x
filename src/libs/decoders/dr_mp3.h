@@ -1870,7 +1870,7 @@ static void drmp3d_DCT_II(float *grbuf, int n)
     } else
 #endif
 #ifdef DR_MP3_ONLY_SIMD
-    {}
+    {} /* for HAVE_SIMD=1, MINIMP3_ONLY_SIMD=1 case we do not need tail "else" branch */
 #else
     for (; k < n; k++)
     {

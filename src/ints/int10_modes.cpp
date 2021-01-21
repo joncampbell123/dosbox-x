@@ -1145,14 +1145,16 @@ void ttf_switch_off(bool ss=true) {
             output = "opengl";
         else if (switchoutput==4)
             output = "openglnb";
+        else if (switchoutput==5)
+            output = "openglpp";
 #endif
 #if C_DIRECT3D
-        else if (switchoutput==5)
+        else if (switchoutput==6)
             output = "direct3d";
 #endif
         else {
 #if C_DIRECT3D
-            out = 5;
+            out = 6;
             output = "direct3d";
 #elif C_OPENGL
             out = 3;

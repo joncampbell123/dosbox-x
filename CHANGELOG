@@ -1,4 +1,17 @@
 0.83.10
+  - DOSBox-X now natively supports the pixel-perfect
+    scaling! Set the option "output=openglpp" in [sdl]
+    section of the config file to enable this output.
+    Alternatively, the output can be selected from the
+    menu ("Video" => "Output" => "OpenGL perfect") at
+    run-time. This feature was implemented by ant_222
+    with some code cleanups by Wengier.
+  - Updated the Windows installer to add a page for
+    new users to select a video system output - the
+    default output (Direct3D on SDL1 builds / standard
+    OpenGL on x86/x64 SDL2 builds), OpenGL output with
+    pixel-perfect scaling for improved image quality,
+    and the TrueType font (TTF) output. (Wengier)
   - Added abliity to resolve file paths that include
     environment variables on Windows or tildes (~) on
     other platforms for various options in the config
@@ -20,6 +33,13 @@
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
     translations from the English language. (Wengier)
+  - Added "file access tries" config option (in [dos]
+    section) so that if a positive integer is provided
+    (e.g. 1 or 3) DOSBox-X will try to read/write/lock
+    files on mounted local drives for the specified
+    number of times before failing on Windows builds.
+    It is especially useful for networked DOS database
+    applications that require record locking. (Wengier)
   - Added "bannercolortheme" config option (in [dosbox]
     section) so that users can change the background
     color theme of the welcome banner from the default
@@ -61,18 +81,37 @@
     "config -set ttf.cols=100". (Wengier)
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
-    drive when DOSBox-X starts. (Wengeir)
+    drive when DOSBox-X starts. (Wengier)
+  - Implemented the DOS network redirector functions so
+    that the host name can be reported to DOS programs,
+    unless the secure mode is enabled. You may need to
+    set either the option ipx=true in [ipx] section or
+    the option ne2000=true in [ne2000] section. Also
+    added config option "network redirector" to [dos]
+    section which if set to false disables the network
+    redirector even with IPX/NE2000 enabled. (Wengier)
+  - Fixed an issue that the DOSBox-X window size may be
+    incorrect when restoring from a maximized window in
+    the SDL2 builds. (Wengier)
+  - Fixed incorrect behavior for handling trap flags
+    in the dynamic core. (koolkdev)
+  - Fixed that the menu option "Select OpenGL (GLSL)
+    shader.." not working properly sometimes. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
-  - Fixed incorrect behavior for handling trap flags
-    in the dynamic core. (koolkdev)
-  - Updated the Tiny File Dialog library to the latest
-    version v3.8.5, which fixes issues such as the
-    compatibility problem with Windows XP. (Wengier)
+  - Improved the speed of the internal Voodoo hardware
+    emulation for running games like Tomb Raider 3dfx
+    when using the Direct3D output. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
+  - Updated the Tiny File Dialog library to the latest
+    version v3.8.5, which fixes issues such as the
+    compatibility problem with Windows XP. (Wengier)
+  - Updated FLAC and WAV CD-DA decoder libraries to the
+    latest versions (0.12.26 and 0.12.18 respectively;
+    per David Reid). (Wengier)
   - Integrated SVN commits (Allofich)
     - r4392: Improve capturing of Zeliard and fix a
     few percussion-related capturing problems as well.
