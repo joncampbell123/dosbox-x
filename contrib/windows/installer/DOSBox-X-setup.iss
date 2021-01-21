@@ -217,14 +217,14 @@ procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. Click the "Help" button for more information about this.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
-    PageBuild.Add('Windows Release SDL1');
-    PageBuild.Add('Windows Release SDL2');
+    PageBuild.Add('Windows Release SDL1 (Default build)');
+    PageBuild.Add('Windows Release SDL2 (Alternative build)');
     PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
     PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
-    PageBuild.Add('MinGW build SDL1');
+    PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
     PageBuild.Add('MinGW build SDL1 for lower-end systems');
     PageBuild.Add('MinGW build SDL1 with custom drawn menu');
-    PageBuild.Add('MinGW build SDL2');
+    PageBuild.Add('MinGW build SDL2 (Alternative MinGW build)');
     if IsX86 or IsX64 then
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;

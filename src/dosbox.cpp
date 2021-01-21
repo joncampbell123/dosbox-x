@@ -1433,6 +1433,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Set this option (auto by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(quit_settings);
@@ -1728,9 +1729,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("freesizecap",Property::Changeable::WhenIdle,"cap");
     Pstring->Set_values(freesizeopt);
-    Pstring->Set_help("If set to \"cap\", the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
+    Pstring->Set_help("If set to \"cap\" (=\"true\"), the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
                     "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
-                    "If set to \"fixed\", the value of MOUNT -freesize will be a fixed one to be reported all the time.");
+                    "If set to \"fixed\" (=\"false\"), the value of MOUNT -freesize will be a fixed one to be reported all the time.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);

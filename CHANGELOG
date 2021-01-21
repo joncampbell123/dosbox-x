@@ -86,7 +86,8 @@
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
   - Improved the speed of the internal Voodoo hardware
-    emulation when using the Direct3D output. (Wengier)
+    emulation for running games like Tomb Raider 3dfx
+    when using the Direct3D output. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
