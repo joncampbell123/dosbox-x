@@ -3737,6 +3737,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on the Windows system.");
     Pint->SetBasic(true);
 
+    Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Report DOS network redirector as resident. This will allow the host name to be returned unless the secure mode is enabled.\n"
+            "Set either \"ipx=true\" in [ipx] section or \"ne2000=true\" in [ne2000] section for a full network redirector environment.");
+    Pbool->SetBasic(true);
+
     Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
     Phex->Set_help("In non-mainline mapping mode, where DOS structures are allocated from base memory, this sets the\n"
             "minimum segment value. Recommended value is 0x70. You may reduce the value down to 0x50 if freeing\n"

@@ -31,7 +31,7 @@ uint32_t DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
 
-extern bool enable_share_exe;
+extern bool enable_share_exe, enable_network_redirector;
 
 extern Bitu XMS_EnableA20(bool enable);
 
@@ -473,6 +473,15 @@ static bool DOS_MultiplexFunctions(void) {
             /* MS-DOS without ANSI.SYS loaded doesn't modify any registers in response to this call. */
             return true;
         }
+	case 0xb800:																	// Network - installation check
+        if (!enable_network_redirector) return false;
+		reg_al = 1;																	// Installed
+		reg_bx = 8;																	// Bit 3 - redirector
+		break;
+	case 0xb809:																	// Network - get version
+        if (!enable_network_redirector) return false;
+		reg_ax = 0x0201;															// Major-minor version as returned by NTVDM-Windows XP
+		break;
     case 0x4680:    /* Windows v3.0 check */
         // Leave AX as 0x4680, indicating that Windows 3.0 is not running in real (/R) or standard (/S) mode,
         // nor is DOS 5 DOSSHELL active

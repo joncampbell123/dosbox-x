@@ -82,6 +82,14 @@
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengier)
+  - Implemented the DOS network redirector functions so
+    that the host name can be reported to DOS programs,
+    unless the secure mode is enabled. You may need to
+    set either the option ipx=true in [ipx] section or
+    the option ne2000=true in [ne2000] section. Also
+    added config option "network redirector" to [dos]
+    section which if set to false disables the network
+    redirector even with IPX/NE2000 enabled. (Wengier)
   - Fixed an issue that the DOSBox-X window size may be
     incorrect when restoring from a maximized window in
     the SDL2 builds. (Wengier)
