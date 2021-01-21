@@ -25,7 +25,6 @@ enum REP_Type {
 	REP_NONE=0,REP_NZ,REP_Z
 };
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 union pagefault_restore {
 	struct {
 		uint32_t stack:1;
@@ -39,7 +38,6 @@ union pagefault_restore {
 	} data;
 	uint32_t dword;
 };
-#endif
 
 static struct DynDecode {
 	PhysPt code;
@@ -66,11 +64,9 @@ static struct DynDecode {
 		Bitu reg;
 	} modrm;
 	DynReg * segprefix;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	pagefault_restore pf_restore;
 #ifdef DYN_DEBUG_PAGEFAULT
 	const char * debug_message;
-#endif
 #endif
 } decode;
 
@@ -137,10 +133,8 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
 }
 
 static uint8_t decode_fetchb(void) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	if (decoder_pagefault.had_pagefault) return 0;
 	try {
-#endif
 		if (GCC_UNLIKELY(decode.page.index>=4096)) {
 			/* Advance to the next page */
 			decode.active_block->page.end=4095;
@@ -163,18 +157,14 @@ static uint8_t decode_fetchb(void) {
 		decode.page.index++;
 		decode.code+=1;
 		return mem_readb(decode.code-1);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	} catch (const GuestPageFaultException& pf) {
 		decoder_pagefault = { true, pf.lin_addr, pf.page_addr, pf.faultcode };
 		return 0;
 	}
-#endif
 }
 static uint16_t decode_fetchw(void) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	if (decoder_pagefault.had_pagefault) return 0;
 	try {
-#endif
 		if (GCC_UNLIKELY(decode.page.index>=4095)) {
 			uint16_t val=decode_fetchb();
 			val|=decode_fetchb() << 8;
@@ -183,18 +173,14 @@ static uint16_t decode_fetchw(void) {
 		*(uint16_t *)&decode.page.wmap[decode.page.index]+=0x0101;
 		decode.code+=2;decode.page.index+=2;
 		return mem_readw(decode.code-2);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	} catch (const GuestPageFaultException& pf) {
 		decoder_pagefault = { true, pf.lin_addr, pf.page_addr, pf.faultcode };
 		return 0;
 	}
-#endif
 }
 static uint32_t decode_fetchd(void) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	if (decoder_pagefault.had_pagefault) return 0;
 	try {
-#endif
 		if (GCC_UNLIKELY(decode.page.index>=4093)) {
 			uint32_t val=decode_fetchb();
 			val|=decode_fetchb() << 8;
@@ -206,12 +192,10 @@ static uint32_t decode_fetchd(void) {
 		*(uint32_t *)&decode.page.wmap[decode.page.index]+=0x01010101;
 		decode.code+=4;decode.page.index+=4;
 		return mem_readd(decode.code-4);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	} catch (const GuestPageFaultException& pf) {
 		decoder_pagefault = { true, pf.lin_addr, pf.page_addr, pf.faultcode };
 		return 0;
 	}
-#endif
 }
 
 #define START_WMMEM 64
@@ -372,11 +356,9 @@ static struct {
 	uint32_t eip_change;
 	Bitu cycles;
 	uint8_t * return_pos;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	pagefault_restore pf_restore;
 #ifdef DYN_DEBUG_PAGEFAULT
 	const char * debug_message;
-#endif
 #endif
 } save_info[512];
 
@@ -396,7 +378,6 @@ static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub,uint32_t 
 	return BR_Normal;
 }
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static BlockReturn DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t pf_restore,uint32_t dflags) {
 	pagefault_restore pf_restore_struct;
 	pf_restore_struct.dword = pf_restore;
@@ -420,7 +401,6 @@ static BlockReturn DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t 
 static void DynDebugPageFault(uint32_t eip_add,const char * debug_message) {
 	LOG_MSG("Page fault during dynamic. EIP=%08X caller: %s", reg_eip + eip_add, debug_message);
 }
-#endif
 #endif
 
 static void dyn_check_bool_exception(DynReg * check) {
@@ -475,7 +455,6 @@ static void dyn_check_trapflag(void) {
 	used_save_info++;
 }
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static void dyn_check_pagefault(void) {
 	gen_test_host_byte(&core_dyn.pagefault, 1);
 	save_info[used_save_info].branch_pos=gen_create_branch_long(BR_NZ);
@@ -544,10 +523,14 @@ static void * get_wrapped_call_function(const char* ops) {
 	}
 }
 
-#define dyn_call_function_pagefault_check_impl(func, ops, ...) {	\
-	gen_save_host_direct(&core_dyn.call_func, (Bitu)(func)); \
-	gen_call_function(get_wrapped_call_function(ops), ops, __VA_ARGS__); \
-	dyn_check_pagefault(); \
+#define dyn_call_function_pagefault_check_impl(func, ops, ...) { \
+	if (use_dynamic_core_with_paging) { \
+		gen_save_host_direct(&core_dyn.call_func, (Bitu)(func)); \
+		gen_call_function(get_wrapped_call_function(ops), ops, __VA_ARGS__); \
+		dyn_check_pagefault(); \
+	} else { \
+		gen_call_function(func, ops, __VA_ARGS__); \
+	} \
 }
 
 #ifdef DYN_DEBUG_PAGEFAULT
@@ -561,14 +544,8 @@ static void * get_wrapped_call_function(const char* ops) {
 #define dyn_call_function_pagefault_check dyn_call_function_pagefault_check_impl
 #endif
 
-#else
-#define dyn_call_function_pagefault_check(...) { gen_call_function(__VA_ARGS__); }
-#endif
-
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 #ifdef X86_DYNFPU_DH_ENABLED
 static void dh_fpu_mem_revert(uint8_t inst, uint8_t group);
-#endif
 #endif
 
 static void dyn_fill_blocks(void) {
@@ -583,7 +560,6 @@ static void dyn_fill_blocks(void) {
 				else gen_call_function((void *)&DynRunException,"%Iw%Id%F",save_info[sct].eip_change,save_info[sct].cycles);
 				gen_return_fast(BR_Normal,true);
 				break;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 			case page_fault:
 				dyn_loadstate(&save_info[sct].state);
 				decode.cycles=save_info[sct].cycles;
@@ -599,7 +575,6 @@ static void dyn_fill_blocks(void) {
 				else gen_call_function((void *)&DynRunPageFault,"%Iw%Id%Id%F",save_info[sct].eip_change,save_info[sct].cycles,save_info[sct].pf_restore.dword);
 				gen_return_fast(BR_Normal,true);
 				break;
-#endif
 			case cycle_check:
 				gen_return(BR_Cycles);
 				break;
@@ -726,8 +701,12 @@ static void dyn_read_intro(DynReg * addr,bool release_addr=true) {
 }
 
 static bool mem_readb_checked_dcx86(PhysPt address) {
+	return get_tlb_readhandler(address)->readb_checked(address, (uint8_t*)(&core_dyn.readdata));
+}
+
+static bool mem_readb_checked_dcx86_pagefault(PhysPt address) {
 	DYN_PAGEFAULT_CHECK({
-		return get_tlb_readhandler(address)->readb_checked(address, (uint8_t*)(&core_dyn.readdata));
+		return mem_readb_checked_dcx86(address);
 	});
 }
 
@@ -750,13 +729,11 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	cache_addd(((uint32_t)&mem_readb_checked_dcx86) - (uint32_t)cache_rwtox(cache.pos)-4);
+	cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readb_checked_dcx86_pagefault : mem_readb_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	cache_addw(0x058a);		//mov al,[]
@@ -772,30 +749,38 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 }
 
 static bool mem_readd_checked_dcx86(PhysPt address) {
+	if ((address & 0xfff)<0xffd) {
+		HostPt tlb_addr=get_tlb_read(address);
+		if (tlb_addr) {
+			core_dyn.readdata=host_readd(tlb_addr+address);
+			return false;
+		} else {
+			return get_tlb_readhandler(address)->readd_checked(address, (uint32_t*)&core_dyn.readdata);
+		}
+	} else return mem_unalignedreadd_checked(address, (uint32_t*)&core_dyn.readdata);
+}
+
+static bool mem_readd_checked_dcx86_pagefault(PhysPt address) {
 	DYN_PAGEFAULT_CHECK({
-		if ((address & 0xfff)<0xffd) {
-			HostPt tlb_addr=get_tlb_read(address);
-			if (tlb_addr) {
-				core_dyn.readdata=host_readd(tlb_addr+address);
-				return false;
-			} else {
-				return get_tlb_readhandler(address)->readd_checked(address, (uint32_t*)&core_dyn.readdata);
-			}
-		} else return mem_unalignedreadd_checked(address, (uint32_t*)&core_dyn.readdata);
+		return mem_readd_checked_dcx86(address);
 	});
 }
 
 static bool mem_readw_checked_dcx86(PhysPt address) {
+	if ((address & 0xfff)<0xfff) {
+		HostPt tlb_addr=get_tlb_read(address);
+		if (tlb_addr) {
+			*(uint16_t*)&core_dyn.readdata=host_readw(tlb_addr+address);
+			return false;
+		} else {
+			return get_tlb_readhandler(address)->readw_checked(address, (uint16_t*)&core_dyn.readdata);
+		}
+	} else return mem_unalignedreadw_checked(address, (uint16_t*)&core_dyn.readdata);
+}
+
+static bool mem_readw_checked_dcx86_pagefault(PhysPt address) {
 	DYN_PAGEFAULT_CHECK({
-		if ((address & 0xfff)<0xfff) {
-			HostPt tlb_addr=get_tlb_read(address);
-			if (tlb_addr) {
-				*(uint16_t*)&core_dyn.readdata=host_readw(tlb_addr+address);
-				return false;
-			} else {
-				return get_tlb_readhandler(address)->readw_checked(address, (uint16_t*)&core_dyn.readdata);
-			}
-		} else return mem_unalignedreadw_checked(address, (uint16_t*)&core_dyn.readdata);
+		return mem_readw_checked_dcx86(address);
 	});
 }
 
@@ -839,14 +824,12 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	}
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	if (dword) cache_addd(((uint32_t)&mem_readd_checked_dcx86) - (uint32_t)cache_rwtox(cache.pos)-4);
-	else cache_addd(((uint32_t)&mem_readw_checked_dcx86) - (uint32_t)cache_rwtox(cache.pos)-4);
+	if (dword) cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readd_checked_dcx86_pagefault : mem_readd_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	else cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readw_checked_dcx86_pagefault : mem_readw_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	gen_mov_host(&core_dyn.readdata,dst,4);
@@ -910,7 +893,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd(((uint32_t)&mem_writeb_checked_pagefault) - (uint32_t)cache_rwtox(cache.pos)-4);
+	cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addb(0x5a);		// pop edx
@@ -919,9 +902,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	x86gen.regs[X86_REG_EAX]->notusable=false;
 	x86gen.regs[X86_REG_ECX]->notusable=false;
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	gen_fill_jump(jmp_loc);
@@ -956,8 +937,8 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	cache_addb(0x50+genreg->index);
 	cache_addb(0x50);	// push eax
 	cache_addb(0xe8);
-	if (dword) cache_addd(((uint32_t)&mem_writed_checked_pagefault) - (uint32_t)cache_rwtox(cache.pos)-4);
-	else cache_addd(((uint32_t)&mem_writew_checked_pagefault) - (uint32_t)cache_rwtox(cache.pos)-4);
+	if (dword) cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	else cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addb(0x5a);		// pop edx
@@ -966,62 +947,79 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	x86gen.regs[X86_REG_EAX]->notusable=false;
 	x86gen.regs[X86_REG_ECX]->notusable=false;
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	gen_fill_jump(jmp_loc);
 }
 
 #else // X86_64
-bool mem_unalignedreadw_checked_pagefault_check(const PhysPt address,uint16_t * const val) {
+bool mem_unalignedreadw_checked_pagefault(const PhysPt address,uint16_t * const val) {
 	DYN_PAGEFAULT_CHECK({
 		return mem_unalignedreadw_checked(address, val);
 	});
 }
-bool mem_unalignedreadd_checked_pagefault_check(const PhysPt address,uint32_t * const val) {
+bool mem_unalignedreadd_checked_pagefault(const PhysPt address,uint32_t * const val) {
 	DYN_PAGEFAULT_CHECK({
 		return mem_unalignedreadd_checked(address, val);
 	});
 }
-bool mem_unalignedwritew_checked_pagefault_check(const PhysPt address,uint16_t const val) {
+bool mem_unalignedwritew_checked_pagefault(const PhysPt address,uint16_t const val) {
 	DYN_PAGEFAULT_CHECK({
 		return mem_unalignedwritew_checked(address, val);
 	});
 }
-bool mem_unalignedwrited_checked_pagefault_check(const PhysPt address,uint32_t const val) {
+bool mem_unalignedwrited_checked_pagefault(const PhysPt address,uint32_t const val) {
 	DYN_PAGEFAULT_CHECK({
 		return mem_unalignedwrited_checked(address, val);
 	});
 }
 
 static bool mem_readd_checked_dcx64(PhysPt address, uint32_t* dst) {
+	return get_tlb_readhandler(address)->readd_checked(address, dst);
+}
+static bool mem_readw_checked_dcx64(PhysPt address, uint16_t* dst) {
+	return get_tlb_readhandler(address)->readw_checked(address, dst);
+}
+static bool mem_writed_checked_dcx64(PhysPt address, Bitu val) {
+	return get_tlb_writehandler(address)->writed_checked(address, val);
+}
+static bool mem_writew_checked_dcx64(PhysPt address, Bitu val) {
+	return get_tlb_writehandler(address)->writew_checked(address, val);
+}
+static bool mem_readb_checked_dcx64(PhysPt address, uint8_t* dst) {
+	return get_tlb_readhandler(address)->readb_checked(address, dst);
+}
+static bool mem_writeb_checked_dcx64(PhysPt address, Bitu val) {
+	return get_tlb_writehandler(address)->writeb_checked(address, val);
+}
+
+static bool mem_readd_checked_dcx64_pagefault(PhysPt address, uint32_t* dst) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_readhandler(address)->readd_checked(address, dst);
 	});
 }
-static bool mem_readw_checked_dcx64(PhysPt address, uint16_t* dst) {
+static bool mem_readw_checked_dcx64_pagefault(PhysPt address, uint16_t* dst) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_readhandler(address)->readw_checked(address, dst);
 	});
 }
-static bool mem_writed_checked_dcx64(PhysPt address, Bitu val) {
+static bool mem_writed_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_writehandler(address)->writed_checked(address, val);
 	});
 }
-static bool mem_writew_checked_dcx64(PhysPt address, Bitu val) {
+static bool mem_writew_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_writehandler(address)->writew_checked(address, val);
 	});
 }
-static bool mem_readb_checked_dcx64(PhysPt address, uint8_t* dst) {
+static bool mem_readb_checked_dcx64_pagefault(PhysPt address, uint8_t* dst) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_readhandler(address)->readb_checked(address, dst);
 	});
 }
-static bool mem_writeb_checked_dcx64(PhysPt address, Bitu val) {
+static bool mem_writeb_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
 		return get_tlb_writehandler(address)->writeb_checked(address, val);
 	});
@@ -1066,11 +1064,15 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
-	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_unalignedreadd_checked:(void*)mem_unalignedreadw_checked));
+	gen_load_imm(tmp, (Bitu)(dword
+		?(void*)(use_dynamic_core_with_paging ? mem_unalignedreadd_checked_pagefault : mem_unalignedreadd_checked)
+		:(void*)(use_dynamic_core_with_paging ? mem_unalignedreadw_checked_pagefault : mem_unalignedreadw_checked)));
 	uint8_t* page_jmp = gen_create_short_jump();
 
 	gen_fill_branch(nomap);
-	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_readd_checked_dcx64:(void*)mem_readw_checked_dcx64));
+	gen_load_imm(tmp, (Bitu)(dword
+		?(void*)(use_dynamic_core_with_paging ? mem_readd_checked_dcx64_pagefault : mem_readd_checked_dcx64)
+		:(void*)(use_dynamic_core_with_paging ? mem_readw_checked_dcx64_pagefault : mem_readw_checked_dcx64)));
 	gen_fill_short_jump(page_jmp);
 
 	if (gensrc->index != ARG0_REG) {
@@ -1081,9 +1083,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	x64gen.regs[reg_args[1]]->Clear();
 	gen_load_imm(ARG1_REG, (Bitu)dst->data);
 	gen_call_ptr(NULL, tmp);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	dyn_synchstate(&callstate);
@@ -1128,10 +1128,8 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	x64gen.regs[reg_args[1]]->Clear();
 	gen_load_imm(ARG1_REG, (Bitu)(high?((uint8_t*)dst->data)+1:dst->data));
 	gendst->Clear();
-	gen_call_ptr((void*)mem_readb_checked_dcx64);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	gen_call_ptr((void*)(use_dynamic_core_with_paging ? mem_readb_checked_dcx64_pagefault : mem_readb_checked_dcx64));
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	dyn_synchstate(&callstate);
@@ -1175,10 +1173,14 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
-	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_unalignedwrited_checked:(void*)mem_unalignedwritew_checked));
+	gen_load_imm(tmp, (Bitu)(dword
+		?(void*)(use_dynamic_core_with_paging ? mem_unalignedwrited_checked_pagefault : mem_unalignedwrited_checked)
+		:(void*)(use_dynamic_core_with_paging ? mem_unalignedwritew_checked_pagefault : mem_unalignedwritew_checked)));
 	uint8_t* page_jmp = gen_create_short_jump();
 	gen_fill_branch(nomap);
-	gen_load_imm(tmp, (Bitu)(dword?(void*)mem_writed_checked_dcx64:(void*)mem_writew_checked_dcx64));
+	gen_load_imm(tmp, (Bitu)(dword
+		?(void*)(use_dynamic_core_with_paging ? mem_writed_checked_dcx64_pagefault : mem_writed_checked_dcx64)
+		:(void*)(use_dynamic_core_with_paging ? mem_writew_checked_dcx64_pagefault : mem_writew_checked_dcx64)));
 	gen_fill_short_jump(page_jmp);
 
 	if (gendst->index != ARG0_REG) {
@@ -1187,9 +1189,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	}
 	gen_load_arg_reg(1, val, dword ? "d":"w");
 	gen_call_ptr(NULL, tmp);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 	dyn_synchstate(&callstate);
 	gen_fill_jump(jmp_loc);
@@ -1231,10 +1231,8 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 		opcode(ARG0_REG).setrm(gendst->index).Emit8(0x8B); // mov ARG0,dst
 	}
 	gen_load_arg_reg(1, val, high ? "h":"l");
-	gen_call_ptr((void*)mem_writeb_checked_dcx64);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_check_pagefault();
-#endif
+	gen_call_ptr((void*)(use_dynamic_core_with_paging ? mem_writeb_checked_dcx64_pagefault : mem_writeb_checked_dcx64));
+	if (use_dynamic_core_with_paging) dyn_check_pagefault();
 	dyn_check_bool_exception_al();
 
 	dyn_synchstate(&callstate);
@@ -1573,9 +1571,7 @@ static void dyn_mov_ebib(void) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		gen_call_write(DREG(EA),decode_fetchb(),1);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-		dyn_check_pagefault();
-#endif
+		if (use_dynamic_core_with_paging) dyn_check_pagefault();
 		dyn_check_bool_exception_al();
 	} else {
 		gen_dop_byte_imm(DOP_MOV,&DynRegs[decode.modrm.rm&3],decode.modrm.rm&4,decode_fetchb());
@@ -1721,9 +1717,7 @@ static void dyn_mov_eviv(void) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		gen_call_write(DREG(EA),decode.big_op ? decode_fetchd() : decode_fetchw(),decode.big_op?4:2);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-		dyn_check_pagefault();
-#endif
+		if (use_dynamic_core_with_paging) dyn_check_pagefault();
 		dyn_check_bool_exception_al();
 	} else {
 		gen_dop_word_imm(DOP_MOV,decode.big_op,&DynRegs[decode.modrm.rm],decode.big_op ? decode_fetchd() : decode_fetchw());
@@ -2107,9 +2101,7 @@ static void dyn_pop_seg(SegNames seg) {
 }
 
 static void dyn_pop_ev(void) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_save_stack_for_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_save_stack_for_pagefault();
 	dyn_pop(DREG(TMPW));
 	dyn_get_modrm();
 	if (decode.modrm.mod<3) {
@@ -2133,9 +2125,7 @@ static void dyn_enter(void) {
 
 static void dyn_leave(void) {
 	gen_protectflags();
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_save_stack_for_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_save_stack_for_pagefault();
 	gen_dop_word_var(DOP_MOV,true,DREG(TMPW),&cpu.stack.mask);
 	gen_sop_word(SOP_NOT,true,DREG(TMPW));
 	gen_dop_word(DOP_AND,true,DREG(ESP),DREG(TMPW));
@@ -2264,9 +2254,7 @@ static void dyn_loop(LoopTypes type) {
 static void dyn_ret_near(Bitu bytes) {
 	gen_protectflags();
 	dyn_reduce_cycles();
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-	dyn_save_stack_for_pagefault();
-#endif
+	if (use_dynamic_core_with_paging) dyn_save_stack_for_pagefault();
 	dyn_pop(DREG(EIP));
 	if (bytes) gen_dop_word_imm(DOP_ADD,true,DREG(ESP),bytes);
 	dyn_save_critical_regs();
@@ -2463,9 +2451,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	bool fpu_used=false;
 #endif
 	while (max_opcodes--) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 		if (decoder_pagefault.had_pagefault) goto illegalopcode;
-#endif
 /* Init prefixes */
 		decode.big_addr=cpu.code.big;
 		decode.big_op=cpu.code.big;
@@ -2473,11 +2459,9 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 		decode.rep=REP_NONE;
 		decode.cycles++;
 		decode.op_start=decode.code;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 		decode.pf_restore.dword=0;
 #ifdef DYN_DEBUG_PAGEFAULT
 		decode.debug_message = "";
-#endif
 #endif
 restart_prefix:
 		Bitu opcode;
@@ -2673,9 +2657,7 @@ restart_prefix:
 			dyn_pop(&DynRegs[opcode&7]);
 			break;
 		case 0x60:		/* PUSHA */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_stack_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_stack_for_pagefault();
 			gen_dop_word(DOP_MOV,true,DREG(TMPW),DREG(ESP));
 			for (i=G_EAX;i<=G_EDI;i++) {
 				dyn_push_unchecked((i!=G_ESP) ? &DynRegs[i] : DREG(TMPW));
@@ -2683,9 +2665,7 @@ restart_prefix:
 			gen_releasereg(DREG(TMPW));
 			break;
 		case 0x61:		/* POPA */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_stack_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_stack_for_pagefault();
 			for (i=G_EDI;i>=G_EAX;i--) {
 				dyn_pop((i!=G_ESP) ? &DynRegs[i] : DREG(TMPW),false);
 			}

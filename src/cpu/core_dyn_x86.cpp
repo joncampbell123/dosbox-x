@@ -62,8 +62,6 @@
 
 //#define DYN_LOG 1 //Turn logging on
 
-#define DYN_NON_RECURSIVE_PAGEFAULT
-
 #if C_FPU
 #define CPU_FPU 1                                               //Enable FPU escape instructions
 #define X86_DYNFPU_DH_ENABLED
@@ -167,7 +165,6 @@ static struct {
 static struct {
 	Bitu callback;
 	Bitu readdata;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	void *call_func;
 	Bitu pagefault_old_stack;
 #ifdef CPU_FPU
@@ -175,17 +172,14 @@ static struct {
 #endif
 	Bitu pagefault_faultcode;
 	bool pagefault;
-#endif
 } core_dyn;
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static struct {
 	bool had_pagefault;
 	PhysPt lin_addr;
 	Bitu page_addr;
 	Bitu faultcode;
 } decoder_pagefault;
-#endif
 
 #if defined(X86_DYNFPU_DH_ENABLED)
 static struct dyn_dh_fpu {
@@ -208,7 +202,6 @@ static struct dyn_dh_fpu {
 } dyn_dh_fpu;
 #endif
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 #define DYN_DEBUG_PAGEFAULT
 
 #ifdef DYN_DEBUG_PAGEFAULT
@@ -216,6 +209,8 @@ static struct dyn_dh_fpu {
 #else
 #define DYN_PF_LOG_MSG(...)
 #endif
+
+extern bool use_dynamic_core_with_paging;
 
 #define DYN_PAGEFAULT_CHECK(x) { \
 	try { \
@@ -245,15 +240,6 @@ static INLINE bool mem_writed_checked_pagefault(const PhysPt address,const uint3
 		return mem_writed_checked(address, val);
 	});
 }
-
-#else
-
-#define DYN_PAGEFAULT_CHECK(x) x
-#define mem_writeb_checked_pagefault mem_writeb_checked
-#define mem_writew_checked_pagefault mem_writew_checked
-#define mem_writed_checked_pagefault mem_writed_checked
-
-#endif
 
 #define X86         0x01
 #define X86_64      0x02
@@ -336,9 +322,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 
 	/* Determine the linear address of CS:EIP */
 restart_core:
-#ifndef DYN_NON_RECURSIVE_PAGEFAULT
-	dosbox_allow_nonrecursive_page_fault = false;
-#endif
+	if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
 #if C_DEBUG
 #if C_HEAVY_DEBUG
@@ -351,24 +335,21 @@ restart_core:
 		goto restart_core;
 	}
 	if (!chandler) {
-#ifndef DYN_NON_RECURSIVE_PAGEFAULT
-		dosbox_allow_nonrecursive_page_fault = true;
-#endif
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
 	if (!block) {
 		if (!chandler->invalidation_map || (chandler->invalidation_map[ip_point&4095]<4)) {
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 			decoder_pagefault.had_pagefault = false;
-			// We can't throw exception during the creation of the block, as it will corrupt things
-			// If a page fault occoured, invalidated the block and throw exception from here
-#endif
 			int cache_size = dynamic_core_cache_block_size;
 			block = CreateCacheBlock(chandler,ip_point,cache_size);
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 			while (decoder_pagefault.had_pagefault) {
+				// Can happen only if use_dynamic_core_with_paging is on
+				// We can't throw exception during the creation of the block, as it will corrupt things
+				// If a page fault occoured, invalidated the block, and try to create smaller block
+				// If the page fault is in the current instruction, throw exception
 				block->Clear();
 				if (cache_size == 1)
 					throw GuestPageFaultException(decoder_pagefault.lin_addr, decoder_pagefault.page_addr, decoder_pagefault.faultcode);
@@ -376,16 +357,13 @@ restart_core:
 				decoder_pagefault.had_pagefault = false;
 				block = CreateCacheBlock(chandler,ip_point,cache_size);
 			}
-#endif
 		} else {
 			int32_t old_cycles=CPU_Cycles;
 			CPU_Cycles=1;
 			CPU_CycleLeft+=old_cycles;
 			// manually save
 			fpu_saver = auto_dh_fpu();
-#ifndef DYN_NON_RECURSIVE_PAGEFAULT
-			dosbox_allow_nonrecursive_page_fault = true;
-#endif
+			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 			Bits nc_retcode=CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
@@ -397,9 +375,7 @@ restart_core:
 	}
 run_block:
 	cache.block.running=0;
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 	core_dyn.pagefault = false;
-#endif
 	BlockReturn ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
@@ -456,17 +432,13 @@ run_block:
 	case BR_Opcode:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
-#ifndef DYN_NON_RECURSIVE_PAGEFAULT
-		dosbox_allow_nonrecursive_page_fault = true;
-#endif
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 #if (C_DEBUG)
 	case BR_OpcodeFull:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
-#ifndef DYN_NON_RECURSIVE_PAGEFAULT
-		dosbox_allow_nonrecursive_page_fault = true;
-#endif
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Full_Run();
 #endif
 	case BR_Link1:

@@ -158,7 +158,6 @@ static void dh_fpu_mem(uint8_t inst, Bitu reg=decode.modrm.reg, void* mem=&dyn_d
 #endif
 }
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static void dh_fpu_save_mem_revert(uint8_t inst, uint8_t group) {
 	decode.pf_restore.data.dh_fpu_inst = inst;
 	decode.pf_restore.data.dh_fpu_group = group;
@@ -167,7 +166,6 @@ static void dh_fpu_save_mem_revert(uint8_t inst, uint8_t group) {
 static void dh_fpu_mem_revert(uint8_t inst, uint8_t group) {
 	dh_fpu_mem(inst, group);
 }
-#endif
 
 static void dh_fpu_esc0(){
 	dyn_get_modrm(); 
@@ -203,9 +201,7 @@ static void dh_fpu_esc1(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x03: /* FSTP float*/
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xd9, 0x00);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xd9, 0x00);
 			dh_fpu_mem(0xd9);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
@@ -293,9 +289,7 @@ static void dh_fpu_esc3(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FISTP */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdb, 0x00);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdb, 0x00);
 			dh_fpu_mem(0xdb);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
@@ -304,9 +298,7 @@ static void dh_fpu_esc3(){
 			dh_fpu_mem(0xdb);
 			break;
 		case 0x07:	/* FSTP 80 Bits Real */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdb, 0x05);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdb, 0x05);
 			dh_fpu_mem(0xdb);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_80,"%Drd",DREG(EA));
 			break;
@@ -351,9 +343,7 @@ static void dh_fpu_esc5(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FSTP double real*/
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdd, 0x00);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdd, 0x00);
 			dh_fpu_mem(0xdd);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
@@ -440,9 +430,7 @@ static void dh_fpu_esc7(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_16,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FISTP int16_t */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdf, 0x00);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x00);
 			dh_fpu_mem(0xdf);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_16,"%Drd",DREG(EA));
 			break;
@@ -455,16 +443,12 @@ static void dh_fpu_esc7(){
 			dh_fpu_mem(0xdf);
 			break;
 		case 0x06:	/* FBSTP packed BCD */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdf, 0x04);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x04);
 			dh_fpu_mem(0xdf);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_80,"%Drd",DREG(EA));
 			break;
 		case 0x07:  /* FISTP Bit64s */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dh_fpu_save_mem_revert(0xdf, 0x05);
-#endif
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x05);
 			dh_fpu_mem(0xdf);
 			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;

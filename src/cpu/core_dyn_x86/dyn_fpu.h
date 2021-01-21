@@ -60,13 +60,11 @@ static void FPU_FFREE(Bitu st) {
 	gen_load_host(&TOP,DREG(TMPB),4);			\
 }
 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
 static void dyn_save_fpu_top_for_pagefault() {
 	gen_load_host(&TOP,DREG(TMPB),4); 
 	gen_save_host(&core_dyn.pagefault_old_fpu_top, DREG(TMPB), 4);
 	decode.pf_restore.data.fpu_top = 1;
 }
-#endif
 
 static void dyn_eatree() {
 	Bitu group=(decode.modrm.val >> 3) & 7;
@@ -296,9 +294,7 @@ static void dyn_fpu_esc1(){
 		switch(group){
 		case 0x00: /* FLD float*/
 			gen_protectflags(); 
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_F32,"%Drd%Drd",DREG(EA),DREG(TMPB));
@@ -403,9 +399,7 @@ static void dyn_fpu_esc3(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:	/* FILD */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_protectflags(); 
 			gen_load_host(&TOP,DREG(TMPB),4); 
@@ -422,9 +416,7 @@ static void dyn_fpu_esc3(){
 			gen_call_function((void*)&FPU_FPOP,"");
 			break;
 		case 0x05:	/* FLD 80 Bits Real */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_F80,"%Drd",DREG(EA));
 			break;
@@ -519,9 +511,7 @@ static void dyn_fpu_esc5(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:  /* FLD double real*/
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_protectflags(); 
 			gen_load_host(&TOP,DREG(TMPB),4); 
@@ -649,9 +639,7 @@ static void dyn_fpu_esc7(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:  /* FILD Bit16s */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I16,"%Drd%Drd",DREG(EA),DREG(TMPB));
@@ -667,17 +655,13 @@ static void dyn_fpu_esc7(){
 			gen_call_function((void*)&FPU_FPOP,"");
 			break;
 		case 0x04:   /* FBLD packed BCD */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4);
 			dyn_call_function_pagefault_check((void*)&FPU_FBLD,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x05:  /* FILD Bit64s */
-#ifdef DYN_NON_RECURSIVE_PAGEFAULT
-			dyn_save_fpu_top_for_pagefault();
-#endif
+			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4);
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I64,"%Drd%Drd",DREG(EA),DREG(TMPB));

@@ -1138,9 +1138,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	gen_load_arg_reg(0,dr,"rd");
 
 	switch (write_size) {
-		case 1: func = (void*)mem_writeb_checked_pagefault; break;
-		case 2: func = (void*)mem_writew_checked_pagefault; break;
-		case 4: func = (void*)mem_writed_checked_pagefault; break;
+		case 1: func = (void*)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked); break;
+		case 2: func = (void*)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked); break;
+		case 4: func = (void*)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked); break;
 		default: IllegalOption("gen_call_write");
 	}
 
