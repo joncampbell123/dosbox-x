@@ -78,13 +78,15 @@
   - Fixed an issue that the DOSBox-X window size may be
     incorrect when restoring from a maximized window in
     the SDL2 builds. (Wengier)
+  - Fixed incorrect behavior for handling trap flags
+    in the dynamic core. (koolkdev)
   - Fixed that the menu option "Select OpenGL (GLSL)
     shader.." not working properly sometimes. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
-  - Fixed incorrect behavior for handling trap flags
-    in the dynamic core. (koolkdev)
+  - Improved the speed of the internal Voodoo hardware
+    emulation when using the Direct3D output. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
