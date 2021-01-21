@@ -33,6 +33,13 @@
     menus. The message files as written by the config
     tool (CLI or GUI) will contain the menu texts for
     translations from the English language. (Wengier)
+  - Added "file access tries" config option (in [dos]
+    section) so that if a positive integer is provided
+    (e.g. 1 or 3) DOSBox-X will try to read/write/lock
+    files on mounted local drives for the specified
+    number of times before failing on Windows builds.
+    It is especially useful for networked DOS database
+    applications that require record locking. (Wengier)
   - Added "bannercolortheme" config option (in [dosbox]
     section) so that users can change the background
     color theme of the welcome banner from the default
