@@ -269,8 +269,6 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
 
-bool CPU_IsDynamicCore(void);
-
 void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 	/* Save the state of the cpu cores */
 	LazyFlags old_lflags;
@@ -312,7 +310,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_allow_nonrecursive_page_fault && !CPU_IsDynamicCore()) {
+	} else if (dosbox_allow_nonrecursive_page_fault) {
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores

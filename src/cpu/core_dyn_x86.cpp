@@ -51,7 +51,7 @@
 #include "inout.h"
 #include "fpu.h"
 
-#define CACHE_MAXSIZE	(4096*3)
+#define CACHE_MAXSIZE	(4096*8)
 #define CACHE_TOTAL		(1024*1024*8)
 #define CACHE_PAGES		(512)
 #define CACHE_BLOCKS	(64*1024)
@@ -61,7 +61,6 @@
 #define DYN_LINKS		(16)
 
 //#define DYN_LOG 1 //Turn logging on
-
 
 #if C_FPU
 #define CPU_FPU 1                                               //Enable FPU escape instructions
@@ -74,7 +73,7 @@ enum {
 	G_ES,G_CS,G_SS,G_DS,G_FS,G_GS,
 	G_FLAGS,G_NEWESP,G_EIP,
 	G_EA,G_STACK,G_CYCLES,
-	G_TMPB,G_TMPW,G_SHIFT,
+	G_TMPB,G_TMPW,G_TMPD,G_SHIFT,
 	G_EXIT,
 	G_MAX,
 };
@@ -156,7 +155,7 @@ static DynReg DynRegs[G_MAX];
 #define DREG(_WHICH_) &DynRegs[G_ ## _WHICH_ ]
 
 static struct {
-	uint32_t ea,tmpb,tmpd,stack,shift,newesp;
+	uint32_t ea,tmpb,tmpw,tmpd,stack,shift,newesp;
 } extra_regs;
 
 #define IllegalOption(msg) E_Exit("DYNX86: illegal option in " msg)
@@ -166,7 +165,21 @@ static struct {
 static struct {
 	Bitu callback;
 	Bitu readdata;
+	void *call_func;
+	Bitu pagefault_old_stack;
+#ifdef CPU_FPU
+	Bitu pagefault_old_fpu_top;
+#endif
+	Bitu pagefault_faultcode;
+	bool pagefault;
 } core_dyn;
+
+static struct {
+	bool had_pagefault;
+	PhysPt lin_addr;
+	Bitu page_addr;
+	Bitu faultcode;
+} decoder_pagefault;
 
 #if defined(X86_DYNFPU_DH_ENABLED)
 static struct dyn_dh_fpu {
@@ -188,6 +201,45 @@ static struct dyn_dh_fpu {
 	uint8_t		temp_state[128];
 } dyn_dh_fpu;
 #endif
+
+#define DYN_DEBUG_PAGEFAULT
+
+#ifdef DYN_DEBUG_PAGEFAULT
+#define DYN_PF_LOG_MSG LOG_MSG
+#else
+#define DYN_PF_LOG_MSG(...)
+#endif
+
+extern bool use_dynamic_core_with_paging;
+
+#define DYN_PAGEFAULT_CHECK(x) { \
+	try { \
+		x; \
+	} catch (const GuestPageFaultException &pf) { \
+		core_dyn.pagefault_faultcode = pf.faultcode; \
+		core_dyn.pagefault = true; \
+		DYN_PF_LOG_MSG("Caught pagefault at %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__); \
+	} \
+	return 0; \
+}
+
+static INLINE bool mem_writeb_checked_pagefault(const PhysPt address,const uint8_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writeb_checked(address, val);
+	});
+}
+
+static INLINE bool mem_writew_checked_pagefault(const PhysPt address,const uint16_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writew_checked(address, val);
+	});
+}
+
+static INLINE bool mem_writed_checked_pagefault(const PhysPt address,const uint32_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writed_checked(address, val);
+	});
+}
 
 #define X86         0x01
 #define X86_64      0x02
@@ -253,6 +305,8 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 #include "core_dyn_x86/decoder.h"
 
+extern int dynamic_core_cache_block_size;
+
 Bits CPU_Core_Dyn_X86_Run(void) {
 	// helper class to auto-save DH_FPU state on function exit
 	class auto_dh_fpu {
@@ -268,6 +322,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 
 	/* Determine the linear address of CS:EIP */
 restart_core:
+	if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
 #if C_DEBUG
 #if C_HEAVY_DEBUG
@@ -280,29 +335,47 @@ restart_core:
 		goto restart_core;
 	}
 	if (!chandler) {
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
 	if (!block) {
 		if (!chandler->invalidation_map || (chandler->invalidation_map[ip_point&4095]<4)) {
-			block=CreateCacheBlock(chandler,ip_point,32);
+			decoder_pagefault.had_pagefault = false;
+			int cache_size = dynamic_core_cache_block_size;
+			block = CreateCacheBlock(chandler,ip_point,cache_size);
+			while (decoder_pagefault.had_pagefault) {
+				// Can happen only if use_dynamic_core_with_paging is on
+				// We can't throw exception during the creation of the block, as it will corrupt things
+				// If a page fault occoured, invalidated the block, and try to create smaller block
+				// If the page fault is in the current instruction, throw exception
+				block->Clear();
+				if (cache_size == 1)
+					throw GuestPageFaultException(decoder_pagefault.lin_addr, decoder_pagefault.page_addr, decoder_pagefault.faultcode);
+				cache_size /= 2;
+				decoder_pagefault.had_pagefault = false;
+				block = CreateCacheBlock(chandler,ip_point,cache_size);
+			}
 		} else {
 			int32_t old_cycles=CPU_Cycles;
 			CPU_Cycles=1;
+			CPU_CycleLeft+=old_cycles;
 			// manually save
 			fpu_saver = auto_dh_fpu();
+			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 			Bits nc_retcode=CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
+				CPU_CycleLeft-=old_cycles;
 				goto restart_core;
 			}
-			CPU_CycleLeft+=old_cycles;
 			return nc_retcode; 
 		}
 	}
 run_block:
 	cache.block.running=0;
+	core_dyn.pagefault = false;
 	BlockReturn ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
@@ -359,11 +432,13 @@ run_block:
 	case BR_Opcode:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
 #if (C_DEBUG)
 	case BR_OpcodeFull:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Full_Run();
 #endif
 	case BR_Link1:
@@ -463,8 +538,10 @@ void CPU_Core_Dyn_X86_Init(void) {
 	DynRegs[G_CYCLES].flags=DYNFLG_LOAD|DYNFLG_SAVE;
 	DynRegs[G_TMPB].data=&extra_regs.tmpb;
 	DynRegs[G_TMPB].flags=DYNFLG_HAS8|DYNFLG_HAS16;
-	DynRegs[G_TMPW].data=&extra_regs.tmpd;
+	DynRegs[G_TMPW].data=&extra_regs.tmpw;
 	DynRegs[G_TMPW].flags=DYNFLG_HAS16;
+	DynRegs[G_TMPD].data=&extra_regs.tmpd;
+	DynRegs[G_TMPD].flags=DYNFLG_HAS16;
 	DynRegs[G_SHIFT].data=&extra_regs.shift;
 	DynRegs[G_SHIFT].flags=DYNFLG_HAS8|DYNFLG_HAS16;
 	DynRegs[G_EXIT].data=0;

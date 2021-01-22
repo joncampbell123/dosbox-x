@@ -266,6 +266,7 @@ Bits CPU_Core_Dynrec_Run(void) {
     }
 
 	for (;;) {
+		dosbox_allow_nonrecursive_page_fault = false;
 		// Determine the linear address of CS:EIP
 		PhysPt ip_point=SegPhys(cs)+reg_eip;
 		#if C_HEAVY_DEBUG
@@ -281,7 +282,10 @@ Bits CPU_Core_Dynrec_Run(void) {
 		}
 
 		// page doesn't contain code or is special
-		if (GCC_UNLIKELY(!chandler)) return CPU_Core_Normal_Run();
+		if (GCC_UNLIKELY(!chandler)) {
+			dosbox_allow_nonrecursive_page_fault = true;
+			return CPU_Core_Normal_Run();
+		}
 
 		// find correct Dynamic Block to run
 		CacheBlockDynRec * block=chandler->FindCacheBlock(ip_point&4095);
@@ -292,15 +296,17 @@ Bits CPU_Core_Dynrec_Run(void) {
 				// translate up to 32 instructions
 				block=CreateCacheBlock(chandler,ip_point,32);
 			} else {
+				dosbox_allow_nonrecursive_page_fault = true;
 				// let the normal core handle this instruction to avoid zero-sized blocks
 				cpu_cycles_count_t old_cycles=CPU_Cycles;
 				CPU_Cycles=1;
+				CPU_CycleLeft+=old_cycles;
 				Bits nc_retcode=CPU_Core_Normal_Run();
 				if (!nc_retcode) {
 					CPU_Cycles=old_cycles-1;
+					CPU_CycleLeft-=old_cycles;
 					continue;
 				}
-				CPU_CycleLeft+=old_cycles;
 				return nc_retcode;
 			}
 		}
@@ -376,6 +382,7 @@ run_block:
 			// handle this instruction
 			CPU_CycleLeft+=CPU_Cycles;
 			CPU_Cycles=1;
+			dosbox_allow_nonrecursive_page_fault = true;
 			return CPU_Core_Normal_Run();
 
 		case BR_Link1:

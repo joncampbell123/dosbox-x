@@ -540,6 +540,26 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
+static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
+	int idx = FindDynReg(dr1)->index;
+	opcode op;
+	uint8_t tmp;
+	switch (size) {
+	case 1:
+		op.setreg(idx,di1);
+		tmp = 0x88; // mov [], r8
+		break;
+	case 2: op.setword(); // mov [], r16
+	case 4: op.setreg(idx);
+		tmp = 0x89; // mov [], r32
+		break;
+	default:
+		IllegalOption("gen_mov_host");
+	}
+	op.setabsaddr(data).Emit8(tmp);
+	dr1->flags|=DYNFLG_CHANGED;
+}
+
 static void gen_load_arg_reg(int argno,DynReg *dr,const char *s) {
 	GenReg *gen = x64gen.regs[reg_args[argno]];
 	GenReg *src = dr->genreg;
@@ -1118,9 +1138,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	gen_load_arg_reg(0,dr,"rd");
 
 	switch (write_size) {
-		case 1: func = (void*)mem_writeb_checked; break;
-		case 2: func = (void*)mem_writew_checked; break;
-		case 4: func = (void*)mem_writed_checked; break;
+		case 1: func = (void*)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked); break;
+		case 2: func = (void*)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked); break;
+		case 4: func = (void*)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked); break;
 		default: IllegalOption("gen_call_write");
 	}
 
@@ -1207,6 +1227,10 @@ static void gen_save_host_direct(void *data,Bitu imm) {
 		opcode(0).setimm(imm>>32,4).setabsaddr((uint8_t*)data+4).Emit8(0xC7); // high dword
 	} else
 		opcode(0).set64().setimm(imm,4).setabsaddr(data).Emit8(0xC7); // mov qword[], int32_t
+}
+
+static void gen_test_host_byte(void * data, uint8_t imm) {
+	opcode(0).setimm(imm,1).setabsaddr(data).Emit8(0xF6); // test byte[], uint8_t
 }
 
 static void gen_return(BlockReturn retcode) {
