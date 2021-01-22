@@ -2089,6 +2089,8 @@ public:
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(uint32_t * pos,uint32_t type);
+	bool prepareRead();
+	bool prepareWrite();
 	bool Close();
 	uint16_t GetInformation(void);
 	bool UpdateDateTimeFromHost(void);
@@ -2100,12 +2102,64 @@ private:
 };
 
 bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
-	/* Always report 100 mb free should be enough */
-	/* Total size is always 1 gb */
-	*_bytes_sector=allocation.bytes_sector;
-	*_sectors_cluster=allocation.sectors_cluster;
-	*_total_clusters=allocation.total_clusters;
-	*_free_clusters=0;
+	const char *wdir = PHYSFS_getWriteDir();
+	if (wdir) {
+		bool res=false;
+#if defined(WIN32)
+		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+		uint8_t drive=strlen(wdir)>1&&wdir[1]==':'?toupper(wdir[0])-'A'+1:0;
+		if (drive>26) drive=0;
+		char root[4]="A:\\";
+		root[0]='A'+drive-1;
+		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+		if (res) {
+			unsigned long total = dwTotalClusters * dwSectPerClust;
+			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
+			*_bytes_sector = (uint16_t)dwBytesPerSect;
+			*_sectors_cluster = ratio;
+			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
+			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio);
+			if (rsize) {
+				totalc=dwTotalClusters * dwSectPerClust / ratio;
+				freec=dwFreeClusters * dwSectPerClust / ratio;
+			}
+#else
+		struct statvfs stat;
+		res = statvfs(wdir, &stat) == 0;
+		if (res) {
+			int ratio = stat.f_blocks / 65536, tmp=ratio;
+			*_bytes_sector = 512;
+			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			if (ratio>1) {
+				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
+				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
+				ratio = tmp;
+			}
+			*_total_clusters = stat.f_blocks > 65535? 65535 : stat.f_blocks;
+			*_free_clusters = stat.f_bavail > 61440? 61440 : stat.f_bavail;
+			if (rsize) {
+				totalc=stat.f_blocks;
+				freec=stat.f_bavail;
+				if (ratio>1) {
+					totalc/=ratio;
+					freec/=ratio;
+				}
+			}
+#endif
+		} else {
+            // 512*32*32765==~500MB total size
+            // 512*32*16000==~250MB total free size
+            *_bytes_sector = 512;
+            *_sectors_cluster = 32;
+            *_total_clusters = 32765;
+            *_free_clusters = 16000;
+		}
+	} else {
+        *_bytes_sector=allocation.bytes_sector;
+        *_sectors_cluster=allocation.sectors_cluster;
+        *_total_clusters=allocation.total_clusters;
+        *_free_clusters=0;
+    }
 	return true;
 }
 
@@ -2214,7 +2268,8 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 {
 	this->driveLetter = driveLetter;
 	this->mountarc = "";
-	char mp[3] = {'_', driveLetter, 0};
+	char mp[] = "A_DRIVE";
+	mp[0] = driveLetter;
 	char newname[CROSS_LEN+1];
 	strcpy(newname,startdir);
 	CROSS_FILENAME(newname);
@@ -2274,6 +2329,30 @@ physfsDrive::~physfsDrive(void) {
 	}
 }
 
+const char *physfsDrive::getOverlaydir(void) {
+	static const char *overlaydir = PHYSFS_getWriteDir();
+	return overlaydir;
+}
+
+bool physfsDrive::setOverlaydir(const char * name) {
+	char newname[CROSS_LEN+1];
+	strcpy(newname,name);
+	CROSS_FILENAME(newname);
+	const char *oldwrite = PHYSFS_getWriteDir();
+	if (oldwrite) oldwrite = strdup(oldwrite);
+	if (!PHYSFS_setWriteDir(newname)) {
+		if (oldwrite)
+			PHYSFS_setWriteDir(oldwrite);
+        return false;
+	} else {
+        if (oldwrite) PHYSFS_removeFromSearchPath(oldwrite);
+        PHYSFS_addToSearchPath(newname, 1);
+        dirCache.EmptyCache();
+    }
+	if (oldwrite) free((char *)oldwrite);
+    return true;
+}
+
 const char *physfsDrive::GetInfo() {
 	sprintf(info,"PhysFS directory %s", mountarc.c_str());
 	return info;
@@ -2313,23 +2392,104 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	return true;
 }
 
-bool physfsDrive::FileCreate(DOS_File * * /*file*/,const char * /*name*/,uint16_t /*attributes*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	normalize(newname,basedir);
+
+	/* Test if file exists, don't add to dirCache then */
+	bool existing_file=PHYSFS_exists(newname);
+
+	char *slash = strrchr(newname,'/');
+	if (slash && slash != newname) {
+		*slash = 0;
+		if (!PHYSFS_isDirectory(newname)) return false;
+		PHYSFS_mkdir(newname);
+		*slash = '/';
+	}
+
+	PHYSFS_file * hand=PHYSFS_openWrite(newname);
+	if (!hand){
+		LOG_MSG("Warning: file creation failed: %s (%s)",newname,PHYSFS_getLastError());
+		return false;
+	}
+
+	/* Make the 16 bit device information */
+	*file=new physfsFile(name,hand,0x202,newname,true);
+	(*file)->flags=OPEN_READWRITE;
+	if(!existing_file) {
+		strcpy(newname,basedir);
+		strcat(newname,name);
+		CROSS_FILENAME(newname);
+		dirCache.AddEntry(newname, true);
+		dirCache.EmptyCache();
+	}
+	return true;
+}
+
+bool physfsDrive::FileUnlink(const char * name) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	normalize(newname,basedir);
+	if (PHYSFS_delete(newname)) {
+		CROSS_FILENAME(newname);
+		dirCache.DeleteEntry(newname);
+		dirCache.EmptyCache();
+		return true;
+	};
 	return false;
 }
 
-bool physfsDrive::FileUnlink(const char * /*name*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::RemoveDir(const char * dir) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newdir[CROSS_LEN];
+	strcpy(newdir,basedir);
+	strcat(newdir,dir);
+	CROSS_FILENAME(newdir);
+	dirCache.ExpandName(newdir);
+	normalize(newdir,basedir);
+	if (PHYSFS_isDirectory(newdir) && PHYSFS_delete(newdir)) {
+		CROSS_FILENAME(newdir);
+		dirCache.DeleteEntry(newdir,true);
+		dirCache.EmptyCache();
+		return true;
+	}
 	return false;
 }
 
-bool physfsDrive::RemoveDir(const char * /*dir*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfsDrive::MakeDir(const char * /*dir*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::MakeDir(const char * dir) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newdir[CROSS_LEN];
+	strcpy(newdir,basedir);
+	strcat(newdir,dir);
+	CROSS_FILENAME(newdir);
+	dirCache.ExpandName(newdir);
+	normalize(newdir,basedir);
+	if (PHYSFS_mkdir(newdir)) {
+		CROSS_FILENAME(newdir);
+		dirCache.CacheOut(newdir,true);
+		return true;
+	}
 	return false;
 }
 
@@ -2343,8 +2503,26 @@ bool physfsDrive::TestDir(const char * dir) {
 	return (PHYSFS_isDirectory(newdir));
 }
 
-bool physfsDrive::Rename(const char * /*oldname*/,const char * /*newname*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::Rename(const char * oldname,const char * newname) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newold[CROSS_LEN];
+	strcpy(newold,basedir);
+	strcat(newold,oldname);
+	CROSS_FILENAME(newold);
+	dirCache.ExpandName(newold);
+	normalize(newold,basedir);
+
+	char newnew[CROSS_LEN];
+	strcpy(newnew,basedir);
+	strcat(newnew,newname);
+	CROSS_FILENAME(newnew);
+	dirCache.ExpandName(newnew);
+	normalize(newnew,basedir);
+	/* yuck. physfs doesn't have "rename". */
+	LOG_MSG("PHYSFS TODO: rename not yet implemented (%s -> %s)",newold,newnew);
 	return false;
 }
 
@@ -2462,7 +2640,8 @@ bool physfsDrive::isRemovable(void) {
 }
 
 Bits physfsDrive::UnMount(void) {
-	char mp[3] = {'_', driveLetter, 0};
+	char mp[] = "A_DRIVE";
+	mp[0] = driveLetter;
 	PHYSFS_unmount(mp);
 	delete this;
 	return 0;
@@ -2473,6 +2652,7 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+	if (last_action==WRITE) prepareRead();
 	last_action=READ;
 	PHYSFS_sint64 mysize = PHYSFS_read(fhandle,data,1,(PHYSFS_uint64)*size);
 	//LOG_MSG("Read %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
@@ -2481,8 +2661,26 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 }
 
 bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
-    DOS_SetError(DOSERR_ACCESS_DENIED);
-    return false;
+	if (!PHYSFS_getWriteDir() || (this->flags & 0xf) == OPEN_READ) { // check if file opened in read-only mode
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+	if (last_action==READ) prepareWrite();
+	last_action=WRITE;
+	if (*size==0) {
+		if (PHYSFS_tell(fhandle) == 0) {
+			PHYSFS_close(PHYSFS_openWrite(pname));
+			//LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+		} else {
+			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,PHYSFS_tell(fhandle));
+			return false;
+		}
+	} else {
+		PHYSFS_sint64 mysize = PHYSFS_write(fhandle,data,1,(PHYSFS_uint64)*size);
+		//LOG_MSG("Wrote %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
+		*size = (uint16_t)mysize;
+		return true;
+	}
 }
 
 bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
@@ -2504,6 +2702,66 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	//LOG_MSG("Seek to %i (%i at %x) of %s (%s)",(int)mypos,(int)*pos,type,name,PHYSFS_getLastError());
 
 	*pos=(uint32_t)PHYSFS_tell(fhandle);
+	return true;
+}
+
+bool physfsFile::prepareRead() {
+	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
+	PHYSFS_close(fhandle);
+	fhandle = PHYSFS_openRead(pname);
+	PHYSFS_seek(fhandle, pos);
+	return true; //LOG_MSG("Goto read (%s at %i)",pname,PHYSFS_tell(fhandle));
+}
+
+#ifndef WIN32
+#include <fcntl.h>
+#include <errno.h>
+#endif
+
+bool physfsFile::prepareWrite() {
+	const char *wdir = PHYSFS_getWriteDir();
+	if (wdir == NULL) {
+		LOG_MSG("PHYSFS could not fulfill write request: no write directory set.");
+		return false;
+	}
+	//LOG_MSG("Goto write (%s at %i)",pname,PHYSFS_tell(fhandle));
+	const char *fdir = PHYSFS_getRealDir(pname);
+	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
+	char *slash = strrchr(pname,'/');
+	if (slash && slash != pname) {
+		*slash = 0;
+		PHYSFS_mkdir(pname);
+		*slash = '/';
+	}
+	if (strcmp(fdir,wdir)) { /* we need COW */
+		//LOG_MSG("COW",pname,PHYSFS_tell(fhandle));
+		PHYSFS_file *whandle = PHYSFS_openWrite(pname);
+		if (whandle == NULL) {
+			LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+			return false;
+		}
+		char buffer[65536];
+		PHYSFS_sint64 size;
+		PHYSFS_seek(fhandle, 0);
+		while ((size = PHYSFS_read(fhandle,buffer,1,65536)) > 0) {
+			if (PHYSFS_write(whandle,buffer,1,size) != size) {
+				LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+				PHYSFS_close(whandle);
+				return false;
+			}
+		}
+		PHYSFS_seek(whandle, pos);
+		PHYSFS_close(fhandle);
+		fhandle = whandle;
+	} else { // megayuck - physfs on posix platforms uses O_APPEND. We illegally access the fd directly and clear that flag.
+		//LOG_MSG("noCOW",pname,PHYSFS_tell(fhandle));
+		PHYSFS_close(fhandle);
+		fhandle = PHYSFS_openAppend(pname);
+#ifndef WIN32
+		int rc = fcntl(**(int**)fhandle->opaque,F_SETFL,0);
+#endif
+		PHYSFS_seek(fhandle, pos);
+	}
 	return true;
 }
 

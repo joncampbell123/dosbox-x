@@ -2061,6 +2061,10 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     oalloc.total_clusters=odp->allocation.total_clusters;
                     oalloc.free_clusters=odp->allocation.free_clusters;
                     oalloc.mediaid=odp->allocation.mediaid;
+                } else {
+                    physfsDrive *pdp = dynamic_cast<physfsDrive*>(Drives[lcv]);
+                    if (pdp && pdp->getOverlaydir())
+                        strcpy(overlaydir,pdp->getOverlaydir());
                 }
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
@@ -2268,6 +2272,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                         str=str.substr(0,found);
                     Drives[lcv]=new physfsDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
                     if (Drives[lcv]) {
+                        if (strlen(overlaydir)) dynamic_cast<physfsDrive*>(Drives[lcv])->setOverlaydir(overlaydir);
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                     } else

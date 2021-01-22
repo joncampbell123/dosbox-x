@@ -2572,9 +2572,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow dynamic core with 386 paging enabled. This is generally OK for DOS games and Windows 3.1.\n"
-                    "If the game becomes unstable, turn off this option.\n"
-                    "WARNING: Do NOT use this option with preemptive multitasking OSes including Windows 95 and Windows NT.");
+    Pbool->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"
+                    "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
+                    "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.");
+    Pbool->SetBasic(true);
             
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"

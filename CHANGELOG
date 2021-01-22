@@ -12,6 +12,12 @@
     OpenGL on x86/x64 SDL2 builds), OpenGL output with
     pixel-perfect scaling for improved image quality,
     and the TrueType font (TTF) output. (Wengier)
+  - Added overlay support for mounting PhysFS drives
+    so that you can specify a write location when you
+    mounted a ZIP/7Z archive. For example, the command
+    "MOUNT C C:\DIR -T OVERLAY" will specify the path
+    C:\DIR as the write location after you had mounted
+    C: drive as a PhysFS drive. (Wengier)
   - Added abliity to resolve file paths that include
     environment variables on Windows or tildes (~) on
     other platforms for various options in the config
