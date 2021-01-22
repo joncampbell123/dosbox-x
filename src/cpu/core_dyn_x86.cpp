@@ -202,7 +202,7 @@ static struct dyn_dh_fpu {
 } dyn_dh_fpu;
 #endif
 
-#define DYN_DEBUG_PAGEFAULT
+//#define DYN_DEBUG_PAGEFAULT
 
 #ifdef DYN_DEBUG_PAGEFAULT
 #define DYN_PF_LOG_MSG LOG_MSG
