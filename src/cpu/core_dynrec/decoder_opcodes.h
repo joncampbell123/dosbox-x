@@ -82,9 +82,11 @@ static void dyn_dop_ebgb_xchg(void) {
 		dyn_read_byte(FC_ADDR,FC_TMP_BA1);
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
+		gen_protect_reg(FC_TMP_BA1);
 		gen_restore_addr_reg();
 		dyn_write_byte(FC_ADDR,FC_TMP_BA2);
+		gen_restore_reg(FC_TMP_BA1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	} else {
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));

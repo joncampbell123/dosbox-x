@@ -1522,7 +1522,8 @@ static void dyn_dop_byte_imm(DualOps op,DynReg * dr1,uint8_t di1) {
 
 
 static void dyn_dop_ebgb(DualOps op) {
-	dyn_get_modrm();DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
+	dyn_get_modrm();
+	DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		if ((op<=DOP_TEST) && (op!=DOP_ADC && op!=DOP_SBB)) set_skipflags(true);
@@ -1544,9 +1545,21 @@ static void dyn_dop_ebgb(DualOps op) {
 	}
 }
 
+static void dyn_dop_ebgb_xchg(void) {
+	dyn_get_modrm();
+	DynReg *rm_reg=&DynRegs[decode.modrm.reg&3];
+	if (decode.modrm.mod<3) {
+		dyn_fill_ea();
+		dyn_read_byte(DREG(EA),DREG(TMPB),false);
+		dyn_write_byte_release(DREG(EA),rm_reg,(decode.modrm.reg&4)!=0);
+		gen_dop_byte(DOP_MOV,rm_reg,decode.modrm.reg&4,DREG(TMPB),0);
+		gen_releasereg(DREG(TMPB));
+	} else gen_dop_byte(DOP_XCHG,&DynRegs[decode.modrm.rm&3],decode.modrm.rm&4,rm_reg,decode.modrm.reg&4);
+}
 
 static void dyn_dop_gbeb(DualOps op) {
-	dyn_get_modrm();DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
+	dyn_get_modrm();
+	DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		if ((op<=DOP_TEST) && (op!=DOP_ADC && op!=DOP_SBB)) set_skipflags(true);
@@ -1622,6 +1635,20 @@ static void dyn_dop_evgv(DualOps op) {
 		}
 		gen_dop_word(op,decode.big_op,&DynRegs[decode.modrm.rm],rm_reg);
 	}
+}
+
+static void dyn_dop_evgv_xchg(void) {
+	dyn_get_modrm();
+	DynReg *rm_reg=&DynRegs[decode.modrm.reg];
+	if (decode.modrm.mod<3) {
+		dyn_fill_ea();
+		DynReg *tmp = decode.modrm.reg >= 4 ? DREG(TMPW) : DREG(TMPB);
+		if (!decode.big_op) gen_dop_word(DOP_MOV,true,tmp,rm_reg);
+		dyn_read_word(DREG(EA),tmp,decode.big_op);
+		dyn_write_word_release(DREG(EA),rm_reg,decode.big_op);
+		gen_dop_word(DOP_XCHG,true,tmp,rm_reg);
+		gen_releasereg(tmp);
+	} else gen_dop_word(DOP_XCHG,decode.big_op,&DynRegs[decode.modrm.rm],rm_reg);
 }
 
 static void dyn_imul_gvev(Bitu immsize) {
@@ -2714,8 +2741,8 @@ restart_prefix:
 		case 0x84:dyn_dop_gbeb(DOP_TEST);break;
 		case 0x85:dyn_dop_gvev(DOP_TEST);break;
 		/* XCHG Eb,Gb Ev,Gv */
-		case 0x86:dyn_dop_ebgb(DOP_XCHG);break;
-		case 0x87:dyn_dop_evgv(DOP_XCHG);break;
+		case 0x86:dyn_dop_ebgb_xchg();break;
+		case 0x87:dyn_dop_evgv_xchg();break;
 		/* MOV e,g and g,e */
 		case 0x88:dyn_mov_ebgb();break;
 		case 0x89:dyn_mov_evgv();break;
