@@ -49,3 +49,6 @@ Commit#:	Reason for skipping:
 4389		Conflict
 4390		Conflict
 4391		In dispute and may make it more difficult to implement future Gravis Ultrasound PnP (AMD InterWave) emulation
+4396		Conflict. DOSBox-X's cache.h files differ from SVN's. Can they be merged in the same way?
+4397		Conflict
+4400		No "sBitfs" in DOSBox-X
