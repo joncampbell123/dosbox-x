@@ -129,6 +129,10 @@
     Journey. Also be a bit smarter about enabling
     autolock, supporting more cases where the mouse
     is used for input without resetting it.
+    - r4399: Finish up and add LOOP_NE and LOOP_E for
+    core_dyn_x86.
+    - r4401: Improve xchg to handle unwritable memory
+    better for core_dyn_x86.
 
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds

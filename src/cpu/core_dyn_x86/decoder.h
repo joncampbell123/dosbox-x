@@ -1522,7 +1522,8 @@ static void dyn_dop_byte_imm(DualOps op,DynReg * dr1,uint8_t di1) {
 
 
 static void dyn_dop_ebgb(DualOps op) {
-	dyn_get_modrm();DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
+	dyn_get_modrm();
+	DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		if ((op<=DOP_TEST) && (op!=DOP_ADC && op!=DOP_SBB)) set_skipflags(true);
@@ -1544,9 +1545,21 @@ static void dyn_dop_ebgb(DualOps op) {
 	}
 }
 
+static void dyn_dop_ebgb_xchg(void) {
+	dyn_get_modrm();
+	DynReg *rm_reg=&DynRegs[decode.modrm.reg&3];
+	if (decode.modrm.mod<3) {
+		dyn_fill_ea();
+		dyn_read_byte(DREG(EA),DREG(TMPB),false);
+		dyn_write_byte_release(DREG(EA),rm_reg,(decode.modrm.reg&4)!=0);
+		gen_dop_byte(DOP_MOV,rm_reg,decode.modrm.reg&4,DREG(TMPB),0);
+		gen_releasereg(DREG(TMPB));
+	} else gen_dop_byte(DOP_XCHG,&DynRegs[decode.modrm.rm&3],decode.modrm.rm&4,rm_reg,decode.modrm.reg&4);
+}
 
 static void dyn_dop_gbeb(DualOps op) {
-	dyn_get_modrm();DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
+	dyn_get_modrm();
+	DynReg * rm_reg=&DynRegs[decode.modrm.reg&3];
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
 		if ((op<=DOP_TEST) && (op!=DOP_ADC && op!=DOP_SBB)) set_skipflags(true);
@@ -1622,6 +1635,20 @@ static void dyn_dop_evgv(DualOps op) {
 		}
 		gen_dop_word(op,decode.big_op,&DynRegs[decode.modrm.rm],rm_reg);
 	}
+}
+
+static void dyn_dop_evgv_xchg(void) {
+	dyn_get_modrm();
+	DynReg *rm_reg=&DynRegs[decode.modrm.reg];
+	if (decode.modrm.mod<3) {
+		dyn_fill_ea();
+		DynReg *tmp = decode.modrm.reg >= 4 ? DREG(TMPW) : DREG(TMPB);
+		if (!decode.big_op) gen_dop_word(DOP_MOV,true,tmp,rm_reg);
+		dyn_read_word(DREG(EA),tmp,decode.big_op);
+		dyn_write_word_release(DREG(EA),rm_reg,decode.big_op);
+		gen_dop_word(DOP_XCHG,true,tmp,rm_reg);
+		gen_releasereg(tmp);
+	} else gen_dop_word(DOP_XCHG,decode.big_op,&DynRegs[decode.modrm.rm],rm_reg);
 }
 
 static void dyn_imul_gvev(Bitu immsize) {
@@ -2205,48 +2232,55 @@ enum LoopTypes {
 };
 
 static void dyn_loop(LoopTypes type) {
-	dyn_reduce_cycles();
 	Bits eip_add=(int8_t)decode_fetchb();
-	Bitu eip_base=decode.code-decode.code_start;
 	uint8_t * branch1=0;uint8_t * branch2=0;
-	dyn_save_critical_regs();
+	gen_preloadreg(DREG(ECX));
+	gen_preloadreg(DREG(CYCLES));
+	gen_preloadreg(DREG(EIP));
 	switch (type) {
 	case LOOP_E:
 		gen_needflags();
+		gen_protectflags();
 		branch1=gen_create_branch(BR_NZ);
 		break;
 	case LOOP_NE:
 		gen_needflags();
+		gen_protectflags();
 		branch1=gen_create_branch(BR_Z);
 		break;
+	default:
+		gen_protectflags();
 	}
-	gen_protectflags();
 	switch (type) {
 	case LOOP_E:
 	case LOOP_NE:
 	case LOOP_NONE:
 		gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-		gen_releasereg(DREG(ECX));
 		branch2=gen_create_branch(BR_Z);
 		break;
 	case LOOP_JCXZ:
 		gen_dop_word(DOP_TEST,decode.big_addr,DREG(ECX),DREG(ECX));
-		gen_releasereg(DREG(ECX));
 		branch2=gen_create_branch(BR_NZ);
 		break;
 	}
-	gen_lea(DREG(EIP),DREG(EIP),0,0,eip_base+eip_add);
-	gen_releasereg(DREG(EIP));
+	/* Branch taken */
+	dyn_reduce_cycles();
+	dyn_set_eip_end();
+	gen_dop_word_imm(DOP_ADD,decode.big_op,DREG(EIP),eip_add);
+	DynState st;
+	dyn_savestate(&st);
+	dyn_save_critical_regs();
 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlock,cache.xstart));
+	dyn_loadstate(&st);
 	if (branch1) {
 		gen_fill_branch(branch1);
 		gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-		gen_releasereg(DREG(ECX));
 	}
-	/* Branch taken */
+	/* Branch not taken */
 	gen_fill_branch(branch2);
-	gen_lea(DREG(EIP),DREG(EIP),0,0,eip_base);
-	gen_releasereg(DREG(EIP));
+	dyn_reduce_cycles();
+	dyn_set_eip_end();
+	dyn_save_critical_regs();
 	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlock,cache.xstart));
 	dyn_closeblock();
 }
@@ -2707,8 +2741,8 @@ restart_prefix:
 		case 0x84:dyn_dop_gbeb(DOP_TEST);break;
 		case 0x85:dyn_dop_gvev(DOP_TEST);break;
 		/* XCHG Eb,Gb Ev,Gv */
-		case 0x86:dyn_dop_ebgb(DOP_XCHG);break;
-		case 0x87:dyn_dop_evgv(DOP_XCHG);break;
+		case 0x86:dyn_dop_ebgb_xchg();break;
+		case 0x87:dyn_dop_evgv_xchg();break;
 		/* MOV e,g and g,e */
 		case 0x88:dyn_mov_ebgb();break;
 		case 0x89:dyn_mov_evgv();break;
@@ -2973,7 +3007,9 @@ restart_prefix:
 			dyn_fpu_esc7();
 			break;
 #endif
-		//Loops 
+		//Loops
+		case 0xe0:dyn_loop(LOOP_NE);goto finish_block;
+		case 0xe1:dyn_loop(LOOP_E);goto finish_block;
 		case 0xe2:dyn_loop(LOOP_NONE);goto finish_block;
 		case 0xe3:dyn_loop(LOOP_JCXZ);goto finish_block;
 		//IN AL/AX,imm
