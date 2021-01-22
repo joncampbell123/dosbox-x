@@ -2521,8 +2521,18 @@ bool physfsDrive::Rename(const char * oldname,const char * newname) {
 	CROSS_FILENAME(newnew);
 	dirCache.ExpandName(newnew);
 	normalize(newnew,basedir);
-	/* yuck. physfs doesn't have "rename". */
-	LOG_MSG("PHYSFS TODO: rename not yet implemented (%s -> %s)",newold,newnew);
+    const char *dir=PHYSFS_getRealDir(newold);
+    if (dir && !strcmp(getOverlaydir(), dir)) {
+        char fullold[CROSS_LEN], fullnew[CROSS_LEN];
+        strcpy(fullold, dir);
+        strcat(fullold, newold);
+        strcpy(fullnew, dir);
+        strcat(fullnew, newnew);
+        if (rename(fullold, fullnew)==0) {
+            dirCache.EmptyCache();
+            return true;
+        }
+    } else LOG_MSG("PHYSFS: rename not supported (%s -> %s)",newold,newnew); // yuck. physfs doesn't have "rename".
 	return false;
 }
 
