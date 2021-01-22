@@ -1,4 +1,7 @@
 0.83.10
+  - dynamic_x86 now handles pagefaults non-recursively,
+    which allows to use dynamic core with Windows 9x/ME
+    without crashes. (koolkdev)
   - DOSBox-X now natively supports the pixel-perfect
     scaling! Set the option "output=openglpp" in [sdl]
     section of the config file to enable this output.
