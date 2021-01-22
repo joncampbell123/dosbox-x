@@ -124,7 +124,7 @@ private:
 					else { // try 32-bit absolute address
 						if ((int32_t)offset != offset) IllegalOption("opcode::Emit: bad RIP address");
 						// change emitted modrm base from 5 to 4 (use sib)
-						cache.pos[-1] -= 1; // FIXME: Incoming code from SVN uses cache_addb(modrm-1,cache.pos-1), which suggests they changed or overloaded cache_addb?
+						cache_addb(modrm-1,cache.pos-1);
 						cache_addb(0x25); // sib: [none+1*none+simm32]
 					}
 				} else if ((modrm&7)!=4 || (sib&7)!=5)

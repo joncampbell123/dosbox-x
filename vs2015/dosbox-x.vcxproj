@@ -1473,6 +1473,15 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\cpu\core_dynrec\risc_mipsel32.h" />
     <ClInclude Include="..\src\cpu\core_dynrec\risc_x64.h" />
     <ClInclude Include="..\src\cpu\core_dynrec\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h" />
     <ClInclude Include="..\src\cpu\core_full\ea_lookup.h" />
     <ClInclude Include="..\src\cpu\core_full\load.h" />
     <ClInclude Include="..\src\cpu\core_full\loadwrite.h" />
