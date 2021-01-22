@@ -150,6 +150,8 @@ public:
 	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
 	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
 	virtual const char *GetInfo(void);
+	virtual const char *getOverlaydir(void);
+	virtual bool setOverlaydir(const char * name);
 	Bits UnMount();
 	virtual ~physfsDrive(void);
 

@@ -12,6 +12,16 @@
     OpenGL on x86/x64 SDL2 builds), OpenGL output with
     pixel-perfect scaling for improved image quality,
     and the TrueType font (TTF) output. (Wengier)
+  - You can now supply a ZIP/7Z file as a parameter to
+    DOSBox-X directly so that it will be mounted as C:
+    drive when DOSBox-X starts. (Wengier)
+  - Added overlay support for mounting PhysFS drives
+    so that you can specify a write location when you
+    mounted a ZIP/7Z archive by adopting an old patch.
+    For example, command "MOUNT C C:\DIR -T OVERLAY"
+    will specify path C:\DIR(\C_DRIVE) as the write
+    location after mounting C: drive as a PhysFS drive
+    with a command like "MOUNT FILES.ZIP". (Wengier)
   - Added abliity to resolve file paths that include
     environment variables on Windows or tildes (~) on
     other platforms for various options in the config
@@ -79,9 +89,6 @@
     dynamically using CONFIG command, e.g. "config -set
     ttf.font=test", "config -set ttf.lins=30", and
     "config -set ttf.cols=100". (Wengier)
-  - You can now supply a ZIP/7Z file as a parameter to
-    DOSBox-X directly so that it will be mounted as C:
-    drive when DOSBox-X starts. (Wengier)
   - Implemented the DOS network redirector functions so
     that the host name can be reported to DOS programs,
     unless the secure mode is enabled. You may need to

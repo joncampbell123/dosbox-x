@@ -1801,6 +1801,22 @@ public:
                         }
                     }
                     swappos=DriveManager::GetDrivePosition(statusdrive);
+                } else if (!strncmp(info, "PhysFS directory ", 17)) {
+                    type="PhysFS directory";
+                    path=info+17;
+                    readonly=true;
+                    physfsDrive *pdp = dynamic_cast<physfsDrive*>(Drives[statusdrive]);
+                    if (pdp!=NULL) {
+                        const char *wdir = pdp->getOverlaydir();
+                        if (wdir!=NULL&&strlen(wdir)) {
+                            readonly=false;
+                            overlay=std::string(wdir)+(wdir[strlen(wdir)-1]!=CROSS_FILESPLIT?std::string(1, CROSS_FILESPLIT):"")+std::string(1, 'A'+statusdrive)+"_DRIVE";
+                        }
+                    }
+                } else if (!strncmp(info, "PhysFS CDRom ", 13)) {
+                    type="PhysFS CDRom";
+                    path=info+13;
+                    readonly=true;
                 } else if (!strncmp(info, "local directory ", 16)) {
                     type="local directory";
                     path=info+16;
