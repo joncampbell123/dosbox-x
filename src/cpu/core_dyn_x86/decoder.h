@@ -2205,48 +2205,55 @@ enum LoopTypes {
 };
 
 static void dyn_loop(LoopTypes type) {
-	dyn_reduce_cycles();
 	Bits eip_add=(int8_t)decode_fetchb();
-	Bitu eip_base=decode.code-decode.code_start;
 	uint8_t * branch1=0;uint8_t * branch2=0;
-	dyn_save_critical_regs();
+	gen_preloadreg(DREG(ECX));
+	gen_preloadreg(DREG(CYCLES));
+	gen_preloadreg(DREG(EIP));
 	switch (type) {
 	case LOOP_E:
 		gen_needflags();
+		gen_protectflags();
 		branch1=gen_create_branch(BR_NZ);
 		break;
 	case LOOP_NE:
 		gen_needflags();
+		gen_protectflags();
 		branch1=gen_create_branch(BR_Z);
 		break;
+	default:
+		gen_protectflags();
 	}
-	gen_protectflags();
 	switch (type) {
 	case LOOP_E:
 	case LOOP_NE:
 	case LOOP_NONE:
 		gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-		gen_releasereg(DREG(ECX));
 		branch2=gen_create_branch(BR_Z);
 		break;
 	case LOOP_JCXZ:
 		gen_dop_word(DOP_TEST,decode.big_addr,DREG(ECX),DREG(ECX));
-		gen_releasereg(DREG(ECX));
 		branch2=gen_create_branch(BR_NZ);
 		break;
 	}
-	gen_lea(DREG(EIP),DREG(EIP),0,0,eip_base+eip_add);
-	gen_releasereg(DREG(EIP));
+	/* Branch taken */
+	dyn_reduce_cycles();
+	dyn_set_eip_end();
+	gen_dop_word_imm(DOP_ADD,decode.big_op,DREG(EIP),eip_add);
+	DynState st;
+	dyn_savestate(&st);
+	dyn_save_critical_regs();
 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlock,cache.xstart));
+	dyn_loadstate(&st);
 	if (branch1) {
 		gen_fill_branch(branch1);
 		gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-		gen_releasereg(DREG(ECX));
 	}
-	/* Branch taken */
+	/* Branch not taken */
 	gen_fill_branch(branch2);
-	gen_lea(DREG(EIP),DREG(EIP),0,0,eip_base);
-	gen_releasereg(DREG(EIP));
+	dyn_reduce_cycles();
+	dyn_set_eip_end();
+	dyn_save_critical_regs();
 	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlock,cache.xstart));
 	dyn_closeblock();
 }
@@ -2973,7 +2980,9 @@ restart_prefix:
 			dyn_fpu_esc7();
 			break;
 #endif
-		//Loops 
+		//Loops
+		case 0xe0:dyn_loop(LOOP_NE);goto finish_block;
+		case 0xe1:dyn_loop(LOOP_E);goto finish_block;
 		case 0xe2:dyn_loop(LOOP_NONE);goto finish_block;
 		case 0xe3:dyn_loop(LOOP_JCXZ);goto finish_block;
 		//IN AL/AX,imm
