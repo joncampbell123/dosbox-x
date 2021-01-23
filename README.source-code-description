@@ -305,16 +305,16 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         for a possible speed decrease.
 
 --disable-fpu
-        Disables the emulated FPU. Although the fpu emulation code isn't
+        Disables the emulated FPU. Although the FPU emulation code isn't
         finished and isn't entirely accurate, it's advised to leave it on.
 
 --disable-fpu-x86
 --disable-fpu-x64
         Disables the assembly FPU core. Although relatively new, the x86/x64
-        fpu core has more accuracy than the regular fpu core. 
+        FPU core has more accuracy than the regular FPU core. 
 
 --disable-dynamic-x86
-        Disables the dynamic x86/x64 specific cpu core. Although it might be
+        Disables the dynamic x86/x64 specific CPU core. Although it might be
         a bit unstable, it can greatly improve the speed of dosbox-x on x86 
         and x64 hosts.
         Please note that this option on x86/x64 will result in a different
@@ -908,7 +908,7 @@ Within each 1ms tick, a cycle count specified by the user
 is executed as CPU time.
 
 Setting cycles=3000 therefore, instructs DOSBox and DOSBox-X
-to execute 3000 cpu cycles per millisecond. That generally
+to execute 3000 CPU cycles per millisecond. That generally
 means (though not always) that 3000 instructions are executed
 per millisecond.
 
