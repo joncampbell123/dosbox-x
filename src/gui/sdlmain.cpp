@@ -250,6 +250,9 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+#if C_DIRECT3D
+void d3d_init(void);
+#endif
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
@@ -3710,9 +3713,10 @@ void change_output(int output) {
         OUTPUT_OPENGL_Select(GLPerfect);
 #endif
         break;
-    #if C_DIRECT3D
+#if C_DIRECT3D
     case 6:
         OUTPUT_DIRECT3D_Select();
+        d3d_init();
         break;
 #endif
     case 7:
@@ -3722,8 +3726,10 @@ void change_output(int output) {
         break;
     case 9:
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) 
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
             OUTPUT_DIRECT3D_Select();
+            d3d_init();
+        }
 #endif
         break;
 #if defined(USE_TTF)
@@ -4081,7 +4087,6 @@ void GFX_RestoreMode(void) {
     GFX_ResetScreen();
 }
 
-#if !defined(C_SDL2)
 static bool GFX_GetSurfacePtrLock = false;
 
 unsigned char *GFX_GetSurfacePtr(size_t *pitch, unsigned int x, unsigned int y) {
@@ -4113,7 +4118,6 @@ void GFX_ReleaseSurfacePtr(void) {
         GFX_GetSurfacePtrLock = false;
     }
 }
-#endif
 
 bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
 {
@@ -5355,6 +5359,10 @@ static void GUI_StartUp() {
     GFX_LogSDLState();
     GFX_Stop();
 
+#if C_DIRECT3D
+    if (sdl.desktop.want_type == SCREEN_DIRECT3D)
+        d3d_init();
+#endif
 
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
@@ -10136,31 +10144,68 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 
     if (!strcmp(what,"surface")) {
         if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
-        change_output(0);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(5);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(0);
         RENDER_Reset();
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return true;
-        change_output(3);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(3);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(3);
 #endif
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return true;
-        change_output(4);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(4);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(4);
 #endif
     }
     else if (!strcmp(what,"openglpp")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return true;
-        change_output(5);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(5);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(5);
 #endif
     }
     else if (!strcmp(what,"direct3d")) {
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
-        change_output(6);
+#if C_OPENGL && defined(C_SDL2)
+        if (sdl.desktop.want_type == SCREEN_OPENGL) {
+            sdl.desktop.isperfect = false;
+            OUTPUT_SURFACE_Select();
+            RENDER_Reset();
+        }
+#endif
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(6);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(6);
 #endif
     }
     else if (!strcmp(what,"ttf")) {

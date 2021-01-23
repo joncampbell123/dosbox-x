@@ -241,10 +241,10 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
-    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output on the SDL1 version and the standard OpenGL output on the SDL2 version. But you may want to select the OpenGL output with pixel-perfect scaling for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
+    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
     PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
-    PageOutput.Add('Default output (SDL1: Direct3D / SDL2: OpenGL)');
-    PageOutput.Add('OpenGL perfect: pixel-perfect scaling mode');
+    PageOutput.Add('Default output (Direct3D)');
+    PageOutput.Add('OpenGL with pixel-perfect scaling');
     PageOutput.Add('TrueType font output for text-mode applications');
     PageOutput.Values[0] := True;
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
@@ -252,7 +252,7 @@ begin
     PageVer.Add('DOS version 3.30');
     PageVer.Add('DOS version 5.00');
     PageVer.Add('DOS version 6.22');
-    PageVer.Add('DOS version 7.10');
+    PageVer.Add('DOS version 7.10 (for LFN and FAT32 support)');
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
@@ -321,9 +321,9 @@ begin
       begin
         Wizardform.ReadyMemo.Lines.Add('');
         Wizardform.ReadyMemo.Lines.Add('Video output for DOSBox-X:');
-        msg:='Default output (SDL1: Direct3D / SDL2: OpenGL)';
+        msg:='Default output (Direct3D)';
         if (PageOutput.Values[1]) then
-          msg:='OpenGL perfect: pixel-perfect scaling mode';
+          msg:='OpenGL with pixel-perfect scaling';
         if (PageOutput.Values[2]) then
           msg:='TrueType font output for text-mode applications';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);

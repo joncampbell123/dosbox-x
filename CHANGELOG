@@ -1,7 +1,16 @@
 0.83.10
-  - dynamic_x86 now handles pagefaults non-recursively,
-    which allows to use dynamic core with Windows 9x/ME
-    without crashes. (koolkdev)
+  - The dynamic_x86 CPU core can now handle page faults
+    non-recursively, so you can now run the dynamic_x86
+    core with Windows 9x/ME without crashes, although
+    this may slightly decrease the performance, and it
+    may be disabled by setting the config option "use
+    dynamic core with paging on" in [cpu] section to
+    "false". Also fixed incorrect behavior for handling
+    trap flags in the dynamic core and updated the MMX
+    code for improved performance. (koolkdev)
+  - Added support for Direct3D output on Windows SDL2
+    builds just like Windows SDL1 builds to become the
+    default output in all Windows builds. (Wengier)
   - DOSBox-X now natively supports the pixel-perfect
     scaling! Set the option "output=openglpp" in [sdl]
     section of the config file to enable this output.
@@ -11,10 +20,9 @@
     with some code cleanups by Wengier.
   - Updated the Windows installer to add a page for
     new users to select a video system output - the
-    default output (Direct3D on SDL1 builds / standard
-    OpenGL on x86/x64 SDL2 builds), OpenGL output with
-    pixel-perfect scaling for improved image quality,
-    and the TrueType font (TTF) output. (Wengier)
+    default Direct3D output, OpenGL with pixel-perfect
+    scaling (openglpp) for improved image quality, and
+    the TrueType font (TTF) output. (Wengier)
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengier)
@@ -103,8 +111,6 @@
   - Fixed an issue that the DOSBox-X window size may be
     incorrect when restoring from a maximized window in
     the SDL2 builds. (Wengier)
-  - Fixed incorrect behavior for handling trap flags
-    in the dynamic core. (koolkdev)
   - Fixed that the menu option "Select OpenGL (GLSL)
     shader.." not working properly sometimes. (Wengier)
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
