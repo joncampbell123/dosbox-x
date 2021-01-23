@@ -10145,7 +10145,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     if (!strcmp(what,"surface")) {
         if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(5);
+            change_output(0);
 #if defined(WIN32)
             ShowWindow(GetHWND(), SW_MAXIMIZE);
 #endif
@@ -10193,11 +10193,8 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
 #if C_OPENGL && defined(C_SDL2)
-        if (sdl.desktop.want_type == SCREEN_OPENGL) {
-            sdl.desktop.isperfect = false;
-            OUTPUT_SURFACE_Select();
-            RENDER_Reset();
-        }
+        if (sdl.desktop.want_type == SCREEN_OPENGL)
+            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
 #endif
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(6);
