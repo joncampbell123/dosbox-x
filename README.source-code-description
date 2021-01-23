@@ -170,42 +170,42 @@ SDL 1.2.x or SDL 2.0.x
     been modified from the original. You can find the changes in the
     source package of DOSBox-X (src/platform/sdl-win32.diff). If you
     want the patched source tree send us an email. (see README)
-    Licensed under LGPL
     Note that only version 1.2.x (SDL1 version) and version 2.0.x
     (SDL2 version) are currently supported.
+    License: LGPLv2+
 
 Curses (optional)
     If you want to enable the debugger you need a curses library.
     ncurses should be installed on just about every unix distro.
-    For win32 get pdcurses at https://pdcurses.sourceforge.net
-    License: Open source
+    For win32 get pdcurses at https://pdcurses.org/
+    License: Public Domain
 
 Libpng (optional)
     Needed for the screenshots.
     For win32 get libpng from https://gnuwin32.sourceforge.net/packages.html
     See http://www.libpng.org/pub/png/ for more details.
-    License: Open Source
+    License: zlib/libpng
 
 Zlib (optional)
     Needed by libpng.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
-    See http://www.zlib.net for more details.
-    License: Open Source
+    See https://www.zlib.net/ for more details.
+    License: zlib
 
 SDL_Net (optional)
-    For modem/ipx support. Get it from https://www.libsdl.org/projects/SDL_net/
-    Licensed under LGPL
+    For modem/ipx support.
+    Get it from https://www.libsdl.org/projects/SDL_net/release-1.2.html
+    License: LGPLv2+
 
-SDL_Sound 
-    For compressed audio on diskimages. (optional)
+SDL_Sound (optional)
+    For compressed audio on diskimages (cue sheets) support.
     This is for cue/bin CD-ROM images with compressed (MP3/OGG/FLAC) audio tracks.
     Get it from https://icculus.org/SDL_sound
-    Licenced under LGPL
+    Licence: LGPLv2+
 
-ALSA_Headers
-    (optional)
+ALSA_Headers (optional)
     for Alsa support under linux. Part of the linux kernel sources
-    Licensed under LGPL
+    License: LGPLv2+
 
 Configure script options
 ------------------------
@@ -254,8 +254,9 @@ The DOSBox-X configure script accepts the following switches, which you can use 
 
 --enable-debug 
         Enables the internal debugger. --enable-debug=heavy enables even more 
-        debug options. DOSBox-X should then be run from a xterm and when the sdl-
-        window is active press alt-pause to enter the debugger.
+        debug options. To use the debugger, DOSBox-X should be run from an xterm
+        and when the sdl-window is active press alt-pause to enter the
+        debugger.
 
 --disable-FEATURE
         Do not include FEATURE (same as --enable-FEATURE=no)
@@ -304,29 +305,30 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         for a possible speed decrease.
 
 --disable-fpu
-        Disables the emulated FPU. Although the fpu emulation code isn't 
-        finished and isn't entirely accurate it's advised to leave it on. 
+        Disables the emulated FPU. Although the fpu emulation code isn't
+        finished and isn't entirely accurate, it's advised to leave it on.
 
 --disable-fpu-x86
 --disable-fpu-x64
-        Disables the assembly FPU core. Although relatively new, the x86/x64 fpu  
-        core has more accuracy then the regular fpu core. 
+        Disables the assembly FPU core. Although relatively new, the x86/x64
+        fpu core has more accuracy than the regular fpu core. 
 
 --disable-dynamic-x86
-        Disables the dynamic x86 specific CPU core. Although it might be 
-        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
-        hosts.
-        Please note that this option on x86 will result in a different
-        dynamic/recompiling CPU core being compiled then the default.
+        Disables the dynamic x86/x64 specific cpu core. Although it might be
+        a bit unstable, it can greatly improve the speed of dosbox-x on x86 
+        and x64 hosts.
+        Please note that this option on x86/x64 will result in a different
+        dynamic/recompiling CPU core being compiled than the default.
         For more information see the option --disable-dynrec
 
 --disable-dynrec
-        Disables the recompiling CPU core. Currently x86 and x86_64 only.
-        You can activate this core on x86 by disabling the dynamic-x86 core.
+        Disables the recompiling CPU core. Currently x86/x64 and arm only.
+        You can activate this core on x86/x64 by disabling the dynamic-x86
+        core.
 
 --disable-dynamic-core
-        Disables all dynamic cores. (same effect as 
-        --disable-dynamic-x86 --disable-dynrec)
+        Disables all dynamic cores. (same effect as --disable-dynamic-x86
+        or --disable-dynrec).
 
 --disable-opengl
         Disables OpenGL support (output mode that can be selected in the
