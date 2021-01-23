@@ -19,10 +19,11 @@
     run-time. This feature was implemented by ant_222
     with some code cleanups by Wengier.
   - Updated the Windows installer to add a page for
-    new users to select a video system output - the
-    default Direct3D output, OpenGL with pixel-perfect
-    scaling (openglpp) for improved image quality, and
-    the TrueType font (TTF) output. (Wengier)
+    new users to select a video system output to use -
+    the default output (Direct3D), OpenGL with pixel-
+    perfect scaling (openglpp or "OpenGL perfect") for
+    improved image quality, and the TrueType font (TTF)
+    output for text-mode DOS applications. (Wengier)
   - You can now supply a ZIP/7Z file as a parameter to
     DOSBox-X directly so that it will be mounted as C:
     drive when DOSBox-X starts. (Wengier)

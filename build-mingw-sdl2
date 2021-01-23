@@ -50,6 +50,6 @@ export CXXFLAGS="$new$CXXFLAGS"
 echo Compiling DOSBox-X
 chmod +x configure
 # FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --enable-core-inline --prefix=/usr --enable-sdl2 "$@" || exit 1
+./configure --enable-core-inline --enable-d3d9 --enable-d3d-shaders --prefix=/usr --enable-sdl2 "$@" || exit 1
 make -j3 || exit 1
 
