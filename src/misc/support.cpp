@@ -215,8 +215,9 @@ void E_Exit(const char * format,...) {
 #endif
 	va_list msg;
 	va_start(msg,format);
-	vsprintf(buf,format,msg);
+	vsnprintf(buf,sizeof(buf),format,msg);
 	va_end(msg);
+	buf[sizeof(buf) - 1] = '\0';
 	strcat(buf,"\n");
 	LOG_MSG("E_Exit: %s\n",buf);
 #if defined(WIN32)
