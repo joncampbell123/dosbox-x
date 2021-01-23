@@ -76,9 +76,6 @@
 #include "clockdomain.h"
 #include "shell.h"
 #include "build_timestamp.h"
-#if !defined(HX_DOS)
-#include "libs/tinyfiledialogs/tinyfiledialogs.h"
-#endif
 #include "misc/savestates.cpp"
 
 #if C_EMSCRIPTEN
@@ -88,10 +85,6 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#endif
-
-#if defined(unix) || defined(__APPLE__)
-# include <utime.h>
 #endif
 
 #include <list>

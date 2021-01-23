@@ -27,6 +27,10 @@
 #include <stdlib.h>
 #include "SDL.h"
 
+#if defined(unix) || defined(__APPLE__)
+# include <utime.h>
+#endif
+
 extern unsigned int page;
 extern std::string savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
@@ -1381,6 +1385,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 					} else
 						strcpy(pname, "DOSBOX-X");
 					RunningProgram=pname;
+					void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 					GFX_SetTitle(-1,-1,-1,false);
 				}
 			}
