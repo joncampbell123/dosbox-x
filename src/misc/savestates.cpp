@@ -1,3 +1,28 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string>
+#include <cstring>
+#include <fstream>
+#include "SDL.h"
+#include "menu.h"
+#include "shell.h"
+#include "cross.h"
+#include "mapper.h"
+#include "logging.h"
+#include "build_timestamp.h"
+#ifdef WIN32
+#include "direct.h"
+#endif
+#if defined (__APPLE__)
+#else
+#include <malloc.h>
+#endif
+#if defined(unix) || defined(__APPLE__)
+# include <utime.h>
+#endif
+
 #define MAXU32 0xffffffff
 #include "zip.h"
 #include "unzip.h"
@@ -7,32 +32,6 @@
 #include "vs2015/zlib/contrib/minizip/ioapi.c"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
-#endif
-#ifdef WIN32
-#include "direct.h"
-#endif
-#include "menu.h"
-#include "shell.h"
-#include "cross.h"
-#include "mapper.h"
-#include "logging.h"
-#include "build_timestamp.h"
-#if defined (__APPLE__)
-#else
-#include <malloc.h>
-#endif
-#include <cstring>
-#include <fstream>
-
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <string>
-#include <stdlib.h>
-#include "SDL.h"
-
-#if defined(unix) || defined(__APPLE__)
-# include <utime.h>
 #endif
 
 extern unsigned int page;
