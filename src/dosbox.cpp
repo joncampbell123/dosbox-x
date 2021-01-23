@@ -74,9 +74,6 @@
 #include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
-#include "shell.h"
-#include "build_timestamp.h"
-#include "misc/savestates.cpp"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -120,7 +117,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-
+extern void         AddSaveStateMapper();
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -856,17 +853,7 @@ void DOSBOX_RealInit() {
 		item->set_text("Edit cycles");
 	}
 
-	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
-        item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
-        item->set_text("Load state");
-    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
-        item->set_text("Display state information");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_comma, MMODHOST,"prevslot","Previous save slot", &item);
-        item->set_text("Select previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_period, MMODHOST,"nextslot","Next save slot", &item);
-        item->set_text("Select next slot");
+    AddSaveStateMapper(); //add support for loading/saving game states
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);

@@ -6,13 +6,17 @@
 #include "vs2015/zlib/contrib/minizip/unzip.c"
 #include "vs2015/zlib/contrib/minizip/ioapi.c"
 #if !defined(HX_DOS)
-#include "libs/tinyfiledialogs/tinyfiledialogs.h"
+#include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #ifdef WIN32
 #include "direct.h"
 #endif
+#include "menu.h"
+#include "shell.h"
 #include "cross.h"
+#include "mapper.h"
 #include "logging.h"
+#include "build_timestamp.h"
 #if defined (__APPLE__)
 #else
 #include <malloc.h>
@@ -38,7 +42,7 @@ bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
 void refresh_slots(void);
-void MAPPER_ReleaseAllKeys(void);
+void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 namespace
 {
@@ -262,6 +266,20 @@ void ShowStateInfo(bool pressed) {
     if (!pressed) return;
     std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
     systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
+}
+
+void AddSaveStateMapper() {
+    DOSBoxMenu::item *item;
+	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
+        item->set_text("Save state");
+	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
+        item->set_text("Load state");
+    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
+        item->set_text("Display state information");
+	MAPPER_AddHandler(PreviousSaveSlot, MK_comma, MMODHOST,"prevslot","Previous save slot", &item);
+        item->set_text("Select previous slot");
+	MAPPER_AddHandler(NextSaveSlot, MK_period, MMODHOST,"nextslot","Next save slot", &item);
+        item->set_text("Select next slot");
 }
 
 #ifndef WIN32
