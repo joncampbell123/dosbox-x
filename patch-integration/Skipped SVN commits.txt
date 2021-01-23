@@ -34,7 +34,11 @@ Commit#:	Reason for skipping:
 4270		Conflict
 4278		Conflict
 4281		Conflict
-4285		Website
+4291		Skipped because DOSBox-X may be phasing out Bitu and Bits
+4292		Skipped because DOSBox-X may be phasing out Bitu and Bits
+4298		Skipped the timing change. It makes the cursor blink too slow compared to footage of an actual machine.
+4303		DOSBox-X has its own handling for dpi awareness and preventing scaling.
+4306		Conflict
 
 (Commits in this interval are still TODO)
 
