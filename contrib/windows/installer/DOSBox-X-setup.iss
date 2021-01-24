@@ -376,6 +376,29 @@ begin
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
+      begin
+        FileLines := TStringList.Create;
+        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
+        for i := 0 to FileLines.Count - 1 do
+        begin
+          line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
+          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+            if (CompareText(linetmp, 'printoutput') = 0) and (CompareText(section, 'printer') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              FileLines[i] := linetmp+' printer';
+              break;
+            end
+          end
+        end
+        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
       begin
         FileLines := TStringList.Create;

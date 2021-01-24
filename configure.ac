@@ -441,7 +441,7 @@ case "$host" in
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        if test x$have_sdl_net_h = xyes ; then
          dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
-         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -liphlpapi"
+         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -lwinspool -liphlpapi"
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])

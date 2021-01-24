@@ -696,7 +696,7 @@ bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(38);
+    GUI_Shortcut(37);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -11152,7 +11152,7 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 #endif
         GFX_SwitchFullScreen();
     }
-    GUI_Shortcut(37);
+    GUI_Shortcut(38);
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)
@@ -11166,6 +11166,39 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 
     return true;
 }
+
+extern std::string prtlist;
+bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    bool switchfs=false;
+#if defined(C_SDL2)
+    int x=-1, y=-1;
+#endif
+    if (prtlist.find("-------------")!=std::string::npos&&!GFX_IsFullscreen()) {
+        switchfs=true;
+#if defined(C_SDL2)
+        SDL_GetWindowPosition(sdl.window, &x, &y);
+#endif
+        GFX_SwitchFullScreen();
+    }
+    GUI_Shortcut(39);
+    if (switchfs) {
+        GFX_SwitchFullScreen();
+#if defined(C_SDL2)
+        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
+#endif
+    }
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     MAPPER_ReleaseAllKeys();
@@ -12441,6 +12474,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
                     set_callback_function(help_nic_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_prt").set_text("List printer devices").
+                    set_callback_function(help_prt_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)

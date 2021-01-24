@@ -742,6 +742,9 @@ static const char *def_menu_help[] =
 #endif
     "--",
     "help_nic",
+#if defined(WIN32)
+    "help_prt",
+#endif
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif

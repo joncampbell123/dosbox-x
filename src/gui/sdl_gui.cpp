@@ -2212,6 +2212,32 @@ public:
     }
 };
 
+std::string prtlist="Printer support is not enabled. Check [printer] section of the configuration.";
+class ShowHelpPRT : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpPRT(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 700, 230, title) {
+            std::istringstream in(prtlist.c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 330, r+40, "Close", 70))->addActionHandler(this);
+            resize(700, r+120);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
@@ -2685,11 +2711,15 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np13->raise();
             } break;
         case 37: {
-            auto *np14 = new ShowHelpNIC(screen, 70, 70, "Network interface list");
+            auto *np14 = new MakeDiskImage(screen, 110, 70, "Create blank disk image");
             np14->raise();
             } break;
         case 38: {
-            auto *np15 = new MakeDiskImage(screen, 110, 70, "Create blank disk image");
+            auto *np15 = new ShowHelpNIC(screen, 70, 70, "Network interface list");
+            np15->raise();
+            } break;
+        case 39: {
+            auto *np15 = new ShowHelpPRT(screen, 70, 70, "Printer device list");
             np15->raise();
             } break;
         default:

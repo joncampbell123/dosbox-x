@@ -3246,37 +3246,47 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain = secprop->Add_multiremain("serial5",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial6",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial7",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial8",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial9",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-dosbox-x.txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
@@ -3284,7 +3294,11 @@ void DOSBOX_SetupConfigSections(void) {
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
+#if C_PRINTER
+    Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"printer");
+#else
     Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
+#endif
     Pstring->Set_help(
             "parallel1-9 -- set type of device connected to the parallel (LPT) port.\n"
             "Can be:\n"
@@ -3328,16 +3342,22 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel4",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel5",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel6",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel7",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel8",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel9",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable dongle");
@@ -3358,9 +3378,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("height", Property::Changeable::WhenIdle, 110);
     Pint->Set_help("Height of paper in 1/10 inch (default 110 = 11.0'').");
     Pint->SetBasic(true);
-#ifdef C_LIBPNG
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "printer");
+#if defined(C_LIBPNG)
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "png");
-#else
+#elif C_PRINTER && defined(WIN32)
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
 #endif
     Pstring->Set_help("Output method for finished pages:\n"
@@ -3369,13 +3390,20 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         "  ps      : Creates PostScript\n"
         "  bmp     : Creates BMP images (very huge files, not recommended)\n"
-        "  printer : Send to an actual printer in Windows (Print dialog will appear)"
+        "  printer : Send to an actual printer in Windows (specify a printer, or Print dialog will appear)"
     );
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("device", Property::Changeable::WhenIdle, "-");
+    Pstring->Set_help("Specify the Windows printer device to use. You can see the list of devices from the\n"
+        "  menu (\'List printer devices\') or the Status Window. Then make your choice and put either\n"
+        "  the printer device number (e.g. 2) or your printer name (e.g. Microsoft Print to Fax).\n"
+        "  Leaving it empty will show the Windows Print dialog (or \'-\' for showing once).");
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
     Pstring->Set_help("The path where the output files are stored.");
@@ -3778,11 +3806,10 @@ void DOSBOX_SetupConfigSections(void) {
         "           this has to be changed. Modify the last three number blocks.\n"
         "           I.e. AC:DE:48:88:99:AB.\n"
         "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices in the\n"
-        "           Status Window. Then make your choice and put either the\n"
-        "           interface number (2 or something) or a part of your adapters\n"
-        "           name, e.g. VIA here.\n"
-
+        "           Write \'list\' here to see the list of devices from the\n"
+        "           menu (\'List network interfaces\') or the Status Window.\n"
+        "           Then make your choice and put either the interface number\n"
+        "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
     );
 
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
