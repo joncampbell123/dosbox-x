@@ -123,7 +123,11 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 
     thread_run = true;
     thread_command = D3D_IDLE;
+#if defined(C_SDL2)
+    thread = SDL_CreateThread(EntryPoint, "Direct3D", this);
+#else
     thread = SDL_CreateThread(EntryPoint, this);
+#endif
     SDL_SemWait(thread_ack);
 #endif
 

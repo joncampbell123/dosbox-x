@@ -250,6 +250,9 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+#if C_DIRECT3D
+void d3d_init(void);
+#endif
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
@@ -693,7 +696,7 @@ bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(38);
+    GUI_Shortcut(37);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -3710,9 +3713,10 @@ void change_output(int output) {
         OUTPUT_OPENGL_Select(GLPerfect);
 #endif
         break;
-    #if C_DIRECT3D
+#if C_DIRECT3D
     case 6:
         OUTPUT_DIRECT3D_Select();
+        d3d_init();
         break;
 #endif
     case 7:
@@ -3722,8 +3726,10 @@ void change_output(int output) {
         break;
     case 9:
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) 
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
             OUTPUT_DIRECT3D_Select();
+            d3d_init();
+        }
 #endif
         break;
 #if defined(USE_TTF)
@@ -4081,7 +4087,6 @@ void GFX_RestoreMode(void) {
     GFX_ResetScreen();
 }
 
-#if !defined(C_SDL2)
 static bool GFX_GetSurfacePtrLock = false;
 
 unsigned char *GFX_GetSurfacePtr(size_t *pitch, unsigned int x, unsigned int y) {
@@ -4113,7 +4118,6 @@ void GFX_ReleaseSurfacePtr(void) {
         GFX_GetSurfacePtrLock = false;
     }
 }
-#endif
 
 bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
 {
@@ -5355,6 +5359,10 @@ static void GUI_StartUp() {
     GFX_LogSDLState();
     GFX_Stop();
 
+#if C_DIRECT3D
+    if (sdl.desktop.want_type == SCREEN_DIRECT3D)
+        d3d_init();
+#endif
 
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
@@ -10136,31 +10144,65 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 
     if (!strcmp(what,"surface")) {
         if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
-        change_output(0);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(0);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(0);
         RENDER_Reset();
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return true;
-        change_output(3);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(3);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(3);
 #endif
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return true;
-        change_output(4);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(4);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(4);
 #endif
     }
     else if (!strcmp(what,"openglpp")) {
 #if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return true;
-        change_output(5);
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(5);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(5);
 #endif
     }
     else if (!strcmp(what,"direct3d")) {
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
-        change_output(6);
+#if C_OPENGL && defined(C_SDL2)
+        if (sdl.desktop.want_type == SCREEN_OPENGL)
+            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
+#endif
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(6);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(6);
 #endif
     }
     else if (!strcmp(what,"ttf")) {
@@ -11110,7 +11152,7 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 #endif
         GFX_SwitchFullScreen();
     }
-    GUI_Shortcut(37);
+    GUI_Shortcut(38);
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)
@@ -11124,6 +11166,39 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 
     return true;
 }
+
+extern std::string prtlist;
+bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    bool switchfs=false;
+#if defined(C_SDL2)
+    int x=-1, y=-1;
+#endif
+    if (prtlist.find("-------------")!=std::string::npos&&!GFX_IsFullscreen()) {
+        switchfs=true;
+#if defined(C_SDL2)
+        SDL_GetWindowPosition(sdl.window, &x, &y);
+#endif
+        GFX_SwitchFullScreen();
+    }
+    GUI_Shortcut(39);
+    if (switchfs) {
+        GFX_SwitchFullScreen();
+#if defined(C_SDL2)
+        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
+#endif
+    }
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     MAPPER_ReleaseAllKeys();
@@ -12397,8 +12472,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
                     set_callback_function(help_open_url_callback);
+#if C_NE2000
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
                     set_callback_function(help_nic_callback);
+#endif
+#if C_PRINTER && defined(WIN32)
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_prt").set_text("List printer devices").
+                    set_callback_function(help_prt_callback);
+#endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)

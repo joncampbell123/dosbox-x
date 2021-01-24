@@ -317,10 +317,8 @@ static const char *def_menu_video_scaler[] =
 static const char *def_menu_video_output[] =
 {
     "output_surface",
-#if !defined(C_SDL2) && !defined(HX_DOS)
-# if (HAVE_D3D9_H) && defined(WIN32)
+#if (HAVE_D3D9_H) && defined(WIN32) && !defined(HX_DOS)
     "output_direct3d",
-# endif
 #endif
 #if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",
@@ -743,11 +741,18 @@ static const char *def_menu_help[] =
     "help_issue",
 #endif
     "--",
+#if C_NE2000
     "help_nic",
+#endif
+#if C_PRINTER && defined(WIN32)
+    "help_prt",
+#endif
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
+#if C_NE2000 || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
+#endif
     "help_about",
     NULL
 };
