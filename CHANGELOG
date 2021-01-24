@@ -5,9 +5,9 @@
     to the selected device. If it is left empty, then
     Windows Print dialog will be shown, or specifying
     "-" will only cause it to show once (unless the user
-    clicks "Cancel"). There is now "List Printer Device"
-    menu option in "Help" menu to list printer devices
-    on Windows systems, and the parallel port LPT1 now
+    clicks "Cancel"). Under "Help" menu there is now a
+    menu option "List Printer Devices" to list printer
+    devices on Windows, and the parallel port LPT1 now
     defaults to the printer on all platforms. (Wengier)
   - The dynamic_x86 CPU core can now handle page faults
     non-recursively, so you can now run the dynamic_x86

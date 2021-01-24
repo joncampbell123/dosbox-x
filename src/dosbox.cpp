@@ -3201,7 +3201,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Additional parameters:\n"
         "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0),\n"
         "    squote to use single quotes instad of double quotes for quoted program commands.\n"
-        "    shellhide to hide the command window when opening programs on the Windows system.\n"
+        "    shellhide to hide the command window when opening programs on the Windows platform.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
         "for directserial: realport (required), rxdelay (optional).\n"
@@ -3321,7 +3321,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    Additional parameters:\n"
             "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0 or 500),\n"
             "    squote to use single quotes instad of double quotes for quoted program commands.\n"
-            "    shellhide to hide the command window when opening programs on the Windows system.\n"
+            "    shellhide to hide the command window when opening programs on the Windows platform.\n"
             "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
             "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
@@ -3401,7 +3401,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("device", Property::Changeable::WhenIdle, "-");
     Pstring->Set_help("Specify the Windows printer device to use. You can see the list of devices from the\n"
         "  menu (\'List printer devices\') or the Status Window. Then make your choice and put either\n"
-        "  the printer device number (e.g. 2) or your printer name (e.g. Microsoft Print to Fax).\n"
+        "  the printer device number (e.g. 2) or your printer name (e.g. Microsoft Print to PDF).\n"
         "  Leaving it empty will show the Windows Print dialog (or \'-\' for showing once).");
     Pstring->SetBasic(true);
 
@@ -3422,7 +3422,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("shellhide", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows system.");
+    Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows platform.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
@@ -3506,7 +3506,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on the Windows system.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
