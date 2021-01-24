@@ -12,6 +12,9 @@ BuildRequires: desktop-file-utils
 BuildRequires: SDL2-devel SDL2_net-devel SDL2_ttf-devel SDL2_image-devel
 BuildRequires: libX11-devel
 BuildRequires: libXext-devel
+BuildRequires: libxkbfile-devel
+BuildRequires: libXrandr-devel
+BuildRequires: freetype-devel
 BuildRequires: libpng-devel
 BuildRequires: alsa-lib-devel
 BuildRequires: ncurses-devel
