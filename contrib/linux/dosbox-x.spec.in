@@ -1,33 +1,38 @@
-BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel
-BuildRequires: alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel
-BuildRequires: mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel
-BuildRequires: fluidsynth-devel libpcap-devel make libtool gcc
-Requires: libX11 libXext libpng alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
-Requires: fluid-soundfont-gm
-Name: @PACKAGE_NAME@
-Version: @PACKAGE_VERSION@
-Release: 0%{?dist}
-Summary: DOS emulator for running DOS games and applications including Windows 3.x/9x
-License: GPL
-URL: https://dosbox-x.com
-Group: Applications/Emulators
-Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
-Source1: com.dosbox_x.DOSBox-X.desktop
-Source2: dosbox-x.svg
-Source3: com.dosbox_x.DOSBox-X.metainfo.xml
+Name:          dosbox-x
+Version:       @PACKAGE_VERSION@
+Release:       1%{?dist}
+Summary:       DOS emulator for running DOS games and applications including Windows 3.x/9x
+License:       GPLv2
+URL:           https://dosbox-x.com
+Group:         Applications/Emulators
+Source:        @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
+
+BuildRequires: make libtool gcc gcc-c++
+BuildRequires: desktop-file-utils
+BuildRequires: SDL2-devel SDL2_net-devel SDL2_ttf-devel SDL2_image-devel
+BuildRequires: libX11-devel
+BuildRequires: libXext-devel
+BuildRequires: libpng-devel
+BuildRequires: alsa-lib-devel
+BuildRequires: ncurses-devel
+BuildRequires: zlib-devel
+BuildRequires: mesa-libGL-devel
+BuildRequires: pulseaudio-libs-devel
+BuildRequires: fluidsynth-devel
+BuildRequires: libpcap-devel
+
+Requires:      libX11 libXext libpng alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
+Requires:      fluid-soundfont-gm
+
+# Dynamic recompiler only supports x86 and arm
+ExclusiveArch: %{ix86} %{arm} x86_64 aarch64
 
 %description
-DOSBox-X is a cross-platform DOS emulator based on DOSBox.
-Like DOSBox, it emulates a PC necessary for running many MS-DOS
-games and applications that simply cannot be run on modern PCs
-and operating systems. However, while the main focus of DOSBox
-is for running DOS games, DOSBox-X goes much further than this.
-Started as a fork of the DOSBox project, it retains compatibility
-with the wide base of DOS games and DOS gaming DOSBox was
-designed for. But it is also a platform for emulating DOS
-applications, including emulating the environments to run
-Windows 3.x, 9x and ME and software written for those versions
-of Windows.
+DOSBox-X is an open-source DOS emulator for running DOS games and applications. DOS-based Windows such as Windows 3.x and Windows 9x are officially supported. Compared to DOSBox, DOSBox-X is much more flexible and provides more features.
+
+DOSBox-X emulates a PC necessary for running many DOS games and applications that simply cannot be run on modern PCs and operating systems, similar to DOSBox. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows. By adding official support for Windows 95, 98, and ME emulation and acceleration, we hope that those old Windows games and applications could be enjoyed or used once more. Moreover, DOSBox-X adds support for emulating the NEC PC-98 such that you can also play PC-98 games with it.
+
+DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features.
 
 %prep
 %autosetup -n dosbox-x
@@ -35,33 +40,27 @@ of Windows.
 %build
 ./build-debug
 
-%check
-
 %install
 %make_install DESTDIR=%{buildroot}
 
 desktop-file-install \
   --dir=%{buildroot}%{_datadir}/applications \
-  %{SOURCE1}
+  --set-icon=com.dosbox_x.DOSBox-X \
+  contrib/linux/com.dosbox_x.DOSBox-X.desktop
 
-mkdir -p %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
-install -p -m 0644 %SOURCE2 %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
-mkdir -p %{buildroot}%{_datadir}/metainfo
-install -p -m 0644 %SOURCE3 %{buildroot}%{_datadir}/metainfo
-mkdir -p %{buildroot}%{_datadir}/dosbox-x/glshaders
-install -p -m 0644 $RPM_BUILD_DIR/dosbox-x/contrib/glshaders/*.glsl %{buildroot}%{_datadir}/dosbox-x/glshaders
+install -p -m 0644 contrib/icons/dosbox-x.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/com.dosbox_x.DOSBox-X.svg
+install -p -m 0644 -Dt %{buildroot}%{_datadir}/metainfo contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml
+install -p -m 0644 -Dt %{buildroot}%{_datadir}/%{name}/glshaders contrib/glshaders/*.glsl
 
 %files
-%{_bindir}/*
-%{_datadir}/applications/*
-%{_datadir}/icons/hicolor/*/apps/dosbox-x.svg
-%{_datadir}/metainfo/*
-%{_datadir}/dosbox-x
-%{_datadir}/dosbox-x/*
-%{_datadir}/dosbox-x/glshaders
-%{_datadir}/dosbox-x/glshaders/*
+%{_bindir}/%{name}
+%{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
+%{_datadir}/icons/hicolor/scalable/apps/com.dosbox_x.DOSBox-X.svg
+%{_datadir}/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
+%{_datadir}/%{name}
+%exclude %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
 
-# Required for NE2000 networking support
+# Required for NE2000 pcap networking support (promiscuous mode)
 %post
 if [ -x /usr/sbin/setcap ]; then
     setcap cap_net_raw+ep %{_bindir}/dosbox-x
