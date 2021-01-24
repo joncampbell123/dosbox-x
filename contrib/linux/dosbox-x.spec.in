@@ -41,7 +41,10 @@ DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation op
 %autosetup -n dosbox-x
 
 %build
-./build-debug
+rm -f configure
+./autogen.sh
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2
+make %{?_smp_mflags}
 
 %install
 %make_install DESTDIR=%{buildroot}
