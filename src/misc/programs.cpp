@@ -45,8 +45,8 @@ typedef struct {
 #endif
 
 Bitu call_program;
-extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
@@ -1335,7 +1335,7 @@ void CONFIG::Run(void) {
 #endif
                             }
 						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
-                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins);
+                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
 #if defined(USE_TTF)
                                 ttf_reset();
@@ -1353,6 +1353,26 @@ void CONFIG::Run(void) {
                                     CALLBACK_RunRealInt(0x10);
                                 }
                                 ttf_setlines(0, 0);
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
+#if defined(USE_TTF)
+                                const char *wpstr=section->Get_string("ttf.wp");
+                                wpType=wpVersion=0;
+                                if (strlen(wpstr)>1) {
+                                    if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
+                                    else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
+                                    else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
+                                    if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
+                                }
+                                mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
+#if defined(USE_TTF)
+                                SetBlinkRate(section);
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
 #if C_OPENGL

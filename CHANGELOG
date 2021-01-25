@@ -1,12 +1,19 @@
 0.83.10
+  - Cursor blinking rate for TrueType font (TTF) output
+    can now be customized with the ttf.blinkc option.
+    Set an integer between 1 (slowest) and 6 (fastest)
+    to change TTF cursor blinking rate, or setting it to
+    0 for no cursor (or false for non-blinking cursor as
+    in previous versions), with the default value being
+    6 on PC-98 systems and 4 elsewhere. (Wengier)
   - Fixed parallel port emulation to allow MDA port 3BCh
     to work properly.
   - Enhanced the printer function on Windows platforms
     to allow printer names to be specified in [printer]
     section via the "device" option for direct printing
-    to the selected device. If it is left empty, then
-    Windows Print dialog will be shown, or specifying
-    "-" will only cause it to show once (unless the user
+    to the selected device. If left empty, then Windows
+    Print dialog will always be shown, or specifying "-"
+    will cause it to show only once (unless the user
     clicks "Cancel"). Under "Help" menu there is now a
     menu option "List Printer Devices" to list printer
     devices on Windows, and the parallel port LPT1 now
@@ -28,8 +35,13 @@
     section of the config file to enable this output.
     Alternatively, the output can be selected from the
     menu ("Video" => "Output" => "OpenGL perfect") at
-    run-time. This feature was implemented by ant_222
-    with some code cleanups by Wengier.
+    run-time. It is recommended to set config options
+    "doublescan=false" and "aspect=true" for openglpp
+    output. Also, with high DPI displays (e.g. on Win
+    7+ with DPI scaling enabled) it works better with
+    full-screen mode and the setting "dpi aware=true".
+    The feature was implemented by ant_222 (author of
+    the patch) with some code cleanups by Wengier.
   - Updated the Windows installer to add a page for
     new users to select a video system output to use -
     the default output (Direct3D), OpenGL with pixel-

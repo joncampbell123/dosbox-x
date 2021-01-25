@@ -97,6 +97,10 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
+// NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
+//      this works better with maximized window or full-screen mode and the
+//      setting "dpi aware=true".
+
 static void PPScale (
     uint16_t  fixed_w , uint16_t  fixed_h,
     uint16_t* window_w, uint16_t* window_h )

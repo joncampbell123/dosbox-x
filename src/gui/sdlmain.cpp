@@ -296,9 +296,9 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
-static int prev_sline = -1;
+static int prev_sline = -1, blinkCursor = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
-static bool blinkCursor = false, blinkstate = false;
+static bool blinkstate = false;
 bool colorChanged = false, justChanged = false;
 #endif
 #if defined(WIN32)
@@ -3461,6 +3461,14 @@ bool readTTF(const char *fName, bool bold, bool ital) {
 	return false;
 }
 
+void SetBlinkRate(Section_prop* section) {
+    const char * blinkCstr = section->Get_string("ttf.blinkc");
+    unsigned int num=-1;
+    if (!strcasecmp(blinkCstr, "false")) blinkCursor = -1;
+    else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=6) blinkCursor = num;
+    else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
+}
+
 bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
@@ -3520,7 +3528,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
         }
-        blinkCursor = render_section->Get_bool("ttf.blinkc");
+        SetBlinkRate(render_section);
         const char *wpstr=render_section->Get_string("ttf.wp");
         wpType=0;
         wpVersion=0;
@@ -4385,13 +4393,11 @@ void GFX_EndTextLines(bool force=false) {
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
 
-			if (IS_PC98_ARCH) /* default cursor blinking is slower on PC-98 systems */
-				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 64) ? true : false;
-			else
-				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 16) ? true : false;
+			if (blinkCursor>-1)
+				vga.draw.cursor.blinkon = (vga.draw.cursor.count & (int)pow(2.0,blinkCursor)) ? true : false;
 
-			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor)) {				// If new position or shape changed, forse draw
-				if (blinkCursor && blinkstate == vga.draw.cursor.blinkon) {
+			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor>-1)) {				// If new position or shape changed, forse draw
+				if (blinkCursor>-1 && blinkstate == vga.draw.cursor.blinkon) {
 					vga.draw.cursor.count = 4;
 					vga.draw.cursor.blinkon = true;
 				}
@@ -4436,7 +4442,7 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
-				if ((vga.draw.cursor.blinkon || !blinkCursor)) {
+				if ((vga.draw.cursor.blinkon || blinkCursor<0)) {
                     // second reverse lower lines
                     textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
                     ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
