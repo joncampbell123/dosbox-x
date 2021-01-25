@@ -1,7 +1,7 @@
 0.83.10
   - Cursor blinking rate for TrueType font (TTF) output
     can now be customized with the ttf.blinkc option.
-    Set an integer between 1 (slowest) and 6 (fastest)
+    Set an integer between 1 (fastest) and 7 (slowest)
     to change TTF cursor blinking rate, or setting it to
     0 for no cursor (or false for non-blinking cursor as
     in previous versions), with the default value being
@@ -36,12 +36,13 @@
     Alternatively, the output can be selected from the
     menu ("Video" => "Output" => "OpenGL perfect") at
     run-time. It is recommended to set config options
-    "doublescan=false" and "aspect=true" for openglpp
-    output. Also, with high DPI displays (e.g. on Win
-    7+ with DPI scaling enabled) it works better with
-    full-screen mode and the setting "dpi aware=true".
-    The feature was implemented by ant_222 (author of
-    the patch) with some code cleanups by Wengier.
+    and "aspect=true" (whenever the emulated display
+    has an aspect ratio of 4:3) and "doublescan=false"
+    for openglpp output. Also, with high DPI displays
+    (e.g. on Windows 7+ with DPI scaling enabled) it
+    works better with full-screen mode and the setting
+    "dpi aware=true". It was implemented by ant_222
+    (patch author) with some code cleanups by Wengier.
   - Updated the Windows installer to add a page for
     new users to select a video system output to use -
     the default output (Direct3D), OpenGL with pixel-

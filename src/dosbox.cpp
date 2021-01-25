@@ -2199,7 +2199,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
-                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 6 (slowest), or 0 for no cursor.");
+                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done

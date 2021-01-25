@@ -3465,7 +3465,7 @@ void SetBlinkRate(Section_prop* section) {
     const char * blinkCstr = section->Get_string("ttf.blinkc");
     unsigned int num=-1;
     if (!strcasecmp(blinkCstr, "false")) blinkCursor = -1;
-    else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=6) blinkCursor = num;
+    else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=7) blinkCursor = num;
     else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
 }
 
@@ -4386,7 +4386,7 @@ void GFX_EndTextLines(bool force=false) {
     if (!force) justChanged = false;
     // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
-	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
+	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16 && blinkCursor) {	// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
 		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
@@ -4394,7 +4394,7 @@ void GFX_EndTextLines(bool force=false) {
 			vga.draw.cursor.count++;
 
 			if (blinkCursor>-1)
-				vga.draw.cursor.blinkon = (vga.draw.cursor.count & (int)pow(2.0,blinkCursor)) ? true : false;
+				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 1<<blinkCursor) ? true : false;
 
 			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor>-1)) {				// If new position or shape changed, forse draw
 				if (blinkCursor>-1 && blinkstate == vga.draw.cursor.blinkon) {
