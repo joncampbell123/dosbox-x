@@ -108,9 +108,8 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
-extern int enablelfn, lfn_filefind_handle;
-extern bool date_host_forced, usecon, rsize;
-extern bool sync_time, manualtime;
+extern int enablelfn, lfn_filefind_handle, file_access_tries;
+extern bool date_host_forced, usecon, rsize, sync_time, manualtime;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
@@ -2198,6 +2197,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 									}
 							} while (cont);
 							if (!DOS_CloseFile(sourceHandle)) failed=true;
+#if defined(WIN32)
+							if (file_access_tries>0 && DOS_FindDevice(name) == DOS_DEVICES) DOS_SetFileDate(targetHandle, ftime, fdate);
+#endif
 							if (!DOS_CloseFile(targetHandle)) failed=true;
 							if (failed)
                                 WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);

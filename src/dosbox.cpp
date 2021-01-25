@@ -2010,6 +2010,7 @@ void DOSBOX_SetupConfigSections(void) {
         "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
         "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
         "          Should have none to negligible impact on performance, mostly being done in hardware\n"
+        "          For the pixel-perfect scaling (output=openglpp), it is recommended to set this to true\n"
         "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
         "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
         "          Slightly degrades visual image quality. Has a tiny impact on performance"
@@ -2053,7 +2054,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
             "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
             "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
-            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.");
+            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n"
+            "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
     Pbool->SetBasic(true);
 
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
@@ -2195,9 +2197,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
-	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, the cursor will blink for the TTF output.");
-    Pbool->SetBasic(true);
+	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
+    Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
+                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
+    Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
@@ -3399,7 +3402,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("device", Property::Changeable::WhenIdle, "-");
-    Pstring->Set_help("Specify the Windows printer device to use. You can see the list of devices from the\n"
+    Pstring->Set_help("Specify the Windows printer device to use. You can see the list of devices from the Help\n"
         "  menu (\'List printer devices\') or the Status Window. Then make your choice and put either\n"
         "  the printer device number (e.g. 2) or your printer name (e.g. Microsoft Print to PDF).\n"
         "  Leaving it empty will show the Windows Print dialog (or \'-\' for showing once).");
@@ -3802,12 +3805,12 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
     MSG_Add("NE2000_CONFIGFILE_HELP",
         "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBoxes running on your network,\n"
+        "           If you have multiple DOSBox-Xes running on your network,\n"
         "           this has to be changed. Modify the last three number blocks.\n"
         "           I.e. AC:DE:48:88:99:AB.\n"
         "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices from the\n"
-        "           menu (\'List network interfaces\') or the Status Window.\n"
+        "           Write \'list\' here to see the list of devices from the Help\n"
+        "           menu (\'List network interfaces\') or from the Status Window.\n"
         "           Then make your choice and put either the interface number\n"
         "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
     );
@@ -3837,10 +3840,10 @@ void DOSBOX_SetupConfigSections(void) {
      *       can then compile NE2000 support with and without libpcap/winpcap support. */
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
     Pstring->Set_help("Specifies which of your network interfaces is used.\n"
-        "Write \'list\' here to see the list of devices in the\n"
-        "Status Window. Then make your choice and put either the\n"
-        "interface number (2 or something) or a part of your adapters\n"
-        "name, e.g. VIA here.");
+        "Write \'list\' here to see the list of devices from the Help\n"
+        "menu (\'List network interfaces\') or from the Status Window.\n"
+        "Then make your choice and put either the interface number\n"
+        "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
