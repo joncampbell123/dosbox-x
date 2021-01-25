@@ -1,4 +1,6 @@
 0.83.10
+  - Fixed parallel port emulation to allow MDA port 3BCh
+    to work properly.
   - Enhanced the printer function on Windows platforms
     to allow printer names to be specified in [printer]
     section via the "device" option for direct printing
