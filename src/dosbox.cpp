@@ -2010,7 +2010,7 @@ void DOSBOX_SetupConfigSections(void) {
         "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
         "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
         "          Should have none to negligible impact on performance, mostly being done in hardware\n"
-        "          For the pixel-perfect scaling (output=openglpp), it is recommended to set this to true\n"
+        "          For the pixel-perfect scaling (output=openglpp), it is recommended to enable this whenever the emulated display has an aspect ratio of 4:3\n"
         "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
         "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
         "          Slightly degrades visual image quality. Has a tiny impact on performance"

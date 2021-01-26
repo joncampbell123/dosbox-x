@@ -121,11 +121,12 @@
     fullscreen=true" and "config -set windowposition="
     will now switch on the full-screen mode and center
     the window position respectively. For TrueType font
-    output, you can now also change the TTF font and
-    the number of rows and columns on the TTF screen
-    dynamically using CONFIG command, e.g. "config -set
-    ttf.font=test", "config -set ttf.lins=30", and
-    "config -set ttf.cols=100". (Wengier)
+    output, you can now also change the TTF font, the
+    number of rows and columns on the TTF screen, and
+    the word processor for TTF dynamically using CONFIG
+    command, e.g. "config -set ttf.font=test", "config
+    -set ttf.lins=30", "config -set ttf.cols=100" and
+    "config -set ttf.wp=wp". (Wengier)
   - Implemented the DOS network redirector functions so
     that the host name can be reported to DOS programs,
     unless the secure mode is enabled. You may need to
