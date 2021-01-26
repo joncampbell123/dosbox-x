@@ -143,6 +143,7 @@
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
+  - Fixed build failure on Gentoo Linux. (fonic)
   - Improved the speed of the internal Voodoo hardware
     emulation for running games like Tomb Raider 3dfx
     when using the Direct3D output. (Wengier)
