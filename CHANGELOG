@@ -121,11 +121,12 @@
     fullscreen=true" and "config -set windowposition="
     will now switch on the full-screen mode and center
     the window position respectively. For TrueType font
-    output, you can now also change the TTF font and
-    the number of rows and columns on the TTF screen
-    dynamically using CONFIG command, e.g. "config -set
-    ttf.font=test", "config -set ttf.lins=30", and
-    "config -set ttf.cols=100". (Wengier)
+    output, you can now also change the TTF font, the
+    number of rows and columns on the TTF screen, and
+    the word processor for TTF dynamically using CONFIG
+    command, e.g. "config -set ttf.font=test", "config
+    -set ttf.lins=30", "config -set ttf.cols=100" and
+    "config -set ttf.wp=wp". (Wengier)
   - Implemented the DOS network redirector functions so
     that the host name can be reported to DOS programs,
     unless the secure mode is enabled. You may need to
@@ -142,6 +143,7 @@
   - Fixed Ctrl+C not working in GNU ed. (Wengier)
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
+  - Fixed build failure on Gentoo Linux. (fonic)
   - Improved the speed of the internal Voodoo hardware
     emulation for running games like Tomb Raider 3dfx
     when using the Direct3D output. (Wengier)

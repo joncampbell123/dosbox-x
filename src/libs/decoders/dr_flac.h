@@ -5170,7 +5170,8 @@ static drflac_bool32 drflac__read_next_flac_frame_header(drflac_bs* bs, drflac_u
         DRFLAC_ASSERT(blockSize > 0);
         if (blockSize == 1) {
             header->blockSizeInPCMFrames = 192;
-        } else if (blockSize >= 2 && blockSize <= 5) {
+        } else if (blockSize <= 5) {
+            DRFLAC_ASSERT(blockSize >= 2);
             header->blockSizeInPCMFrames = 576 * (1 << (blockSize - 2));
         } else if (blockSize == 6) {
             if (!drflac__read_uint16(bs, 8, &header->blockSizeInPCMFrames)) {
