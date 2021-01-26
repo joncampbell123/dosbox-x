@@ -267,6 +267,7 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 */
 
 bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
+bool auto_determine_dynamic_core_paging = false; /* enable use_dynamic_core_with_paging when paging is enabled */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
 
 void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
@@ -1438,6 +1439,8 @@ void PAGING_Enable(bool enabled) {
 	/* If paging is disabled, we work from a default paging table */
 	if (paging.enabled==enabled) return;
 	paging.enabled=enabled;
+	if (auto_determine_dynamic_core_paging)
+		use_dynamic_core_with_paging = enabled;
 	if (enabled) {
 //		LOG(LOG_PAGING,LOG_NORMAL)("Enabled");
 		PAGING_SetDirBase(paging.cr3);

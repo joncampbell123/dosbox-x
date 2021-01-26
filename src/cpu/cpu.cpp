@@ -78,6 +78,7 @@ bool report_fdiv_bug = false;
 extern bool ignore_opcode_63;
 
 extern bool use_dynamic_core_with_paging;
+extern bool auto_determine_dynamic_core_paging;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
@@ -3286,10 +3287,17 @@ public:
 
 		report_fdiv_bug = section->Get_bool("report fdiv bug");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
+
+		std::string dynamic_core_paging = section->Get_string("use dynamic core with paging on");
+		auto_determine_dynamic_core_paging = dynamic_core_paging == "auto";
+		if (auto_determine_dynamic_core_paging) {
+			use_dynamic_core_with_paging = PAGING_Enabled();
+		} else {
+			use_dynamic_core_with_paging = dynamic_core_paging == "true";
+		}
 
         if (cpu_allow_big16) {
             /* FIXME: GCC 4.8: How is this an empty body? Explain. */
