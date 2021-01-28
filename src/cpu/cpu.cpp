@@ -3291,12 +3291,12 @@ public:
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
 
-		std::string dynamic_core_paging = section->Get_string("use dynamic core with paging on");
-		auto_determine_dynamic_core_paging = dynamic_core_paging == "auto";
+		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
+		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
 		if (auto_determine_dynamic_core_paging) {
 			use_dynamic_core_with_paging = PAGING_Enabled();
 		} else {
-			use_dynamic_core_with_paging = dynamic_core_paging == "true";
+			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
 		}
 
         if (cpu_allow_big16) {

@@ -42,7 +42,7 @@ If you prefer to use one of the portable packages, please select the zip package
 
 ## Linux Packages (RPM or Flatpak)
 
-Both RPM and Flatpak packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you cannot access some system-wide resources.
+Both RPM and Flatpak packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
 The standard RPM package is available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") platforms:
 
@@ -72,9 +72,15 @@ After it is installed, it can be run with:
 
 ``flatpak run com.dosbox_x.DOSBox-X``
 
+By default some system-wide resources will not be accessible by any Flatpak package. But you can give the DOSBox-X Flatpak package additional access using the --filesystem option. For example, to give it access to the /mnt directory:
+
+``flatpak run --filesystem=/mnt com.dosbox_x.DOSBox-X``
+
 In addition, if an earlier DOSBox-X Flatpak is already installed in the system you can update it to the current version with the command:
 
 ``flatpak update com.dosbox_x.DOSBox-X``
+
+Or just "flatpak update" to update all Flatpak packages.
 
 Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
 

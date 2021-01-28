@@ -8905,9 +8905,10 @@ bool DOSBOX_parse_argv() {
         }
 #if C_DEBUG
         else if (optname == "display2") {
-            if (!control->cmdline->NextOptArgv(tmp)) return false;
-            if (strcasecmp(tmp.c_str(),"amber")==0) disp2_color=1;
-            else if (strcasecmp(tmp.c_str(),"green")==0) disp2_color=2;
+            if (control->cmdline->NextOptArgv(tmp)) {
+                if (strcasecmp(tmp.c_str(),"amber")==0) disp2_color=1;
+                else if (strcasecmp(tmp.c_str(),"green")==0) disp2_color=2;
+            }
             DISP2_Init(disp2_color);
             control->opt_display2 = true;
         }

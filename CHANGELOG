@@ -24,9 +24,12 @@
     this may slightly decrease the performance, and it
     may be disabled by setting the config option "use
     dynamic core with paging on" in [cpu] section to
-    "false". Also fixed incorrect behavior for handling
-    trap flags in the dynamic core and updated the MMX
-    code for improved performance. (koolkdev)
+    "false"; the default value of this option has been
+    changed to "auto" which will enable/disable itself
+    based on whether the 386 paging has been enabled.
+    Also fixed incorrect behavior for handling trap
+    flags in the dynamic core and updated the MMX code
+    for improved performance. (koolkdev)
   - Added support for Direct3D output on Windows SDL2
     builds just like Windows SDL1 builds to become the
     default output in all Windows builds. (Wengier)
