@@ -972,7 +972,7 @@ doexception:
 	return CPU_PrepareException(EXCEPTION_GP,0);
 }
 
-void CPU_DebugException(Bit32u triggers,Bitu oldeip) {
+void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
   cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
   CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,oldeip);
 }

@@ -185,7 +185,7 @@ static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,uint32_t oldeip) {
 
 bool CPU_PrepareException(Bitu which,Bitu error);
 void CPU_Exception(Bitu which,Bitu error=0);
-void CPU_DebugException(Bit32u triggers,Bitu oldeip);
+void CPU_DebugException(uint32_t triggers,Bitu oldeip);
 
 bool CPU_SetSegGeneral(SegNames seg,uint16_t value);
 bool CPU_PopSeg(SegNames seg,bool use32);
