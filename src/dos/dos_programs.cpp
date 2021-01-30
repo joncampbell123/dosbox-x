@@ -1000,6 +1000,16 @@ public:
             if (!isalpha(i_drive)) goto showusage;
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
             drive = static_cast<char>(i_drive);
+            if (type == "overlay") {
+                //Ensure that the base drive exists:
+                if (!Drives[drive-'A']) {
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
+                    return;
+                }
+            } else if (Drives[drive-'A']) {
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+                return;
+            }
 
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
@@ -1152,10 +1162,6 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 #endif
                 }
-                if (Drives[drive-'A']) {
-                    if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-                    return;
-                }
                 if (is_physfs)
 					newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error,options);
                 else
@@ -1196,11 +1202,6 @@ public:
                         return;
                     }
                 } else if(type == "overlay") {
-                  //Ensure that the base drive exists:
-                  if (!Drives[drive-'A']) { 
-                      if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
-                      return;
-                  }
                   physfsDrive* pdp = dynamic_cast<physfsDrive*>(Drives[drive-'A']);
                   physfscdromDrive* pcdp = dynamic_cast<physfscdromDrive*>(Drives[drive-'A']);
                   if (pdp && !pcdp) {
@@ -1249,11 +1250,6 @@ public:
             }
         } else {
             if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ILL_TYPE"),type.c_str());
-            return;
-        }
-        if (Drives[drive-'A']) {
-            if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-            if (newdrive) delete newdrive;
             return;
         }
         if (!newdrive) E_Exit("DOS:Can't create drive");
