@@ -185,6 +185,7 @@ static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,uint32_t oldeip) {
 
 bool CPU_PrepareException(Bitu which,Bitu error);
 void CPU_Exception(Bitu which,Bitu error=0);
+void CPU_DebugException(Bit32u triggers,Bitu oldeip);
 
 bool CPU_SetSegGeneral(SegNames seg,uint16_t value);
 bool CPU_PopSeg(SegNames seg,bool use32);
@@ -197,7 +198,7 @@ void CPU_Push32(uint32_t value);
 
 void CPU_SetFlags(Bitu word,Bitu mask);
 
-
+#define EXCEPTION_DB            1
 #define EXCEPTION_UD			6u
 #define EXCEPTION_DF            8u
 #define EXCEPTION_TS			10u
@@ -214,6 +215,14 @@ void CPU_SetFlags(Bitu word,Bitu mask);
 #define CR0_WRITEPROTECT		0x00010000u
 #define CR0_PAGING				0x80000000u
 
+// reasons for triggering a debug exception
+#define DBINT_BP0               0x00000001
+#define DBINT_BP1               0x00000002
+#define DBINT_BP2               0x00000004
+#define DBINT_BP3               0x00000008
+#define DBINT_GD                0x00002000
+#define DBINT_STEP              0x00004000
+#define DBINT_TASKSWITCH        0x00008000
 
 // *********************************************************************
 // Descriptor

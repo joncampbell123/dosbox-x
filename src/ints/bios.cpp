@@ -7884,8 +7884,8 @@ private:
 
             uint32_t value = 0;
 
-            if (sync_time&&!manualtime);
-                value = BIOS_HostTimeSync(value);
+            /* Read date/time from host at start */
+            value = BIOS_HostTimeSync(value);
 
             mem_writed(BIOS_TIMER,value);
         }

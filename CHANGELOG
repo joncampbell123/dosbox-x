@@ -159,7 +159,9 @@
   - Updated FLAC and WAV CD-DA decoder libraries to the
     latest versions (0.12.26 and 0.12.18 respectively;
     per David Reid). (Wengier)
-  - Integrated SVN commits (Allofich)
+  - Integrated SVN commits (Allofich & Wengier)
+    - r4426: Emulate debug register 6 during trap flag
+    emulation (and normal int 1). Fixes 544 (jmarsh)
     - r4392: Improve capturing of Zeliard and fix a
     few percussion-related capturing problems as well.
     - r4393: Remove video page check when drawing
