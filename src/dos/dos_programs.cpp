@@ -1224,8 +1224,8 @@ public:
                   if (newdrive) {
                       if (o_error) {
                           if (quiet) {delete newdrive;return;}
-                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.\n");
-                          else if (o_error == 2) WriteOut("Overlay directory cannot be the same as underlying filesystem.\n");
+                          if (o_error == 1) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_MIXED_BASE"));
+                          else if (o_error == 2) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE"));
                           else WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                           delete newdrive;
                           return;
@@ -1236,10 +1236,16 @@ public:
 							odrive->ovlreadonly = readonly;
 						  }
 					  }
+
+						//Copy current directory if not marked as deleted.
+						if (newdrive->TestDir(ldp->curdir)) {
+							strcpy(newdrive->curdir,ldp->curdir);
+						}
+
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 
-                      if (!quiet) WriteOut("Overlay drive construction failed.\n");
+                      if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                       return;
                   }
               } else {
@@ -6816,8 +6822,10 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
-	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_MIXED_BASE","The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE","The overlay directory can not be the same as underlying drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_ERROR","An error occurred when trying to create an overlay drive.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
 
     MSG_Add("PROGRAM_LOADFIX_ALLOC","%d kb allocated.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");
