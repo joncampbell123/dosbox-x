@@ -26,10 +26,10 @@
     dynamic core with paging on" in [cpu] section to
     "false"; the default value of this option has been
     changed to "auto" which will enable/disable itself
-    based on whether the 386 paging has been enabled.
-    Also fixed incorrect behavior for handling trap
-    flags in the dynamic core and updated the MMX code
-    for improved performance. (koolkdev)
+    based on whether the 386 paging and a guest system
+    has been enabled. Also fixed incorrect behavior for
+    handling trap flags in the dynamic core and updated
+    the MMX code for improved performance. (koolkdev)
   - Added support for Direct3D output on Windows SDL2
     builds just like Windows SDL1 builds to become the
     default output in all Windows builds. (Wengier)
@@ -156,9 +156,9 @@
   - Updated the Tiny File Dialog library to the latest
     version v3.8.5, which fixes issues such as the
     compatibility problem with Windows XP. (Wengier)
-  - Updated FLAC and WAV CD-DA decoder libraries to the
-    latest versions (0.12.26 and 0.12.18 respectively;
-    per David Reid). (Wengier)
+  - Updated FLAC, MP3, and WAV CD-DA decoder libraries
+    to the latest versions (0.12.28, 0.6.26 and 0.12.18
+    respectively; per David Reid). (Wengier)
   - Integrated SVN commits (Allofich & Wengier)
     - r4426: Emulate debug register 6 during trap flag
     emulation (and normal int 1). Fixes 544 (jmarsh)

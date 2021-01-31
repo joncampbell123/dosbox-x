@@ -191,7 +191,17 @@ void CPU_Core_Dynrec_Cache_Close(void);
 void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
 
-bool CPU_IsDynamicCore(void);
+int CPU_IsDynamicCore(void) {
+#if (C_DYNAMIC_X86)
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (cpudecoder == &CPU_Core_Dynrec_Run)
+        return 2;
+#endif
+    return 0;
+}
 
 void menu_update_cputype(void) {
     bool allow_prefetch = false;
@@ -2312,18 +2322,6 @@ void CPU_Snap_Back_Restore() {
 
 void CPU_Snap_Back_Forget() {
 	snap_cpu_snapped = false;
-}
-
-bool CPU_IsDynamicCore(void) {
-#if (C_DYNAMIC_X86)
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
-        return true;
-#endif
-#if (C_DYNREC)
-    if (cpudecoder == &CPU_Core_Dynrec_Run)
-        return true;
-#endif
-    return false;
 }
 
 static bool printed_cycles_auto_info = false;
