@@ -2315,22 +2315,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("cycle emulation percentage adjust",Property::Changeable::Always,0);
     Pint->SetMinMax(-50,50);
     Pint->Set_help("The percentage adjustment for use with the \"Emulate CPU speed\" feature. Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.");
-    Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
-                    "If set to auto, this option will be enabled depending on if the 386 paging and a guest system is currently active.");
-    Pstring->SetBasic(true);
+                    "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
             
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
-            "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
+            "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.");
 
     Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
+    Pbool->Set_help("Emulate Advanced Power Management (APM) BIOS calls.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
@@ -2340,7 +2338,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("apmbios version",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(apmbiosversions);
     Pstring->Set_help("What version of the APM BIOS specification to emulate.\n"
-            "You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME");
+            "You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME.");
 
     Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow guest OS to connect from real mode.");
@@ -2352,7 +2350,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
             "If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
             "Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.\n"
-            "Please note at this time that 32-bit APM is unstable under Windows ME");
+            "Please note at this time that 32-bit APM is unstable under Windows ME.");
 
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox-X integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
@@ -2363,6 +2361,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox-X to run a PnP aware DOS program or if booting Windows 9x.\n"
             "Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
