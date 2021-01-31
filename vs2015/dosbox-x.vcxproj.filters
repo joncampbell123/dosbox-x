@@ -1518,6 +1518,9 @@
     <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
       <Filter>Sources\libs\decoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
