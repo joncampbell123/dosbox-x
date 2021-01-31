@@ -113,9 +113,12 @@ for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdl2
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdldraw
 )
-if exist %isspath%\PatchPE.exe %isspath%\PatchPE.exe %isspath%\Win32_builds\x86_Release\dosbox-x.exe
-if exist %isspath%\PatchPE.exe %isspath%\PatchPE.exe %isspath%\Win32_builds\x86_Release_SDL2\dosbox-x.exe
-
+if exist %isspath%\PatchPE.exe (
+	%isspath%\PatchPE.exe %isspath%\Win32_builds\x86_Release\dosbox-x.exe
+	%isspath%\PatchPE.exe %isspath%\Win32_builds\x86_Release_SDL2\dosbox-x.exe
+	%isspath%\PatchPE.exe %isspath%\Win64_builds\x64_Release\dosbox-x.exe
+	%isspath%\PatchPE.exe %isspath%\Win64_builds\x64_Release_SDL2\dosbox-x.exe
+)
 echo.
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
