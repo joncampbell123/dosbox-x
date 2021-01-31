@@ -3576,6 +3576,10 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             if (ttf.lins<1) ttf.lins=25;
             ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
             ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+            if (ttf.cols*ttf.lins>16384) {
+                ttf.lins = 25;
+                ttf.cols = 80;
+            }
         } else if (firstset) {
             bool alter_vmode=false;
             uint16_t c=0, r=0;
@@ -3602,6 +3606,10 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             } else {
                 ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
                 ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+                if (ttf.cols*ttf.lins>16384) {
+                    ttf.lins = 25;
+                    ttf.cols = 80;
+                }
                 if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
             }
             if (alter_vmode) {

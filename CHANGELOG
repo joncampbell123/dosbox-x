@@ -133,7 +133,8 @@
     the word processor for TTF dynamically using CONFIG
     command, e.g. "config -set ttf.font=test", "config
     -set ttf.lins=30", "config -set ttf.cols=100" and
-    "config -set ttf.wp=wp". (Wengier)
+    "config -set ttf.wp=wp". The limits for the options
+    ttf.cols and ttf.lins are increased too. (Wengier)
   - Implemented the DOS network redirector functions so
     that the host name can be reported to DOS programs,
     unless the secure mode is enabled. You may need to
