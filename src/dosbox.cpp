@@ -1079,7 +1079,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
-    const char* dynamic_core_with_paging_settings[] = { "auto", "true", "false", 0 };
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };
@@ -2305,7 +2304,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("cycleup",Property::Changeable::Always,10);
     Pint->SetMinMax(1,1000000);
-    Pint->Set_help("Amount of cycles to decrease/increase with keycombos.(CTRL-F11/CTRL-F12)");
+    Pint->Set_help("Amount of cycles to decrease/increase with the mapped keyboard shortcut.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("cycledown",Property::Changeable::Always,20);
@@ -2319,11 +2318,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
-    Pstring->Set_values(dynamic_core_with_paging_settings);
+    Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
-                    "If set to auto, this option will be enabled when 386 paging is enabled.");
+                    "If set to auto, this option will be enabled depending on if the 386 paging and a guest system is currently active.");
     Pstring->SetBasic(true);
             
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);

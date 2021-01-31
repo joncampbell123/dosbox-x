@@ -1,7 +1,8 @@
 0.83.10
   - The Window key(s) in Windows and the Command key(s)
-    in macOS will be displayed as "Windows" & "Command"
-    keys instead of "super" & "meta" keys. (Wengier)
+    in macOS will now be displayed as the "Windows" and
+    "Command" keys instead of the "super" and "meta"
+    keys in SDL1 builds just like SDL2 builds. (Wengier)
   - Cursor blinking rate for TrueType font (TTF) output
     can now be customized with the ttf.blinkc option.
     Set an integer between 1 (fastest) and 7 (slowest)
