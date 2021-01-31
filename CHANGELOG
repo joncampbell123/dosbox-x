@@ -1,7 +1,9 @@
 0.83.10
   - 3dfx games can now work with the Glide passthrough
     feature when a guest system (guest DOS or Windows
-    9x) is currently running. (Wengier)
+    9x) is currently running. The default setting for
+    config option "keep private area on boot" in [dos]
+    section is changed from "false" to "auto". (Wengier)
   - The Window key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and "meta"
@@ -69,7 +71,7 @@
     will specify path C:\DIR(\C_DRIVE) as the write
     location after mounting C: drive as a PhysFS drive
     with a command like "MOUNT FILES.ZIP". (Wengier)
-  - Added abliity to resolve file paths that include
+  - Added ability to resolve file paths that include
     environment variables on Windows or tildes (~) on
     other platforms for various options in the config
     file, such as language and mapper file paths, MT32
@@ -120,7 +122,7 @@
     option in [printer] section too. (Wengier)
   - Added special properties to CONFIG command such as
     "screenwidth", "screenheight", "windowwidth", and
-    "windowheight" so that commmands like "CONFIG -GET
+    "windowheight" so that commands like "CONFIG -GET
     screenwidth" and "CONFIG -GET screenheight" will
     get the current screen width and height. (Wengier)
   - BOOT command without a parameter will now try to
@@ -170,8 +172,10 @@
   - Integrated SVN commits (Allofich & Wengier)
     - r4426: Emulate debug register 6 during trap flag
     emulation (and normal int 1). Fixes 544 (jmarsh)
-    - r4392: Improve capturing of Zeliard and fix a
-    few percussion-related capturing problems as well.
+    - r4401: Improve xchg to handle unwritable memory
+    better for core_dyn_x86.
+    - r4399: Finish up and add LOOP_NE and LOOP_E for
+    core_dyn_x86.
     - r4393: Remove video page check when drawing
     internal mouse pointer, as the BIOS current page
     is not updated in some cases. Fixes QQP games: Lost
@@ -179,17 +183,15 @@
     Journey. Also be a bit smarter about enabling
     autolock, supporting more cases where the mouse
     is used for input without resetting it.
-    - r4399: Finish up and add LOOP_NE and LOOP_E for
-    core_dyn_x86.
-    - r4401: Improve xchg to handle unwritable memory
-    better for core_dyn_x86.
-    - r4307: Refinement of SoundBlaster checks, so no
-    IRQ is raised when not in autodma mode.
-    - r4309: Copy working directory when mounting an
-    overlay.
+    - r4392: Improve capturing of Zeliard and fix a
+    few percussion-related capturing problems as well.
     - r4310: Improve PMAKE on big endian machines and
     fix some bugs. Fixes bug in 16 -> 15 bit color
     conversion.
+    - r4309: Copy working directory when mounting an
+    overlay.
+    - r4307: Refinement of SoundBlaster checks, so no
+    IRQ is raised when not in autodma mode.
 
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds
