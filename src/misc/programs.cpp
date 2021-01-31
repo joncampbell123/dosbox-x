@@ -931,45 +931,55 @@ void CONFIG::Run(void) {
                         if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
                             GetDrawWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
                             GetDrawWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
 #if defined(C_SDL2)
                         } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
                             int w = 640,h = 480;
                             SDL_Window* GFX_GetSDLWindow(void);
                             SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
                             WriteOut("%d\n",w);
+                            first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
                             int w = 640,h = 480;
                             SDL_Window* GFX_GetSDLWindow(void);
                             SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
                             WriteOut("%d\n",h);
+                            first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
 #elif defined(WIN32)
                         } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
                             RECT rect;
                             GetClientRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
                             RECT rect;
                             GetClientRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
 #if defined(WIN32)
                         } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
                             RECT rect;
                             GetWindowRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
                             RECT rect;
                             GetWindowRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
