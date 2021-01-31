@@ -1000,6 +1000,16 @@ public:
             if (!isalpha(i_drive)) goto showusage;
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
             drive = static_cast<char>(i_drive);
+            if (type == "overlay") {
+                //Ensure that the base drive exists:
+                if (!Drives[drive-'A']) {
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
+                    return;
+                }
+            } else if (Drives[drive-'A']) {
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+                return;
+            }
 
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
@@ -1152,10 +1162,6 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 #endif
                 }
-                if (Drives[drive-'A']) {
-                    if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-                    return;
-                }
                 if (is_physfs)
 					newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error,options);
                 else
@@ -1196,11 +1202,6 @@ public:
                         return;
                     }
                 } else if(type == "overlay") {
-                  //Ensure that the base drive exists:
-                  if (!Drives[drive-'A']) { 
-                      if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
-                      return;
-                  }
                   physfsDrive* pdp = dynamic_cast<physfsDrive*>(Drives[drive-'A']);
                   physfscdromDrive* pcdp = dynamic_cast<physfscdromDrive*>(Drives[drive-'A']);
                   if (pdp && !pcdp) {
@@ -1223,8 +1224,8 @@ public:
                   if (newdrive) {
                       if (o_error) {
                           if (quiet) {delete newdrive;return;}
-                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.\n");
-                          else if (o_error == 2) WriteOut("Overlay directory cannot be the same as underlying filesystem.\n");
+                          if (o_error == 1) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_MIXED_BASE"));
+                          else if (o_error == 2) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE"));
                           else WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                           delete newdrive;
                           return;
@@ -1235,10 +1236,16 @@ public:
 							odrive->ovlreadonly = readonly;
 						  }
 					  }
+
+						//Copy current directory if not marked as deleted.
+						if (newdrive->TestDir(ldp->curdir)) {
+							strcpy(newdrive->curdir,ldp->curdir);
+						}
+
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 
-                      if (!quiet) WriteOut("Overlay drive construction failed.\n");
+                      if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                       return;
                   }
               } else {
@@ -1249,11 +1256,6 @@ public:
             }
         } else {
             if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ILL_TYPE"),type.c_str());
-            return;
-        }
-        if (Drives[drive-'A']) {
-            if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-            if (newdrive) delete newdrive;
             return;
         }
         if (!newdrive) E_Exit("DOS:Can't create drive");
@@ -6820,8 +6822,10 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
-	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_MIXED_BASE","The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE","The overlay directory can not be the same as underlying drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_ERROR","An error occurred when trying to create an overlay drive.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
 
     MSG_Add("PROGRAM_LOADFIX_ALLOC","%d kb allocated.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");

@@ -175,6 +175,13 @@
     core_dyn_x86.
     - r4401: Improve xchg to handle unwritable memory
     better for core_dyn_x86.
+    - r4307: Refinement of SoundBlaster checks, so no
+    IRQ is raised when not in autodma mode.
+    - r4309: Copy working directory when mounting an
+    overlay.
+    - r4310: Improve PMAKE on big endian machines and
+    fix some bugs. Fixes bug in 16 -> 15 bit color
+    conversion.
 
 0.83.9
   - Physical CD drives are now mountable in SDL2 builds
