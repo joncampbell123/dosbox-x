@@ -1443,9 +1443,9 @@ void PAGING_Enable(bool enabled) {
 	if (paging.enabled==enabled) return;
 	paging.enabled=enabled;
 	if (auto_determine_dynamic_core_paging) {
-        int coretype=CPU_IsDynamicCore();
+		int coretype=CPU_IsDynamicCore();
 		use_dynamic_core_with_paging = coretype==1?enabled&&dos_kernel_disabled:(coretype==2?enabled&&!dos_kernel_disabled:enabled);
-    }
+	}
 	if (enabled) {
 //		LOG(LOG_PAGING,LOG_NORMAL)("Enabled");
 		PAGING_SetDirBase(paging.cr3);

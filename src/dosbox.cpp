@@ -3598,7 +3598,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"
             "This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.\n"
-            "This option also affects whether INT 67h is zeroed when booting a guest OS");
+            "This option also affects whether INT 67h is zeroed when booting a guest OS.");
 
     Pbool = secprop->Add_bool("zero unused int 68h",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Leave INT 68h zero at startup.\n"
@@ -3619,7 +3619,7 @@ void DOSBOX_SetupConfigSections(void) {
             "incur a slight to moderate performance penalty.");
 
     Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
-    Pint->Set_help("Amount of memory associated with system handle, in KB");
+    Pint->Set_help("Amount of memory associated with system handle, in KB.");
 
     Pbool = secprop->Add_bool("ems system handle on even megabyte",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, try to allocate the EMM system handle on an even megabyte.\n"
@@ -3653,7 +3653,7 @@ void DOSBOX_SetupConfigSections(void) {
             "If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
     Pbool = secprop->Add_bool("quick reboot",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the DOS restart call will reboot the emulated DOS (integrated DOS or guest DOS) instead of the virtual machine\n");
+    Pbool->Set_help("If set, the DOS restart call will reboot the emulated DOS (integrated DOS or guest DOS) instead of the virtual machine.\n");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
