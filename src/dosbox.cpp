@@ -3644,8 +3644,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
-    Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+    Pstring = secprop->Add_string("keep private area on boot",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
 
     Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"

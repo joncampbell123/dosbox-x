@@ -2735,7 +2735,7 @@ Bitu MEM_PageMask(void);
 
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
-extern bool log_dev_con;
+extern bool log_dev_con, addovl;
 
 bool set_ver(char *s) {
 	s=trim(s);
@@ -3220,8 +3220,10 @@ public:
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
 
-		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
-	
+        const char *keepstr = section->Get_string("keep private area on boot");
+        if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
+        else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
+        else keep_private_area_on_boot = addovl;
 		dos.version.major=5;
 		dos.version.minor=0;
 		dos.direct_output=false;

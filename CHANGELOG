@@ -1,4 +1,7 @@
 0.83.10
+  - 3dfx games can now work with the Glide passthrough
+    feature when a guest system (guest DOS or Windows
+    9x) is currently running. (Wengier)
   - The Window key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and "meta"
