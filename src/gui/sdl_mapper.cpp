@@ -1038,7 +1038,12 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
+        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        if (!strcmp(r, "left super")) r = "left Windows";
+        else if (!strcmp(r, "right super")) r = "right Windows";
+        else if (!strcmp(r, "left meta")) r = "left Command";
+        else if (!strcmp(r, "right meta")) r = "right Command";
+        sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -1065,6 +1070,10 @@ public:
 				if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
 				if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
 				if (c!=NULL) *(c+1)=toupper(*(c+1));
+                else if (r=="Left super") r = "Left Windows";
+                else if (r=="Right super") r = "Right Windows";
+                else if (r=="Left meta") r = "Left Command";
+                else if (r=="Right meta") r = "Right Command";
 			}
 		}
 #endif
