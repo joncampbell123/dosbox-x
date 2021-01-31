@@ -200,7 +200,7 @@ begin
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may be used for lower-end systems.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features than Visual Studio builds and also be used for lower-end systems.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -217,10 +217,10 @@ procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. Click the "Help" button for more information about this.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
-    PageBuild.Add('Windows Release SDL1 (Default build)');
-    PageBuild.Add('Windows Release SDL2 (Alternative build)');
-    PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
-    PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
+    PageBuild.Add('Release SDL1 (Default Visual Studio build)');
+    PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');
+    PageBuild.Add('ARM Release SDL1 (ARM platform only)');
+    PageBuild.Add('ARM Release SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
     PageBuild.Add('MinGW build SDL1 for lower-end systems');
     PageBuild.Add('MinGW build SDL1 with custom drawn menu');
@@ -299,13 +299,13 @@ begin
       msg:='32';
     msg:=msg+'-bit ';
     if (PageBuild.Values[0]) then
-      msg:=msg+'Windows Release SDL1';
+      msg:=msg+'Release SDL1';
     if (PageBuild.Values[1]) then
-      msg:=msg+'Windows Release SDL2';
+      msg:=msg+'Release SDL2';
     if (PageBuild.Values[2]) then
-      msg:=msg+'Windows ARM SDL1';
+      msg:=msg+'ARM Release SDL1';
     if (PageBuild.Values[3]) then
-      msg:=msg+'Windows ARM SDL2';
+      msg:=msg+'ARM Release SDL2';
     if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
