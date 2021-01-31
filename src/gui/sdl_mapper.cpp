@@ -1107,12 +1107,14 @@ std::string CEvent::GetBindMenuText(void) {
             first=false;
             r += t;
         }
-        if (t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
+        if (t!="Right Windows"&&t!="Left Windows"&&t!="Right Command"&&t!="Left Command"&&t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
         s += t;
     }
-    if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
-    if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
-    if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
+    if (s=="Right WindowsLeft Windows"||s=="Left WindowsRight Windows") r="Windows";
+    else if (s=="Right CommandLeft Command"||s=="Left CommandRight Command") r="Command";
+    else if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
+    else if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
+    else if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
 
     return r;
 }
