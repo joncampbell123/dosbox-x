@@ -46,7 +46,7 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, lastset;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
@@ -931,45 +931,55 @@ void CONFIG::Run(void) {
                         if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
                             GetDrawWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
                             GetDrawWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
 #if defined(C_SDL2)
                         } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
                             int w = 640,h = 480;
                             SDL_Window* GFX_GetSDLWindow(void);
                             SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
                             WriteOut("%d\n",w);
+                            first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
                             int w = 640,h = 480;
                             SDL_Window* GFX_GetSDLWindow(void);
                             SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
                             WriteOut("%d\n",h);
+                            first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
 #elif defined(WIN32)
                         } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
                             RECT rect;
                             GetClientRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
                             RECT rect;
                             GetClientRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
 #if defined(WIN32)
                         } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
                             RECT rect;
                             GetWindowRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
                             RECT rect;
                             GetWindowRect(GetHWND(), &rect);
                             WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
@@ -1342,7 +1352,8 @@ void CONFIG::Run(void) {
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
 #if defined(USE_TTF)
-                                if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")&&IS_PC98_ARCH)
+                                bool iscol=!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=");
+                                if (iscol&&IS_PC98_ARCH)
                                     SetVal("render", "ttf.cols", "80");
                                 else if (!CurMode)
                                     ;
@@ -1352,7 +1363,9 @@ void CONFIG::Run(void) {
                                     reg_ax=(uint16_t)CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);
                                 }
+                                lastset=iscol?2:1;
                                 ttf_setlines(0, 0);
+                                lastset=0;
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
 #if defined(USE_TTF)

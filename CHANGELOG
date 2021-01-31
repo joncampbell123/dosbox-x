@@ -1,4 +1,8 @@
 0.83.10
+  - The Window key(s) in Windows and the Command key(s)
+    in macOS will now be displayed as the "Windows" and
+    "Command" keys instead of the "super" and "meta"
+    keys in SDL1 builds just like SDL2 builds. (Wengier)
   - Cursor blinking rate for TrueType font (TTF) output
     can now be customized with the ttf.blinkc option.
     Set an integer between 1 (fastest) and 7 (slowest)
@@ -26,10 +30,10 @@
     dynamic core with paging on" in [cpu] section to
     "false"; the default value of this option has been
     changed to "auto" which will enable/disable itself
-    based on whether the 386 paging has been enabled.
-    Also fixed incorrect behavior for handling trap
-    flags in the dynamic core and updated the MMX code
-    for improved performance. (koolkdev)
+    based on whether the 386 paging and a guest system
+    has been enabled. Also fixed incorrect behavior for
+    handling trap flags in the dynamic core and updated
+    the MMX code for improved performance. (koolkdev)
   - Added support for Direct3D output on Windows SDL2
     builds just like Windows SDL1 builds to become the
     default output in all Windows builds. (Wengier)
@@ -129,7 +133,8 @@
     the word processor for TTF dynamically using CONFIG
     command, e.g. "config -set ttf.font=test", "config
     -set ttf.lins=30", "config -set ttf.cols=100" and
-    "config -set ttf.wp=wp". (Wengier)
+    "config -set ttf.wp=wp". The limits for the options
+    ttf.cols and ttf.lins are increased too. (Wengier)
   - Implemented the DOS network redirector functions so
     that the host name can be reported to DOS programs,
     unless the secure mode is enabled. You may need to
@@ -156,9 +161,9 @@
   - Updated the Tiny File Dialog library to the latest
     version v3.8.5, which fixes issues such as the
     compatibility problem with Windows XP. (Wengier)
-  - Updated FLAC and WAV CD-DA decoder libraries to the
-    latest versions (0.12.26 and 0.12.18 respectively;
-    per David Reid). (Wengier)
+  - Updated FLAC, MP3, and WAV CD-DA decoder libraries
+    to the latest versions (0.12.28, 0.6.26 and 0.12.18
+    respectively; per David Reid). (Wengier)
   - Integrated SVN commits (Allofich & Wengier)
     - r4426: Emulate debug register 6 during trap flag
     emulation (and normal int 1). Fixes 544 (jmarsh)
