@@ -3469,6 +3469,24 @@ void SetBlinkRate(Section_prop* section) {
     else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
 }
 
+int lastset=0;
+void CheckTTFLimit() {
+    ttf.lins = MAX(24, MIN(IS_VGA_ARCH?txtMaxLins:60, ttf.lins));
+    ttf.cols = MAX(40, MIN(IS_VGA_ARCH?txtMaxCols:160, ttf.cols));
+    if (ttf.cols*ttf.lins>16384) {
+        if (lastset==1) {
+            ttf.lins=16384/ttf.cols;
+            SetVal("render", "ttf.lins", std::to_string(ttf.lins));
+        } else if (lastset==2) {
+            ttf.cols=16384/ttf.lins;
+            SetVal("render", "ttf.cols", std::to_string(ttf.cols));
+        } else {
+            ttf.lins = 25;
+            ttf.cols = 80;
+        }
+    }
+}
+
 bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
@@ -3574,12 +3592,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
             if (ttf.cols<1) ttf.cols=80;
             if (ttf.lins<1) ttf.lins=25;
-            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-            if (ttf.cols*ttf.lins>16384) {
-                ttf.lins = 25;
-                ttf.cols = 80;
-            }
+            CheckTTFLimit();
         } else if (firstset) {
             bool alter_vmode=false;
             uint16_t c=0, r=0;
@@ -3604,12 +3617,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                     if (ttf.lins != r) alter_vmode = true;
                 }
             } else {
-                ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-                ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-                if (ttf.cols*ttf.lins>16384) {
-                    ttf.lins = 25;
-                    ttf.cols = 80;
-                }
+                CheckTTFLimit();
                 if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
             }
             if (alter_vmode) {

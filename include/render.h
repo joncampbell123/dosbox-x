@@ -117,8 +117,8 @@ typedef struct Render_t {
 
 #if defined(USE_TTF)
 #include "SDL_ttf.h"
-#define txtMaxCols 240
-#define txtMaxLins 90
+#define txtMaxCols 255
+#define txtMaxLins 88
 typedef struct {
 	bool	inUse;
 	TTF_Font *SDL_font;

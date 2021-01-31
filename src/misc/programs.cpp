@@ -46,7 +46,7 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, lastset;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
@@ -1342,7 +1342,8 @@ void CONFIG::Run(void) {
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
 #if defined(USE_TTF)
-                                if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")&&IS_PC98_ARCH)
+                                bool iscol=!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=");
+                                if (iscol&&IS_PC98_ARCH)
                                     SetVal("render", "ttf.cols", "80");
                                 else if (!CurMode)
                                     ;
@@ -1352,7 +1353,9 @@ void CONFIG::Run(void) {
                                     reg_ax=(uint16_t)CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);
                                 }
+                                lastset=iscol?2:1;
                                 ttf_setlines(0, 0);
+                                lastset=0;
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
 #if defined(USE_TTF)
