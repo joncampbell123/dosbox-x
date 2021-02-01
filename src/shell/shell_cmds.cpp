@@ -37,6 +37,7 @@
 #include "support.h"
 #include "control.h"
 #include "paging.h"
+#include "menu.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
@@ -107,8 +108,8 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
-extern int enablelfn, lfn_filefind_handle;
-extern bool date_host_forced, usecon, rsize;
+extern int enablelfn, lfn_filefind_handle, file_access_tries;
+extern bool date_host_forced, usecon, rsize, sync_time, manualtime;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
@@ -601,7 +602,7 @@ continue_1:
 	dos.dta(save_dta);
 }
 
-static size_t GetPauseCount() {
+size_t GetPauseCount() {
 	uint16_t rows;
 	if (IS_PC98_ARCH)
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
@@ -2196,6 +2197,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 									}
 							} while (cont);
 							if (!DOS_CloseFile(sourceHandle)) failed=true;
+#if defined(WIN32)
+							if (file_access_tries>0 && DOS_FindDevice(name) == DOS_DEVICES) DOS_SetFileDate(targetHandle, ftime, fdate);
+#endif
 							if (!DOS_CloseFile(targetHandle)) failed=true;
 							if (failed)
                                 WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
@@ -2590,6 +2594,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 
 		reg_ah=0x2b; // set system date
 		CALLBACK_RunRealInt(0x21);
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	// check if a date was passed in command line
@@ -2668,6 +2673,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	uint32_t newhour,newminute,newsecond;
@@ -2689,6 +2695,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
 		}
+		if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
 		return;
 	}
 	bool timeonly = ScanCMDBool(args,"T");

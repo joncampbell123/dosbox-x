@@ -39,8 +39,15 @@
 #include "serialport.h"
 #include "dos_network.h"
 #include "render.h"
+#if defined(WIN32)
+#include <winsock.h>
+#else
+#include <unistd.h>
+#endif
 
+extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
+extern bool sync_time, manualtime;
 extern int lfn_filefind_handle;
 extern int autofixwarn;
 unsigned long totalc, freec;
@@ -90,11 +97,13 @@ bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
+bool enable_share_exe = true;
 bool enable_filenamechar = true;
-bool enable_share_exe_fake = true;
+bool enable_network_redirector = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
+int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
@@ -1084,6 +1093,7 @@ static Bitu DOS_21Handler(void) {
             dos.date.month=reg_dh;
             dos.date.day=reg_dl;
             reg_al=0;
+            if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
         case 0x2c: {    /* Get System Time */
             if(date_host_forced || IS_PC98_ARCH) {
@@ -1205,6 +1215,7 @@ static Bitu DOS_21Handler(void) {
 				mem_writed(BIOS_TIMER,ticks);
                 reg_al = 0;
             }
+            if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
         case 0x2e:      /* Set Verify flag */
             dos.verify=(reg_al==1);
@@ -1852,20 +1863,19 @@ static Bitu DOS_21Handler(void) {
             uint32_t pos=((unsigned int)reg_cx << 16u) + reg_dx;
             uint32_t size=((unsigned int)reg_si << 16u) + reg_di;
             //LOG_MSG("LockFile: BX=%d, AL=%d, POS=%d, size=%d", reg_bx, reg_al, pos, size);
-            if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
+            if (!enable_share_exe) {
+               DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+               reg_ax = dos.errorcode;
+               CALLBACK_SCF(true);
+            } else if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
                 reg_ax=0;
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            break; }
-            /*
-               DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-               reg_ax = dos.errorcode;
-               CALLBACK_SCF(true);
-               break;
-               */
+            break;
+            }
         case 0x5d:                  /* Network Functions */
             if(reg_al == 0x06) {
                 /* FIXME: I'm still not certain, @emendelson, why this matters so much
@@ -1879,8 +1889,31 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x5e:                  /* Network and printer functions */
-            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:5E Network and printer functions not implemented");
-            goto default_fallthrough;
+            if (reg_al == 0 && !control->SecureMode() && enable_network_redirector) {	// Get machine name
+#if defined(WIN32)
+                DWORD size = DOSNAMEBUF;
+                GetComputerName(name1, &size);
+                if (size)
+#else
+                int result = gethostname(name1, DOSNAMEBUF);
+                if (!result)
+#endif
+                {
+                    strcat(name1, "               ");									// Simply add 15 spaces
+                    if (!strcmp(RunningProgram, "4DOS") || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
+                        name1[16] = 0;
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 17);
+                    } else {
+                        name1[15] = 0;													// ASCIIZ
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 16);
+                    }
+                    reg_cx = 0x1ff;														// 01h name valid, FFh NetBIOS number for machine name
+                    CALLBACK_SCF(false);
+                    break;
+                }
+            }
+            CALLBACK_SCF(true);
+            break;
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS)
             switch(reg_al)
@@ -2709,7 +2742,7 @@ Bitu MEM_PageMask(void);
 
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
-extern bool log_dev_con;
+extern bool log_dev_con, addovl;
 
 bool set_ver(char *s) {
 	s=trim(s);
@@ -2816,9 +2849,11 @@ public:
 
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
+		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
-		enable_share_exe_fake = section->Get_bool("share");
+		enable_share_exe = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
+		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
@@ -2861,7 +2896,10 @@ public:
 			}
 			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
-            mainMenu.get_item("clipboard_device").set_text("Enable DOS clipboard device access: "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
+            std::string text=mainMenu.get_item("clipboard_device").get_text();
+            std::size_t found = text.find(":");
+            if (found!=std::string::npos) text = text.substr(0, found);
+            mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
 		} else
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 #else
@@ -3189,8 +3227,10 @@ public:
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
 
-		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
-	
+        const char *keepstr = section->Get_string("keep private area on boot");
+        if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
+        else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
+        else keep_private_area_on_boot = addovl;
 		dos.version.major=5;
 		dos.version.minor=0;
 		dos.direct_output=false;
@@ -3324,9 +3364,15 @@ void DOS_EnableDriveMenu(char drv) {
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountfd";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountfro";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountarc";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimgs";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountiro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
@@ -3344,8 +3390,6 @@ void DOS_EnableDriveMenu(char drv) {
 		}
     }
 }
-
-extern const char* RunningProgram;
 
 void DOS_DoShutDown() {
 	if (test != NULL) {
@@ -3737,8 +3781,15 @@ void DOS_Int21_7156(char *name1, char *name2) {
 				CALLBACK_SCF(true);
 		}
 }
+
+extern bool checkwat;
 void DOS_Int21_7160(char *name1, char *name2) {
-		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+        MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+        if (*(name1+1)>=0 && *(name1+1)<32) {
+            reg_ax=!*(name1+1)?2:3;
+            CALLBACK_SCF(true);
+            return;
+        }
 		*name1='\"';
 		char *p=name1+strlen(name1);
 		while (*p==' '||*p==0) p--;
@@ -3756,6 +3807,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 								CALLBACK_SCF(false);
 								break;
 						case 1:         // SFN path name
+                                checkwat=true;
 								if (DOS_GetSFNPath(name1,name2,false)) {
 									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
 									reg_ax=0;
@@ -3764,6 +3816,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 									reg_ax=2;
 									CALLBACK_SCF(true);
 								}
+                                checkwat=false;
 								break;
 						case 2:         // LFN path name
 								if (DOS_GetSFNPath(name1,name2,true)) {

@@ -122,6 +122,7 @@ struct SB_INFO {
     uint8_t timeconst;
     Bitu dma_dac_srcrate;
     struct {
+        bool recording;
         bool stereo,sign,autoinit;
         bool force_autoinit;
         DMA_MODES mode_assigned;
@@ -436,7 +437,9 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
             if (!min_size) min_size = 1;
             min_size *= 2;
             if (sb.dma.left > min_size) {
-                if (s > (sb.dma.left-min_size)) s = sb.dma.left - min_size;
+                if (s > (sb.dma.left - min_size)) s = sb.dma.left - min_size;
+                //This will trigger an irq, see GenerateDMASound, so let's not do that
+                if (!sb.dma.autoinit && sb.dma.left <= sb.dma.min) s = 0;
                 if (s) GenerateDMASound(s);
             }
             sb.mode = MODE_DMA_MASKED;
@@ -1204,6 +1207,7 @@ static void DSP_Reset(void) {
     sb.dma.left=0;
     sb.dma.total=0;
     sb.dma.stereo=false;
+    sb.dma.recording=false;
     sb.dma.sign=false;
     sb.dma.autoinit=false;
     sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
@@ -2438,7 +2442,7 @@ static unsigned char pc98_mixctl_reg = 0x14;
  *
  * - Registers 0x40-0xFF do nothing written and read back 0xFF.
  * - Registers 0x00-0x3F are almost exact mirrors of registers 0x00-0x0F, but not quite
- * - Registers 0x00-0x1F are exact mirrors of 0x00-0x1F
+ * - Registers 0x00-0x1F are exact mirrors of 0x00-0x0F
  * - Registers 0x20-0x3F are exact mirrors of 0x20-0x2F which are.... non functional shadow copies of 0x00-0x0F (???)
  * - Register 0x0E is mirrored at 0x0F, 0x1E, 0x1F. Reading 0x00, 0x01, 0x10, 0x11 also reads register 0x0E.
  * - Writing 0x00, 0x01, 0x10, 0x11 resets the mixer as expected.

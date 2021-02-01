@@ -21,6 +21,7 @@
 #include "inout.h"
 #include "pic.h"
 #include "vga.h"
+#include "control.h"
 #include <math.h>
 
 void vsync_poll_debug_notify();
@@ -29,6 +30,8 @@ void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d5(Bitu port,Bitu iolen);
+extern void DISP2_RegisterPorts(void);
+extern bool DISP2_Active(void);
 
 /* allow the user to specify that undefined bits in 3DA/3BA be set to some nonzero value.
  * this is needed for "JOOP #2" by Europe demo, which has some weird retrace tracking code
@@ -84,19 +87,34 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
 	if (machine==MCH_EGA) {first=0; last=3;}
 
 	for (Bitu i=first; i<=last; i++) {
-		IO_RegisterWriteHandler(base+i*2,vga_write_p3d4,IO_MB);
-		IO_RegisterReadHandler(base+i*2,vga_read_p3d4,IO_MB);
-		IO_RegisterWriteHandler(base+i*2+1,vga_write_p3d5,IO_MB);
-		IO_RegisterReadHandler(base+i*2+1,vga_read_p3d5,IO_MB);
-		IO_FreeWriteHandler(free+i*2,IO_MB);
-		IO_FreeReadHandler(free+i*2,IO_MB);
-		IO_FreeWriteHandler(free+i*2+1,IO_MB);
-		IO_FreeReadHandler(free+i*2+1,IO_MB);
+#if C_DEBUG
+        if (!(base==0x3b0&&DISP2_Active()))
+#endif
+        {
+            IO_RegisterWriteHandler(base+i*2,vga_write_p3d4,IO_MB);
+            IO_RegisterReadHandler(base+i*2,vga_read_p3d4,IO_MB);
+            IO_RegisterWriteHandler(base+i*2+1,vga_write_p3d5,IO_MB);
+            IO_RegisterReadHandler(base+i*2+1,vga_read_p3d5,IO_MB);
+        }
+#if C_DEBUG
+        if (!(free==0x3b0&&DISP2_Active()))
+#endif
+        {
+            IO_FreeWriteHandler(free+i*2,IO_MB);
+            IO_FreeReadHandler(free+i*2,IO_MB);
+            IO_FreeWriteHandler(free+i*2+1,IO_MB);
+            IO_FreeReadHandler(free+i*2+1,IO_MB);
+        }
 	}
 
-	IO_RegisterReadHandler(base+0xa,vga_read_p3da,IO_MB);
-	IO_FreeReadHandler(free+0xa,IO_MB);
-	
+#if C_DEBUG
+    if (!(base==0x3b0&&DISP2_Active()))
+#endif
+    {
+        IO_RegisterReadHandler(base+0xa,vga_read_p3da,IO_MB);
+        IO_FreeReadHandler(free+0xa,IO_MB);
+    }
+
 	/*
 		0	If set Color Emulation. Base Address=3Dxh else Mono Emulation. Base Address=3Bxh.
 		2-3	Clock Select. 0: 25MHz, 1: 28MHz
@@ -179,6 +197,9 @@ void VGA_SetupMisc(void) {
 	} else if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		IO_RegisterReadHandler(0x3da,vga_read_p3da,IO_MB);
 	}
+#if C_DEBUG
+	if (control->opt_display2) DISP2_RegisterPorts();
+#endif
 }
 
 void VGA_UnsetupMisc(void) {

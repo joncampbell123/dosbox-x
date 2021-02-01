@@ -124,6 +124,7 @@ struct SDL_Block {
         bool prevent_fullscreen = false;
         bool lazy_fullscreen_req = false;
         bool doublebuf = false;
+        bool isperfect = false;
         SCREEN_TYPES type = (SCREEN_TYPES)0;
         SCREEN_TYPES want_type = (SCREEN_TYPES)0;
     } desktop;
@@ -143,12 +144,12 @@ struct SDL_Block {
     SDL_Window * window = NULL;
     SDL_Renderer * renderer = NULL;
     const char * rendererDriver = NULL;
-    int displayNumber = 0;
     struct {
         SDL_Texture * texture = NULL;
         SDL_PixelFormat * pixelFormat = NULL;
     } texture;
 #endif
+    int displayNumber = 0;
     SDL_cond *cond = NULL;
     struct {
         bool autolock = false;

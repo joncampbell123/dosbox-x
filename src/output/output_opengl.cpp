@@ -7,7 +7,10 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <math.h>
-
+extern "C" {
+#include "ppscale.h"
+#include "ppscale.c"
+}
 #include "dosbox.h"
 #include <output/output_opengl.h>
 
@@ -94,6 +97,52 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
+// NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
+//      this works better with maximized window or full-screen mode and the
+//      setting "dpi aware=true".
+
+static void PPScale (
+    uint16_t  fixed_w , uint16_t  fixed_h,
+    uint16_t* window_w, uint16_t* window_h )
+{
+    int    sx, sy, orig_w, orig_h, min_w, min_h;
+    double par, par_sq;
+
+    orig_w = min_w = render.src.width;
+    orig_h = min_h = render.src.height;
+
+    par = ( double) orig_w / orig_h * 3 / 4;
+    /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
+    /* E.g. in 360x360 mode DOSBox-X will wrongly allocate a 720x360 area. I  */
+    /* therefore calculate square-pixel proportions par_sq myself:          */
+         if( par < 0.707 ) { par_sq = 0.5; min_w *= 2; }
+    else if( par > 1.414 ) { par_sq = 2.0; min_h *= 2; }
+    else                     par_sq = 1.0;
+
+    if( !render.aspect ) par = par_sq;
+
+    *window_w = fixed_w; *window_h = fixed_h;
+    /* Handle non-fixed resolutions and ensure a sufficient window size: */
+    if( fixed_w < min_w ) fixed_w = *window_w = min_w;
+    if( fixed_h < min_h ) fixed_h = *window_h = min_h;
+
+    pp_getscale(
+        orig_w , orig_h , par ,
+        fixed_w, fixed_h, 1.14,
+        &sx    , &sy         );
+
+    sdl.clip.w = orig_w * sx;
+    sdl.clip.h = orig_h * sy;
+    sdl.clip.x = (*window_w - sdl.clip.w) / 2;
+    sdl.clip.y = (*window_h - sdl.clip.h) / 2;
+
+    LOG_MSG( "OpenGL PP: [%ix%i]: %ix%i (%3.2f) -> [%ix%i] -> %ix%i (%3.2f)",
+        fixed_w,    fixed_h,
+        orig_w,     orig_h, par,
+        sx,         sy,
+        sdl.clip.w, sdl.clip.h, (double)sy/sx );
+}
+
 static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp) 
 {
     uint16_t fixedWidth;
@@ -161,7 +210,7 @@ retry:
         LOG_MSG("menuScale=%d", scale);
         mainMenu.setScale((unsigned int)scale);
 
-        if (mainMenu.isVisible() && !sdl.desktop.fullscreen)
+        if (mainMenu.isVisible() && !sdl.desktop.fullscreen && fixedHeight)
             fixedHeight -= mainMenu.menuBox.h;
     }
 #endif
@@ -172,20 +221,24 @@ retry:
         /* 3Dfx openGL do not allow resize */
         sdl.clip.w = windowWidth = (uint16_t)Voodoo_OGL_GetWidth();
         sdl.clip.h = windowHeight = (uint16_t)Voodoo_OGL_GetHeight();
-    }
-    else if (fixedWidth && fixedHeight) 
-    {
-        sdl.clip.w = windowWidth = fixedWidth;
-        sdl.clip.h = windowHeight = fixedHeight;
-        if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, fixedWidth, fixedHeight);
-    }
-    else 
-    {
-        windowWidth = (uint16_t)(sdl.draw.width * sdl.draw.scalex);
-        windowHeight = (uint16_t)(sdl.draw.height * sdl.draw.scaley);
-        if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
-        sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
-    }
+    } else if (sdl_opengl.kind == GLPerfect ) {
+        PPScale( fixedWidth, fixedHeight, &windowWidth, &windowHeight );
+    } else
+        if (fixedWidth && fixedHeight)
+        {
+            windowWidth  = fixedWidth;
+            windowHeight = fixedHeight;
+            sdl.clip.w = windowWidth;
+            sdl.clip.h = windowHeight;
+            if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, fixedWidth, fixedHeight);
+        }
+        else
+        {
+            windowWidth = (uint16_t)(sdl.draw.width * sdl.draw.scalex);
+            windowHeight = (uint16_t)(sdl.draw.height * sdl.draw.scaley);
+            if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
+            sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
+        }
 
     LOG(LOG_MISC, LOG_DEBUG)("GFX_SetSize OpenGL window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
         (unsigned int)windowWidth,
@@ -257,7 +310,7 @@ void OUTPUT_OPENGL_Initialize()
     memset(&sdl_opengl, 0, sizeof(sdl_opengl));
 }
 
-void OUTPUT_OPENGL_Select()
+void OUTPUT_OPENGL_Select( GLKind kind )
 {
     sdl.desktop.want_type = SCREEN_OPENGL;
     render.aspectOffload = true;
@@ -285,6 +338,8 @@ void OUTPUT_OPENGL_Select()
         sdl.desktop.want_type = SCREEN_SURFACE;
     } else if (initgl!=2) {
         initgl = 1;
+        sdl_opengl.kind = kind;
+        sdl.desktop.isperfect = kind == GLPerfect;
         sdl_opengl.program_object = 0;
         glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
         glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
@@ -364,7 +419,7 @@ static GLuint BuildShader ( GLenum type, const char *shaderSrc ) {
 	}
 
 	top += (type==GL_VERTEX_SHADER) ? "#define VERTEX 1\n":"#define FRAGMENT 1\n";
-	if (!sdl_opengl.bilinear)
+	if (sdl_opengl.kind == GLNearest || sdl_opengl.kind == GLPerfect)
 		top += "#define OPENGLNB 1\n";
 
 	src_strings[0] = top.c_str();
@@ -632,8 +687,12 @@ Bitu OUTPUT_OPENGL_SetSize()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sdl_opengl.bilinear ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sdl_opengl.bilinear ? GL_LINEAR : GL_NEAREST);
+    GLint interp;
+    if( sdl_opengl.kind == GLNearest || sdl_opengl.kind == GLPerfect )
+        interp = GL_NEAREST; else
+        interp = GL_LINEAR ;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interp );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interp );
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 

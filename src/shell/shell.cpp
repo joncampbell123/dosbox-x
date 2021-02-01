@@ -57,9 +57,9 @@ bool usecon = true;
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
-std::string GetDOSBoxXPath();
+std::string GetDOSBoxXPath(bool withexe=false);
 void runMount(const char *str);
-void MSG_Replace(const char * _name, const char* _val);
+void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -92,6 +92,32 @@ static std::list<std::string> autoexec_strings;
 typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name);
+
+#if defined(WIN32)
+void MountAllDrives(Program * program) {
+    uint32_t drives = GetLogicalDrives();
+    char name[4]="A:\\";
+    for (int i=0; i<25; i++) {
+        if ((drives & (1<<i)) && !Drives[i])
+        {
+            name[0]='A'+i;
+            int type=GetDriveType(name);
+            if (type!=DRIVE_NO_ROOT_DIR) {
+                program->WriteOut("Mounting %c: => %s..\n", name[0], name);
+                char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+                name[2]=' ';
+                strcpy(mountstring,name);
+                name[2]='\\';
+                strcat(mountstring,name);
+                strcat(mountstring," -Q");
+                runMount(mountstring);
+                if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
+                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+            }
+        }
+    }
+}
+#endif
 
 void AutoexecObject::Install(const std::string &in) {
 	if(GCC_UNLIKELY(installed)) E_Exit("autoexec: already created %s",buf.c_str());
@@ -465,6 +491,26 @@ const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
+    if (machine != MCH_PC98) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        std::string theme = section->Get_string("bannercolortheme");
+        if (theme == "black")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[40;1m");
+        else if (theme == "red")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[41;1m");
+        else if (theme == "green")
+            msg = str_replace(str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[32m", "\033[36m"), "\033[44;1m", "\033[42;1m");
+        else if (theme == "yellow")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[43;1m");
+        else if (theme == "blue")
+            msg = str_replace((char *)msg, "\033[44;1m", "\033[44;1m");
+        else if (theme == "magenta")
+            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[45;1m");
+        else if (theme == "cyan")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[46;1m");
+        else if (theme == "white")
+            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
+    }
     if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
         return msg;
     else
@@ -548,6 +594,7 @@ void DOS_Shell::Run(void) {
 			}
 			const char * extra = const_cast<char*>(section->data.c_str());
 			if (extra) {
+				std::string vstr;
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
 				char *cmd=cmdstr, *val=valstr, *tmp=tmpstr, *p;
@@ -570,10 +617,14 @@ void DOS_Shell::Run(void) {
 							strcat(config_data, val);
 							strcat(config_data, "\r\n");
 						}
-						if (!strncasecmp(cmd, "set ", 4))
-							DoCommand((char *)(std::string(cmd)+"="+std::string(val)).c_str());
-						else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
-							strcpy(tmp, val);
+						if (!strncasecmp(cmd, "set ", 4)) {
+							vstr=std::string(val);
+							ResolvePath(vstr);
+							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
+						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
+							vstr=std::string(val);
+							ResolvePath(vstr);
+							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
 							if (!DOS_FileExists(name)) {
@@ -581,13 +632,13 @@ void DOS_Shell::Run(void) {
 								continue;
 							}
 							if (!strcasecmp(cmd, "install"))
-								DoCommand(val);
+								DoCommand((char *)vstr.c_str());
 							else if (!strcasecmp(cmd, "installhigh"))
-								DoCommand((char *)("lh "+std::string(val)).c_str());
+								DoCommand((char *)("lh "+vstr).c_str());
 							else if (!strcasecmp(cmd, "device"))
-								DoCommand((char *)("device "+std::string(val)).c_str());
+								DoCommand((char *)("device "+vstr).c_str());
 							else if (!strcasecmp(cmd, "devicehigh"))
-								DoCommand((char *)("lh device "+std::string(val)).c_str());
+								DoCommand((char *)("lh device "+vstr).c_str());
 						}
 					} else if (!strncasecmp(line.c_str(), "rem ", 4)) {
 						strcat(config_data, line.c_str());
@@ -606,29 +657,7 @@ void DOS_Shell::Run(void) {
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
-			if(sec->Get_bool("automountall")) {
-				uint32_t drives = GetLogicalDrives();
-				char name[4]="A:\\";
-				for (int i=0; i<25; i++) {
-					if ((drives & (1<<i)) && !Drives[i])
-					{
-						name[0]='A'+i;
-						int type=GetDriveType(name);
-						if (type!=DRIVE_NO_ROOT_DIR) {
-							WriteOut("Mounting %c: => %s..\n", name[0], name);
-							char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-							name[2]=' ';
-							strcpy(mountstring,name);
-							name[2]='\\';
-							strcat(mountstring,name);
-							strcat(mountstring," -Q");
-							runMount(mountstring);
-							if (!Drives[i]) WriteOut("Drive %c: failed to mount.\n",name[0]);
-							else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
-						}
-					}
-				}
-			}
+			if (sec->Get_bool("automountall")) MountAllDrives(this);
 		}
 #endif
 		strcpy(i4dos_data, "");
@@ -648,7 +677,7 @@ void DOS_Shell::Run(void) {
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
     }
     else if (!optInit) {
-        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
+        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
     }
 
 	if (optInit) {
@@ -1088,7 +1117,7 @@ void SHELL_Init() {
                 "\x86\x46 Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction.  \x86\x46\n"
                 "\x86\x46 You can also complete various tasks through the \033[33mdrop-down menus\033[37m.   \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n");
-        MSG_Replace("SHELL_STARTUP_BEGIN2",
+        MSG_Add("SHELL_STARTUP_BEGIN2",
                     (std::string("\x86\x46 To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string(" \x86\x46\n")).c_str()
                );
         MSG_Add("SHELL_STARTUP_BEGIN3",
@@ -1107,7 +1136,9 @@ void SHELL_Init() {
 #endif
                 "\x86\x46                                                                    \x86\x46\n"
                );
-        MSG_Add("SHELL_STARTUP_EMPTY", "");
+        MSG_Add("SHELL_STARTUP_EMPTY",
+                "\x86\x46                                                                    \x86\x46\n"
+               );
         MSG_Add("SHELL_STARTUP_END",
                 "\x86\x46 \033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m \x86\x46\n"
                 "\x86\x46 \033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m \x86\x46\n"
@@ -1136,7 +1167,7 @@ void SHELL_Init() {
                 "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
-        MSG_Replace("SHELL_STARTUP_BEGIN2",
+        MSG_Add("SHELL_STARTUP_BEGIN2",
                 (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
@@ -1605,6 +1636,7 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
@@ -1616,6 +1648,7 @@ void SHELL_Init() {
 		else
 			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
 	}
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)

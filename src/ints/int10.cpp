@@ -804,6 +804,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 	return CBRET_NONE;
 }
 
+bool DISP2_Active(void);
 static void INT10_Seg40Init(void) {
 	// the default char height
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
@@ -812,7 +813,12 @@ static void INT10_Seg40Init(void) {
 	// Set the basic screen we have
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
 	// Set the basic modeset options
-	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
+#if C_DEBUG
+    if (control->opt_display2)
+		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
+    else
+#endif
+		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
 	// Set the  default MSR
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
 	// Set the pointer to video save pointer table

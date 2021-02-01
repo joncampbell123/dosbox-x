@@ -1,6 +1,7 @@
 
 #include "dos_inc.h"
 #include "../src/builtin/zip.h"
+#include "../src/builtin/eval.h"
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/dosmid.h"
 #include "../src/builtin/mpxplay.h"
@@ -31,6 +32,8 @@ extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 extern struct BuiltinFileBlob bfb_COPY_EXE;		// COPY.EXE
+extern struct BuiltinFileBlob bfb_EVAL_EXE;		// EVAL.EXE
+extern struct BuiltinFileBlob bfb_EVAL_HLP;		// EVAL.HLP
 extern struct BuiltinFileBlob bfb_28_COM;		// 28.COM
 extern struct BuiltinFileBlob bfb_28_COM_ega;	// 28.COM
 extern struct BuiltinFileBlob bfb_50_COM;		// 50.COM

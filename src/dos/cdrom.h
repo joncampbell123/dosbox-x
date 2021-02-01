@@ -28,7 +28,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 #include <thread>
 #endif
 
@@ -55,6 +55,7 @@
 	*(M) = value;							\
 }
 #define MSF_TO_FRAMES(M, S, F)	((M)*60*CD_FPS+(S)*CD_FPS+(F))
+#include "../../vs2015/sdl/src/cdrom/compat_SDL_cdrom.h"
 #endif /* C_SDL2 */
 
 #define RAW_SECTOR_SIZE		2352
@@ -180,10 +181,8 @@ private:
     //! \brief Close the device
 	void	Close				(void);
 
-#if !defined(C_SDL2)
     //! \brief SDL 1.x CD-ROM device object
     SDL_CD* cd = NULL;
-#endif
     int driveID = 0;
     Uint32 oldLeadOut = 0;
 };
@@ -230,7 +229,7 @@ private:
 		virtual uint16_t   getEndian() = 0;
 		virtual uint32_t   getRate() = 0;
 		virtual uint8_t    getChannels() = 0;
-		virtual int      getLength() = 0;
+		virtual int64_t    getLength() = 0;
 		virtual void setAudioPosition(uint32_t pos) = 0;
 		const uint16_t chunkSize = 0;
 		uint32_t audio_pos = UINT32_MAX; // last position when playing audio
@@ -252,7 +251,7 @@ private:
 		uint16_t          getEndian();
 		uint32_t          getRate() { return 44100; }
 		uint8_t           getChannels() { return 2; }
-		int             getLength();
+		int64_t           getLength();
 		void setAudioPosition(uint32_t pos) { audio_pos = pos; }
 	private:
 		std::ifstream   *file;
@@ -273,7 +272,7 @@ private:
 		uint16_t          getEndian();
 		uint32_t          getRate();
 		uint8_t           getChannels();
-		int             getLength();
+		int64_t           getLength();
         void setAudioPosition(uint32_t pos) { (void)pos;/*unused*/ }
 	private:
 		Sound_Sample    *sample = nullptr;
@@ -294,7 +293,7 @@ private:
         uint16_t        getEndian();
         uint32_t        getRate() { return 44100; }
         uint8_t         getChannels() { return 2; }
-        int             getLength();
+        int64_t         getLength();
         void setAudioPosition(uint32_t pos) { audio_pos = pos; }
         chd_file*       getChd() { return this->chd; }
     private:
@@ -307,7 +306,7 @@ private:
               uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
               uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
               int          hunk_buffer_index = -1;      // hunk index for buffer
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
               std::thread* hunk_thread       = nullptr; // used for prefetch
               bool         hunk_thread_error = true;
 #endif

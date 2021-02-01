@@ -32,12 +32,7 @@
 */
 
 static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,PhysPt start,Bitu max_opcodes) {
-#if (C_HAVE_MPROTECT)
-	if (w_xor_x) {
-		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_WRITE))
-			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-	}
-#endif
+	cache_remap_rw();
 
 	// initialize a load of variables
 	decode.code_start=start;
@@ -366,6 +361,7 @@ restart_prefix:
 		case 0x9d:	// popf
 			gen_call_function_I(CPU_POPF,decode.big_op);
 			dyn_check_exception(FC_RETOP);
+			dyn_check_trapflag();
 			InvalidateFlags();
 			break;
 
@@ -598,7 +594,7 @@ restart_prefix:
 	// link to next block because the maximum number of opcodes has been reached
 	dyn_set_eip_end();
 	dyn_reduce_cycles();
-	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
 	dyn_closeblock();
     goto finish_block;
 core_close_block:
@@ -620,12 +616,7 @@ finish_block:
 	decode.active_block->page.end=(uint16_t)decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
 
-#if (C_HAVE_MPROTECT)
-	if (w_xor_x) {
-		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
-			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-	}
-#endif
+	cache_remap_rx();
 
 	return decode.block;
 }

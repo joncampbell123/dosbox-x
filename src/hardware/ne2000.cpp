@@ -1603,7 +1603,7 @@ public:
 #endif
  		{
             niclist = "Cannot enumerate network interfaces: "+std::string(errbuf);
-			LOG_MSG(niclist.c_str());
+			LOG_MSG("%s", niclist.c_str());
 			load_success = false;
 			return;
 		}
@@ -1621,7 +1621,7 @@ public:
 			// print list and quit
             std::istringstream in(("\n"+niclist+"\n").c_str());
             if (in)	for (std::string line; std::getline(in, line); )
-                LOG_MSG(line.c_str());
+                LOG_MSG("%s", line.c_str());
 			pcap_freealldevs(alldevs);
 			load_success = false;
 			return;
@@ -1657,6 +1657,17 @@ public:
 		if(currentdev->description) desc=currentdev->description;
 		LOG_MSG("Using Network interface:\n%s\n(%s)\n",currentdev->name,desc);
 		
+		const char *timeoutstr = section->Get_string("pcaptimeout");
+        char *end;
+        int timeout = -1;
+        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) { // Default timeout values
+#ifdef WIN32
+            timeout = -1; // For Windows, use -1 which appears to be specific to WinPCap and means "non-blocking mode"
+#else
+            timeout = 3000; // For other platforms, use 3000ms as the timeout which should work for platforms like macOS
+#endif
+        } else
+            timeout = strtoul(timeoutstr,&end,10);
 		// attempt to open it
 #ifdef WIN32
 		if ( (adhandle= pcap_open(
@@ -1664,7 +1675,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-            -1,             // read timeout
+            timeout,          // read timeout
             NULL,             // authentication on the remote machine
             errbuf            // error buffer
             ) ) == NULL)
@@ -1676,7 +1687,7 @@ public:
             65536,            // portion of the packet to capture
                               // 65536 = whole packet 
             true,    // promiscuous mode
-            -1,             // read timeout
+            timeout,          // read timeout
             errbuf            // error buffer
             ) ) == NULL)
 

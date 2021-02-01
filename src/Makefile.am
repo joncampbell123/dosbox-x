@@ -8,6 +8,7 @@ resdir = $(datarootdir)/dosbox-x
 
 res_DATA = \
 	../dosbox-x.reference.conf \
+	../dosbox-x.reference.full.conf \
 	../contrib/fonts/FREECG98.BMP \
 	../CHANGELOG
 

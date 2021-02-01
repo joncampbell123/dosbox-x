@@ -75,7 +75,7 @@ public:
 		return false;
 	}
 	bool Write(const uint8_t * data,uint16_t * size) {
-		for(int i = 0; i < 3; i++) {
+		for(int i = 0; i < 9; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
 				// send the data

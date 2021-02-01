@@ -304,34 +304,7 @@ static void RENDER_ClearCacheHandler(const void * src) {
     render.scale.lineHandler( src );
 }
 
-#define RENDER_MAXWIDTH 800
-#define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
-void SimpleRenderer(const void *s) {
-	render.cache.curr_y++;
-	if (render.cache.invalid) {
-		wmemcpy((wchar_t*)render.cache.pointer, (wchar_t*)s, render.cache.width>>1);
-		render.cache.past_y = render.cache.curr_y;
-		render.cache.start_x = 0;
-	} else {
-		uint32_t *cache = (uint32_t *)render.cache.pointer;
-		uint32_t *source = (uint32_t *)s;
-		for (Bitu index = render.cache.width/4; index; index--) {
-			if (*source != *cache) {
-				index *= 4;
-				if ((Bitu)render.cache.start_x > render.cache.width - index)
-					render.cache.start_x = render.cache.width - index;
-				wmemcpy((wchar_t*)cache, (wchar_t*)source, index>>1);
-				render.cache.past_y = render.cache.curr_y;
-				break;
-			}
-			source++;
-			cache++;
-		}
-	}
-	render.cache.pointer += render.cache.width;
-}
 
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
@@ -353,20 +326,7 @@ bool RENDER_StartUpdate(void) {
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
-#if defined(USE_TTF)
-    if (ttf.inUse) {
-        if (render.cache.nextInvalid) {		// Always do a full screen update
-            render.cache.nextInvalid = false;
-            render.cache.invalid = true;
-            if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
-                return false;
-            RENDER_DrawLine = SimpleRenderer;
-        } else
-            RENDER_DrawLine = RENDER_StartLineHandler;
-    /* Clearing the cache will first process the line to make sure it's never the same */
-    } else
-#endif
-        if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -509,6 +469,9 @@ void RENDER_Reset( void ) {
         }
     }
 
+    if( sdl.desktop.isperfect ) /* Handle scaling if no pixel-perfect mode */
+        goto forcenormal;
+
     if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
@@ -616,7 +579,8 @@ void RENDER_Reset( void ) {
             else
                 simpleBlock = &ScaleNormalDh;
         }
-    } else  {
+    }
+    if( simpleBlock == NULL && complexBlock == NULL ) {
 forcenormal:
         complexBlock = 0;
         if(scalerOpGray==render.scale.op){
@@ -836,10 +800,7 @@ forcenormal:
 
     last_gfx_flags = gfx_flags;
 #if defined(USE_TTF)
-    if (sdl.desktop.want_type == SCREEN_TTF) {
-        render.cache.nextInvalid = true;
-        if (resetreq) resetFontSize();
-    }
+    if (sdl.desktop.want_type == SCREEN_TTF && resetreq) resetFontSize();
 #endif
 }
 
@@ -954,7 +915,7 @@ void RENDER_SetForceUpdate(bool f) {
 #if C_OPENGL
 static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	char* src;
-	std::stringstream buf, tmp;
+	std::stringstream buf;
 	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
 	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
     bool empty=true;
@@ -962,7 +923,10 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
         buf << fshader.rdbuf();
         empty=buf.str().empty();
         fshader.close();
-        if (empty) buf.swap(tmp);
+        if (empty) {
+            buf.clear();
+            buf.str("");
+        }
     }
 	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
@@ -1159,12 +1123,14 @@ void RENDER_UpdateFromScalerSetting(void) {
 
 #if C_OPENGL
 extern int initgl;
-std::string shader_src="", GetDOSBoxXPath();
+void ResolvePath(std::string& in);
+std::string shader_src="", GetDOSBoxXPath(bool withexe=false);
 std::string LoadGLShader(Section_prop * section) {
 	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
     render.shader_def = false;
 	Prop_path *sh = section->Get_path("glshader");
 	std::string f = (std::string)sh->GetValue();
+    ResolvePath(f);
     const char *ssrc=shader_src.c_str();
 	if (f.empty() || f=="none" || f=="default") {
         render.shader_src = NULL;
@@ -1176,13 +1142,20 @@ std::string LoadGLShader(Section_prop * section) {
             std::string exePath = GetDOSBoxXPath();
             if (exePath.size()) path = exePath + std::string("glshaders") + CROSS_FILESPLIT + f;
             else path = "";
-        } else path = "";
+        } else {
+            if (initgl==2) sdl_opengl.use_shader=true;
+            LOG_MSG("Loaded GLSL shader: %s\n", path.c_str());
+            path = "";
+        }
         if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
             Cross::GetPlatformConfigDir(path);
             path = path + "glshaders" + CROSS_FILESPLIT + f;
             if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
                 sh->SetValue("none");
                 LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            } else {
+                if (initgl==2) sdl_opengl.use_shader=true;
+                LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
             }
         }
 	} else {
@@ -1257,7 +1230,7 @@ void RENDER_Init() {
 
 	DOSBoxMenu::item *item;
 
-	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Aspect ratio", &item);
+	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Fit to aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);

@@ -160,7 +160,7 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
   return length;
 }
 
-#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(WAI_USE_PROC_SELF_EXE)
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(EMSCRIPTEN) || defined(WAI_USE_PROC_SELF_EXE)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,7 +265,11 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
       if (!fgets(buffer, sizeof(buffer), maps))
         break;
 
-      if (sscanf(buffer, "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %u %s\n", &low, &high, perms, &offset, &major, &minor, &inode, path) == 8)
+#if !defined(PRIx64)
+#define PRIx64 "lx"
+#endif
+      std::string format = std::string("%") + PRIx64 + std::string("-%") + PRIx64 + std::string(" %s %") + PRIx64 + std::string(" %x:%x %u %s\n");
+      if (sscanf(buffer, format.c_str(), &low, &high, perms, &offset, &major, &minor, &inode, path) == 8)
       {
         uint64_t addr = (uintptr_t)WAI_RETURN_ADDRESS();
         if (low <= addr && addr <= high)

@@ -131,10 +131,10 @@ bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer, int offset, int co
 	return !(file->fail());
 }
 
-int CDROM_Interface_Image::BinaryFile::getLength()
+int64_t CDROM_Interface_Image::BinaryFile::getLength()
 {
 	file->seekg(0, ios::end);
-	int length = (int)file->tellg();
+	int64_t length = (int64_t)file->tellg();
 	if (file->fail()) return -1;
 	return length;
 }
@@ -261,9 +261,9 @@ uint8_t CDROM_Interface_Image::AudioFile::getChannels()
 	return channels;
 }
 
-int CDROM_Interface_Image::AudioFile::getLength()
+int64_t CDROM_Interface_Image::AudioFile::getLength()
 {
-	int length(-1);
+	int64_t length(-1);
 
 	// GetDuration returns milliseconds ... but getLength needs Red Book bytes.
 	const int duration_ms = Sound_GetDuration(sample);
@@ -271,10 +271,10 @@ int CDROM_Interface_Image::AudioFile::getLength()
 		// ... so convert ms to "Red Book bytes" by multiplying with 176.4f,
 		// which is 44,100 samples/second * 2-channels * 2 bytes/sample
 		// / 1000 milliseconds/second
-		length = (int)round(duration_ms * 176.4f);
+		length = (int64_t)round(duration_ms * 176.4f);
 	}
     #ifdef DEBUG
-    LOG_MSG("%s CDROM: AudioFile::getLength is %d bytes", get_time(), length);
+    LOG_MSG("%s CDROM: AudioFile::getLength is %ld bytes", get_time(), length);
     #endif
 
 	return length;
@@ -304,7 +304,7 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
         this->hunk_buffer = nullptr;
     }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
     if (this->hunk_thread) {
         this->hunk_thread->join();
         delete hunk_thread;
@@ -313,7 +313,7 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
 #endif
 }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 void hunk_thread_func(chd_file* chd, int hunk_index, uint8_t* buffer, bool* error)
 {
     // loads one hunk into buffer
@@ -337,7 +337,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
     // read new hunk if needed
     if (needed_hunk != this->hunk_buffer_index) {
-#if defined(HX_DOS)
+#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
         if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE)
             return false;
 #else
@@ -361,7 +361,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
         this->hunk_buffer_index = needed_hunk;
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
         // prefetch: let our thread decode the next hunk
         if (hunk_thread) delete this->hunk_thread;
         this->hunk_thread = new std::thread(
@@ -381,7 +381,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
     return true;
 }
 
-int CDROM_Interface_Image::CHDFile::getLength()
+int64_t CDROM_Interface_Image::CHDFile::getLength()
 {
     return this->header->logicalbytes;
 }
@@ -930,7 +930,8 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
         track.file = NULL;
 		return false;
 	}
-	track.length = track.file->getLength() / track.sectorSize;
+    int64_t len=track.file->getLength();
+	track.length = len / track.sectorSize;
 	// LOG_MSG("LoadIsoFile: %s, track 1, 0x40, sectorSize=%d, mode2=%s", filename, track.sectorSize, track.mode2 ? "true":"false");
 
 	tracks.push_back(track);
@@ -1282,7 +1283,7 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	// current track uses a different file as the previous track
 	} else {
 		if (!prev.length) {
-			int tmp = prev.file->getLength() - prev.skip;
+			int64_t tmp = prev.file->getLength() - prev.skip;
 			prev.length = tmp / prev.sectorSize;
 			if (tmp % prev.sectorSize != 0) prev.length++; // padding
 		}

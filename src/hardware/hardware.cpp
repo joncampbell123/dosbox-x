@@ -595,68 +595,7 @@ static void CAPTURE_AddAviChunk(const char * tag, uint32_t size, void * data, ui
 #endif
 
 #if defined(USE_TTF)
-extern int switchoutput;
-extern bool resetreq;
-bool Direct3D_using(void);
-void resetFontSize(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(void), change_output(int output);
-bool ttfswitch=false;
-
-void ttf_switch_off() {
-    if (ttf.inUse) {
-        std::string output="surface";
-        int out=switchoutput;
-        if (switchoutput==0)
-            output = "surface";
-#if C_OPENGL
-        else if (switchoutput==3)
-            output = "opengl";
-        else if (switchoutput==4)
-            output = "openglnb";
-#endif
-#if C_DIRECT3D
-        else if (switchoutput==5)
-            output = "direct3d";
-#endif
-        else {
-#if C_DIRECT3D
-            out = 5;
-            output = "direct3d";
-#elif C_OPENGL
-            out = 3;
-            output = "opengl";
-#else
-            out = 0;
-            output = "surface";
-#endif
-        }
-        KEYBOARD_Clear();
-        change_output(out);
-        SetVal("sdl", "output", output);
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        ttfswitch = true;
-        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
-        RENDER_Reset();
-    }
-}
-
-void ttf_switch_on() {
-    if (ttfswitch && !(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO)) {
-        change_output(10);
-        SetVal("sdl", "output", "ttf");
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        ttfswitch = false;
-        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
-        if (ttf.fullScrn) {
-            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-            OUTPUT_TTF_Select(2);
-            resetreq = true;
-        }
-        resetFontSize();
-    }
-}
+void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true);
 #endif
 
 #if (C_SSHOT)
@@ -697,7 +636,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 			capture.video.codec = NULL;
 		}
 #if defined(USE_TTF)
-        ttf_switch_on();
+        if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
+            ttf_switch_on();
 #endif
 	} else {
 		CaptureState |= CAPTURE_VIDEO;
@@ -1488,7 +1428,8 @@ skip_shot:
     }
 
 #if defined(USE_TTF)
-    ttf_switch_on();
+    if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
+        ttf_switch_on();
 #endif
     return;
 skip_video:
@@ -1499,7 +1440,8 @@ skip_video:
 # endif
 #endif
 #if defined(USE_TTF)
-    ttf_switch_on();
+    if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
+        ttf_switch_on();
 #endif
 	return;
 }
@@ -1883,7 +1825,7 @@ void CAPTURE_Destroy(Section *sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
-void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value);
+void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
 
@@ -1905,6 +1847,7 @@ void CAPTURE_Init() {
     trim(savefilename);
     if (savefilename.size()) {
         use_save_file=true;
+        ResolvePath(savefilename);
         mainMenu.get_item("usesavefile").set_text("Use save file ("+savefilename+")").check(use_save_file);
         mainMenu.get_item("browsesavefile").enable(use_save_file);
         std::string slot="";
@@ -1980,11 +1923,11 @@ void CAPTURE_Init() {
 	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Record FM/OPL output",&item);
 	item->set_text("Record FM (OPL) output");
 #if (C_SSHOT)
-	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_p,MMODHOST,"scrshot","Take screenshot", &item);
-	item->set_text("Take screenshot");
-
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_i,MMODHOST,"video","Record video to AVI", &item);
 	item->set_text("Record video to AVI");
+
+	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_p,MMODHOST,"scrshot","Take screenshot", &item);
+	item->set_text("Take screenshot");
 #endif
 #endif
 

@@ -78,7 +78,7 @@ VideoModeBlock ModeList_VGA[]={
 { 0x012  ,M_EGA    ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
 { 0x013  ,M_VGA    ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x2000 ,100 ,449 ,80 ,400 ,_REPEAT1   },
 
-{ 0x019  ,M_TEXT   ,720 ,400, 80 ,43, 8,  8 ,1 ,0xB8000 ,0x2000, 100 ,449 ,80 ,400 ,0   },
+{ 0x019  ,M_TEXT   ,720 ,688, 80 ,43, 9, 16 ,1 ,0xB8000 ,0x4000, 100, 688, 80, 688, 0   },
 { 0x043  ,M_TEXT   ,640 ,480, 80 ,60, 8,  8 ,2 ,0xB8000 ,0x4000, 100 ,525 ,80 ,480 ,0   },
 { 0x054  ,M_TEXT   ,1056,344, 132,43, 8,  8 ,1 ,0xB8000 ,0x4000, 160, 449, 132,344, 0   },
 { 0x055  ,M_TEXT   ,1056,400, 132,25, 8, 16 ,1 ,0xB8000 ,0x2000, 160, 449, 132,400, 0   },
@@ -663,10 +663,18 @@ static void SetTextLines(void) {
 	}
 }
 
+bool DISP2_Active(void);
 bool INT10_SetCurMode(void) {
 	bool mode_changed=false;
 	uint16_t bios_mode=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
+#if C_DEBUG
+		if (bios_mode==7 && DISP2_Active()) {
+			if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
+			CurMode=&Hercules_Mode;
+			return true;
+		}
+#endif
 		switch (machine) {
 		case MCH_CGA:
 			if (bios_mode<7) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
@@ -782,10 +790,9 @@ static void FinishSetMode(bool clearmem) {
         if (ttf.inUse) {
             ttf.cols = CurMode->twidth;
             ttf.lins = CurMode->theight;
-        } else if (firstset && ttf.lins && ttf.cols) {
+        } else if (ttf.lins && ttf.cols && !IS_PC98_ARCH && !IS_VGA_ARCH && CurMode->mode == 3) {
             CurMode->twidth = ttf.cols;
             CurMode->theight = ttf.lins;
-            firstset = false;
         }
     }
 #endif
@@ -798,7 +805,11 @@ static void FinishSetMode(bool clearmem) {
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
 
 	// this is an index into the dcc table:
+#if C_DEBUG
+	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
+#else
 	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
+#endif
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
@@ -1117,14 +1128,88 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 }
 
 #if defined(USE_TTF)
-extern bool resetreq;
 bool GFX_IsFullscreen(void), Direct3D_using(void);
-void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
+void ttf_reset(void), resetFontSize(), setVGADAC(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
+bool ttfswitch=false, switch_output_from_ttf=false;
+extern bool resetreq, colorChanged;
+extern int switchoutput;
+
+void ttf_switch_off(bool ss=true) {
+    if (ttf.inUse) {
+        std::string output="surface";
+        int out=switchoutput;
+        if (switchoutput==0)
+            output = "surface";
+#if C_OPENGL
+        else if (switchoutput==3)
+            output = "opengl";
+        else if (switchoutput==4)
+            output = "openglnb";
+        else if (switchoutput==5)
+            output = "openglpp";
+#endif
+#if C_DIRECT3D
+        else if (switchoutput==6)
+            output = "direct3d";
+#endif
+        else {
+#if C_DIRECT3D
+            out = 6;
+            output = "direct3d";
+#elif C_OPENGL
+            out = 3;
+            output = "opengl";
+#else
+            out = 0;
+            output = "surface";
+#endif
+        }
+        KEYBOARD_Clear();
+        change_output(out);
+        SetVal("sdl", "output", output);
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = true;
+        else switch_output_from_ttf = true;
+        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
+        RENDER_Reset();
+    }
+}
+
+void ttf_switch_on(bool ss=true) {
+    if (ss&&ttfswitch||!ss&&switch_output_from_ttf) {
+        change_output(10);
+        SetVal("sdl", "output", "ttf");
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = false;
+        else switch_output_from_ttf = false;
+        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
+        if (ttf.fullScrn) {
+            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+            OUTPUT_TTF_Select(2);
+            resetreq = true;
+        }
+        resetFontSize();
+    }
+}
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
-bool switch_output_from_ttf = false;
 bool INT10_SetVideoMode(uint16_t mode) {
+    if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
+        VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:ModeList_EGA));
+        for (Bitu i = 0; modelist[i].mode != 0xffff; i++) {
+            if (modelist[i].mode == mode) {
+                if (modelist[i].type != M_TEXT) {
+                    SetCurMode(modelist,3);
+                    FinishSetMode(true);
+                }
+                break;
+            }
+        }
+    }
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
 	if (mode>=0x100) {
@@ -1144,6 +1229,17 @@ bool INT10_SetVideoMode(uint16_t mode) {
 
 	int10.vesa_setmode=0xffff;
 	LOG(LOG_INT10,LOG_NORMAL)("Set Video Mode %X",mode);
+#if C_DEBUG
+	if (mode==7 && DISP2_Active()) {
+		if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
+		CurMode=&Hercules_Mode;
+		FinishSetMode(clearmem);
+		// EGA/VGA inactive
+		if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x68|(clearmem?0:0x80)));
+		INT10_SetCursorShape(0x0b,0x0c);
+		return true;
+	}
+#endif
 	if (!IS_EGAVGA_ARCH) return INT10_SetVideoMode_OTHER(mode,clearmem);
 
 	/* First read mode setup settings from bios area */
@@ -2012,56 +2108,10 @@ dac_text16:
 #if defined(USE_TTF)
         if (ttf.inUse)
             ttf_reset();
-        else if (switch_output_from_ttf) {
-            change_output(10);
-            SetVal("sdl", "output", "ttf");
-            void OutputSettingMenuUpdate(void);
-            OutputSettingMenuUpdate();
-            switch_output_from_ttf = false;
-            mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
-            if (ttf.fullScrn) {
-                if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-                OUTPUT_TTF_Select(2);
-                resetreq = true;
-            }
-            resetFontSize();
-        }
-	} else if (ttf.inUse) {
-        std::string output="surface";
-        int out=switchoutput;
-        if (switchoutput==0)
-            output = "surface";
-#if C_OPENGL
-        else if (switchoutput==3)
-            output = "opengl";
-        else if (switchoutput==4)
-            output = "openglnb";
-#endif
-#if C_DIRECT3D
-        else if (switchoutput==5)
-            output = "direct3d";
-#endif
-        else {
-#if C_DIRECT3D
-            out = 5;
-            output = "direct3d";
-#elif C_OPENGL
-            out = 3;
-            output = "opengl";
-#else
-            out = 0;
-            output = "surface";
-#endif
-        }
-        KEYBOARD_Clear();
-        change_output(out);
-        SetVal("sdl", "output", output);
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        switch_output_from_ttf = true;
-        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
-        RENDER_Reset();
+        else
+            ttf_switch_on(false);
+	} else {
+        ttf_switch_off(false);
 #endif
     }
 	// Enable screen memory access

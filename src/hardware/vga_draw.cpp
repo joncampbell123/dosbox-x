@@ -98,7 +98,6 @@ extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
-
 extern bool pc98_31khz_mode;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
@@ -2784,6 +2783,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
@@ -2994,182 +2994,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
-#if defined(USE_TTF)
-    if (ttf.inUse) {
-#if defined(WIN32)
-        typedef wchar_t host_cnv_char_t;
-#else
-        typedef char host_cnv_char_t;
-#endif
-        host_cnv_char_t *CodePageGuestToHost(const char *s);
-		GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
-		vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second
-		vga.draw.cursor.address = vga.config.cursor_start*2;
-		Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
-		vidstart *= 2;
-
-		ttf_cell* draw = newAttrChar;
-
-        if (IS_PC98_ARCH) {
-            const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
-            const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
-            uint16_t uname[4];
-
-            // TTF output only looks at VGA emulation state for cursor status,
-            // which PC-98 mode does not update.
-            vga.draw.cursor.enabled = pc98_gdc[GDC_MASTER].cursor_enable;
-
-            for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
-                bool dbw=false;
-
-                *draw = ttf_cell();
-
-                /* NTS: PC-98 hardware does not require both cells of a double-wide to match,
-                 *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
-                 *      for two cells and ignore the second cell. There are some exceptions though, including the custom
-                 *      modificable cells in RAM (responsible for such bugs as the Touhou Project ~idnight level name display bug). */
-                if (*charram & 0xFF00u) {
-                    if ((*charram & 0x7Cu) == 0x08u) {
-                        /* Single wide, yet DBCS encoding.
-                         * This includes proprietary box characters specific to PC-98 */
-                        // Manually convert box characters to Unicode for now
-                        if (*charram==0x330B) // ASCII 201
-                            (*draw).chr=0x250C;
-                        else if (*charram==0x250B) // ASCII 205
-                            (*draw).chr=0x2500;
-                        else if (*charram==0x370B) // ASCII 187
-                            (*draw).chr=0x2510;
-                        else if (*charram==0x270B) // ASCII 186
-                            (*draw).chr=0x2502;
-                        else if (*charram==0x3B0B) // ASCII 200
-                            (*draw).chr=0x2514;
-                        else if (*charram==0x3F0B) // ASCII 188
-                            (*draw).chr=0x2518;
-                        else
-                            (*draw).chr=' ';
-                        (*draw).unicode=1;
-                    }
-                    else {
-                        uint16_t ch = *charram&0x7F7Fu;
-                        uint8_t j1=(ch%0x100)+0x20, j2=ch/0x100;
-                        if (j1>32&&j1<127&&j2>32&&j2<127) {
-                            char text[3];
-                            text[0]=(j1+1)/2+(j1<95?112:176);
-                            text[1]=j2+(j1%2?31+(j2/96):126);
-                            text[2]=0;
-                            uname[0]=0;
-                            uname[1]=0;
-                            CodePageGuestToHostUint16(uname,text);
-                            if (uname[0]!=0&&uname[1]==0) {
-                                (*draw).chr=uname[0];
-                                (*draw).doublewide=1;
-                                (*draw).unicode=1;
-                                dbw=true;
-                            }
-                            else {
-                                (*draw).chr=' ';
-                            }
-                        } else {
-                            (*draw).chr=' ';
-                        }
-                    }
-                } else
-                    (*draw).chr = *charram & 0xFF;
-                charram++;
-
-                Bitu attr = *attrram;
-                attrram++;
-                // for simplicity at this time, just map PC-98 attributes to VGA colors. Wengier and I can clean this up later --J.C.
-                Bitu background = 0;
-                Bitu foreground = 0;
-                // PC-98 does not use RGB, it uses GRB. Remap accordingly.
-                if (attr & 0x80) foreground += 2;
-                if (attr & 0x40) foreground += 4;
-                if (attr & 0x20) foreground += 1;
-                if (foreground) foreground += 8; // everything is fullbright on PC-98
-
-                if (attr & 8) {//underline
-                    // TODO
-                }
-                if (attr & 4) {//reverse
-                    background = foreground;
-                    foreground = 0;
-                }
-                if (attr & 2) {//blink
-                    // TODO
-                }
-                if (!(attr & 1)) {//invisible
-                    (*draw).chr = 0x20;
-                }
-                (*draw).fg = foreground;
-                (*draw).bg = background;
-                draw++;
-
-                if (dbw) {
-                    /* extra cell. Should not draw */
-                    *draw = ttf_cell();
-                    (*draw).skipped = 1;
-                    (*draw).chr = 'x'; // should not see this
-                    (*draw).fg = 4|8; // bright red, in case this is visible
-                    (*draw).bg = 4; // dark red, in case this is visible
-                    draw++;
-                    charram++;
-                    attrram++;
-                    if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
-                }
-            }
-        } else if (CurMode&&CurMode->type==M_TEXT) {
-            if (IS_EGAVGA_ARCH) {
-                for (Bitu row=0;row < ttf.lins;row++) {
-                    const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
-                    for (Bitu col=0;col < ttf.cols;col++) {
-                        // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
-                        //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
-                        *draw = ttf_cell();
-                        (*draw).chr = *vidmem & 0xFF;
-                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
-                        vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
-                        Bitu background = attr >> 4;
-                        if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
-                            background &= 7;
-                        // choose foreground color if blinking not set for this cell or blink on
-                        Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
-                        // How about underline?
-                        (*draw).fg = foreground;
-                        (*draw).bg = background;
-                        draw++;
-                    }
-                    vidstart += vga.draw.address_add;
-                }
-            } else {
-                for (Bitu row=0;row < ttf.lins;row++) {
-                    const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
-                    for (Bitu col=0;col < ttf.cols;col++) {
-                        *draw = ttf_cell();
-                        (*draw).chr = *vidmem;
-                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
-                        vidmem++;
-                        Bitu background = attr >> 4;
-                        if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
-                            background &= 7;
-                        // choose foreground color if blinking not set for this cell or blink on
-                        Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
-                        // How about underline?
-                        (*draw).fg = foreground;
-                        (*draw).bg = background;
-                        draw++;
-                    }
-                    vidstart += vga.draw.address_add;
-                }
-            }
-        }
-
-		render.cache.past_y = 1;
-		RENDER_EndUpdate(false);
-		return;
-	}
-#endif
-
     vga.draw.address_line = vga.config.hlines_skip;
     if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();
     vga.draw.address = vga.config.real_start;
@@ -3369,6 +3193,182 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             vga.draw.address += vga.draw.address_add * (Bitu)(-((Bits)vga.draw.split_line) / (Bits)vga.draw.address_line_total);
         }
     }
+
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
+        vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second
+        vga.draw.cursor.address = vga.config.cursor_start*2;
+        Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
+        vidstart *= 2;
+        ttf_cell* draw = newAttrChar;
+        ttf_cell* drawc = curAttrChar;
+
+        if (IS_PC98_ARCH) {
+            const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
+            const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
+            uint16_t uname[4];
+
+            // TTF output only looks at VGA emulation state for cursor status,
+            // which PC-98 mode does not update.
+            vga.draw.cursor.enabled = pc98_gdc[GDC_MASTER].cursor_enable;
+
+            for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
+                bool dbw=false;
+
+                *draw = ttf_cell();
+                (*draw).selected = (*drawc).selected;
+
+                /* NTS: PC-98 hardware does not require both cells of a double-wide to match,
+                 *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
+                 *      for two cells and ignore the second cell. There are some exceptions though, including the custom
+                 *      modificable cells in RAM (responsible for such bugs as the Touhou Project ~idnight level name display bug). */
+                if (*charram & 0xFF00u) {
+                    if ((*charram & 0x7Cu) == 0x08u) {
+                        /* Single wide, yet DBCS encoding.
+                         * This includes proprietary box characters specific to PC-98 */
+                        // Manually convert box characters to Unicode for now
+                        if (*charram==0x330B) // ASCII 201
+                            (*draw).chr=0x250C;
+                        else if (*charram==0x250B) // ASCII 205
+                            (*draw).chr=0x2500;
+                        else if (*charram==0x370B) // ASCII 187
+                            (*draw).chr=0x2510;
+                        else if (*charram==0x270B) // ASCII 186
+                            (*draw).chr=0x2502;
+                        else if (*charram==0x3B0B) // ASCII 200
+                            (*draw).chr=0x2514;
+                        else if (*charram==0x3F0B) // ASCII 188
+                            (*draw).chr=0x2518;
+                        else
+                            (*draw).chr=' ';
+                        (*draw).unicode=1;
+                    }
+                    else {
+                        uint16_t ch = *charram&0x7F7Fu;
+                        uint8_t j1=(ch%0x100)+0x20, j2=ch/0x100;
+                        if (j1>32&&j1<127&&j2>32&&j2<127) {
+                            char text[3];
+                            text[0]=(j1+1)/2+(j1<95?112:176);
+                            text[1]=j2+(j1%2?31+(j2/96):126);
+                            text[2]=0;
+                            uname[0]=0;
+                            uname[1]=0;
+                            CodePageGuestToHostUint16(uname,text);
+                            if (uname[0]!=0&&uname[1]==0) {
+                                (*draw).chr=uname[0];
+                                (*draw).doublewide=1;
+                                (*draw).unicode=1;
+                                dbw=true;
+                            }
+                            else {
+                                (*draw).chr=' ';
+                            }
+                        } else {
+                            (*draw).chr=' ';
+                        }
+                    }
+                } else
+                    (*draw).chr = *charram & 0xFF;
+                charram++;
+
+                Bitu attr = *attrram;
+                attrram++;
+                // for simplicity at this time, just map PC-98 attributes to VGA colors. Wengier and I can clean this up later --J.C.
+                Bitu background = 0;
+                Bitu foreground = 0;
+                // PC-98 does not use RGB, it uses GRB. Remap accordingly.
+                if (attr & 0x80) foreground += 2;
+                if (attr & 0x40) foreground += 4;
+                if (attr & 0x20) foreground += 1;
+                if (foreground) foreground += 8; // everything is fullbright on PC-98
+
+                if (attr & 8) {//underline
+                    // TODO
+                }
+                if (attr & 4) {//reverse
+                    background = foreground;
+                    foreground = 0;
+                }
+                if (attr & 2) {//blink
+                    // TODO
+                }
+                if (!(attr & 1)) {//invisible
+                    (*draw).chr = 0x20;
+                }
+                (*draw).fg = foreground;
+                (*draw).bg = background;
+                draw++;
+                drawc++;
+
+                if (dbw) {
+                    /* extra cell. Should not draw */
+                    *draw = ttf_cell();
+                    (*draw).selected = (*drawc).selected;
+                    (*draw).skipped = 1;
+                    (*draw).chr = 'x'; // should not see this
+                    (*draw).fg = 4|8; // bright red, in case this is visible
+                    (*draw).bg = 4; // dark red, in case this is visible
+                    draw++;
+                    drawc++;
+                    charram++;
+                    attrram++;
+                    if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
+                }
+            }
+        } else if (CurMode&&CurMode->type==M_TEXT) {
+            if (IS_EGAVGA_ARCH) {
+                for (Bitu row=0;row < ttf.lins;row++) {
+                    const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (Bitu col=0;col < ttf.cols;col++) {
+                        // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
+                        //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
+                        *draw = ttf_cell();
+                        (*draw).selected = (*drawc).selected;
+                        (*draw).chr = *vidmem & 0xFF;
+                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
+                        vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
+                        Bitu background = attr >> 4;
+                        if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
+                            background &= 7;
+                        // choose foreground color if blinking not set for this cell or blink on
+                        Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
+                        // How about underline?
+                        (*draw).fg = foreground;
+                        (*draw).bg = background;
+                        draw++;
+                        drawc++;
+                    }
+                    vidstart += vga.draw.address_add;
+                }
+            } else {
+                for (Bitu row=0;row < ttf.lins;row++) {
+                    const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (Bitu col=0;col < ttf.cols;col++) {
+                        *draw = ttf_cell();
+                        (*draw).selected = (*drawc).selected;
+                        (*draw).chr = *vidmem;
+                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
+                        vidmem++;
+                        Bitu background = attr >> 4;
+                        if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
+                            background &= 7;
+                        // choose foreground color if blinking not set for this cell or blink on
+                        Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
+                        // How about underline?
+                        (*draw).fg = foreground;
+                        (*draw).bg = background;
+                        draw++;
+                        drawc++;
+                    }
+                    vidstart += vga.draw.address_add;
+                }
+            }
+        }
+        RENDER_EndUpdate(false);
+        return;
+    }
+#endif
 
     // add the draw event
     switch (vga.draw.mode) {

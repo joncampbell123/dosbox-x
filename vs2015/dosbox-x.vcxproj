@@ -1215,6 +1215,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\hardware\mixer.cpp" />
     <ClCompile Include="..\src\hardware\mpu401.cpp" />
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp" />
+    <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp" />
     <ClCompile Include="..\src\hardware\ne2000.cpp" />
     <ClCompile Include="..\src\hardware\nukedopl.cpp" />
     <ClCompile Include="..\src\hardware\opl.cpp" />
@@ -1298,6 +1299,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\misc\programs.cpp" />
     <ClCompile Include="..\src\ints\qcow2_disk.cpp" />
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
+    <ClCompile Include="..\src\misc\savestates.cpp" />
     <ClCompile Include="..\src\misc\setup.cpp" />
     <ClCompile Include="..\src\misc\support.cpp" />
     <ClCompile Include="..\src\output\direct3d\direct3d.cpp" />
@@ -1472,6 +1474,15 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\cpu\core_dynrec\risc_mipsel32.h" />
     <ClInclude Include="..\src\cpu\core_dynrec\risc_x64.h" />
     <ClInclude Include="..\src\cpu\core_dynrec\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h" />
     <ClInclude Include="..\src\cpu\core_full\ea_lookup.h" />
     <ClInclude Include="..\src\cpu\core_full\load.h" />
     <ClInclude Include="..\src\cpu\core_full\loadwrite.h" />
@@ -1536,6 +1547,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\hardware\mame\ymdeltat.h" />
     <ClInclude Include="..\src\hardware\mame\ymf262.h" />
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h" />
+    <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h" />
     <ClInclude Include="..\src\hardware\nukedopl.h" />
     <ClInclude Include="..\src\hardware\opl.h" />
     <ClInclude Include="..\src\hardware\parport\directlpt_win32.h" />

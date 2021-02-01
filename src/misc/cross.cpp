@@ -47,6 +47,20 @@ std::string MacOSXResPath;
 #define _mkdir(x) mkdir(x)
 #endif
 
+void ResolvePath(std::string& in) {
+#if defined(WIN32)
+    char path[300],temp[300],*tempd=temp;
+    strcpy(tempd, in.c_str());
+    if (strchr(tempd, '%')&&ExpandEnvironmentStrings(tempd,path,300))
+        tempd=path;
+    in=std::string(tempd);
+#else
+    struct stat test;
+    if (stat(in.c_str(),&test))
+        Cross::ResolveHomedir(in);
+#endif
+}
+
 #if defined(WIN32) && !defined(HX_DOS)
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;

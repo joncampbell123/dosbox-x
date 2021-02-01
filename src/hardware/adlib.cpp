@@ -34,6 +34,7 @@
 #include "mame/fmopl.h"
 #include "mame/ymf262.h"
 #include "opl2board/opl2board.h"
+#include "opl3duoboard/opl3duoboard.h"
 
 #define OPL2_INTERNAL_FREQ    3600000   // The OPL2 operates at 3.6MHz
 #define OPL3_INTERNAL_FREQ    14400000  // The OPL3 operates at 14.4MHz
@@ -384,6 +385,40 @@ namespace OPL2BOARD {
 	};
 }
 
+namespace OPL3DUOBOARD {
+	Opl3DuoBoard opl3DuoBoard;
+
+	struct Handler : public Adlib::Handler {
+		Handler(const char* port) {
+			opl3DuoBoard.connect(port);
+		}
+		virtual void WriteReg(uint32_t reg, uint8_t val) {
+			opl3DuoBoard.write(reg, val);
+		}
+		virtual uint32_t WriteAddr(uint32_t port, uint8_t val) {
+			uint32_t reg = val;
+
+			if ((port&3)!=0) {
+				reg |= 0x100;
+			}
+			return reg;
+		}
+
+		virtual void Generate(MixerChannel* chan, Bitu samples) {
+			int16_t buf[1] = { 0 };
+			chan->AddSamples_m16(1, buf);
+		}
+		virtual void Init(Bitu rate) {
+			opl3DuoBoard.reset();
+		}
+		~Handler() {
+			opl3DuoBoard.reset();
+			opl3DuoBoard.disconnect();
+		}
+	};
+}
+
+
 #define RAW_SIZE 1024
 
 
@@ -527,15 +562,24 @@ class Capture {
 		uint16_t i;
         uint8_t val;
 		/* Check the registers to add */
-		for (i=0;i<256;i++) {
-			//Skip the note on entries
-			if (i>=0xb0 && i<=0xb8) 
-				continue;
+		for (i = 0;i < 256;i++) {
 			val = (*cache)[ i ];
+			//Silence the note on entries
+			if (i >= 0xb0 && i <= 0xb8) {
+				val &= ~0x20;
+			}
+			if (i == 0xbd) {
+				val &= ~0x1f;
+			}
+
 			if (val) {
 				AddWrite( i, val );
 			}
 			val = (*cache)[ 0x100u + i ];
+
+			if (i >= 0xb0 && i <= 0xb8) {
+				val &= ~0x20;
+			}
 			if (val) {
 				AddWrite( 0x100u + i, val );
 			}
@@ -925,6 +969,7 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 
 void Module::Init( Mode m ) {
 	mode = m;
+	memset(cache, 0, sizeof(cache));
 	switch ( mode ) {
 	case MODE_OPL3:
 	case MODE_OPL3GOLD:
@@ -1098,6 +1143,10 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		oplmode = OPL_opl2;
 		handler = new OPL2BOARD::Handler(oplport.c_str());
 		}
+	  else if (oplemu == "opl3duoboard") {
+		  oplmode = OPL_opl3;
+		  handler = new OPL3DUOBOARD::Handler(oplport.c_str());
+	    }
 	else if (oplemu == "mame") {
 		if (oplmode == OPL_opl2) {
 			handler = new MAMEOPL2::Handler();

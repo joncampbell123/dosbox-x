@@ -34,6 +34,14 @@
 #include "control.h"
 #include "zipfile.h"
 
+/* dynamic core, policy, method, and flags.
+ * We're going to make dynamic core more flexible, AND make sure
+ * that both dynx86 and dynrec are using common memory mapping
+ * code to reduce copy-pasta */
+dyncore_alloc_t         dyncore_alloc = DYNCOREALLOC_NONE;
+dyncore_method_t        dyncore_method = DYNCOREM_NONE;
+dyncore_flags_t         dyncore_flags = 0;
+
 #if defined(_MSC_VER)
 /* we don't care about switch statements with no case labels */
 #pragma warning(disable:4065)
@@ -70,6 +78,7 @@ bool report_fdiv_bug = false;
 extern bool ignore_opcode_63;
 
 extern bool use_dynamic_core_with_paging;
+extern bool auto_determine_dynamic_core_paging;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
@@ -182,7 +191,17 @@ void CPU_Core_Dynrec_Cache_Close(void);
 void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
 
-bool CPU_IsDynamicCore(void);
+int CPU_IsDynamicCore(void) {
+#if (C_DYNAMIC_X86)
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (cpudecoder == &CPU_Core_Dynrec_Run)
+        return 2;
+#endif
+    return 0;
+}
 
 void menu_update_cputype(void) {
     bool allow_prefetch = false;
@@ -963,6 +982,11 @@ doexception:
 	return CPU_PrepareException(EXCEPTION_GP,0);
 }
 
+void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
+  cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
+  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,oldeip);
+}
+
 #include <stack>
 
 int CPU_Exception_Level[0x20] = {0};
@@ -1042,6 +1066,10 @@ void CPU_Exception(Bitu which,Bitu error ) {
 
 uint8_t lastint;
 void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
+    if (num == EXCEPTION_DB && (type&CPU_INT_EXCEPTION) == 0) {
+      CPU_DebugException(0,oldeip); // DR6 bits need updating
+      return;
+    }
 	lastint=(uint8_t)num;
 	FillFlags();
 #if C_DEBUG
@@ -2296,18 +2324,6 @@ void CPU_Snap_Back_Forget() {
 	snap_cpu_snapped = false;
 }
 
-bool CPU_IsDynamicCore(void) {
-#if (C_DYNAMIC_X86)
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
-        return true;
-#endif
-#if (C_DYNREC)
-    if (cpudecoder == &CPU_Core_Dynrec_Run)
-        return true;
-#endif
-    return false;
-}
-
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {
@@ -3278,10 +3294,17 @@ public:
 
 		report_fdiv_bug = section->Get_bool("report fdiv bug");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
+
+		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
+		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
+		if (auto_determine_dynamic_core_paging) {
+			use_dynamic_core_with_paging = PAGING_Enabled();
+		} else {
+			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
+		}
 
         if (cpu_allow_big16) {
             /* FIXME: GCC 4.8: How is this an empty body? Explain. */

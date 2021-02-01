@@ -28,7 +28,7 @@
 
 class CSerialFile : public CSerial {
 public:
-	CSerialFile(Bitu id, CommandLine* cmd);
+	CSerialFile(Bitu id, CommandLine* cmd, bool sq = false);
 	virtual ~CSerialFile();
 
 	void setRTSDTR(bool rts, bool dtr);
@@ -39,10 +39,16 @@ public:
 	void updateMSR();
 	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
+	void doAction();
 	void handleUpperEvent(uint16_t type);
 
 	FILE* fp = NULL;
-    std::string filename;
+	bool squote;
+	bool shellhide;
+	unsigned int timeout = 0;
+	Bitu lastUsedTick = 0;
+	std::string filename;
+	std::string actstd, acterr; // open with a program or batch script
 };
 
 #endif // INCLUDEGUARD
