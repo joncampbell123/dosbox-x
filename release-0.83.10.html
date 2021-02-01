@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.10 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">January 31, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+
+<li><div style="font-weight: 600">New Windows 95/98-friendly dynamic core</div>There are major improvements for the 32/64-bit dynamic_x86 CPU core in this version to support Windows 9x/ME guest systems. It can now handle page faults non-recursively so that you will be able to run the dynamic_x86 core with Windows 9x in a largely reliable manner.</li>
+
+<li><div style="font-weight: 600">Improved support for playing 3Dfx games</div>3dfx games can now work with the Glide passthrough feature when a guest system (guest DOS or Windows 9x) is currently running, in addition to DOSBox-X's integrated DOS. The speed of the Voodoo hardware emulation for running games like Tomb Raider 3dfx is also improved.</li>
+
+<li><div style="font-weight: 600">Write/overlay support for mounted ZIP/7Z archives</div>In the previous version support for mounting ZIP/7Z archives in read-only mode was added. This version adds the ability to make such drives writable by using overlay mounts, so that you can specify a directory for any changes to be written to. For example, the command "MOUNT C C:\DIR -T OVERLAY" will specify the directory C:\DIR(\C_DRIVE) as the write location after mounting C: drive with a ZIP/7Z archive.</li>
+
+<li><div style="font-weight: 600">Support for native pixel-perfect scaling with openglpp output</div>DOSBox-X now natively supports the pixel-perfect scaling for improved image quality. Setting "output=openglpp" or selecting "OpenGL perfect" from the menu ("Video" => "Output") to enable it. It is recommended to set config options "aspect=true" (whenever the emulated display has an aspect ratio of 4:3) and "doublescan=false" for the pixel-perfect scaling.</li>
+
+<li><div style="font-weight: 600">Support for Direct3D output in Windows SDL2 builds as default output</div>The Direct3D output is now supported on Windows SDL2 builds just like Windows SDL1 builds. With this the Direct3D output becomes the default output in all Windows builds, but you can change this either from the installer or from the configuration.</li>
+
+<li><div style="font-weight: 600">Support for specifying printers to print on Windows systems</div>The printing functions have been further enhanced for the Windows platform to allow users to specify the printing devices they want to use by names for direct printing to the selected devices. The parallel port LPT1 now defaults to the printer as well.</li>
+
+<li><div style="font-weight: 600">Support for standard & mono mode dual-screen display</div>Per user requests, support for VGA/EGA/CGA mode and mono mode dual-screen setup is added in this version. You can now start DOSBox-X with the command-line option -display2, optionally followed by a color (white, green, amber) to enable this feature on debug builds.</li>
+
+<li><div style="font-weight: 600">Support for large CD ISO images</div>You can now mount very large CD ISO images either using IMGMOUNT command or from the menu. Previously only ISO images up to 2GB were supported.</li>
+
+<li><div style="font-weight: 600">Support for automatic restart with new config settings</div>A "Save & Restart" button has been added to the Configuration Tool's "Save" option for saving the config file and then automatically restarting DOSBox-X with this saved configuration. Also, command-line options such as -bc (-bootconf), -wcboot, -wcdboot and -wcpboot are added to CONFIG command which will reboot DOSBox-X with the current setting immediately or after writing the specified config file.</li>
+
+<li><div style="font-weight: 600">New built-in calculator for evaluating expressions</div>A built-in calculator (EVAL.EXE) is added to the internal drive, which can be used to calculate both simple and many advanced mathematical expressions (such as trigonometric functions) in either command-line mode or the interactive mode.</li>
+
+<li><div style="font-weight: 600">Implemented DOS network redirector functions</div>The DOS network redirector functions are implemented so that the host name can be reported to DOS programs which expect a networked environment. For a fuller network environment you may need to enable either the IPX or the NE2000 options.</li>
+
+<li><div style="font-weight: 600">Improved file locking on Windows systems</div>Support for networked DOS database applications (which require record locking) has been fully implemented on Windows systems. It is recommended to set the config option "file access tries=3" in [dos] section for such usages.</li>
+
+<li><div style="font-weight: 600">Improved TrueType font (TTF) output</div>The TrueType font (TTF) output has been further enhanced in this version. For example, you can now dynamically change the TTF font, the number of rows and columns on the TTF screen, and the word processor for TTF using CONFIG command. Cursor blinking rate for TrueType font (TTF) output can also be customized with the ttf.blinkc option now.</li>
+
+<li><div style="font-weight: 600">Improved compatibility for Windows XP</div>Windows XP compatibility has been improved in this version. The 32-bit Visual Studio builds included in Windows installer should now run in Windows XP, and various menu functions such as the options to select shaders and the "Create blank disk image..." menu feature should now work in Windows XP in addition to later Windows versions.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">2. Notable Usability Improvements</div>
+<ul>
+
+<li><div style="font-weight: 600">Support for color theme customization for the welcome banner</div>Users can now change the color theme for the welcome banner from the default blue color when DOSBox-X starts. For example, setting "bannercolortheme=red" and "bannercolortheme=white" will apply the red and white color themes for the welcome banner respectively.</li>
+
+<li><div style="font-weight: 600">Support for translating texts in the drop-down menus</div>Translate texts in DOSBox-X's drop-down menus is now supported. The message files as written by the (command-line or graphical) config tool will contain the menu texts for translations from the English language.</li>
+
+<li><div style="font-weight: 600">Support for resolving file paths in config options</div>DOSBox-X will now try to resolve file paths that include environment variables on Windows or tildes (~) on other platforms for config options in various sections in the config file. For example, by setting and resolving environment variables in the [config] option you will be able to access Windows environment variables inside DOSBox-X.</li>
+
+<li><div style="font-weight: 600">Support for getting/changing more properties from command-line</div>You can now change properties such as "fullscreen", "glshader" and "windowposition" dynamically with CONFIG command, e.g. "config -set fullscreen=true". Also, special properties such as "screenwidth", "screenheight", "windowwidth", and "windowheight" are now supported by CONFIG command so that commands like "CONFIG -GET screenwidth" and "CONFIG -GET screenheight" will get the current screen width and height.</li>
+
+<li><div style="font-weight: 600">Selecting a video system output from Windows installer</div>With the recent new output options, a new page is added to the Windows installer for new users to select a video system output to use - the default output (Direct3D), OpenGL with pixel-perfect scaling (openglpp or "OpenGL perfect") for improved image quality, and the TrueType font (TTF) output for text-mode DOS applications.</li>
+
+<li><div style="font-weight: 600">Supply ZIP/7Z files as a DOSBox-X parameter to mount as C drive</div>You can now just supply a ZIP/7Z file as a command-line parameter to DOSBox-X directly so that it will be mounted as C: drive when DOSBox-X starts, instead of using MOUNT command.</li>
+
+<li><div style="font-weight: 600">BOOT command (without a paramter) to boot from the current drive</div>If the current drive (A:/C:/D:) is bootable then BOOT command without a parameter will now try to boot the guest system from the current drive.</li>
+
+<li><div style="font-weight: 600">Menu option "List Printer Devices" to list printers on Windows</div>There is now a menu option "List Printer Devices" under the "Help" menu to list printing devices on Windows, which makes it easier for users to specify a printer if needed.</li>
+
+<li><div style="font-weight: 600">Improved display for Windows and Command keys in SDL1 builds</div>The Windows key(s) in Windows and the Command key(s) in macOS will now be displayed as the "Windows" and "Command" keys instead of the "super" and the "meta" keys in SDL1 builds just like SDL2 builds.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">3. Bugfixes and Other Improvements</div>
+There are also many bugfixes and other improvements, including fixes to some existing features (e.g. the menu option "Select OpenGL (GLSL) shader.." might not work properly sometimes) and ported recent DOSBox SVN commits. Please see the full changelogs below for more information.
+
+<p />
+
+            <div style="font-size: 20px; font-weight: 800">4. Full Changelog In This Version</div>
+<ul>
+<li>
+    The Windows key(s) in Windows and the Command key(s)
+    in macOS will now be displayed as the "Windows" and
+    "Command" keys instead of the "super" and the "meta"
+    keys in SDL1 builds just like SDL2 builds. (Wengier)
+</li><li>
+    Cursor blinking rate for TrueType font (TTF) output
+    can now be customized with the ttf.blinkc option.
+    Set an integer between 1 (fastest) and 7 (slowest)
+    to change TTF cursor blinking rate, or setting it to
+    0 for no cursor (or false for non-blinking cursor as
+    in previous versions), with the default value being
+    6 on PC-98 systems and 4 elsewhere. (Wengier)
+</li><li>
+    Fixed parallel port emulation to allow MDA port 3BCh
+    to work properly.
+</li><li>
+    Enhanced the printer function on Windows platforms
+    to allow printer names to be specified in [printer]
+    section via the "device" option for direct printing
+    to the selected device. If left empty, then Windows
+    Print dialog will always be shown, or specifying "-"
+    will cause it to show only once (unless the user
+    clicks "Cancel"). Under "Help" menu there is now a
+    menu option "List Printer Devices" to list printer
+    devices on Windows, and the parallel port LPT1 now
+    defaults to the printer on all platforms. (Wengier)
+</li><li>
+    The dynamic_x86 CPU core can now handle page faults
+    non-recursively, so you can now run the dynamic_x86
+    core with Windows 9x/ME without crashes, although
+    this may slightly decrease the performance, and it
+    may be disabled by setting the config option "use
+    dynamic core with paging on" in [cpu] section to
+    "false"; the default value of this option has been
+    changed to "auto" which will enable/disable itself
+    based on whether the 386 paging and a guest system
+    has been enabled. Also fixed incorrect behavior for
+    handling trap flags in the dynamic core and updated
+    the MMX code for improved performance. (koolkdev)
+</li><li>
+    Added support for Direct3D output on Windows SDL2
+    builds just like Windows SDL1 builds to become the
+    default output in all Windows builds. (Wengier)
+</li><li>
+    DOSBox-X now natively supports the pixel-perfect
+    scaling! Set the option "output=openglpp" in [sdl]
+    section of the config file to enable this output.
+    Alternatively, the output can be selected from the
+    menu ("Video" => "Output" => "OpenGL perfect") at
+    run-time. It is recommended to set config options
+    and "aspect=true" (whenever the emulated display
+    has an aspect ratio of 4:3) and "doublescan=false"
+    for openglpp output. Also, with high DPI displays
+    (e.g. on Windows 7+ with DPI scaling enabled) it
+    works better with full-screen mode and the setting
+    "dpi aware=true". It was implemented by ant_222
+    (patch author) with some code cleanups by Wengier.
+</li><li>
+    Updated the Windows installer to add a page for
+    new users to select a video system output to use -
+    the default output (Direct3D), OpenGL with pixel-
+    perfect scaling (openglpp or "OpenGL perfect") for
+    improved image quality, and the TrueType font (TTF)
+    output for text-mode DOS applications. (Wengier)
+</li><li>
+    You can now supply a ZIP/7Z file as a parameter to
+    DOSBox-X directly so that it will be mounted as C:
+    drive when DOSBox-X starts. (Wengier)
+</li><li>
+    Added overlay support for mounting PhysFS drives
+    so that you can specify a write location when you
+    mounted a ZIP/7Z archive by adopting an old patch.
+    For example, command "MOUNT C C:\DIR -T OVERLAY"
+    will specify path C:\DIR(\C_DRIVE) as the write
+    location after mounting C: drive as a PhysFS drive
+    with a command like "MOUNT FILES.ZIP". (Wengier)
+</li><li>
+    Added ability to resolve file paths that include
+    environment variables on Windows or tildes (~) on
+    other platforms for various options in the config
+    file, such as language and mapper file paths, MT32
+    ROM & FluidSynth soundfont paths, [config] section
+    options as well as file outputs for the printing
+    and serial/parallel port functions. (Wengier)
+</li><li>
+    Added calculator for DOS (EVAL.EXE), which appears
+    on Z drive and can calculate both simple (such as
+    sin(0) and cos(0)) and many advanced mathematical
+    expressions in either command-line mode and or the
+    interactive mode. (Wengier)
+</li><li>
+    Added support for standard (VGA/EGA/CGA) and mono
+    mode dual-screen setup by porting the patch. You
+    can now start DOSBox-X with the option -display2
+    followed by a color (white, green, amber) to enable
+    this feature on debug builds. (Wengier)
+</li><li>
+    You can now translate texts in DOSBox-X's drop-down
+    menus. The message files as written by the config
+    tool (CLI or GUI) will contain the menu texts for
+    translations from the English language. (Wengier)
+</li><li>
+    Added "file access tries" config option (in [dos]
+    section) so that if a positive integer is provided
+    (e.g. 1 or 3) DOSBox-X will try to read/write/lock
+    files on mounted local drives for the specified
+    number of times before failing on Windows builds.
+    It is especially useful for networked DOS database
+    applications that require record locking. (Wengier)
+</li><li>
+    Added "bannercolortheme" config option (in [dosbox]
+    section) so that users can change the background
+    color theme of the welcome banner from the default
+    blue color when DOSBox-X starts. (Wengier)
+</li><li>
+    Added "pcaptimeout" config option (in the [ne2000]
+    section) to specify a read timeout value for pcap
+    in milliseconds, or default value (-1 on Windows
+    or 3000 otherwise) will be used. (Wengier & Jookia)
+</li><li>
+    Added "Save & Restart" button to the Configuration
+    Tool's "Save" option for saving the config file and
+    then automatically restarting DOSBox-X with this
+    saved configuration. Command-line options -wcboot,
+    -wcdboot and -wcpboot are added to CONFIG command
+    which resemble -wc, -wcd, and -wcp options but will
+    reboot DOSBox-X after writing configfile. Command-
+    line option -bc (-bootconf) is also added to reboot
+    with specified config file (or the primary loaded
+    config file if not specified) directly. (Wengier)
+</li><li>
+    The config option ttf.font will now search for TTF
+    fonts in the directory as specified by the fontpath
+    option in [printer] section too. (Wengier)
+</li><li>
+    Added special properties to CONFIG command such as
+    "screenwidth", "screenheight", "windowwidth", and
+    "windowheight" so that commands like "CONFIG -GET
+    screenwidth" and "CONFIG -GET screenheight" will
+    get the current screen width and height. (Wengier)
+</li><li>
+    BOOT command without a parameter will now try to
+    boot the current drive if possible. (Wengier)
+</li><li>
+    You can now change properties such as "fullscreen",
+    "glshader" and "windowposition" dynamically with
+    CONFIG command. For example, command "config -set
+    fullscreen=true" and "config -set windowposition="
+    will now switch on the full-screen mode and center
+    the window position respectively. For TrueType font
+    output, you can now also change the TTF font, the
+    number of rows and columns on the TTF screen, and
+    the word processor for TTF dynamically using CONFIG
+    command, e.g. "config -set ttf.font=test", "config
+    -set ttf.lins=30", "config -set ttf.cols=100" and
+    "config -set ttf.wp=wp". The limits for the options
+    ttf.cols and ttf.lins are increased too. (Wengier)
+</li><li>
+    Implemented the DOS network redirector functions so
+    that the host name can be reported to DOS programs,
+    unless the secure mode is enabled. You may need to
+    set either the option ipx=true in [ipx] section or
+    the option ne2000=true in [ne2000] section. Also
+    added config option "network redirector" to [dos]
+    section which if set to false disables the network
+    redirector even with IPX/NE2000 enabled. (Wengier)
+</li><li>
+    Fixed an issue that the DOSBox-X window size may be
+    incorrect when restoring from a maximized window in
+    the SDL2 builds. (Wengier)
+</li><li>
+    Fixed that the menu option "Select OpenGL (GLSL)
+    shader.." not working properly sometimes. (Wengier)
+</li><li>
+    Fixed Ctrl+C not working in GNU ed. (Wengier)
+</li><li>
+    Fixed large ISO images (>2GB) unable to be mounted
+    using IMGMOUNT command. (Wengier)
+</li><li>
+    Fixed build failure on Gentoo Linux. (fonic)
+</li><li>
+    3dfx games can now work with the Glide passthrough
+    feature when a guest system (guest DOS or Windows
+    9x) is currently running. The default setting for
+    config option "keep private area on boot" in [dos]
+    section is changed from "false" to "auto". (Wengier)
+</li><li>
+    Improved the speed of the Voodoo hardware emulation
+    for running games like Tomb Raider 3dfx. (Wengier)
+</li><li>
+    Improved OPL3Duo support, such as adding a buffer
+    thread to get rid of slowdowns & breakups in audio
+    playback when using the board. (DhrBaksteen)
+</li><li>
+    Updated the Tiny File Dialog library to the latest
+    version v3.8.5, which fixes issues such as the
+    compatibility problem with Windows XP. (Wengier)
+</li><li>
+    Updated FLAC, MP3, and WAV CD-DA decoder libraries
+    to the latest versions (0.12.28, 0.6.26 and 0.12.18
+    respectively; per David Reid). (Wengier)
+</li><li>
+    Integrated SVN commits (Allofich & Wengier)
+<br />
+    - r4426: Emulate debug register 6 during trap flag
+    emulation (and normal int 1). Fixes 544 (jmarsh)
+<br />
+    - r4401: Improve xchg to handle unwritable memory
+    better for core_dyn_x86.
+<br />
+    - r4399: Finish up and add LOOP_NE and LOOP_E for
+    core_dyn_x86.
+<br />
+    - r4393: Remove video page check when drawing
+    internal mouse pointer, as the BIOS current page
+    is not updated in some cases. Fixes QQP games: Lost
+    Admiral, Conquered Kingdoms, and Solitaire's
+    Journey. Also be a bit smarter about enabling
+    autolock, supporting more cases where the mouse
+    is used for input without resetting it.
+<br />
+    - r4392: Improve capturing of Zeliard and fix a
+    few percussion-related capturing problems as well.
+<br />
+    - r4310: Improve PMAKE on big endian machines and
+    fix some bugs. Fixes bug in 16 -> 15 bit color
+    conversion.
+<br />
+    - r4309: Copy working directory when mounting an
+    overlay.
+<br />
+    - r4307: Refinement of SoundBlaster checks, so no
+    IRQ is raised when not in autodma mode.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.9 (<a href="release-0.83.9.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
