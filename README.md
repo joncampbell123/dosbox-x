@@ -45,7 +45,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * GUI menu bar and built-in graphical configuration tool
 
-* Save and load state support (with up to 100 save slots)
+* Save and load state support (with up to 100 save slots + save files)
 
 * Japanese NEC PC-98 mode emulation
 
@@ -58,6 +58,8 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 * Support for IDE interfaces and improved Windows 3.x/9x emulation
 
 * Support for long filenames and FAT32 disk images (DOS 7+ features)
+
+* Support for pixel-perfect scaling output for improved image quality
 
 * Support for TrueType font (TTF) output for text-mode DOS programs
 
