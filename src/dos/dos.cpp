@@ -1890,8 +1890,15 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x5e:                  /* Network and printer functions */
             if (reg_al == 0 && !control->SecureMode() && enable_network_redirector) {	// Get machine name
+#if defined(WIN32)
+                DWORD size = DOSNAMEBUF;
+                GetComputerName(name1, &size);
+                if (size)
+#else
                 int result = gethostname(name1, DOSNAMEBUF);
-                if (!result) {
+                if (!result)
+#endif
+                {
                     strcat(name1, "               ");									// Simply add 15 spaces
                     if (!strcmp(RunningProgram, "4DOS") || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
                         name1[16] = 0;
