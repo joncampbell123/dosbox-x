@@ -74,7 +74,9 @@ UINT32 texrgb[256*256];
 /* texture address map */
 std::map <const UINT32, ogl_texmap> textures[2];
 
-void GFX_PreventFullscreen(bool lockout);
+bool Direct3D_using(void);
+void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output);
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
 
 int Voodoo_OGL_GetWidth() {
 	if (v != NULL)
@@ -1672,6 +1674,8 @@ void voodoo_ogl_reset_videomode(void) {
     GFX_ForceFullscreenExit();
 
 #if defined(C_SDL2)
+    GFX_SetResizeable(false);
+    sdl.window = GFX_SetSDLWindowMode((int)v->fbi.width, (int)v->fbi.height, SCREEN_OPENGL);
     if (sdl.window != NULL) ogl_surface = SDL_GetWindowSurface(sdl.window);
 	if (ogl_surface == NULL)
 		E_Exit("VOODOO: opengl init error");
@@ -1883,6 +1887,12 @@ void voodoo_ogl_leave(bool leavemode) {
         ogl_surface = NULL;
         GFX_PreventFullscreen(false);
         GFX_RestoreMode();
+#if defined(C_SDL2)
+        if (Direct3D_using()) {
+            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
+            change_output(6);
+        }
+#endif
     }
 }
 

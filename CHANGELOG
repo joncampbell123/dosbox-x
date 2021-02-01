@@ -1,9 +1,4 @@
 0.83.10
-  - 3dfx games can now work with the Glide passthrough
-    feature when a guest system (guest DOS or Windows
-    9x) is currently running. The default setting for
-    config option "keep private area on boot" in [dos]
-    section is changed from "false" to "auto". (Wengier)
   - The Window key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and "meta"
@@ -157,9 +152,13 @@
   - Fixed large ISO images (>2GB) unable to be mounted
     using IMGMOUNT command. (Wengier)
   - Fixed build failure on Gentoo Linux. (fonic)
-  - Improved the speed of the internal Voodoo hardware
-    emulation for running games like Tomb Raider 3dfx
-    when using the Direct3D output. (Wengier)
+  - 3dfx games can now work with the Glide passthrough
+    feature when a guest system (guest DOS or Windows
+    9x) is currently running. The default setting for
+    config option "keep private area on boot" in [dos]
+    section is changed from "false" to "auto". (Wengier)
+  - Improved the speed of the Voodoo hardware emulation
+    for running games like Tomb Raider 3dfx. (Wengier)
   - Improved OPL3Duo support, such as adding a buffer
     thread to get rid of slowdowns & breakups in audio
     playback when using the board. (DhrBaksteen)
