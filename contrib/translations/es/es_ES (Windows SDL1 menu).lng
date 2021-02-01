@@ -1,7 +1,7 @@
 :NE2000_CONFIGFILE_HELP
 macaddr -- La direcci¢n fisica que usar  el emulador dentro de tu red.
            Si tienes varios Dosbox abiertos en tu propia red, tienes
-           que cambiarla. Modifica los tres £ltimos bloques de digitos.
+           que cambiarla. Modifica los tres ultimos bloques de digitos.
            E.j. AC:DE:48:88:99:AB.
 realnic -- Especifica el interfaz de red real a utilizar.
            Escribe 'list' aqui para ver la lista de adaptadores en la
@@ -16,7 +16,7 @@ Puedes poner tus l¡neas MOUNT aqui.
 
 .
 :CONFIGFILE_INTRO
-# Este es el archivo de configuraci¢n de DOSBox-X %s. (Usa la £ltima versi¢n si puedes)
+# Este es el archivo de configuraci¢n de DOSBox-X %s. (Usa la £ltima version si puedes)
 # Las l¡neas que empiezan por # son l¡neas de comentarios y son ignoradas por DOSBox-X.
 # Estas l¡neas se usan para documentar (brevemente) el efecto de cada opcion.
 # Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.
@@ -24,9 +24,6 @@ Puedes poner tus l¡neas MOUNT aqui.
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
-.
-:EMPTY_SLOT
-Slot vac¡o
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 No existe tal secci¢n o propiedad.
@@ -184,7 +181,7 @@ Controlador no instalado.
 
 .
 :PROGRAM_MOUSE_HELP
-Enciende/apaga el rat¢n.
+Enciende/apaga el raton.
 
 MOUSE [/?] [/U] [/V]
   /U: Desinstala de la memoria
@@ -495,13 +492,13 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	como unidad C: y ejecutara nombre.
 
 [33;1m  -exit[0m
-	DOSBox-X se cerrar  por si mismo cuando la aplicaci¢n DOS termine.
+	DOSBox-X se cerrar  por si mismo cuando la aplicacion DOS termine.
 
 [33;1m  -version[0m
-	Muestra la informaci¢n de versi¢n y se sale. Util para los frontends.
+	Muestra la informaci¢n de version y se sale. Util para los frontends.
 
 [33;1m  -fastlaunch[0m
-	Habilita el modo de ejecucion r pida (salta BIOS/LOGO/BIENVENIDA).
+	Habilita el modo de ejecucion rapida (salta BIOS/LOGO/BIENVENIDA).
 
 [33;1m  -fullscreen[0m
 	Inicia DOSBox-X a pantalla completa.
@@ -520,10 +517,10 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	El resultado se redirige a stdout.txt ystderr.txt
 
 [33;1m  -machine[0m machinetype
-	Configura DOSBox-X para emular un tipo de m quina. Opciones v lidas:
+	Configura DOSBox-X para emular un tipo de maquina. Opciones validas:
 	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
 	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (por defecto).
-	El tipo de m quina afecta a las tarjetas de sonido y de gr ficos.
+	El tipo de maquina afecta a las tarjetas de sonido y de gr ficos.
 
 .
 :PROGRAM_INTRO_USAGE_3
@@ -536,12 +533,12 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 [33;1m  -c[0m    command
 	Ejecuta el comando especificado antes de ejecutar nombre. 
-	M£ltiples ordenes se pueden indicar. Cada una debe empezar con -c.
+	Multiples ordenes se pueden indicar. Cada una debe empezar con -c.
 	Un comando puede ser: un programa, comando DOS u otro ejecutable.
 
 [33;1m  -set[0m  <section property=value>
 	Establece la opcion de config (ignorando el archivo de configuraci¢n).
-	M£ltiples opciones pueden indicarse. Cada una deberia empezar con -set.
+	Multiples opciones pueden indicarse. Cada una deberia empezar con -set.
 
 .
 :PROGRAM_INTRO_INFO
@@ -552,7 +549,7 @@ Para informaci¢n del soporte CD-ROM, teclee [34;1mintro cdrom[0m
 Para informaci¢n de teclas especiales, teclee [34;1mintro special[0m
 Para informaci¢n de uso, teclee [34;1mintro usage[0m
 
-Para la £ltima versi¢n de DOSBox-X, visita el sitio de Github:[34;1m
+Para la £ltima version de DOSBox-X, visita el sitio de Github:[34;1m
 
 [34;1mhttps://github.com/joncampbell123/dosbox-x[0m
 
@@ -643,7 +640,7 @@ Archivo de imagen esta en modo solo-lectura! Arranca en modo protegido.
 Este comando arranca DOSBox-X desde una imagen de disquete o de disco duro.
 
 Para este comando, puedes especificar una sucesion de disquetes intercambiables
-por el comando de men£, y drive: indica la unidad montada de la que arrancar.
+por el comando de menu, y drive: indica la unidad montada de la que arrancar.
 Si no se indica, por defecto se arranca de la unidad A.
 Las unicas letras de unidad soportadas son A, C, y D. Para iniciar de un disco duro
 (C o D), asegurate de que la imagen ya este montada antes con la orden [34;1mIMGMOUNT[0m.
@@ -678,7 +675,7 @@ No puedo abrir %s
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-Cartucho de PCjr encontrado, pero la m quina no es un PCjr
+Cartucho de PCjr encontrado, pero la maquina no es un PCjr
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
 Comandos de cartucho PCjr disponibles:%s
@@ -705,7 +702,7 @@ Archivo ROM demasiado grande.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Video BIOS no soportada por este tipo de m quina.
+Video BIOS no soportada por este tipo de maquina.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
@@ -766,7 +763,7 @@ Debes especificar el n£mero de unidad (0 a %d) para montar la imagen en (0,1=fda
 Para imagenes [33mCD-ROM[0m:   [34;1mIMGMOUNT letra-unidad ubicacion-imagen -t iso [0m
 
 Para imagenes de [33mdisco duro[0m: Debes especificar la geometria de la imagen para los discos duros:
-bytes_por_sector, sectores_por_cilindro, cabezas_por_cilindro, n£mero_cilindros.
+bytes_por_sector, sectores_por_cilindro, cabezas_por_cilindro, numero_cilindros.
 [34;1mIMGMOUNT letra-unidad ubicacion-imagen -size bps,spc,hpc,cyl[0m
 
 .
@@ -776,7 +773,7 @@ Verifica que la ruta sea correcta y la imagen sea accesible.
 
 .
 :PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Archivos VHD din micos no soportados.
+Archivos VHD dinamicos no soportados.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -837,7 +834,7 @@ La imagen debe estar en un anfitri¢n o en una unidad local.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
-Usar m£ltiples archivos solo esta soportado para imagenes cue/iso.
+Usar multiples archivos solo esta soportado para imagenes cue/iso.
 
 .
 :PROGRAM_IMGMOUNT_HELP
@@ -1352,7 +1349,7 @@ SUBST: Hay un error en tu l¡nea de comando.
 
 [44;1mº[36mProyecto DOSBox-X en internet:[37m                                               º
 [44;1mº                                                                             º
-[44;1mº[32mp gina principal:  [37m [33mhttps://dosbox-x.com/           [36mEmulaci¢n DOS completa  [37m º
+[44;1mº[32mPagina principal:  [37m [33mhttps://dosbox-x.com/           [36mEmulaci¢n DOS completa  [37m º
 [44;1mº[32mWiki para usuarios:[37m [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x y 9x[37m    º
 [44;1mº[32mErrores e ideas:   [37m [33mhttps://github.com/joncampbell123/dosbox-x/issues    [37m    º
 [44;1mÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼[0m[1m[32m
@@ -1741,7 +1738,7 @@ Muestra o establece la versi¢n de DOS informada por DOSBox-X.
 VER [/R]
 VER [SET] n£mero o VER SET [mayor menor]
 
-  /R                 Muestra versi¢n GIT, commit y build de DOSBox-X.
+  /R                 Muestra version GIT, commit y build de DOSBox-X.
   [SET] n£mero       Establece la versi¢n informada de DOS.
   SET [mayor menor]  Establece la versi¢n de DOS en formato mayor o menor.
 
@@ -1752,7 +1749,7 @@ Teclea VER sin par metros para mostrar versi¢n de DOSBox-X y del DOS emulada.
 
 .
 :SHELL_CMD_VER_VER
-DOSBox-X versi¢n %s (%s). Version DOS informada %d.%02d.
+DOSBox-X version %s (%s). Version DOS informada %d.%02d.
 
 .
 :SHELL_CMD_VER_INVALID
@@ -1877,28 +1874,28 @@ Se aceptan las siguientes opciones:
 
 .
 :MENU:mapper_reset
-Reiniciar m quina virtual
+Reinicia maquina virtual
 .
 :MENU:mapper_reboot
-Reiniciar sistema invitado
+Reinicia sistema invitado
 .
 :MENU:mapper_loadmap
-Cargar archivo de mapeado...
+Carga archivo de mapeado...
 .
 :MENU:mapper_quickrun
-Inicio r pido de programa...
+Inicio rapido de programa...
 .
 :MENU:mapper_shutdown
 Salir
 .
 :MENU:mapper_capmouse
-Capturar rat¢n
+Capturar raton
 .
 :MENU:mapper_fullscr
 Pasar a pantalla completa
 .
 :MENU:mapper_fastedit
-Edicion r pida: Copiar texto al seleccionar y pegarlo
+Edicion rapida: Copiar texto al seleccionar y pegarlo
 .
 :MENU:mapper_copyall
 Copiar todo el texto de la ventana DOS
@@ -1910,10 +1907,10 @@ Pegar desde el portapapeles
 Dejar de pegar el portapapeles
 .
 :MENU:mapper_pause
-Pausar emulaci¢n
+Pausar emulacion
 .
 :MENU:mapper_gui
-Herramienta de configuraci¢n
+Herramienta de configuracion
 .
 :MENU:mapper_resetsize
 Restaurar ventana
@@ -1931,10 +1928,10 @@ Principal
 Enviar tecla especial
 .
 :MENU:MainHostKey
-Seleccionar tecla anfitri¢n
+Seleccionar tecla anfitrion
 .
 :MENU:WheelToArrow
-Comportamiento de la rueda del rat¢n
+Comportamiento de la rueda del raton
 .
 :MENU:SharedClipboard
 Funciones de portapapeles compartido 
@@ -1943,64 +1940,64 @@ Funciones de portapapeles compartido
 CPU
 .
 :MENU:CpuCoreMenu
-N£cleo de CPU (core)
+Nucleo de CPU (core)
 .
 :MENU:CpuTypeMenu
-Tipo de CPU emulada
+Tipo de CPU
 .
 :MENU:CpuSpeedMenu
 Velocidad de la CPU emulada
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz    (~240 ciclos)
+8088 XT 4.77MHz (~240 ciclos)
 .
 :MENU:cpu286-8
-286 8MHz           (~750 ciclos)
+286 8MHz (~750 ciclos)
 .
 :MENU:cpu286-12
-286 12MHz          (~1510 ciclos)
+286 12MHz (~1510 ciclos)
 .
 :MENU:cpu286-25
-286 25MHz          (~3300 ciclos)
+286 25MHz (~3300 ciclos)
 .
 :MENU:cpu386-25
-386DX 25MHz        (~4595 ciclos)
+386DX 25MHz (~4595 ciclos)
 .
 :MENU:cpu386-33
-386DX 33MHz        (~6075 ciclos)
+386DX 33MHz (~6075 ciclos)
 .
 :MENU:cpu486-33
-486DX 33MHz        (~12010 ciclos)
+486DX 33MHz (~12010 ciclos)
 .
 :MENU:cpu486-66
-486DX2 66MHz       (~23880 ciclos)
+486DX2 66MHz (~23880 ciclos)
 .
 :MENU:cpu486-100
-486DX4 100MHz      (~33445 ciclos)
+486DX4 100MHz (~33445 ciclos)
 .
 :MENU:cpu486-133
-486DX5 133MHz      (~47810 ciclos)
+486DX5 133MHz (~47810 ciclos)
 .
 :MENU:cpu586-60
-Pentium 60MHz      (~31545 ciclos)
+Pentium 60MHz (~31545 ciclos)
 .
 :MENU:cpu586-66
-Pentium 66MHz      (~35620 ciclos)
+Pentium 66MHz (~35620 ciclos)
 .
 :MENU:cpu586-75
-Pentium 75MHz      (~43500 ciclos)
+Pentium 75MHz (~43500 ciclos)
 .
 :MENU:cpu586-90
-Pentium 90MHz      (~52000 ciclos)
+Pentium 90MHz (~52000 ciclos)
 .
 :MENU:cpu586-100
-Pentium 100MHz     (~60000 ciclos)
+Pentium 100MHz (~60000 ciclos)
 .
 :MENU:cpu586-120
-Pentium 120MHz     (~74000 ciclos)
+Pentium 120MHz (~74000 ciclos)
 .
 :MENU:cpu586-133
-Pentium 133MHz     (~80000 ciclos)
+Pentium 133MHz (~80000 ciclos)
 .
 :MENU:cpu586-166
 Pentium 166MHz MMX (~97240 ciclos)
@@ -2117,10 +2114,10 @@ HQ 2X
 HQ 3X
 .
 :MENU:scaler_set_advinterp2x
-Interpolaci¢n avanzada 2X
+Interpolacion avanzada 2X
 .
 :MENU:scaler_set_advinterp3x
-Interpolaci¢n avanzada 3X
+Interpolacion avanzada 3X
 .
 :MENU:scaler_set_2xsai
 2xSai
@@ -2168,7 +2165,7 @@ Activado
 Forzar
 .
 :MENU:vsync_host
-anfitri¢n
+Anfitrion
 .
 :MENU:vsync_off
 Desactivado
@@ -2177,7 +2174,7 @@ Desactivado
 Establecer tasa de sincronizacion
 .
 :MENU:VideoOverscanMenu
-Sobreexploraci¢n (overscan)
+Sobreexploracion (overscan)
 .
 :MENU:overscan_0
 Desactivado
@@ -2228,28 +2225,28 @@ Alta densidad: color de fondo
 Alta densidad: texto parpadeante
 .
 :MENU:line_80x25
-Pantalla: 80 columnas x 25 l¡neas
+Pantalla: 80 columnas x 25 lineas
 .
 :MENU:line_80x43
-Pantalla: 80 columnas x 43 l¡neas
+Pantalla: 80 columnas x 43 lineas
 .
 :MENU:line_80x50
-Pantalla: 80 columnas x 50 l¡neas
+Pantalla: 80 columnas x 50 lineas
 .
 :MENU:line_80x60
-Pantalla: 80 columnas x 60 l¡neas
+Pantalla: 80 columnas x 60 lineas
 .
 :MENU:line_132x25
-Pantalla: 132 columnas x 25 l¡neas
+Pantalla: 132 columnas x 25 lineas
 .
 :MENU:line_132x43
-Pantalla: 132 columnas x 43 l¡neas
+Pantalla: 132 columnas x 43 lineas
 .
 :MENU:line_132x50
-Pantalla: 132 columnas x 50 l¡neas
+Pantalla: 132 columnas x 50 lineas
 .
 :MENU:line_132x60
-Pantalla: 132 columnas x 60 l¡neas
+Pantalla: 132 columnas x 60 lineas
 .
 :MENU:VideoTTFMenu
 Opciones de TTF (fuentes)
@@ -2288,7 +2285,7 @@ Reloj GDC de 5 MHz
 Permitir efecto de l¡nea de escaneo (200 l¡neas)
 .
 :MENU:pc98_allow_4partitions
-Permitir 4 particiones de visualizaci¢n en capa grafica
+Permitir 4 particiones de visualizacion en capa grafica
 .
 :MENU:pc98_enable_egc
 Habilitar EGC
@@ -2297,10 +2294,10 @@ Habilitar EGC
 Habilitar GRCG
 .
 :MENU:pc98_enable_analog
-Habilitar pantalla anal¢gica
+Habilitar pantalla analogica
 .
 :MENU:pc98_enable_analog256
-Habilitar pantalla anal¢gica de 256 colores
+Habilitar pantalla analogica de 256 colores
 .
 :MENU:pc98_enable_188user
 Habilitar +188 celdas CG de usuario
@@ -2309,7 +2306,7 @@ Habilitar +188 celdas CG de usuario
 Limpiar capa de texto
 .
 :MENU:pc98_clear_graphics
-Limpiar capa de gr ficos
+Limpiar capa de graficos
 .
 :MENU:load_d3d_shader
 Seleccionar sombreador de pixel Direct3D...
@@ -2324,28 +2321,28 @@ Seleccionar sombreador fuente TrueType (TTF)...
 Sonido
 .
 :MENU:mixer_swapstereo
-Invertir est‚reo
+Invertir estereo
 .
 :MENU:mixer_mute
 Silenciar
 .
 :MENU:mixer_info
-Mostrar vol£menes del mezclador de sonido
+Mostrar volumenes del mezclador de sonido
 .
 :MENU:sb_info
-Mostrar configuraci¢n de Sound Blaster
+Mostrar configuracion de Sound Blaster
 .
 :MENU:midi_info
-Mostrar configuraci¢n de dispositivo MIDI
+Mostrar configuracion de dispositivo MIDI
 .
 :MENU:DOSMenu
 DOS
 .
 :MENU:DOSMouseMenu
-Emulaci¢n de rat¢n
+Emulacion de raton
 .
 :MENU:dos_mouse_enable_int33
-Emulaci¢n interna
+Emulacion interna
 .
 :MENU:dos_mouse_y_axis_reverse
 Invertir Eje Y
@@ -2354,7 +2351,7 @@ Invertir Eje Y
 Sensibilidad
 .
 :MENU:DOSVerMenu
-Versi¢n de DOS informada
+Version de DOS informada
 .
 :MENU:dos_ver_330
 3.30
@@ -2375,13 +2372,13 @@ Editar
 Soporte de nombres largos
 .
 :MENU:dos_lfn_auto
-Autom tico (definido por version informada de DOS)
+Automatico (definido por version informada de DOS)
 .
 :MENU:dos_lfn_enable
-Activar emulaci¢n de nombres de archivo largos
+Activar emulacion de nombres de archivo largos
 .
 :MENU:dos_lfn_disable
-Desactivar emulaci¢n de nombres de archivo largos
+Desactivar emulacion de nombres de archivo largos
 .
 :MENU:DOSPC98Menu
 Reloj maestro PIT PC-98
@@ -2396,25 +2393,25 @@ Reloj maestro PIT 5MHz/10MHz
 Memoria expandida (EMS)
 .
 :MENU:dos_ems_true
-Habilitar emulaci¢n de EMS
+Habilitar emulacion de EMS
 .
 :MENU:dos_ems_board
-Emulaci¢n de placa EMS
+Emulacion placa EMS
 .
 :MENU:dos_ems_emm386
-Emulaci¢n de EMM386
+Emulacion EMM386
 .
 :MENU:dos_ems_false
-Desactivar emulaci¢n de EMS
+Desactivar emulacion de EMS
 .
 :MENU:DOSWinMenu
-Aplicaciones anfitri¢n de Windows
+Aplicaciones anfitrion de Windows
 .
 :MENU:dos_win_autorun
-Iniciar para ejecutar en anfitri¢n Windows
+Iniciar para ejecutar en afitrion Windows
 .
 :MENU:dos_win_wait
-Esperar a la aplicaci¢n si es posible
+Esperar a la aplicacion si es posible
 .
 :MENU:dos_win_quiet
 Modo silencioso (sin mensajes de inicio)
@@ -2435,40 +2432,70 @@ MPEG-TS + H.264
 Opciones de Carga / Guardado
 .
 :MENU:saveslotmenu
-Seleccionar slot de guardado
+Escoge slot de guardado
 .
 :MENU:noremark_savestate
 Sin indicaciones al guardar estado
 .
 :MENU:force_loadstate
-Sin advertencias al cargar estado
+Sin advertencias al cargar el estado
 .
 :MENU:removestate
-Eliminar estado de slot actual
+Eliminar estado del slot seleccionado
 .
 :MENU:refreshslot
 Actualizar estado de pantalla
 .
 :MENU:usesavefile
-Guardar estado en un archivo
+Guardar estado en un archivo en lugar de un slot
 .
 :MENU:browsesavefile
 Examinar archivo guardado...
 .
 :MENU:current_page
-P gina de slots actual: 1/10
+Pagina de slots actual: 1/10
 .
 :MENU:prev_page
-P gina anterior de slots
+Pagina anterior de slots
 .
 :MENU:next_page
-P gina siguiente de slots
+Pagina siguiente de slots
 .
 :MENU:first_page
-Ir a primera p gina de slots
+Ir a primera pagina de slots
 .
 :MENU:last_page
-Ir a £ltima p gina de slots
+Ir a ultima pagina de slots
+.
+:MENU:slot0
+Slot 1 [Slot vacio]
+.
+:MENU:slot1
+Slot 2 [Slot vacio]
+.
+:MENU:slot2
+Slot 3 [Slot vacio]
+.
+:MENU:slot3
+Slot 4 [Slot vacio]
+.
+:MENU:slot4
+Slot 5 [Slot vacio]
+.
+:MENU:slot5
+Slot 6 [Slot vacio]
+.
+:MENU:slot6
+Slot 7 [Slot vacio]
+.
+:MENU:slot7
+Slot 8 [Slot vacio]
+.
+:MENU:slot8
+Slot 9 [Slot vacio]
+.
+:MENU:slot9
+Slot 10 [Slot vacio]
 .
 :MENU:DriveMenu
 Unidad
@@ -2489,7 +2516,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera 
 .
 :MENU:drive_A_mountfro
-Opci¢n: Montar carpeta solo lectura
+Opcion: Montar carpeta solo lectura
 .
 :MENU:drive_A_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2498,10 +2525,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_A_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_A_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_A_unmount
 Desmontar unidad
@@ -2513,7 +2540,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_A_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:drive_A_boot
 Arrancar desde unidad
@@ -2537,7 +2564,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_B_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_B_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2546,10 +2573,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_B_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_B_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_B_unmount
 Desmontar unidad
@@ -2561,7 +2588,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_B_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveC
 C
@@ -2579,7 +2606,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_C_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_C_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2588,10 +2615,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_C_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_C_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_C_unmount
 Desmontar unidad
@@ -2603,7 +2630,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_C_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:drive_C_boot
 Arrancar desde unidad
@@ -2627,7 +2654,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_D_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_D_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2636,10 +2663,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_D_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_D_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_D_unmount
 Desmontar unidad
@@ -2651,7 +2678,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_D_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:drive_D_boot
 Arrancar desde unidad
@@ -2675,7 +2702,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_E_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_E_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2684,10 +2711,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_E_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_E_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_E_unmount
 Desmontar unidad
@@ -2699,7 +2726,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_E_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveF
 F
@@ -2717,7 +2744,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_F_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_F_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2726,10 +2753,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_F_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_F_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_F_unmount
 Desmontar unidad
@@ -2741,7 +2768,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_F_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveG
 G
@@ -2759,7 +2786,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_G_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_G_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2768,10 +2795,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_G_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_G_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_G_unmount
 Desmontar unidad
@@ -2783,7 +2810,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_G_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveH
 H
@@ -2801,7 +2828,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_H_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_H_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2810,10 +2837,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_H_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_H_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_H_unmount
 Desmontar unidad
@@ -2825,7 +2852,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_H_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveI
 I
@@ -2843,7 +2870,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_I_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_I_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2852,10 +2879,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_I_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_I_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_I_unmount
 Desmontar unidad
@@ -2867,7 +2894,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_I_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveJ
 J
@@ -2885,7 +2912,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_J_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_J_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2894,10 +2921,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_J_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_J_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_J_unmount
 Desmontar unidad
@@ -2909,7 +2936,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_J_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveK
 K
@@ -2927,7 +2954,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_K_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_K_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2936,10 +2963,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_K_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_K_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_K_unmount
 Desmontar unidad
@@ -2951,7 +2978,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_K_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveL
 L
@@ -2969,7 +2996,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_L_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_L_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -2978,10 +3005,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_L_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_L_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_L_unmount
 Desmontar unidad
@@ -2993,7 +3020,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_L_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveM
 M
@@ -3011,7 +3038,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_M_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_M_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3020,10 +3047,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_M_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_M_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_M_unmount
 Desmontar unidad
@@ -3035,7 +3062,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_M_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveN
 N
@@ -3053,7 +3080,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_N_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_N_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3062,10 +3089,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_N_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_N_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_N_unmount
 Desmontar unidad
@@ -3077,7 +3104,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_N_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveO
 O
@@ -3095,7 +3122,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_O_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_O_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3104,10 +3131,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_O_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_O_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_O_unmount
 Desmontar unidad
@@ -3119,7 +3146,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_O_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveP
 P
@@ -3137,7 +3164,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_P_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_P_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3146,10 +3173,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_P_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_P_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_P_unmount
 Desmontar unidad
@@ -3161,7 +3188,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_P_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveQ
 Q
@@ -3179,7 +3206,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_Q_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_Q_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3188,10 +3215,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Q_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Q_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_Q_unmount
 Desmontar unidad
@@ -3203,7 +3230,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_Q_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveR
 R
@@ -3221,7 +3248,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_R_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_R_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3230,10 +3257,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_R_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_R_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_R_unmount
 Desmontar unidad
@@ -3245,7 +3272,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_R_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveS
 S
@@ -3263,7 +3290,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_S_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_S_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3272,10 +3299,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_S_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_S_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_S_unmount
 Desmontar unidad
@@ -3287,7 +3314,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_S_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveT
 T
@@ -3305,7 +3332,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_T_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_T_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3314,10 +3341,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_T_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_T_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_T_unmount
 Desmontar unidad
@@ -3329,7 +3356,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_T_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveU
 U
@@ -3347,7 +3374,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_U_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_U_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3356,10 +3383,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_U_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_U_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_U_unmount
 Desmontar unidad
@@ -3371,7 +3398,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_U_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveV
 V
@@ -3389,7 +3416,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_V_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_V_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3398,10 +3425,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_V_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_V_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_V_unmount
 Desmontar unidad
@@ -3413,7 +3440,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_V_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveW
 W
@@ -3431,7 +3458,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_W_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_W_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3440,10 +3467,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_W_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_W_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_W_unmount
 Desmontar unidad
@@ -3455,7 +3482,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_W_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveX
 X
@@ -3473,7 +3500,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_X_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_X_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3482,10 +3509,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_X_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_X_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_X_unmount
 Desmontar unidad
@@ -3497,7 +3524,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_X_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveY
 Y
@@ -3515,7 +3542,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_Y_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_Y_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3524,10 +3551,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Y_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Y_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_Y_unmount
 Desmontar unidad
@@ -3539,7 +3566,7 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_Y_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:DriveZ
 Z
@@ -3557,7 +3584,7 @@ Montar carpeta como CD
 Montar carpeta como disquetera
 .
 :MENU:drive_Z_mountfro
-Opci¢n: montar carpeta solo lectura
+Opcion: montar carpeta solo lectura
 .
 :MENU:drive_Z_mountarc
 Montar un fichero comprimido (Zip/7z)
@@ -3566,10 +3593,10 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Z_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Z_mountiro
-Opci¢n: montar imagenes solo lectura
+Opcion: montar imagenes solo lectura
 .
 :MENU:drive_Z_unmount
 Desmontar unidad
@@ -3581,16 +3608,16 @@ Volver a explorar la unidad
 Intercambiar disco
 .
 :MENU:drive_Z_info
-Informaci¢n de unidad
+Informacion de unidad
 .
 :MENU:HelpMenu
 Ayuda
 .
 :MENU:help_intro
-Introducci¢n
+Introduccion
 .
 :MENU:help_homepage
-p gina de DOSBox-X
+Pagina de DOSBox-X
 .
 :MENU:help_wiki
 Guia Wiki de DOSBox-X
@@ -3749,7 +3776,7 @@ Editor de mapeador
 Activar bloqueo de velocidad
 .
 :MENU:mapper_speedlock2
-Modo Turbo   (Avance r pido)
+Turbo (Avance rapido)
 .
 :MENU:mapper_speednorm
 Normal
@@ -3758,10 +3785,10 @@ Normal
 Acelerar
 .
 :MENU:mapper_slowdown
-Ralentizar
+Desacelerar
 .
 :MENU:mapper_editcycles
-Ajustar ciclos de CPU
+Editar ciclos
 .
 :MENU:mapper_savestate
 Guardar estado
@@ -3770,19 +3797,19 @@ Guardar estado
 Cargar estado
 .
 :MENU:mapper_showstate
-Mostrar informaci¢n de slot actual
+Mostrar informacion de estado del slot actual
 .
 :MENU:mapper_prevslot
-Seleccionar slot anterior
+Seleccionar slot de guardado anterior
 .
 :MENU:mapper_nextslot
-Seleccionar slot posterior
+Seleccionar slot de guardado posterior
 .
 :MENU:mapper_togmenu
-Mostrar / Ocultar barra de men£
+Mostrar / Ocultar barra de menu
 .
 :MENU:mapper_pauseints
-Pausar con interrupciones habilitadas
+Pausa con interrupciones habilitadas
 .
 :MENU:mapper_decfskip
 Disminuir salto de fotogramas
@@ -3791,7 +3818,7 @@ Disminuir salto de fotogramas
 Incrementar salto de fotogramas
 .
 :MENU:mapper_aspratio
-Ajustar a la relaci¢n de aspecto
+Ajustar a la relacion de aspecto
 .
 :MENU:mapper_recwave
 Grabar audio en WAV
@@ -3821,16 +3848,16 @@ Subir volumen
 Bajar volumen
 .
 :MENU:mapper_recvolup
-Subir volumen de grabaci¢n
+Subir volumen de grabacion
 .
 :MENU:mapper_recvoldown
-Bajar volumen de grabaci¢n
+Bajar volumen de grabacion
 .
 :MENU:mapper_sendkey_mapper
 Enviar tecla especial
 .
 :MENU:mapper_cycauto
-Ciclos autom ticos [m ximo]
+Ciclos automaticos [maximo]
 .
 :MENU:mapper_cycledown
 Bajar ciclos
@@ -3839,55 +3866,55 @@ Bajar ciclos
 Subir ciclos
 .
 :MENU:mapper_normal
-N£cleo normal
+Nucleo normal
 .
 :MENU:mapper_dynamic
-N£cleo din mico (x86)
+Nucleo dinamico (x86)
 .
 :MENU:mapper_simple
-N£cleo simple
+Nucleo simple
 .
 :MENU:mapper_full
-N£cleo completo
+Nucleo completo
 .
 :MENU:cputype_auto
-Autom tico
+Automatico
 .
 :MENU:cputype_8086
 8086
 .
 :MENU:cputype_8086_prefetch
-8086         (prefetch)
+8086 con prefetch
 .
 :MENU:cputype_80186
 80186
 .
 :MENU:cputype_80186_prefetch
-80186        (prefetch)
+80186 con prefetch
 .
 :MENU:cputype_286
 286
 .
 :MENU:cputype_286_prefetch
-286          (prefetch)
+286 con prefetch
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386          (prefetch)
+386 con prefetch
 .
 :MENU:cputype_486old
 486 (viejo)
 .
 :MENU:cputype_486old_prefetch
-486 (viejo)  (prefetch)
+486 (viejo) con prefetch
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486          (prefetch)
+486 con prefetch
 .
 :MENU:cputype_pentium
 Pentium
@@ -3899,7 +3926,7 @@ Pentium MMX
 Pentium Pro
 .
 :MENU:debug_pageflip
-Linea de depuracion de cambio de p gina (Page flip debug line)
+Linea de depuracion de cambio de pagina (Page flip debug line)
 .
 :MENU:debug_retracepoll
 Re-Rastrear linea de depuracion del poll (Retrace poll debug line)
@@ -3911,7 +3938,7 @@ Intercambiar disqueteras
 Intercambiar unidad de CD
 .
 :MENU:mapper_ejectpage
-Enviar salto de p gina (Form-feed)
+Enviar salto de pagina (Form-feed)
 .
 :MENU:mapper_rescanall
 Volver a escanear todas las unidades
@@ -3920,16 +3947,16 @@ Volver a escanear todas las unidades
 Definido por Mapeador: F11
 .
 :MENU:showdetails
-Mostrar FPS y velocidad RT en barra de t¡tulo
+Mostrar FPS y velocidad RT en barra de titulo
 .
 :MENU:auto_lock_mouse
-Autobloqueo de rat¢n
+Autobloqueo de raton
 .
 :MENU:clipboard_right
-Usando bot¢n derecho del rat¢n
+Usando boton derecho del raton
 .
 :MENU:clipboard_middle
-Usando bot¢n central del rat¢n
+Usando boton central del raton
 .
 :MENU:clipboard_arrows
 Usando cursores (Inicio=Start / Fin=End)
@@ -3947,7 +3974,7 @@ Habilitar la API del portapapeles DOS para aplicaciones
 Enviar tecla de logo
 .
 :MENU:sendkey_winmenu
-Enviar tecla de men£
+Enviar tecla de menu
 .
 :MENU:sendkey_alttab
 Enviar Alt+Tab
@@ -3965,10 +3992,10 @@ Enviar Ctrl+Alt+Supr
 Ctrl+Alt
 .
 :MENU:hostkey_ctrlshift
-Ctrl+May£sculas
+Ctrl+Mayusculas
 .
 :MENU:hostkey_altshift
-Alt+May£sculas
+Alt+Mayusculas
 .
 :MENU:sendkey_mapper_winlogo
 Mapeador "Enviar tecla especial": Tecla logo (Tecla Windows/Pi/Ubuntu)
@@ -3995,13 +4022,13 @@ Convertir a cursores arriba / abajo
 Convertir a cursores izquierda / derecha
 .
 :MENU:wheel_pageupdown
-Convertir a teclas RePag / AvPag
+Convertir a RePag / AvPag keys
 .
 :MENU:wheel_none
 No convertir a cursores
 .
 :MENU:wheel_guest
-Habilitar tambi‚n para sistemas invitados
+Habilitar tambien para sistemas invitados
 .
 :MENU:doublebuf
 Bufer doble a pantalla completa
@@ -4013,23 +4040,23 @@ Siempre por encima
 Habilitar High DPI
 .
 :MENU:sync_host_datetime
-Sincronizar fecha y hora con anfitri¢n
+Sincronizar fecha y hora con anfitrion
 .
 :MENU:shell_config_commands
-Opciones de configuraci¢n como comandos
+Opciones de config como comandos
 .
 :MENU:quick_reboot
-Habilitar reinicio r pido
+Habilitar reinicio rapido
 .
 :MENU:make_diskimage
 Crear imagen de disco en blanco...
 .
 :MENU:list_drivenum
-Mostrar n£mero de las unidades montadas
+Mostrar numeros de unidades montadas
 .
 :MENU:list_ideinfo
-Mostrar estado de disco IDE o CD
+Mostrar estado de disco IDE disk o CD
 .
 :MENU:pc98_use_uskb
-Usar distribuci¢n de teclado US
+Usar distribucion de teclado US
 .

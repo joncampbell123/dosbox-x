@@ -42,9 +42,9 @@ If you prefer to use one of the portable packages, please select the zip package
 
 ## Linux Packages (RPM or Flatpak)
 
-(To be updated for version 0.83.10)
-
 Both RPM and Flatpak packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
+
+(RPM package to be updated for version 0.83.10)
 
 The standard RPM package is available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") platforms:
 
@@ -60,7 +60,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug build if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). In such case you probably want to use the Flatpak package, which works independent of your Linux distribution.
 
-Flatpak packages are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.9 the Linux Flatpak is available from:
+Flatpak packages are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.10 the Linux Flatpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
@@ -90,8 +90,14 @@ Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), wh
 
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.10, the official macOS packages are available as zip packages:
 
+Signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
+
+* [dosbox-x-macosx-0.83.10-bin64.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-macosx-0.83.10-bin64.zip)
+
+Or you can get unsigned 64-bit Intel-based and 64-bit ARM-based macOS packages separately:
+
 For 64-bit Intel-based macOS:
-* [osbox-x-macosx-x86_64-20210131230837.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-macosx-x86_64-20210131230837.zip)
+* [dosbox-x-macosx-x86_64-20210131230837.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-macosx-x86_64-20210131230837.zip)
 
 For 64-bit ARM-based macOS:
 * [dosbox-x-macosx-arm64-20210131233809.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-macosx-arm64-20210131233809.zip)
@@ -113,13 +119,13 @@ Besides Windows, Linux and macOS packages, there are also packages released for 
 
 For the current DOSBox-X version 0.83.10, the official DOS version is available in the following zip package:
 
-* [osbox-x-mingw-hx-dos-20210131223526.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-mingw-hx-dos-20210131223526.zip)
+* [dosbox-x-mingw-hx-dos-20210131223526.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-mingw-hx-dos-20210131223526.zip)
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.9 using this approach is available from (to be updated for 0.83.10):
+Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.10 using this approach is available from:
 
-* [dosbox-x-dos-0.83.9-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.9/dosbox-x-dos-0.83.9-loadlin.zip)
+* [dosbox-x-dos-0.83.10-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-dos-0.83.10-loadlin.zip)
 
 With this LOADLIN DOS package you can even run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 
