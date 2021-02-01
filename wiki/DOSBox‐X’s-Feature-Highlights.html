@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>DOSBox‐X’s Feature Highlights</title>
+<title>DOSBox-X’s Feature Highlights</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_dosboxxs_feature_highlights">DOSBox‐X’s Feature Highlights</h2>
+<h2 id="_dosbox_xs_feature_highlights">DOSBox-X’s Feature Highlights</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X&#8217;s unique features include:</p>
@@ -458,13 +458,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>GUI drop-down menu for easier usage</strong></p>
 <div class="paragraph">
-<p>DOSBox-X features a drop-down menu system so that you can do many things from the GUI menu instead of typing commands or so.</p>
+<p>DOSBox-X features a drop-down menu system so that you can do many things from the GUI menu instead of typing commands or so. The menu can also be toggled on and off.</p>
 </div>
 </li>
 <li>
 <p><strong>Built-in graphical configuration tool</strong></p>
 <div class="paragraph">
-<p>You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file.</p>
+<p>You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file (you can use either way).</p>
 </div>
 </li>
 <li>
@@ -474,9 +474,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Automatic drive mounting (Windows only)</strong></p>
+<p><strong>Automatic image file and drive mounting</strong></p>
 <div class="paragraph">
-<p>DOSBox-X will automatically let you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.</p>
+<p>For image files, DOSBox-X allows you to mount them automatically without specifying additional options such as -size and -t. And for drive mounting on Windows, DOSBox-X automatically asks you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.</p>
 </div>
 </li>
 <li>
@@ -554,7 +554,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for the mounting ZIP/7Z archives as drives</strong></p>
 <div class="paragraph">
-<p>You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly, which will operate in read-only mode.</p>
+<p>You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly. They will operate in read+write mode with overlay mounts.</p>
 </div>
 </li>
 <li>
@@ -594,9 +594,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>Support for file-locking and record-locking functions </strong></p>
+<div class="paragraph">
+<p>DOSBox-X supports the DOS SHARE functions, which provides file-locking and record-locking for networked environments, especially on the Windows platform. This may be very important for usages such as networked DOS database applications. Hint: you probably want to set "nocachedir=true" and "file access tries=3" for this.</p>
+</div>
+</li>
+<li>
 <p><strong>Support for clipboard text selection, copy and paste</strong></p>
 <div class="paragraph">
-<p>With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special DOS device for it. Some clipboard functions are only supported for Windows systems. Look at the <a href="Guide%3AClipboard-support-in-DOSBox‐X">Clipboard support in DOSBox-X</a> guide page for more information.</p>
+<p>With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or middle), the arrow keys, or using a special DOS device for it. Some clipboard functions are only supported for Windows systems. Look at the <a href="Guide%3AClipboard-support-in-DOSBox‐X">Clipboard support in DOSBox-X</a> guide page for more information.</p>
 </div>
 </li>
 <li>
@@ -684,9 +690,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Support for advanced OpenGL features such as OpenGL-HQ and GLSL shaders</strong></p>
+<p><strong>Support for pixel-perfect scaling video mode</strong></p>
 <div class="paragraph">
-<p>Advanced OpenGL features including OpenGL-HQ and GLSL shaders are supported by DOSBox-X, and you can use for example the pixel-perfect shader for OpenGL outputs.</p>
+<p>DOSBox-X supports the pixel-perfect scaling as an output option (output=openglpp), which improves the video image quality.</p>
+</div>
+</li>
+<li>
+<p><strong>Support for loading OpenGL shaders either at start or dynamically</strong></p>
+<div class="paragraph">
+<p>The OpenGL (GLSL) shaders are fully supported by DOSBox-X for OpenGL outputs, and you can in fact load or change them dynamically in addition to loading them at start.</p>
 </div>
 </li>
 <li>
@@ -723,7 +735,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-19 00:52:47 -0500
+Last updated 2021-02-01 05:22:20 -0500
 </div>
 </div>
 </body>

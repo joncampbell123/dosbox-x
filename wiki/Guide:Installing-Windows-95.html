@@ -466,11 +466,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
-<li><a href="#_general_installation_notes">General installation Notes</a>
-<ul class="sectlevel1">
+<li><a href="#_general_installation_notes">General installation Notes</a></li>
+<li><a href="#_dynamic_vs_normal_core">Dynamic vs Normal core</a></li>
 <li><a href="#_creating_a_harddisk_image">Creating a Harddisk image</a></li>
-</ul>
-</li>
 <li><a href="#_installation_method">Installation Method</a>
 <ul class="sectlevel1">
 <li><a href="#_requirements">Requirements</a></li>
@@ -481,6 +479,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_booting_windows_95_after_installation">Booting Windows 95 after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after Installation</a></li>
+<li><a href="#_mounting_cd_or_diskette_images">Mounting CD or Diskette images</a></li>
 <li><a href="#_enabling_networking">Enabling networking</a></li>
 <li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a></li>
 <li><a href="#_emulated_sound_card">Emulated sound card</a>
@@ -594,22 +593,22 @@ autolock=true
 [dosbox]
 title=Windows 95
 memsize=64
+
+[video]
 vmemsize=8
 vesa modelist width limit=0
 vesa modelist height limit=0
 
 [dos]
-# Set this to 7.1 if using Win95 OSR2 or later
+# Set 'ver=7.1' if using Win95 OSR2 (95B) or later
 ver=7.0
 
 [cpu]
 cputype=pentium_mmx
 core=normal
-cycles=60000
 
 [sblaster]
 sbtype=sb16vibra
-irq=5
 
 [ne2000]
 # If you want networking in Windows, set ne2000=true.
@@ -619,7 +618,6 @@ nicirq=10
 realnic=list
 
 [fdc, primary]
-int13fakeio=true
 int13fakev86io=true
 
 [ide, primary]
@@ -627,6 +625,7 @@ int13fakeio=true
 int13fakev86io=true
 
 [ide, secondary]
+int13fakeio=true
 int13fakev86io=true
 cd-rom insertion delay=4000
 
@@ -645,10 +644,10 @@ scaler=none
 <div class="ulist">
 <ul>
 <li>
-<p>If using Windows 95 OSR2 with FAT32 volumes, be sure to change the DOS version to 7.1 (<code>ver=7.1</code> or from the DOSBox-X prompt: <code>ver set 7.1</code>) or else you will get errors mounting the FAT32 volume</p>
+<p>If using Windows 95 OSR2 (or later) with FAT32 volumes, be sure to change the DOS version to 7.1 (<code>ver=7.1</code> or from the DOSBox-X prompt: <code>ver set 7.1</code>) or else you will get errors mounting the FAT32 volume.</p>
 </li>
 <li>
-<p>While Windows 95 should support up to 2048MB RAM, in reality more then 480MB can cause problems, as such <code>memsize=480</code> is the largest safe value.</p>
+<p>You can increase the allocated RAM up to 480MB by setting <code>memsize=480</code>. Larger values may be possible with tweaks, but are not covered here.</p>
 </li>
 <li>
 <p>The <code>[autoexec]</code> section will need lines added later.</p>
@@ -663,12 +662,6 @@ scaler=none
 </li>
 </ul>
 </div>
-</li>
-<li>
-<p>Setting <code>cycles=60000</code> gives significantly better video and disk performance, but slightly worse CPU performance compared to <code>cycles=auto</code> or <code>cycles=max</code>.</p>
-</li>
-<li>
-<p>Do not change the <code>core=normal</code> setting. In particular the dynamic core, while generally faster, is incompatible with Windows 95 non-recursive page fault handling, and will cause stability problems and crashes such as General Protection Faults (GPF).</p>
 </li>
 </ul>
 </div>
@@ -698,21 +691,64 @@ scaler=none
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_creating_a_harddisk_image">Creating a Harddisk image</h2>
-<div class="sectionbody">
+<h1 id="_dynamic_vs_normal_core" class="sect0">Dynamic vs Normal core</h1>
+<div class="openblock partintro">
+<div class="content">
 <div class="paragraph">
-<p>Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+<p>Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows 95.</p>
+</div>
+<div class="paragraph">
+<p>However, for now we still recommend that you do the installation of Windows 95 using <code>core=normal</code> until issue <a href="https://github.com/joncampbell123/dosbox-x/issues/2215">#2215</a> is resolved.</p>
+</div>
+<div class="paragraph">
+<p>But after the installation is finished you should be able to change to <code>core=dynamic_x86</code>.</p>
+</div>
+<div class="paragraph">
+<p>Should you run into problems such as application crashes or a Windows 95 blue-screen that cannot be reproduced with <code>core=normal</code>,  please report the problem on the DOSBox-X Git <a href="https://github.com/joncampbell123/dosbox-x/issues">issues</a> page.</p>
+</div>
+<div class="paragraph">
+<p>One known issue is that opening a DOS window in Windows 95 will cause a crash when not using <code>core=normal</code>.</p>
+</div>
+</div>
+</div>
+<h1 id="_creating_a_harddisk_image" class="sect0">Creating a Harddisk image</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
-This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.</p>
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>The <code>IMGMAKE</code> command supports creating diskette or harddisk images with FAT12, FAT16 or FAT32 filesystems.
-Harddisk images greater than 2GB are always created with the FAT32 filesystem.
-If your reported DOS version is set to 7.10 or greater, then harddisk images of 512MB or greater are also created as FAT32.</p>
+<p>Some quick rules about IMGMAKE (for more detail, see: <a href="Guide%3AManaging-image-files-in-DOSBox%E2%80%90X">Guide: Managing image files in DOSBox-X</a>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Diskette (floppy) images are always created as FAT12</p>
+</li>
+<li>
+<p>If your reported DOS version is 7.0 or lower, then harddisk images up to 2GB will use FAT16 by default</p>
+</li>
+<li>
+<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default</p>
+</li>
+<li>
+<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Alternatively, you can use the <code>-fat</code> option to instruct <code>IMGMAKE</code> to create a certain FAT type (assuming that is possible for the FAT type).</p>
+<p>Alternatively, you can use the <code>-fat</code> option to instruct <code>IMGMAKE</code> to create a certain FAT type (assuming that is possible for the harddisk size).</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -727,7 +763,7 @@ Only <strong>Windows 95 OSR2</strong> or later supports FAT32, for older Windows
 </table>
 </div>
 <div class="paragraph">
-<p>First you need to start DOSBox-X from the command-line, using the newly created win95.conf.
+<p>First you need to start DOSBox-X from the command-line, using your newly created win95.conf.
 This assumes that dosbox-x is in your path and win95.conf is in your current directory.</p>
 </div>
 <div class="literalblock">
@@ -752,11 +788,16 @@ Technically the FAT32 filesystem is capable of supporting partitions up to 2TB, 
 Larger partition sizes may be possible with 3rd party drivers, but are not covered here.</p>
 </div>
 <div class="paragraph">
-<p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and exFAT.</p>
+<p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd_8gig</pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384MB) disk.</p>
+This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -769,7 +810,7 @@ This is an example of a 16GB (16*1024=16384MB) disk.</p>
 <div class="openblock partintro">
 <div class="content">
 Other installation methods are possible than the one described below.
-It is however considered to be the quickest method with the least amount of steps.
+This method is however considered to be the quickest one with the least amount of steps.
 </div>
 </div>
 <div class="sect1">
@@ -778,7 +819,7 @@ It is however considered to be the quickest method with the least amount of step
 <div class="ulist">
 <ul>
 <li>
-<p>DOSBox-X 0.83.3 or later, it will NOT work with earlier versions or other DOSBox forks.</p>
+<p>DOSBox-X 0.83.10 or later, these instructions will NOT work with other DOSBox forks.</p>
 </li>
 <li>
 <p>Windows 95 CD-ROM image (named "Win95.iso" in the example below).</p>
@@ -786,7 +827,7 @@ It is however considered to be the quickest method with the least amount of step
 </ul>
 </div>
 <div class="paragraph">
-<p>Getting the image file is outside the scope of this guide.</p>
+<p>Getting this image file is outside the scope of this guide.</p>
 </div>
 </div>
 </div>
@@ -794,7 +835,7 @@ It is however considered to be the quickest method with the least amount of step
 <h2 id="_starting_the_installation">Starting the installation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you have already started DOSBox-X with the win95.conf config file and created your harddisk image.</p>
+<p>This assumes you have already started DOSBox-X with the win95.conf config file, and created your harddisk image.</p>
 </div>
 <div class="paragraph">
 <p>First mount the harddisk image you created earlier:</p>
@@ -834,7 +875,8 @@ FAT32 volumes are only supported if your installing <strong>Windows 95 OSR2</str
 <h2 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file), it is recommended to copy the installation files (contents of the WIN95 directory on the CD-ROM) to your HDD image, as it will prevent Windows 95 from asking for the CD-ROM when it needs additional files later.</p>
+<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+It is recommended to copy the installation files (contents of the WIN95 directory on the CD-ROM) to your HDD image, as it will prevent Windows 95 from asking for the CD-ROM when it needs additional files later.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -844,7 +886,8 @@ FAT32 volumes are only supported if your installing <strong>Windows 95 OSR2</str
 <div class="paragraph">
 <p>The files in the above example are copied to the C:\WIN95 directory.
 You may want to use "C:\WINDOWS\OPTIONS\CABS" instead, as that is the directory that OEM installs normally use.
-But if you do, be aware that the installer will attempt to install into C:\WINDOWS.000 as C:\WINDOWS already exists. You will want to change this back to "C:\WINDOWS".</p>
+But if you do, be aware that the installer will attempt to install into C:\WINDOWS.000 as C:\WINDOWS already exists.
+You will want to change this back to "C:\WINDOWS".</p>
 </div>
 </div>
 </div>
@@ -852,7 +895,7 @@ But if you do, be aware that the installer will attempt to install into C:\WINDO
 <h2 id="_running_setup_exe">Running SETUP.EXE</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>We can now run SETUP.EXE.</p>
+<p>You can now run SETUP.EXE.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -863,7 +906,8 @@ SETUP</pre>
 </div>
 <div class="paragraph">
 <p>Now run through the install process, until it reboots and your back at the DOSBox-X <code>Z:\</code> prompt.
-At this point close DOSBox-X, and edit your win95.conf config file. At the end of the file, in the [autoexec] section, add the following two lines:</p>
+At this point close DOSBox-X, and edit your win95.conf config file.
+At the end of the file, in the [autoexec] section, add the following two lines:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -933,7 +977,32 @@ This is also the command you use, after the installation is finished, to start W
 </ul>
 </div>
 <div class="paragraph">
-<p><a href="https://msfn.org/board/topic/176623-last-versions-of-software-for-windows-95/">Forum thread about: Last versions of software for Windows 95</a></p>
+<p>This may also be of interest: <a href="https://msfn.org/board/topic/176623-last-versions-of-software-for-windows-95/">Forum thread about: Last versions of software for Windows 95</a></p>
+</div>
+</div>
+</div>
+<h1 id="_mounting_cd_or_diskette_images" class="sect0">Mounting CD or Diskette images</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to a OS booted in DOSBox-X.
+But only if the image files are specified before starting real DOS or Windows 9x.
+The option to load image files from the menu bar becomes unavailable the moment you boot DOS or Win9x in DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>This is a known limitation that hopefully will be resolved in the near future.</p>
+</div>
+<div class="paragraph">
+<p>For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT A disk1.img disk2.img disk3.img
+IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then swap between disk images with the swap option from the menu.</p>
 </div>
 </div>
 </div>
@@ -941,8 +1010,12 @@ This is also the command you use, after the installation is finished, to start W
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>If you enabled NE2000 support in the DOSBox-X config file, you will probably want to enable TCP/IP.
-Go to "Start", "Settings" and "Control Panel" and double-click on "Network".
+<p>If you enabled NE2000 support in the DOSBox-X config file, and Windows 95 did not detect the adapter, go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
+It should find the emulated Novell NE2000 adapter, and install the drivers.
+You will probably also want to enable the TCP/IP protocol, as by default only support for Novel IPX/SPX will be enabled.</p>
+</div>
+<div class="paragraph">
+<p>In Windows 95, go to "Start", "Settings" and "Control Panel" and double-click on "Network".
 On the Configuration tab, you should see a "NE2000 Compatible" network adapter listed.</p>
 </div>
 <div class="paragraph">
@@ -956,7 +1029,7 @@ Now click the Add button, and select "Protocol" and click "Add&#8230;&#8203;".
 In the "Select Network Protocol" window, select "Microsoft" as the Manufacturer and "TCP/IP" as the protocol, and click OK.</p>
 </div>
 <div class="paragraph">
-<p>By default it will try to get it&#8217;s network configuration over DHCP, if you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.</p>
+<p>By default, it will try to get it&#8217;s network configuration over DHCP, which should work in most cases. If you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.</p>
 </div>
 <div class="paragraph">
 <p>Once your finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
@@ -976,8 +1049,9 @@ After the reboot you should have working TCP/IP networking.</p>
 </div>
 <div class="paragraph">
 <p>If you installed Windows 95 RTM (original release), or Windows 95 OSR1 (aka Win95A), there is a newer S3 video driver with additional supported resolutions.
-This video driver is v2.02.04 and dated April 18 1996.
+This video driver is v2.02.04 and dated April 18, 1996.
 It can typically be found online as w9520204.zip.
+This update however does not add support for 8MB video RAM, or wide-screen video modes.
 If you installed Windows 95 OSR2 or later, you already have the latest video driver installed.</p>
 </div>
 <div class="paragraph">
@@ -986,7 +1060,7 @@ If you installed Windows 95 OSR2 or later, you already have the latest video dri
 <div class="ulist">
 <ul>
 <li>
-<p>No real S3 Trio64 was ever produced with more then 4MB video memory, under DOSBox-X you can optionally configure 8MB.</p>
+<p>No real S3 Trio64 was ever produced with more than 4MB video memory, under DOSBox-X you can optionally configure 8MB.</p>
 </li>
 <li>
 <p>The real cards never supported wide-screen resolutions, wide-screen VESA modes can optionally be enabled in DOSBox-X.</p>
@@ -994,11 +1068,12 @@ If you installed Windows 95 OSR2 or later, you already have the latest video dri
 </ul>
 </div>
 <div class="paragraph">
-<p>However, these enhancements cannot be used in Windows 95 with the S3 video driver due to driver limitations. As such you will be limited to 640x480 in 32bit colour, 1024x768 in 16bit colour or 1280x1024 in 8bit (256) colour.</p>
+<p>However, these enhancements cannot be used in Windows 95 with the S3 video driver due to driver limitations.
+As such you will be limited to 640x480 in 32bit colour, 1024x768 in 16bit colour or 1280x1024 in 8bit (256) colour.</p>
 </div>
 <div class="paragraph">
 <p>These restrictions can be overcome by switching to the <a href="https://bearwindows.zcm.com.au/vbe9x.htm">Universal VESA/VBE Video Display Driver (VBEMP)</a>.
-First add the following lines to your DOSBox-X config file in the [dosbox] section:</p>
+First add the following lines to your DOSBox-X config file in the [video] section:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1035,13 +1110,19 @@ Using the VBEMP driver does have a negative graphics performance impact, which w
 This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.</p>
 </div>
-<div class="paragraph">
-<p>One often heard complaint of the real SB16 Vibra is the CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+One often heard complaint of the real SB16 Vibra is the CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
 However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the SB16 Vibra do not apply to DOSBox-X.</p>
-</div>
-<div class="paragraph">
-<p>However, for Windows 95 it is necessary to force the IRQ to 5 to prevent Window from complaining about a (non-existent) resource conflict.</p>
+Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>An optional driver <a href="http://vogonsdrivers.com/getfile.php?fileid=50&amp;menustate=0">update to 4.38.14</a> is available on the VOGONS Vintage Driver Library (ignore that the download claims it is for Windows 98, the update is for both Windows 95 and 98).</p>
@@ -1131,7 +1212,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-19 00:52:47 -0500
+Last updated 2021-02-01 05:22:20 -0500
 </div>
 </div>
 </body>

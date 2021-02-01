@@ -497,7 +497,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Printer options in the DOSBox-X config file are split over two sections, <code>[parallel]</code> and <code>[printer]</code>.</p>
 </div>
 <div class="paragraph">
-<p>The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson <a href="https://en.wikipedia.org/wiki/ESC/P">ESC/P2</a> printing standard.</p>
+<p>The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson <a href="https://en.wikipedia.org/wiki/ESC/P">ESC/P2</a> printing standard.
+It also has partial support for the IBM Pro Printer, where the control codes do not conflict with the Epson control codes.</p>
 </div>
 <div class="paragraph">
 <p><strong>Example of printers that may work:</strong></p>
@@ -517,7 +518,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Epson LQ-800</p>
 </li>
 <li>
-<p>IBM Pro Printer</p>
+<p>IBM Pro Printer (limited function)</p>
 </li>
 <li>
 <p>Generic ESC/P 24pin wide (Windows 3.11 running in DOSBox-X)</p>
@@ -564,9 +565,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected</p>
 </li>
 <li>
-<p>When set to use a Windows printer, the printer dialogue will only show up once at start</p>
-</li>
-<li>
 <p>Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing</p>
 </li>
 </ul>
@@ -581,7 +579,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: disabled</p>
+<p>Default value: printer</p>
 </li>
 <li>
 <p>Possible values: disabled, reallpt, file, printer, disney</p>
@@ -589,10 +587,36 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on LPT1 port.</p>
+<p>This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on the LPT1 port.</p>
 </div>
 <div class="paragraph">
 <p>Some values have additional parameters, which if specified must be on the same line in the form of <code>parameter:value</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The original IBM PC with MDA or Hercules graphics card had the first printer port configured on IO base address 0x3BC, and 0x378 would then become LPT2.
+This is not emulated (see <a href="https://en.wikipedia.org/wiki/Parallel_port#IBM_PC_implementation">Wikipedia</a>).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Unlike on a typical retro PC, the emulated parallel port does not use an IRQ.
+Therefore there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><strong>disabled</strong></p>
@@ -604,8 +628,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>Note: the parallel1 port may be auto-enabled for Disney Sound Source emulation.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The parallel1 port may be auto-enabled for Disney Sound Source emulation.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><strong>reallpt</strong></p>
@@ -617,7 +650,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><code>realbase</code> (the base address of your real parallel port).</p>
+<p><code>realbase</code> (the base IO address of your real parallel port).</p>
 <div class="ulist">
 <ul>
 <li>
@@ -627,7 +660,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><code>ecpbase</code> (base address of the ECP registers, optional).</p>
+<p><code>ecpbase</code> (base IO address of the ECP registers, optional).</p>
 </li>
 </ul>
 </div>
@@ -711,7 +744,7 @@ parallel1=file dev:lpt1 timeout=1000 addFF cp:437</pre>
 <p><strong>printer</strong></p>
 </div>
 <div class="paragraph">
-<p>Printer has it&#8217;s own configuration section below.</p>
+<p>Send to a printer. This has it&#8217;s own configuration section which is documented below.</p>
 </div>
 <div class="paragraph">
 <p><strong>disney</strong></p>
@@ -766,7 +799,7 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </ul>
 </div>
 <div class="paragraph">
-<p>This enables an emulated LPT3 port.</p>
+<p>This enables an emulated LPT3 port on IO base address 0x3BC.</p>
 </div>
 </div>
 <div class="sect3">
@@ -788,7 +821,7 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 <div class="title">Note</div>
 </td>
 <td class="content">
-LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
+LPT4-9 are extended LPT ports that are only supported by some applications.
 You can optionally specify base addresses and IRQs for them with <code>base:</code> and <code>irq:</code> options.
 </td>
 </tr>
@@ -821,7 +854,8 @@ You can optionally specify base addresses and IRQs for them with <code>base:</co
 <p>This section lists the available configuration options for the <code>[printer]</code> section that DOSBox-X provides.</p>
 </div>
 <div class="paragraph">
-<p>Only one printer can be emulated, and it can only be connected to a single virtual parallel port. It is also necessary for the virtual printer to configure TrueType fonts.</p>
+<p>Only one printer can be emulated, and it can only be connected to a single virtual parallel port.
+It is also recommended for the virtual printer to configure TrueType fonts.</p>
 </div>
 <div class="sect3">
 <h4 id="_printer">printer</h4>
@@ -933,7 +967,7 @@ You can optionally specify base addresses and IRQs for them with <code>base:</co
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: png</p>
+<p>Default value: printer</p>
 </li>
 <li>
 <p>Possible values: png, ps, bmp, printer</p>
@@ -941,13 +975,24 @@ You can optionally specify base addresses and IRQs for them with <code>base:</co
 </ul>
 </div>
 <div class="paragraph">
+<p><strong>printer</strong></p>
+</div>
+<div class="paragraph">
+<p>To send the output to a printer in Windows.
+A print dialogue will appear.
+You can specify the target printer with the device option.</p>
+</div>
+<div class="paragraph">
+<p><strong>png or bmp</strong></p>
+</div>
+<div class="paragraph">
 <p>Between PNG and BMP, PNG is better. BMP files will be much larger, while the image quality will be identical.</p>
 </div>
 <div class="paragraph">
-<p>ps = PostScript.</p>
+<p><strong>ps</strong></p>
 </div>
 <div class="paragraph">
-<p>Setting the value to <code>printer</code> on a Windows host, will cause it to get redirected to your print queue and a print dialogue will appear.</p>
+<p>PostScript, which is the best option typically for Linux and macOS hosts as it supports multipage documents and can easily be converted to PDF.</p>
 </div>
 </div>
 <div class="sect3">
@@ -968,6 +1013,43 @@ You can optionally specify base addresses and IRQs for them with <code>base:</co
 <div class="paragraph">
 <p>Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
 See also the <code>timeout</code> option below.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_device">device</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: -</p>
+</li>
+<li>
+<p>Possible values: <code>-</code> or device name or number</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Only applicable if <code>printoutput=printer</code>.</p>
+</div>
+<div class="paragraph">
+<p>The default value will cause you to get asked for the printer the first time you print after starting DOSBox-X.
+You can alternatives specify the printer device name (or a partial name) or the device number.
+From a consistency perspective it is best to specify a device name, as the device number can change due to devices being added or removed.</p>
+</div>
+<div class="paragraph">
+<p>To see the list of available devices, start DOSBox-X and open the DOS menu, followed by "List printer devices".</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1=printer
+
+[printer]
+printoutput=printer
+device="Microsoft Print to PDF"</pre>
+</div>
 </div>
 </div>
 <div class="sect3">
@@ -1056,9 +1138,12 @@ See also the <code>timeout</code> option below.</p>
 <h1 id="_setting_up_fonts_for_the_emulated_printer" class="sect0">Setting up fonts for the emulated printer</h1>
 <div class="openblock partintro">
 <div class="content">
-The emulated printer requires TrueType fonts in order to be able to print text.
-At a minimum it needs <code>courier.ttf</code>.
-If no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
+<div class="paragraph">
+<p>The emulated printer requires TrueType fonts in order to be able to print text.</p>
+</div>
+<div class="paragraph">
+<p>If no TTF font can be found then DOSBox-X will print with the internal TTF font (UnifontFullMediumMono) as used by the TrueType font output.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1213,8 +1298,17 @@ The exact save location is dependent on the <code>captures=</code> setting in th
 <div class="paragraph">
 <p>You can also use this in most DOS programs, by selecting a generic text printer, or in Windows 2.x, 3.x, 95 or 98 by selecting the "Generic / Text Only" printer.</p>
 </div>
-<div class="paragraph">
-<p>Note: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <code>guest os_000.prt</code> instead.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <code>guest os_000.prt</code> instead.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>You may be able to use this with a more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
@@ -1230,9 +1324,6 @@ In addition, this may not work if the application expects to be able to have bi-
 <p>It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.</p>
 </div>
 <div class="paragraph">
-<p>This method requires that you have first completed the FONT installation step above.</p>
-</div>
-<div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
 <div class="literalblock">
@@ -1243,11 +1334,12 @@ parallel1=printer
 [printer]
 printer=true
 printoutput=printer
-timeout=1000</pre>
+timeout=1000
+device=-</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
+<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above. The printer dialogue will show up once when a printer selection is made. If you want the printer dialogue to show up every time for printing to LPT1, please leave the "device" empty.</p>
 </div>
 </div>
 </div>
@@ -1255,7 +1347,7 @@ timeout=1000</pre>
 <h2 id="_windows_host_method_2">Windows host, method 2</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you PC still has a parallel printer port integrated on the systemboard, or a legacy ISA printer adapter.
+<p>This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.</p>
 </div>
 <div class="paragraph">
@@ -1332,9 +1424,6 @@ parallel1=file dev:/dev/parport0</pre>
 <div class="content">
 <div class="paragraph">
 <p>This method prints to a PNG, BMP or PostScript (PS) image file.</p>
-</div>
-<div class="paragraph">
-<p>This method requires that you have first completed the FONT installation step above.</p>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
@@ -1428,7 +1517,7 @@ parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-01-19 00:52:47 -0500
+Last updated 2021-02-01 05:22:20 -0500
 </div>
 </div>
 </body>

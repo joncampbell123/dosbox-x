@@ -16,7 +16,10 @@ This guide will give a general description of installing Windows 98 in DOSBox-X,
 * Windows 98 (RTM; Original release)
 * Windows 98 Second Edition (98SE)
 
-This guide assumes a Full Retail or OEM version of Windows 98. Upgrade editions have additional requirements not covered by this guide.
+This guide assumes a Full Retail or OEM version of Windows 98.
+Upgrade editions have additional requirements not covered by this guide.
+
+If you don't know which Windows 98 version to install, we recommend that you install **Windows 98SE**.
 
 ## External links
 * link:http://vogonsdrivers.com/[VOGONS Vintage Driver Library]
@@ -33,6 +36,8 @@ autolock=true
 [dosbox]
 title=Windows 98
 memsize=64
+
+[video]
 vmemsize=8
 vesa modelist width limit=0
 vesa modelist height limit=0
@@ -43,11 +48,9 @@ ver=7.1
 [cpu]
 cputype=pentium_mmx
 core=normal
-cycles=60000
 
 [sblaster]
 sbtype=sb16vibra
-irq=5
 
 [ne2000]
 # If you want networking in Windows, set ne2000=true.
@@ -78,49 +81,59 @@ Copy the above config and save it as *win98.conf*
 
 *Notes*
 
-* While Windows 98 should support up to 2048MB RAM, ``memsize=512`` is the largest safe value. Larger values may be possible with tweaks, but are not covered here.
+* You can increase the allocated RAM up to 512MB by setting ``memsize=512``. Larger values may be possible with tweaks, but are not covered here.
 * The ``[autoexec]`` section will need lines added later.
 * If you want networking in Windows, you need to set ``ne2000=true`` and change the ``realnic=`` value to one suitable for your PC. See:
  link:Guide%3A-Setting-up-networking-in-DOSBox-X[Guide: Setting up networking] for more information.
-* Setting ``cycles=60000`` gives significantly better video and disk performance, but slightly worse CPU performance compared to ``cycles=auto`` or ``cycles=max``.
-* Do not change the ``core=normal`` setting. In particular the dynamic core, while generally faster, is incompatible with Windows 98 non-recursive page fault handling, and will cause stability problems and crashes such as General Protection Faults (GPF).
 
 # General installation Notes
 
 * Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
 * When creating your HDD image with ``IMGMAKE``, instead of specifying a custom size, you can choose a pre-defined template. The pre-defined HDD templates can be seen by running ``IMGMAKE`` without arguments.
 
-## Creating a Harddisk image
+# Dynamic vs Normal core
+Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows 98.
 
-Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+However, for now we still recommend that you do the installation of Windows 98 using ``core=normal`` until issue link:https://github.com/joncampbell123/dosbox-x/issues/2215[#2215] is resolved.
+
+But after the installation is finished you should be able to change to ``core=dynamic_x86``.
+
+Should you run into problems such as application crashes or a Windows 98 blue-screen that cannot be reproduced with ``core=normal``,  please report the problem on the DOSBox-X Git link:https://github.com/joncampbell123/dosbox-x/issues[issues] page.
+
+# Creating a Harddisk image
+
+NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 
-The ``IMGMAKE`` command supports creating diskette or harddisk images with FAT12, FAT16 or FAT32 filesystems.
-Harddisk images greater than 2GB are always created with the FAT32 filesystem.
-If your reported DOS version is set to 7.10 or greater, then harddisk images of 512MB or greater are also created as FAT32.
+Some quick rules about IMGMAKE (for more detail, see: link:Guide%3AManaging-image-files-in-DOSBox%E2%80%90X[Guide: Managing image files in DOSBox-X]):
 
-Alternatively, you can use the ``-fat`` option to instruct ``IMGMAKE`` to create a certain FAT type (assuming that is possible for the FAT type).
+- Diskette (floppy) images are always created as FAT12
+- If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default
+- Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)
 
-First you need to start DOSBox-X from the command-line, using the newly created win98.conf.
+Alternatively, you can use the ``-fat`` option to instruct ``IMGMAKE`` to create a certain FAT type (assuming that is possible for the harddisk size).
+
+First you need to start DOSBox-X from the command-line, using your newly created win98.conf.
 This assumes that dosbox-x is in your path and win98.conf is in your current directory.
 ....
 dosbox-x -conf win98.conf
 ....
 Then in DOSBox-X you need to create a new harddisk image file with ``IMGMAKE``.
 
-This example uses a 4GB partition.
+This example uses a 8GB hard disk image with a single FAT32 formatted partition.
 Technically the FAT32 filesystem is capable of supporting partitions up to 2TB, but the generic IDE driver in Windows 98 cannot handle volumes greater than 128GB.
 Larger partition sizes may be possible with 3rd party drivers, but are not covered here.
-In later Windows versions, starting with Windows 2000, Microsoft won't let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and exFAT.
 
-NOTE: Creating a 128GB volume will cause a SU0650 Out of Memory warning during install, you can however continue the installation.
+In later Windows versions, starting with Windows 2000, Microsoft won't let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.
+
+NOTE: Creating a 128GB volume will cause a "SU0650 Out of Memory" warning during install, you can however continue the installation.
 ....
-IMGMAKE hdd.img -t hd_4gig
+IMGMAKE hdd.img -t hd_8gig
 ....
 
 Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384 MB) disk.
+This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.
 ....
 IMGMAKE hdd.img -t hd -size 16384
 ....
@@ -132,13 +145,13 @@ This installation method allows both FAT16 (up to 2GB) and FAT32 volumes, which 
 
 ## Requirements
 
-* DOSBox-X 0.83.4 or later, it will NOT work with earlier versions or other DOSBox forks.
+* DOSBox-X 0.83.10 or later, these instructions will NOT work with other DOSBox forks.
 * Windows 98 *OEM Full* edition CD-ROM image (named "Win98.iso" in the example below).
 
 Getting this image file is outside the scope of this guide.
 
-== Starting the installation
-This assumes you have already started DOSBox-X with the win98.conf config file and created your harddisk image.
+## Starting the installation
+This assumes you have already started DOSBox-X with the win98.conf config file, and created your harddisk image.
 
 First mount the harddisk image you created earlier:
 ....
@@ -151,7 +164,7 @@ IMGMOUNT A -bootcd D
 BOOT A:
 ....
 
-If the second ``IMGMOUNT`` command gives an error "*El Torito CD-ROM boot record not found*", your CD-ROM image is not bootable, and you will have to use either a different installation method or a different Windows 98 CD-ROM image.
+NOTE: If the second ``IMGMOUNT`` command gives an error "*El Torito CD-ROM boot record not found*", your CD-ROM image is not bootable, and you will have to use either a different installation method or a different Windows 98 CD-ROM image.
 
 You will first get a Startup menu, where you need to select "Boot from CD-ROM".
 
@@ -172,7 +185,7 @@ Now start DOSBox-X as follows to continue the installation process:
 dosbox-x -conf win98.conf
 ....
 
-## Transfer Windows install files to your HDD image
+## Transfer Windows 98 install files to your HDD image
 This is an optional step. It is to prevent Windows from asking for the CD-ROM whenever it needs additional files.
 
 Boot Windows 98 with the CD-ROM image mounted. In Windows 98, copy the \WIN98 directory and its contents from the CD-ROM to your C: drive.
@@ -189,7 +202,7 @@ This method will start the install from DOSBox-X, and does not require a bootabl
 
 ## Requirements
 
-* DOSBox-X 0.83.4 or later, it will NOT work with earlier versions or other DOSBox forks.
+* DOSBox-X 0.83.10 or later, these instructions will NOT work with other DOSBox forks.
 * Windows 98 CD-ROM image (named "Win98.iso" in the example below).
 
 Getting this image file is outside the scope of this guide.
@@ -217,9 +230,12 @@ XCOPY D:\WIN98 C:\WIN98 /I /E
 ....
 
 The files in the above example are copied to the C:\WIN98 directory.
-You may want to use "C:\WINDOWS\OPTIONS\CABS" instead, as that is the directory that OEM installs normally use.
-But if you do, be aware that the installer will attempt to install into C:\WINDOWS.000 as C:\WINDOWS already exists.
-You will want to change this back to "C:\WINDOWS".
+You may want to use ``C:\WINDOWS\OPTIONS\CABS`` instead, as that is the directory that OEM installs normally use.
+But if you do, be aware that the installer will attempt to install into ``C:\WINDOWS.000`` as ``C:\WINDOWS`` already exists.
+
+image::images/Windows:Windows_98_SETUP_02.png[Windows 98 SETUP.EXE Select Directory]
+
+If you get the above screen during SETUP, select "Other directory" to change it back to ``C:\WINDOWS``
 
 ## Running SETUP.EXE
 You can now run SETUP.EXE.
@@ -230,8 +246,13 @@ CD \WIN98
 SETUP
 ....
 
-Now run through the install process, until it reboots and your back at the DOSBox-X ``Z:\`` prompt.
-At this point close DOSBox-X, and edit your win98.conf config file.
+image::images/Windows:Windows_98_SETUP_01.png[Windows 98 SETUP.EXE Welcome]
+
+Now run through the install process. The actual steps will not be covered in this guide, but are pretty self explanatory and detailed guides on the Windows98 install process can be found online such as youtube.
+
+When the installer reboots DOSBox-X, and your back at the DOSBox-X ``Z:\`` prompt, type ``EXIT``.
+
+Now edit your ``win98.conf`` config file.
 At the end of the file, in the [autoexec] section, add the following two lines:
 
 ....
@@ -239,7 +260,7 @@ IMGMOUNT C hdd.img
 BOOT C:
 ....
 
-Save the config file, and at the command-prompt you can type the following to continue the installation process.
+Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
 This is also the command you use, after the installation is finished, to start Windows 98 in DOSBox-X.
 
 ....
@@ -247,36 +268,62 @@ dosbox-x -conf win98.conf
 ....
 
 # Booting Windows 98 after installation
-After the installation is finished, you can start Windows 98 from the command-prompt with the following command:
+After the installation is finished, you can start Windows 98 from the command-prompt of your host PC, with the following command:
 
 ....
 dosbox-x -conf win98.conf
 ....
 
+You can optionally create a shortcut on your desktop to
+
 # Steps to take after Installation
 Once Windows 98 is installed, here is some additional software you may want to install or update:
 
-* Microsoft .NET framework version 1.0, 1.1 and 2.0
-* Visual C++ 2005 runtime
+* Install Microsoft .NET framework version 1.0, 1.1 and 2.0
+* Install Visual C++ 2005 runtime
 * Update to Internet Explorer 6.0 (rarely needed)
 * Update to DirectX 9.0c
-* Windows Installer 2.0
+* Install Windows Installer 2.0
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
-* GDI+ redistributable
+* Install GDI+ redistributable
+* Install/Update to Adobe Flash Player 7.0.73
+* Install Apple Quicktime 5.0.5
 
-link:https://msfn.org/board/topic/105936-last-versions-of-software-for-windows-98se/[Forum thread about: Last Versions of Software for Windows 98SE]
+This may also be of interest: link:https://msfn.org/board/topic/105936-last-versions-of-software-for-windows-98se/[Forum thread about: Last versions of software for Windows 98SE]
+
+# Mounting CD or Diskette images
+DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to a OS booted in DOSBox-X.
+But only if the image files are specified before starting real DOS or Windows 9x.
+The option to load image files from the menu bar becomes unavailable the moment you boot DOS or Win9x in DOSBox-X.
+
+This is a known limitation that hopefully will be resolved in the near future.
+
+For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:
+....
+IMGMOUNT A disk1.img disk2.img disk3.img
+IMGMOUNT D cd1.iso cd2.iso cd3.iso
+....
+You can then swap between disk images with the swap option from the menu.
 
 # Enabling networking
-If you enabled NE2000 support in the DOSBox-X config file, and Windows 98 did not detect the adapter, go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
-It should find the Novell NE2000 adapter, and install the drivers.
+If you enabled NE2000 support in the DOSBox-X config file, Windows 98 should detect it during installation and you should get a screen like the following.
 
-By default it will try to get it's network configuration over DHCP, if you need to manually specify the settings, in "Control Panel", double-click "Network".
+image::images/Windows:Windows_98_SETUP_03.png[Windows 98 SETUP.EXE NE2000 Properties]
+
+Change the Interrupt (IRQ) to 10 to match the value set in your ``win98.conf`` file.
+
+If Windows 98 did not detect the adapter during installation, or you enabled NE2000 emulation after you did the installation.
+Go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
+It should find the emulated Novell NE2000 adapter, and install the drivers.
+
+By default TCP/IP will try to get it's network configuration over DHCP, if you need to manually specify the settings, in "Control Panel", double-click "Network".
 Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
 
-In the Network settings, there may also be a "Dial-Up Adapter" listed, which you can safely delete.
+In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
 
-Additionally, if you only want TCP/IP and don't want the Windows logon dialog on startup, you can remove the "Windows Logon" service from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
-This does mean you can no longer share files over the network using the Windows file sharing functions, but then current Windows versions are not backward compatible with Windows 98 anyway.
+Additionally, if you don't want the Windows logon dialog on startup, and don't care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
+
+If you want to share files between Windows 98 and Windows 10 on the network, have a look at this blog: link:http://kishy.ca/?p=1511[SMB File Sharing between Win10 and Win98], but apparently this fails with Win10 build 2004 and 20H2.
 
 If networking does not work, see link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X]
 
@@ -284,17 +331,26 @@ If networking does not work, see link:Guide%3ASetting-up-networking-in-DOSBox%E2
 The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.
 In addition this video adapter is supported out-of-the-box in Windows 98, simplifying the installation process.
 
-A few enhancements have been made, compared to a real S3 Trio64:
+The available video modes with the S3 Trio64 driver are:
 
-* No real S3 Trio64 was ever produced with more then 4MB video memory, under DOSBox-X you can optionally configure 8MB.
+* 4-bit colour (16): 640x480
+* 8-bit colour (256) : 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200
+* 16-bit colour (65536): 640x480, 800x600 and 1024x768
+* 32-bit colour (16.7M): 640x480 and 800x600
+
+A few enhancements have been made to the emulated S3 Trio64, compared to a real S3 Trio64:
+
+* No real S3 Trio64 was ever produced with more than 4MB video memory, under DOSBox-X you can optionally configure 8MB.
 * The real cards never supported wide-screen resolutions, wide-screen VESA modes can optionally be enabled in DOSBox-X.
 
 However, these enhancements cannot be used in Windows 98 with the S3 video driver due to driver limitations.
 And no updated S3 Trio64 video driver is available for Windows 98.
-As such you will be limited to 640x480 in 32bit colour, 1024x768 in 16bit colour or 1280x1024 in 8bit (256) colour.
+As such you will be limited to the above video modes with this driver.
 
+### VESA driver
 These restrictions can be overcome by switching to the link:https://bearwindows.zcm.com.au/vbe9x.htm[Universal VESA/VBE Video Display Driver (VBEMP)].
-First add the following lines to your DOSBox-X config file in the [dosbox] section:
+
+First add the following lines to your DOSBox-X config file in the [video] section:
 ....
 allow high definition vesa modes=true
 allow unusual vesa modes=true
@@ -304,25 +360,28 @@ Download and extract the latest VBEMP driver package and install the driver from
 
 With these settings modes up to 1920x1080 in 32bit colour, or 1920x1440 in 16bit colour are possible.
 
-Note, using the VBEMP driver does have a negative graphics performance impact, which when measured in WinBench96 Graphics WinMark, can be a reduction of up to 59%.
+NOTE: Using the VBEMP driver does have a negative graphics performance impact, which when measured in WinBench96 Graphics WinMark, can be a reduction of up to 59%.
 
 # Emulated sound card
 The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
 This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 
-One often heard complaint of the real SB16 Vibra is the CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the SB16 Vibra do not apply to DOSBox-X.
-
 Both Windows 98 and 98SE include SB16 driver version 4.37.00.1998.
 An optional driver link:http://vogonsdrivers.com/getfile.php?fileid=50&menustate=0[update to 4.38.14] is available on the VOGONS Vintage Driver Library.
 
+NOTE: One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
+However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+
 ## Enabling General MIDI
 If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows 98.
-Open the "Control Panel", and then double-click on "Multimedia Properties".
 
-Now on the "MIDI" tab, change the "Single instrument" option to "Roland MPU-401", and click OK to close the window.
+Go to "Start", "Settings" and open "Control Panel", and then double-click on "Multimedia Properties".
+
+Now on the "MIDI" tab, change the "Single instrument" option to "SB16 MIDI Out [330]", and click OK to close the window.
+
+image::images/Windows:Windows_98_MIDI.png[Windows 98 MIDI setup]
 
 For more information about setting up MIDI support, see link:Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X[Guide: Setting up MIDI in DOSBox-X]
 

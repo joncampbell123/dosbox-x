@@ -3,22 +3,22 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-## DOSBox‐X’s Feature Highlights
+## DOSBox-X’s Feature Highlights
 
 As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X's unique features include:
 
 * **GUI drop-down menu for easier usage**
 +
-DOSBox-X features a drop-down menu system so that you can do many things from the GUI menu instead of typing commands or so.
+DOSBox-X features a drop-down menu system so that you can do many things from the GUI menu instead of typing commands or so. The menu can also be toggled on and off.
 * **Built-in graphical configuration tool**
 +
-You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file.
+You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file (you can use either way).
 * **Save and load state support (with save slots and save files)**
 +
 DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu, as well as the option to use your own save files.
-* **Automatic drive mounting (Windows only)**
+* **Automatic image file and drive mounting**
 +
-DOSBox-X will automatically let you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
+For image files, DOSBox-X allows you to mount them automatically without specifying additional options such as -size and -t. And for drive mounting on Windows, DOSBox-X automatically asks you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
 * **Japanese NEC PC-98 mode emulation**
 +
 With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications. Set ``machine=pc98`` in the config file to start DOSBox-X in the PC-98 mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information.
@@ -57,7 +57,7 @@ You can set SHELL=4DOS.COM so that DOSBox-X will run the 4DOS 8.00 shell at star
 DOSBox-X can be started on a specific window position, or on a specific display with a multi-monitor setup. They can work in combination to specify a window position on the specific display.
 * **Support for the mounting ZIP/7Z archives as drives**
 +
-You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly, which will operate in read-only mode.
+You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or games in these mounted drives directly. They will operate in read+write mode with overlay mounts.
 * **Support for the IDE interface for disk images**
 +
 DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
@@ -78,9 +78,12 @@ DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, 
 * **Support for FAT32 file system and large disk images**
 +
 FAT32 file system is supported in DOSBox-X in addition to FAT12 and FAT16, so you can make and mount drives larger than 2GB. Set ``ver=7.1`` to enable this feature.
+* **Support for file-locking and record-locking functions **
++
+DOSBox-X supports the DOS SHARE functions, which provides file-locking and record-locking for networked environments, especially on the Windows platform. This may be very important for usages such as networked DOS database applications. Hint: you probably want to set "nocachedir=true" and "file access tries=3" for this.
 * **Support for clipboard text selection, copy and paste**
 +
-With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or center), the arrow keys, or using a special DOS device for it. Some clipboard functions are only supported for Windows systems. Look at the link:Guide%3AClipboard-support-in-DOSBox‐X{suffixappend}[Clipboard support in DOSBox-X] guide page for more information.
+With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using a mouse button (right or middle), the arrow keys, or using a special DOS device for it. Some clipboard functions are only supported for Windows systems. Look at the link:Guide%3AClipboard-support-in-DOSBox‐X{suffixappend}[Clipboard support in DOSBox-X] guide page for more information.
 * **Support for converting mouse wheel movements to arrow keys**
 +
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
@@ -123,9 +126,12 @@ DOSBox-X supports the FluidSynth MIDI synthesizer, which allows you to use a wid
 * **Support for Innovation SSI-2001 sound card emulation**
 +
 The Innovation SSI-2001 sound card is supported in DOSBox-X as well, which gives the emulated system the sound capabilities of a Commodore 64.
-* **Support for advanced OpenGL features such as OpenGL-HQ and GLSL shaders**
+* **Support for pixel-perfect scaling video mode**
 +
-Advanced OpenGL features including OpenGL-HQ and GLSL shaders are supported by DOSBox-X, and you can use for example the pixel-perfect shader for OpenGL outputs.
+DOSBox-X supports the pixel-perfect scaling as an output option (output=openglpp), which improves the video image quality.
+* **Support for loading OpenGL shaders either at start or dynamically**
++
+The OpenGL (GLSL) shaders are fully supported by DOSBox-X for OpenGL outputs, and you can in fact load or change them dynamically in addition to loading them at start.
 * **Support for Direct3D with pixel shaders (Windows only)**
 +
 DOSBox-X supports Direct3D along with pixel shaders which provides many more output flexibilities on Windows systems.

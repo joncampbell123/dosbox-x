@@ -15,6 +15,7 @@ DOSBox-X has support for printing to either a real printer, redirect to a file, 
 Printer options in the DOSBox-X config file are split over two sections, ``[parallel]`` and ``[printer]``.
 
 The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson link:https://en.wikipedia.org/wiki/ESC/P[ESC/P2] printing standard.
+It also has partial support for the IBM Pro Printer, where the control codes do not conflict with the Epson control codes.
 
 **Example of printers that may work:**
 
@@ -23,7 +24,7 @@ These are examples of printers that you may be able to select in a DOS applicati
 * Epson MX-80
 * Epson SQ-860
 * Epson LQ-800
-* IBM Pro Printer
+* IBM Pro Printer (limited function)
 * Generic ESC/P 24pin wide (Windows 3.11 running in DOSBox-X)
 * Generic / Text Only (Windows running in DOSBox-X)
 
@@ -40,32 +41,37 @@ These are examples of printers that you may be able to select in a DOS applicati
 * Windows printer output in black & white only
 * Not all ESC/P commands are supported, like custom fonts
 * Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected
-* When set to use a Windows printer, the printer dialogue will only show up once at start
 * Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing
 
 ### [parallel] section options
 This section lists the available configuration options for the ``[parallel]`` section that DOSBox-X provides.
 
 #### parallel1
-* Default value: disabled
+* Default value: printer
 * Possible values: disabled, reallpt, file, printer, disney
 
-This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on LPT1 port.
+This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on the LPT1 port.
 
 Some values have additional parameters, which if specified must be on the same line in the form of ``parameter:value``.
+
+NOTE: The original IBM PC with MDA or Hercules graphics card had the first printer port configured on IO base address 0x3BC, and 0x378 would then become LPT2.
+This is not emulated (see link:https://en.wikipedia.org/wiki/Parallel_port#IBM_PC_implementation[Wikipedia]).
+
+NOTE: Unlike on a typical retro PC, the emulated parallel port does not use an IRQ.
+Therefore there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
 
 **disabled**
 
 * Disables the printer port emulation
 
-Note: the parallel1 port may be auto-enabled for Disney Sound Source emulation.
+NOTE: The parallel1 port may be auto-enabled for Disney Sound Source emulation.
 
 **reallpt**
 
 * Windows:
-** ``realbase`` (the base address of your real parallel port).
+** ``realbase`` (the base IO address of your real parallel port).
 *** Default: 378
-** ``ecpbase`` (base address of the ECP registers, optional).
+** ``ecpbase`` (base IO address of the ECP registers, optional).
 * Linux:
 ** ``realport`` (the parallel port device i.e. ``/dev/parport0``).
 
@@ -95,7 +101,7 @@ parallel1=file dev:lpt1 timeout=1000 addFF cp:437
 
 **printer**
 
-Printer has it's own configuration section below.
+Send to a printer. This has it's own configuration section which is documented below.
 
 **disney**
 
@@ -125,13 +131,13 @@ This enables an emulated LPT2 port on IO base address 0x278.
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
-This enables an emulated LPT3 port.
+This enables an emulated LPT3 port on IO base address 0x3BC.
 
 #### parallel4-9
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
-NOTE: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports that are only supported by some applications.
+NOTE: LPT4-9 are extended LPT ports that are only supported by some applications.
 You can optionally specify base addresses and IRQs for them with ``base:`` and ``irq:`` options.
 
 #### dongle
@@ -145,7 +151,8 @@ Unfortunately this feature is rather incomplete at this time, and requires that 
 ### [printer] section options
 This section lists the available configuration options for the ``[printer]`` section that DOSBox-X provides.
 
-Only one printer can be emulated, and it can only be connected to a single virtual parallel port. It is also necessary for the virtual printer to configure TrueType fonts.
+Only one printer can be emulated, and it can only be connected to a single virtual parallel port.
+It is also recommended for the virtual printer to configure TrueType fonts.
 
 #### printer
 * Default value: false
@@ -186,14 +193,22 @@ Example of standard paper sizes in portrait orientation:
 * A5 = 82 (210mm = 8.27 inches)
 
 #### printoutput
-* Default value: png
+* Default value: printer
 * Possible values: png, ps, bmp, printer
+
+**printer**
+
+To send the output to a printer in Windows.
+A print dialogue will appear.
+You can specify the target printer with the device option.
+
+**png or bmp**
 
 Between PNG and BMP, PNG is better. BMP files will be much larger, while the image quality will be identical.
 
-ps = PostScript.
+**ps**
 
-Setting the value to ``printer`` on a Windows host, will cause it to get redirected to your print queue and a print dialogue will appear.
+PostScript, which is the best option typically for Linux and macOS hosts as it supports multipage documents and can easily be converted to PDF.
 
 #### multipage
 * Default value: false
@@ -204,6 +219,27 @@ Only applicable if ``printoutput=ps``.
 Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
 See also the ``timeout`` option below.
 
+#### device
+* Default value: -
+* Possible values: ``-`` or device name or number
+
+Only applicable if ``printoutput=printer``.
+
+The default value will cause you to get asked for the printer the first time you print after starting DOSBox-X.
+You can alternatives specify the printer device name (or a partial name) or the device number.
+From a consistency perspective it is best to specify a device name, as the device number can change due to devices being added or removed.
+
+To see the list of available devices, start DOSBox-X and open the DOS menu, followed by "List printer devices".
+
+Example:
+....
+[parallel]
+parallel1=printer
+
+[printer]
+printoutput=printer
+device="Microsoft Print to PDF"
+....
 #### docpath
 * Default value: .
 
@@ -245,8 +281,8 @@ You can also manually eject a form-feed when you want to do so, and this option 
 
 # Setting up fonts for the emulated printer
 The emulated printer requires TrueType fonts in order to be able to print text.
-At a minimum it needs ``courier.ttf``.
-If no TTF font can be found then DOSBox-X will print with the internal TTF font as used by the TrueType font output.
+
+If no TTF font can be found then DOSBox-X will print with the internal TTF font (UnifontFullMediumMono) as used by the TrueType font output.
 
 ## Windows host
 DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located.
@@ -310,7 +346,7 @@ The exact save location is dependent on the ``captures=`` setting in the ``[dosb
 
 You can also use this in most DOS programs, by selecting a generic text printer, or in Windows 2.x, 3.x, 95 or 98 by selecting the "Generic / Text Only" printer.
 
-Note: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be ``guest os_000.prt`` instead.
+NOTE: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be ``guest os_000.prt`` instead.
 
 You may be able to use this with a more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
 In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.
@@ -319,8 +355,6 @@ In addition, this may not work if the application expects to be able to have bi-
 
 ## Windows host, method 1
 It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.
-
-This method requires that you have first completed the FONT installation step above.
 
 Make sure your DOSBox-X config file contains the statements:
 ....
@@ -331,12 +365,13 @@ parallel1=printer
 printer=true
 printoutput=printer
 timeout=1000
+device=-
 ....
 
-In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
+In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above. The printer dialogue will show up once when a printer selection is made. If you want the printer dialogue to show up every time for printing to LPT1, please leave the "device" empty.
 
 ## Windows host, method 2
-This assumes you PC still has a parallel printer port integrated on the systemboard, or a legacy ISA printer adapter.
+This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA printer adapter.
 It reportedly will not work with USB printer adapters or PCI printer port adapters.
 
 Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion. Therefore it is important that the printer can understand the control codes that are being sent.
@@ -388,8 +423,6 @@ Again, just like in the "Windows host, method 2" above, the output is sent verba
 
 # Example: Print to PNG, BMP or PostScript
 This method prints to a PNG, BMP or PostScript (PS) image file.
-
-This method requires that you have first completed the FONT installation step above.
 
 Make sure your DOSBox-X config file contains the statements:
 ....
