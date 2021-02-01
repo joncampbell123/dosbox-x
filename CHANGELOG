@@ -1,5 +1,5 @@
 0.83.10
-  - The Window key(s) in Windows and the Command key(s)
+  - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and "meta"
     keys in SDL1 builds just like SDL2 builds. (Wengier)

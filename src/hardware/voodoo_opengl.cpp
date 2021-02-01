@@ -76,7 +76,9 @@ std::map <const UINT32, ogl_texmap> textures[2];
 
 bool Direct3D_using(void);
 void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output);
+#if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
+#endif
 
 int Voodoo_OGL_GetWidth() {
 	if (v != NULL)

@@ -999,6 +999,13 @@ public:
             int i_drive = toupper(temp_line[0]);
             if (!isalpha(i_drive)) goto showusage;
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
+            if (!cmd->FindCommand(2,temp_line)) goto showusage;
+            if (!temp_line.size()) goto showusage;
+			if (cmd->FindExist("-u",true)) {
+                const char *msg=UnmountHelper(i_drive);
+				if (!quiet) WriteOut(msg, toupper(i_drive));
+				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
+			}
             drive = static_cast<char>(i_drive);
             if (type == "overlay") {
                 //Ensure that the base drive exists:
@@ -1011,13 +1018,6 @@ public:
                 return;
             }
 
-            if (!cmd->FindCommand(2,temp_line)) goto showusage;
-            if (!temp_line.size()) goto showusage;
-			if (cmd->FindExist("-u",true)) {
-                const char *msg=UnmountHelper(i_drive);
-				if (!quiet) WriteOut(msg, toupper(i_drive));
-				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
-			}
             temp_line.erase(std::find_if(temp_line.rbegin(), temp_line.rend(), [](unsigned char ch) {return !std::isspace(ch);}).base(), temp_line.end());
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
 		        std::string lastconfigdir(control->configfiles[control->configfiles.size()-1]);
