@@ -198,6 +198,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **List network interfaces**: Displays the list of network interfaces for the NE2000 networking feature.
 
+* **List printer devices**: Displays the list of printer devices for the printing feature on Windows systems.
+
 * **Debugging options**: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
 
 * **About DOSBox-X**: Shows the about information for DOSBox-X.
