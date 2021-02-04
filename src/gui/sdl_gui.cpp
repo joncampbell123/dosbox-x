@@ -198,7 +198,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
-    int sx, sy, sw, sh;
+    int sx, sy, sw, sh, scalex, scaley, scale;
     bool fs;
     GFX_GetSizeAndPos(sx, sy, sw, sh, fs);
 
@@ -225,8 +225,17 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     dh = (int)currentWindowHeight;
 #endif
 
+    //dw = GetSystemMetrics(SM_CXSCREEN);
+    //dh = GetSystemMetrics(SM_CYSCREEN);
+    //dw -= 20; dh -= 20; // TODO: Take into account the window borders?
+    LOG_MSG("CONF: System metrics: %i x %i", dw, dh );
     if (dw < 640) dw = 640;
     if (dh < 350) dh = 350;
+    scalex = dw / 640; /* maximum horisontal scale */
+    scaley = dh / 350; /* maximum vertical   scale */
+    if( scalex > scaley ) scale = scaley;
+    else                  scale = scalex;
+    LOG_MSG("CONF: scale: xmax: %i, ymax: %i, min: %i", scalex, scaley, scale );
 
     assert(sx < dw);
     assert(sy < dh);
@@ -329,6 +338,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     GFX_SetResizeable(false);
 
     SDL_Window* window = GFX_SetSDLSurfaceWindow(dw, dh);
+    LOG_MSG("CONF: SDL2: window: %i x %i", dw, dh );
     if (window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
@@ -352,6 +362,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #else
     SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
+    LOG_MSG("CONF: SDL1: sdlscreen: %i x %i", dw, dh );
 
     if (screenshot != NULL && background != NULL) {
         // fade out
@@ -433,7 +444,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
     if (screen) screen->setSurface(sdlscreen);
-    else screen = new GUI::ScreenSDL(sdlscreen);
+    else screen = new GUI::ScreenSDL(sdlscreen, scale); // CONF:SCALE
 
     saved_bpp = (int)render.src.bpp;
     render.src.bpp = 0;
