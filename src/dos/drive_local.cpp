@@ -76,9 +76,16 @@
 #include "cp855_uni.h"
 #include "cp857_uni.h"
 #include "cp858_uni.h"
+#include "cp860_uni.h"
+#include "cp861_uni.h"
+#include "cp862_uni.h"
+#include "cp863_uni.h"
+#include "cp864_uni.h"
+#include "cp865_uni.h"
 #include "cp866_uni.h"
 #include "cp869_uni.h"
 #include "cp872_uni.h"
+#include "cp874_uni.h"
 #include "cp932_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
@@ -385,12 +392,26 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -424,12 +445,26 @@ bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default: // Otherwise just use code page 437
@@ -457,12 +492,26 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:

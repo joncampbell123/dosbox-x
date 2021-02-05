@@ -290,6 +290,7 @@ public:
 
     /*! \brief      Change country code
      */
+	void CMD_CHCP(char * args);
 	void CMD_COUNTRY(char * args);
     void CMD_TRUENAME(char * args);
     void CMD_DXCAPTURE(char * args);
