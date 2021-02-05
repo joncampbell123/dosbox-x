@@ -3748,7 +3748,6 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
-void setTTFCodePage();
 void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
 	args = trim(args);
@@ -3764,13 +3763,16 @@ void DOS_Shell::CMD_CHCP(char * args) {
         WriteOut("Changing code page is only supported for the TrueType font output.\n");
         return;
     }
+#if defined(USE_TTF)
 	int newCP;
 	char buff[256];
 	if (sscanf(args, "%d%s", &newCP, buff) == 1 && (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874)) {
 		dos.loaded_codepage = newCP;
+		void setTTFCodePage();
 		setTTFCodePage();
 		WriteOut("Active code page: %d\n", dos.loaded_codepage);
     } else
         WriteOut("Invalid code page number - %s\n", StripArg(args));
+#endif
 	return;
 }
