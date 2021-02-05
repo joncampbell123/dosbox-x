@@ -4950,6 +4950,42 @@ void TTF_DecreaseSize(bool pressed) {
 
 bool has_GUI_StartUp = false;
 
+std::string GetDefaultOutput() {
+    static std::string output = "surface";
+#ifdef __WIN32__
+# if defined(HX_DOS)
+    output ="surface"; /* HX DOS should stick to surface */
+# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
+    /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
+    output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
+# elif C_DIRECT3D
+    output = "direct3d";
+# elif C_OPENGL && !defined(C_SDL2)
+    output = isVirtualBox ? "surface" : "opengl";
+# elif C_OPENGL
+    output = "opengl";
+# else
+    output = "surface";
+# endif
+#elif defined(C_OPENGL) && !(defined(MACOSX) && defined(C_SDL2))
+    /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
+            than the CG bitmap-based "surface" output.
+
+            On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
+            on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
+            pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
+
+            So for the best experience, default to OpenGL.
+
+            Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
+            use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
+    output = "opengl";
+#else
+    output = "surface";
+#endif
+    return output;
+}
+
 static void GUI_StartUp() {
     DOSBoxMenu::item *item;
 
@@ -5183,37 +5219,7 @@ static void GUI_StartUp() {
     //if (output == "ttf" && (mtype == "tandy" || mtype == "pcjr"))
         //output = "default";
 	if (output == "default") {
-#ifdef __WIN32__
-# if defined(HX_DOS)
-        output ="surface"; /* HX DOS should stick to surface */
-# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
-        /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
-        output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# elif C_DIRECT3D
-        output = "direct3d";
-# elif C_OPENGL && !defined(C_SDL2)
-        output = isVirtualBox ? "surface" : "opengl";
-# elif C_OPENGL
-        output = "opengl";
-# else
-        output = "surface";
-# endif
-#elif defined(C_OPENGL) && !(defined(MACOSX) && defined(C_SDL2))
-        /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
-                than the CG bitmap-based "surface" output.
-
-                On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
-                on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
-                pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
-
-                So for the best experience, default to OpenGL.
-
-                Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
-                use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
-        output = "opengl";
-#else
-        output = "surface";
-#endif
+		output=GetDefaultOutput();
 		LOG_MSG("The default output for the video system: %s", output.c_str());
 	}
 
@@ -10152,23 +10158,14 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     return true;
 }
 
-bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *what = menuitem->get_name().c_str();
-
-    if (!strncmp(what,"output_",7))
-        what += 7;
-    else
-        return true;
-
+bool toOutput(const char *what) {
     bool reset=false;
 #if defined(USE_TTF)
     if (TTF_using()) reset=true;
 #endif
 
     if (!strcmp(what,"surface")) {
-        if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
+        if (sdl.desktop.want_type == SCREEN_SURFACE) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(0);
 #if defined(WIN32)
@@ -10180,7 +10177,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(3);
 #if defined(WIN32)
@@ -10192,7 +10189,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(4);
 #if defined(WIN32)
@@ -10204,7 +10201,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"openglpp")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(5);
 #if defined(WIN32)
@@ -10216,7 +10213,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"direct3d")) {
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return false;
 #if C_OPENGL && defined(C_SDL2)
         if (sdl.desktop.want_type == SCREEN_OPENGL)
             GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
@@ -10232,7 +10229,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
-        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
+        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return false;
 #if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
         if (sdl.desktop.want_type == SCREEN_SURFACE) {
             sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
@@ -10254,9 +10251,21 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #endif
     }
     if (reset) RENDER_Reset();
-
-    SetVal("sdl", "output", what);
     OutputSettingMenuUpdate();
+    return true;
+}
+
+bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *what = menuitem->get_name().c_str();
+
+    if (!strncmp(what,"output_",7))
+        what += 7;
+    else
+        return true;
+
+    if (toOutput(what)) SetVal("sdl", "output", what);
     return true;
 }
 

@@ -1194,6 +1194,14 @@ void CONFIG::Run(void) {
                                     if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                                 } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                             }
+                            if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
+                                bool toOutput(const char *output);
+                                std::string GetDefaultOutput();
+                                std::string output=section->Get_string("output");
+                                if (output == "default") output=GetDefaultOutput();
+                                GFX_LosingFocus();
+                                toOutput(output.c_str());
+                            }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
