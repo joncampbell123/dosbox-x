@@ -39,6 +39,16 @@ Commit#:	Reason for skipping:
 4298		Skipped the timing change. It makes the cursor blink too slow compared to footage of an actual machine.
 4303		DOSBox-X has its own handling for dpi awareness and preventing scaling.
 4306		Conflict
+4311		Sets max scalers to 3, but DOSBox-X already has code involving higher scalers.
+4313		Conflict. DOSBox-X also has vga.dac.xlat32 statements here, should they also be rewritten to use var_write?
+4314		Conflict
+4315		Conflict
+4316		Conflict
+4322		Conflict
+4324		Conflict
+4325		Fix to 4065, which was skipped
+4326		Conflict
+4329		Conflict
 
 (Commits in this interval are still TODO)
 
