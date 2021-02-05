@@ -1226,7 +1226,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pmulti = secprop->Add_multi("autosave",Property::Changeable::Always," ");
     Pmulti->Set_help("Enable auto-save state feature. Specify a time interval in seconds, and optionally a save slot or start and end save slots.\n"
-            "For example, \"autosave=10 11 20\" will set a 3-second time interval for auto-saving, and the save slots used will be between 11 and 20.");
+            "For example, \"autosave=10 11 20\" will set a 10-second time interval for auto-saving, and the save slots used will be between 11 and 20.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("second",Property::Changeable::WhenIdle,"");
     Pstring = Pmulti->GetSection()->Add_string("start",Property::Changeable::WhenIdle,"");

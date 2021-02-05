@@ -1608,7 +1608,7 @@ void Screen::paint(Drawable &d) const
 
 unsigned int Screen::update(void *surface, unsigned int ticks)
 {
-    return 0;
+    return 0; // FIXME
     (void)ticks;//UNUSED
 	paintAll(*buffer);
 	RGB *buf = buffer->buffer;
@@ -1619,7 +1619,6 @@ unsigned int Screen::update(void *surface, unsigned int ticks)
 			unsigned int a = Color::A(bval);
 			bval = ((((sval&Color::MagentaMask)*a+(bval&Color::MagentaMask)*(256-a))>>8)&Color::MagentaMask)
 				| ((((sval&Color::GreenMask)*a+(bval&Color::GreenMask)*(256-a))>>8)&Color::GreenMask);
-			rgbToSurface(bval, &surface);
 			rgbToSurface(bval, &surface);
 		}
 	}

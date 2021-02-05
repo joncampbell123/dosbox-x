@@ -12436,7 +12436,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 		}
         {
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).check(enable_autosave).enable(false);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
              mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);

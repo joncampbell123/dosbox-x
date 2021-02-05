@@ -1863,7 +1863,8 @@ void CAPTURE_Init() {
     autosave_start = atoi(prop->GetSection()->Get_string("start"));
     autosave_end = atoi(prop->GetSection()->Get_string("end"));
     enable_autosave = autosave_second>0;
-    mainMenu.get_item("enable_autosave").enable(enable_autosave).refresh_item(mainMenu);
+    if (autosave_second<0) autosave_second=-autosave_second;
+    mainMenu.get_item("enable_autosave").check(enable_autosave).enable(autosave_second>0).refresh_item(mainMenu);
     std::string hostkey = section->Get_string("hostkey");
     if (hostkey=="ctrlalt") hostkeyalt=1;
     else if (hostkey=="ctrlshift") hostkeyalt=2;
