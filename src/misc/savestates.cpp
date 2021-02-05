@@ -37,6 +37,7 @@
 extern unsigned int page;
 extern std::string savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
+bool auto_save_state=false;
 bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
@@ -1088,7 +1089,9 @@ void SaveState::save(size_t slot) { //throw (Error)
 	}
     const char *save_remark = "";
 #if !defined(HX_DOS)
-    if (!noremark_save_state) {
+    if (auto_save_state)
+        save_remark = "Auto-save";
+    else if (!noremark_save_state) {
         /* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
          *      It is not necessary to free the return string, but it is important to understand that
          *      the next call to tinyfd_inputBox() will obliterate the previously returned string.

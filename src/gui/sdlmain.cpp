@@ -46,10 +46,12 @@ int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
+extern int autosave_second;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
@@ -5196,7 +5198,7 @@ static void GUI_StartUp() {
 # else
         output = "surface";
 # endif
-#elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
+#elif defined(C_OPENGL) && !(defined(MACOSX) && defined(C_SDL2))
         /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
                 than the CG bitmap-based "surface" output.
 
@@ -10750,6 +10752,14 @@ bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::it
     return true;
 }
 
+bool enable_autosave_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    enable_autosave = !enable_autosave;
+    mainMenu.get_item("enable_autosave").check(enable_autosave).refresh_item(mainMenu);
+    return true;
+}
+
 bool noremark_savestate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -12426,9 +12436,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 		}
         {
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).check(enable_autosave).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
+             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);

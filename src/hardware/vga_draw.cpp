@@ -99,6 +99,10 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
+extern bool auto_save_state, enable_autosave;
+extern int autosave_second, autosave_start, autosave_end, autosave_last;
+void SetGameState_Run(int value), SaveGameState_Run(void);
+size_t GetGameState_Run(void);
 
 void memxor(void *_d,unsigned int byte,size_t count) {
     unsigned char *d = (unsigned char*)_d;
@@ -2783,6 +2787,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
@@ -3191,6 +3196,27 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         if (GCC_UNLIKELY((Bits)vga.draw.split_line < 0)) {
             vga.draw.address_line += (Bitu)(-((Bits)vga.draw.split_line) % (Bits)vga.draw.address_line_total);
             vga.draw.address += vga.draw.address_add * (Bitu)(-((Bits)vga.draw.split_line) / (Bits)vga.draw.address_line_total);
+        }
+    }
+
+    // NTS: To be moved
+    if (autosave_second>0&&enable_autosave) {
+        uint32_t ticksNew=GetTicks();
+        if (ticksNew-ticksPrev>autosave_second*1000) {
+            auto_save_state=true;
+            if (autosave_start>=1&&autosave_start<=100) {
+                if (autosave_end>=1&&autosave_end<=100&&autosave_end>autosave_start) {
+                    if (autosave_end>autosave_last&&autosave_last>=autosave_start) autosave_last++;
+                    else autosave_last=autosave_start;
+                } else autosave_last=autosave_start;
+                int state = GetGameState_Run();
+                SetGameState_Run(autosave_last-1);
+                SaveGameState_Run();
+                SetGameState_Run(state);
+            } else
+                SaveGameState_Run();
+            auto_save_state=false;
+            ticksPrev=ticksNew;
         }
     }
 

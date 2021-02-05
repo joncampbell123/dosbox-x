@@ -1,5 +1,20 @@
 0.83.11
-  - 
+  - Added function to automatically save states in the
+    specified interval (in seconds). You can optionally
+    specify a save slot or start and end save slots to
+    be used. For example, "autosave=10 11 20" will set
+    a 3-second time interval for auto-saving, and the
+    save slots used will be between 11 and 20. If no
+    save slot is specified, then the current save slot
+    will be used for auto-saving. A menu option "Enable-
+    auto-saving state" is added to "Save/load options"
+    menu group under "Capture" to toggle the auto-saving
+    when the function is enabled. (Wengier)
+  - The Configuration Tool windows are now scablable,
+    so that they will no longer be very small in e.g.
+    full-screen or High DPI modes. (ant_222)
+  - The setting "output=default" will enable the OpenGL
+    output for the Linux platform if possible. (Wengier)
 0.83.10
   - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and

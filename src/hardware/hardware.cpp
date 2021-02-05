@@ -1825,6 +1825,8 @@ void CAPTURE_Destroy(Section *sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
+bool enable_autosave = false;
+int autosave_second = 0, autosave_start, autosave_end, autosave_last = -1;
 void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
@@ -1856,6 +1858,12 @@ void CAPTURE_Init() {
             mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
         }
     }
+    Prop_multival* prop = section->Get_multival("autosave");
+    autosave_second = atoi(prop->GetSection()->Get_string("second"));
+    autosave_start = atoi(prop->GetSection()->Get_string("start"));
+    autosave_end = atoi(prop->GetSection()->Get_string("end"));
+    enable_autosave = autosave_second>0;
+    mainMenu.get_item("enable_autosave").enable(enable_autosave).refresh_item(mainMenu);
     std::string hostkey = section->Get_string("hostkey");
     if (hostkey=="ctrlalt") hostkeyalt=1;
     else if (hostkey=="ctrlshift") hostkeyalt=2;
