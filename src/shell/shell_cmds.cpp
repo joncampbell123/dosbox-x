@@ -3759,7 +3759,10 @@ void DOS_Shell::CMD_CHCP(char * args) {
         WriteOut("Changing code page is not supported for the PC98 system.\n");
         return;
     }
-    if (!ttf.inUse) {
+#if defined(USE_TTF)
+    if (!ttf.inUse)
+#endif
+    {
         WriteOut("Changing code page is only supported for the TrueType font output.\n");
         return;
     }

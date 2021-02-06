@@ -1538,29 +1538,30 @@ protected:
     GUI::Input *name[10], *start[10], *end[10];
 public:
     SetAutoSave(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 630, 390, title) {
+        ToplevelWindow(parent, x, y, 630, 400, title) {
         new GUI::Label(this, 5, 15, "Time interval (secs)");
         name[0] = new GUI::Input(this, 175, 10, 80);
         name[0]->setText(std::to_string(autosave_second).c_str());
-        new GUI::Label(this, 265, 15, "Start slot");
-        start[0] = new GUI::Input(this, 350, 10, 35);
+        new GUI::Label(this, 270, 15, "Start slot");
+        start[0] = new GUI::Input(this, 360, 10, 35);
         start[0]->setText(std::to_string(autosave_start[0]).c_str());
-        new GUI::Label(this, 400, 15, "End slot (optional)");
-        end[0] = new GUI::Input(this, 570, 10, 35);
+        new GUI::Label(this, 410, 15, "End slot (optional)");
+        end[0] = new GUI::Input(this, 575, 10, 35);
         end[0]->setText(std::to_string(autosave_end[0]).c_str());
         for (int i=1; i<10; i++) {
             new GUI::Label(this, 5, 15+i*30, "Program "+std::to_string(i)+" (Optional)");
             name[i] = new GUI::Input(this, 175, 10+i*30, 80);
             name[i]->setText(autosave_name[i].c_str());
-            new GUI::Label(this, 265, 15+i*30, "Start slot");
-            start[i] = new GUI::Input(this, 350, 10+i*30, 35);
+            new GUI::Label(this, 270, 15+i*30, "Start slot");
+            start[i] = new GUI::Input(this, 360, 10+i*30, 35);
             start[i]->setText(std::to_string(autosave_start[i]).c_str());
-            new GUI::Label(this, 400, 15+i*30, "End slot (optional)");
-            end[i] = new GUI::Input(this, 570, 10+i*30, 35);
+            new GUI::Label(this, 410, 15+i*30, "End slot (optional)");
+            end[i] = new GUI::Input(this, 575, 10+i*30, 35);
             end[i]->setText(std::to_string(autosave_end[i]).c_str());
         }
-        (new GUI::Button(this, 250, 315, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 330, 315, "Cancel", 70))->addActionHandler(this);
+        new GUI::Label(this, 15, 315, "Note: 0 for start slot = use current slot; -1 for start slot = skip saving");
+        (new GUI::Button(this, 250, 335, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 330, 335, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
