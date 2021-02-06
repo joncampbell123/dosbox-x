@@ -987,7 +987,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
 					TMSF abs,rel;
 					mscdex->GetSubChannelData(drive_unit,attr,track,index,rel,abs);
 					mem_writeb(buffer+1,attr);
-					mem_writeb(buffer+2,track);
+					mem_writeb(buffer+2,((track/10)<<4)|(track%10)); // track in BCD
 					mem_writeb(buffer+3,index);
 					mem_writeb(buffer+4,rel.min);
 					mem_writeb(buffer+5,rel.sec);

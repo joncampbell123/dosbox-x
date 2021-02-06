@@ -32,6 +32,12 @@
     and "CONFIG -set output=default". (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4320: Report Q-Channel track number in BCD,
+    meaning it is not converted to binary by the
+    CD-ROM device driver. Fixes the CD-Player feature
+    of DOS Navigator 1.51 when playing past track 15.
+    - r4318: Add LOGC debug command to log cs:ip only.
 0.83.10
   - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
