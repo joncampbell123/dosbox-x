@@ -8670,6 +8670,7 @@ void DOSBox_ConsolePauseWait() {
     } while (!(c == 13 || c == 10)); /* wait for Enter key */
 }
 
+bool usecfgdir = false;
 bool DOSBOX_parse_argv() {
     std::string optname,tmp;
     uint8_t disp2_color=0;
@@ -8865,7 +8866,8 @@ bool DOSBOX_parse_argv() {
                 if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
                     if (chdir(tmp.c_str()) < 0)
                         return false;
-            }
+            } else
+                usecfgdir = true;
         }
         else if (optname == "userconf") {
             control->opt_userconf = true;
@@ -11580,6 +11582,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             tmp.clear();
             Cross::GetPlatformConfigName(tmp);
             control->ParseConfigFile((config_path + tmp).c_str());
+        }
+
+        if (control->configfiles.size()&&usecfgdir) {
+            std::string configpath=control->configfiles.front();
+            size_t found=configpath.find_last_of("/\\");
+            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
         }
 
 		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
