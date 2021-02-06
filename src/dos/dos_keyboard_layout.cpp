@@ -38,7 +38,7 @@
 #endif
 
 #if defined(USE_TTF)
-void setTTFCodePage(void);
+int setTTFCodePage(void);
 bool TTF_using(void);
 #endif
 static FILE* OpenDosboxFile(const char* name) {

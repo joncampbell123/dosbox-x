@@ -4803,12 +4803,12 @@ static const uint16_t cpMap_PC98[256] = {
 
 extern int eurAscii;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void setTTFCodePage() {
+int setTTFCodePage() {
     if (IS_PC98_ARCH) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
         static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
         memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
-        return;
+        return 0;
     }
 
     int cp = dos.loaded_codepage;
@@ -4825,22 +4825,22 @@ void setTTFCodePage() {
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
         uint16_t unimap;
-        bool notMapped = false;
+        int notMapped = 0;
         for (int y = 8; y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
-                    if (!notMapped) {
-                        LOG_MSG("ASCII Unicode Fixed");
-                        notMapped = true;
-                    }
-                    LOG_MSG("  %3d    %4x  %4x", y*16+x, unimap, cpMap[y*16+x]);
+                    cpMap[y*16+x] = 0;
+                    notMapped++;
+                    LOG_MSG("Unmapped character: %3d - %4x", y*16+x, unimap);
                 } else
                     cpMap[y*16+x] = unimap;
             }
         if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
             cpMap[eurAscii] = 0x20ac;
-    }
+        return notMapped;
+    } else
+        return -1;
 }
 
 void GFX_SelectFontByPoints(int ptsize) {

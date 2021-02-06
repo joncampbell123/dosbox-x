@@ -11,7 +11,9 @@
     a 10-second time interval for auto-saving, and the
     save slots used will be between 11 and 20. If no
     save slot is specified, then the current save slot
-    will be used for auto-saving. A menu option "Enable-
+    will be used for auto-saving. Putting a minus sign
+    before time interval causes the auto-saving function
+    to not be activated at start. A menu option "Enable-
     auto-saving state" is added to "Save/load options"
     menu group under "Capture" to toggle the auto-saving
     when the function is enabled. Likewise, menu option
