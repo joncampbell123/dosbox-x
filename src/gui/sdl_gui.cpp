@@ -1530,6 +1530,65 @@ public:
     }
 };
 
+extern bool enable_autosave;
+extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
+extern std::string autosave_name[10];
+class SetAutoSave : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name[10], *start[10], *end[10];
+public:
+    SetAutoSave(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 630, 390, title) {
+        new GUI::Label(this, 5, 15, "Time interval (secs)");
+        name[0] = new GUI::Input(this, 175, 10, 80);
+        name[0]->setText(std::to_string(autosave_second).c_str());
+        new GUI::Label(this, 265, 15, "Start slot");
+        start[0] = new GUI::Input(this, 350, 10, 35);
+        start[0]->setText(std::to_string(autosave_start[0]).c_str());
+        new GUI::Label(this, 400, 15, "End slot (optional)");
+        end[0] = new GUI::Input(this, 570, 10, 35);
+        end[0]->setText(std::to_string(autosave_end[0]).c_str());
+        for (int i=1; i<10; i++) {
+            new GUI::Label(this, 5, 15+i*30, "Program "+std::to_string(i)+" (Optional)");
+            name[i] = new GUI::Input(this, 175, 10+i*30, 80);
+            name[i]->setText(autosave_name[i].c_str());
+            new GUI::Label(this, 265, 15+i*30, "Start slot");
+            start[i] = new GUI::Input(this, 350, 10+i*30, 35);
+            start[i]->setText(std::to_string(autosave_start[i]).c_str());
+            new GUI::Label(this, 400, 15+i*30, "End slot (optional)");
+            end[i] = new GUI::Input(this, 570, 10+i*30, 35);
+            end[i]->setText(std::to_string(autosave_end[i]).c_str());
+        }
+        (new GUI::Button(this, 250, 315, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 330, 315, "Cancel", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "OK") {
+            autosave_second = atoi(name[0]->getText());
+            autosave_start[0] = atoi(start[0]->getText());
+            autosave_end[0] = atoi(end[0]->getText());
+            for (int i=1; i<10; i++) {
+                autosave_name[i] = (const char*)name[i]->getText();
+                if (autosave_name[i].size()) autosave_count=i;
+                autosave_start[i] = atoi(start[i]->getText());
+                if (autosave_start[i]<0) autosave_start[i]=0;
+                autosave_end[i] = atoi(end[i]->getText());
+                if (autosave_end[i]<autosave_start[i]) autosave_end[i]=0;
+                if (autosave_start[i]>1&&autosave_start[i]<=100&&autosave_last[i]<autosave_start[i]||autosave_last[i]>(autosave_end[i]>=autosave_start[i]&&autosave_end[i]<=100?autosave_end[i]:autosave_start[i])) autosave_last[i]=-1;
+            }
+            if (!mainMenu.get_item("enable_autosave").is_enabled()&&autosave_second) enable_autosave = autosave_second>0;
+            if (autosave_second<0) autosave_second=-autosave_second;
+            mainMenu.get_item("enable_autosave").check(enable_autosave).enable(autosave_second>0).refresh_item(mainMenu);
+            mainMenu.get_item("lastautosaveslot").enable(autosave_second>0).refresh_item(mainMenu);
+        }
+        close();
+        if(shortcut) running=false;
+    }
+};
+
 class SetCycles : public GUI::ToplevelWindow {
 protected:
     InputWithEnterKey *name;
@@ -2688,6 +2747,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
         case 28: {
             auto *np7 = new SetSensitivity(screen, 90, 100, "Set mouse sensitivity...");
+            np7->raise();
+            } break;
+        case 29: {
+            auto *np7 = new SetAutoSave(screen, 0, 0, "Auto-save settings...");
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {

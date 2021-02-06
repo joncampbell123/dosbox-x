@@ -35,9 +35,10 @@
 #endif
 
 extern unsigned int page;
-extern int autosave_last;
-extern std::string savefilename;
+extern int autosave_last[10], autosave_count;
+extern std::string autosave_name[10], savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
+extern const char* RunningProgram;
 bool auto_save_state=false;
 bool noremark_save_state = false;
 bool force_load_state = false;
@@ -227,12 +228,15 @@ void PreviousSaveSlot(bool pressed) {
 }
 
 void LastAutoSaveSlot(bool pressed) {
-    if (!pressed||autosave_last<1) return;
+    if (!pressed) return;
+    int index=0;
+    for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
+    if (autosave_last[index]<1) return;
 
 	char name[6]="slot0";
 	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    currentSlot.set(autosave_last-1);
+    currentSlot.set(autosave_last[index]-1);
     if (page!=currentSlot/SaveState::SLOT_COUNT) {
         page=(unsigned int)(currentSlot/SaveState::SLOT_COUNT);
         refresh_slots();
@@ -1135,7 +1139,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_machinetype=false;
 	bool create_timestamp=false;
 	bool create_saveremark=false;
-	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
