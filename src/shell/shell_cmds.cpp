@@ -3706,13 +3706,13 @@ void DOS_Shell::CMD_CTTY(char * args) {
 
 	/* must be device */
 	if (DOS_FindDevice(args) == DOS_DEVICES) {
-		WriteOut("Invalid device");
+		WriteOut("Invalid device - %s\n", args);
 		return;
 	}
 
 	/* close STDIN/STDOUT/STDERR and replace with new handle */
 	if (!DOS_OpenFile(args,OPEN_READWRITE,&handle)) {
-		WriteOut("Unable to open device");
+		WriteOut("Unable to open device - %s\n", args);
 		return;
 	}
 
@@ -3733,7 +3733,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	args = trim(args);
 	if (!*args)
 		{
-		WriteOut("Current country code: %d\r\n", countryNo);
+		WriteOut("Current country code: %d\n", countryNo);
 		return;
 		}
 	int newCC;
@@ -3744,7 +3744,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 		DOS_SetCountry(countryNo);
 		return;
 		}
-	WriteOut("Invalid country code\r\n");
+	WriteOut("Invalid country code - %s\n", StripArg(args));
 	return;
 }
 
@@ -3752,7 +3752,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
 	args = trim(args);
 	if (!*args) {
-		WriteOut("Active code page: %d\r\n", dos.loaded_codepage);
+		WriteOut("Active code page: %d\n", dos.loaded_codepage);
 		return;
 	}
     if (IS_PC98_ARCH) {
