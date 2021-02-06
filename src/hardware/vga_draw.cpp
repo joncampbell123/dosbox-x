@@ -3217,7 +3217,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 SetGameState_Run(autosave_last[index]-1);
                 SaveGameState_Run();
                 SetGameState_Run(state);
-            } else {
+            } else if (!autosave_start[index]) {
                 SaveGameState_Run();
                 autosave_last[index]=GetGameState_Run()+1;
             }

@@ -1574,7 +1574,7 @@ public:
                 autosave_name[i] = (const char*)name[i]->getText();
                 if (autosave_name[i].size()) autosave_count=i;
                 autosave_start[i] = atoi(start[i]->getText());
-                if (autosave_start[i]<0) autosave_start[i]=0;
+                if (autosave_start[i]<-1) autosave_start[i]=-1;
                 autosave_end[i] = atoi(end[i]->getText());
                 if (autosave_end[i]<autosave_start[i]) autosave_end[i]=0;
                 if (autosave_start[i]>1&&autosave_start[i]<=100&&autosave_last[i]<autosave_start[i]||autosave_last[i]>(autosave_end[i]>=autosave_start[i]&&autosave_end[i]<=100?autosave_end[i]:autosave_start[i])) autosave_last[i]=-1;

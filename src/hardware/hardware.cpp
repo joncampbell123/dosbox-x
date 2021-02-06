@@ -1836,31 +1836,33 @@ void ParseAutoSaveArg(std::string arg) {
         int start, end;
         if (found==std::string::npos||found==0) {
             found=arg.find_last_of("-");
-            if (found==std::string::npos) {
+            if (found==std::string::npos||found==0) {
                 start=atoi(arg.c_str());
                 if (start>0) autosave_start[0]=start;
+                else if (start<0) autosave_start[0]=-1;
             } else {
                 start=atoi(arg.substr(0, found).c_str());
                 end=atoi(arg.substr(found+1).c_str());
                 if (start>0) {
                     autosave_start[0]=start;
                     if (end>=start) autosave_end[0]=end;
-                }
+                } else if (start<0) autosave_start[0]=-1;
             }
         } else if (autosave_count<9) {
             autosave_name[++autosave_count]=arg.substr(0, found);
             std::string remain=arg.substr(found+1);
             found=remain.find_last_of("-");
-            if (found==std::string::npos) {
+            if (found==std::string::npos||found==0) {
                 start=atoi(remain.c_str());
                 if (start>0) autosave_start[autosave_count]=start;
+                else if (start<0) autosave_start[autosave_count]=-1;
             } else {
                 start=atoi(remain.substr(0, found).c_str());
                 end=atoi(remain.substr(found+1).c_str());
                 if (start>0) {
                     autosave_start[autosave_count]=start;
                     if (end>=start) autosave_end[autosave_count]=end;
-                }
+                } else if (start<0) autosave_start[autosave_count]=-1;
             }
         }
     }
