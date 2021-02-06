@@ -1009,6 +1009,9 @@ protected:
 	/// time of last click for double-click detection.
 	Ticks lastclick,lastdown;
 
+    /// Integer scaling factor.
+	int scale;
+
 public:
 
 	/** Initialize SDL screen with a surface
@@ -1016,7 +1019,7 @@ public:
 	 *  The dimensions of this surface will define the screen dimensions. Changing the surface
 	 *  later on will not change the available area.
 	 */
-	ScreenSDL(SDL_Surface *surface);
+	ScreenSDL(SDL_Surface *surface, int scale);
     virtual ~ScreenSDL();
 
 	/** Change current surface
@@ -1037,13 +1040,13 @@ public:
 	Ticks update(Ticks ticks);
 
 	/// Process an SDL event. Returns \c true if event was handled.
-	bool event(const SDL_Event *ev) { return event(*ev); }
+	bool event(SDL_Event *ev) { return event(*ev); }
 
 	void watchTime();
 	Uint32 getTime() { return current_time; }
 
 	/// Process an SDL event. Returns \c true if event was handled.
-	bool event(const SDL_Event& event);
+	bool event(SDL_Event& event);
 };
 #endif
 

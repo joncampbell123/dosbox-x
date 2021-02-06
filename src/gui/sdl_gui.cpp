@@ -198,7 +198,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
-    int sx, sy, sw, sh;
+    int sx, sy, sw, sh, scalex, scaley, scale;
     bool fs;
     GFX_GetSizeAndPos(sx, sy, sw, sh, fs);
 
@@ -227,6 +227,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     if (dw < 640) dw = 640;
     if (dh < 350) dh = 350;
+    scalex = dw / 640; /* maximum horisontal scale */
+    scaley = dh / 350; /* maximum vertical   scale */
+    if( scalex > scaley ) scale = scaley;
+    else                  scale = scalex;
 
     assert(sx < dw);
     assert(sy < dh);
@@ -433,7 +437,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
     if (screen) screen->setSurface(sdlscreen);
-    else screen = new GUI::ScreenSDL(sdlscreen);
+    else screen = new GUI::ScreenSDL(sdlscreen, scale); // CONF:SCALE
 
     saved_bpp = (int)render.src.bpp;
     render.src.bpp = 0;

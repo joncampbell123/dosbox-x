@@ -46,10 +46,12 @@ int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
+extern int autosave_second;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
@@ -4801,12 +4803,12 @@ static const uint16_t cpMap_PC98[256] = {
 
 extern int eurAscii;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void setTTFCodePage() {
+int setTTFCodePage() {
     if (IS_PC98_ARCH) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
         static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
         memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
-        return;
+        return 0;
     }
 
     int cp = dos.loaded_codepage;
@@ -4823,22 +4825,22 @@ void setTTFCodePage() {
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
         uint16_t unimap;
-        bool notMapped = false;
+        int notMapped = 0;
         for (int y = 8; y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
-                    if (!notMapped) {
-                        LOG_MSG("ASCII Unicode Fixed");
-                        notMapped = true;
-                    }
-                    LOG_MSG("  %3d    %4x  %4x", y*16+x, unimap, cpMap[y*16+x]);
+                    cpMap[y*16+x] = 0;
+                    notMapped++;
+                    LOG_MSG("Unmapped character: %3d - %4x", y*16+x, unimap);
                 } else
                     cpMap[y*16+x] = unimap;
             }
         if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
             cpMap[eurAscii] = 0x20ac;
-    }
+        return notMapped;
+    } else
+        return -1;
 }
 
 void GFX_SelectFontByPoints(int ptsize) {
@@ -4947,6 +4949,42 @@ void TTF_DecreaseSize(bool pressed) {
 #endif
 
 bool has_GUI_StartUp = false;
+
+std::string GetDefaultOutput() {
+    static std::string output = "surface";
+#ifdef __WIN32__
+# if defined(HX_DOS)
+    output ="surface"; /* HX DOS should stick to surface */
+# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
+    /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
+    output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
+# elif C_DIRECT3D
+    output = "direct3d";
+# elif C_OPENGL && !defined(C_SDL2)
+    output = isVirtualBox ? "surface" : "opengl";
+# elif C_OPENGL
+    output = "opengl";
+# else
+    output = "surface";
+# endif
+#elif defined(C_OPENGL) && !(defined(MACOSX) && defined(C_SDL2))
+    /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
+            than the CG bitmap-based "surface" output.
+
+            On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
+            on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
+            pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
+
+            So for the best experience, default to OpenGL.
+
+            Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
+            use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
+    output = "opengl";
+#else
+    output = "surface";
+#endif
+    return output;
+}
 
 static void GUI_StartUp() {
     DOSBoxMenu::item *item;
@@ -5181,37 +5219,7 @@ static void GUI_StartUp() {
     //if (output == "ttf" && (mtype == "tandy" || mtype == "pcjr"))
         //output = "default";
 	if (output == "default") {
-#ifdef __WIN32__
-# if defined(HX_DOS)
-        output ="surface"; /* HX DOS should stick to surface */
-# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
-        /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
-        output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# elif C_DIRECT3D
-        output = "direct3d";
-# elif C_OPENGL && !defined(C_SDL2)
-        output = isVirtualBox ? "surface" : "opengl";
-# elif C_OPENGL
-        output = "opengl";
-# else
-        output = "surface";
-# endif
-#elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
-        /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
-                than the CG bitmap-based "surface" output.
-
-                On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
-                on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
-                pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
-
-                So for the best experience, default to OpenGL.
-
-                Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
-                use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
-        output = "opengl";
-#else
-        output = "surface";
-#endif
+		output=GetDefaultOutput();
 		LOG_MSG("The default output for the video system: %s", output.c_str());
 	}
 
@@ -8662,6 +8670,7 @@ void DOSBox_ConsolePauseWait() {
     } while (!(c == 13 || c == 10)); /* wait for Enter key */
 }
 
+bool usecfgdir = false;
 bool DOSBOX_parse_argv() {
     std::string optname,tmp;
     uint8_t disp2_color=0;
@@ -8857,7 +8866,8 @@ bool DOSBOX_parse_argv() {
                 if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
                     if (chdir(tmp.c_str()) < 0)
                         return false;
-            }
+            } else
+                usecfgdir = true;
         }
         else if (optname == "userconf") {
             control->opt_userconf = true;
@@ -10150,23 +10160,14 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     return true;
 }
 
-bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *what = menuitem->get_name().c_str();
-
-    if (!strncmp(what,"output_",7))
-        what += 7;
-    else
-        return true;
-
+bool toOutput(const char *what) {
     bool reset=false;
 #if defined(USE_TTF)
     if (TTF_using()) reset=true;
 #endif
 
     if (!strcmp(what,"surface")) {
-        if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
+        if (sdl.desktop.want_type == SCREEN_SURFACE) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(0);
 #if defined(WIN32)
@@ -10178,7 +10179,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(3);
 #if defined(WIN32)
@@ -10190,7 +10191,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(4);
 #if defined(WIN32)
@@ -10202,7 +10203,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"openglpp")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return false;
         if (window_was_maximized&&!GFX_IsFullscreen()) {
             change_output(5);
 #if defined(WIN32)
@@ -10214,7 +10215,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"direct3d")) {
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return false;
 #if C_OPENGL && defined(C_SDL2)
         if (sdl.desktop.want_type == SCREEN_OPENGL)
             GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
@@ -10230,7 +10231,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
-        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
+        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return false;
 #if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
         if (sdl.desktop.want_type == SCREEN_SURFACE) {
             sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
@@ -10252,9 +10253,21 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #endif
     }
     if (reset) RENDER_Reset();
-
-    SetVal("sdl", "output", what);
     OutputSettingMenuUpdate();
+    return true;
+}
+
+bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *what = menuitem->get_name().c_str();
+
+    if (!strncmp(what,"output_",7))
+        what += 7;
+    else
+        return true;
+
+    if (toOutput(what)) SetVal("sdl", "output", what);
     return true;
 }
 
@@ -10750,6 +10763,14 @@ bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::it
     return true;
 }
 
+bool enable_autosave_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    enable_autosave = !enable_autosave;
+    mainMenu.get_item("enable_autosave").check(enable_autosave).refresh_item(mainMenu);
+    return true;
+}
+
 bool noremark_savestate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10831,6 +10852,14 @@ bool remove_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * cons
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     SaveState::instance().removeState(GetGameState_Run());
+    return true;
+}
+
+bool last_autosave_slot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    void LastAutoSaveSlot_Run(void);
+    LastAutoSaveSlot_Run();
     return true;
 }
 
@@ -11553,6 +11582,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             tmp.clear();
             Cross::GetPlatformConfigName(tmp);
             control->ParseConfigFile((config_path + tmp).c_str());
+        }
+
+        if (control->configfiles.size()&&usecfgdir) {
+            std::string configpath=control->configfiles.front();
+            size_t found=configpath.find_last_of("/\\");
+            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
         }
 
 		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
@@ -12426,10 +12461,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 		}
         {
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"lastautosaveslot").set_text("Select last auto-saved slot").set_callback_function(last_autosave_slot_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
             {

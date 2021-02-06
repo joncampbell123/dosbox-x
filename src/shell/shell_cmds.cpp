@@ -38,6 +38,7 @@
 #include "control.h"
 #include "paging.h"
 #include "menu.h"
+#include "render.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
@@ -61,6 +62,7 @@ SHELL_Cmd cmd_list[]={
 {	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"},
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
+{	"CHCP",			1,		&DOS_Shell::CMD_CHCP,		"SHELL_CMD_CHCP_HELP"},
 {	"COUNTRY",		1,		&DOS_Shell::CMD_COUNTRY,	"SHELL_CMD_COUNTRY_HELP"},
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
@@ -3746,3 +3748,32 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
+void DOS_Shell::CMD_CHCP(char * args) {
+	HELP("CHCP");
+	args = trim(args);
+	if (!*args) {
+		WriteOut("Active code page: %d\r\n", dos.loaded_codepage);
+		return;
+	}
+    if (IS_PC98_ARCH) {
+        WriteOut("Changing code page is not supported for the PC98 system.\n");
+        return;
+    }
+    if (!ttf.inUse) {
+        WriteOut("Changing code page is only supported for the TrueType font output.\n");
+        return;
+    }
+#if defined(USE_TTF)
+	int newCP;
+	char buff[256];
+	if (sscanf(args, "%d%s", &newCP, buff) == 1 && (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874)) {
+		dos.loaded_codepage = newCP;
+		int setTTFCodePage();
+		int missing = setTTFCodePage();
+		WriteOut("Active code page: %d\n", dos.loaded_codepage);
+        if (missing > 0) WriteOut("Characters not defined in TTF font: %d\n", missing);
+    } else
+        WriteOut("Invalid code page number - %s\n", StripArg(args));
+#endif
+	return;
+}

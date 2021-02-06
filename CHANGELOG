@@ -1,5 +1,37 @@
 0.83.11
-  - 
+  - Added CHCP command to view current code page, or
+    change the current code page in the TrueType font
+    output. Supported code pages include 437, 808, 850,
+    852, 853, 855, 857, 858, 860, 861, 862, 863, 864,
+    865, 866, 869, 872, and 874. (Wengier)
+  - Added function to automatically save states in the
+    specified interval (in seconds). You can optionally
+    specify a save slot or start and end save slots to
+    be used. For example, "autosave=10 11 20" will set
+    a 10-second time interval for auto-saving, and the
+    save slots used will be between 11 and 20. If no
+    save slot is specified, then the current save slot
+    will be used for auto-saving. Putting a minus sign
+    before time interval causes the auto-saving function
+    to not be activated at start. A menu option "Enable-
+    auto-saving state" is added to "Save/load options"
+    menu group under "Capture" to toggle the auto-saving
+    when the function is enabled. Likewise, menu option
+    "Select last auto-saved slot" is added to "Select
+    save slot" menu group (under "Capture") to switch to
+    the last auto-saved slot. (Wengier)
+  - The Configuration Tool windows are now scalable, so
+    that they will no longer look very small in e.g.
+    full-screen or High DPI modes. (ant_222)
+  - If the -defaultdir option is the last command-line
+    option and no paramter is specified, then directory
+    of the primary config file (if any) will become the
+    default directory for DOSBox-X. (Wengier)
+  - You can now change the current output dynamically
+    with CONFIG command, e.g. "CONFIG -set output=ttf"
+    and "CONFIG -set output=default". (Wengier)
+  - The setting "output=default" will enable the OpenGL
+    output for the Linux platform if possible. (Wengier)
 0.83.10
   - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and

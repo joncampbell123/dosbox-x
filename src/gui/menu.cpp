@@ -629,6 +629,7 @@ static const char *def_menu_capture_format[] =
 /* Save/load options */
 static const char *save_load_options[] =
 {
+    "enable_autosave",
     "noremark_savestate",
     "force_loadstate",
     "usesavefile",
@@ -656,6 +657,7 @@ static const char *def_save_slots[] =
     "slot8",
     "slot9",
     "--",
+    "lastautosaveslot",
     "mapper_prevslot",
     "mapper_nextslot",
     "--",
