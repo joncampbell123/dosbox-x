@@ -1865,6 +1865,7 @@ void CAPTURE_Init() {
     enable_autosave = autosave_second>0;
     if (autosave_second<0) autosave_second=-autosave_second;
     mainMenu.get_item("enable_autosave").check(enable_autosave).enable(autosave_second>0).refresh_item(mainMenu);
+    mainMenu.get_item("lastautosaveslot").enable(autosave_second>0).refresh_item(mainMenu);
     std::string hostkey = section->Get_string("hostkey");
     if (hostkey=="ctrlalt") hostkeyalt=1;
     else if (hostkey=="ctrlshift") hostkeyalt=2;

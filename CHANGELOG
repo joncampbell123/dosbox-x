@@ -14,7 +14,10 @@
     will be used for auto-saving. A menu option "Enable-
     auto-saving state" is added to "Save/load options"
     menu group under "Capture" to toggle the auto-saving
-    when the function is enabled. (Wengier)
+    when the function is enabled. Likewise, menu option
+    "Select last auto-saved slot" is added to "Select
+    save slot" menu group (under "Capture") to switch to
+    the last auto-saved slot. (Wengier)
   - The Configuration Tool windows are now scalable, so
     that they will no longer look very small in e.g.
     full-screen or High DPI modes. (ant_222)

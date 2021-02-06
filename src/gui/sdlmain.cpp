@@ -10853,6 +10853,14 @@ bool remove_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * cons
     return true;
 }
 
+bool last_autosave_slot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    void LastAutoSaveSlot_Run(void);
+    LastAutoSaveSlot_Run();
+    return true;
+}
+
 bool first_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     if (page>0) {
         char name[6]="slot0";
@@ -12448,8 +12456,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
-             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"lastautosaveslot").set_text("Select last auto-saved slot").set_callback_function(last_autosave_slot_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
             {

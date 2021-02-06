@@ -35,6 +35,7 @@
 #endif
 
 extern unsigned int page;
+extern int autosave_last;
 extern std::string savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
 bool auto_save_state=false;
@@ -224,6 +225,24 @@ void PreviousSaveSlot(bool pressed) {
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
+
+void LastAutoSaveSlot(bool pressed) {
+    if (!pressed||autosave_last<1) return;
+
+	char name[6]="slot0";
+	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    currentSlot.set(autosave_last-1);
+    if (page!=currentSlot/SaveState::SLOT_COUNT) {
+        page=(unsigned int)(currentSlot/SaveState::SLOT_COUNT);
+        refresh_slots();
+    }
+    name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+    mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+
+    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
+    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
+}
 }
 
 std::string GetPlatform(bool save) {
@@ -261,6 +280,7 @@ void SaveGameState_Run(void) { SaveGameState(true); }
 void LoadGameState_Run(void) { LoadGameState(true); }
 void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
+void LastAutoSaveSlot_Run(void) { LastAutoSaveSlot(true); }
 
 void ShowStateInfo(bool pressed) {
     if (!pressed) return;

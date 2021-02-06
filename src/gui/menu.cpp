@@ -657,6 +657,7 @@ static const char *def_save_slots[] =
     "slot8",
     "slot9",
     "--",
+    "lastautosaveslot",
     "mapper_prevslot",
     "mapper_nextslot",
     "--",
