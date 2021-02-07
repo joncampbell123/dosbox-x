@@ -1428,7 +1428,7 @@ public:
             name->setText(fullpath);
             return;
         }
-        if (arg == "OK" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "Save" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
         if (arg == "Save & Restart") RebootConfig((const char*)name->getText(), true);
         close();
         if(shortcut) running=false;
