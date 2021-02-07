@@ -30,13 +30,15 @@
   - The Configuration Tool windows are now scalable, so
     that they will no longer look very small in e.g.
     full-screen or High DPI modes. (ant_222)
-  - If the -defaultdir option is the last command-line
-    option and no paramter is specified, then directory
-    of the primary config file (if any) will become the
-    default directory for DOSBox-X. (Wengier)
+  - If the -defaultdir option is the only or the last
+    command-line option and no parameter is specified,
+    then directory of the primary config file (if any)
+    becomes the DOSBox-X default directory. (Wengier)
   - You can now change the current output dynamically
     with CONFIG command, e.g. "CONFIG -set output=ttf"
     and "CONFIG -set output=default". (Wengier)
+  - The command "KEYB US" will return the DOS codepage
+    to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
   - Integrated SVN commits (Allofich)

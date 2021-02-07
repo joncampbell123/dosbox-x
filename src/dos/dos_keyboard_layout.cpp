@@ -1053,6 +1053,7 @@ Bitu keyboard_layout::switch_keyboard_layout(const char* new_layout, keyboard_la
 	} else if (this->use_foreign_layout) {
 		// switch to the US layout
 		this->use_foreign_layout=false;
+		if (tried_cp < 0) dos.loaded_codepage = 437;
 		diacritics_character=0;
 		LOG(LOG_BIOS,LOG_NORMAL)("Switched to US layout");
 	}
