@@ -28,9 +28,12 @@
 #include "cross.h"
 #include "printer_charmaps.h"
 #include "control.h"
-
 #include "pic.h" // for timeout
+#include "render.h"
 
+#if defined(USE_TTF)
+extern unsigned char DOSBoxTTFbi[48868];
+#endif
 extern void GFX_CaptureMouse(void);
 extern bool mouselocked;
 
@@ -43,10 +46,12 @@ static CPrinter* defaultPrinter = NULL;
 static uint16_t confdpi, confwidth, confheight;
 static Bitu printer_timout;
 static bool timeout_dirty;
-static const char* document_path;
-//static const char* font_path;
+static std::string document_path;
+static std::string font_path;
+static std::string device;
 static char confoutputDevice[50];
-static bool confmultipageOutput;
+static bool confmultipageOutput, shellhide;
+static std::string actstd, acterr;
 
 void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID, SDL_Palette* pal)
 {
@@ -61,6 +66,41 @@ void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, ui
 		pal->colors[i+colormask].g = 255 - (uint8_t)floor(green * (float)i);
 		pal->colors[i+colormask].b = 255 - (uint8_t)floor(blue * (float)i);
 	}
+}
+
+extern std::string prtlist;
+
+void CPrinter::getPrinterContext() {
+#if defined (WIN32)
+    if (device.size()&&device!="-") {
+        printerDC = CreateDC("WINSPOOL", device.c_str(), NULL, NULL);
+        return;
+    }
+
+	// Show Print dialog to obtain a printer device context
+    PRINTDLG pd;
+    pd.lStructSize = sizeof(PRINTDLG);
+    pd.hDevMode = (HANDLE) NULL;
+    pd.hDevNames = (HANDLE) NULL;
+    pd.Flags = PD_RETURNDC;
+    pd.hwndOwner = NULL;
+    pd.hDC = (HDC) NULL;
+    pd.nFromPage = 1;
+    pd.nToPage = 1;
+    pd.nMinPage = 0;
+    pd.nMaxPage = 0;
+    pd.nCopies = 1;
+    pd.hInstance = NULL;
+    pd.lCustData = 0L;
+    pd.lpfnPrintHook = (LPPRINTHOOKPROC) NULL;
+    pd.lpfnSetupHook = (LPSETUPHOOKPROC) NULL;
+    pd.lpPrintTemplateName = (LPSTR) NULL;
+    pd.lpSetupTemplateName = (LPSTR) NULL;
+    pd.hPrintTemplate = (HANDLE) NULL;
+    pd.hSetupTemplate = (HANDLE) NULL;
+    if (PrintDlg(&pd)) printerDC = pd.hDC;
+    else printerDC = NULL;
+#endif
 }
 
 CPrinter::CPrinter(uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput) 
@@ -123,35 +163,6 @@ CPrinter::CPrinter(uint16_t dpi, uint16_t width, uint16_t height, char* output, 
 
 		resetPrinter();
 
-		if (strcasecmp(output, "printer") == 0)
-		{
-#if defined (WIN32)
-			// Show Print dialog to obtain a printer device context
-			PRINTDLG pd;
-			pd.lStructSize = sizeof(PRINTDLG); 
-			pd.hDevMode = (HANDLE) NULL; 
-			pd.hDevNames = (HANDLE) NULL; 
-			pd.Flags = PD_RETURNDC; 
-			pd.hwndOwner = NULL; 
-			pd.hDC = (HDC) NULL; 
-			pd.nFromPage = 1; 
-			pd.nToPage = 1; 
-			pd.nMinPage = 0; 
-			pd.nMaxPage = 0; 
-			pd.nCopies = 1; 
-			pd.hInstance = NULL; 
-			pd.lCustData = 0L; 
-			pd.lpfnPrintHook = (LPPRINTHOOKPROC) NULL; 
-			pd.lpfnSetupHook = (LPSETUPHOOKPROC) NULL; 
-			pd.lpPrintTemplateName = (LPSTR) NULL; 
-			pd.lpSetupTemplateName = (LPSTR)  NULL; 
-			pd.hPrintTemplate = (HANDLE) NULL; 
-			pd.hSetupTemplate = (HANDLE) NULL; 
-			PrintDlg(&pd);
-			// TODO: what if user presses cancel?
-			printerDC = pd.hDC;
-#endif
-		}
 		LOG(LOG_MISC,LOG_NORMAL)("PRINTER: Enabled");
 	}
 }
@@ -219,7 +230,7 @@ CPrinter::~CPrinter(void)
 		FT_Done_FreeType(FTlib);
 	}
 #if defined (WIN32)
-	DeleteDC(printerDC);
+	if (printerDC) DeleteDC(printerDC);
 #endif
 }
 
@@ -252,12 +263,9 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	std::string fontName, basedir;
-#if defined(WIN32)
-    basedir = ".\\FONTS\\";
-#else
-    basedir = "./FONTS/";
-#endif
+	std::string fontName, basedir = font_path;
+    if (basedir.back()!='\\' && basedir.back()!='/')
+        basedir += CROSS_FILESPLIT;
 
 	switch (LQtypeFace)
 	{
@@ -274,7 +282,7 @@ void CPrinter::updateFont()
 		    fontName = basedir + "script.ttf";
 		    break;
 	    case ocra:
-	    case ocrb:
+	    case ocrb:;
 		    fontName = basedir + "ocra.ttf";
 		    break;
 	    default:
@@ -310,7 +318,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "times.ttf";
 #else
                 fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSerif-Regular.ttf";
 #endif
                 break;
             case sansserif:
@@ -318,7 +326,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "arial.ttf";
 #else
                 fontName = basedir + "liberation-sans/LiberationSans-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSans-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSans-Regular.ttf";
 #endif
                 break;
             case courier:
@@ -326,7 +334,7 @@ void CPrinter::updateFont()
                 fontName = basedir + "cour.ttf";
 #else
                 fontName = basedir + "liberation-mono/LiberationMono-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationMono-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationMono-Regular.ttf";
 #endif
                 break;
             case script:
@@ -341,10 +349,14 @@ void CPrinter::updateFont()
                 fontName = basedir + "times.ttf";
 #else
                 fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "truetype/liberation/LiberationSerif-Regular.ttf";
 #endif
         }
-        if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
+        if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)
+#if defined(USE_TTF)
+        && FT_New_Memory_Face(FTlib, DOSBoxTTFbi, sizeof(DOSBoxTTFbi), 0, &curFont)
+#endif
+        ) {
             //LOG(LOG_MISC,LOG_ERROR)("Unable to load font %s", fontName);
             LOG_MSG("Unable to load font %s (or %s)", oldfont.c_str(), fontName.c_str());
             curFont = NULL;
@@ -1633,7 +1645,7 @@ void CPrinter::formFeed()
 static void findNextName(const char* front, const char* ext, char* fname)
 {
 	int i = 1;
-	Bitu slen = (Bitu)strlen(document_path);
+	Bitu slen = (Bitu)document_path.size();
 	if(slen > (200 - 15))
     {
 		fname[0] = 0;
@@ -1643,7 +1655,7 @@ static void findNextName(const char* front, const char* ext, char* fname)
     FILE *test = NULL;
 	do
 	{
-		strcpy(fname, document_path);
+		strcpy(fname, document_path.c_str());
 #ifdef WIN32
 		const char* const pathstring = "\\%s%d%s";
 #else 
@@ -1656,6 +1668,57 @@ static void findNextName(const char* front, const char* ext, char* fname)
 	while (test != NULL);
 }
 
+void CPrinter::doAction(const char *fname) {
+    std::string action;
+    if (actstd.size()) {
+        action=actstd;
+        bool fail=false;
+#if defined(WIN32)
+        bool q=false;
+        int pos=-1;
+        std::string para=fname;
+        for (int i=0; i<action.size(); i++) {
+            if (action[i]=='"') q=!q;
+            else if (action[i]==' ' && !q) {
+                pos=i;
+                break;
+            }
+        }
+        if (pos>-1) {
+            para=action.substr(pos+1)+" "+fname;
+            action=action.substr(0, pos);
+        }
+        fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
+#else
+        fail=system((action+" "+fname).c_str())!=0;
+#endif
+        if (acterr.size()&&fail) {
+            action=acterr;
+#if defined(WIN32)
+            q=false;
+            pos=-1;
+            para=fname;
+            for (int i=0; i<action.size(); i++) {
+                if (action[i]=='"') q=!q;
+                else if (action[i]==' ' && !q) {
+                    pos=i;
+                    break;
+                }
+            }
+            if (pos>-1) {
+                para=action.substr(pos+1)+" "+fname;
+                action=action.substr(0, pos);
+            }
+            fail=(INT_PTR)ShellExecute(NULL, "open", action.c_str(), para.c_str(), NULL, shellhide?SW_HIDE:SW_NORMAL)<=32;
+#else
+            fail=system((action+" "+fname).c_str())!=0;
+#endif
+        }
+        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+        if (fail) systemmessagebox("Error", "The requested file handler failed to complete.", "ok","error", 1);
+    }
+}
+
 void CPrinter::outputPage() 
 {
 	char fname[200];
@@ -1664,8 +1727,9 @@ void CPrinter::outputPage()
 	{
 #if defined (WIN32)
 		// You'll need the mouse for the print dialog
-		if(mouselocked)
+		if (mouselocked)
 			 GFX_CaptureMouse();
+        if (!device.size() || printerDC==NULL) getPrinterContext();
 
 		uint16_t physW = GetDeviceCaps(printerDC, PHYSICALWIDTH);
 		uint16_t physH = GetDeviceCaps(printerDC, PHYSICALHEIGHT);
@@ -1692,7 +1756,7 @@ void CPrinter::outputPage()
 			DOCINFO docinfo;
 			memset(&docinfo, 0, sizeof(docinfo));
 			docinfo.cbSize = sizeof(docinfo);
-			docinfo.lpszDocName = "DOSBOX Printer";
+			docinfo.lpszDocName = "DOSBox-X Printer";
 			docinfo.lpszOutput = NULL;
 			docinfo.lpszDatatype = NULL;
 			docinfo.fwType = 0;
@@ -1822,6 +1886,7 @@ void CPrinter::outputPage()
 		
 		/*clean up dynamically allocated RAM.*/
 		free(row_pointers);
+		doAction(fname);
 	}
 #endif
 	else if (strcasecmp(output, "ps") == 0)
@@ -1851,7 +1916,7 @@ void CPrinter::outputPage()
 			fprintf(psfile, "%%!PS-Adobe-3.0\n");
 			fprintf(psfile, "%%%%Pages: (atend)\n");
 			fprintf(psfile, "%%%%BoundingBox: 0 0 %i %i\n", (uint16_t)(defaultPageWidth * 72), (uint16_t)(defaultPageHeight * 72));
-			fprintf(psfile, "%%%%Creator: DOSBOX Virtual Printer\n");
+			fprintf(psfile, "%%%%Creator: DOSBox-X Virtual Printer\n");
 			fprintf(psfile, "%%%%DocumentData: Clean7Bit\n");
 			fprintf(psfile, "%%%%LanguageLevel: 2\n");
 			fprintf(psfile, "%%%%EndComments\n");
@@ -1925,6 +1990,7 @@ void CPrinter::outputPage()
 			fprintf(psfile, "%%%%EOF\n");
 			fclose(psfile);
 			outputHandle = NULL;
+			doAction(fname);
 		}
 	}
 	else
@@ -1932,6 +1998,7 @@ void CPrinter::outputPage()
 		// Find a page that does not exists
 		findNextName("page", ".bmp", &fname[0]);
 		SDL_SaveBMP(page, fname);
+		doAction(fname);
 	}
 }
 
@@ -2015,7 +2082,7 @@ void CPrinter::finishMultipage()
 		else if (strcasecmp(output, "printer") == 0)
 		{
 #if defined (WIN32)
-			EndDoc(printerDC);
+			if (printerDC) EndDoc(printerDC);
 #endif
 		}
 		outputHandle = NULL;
@@ -2171,6 +2238,7 @@ bool PRINTER_isInited()
 	return inited;
 }
 
+void ResolvePath(std::string& in);
 void PRINTER_Init() 
 {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("printer"));
@@ -2180,9 +2248,11 @@ void PRINTER_Init()
 	//real_writew(0x0040, 0x0008, LPTPORT);
 
 	if (!section->Get_bool("printer")) return;
-	inited = true;
 	document_path = section->Get_string("docpath");
-	//font_path = section->Get_string("fontpath");
+	ResolvePath(document_path);
+	font_path = section->Get_string("fontpath");
+	ResolvePath(font_path);
+	device = section->Get_string("device");
 	confdpi = section->Get_int("dpi");
 	confwidth = section->Get_int("width");
 	confheight = section->Get_int("height");
@@ -2191,6 +2261,11 @@ void PRINTER_Init()
 	else timeout_dirty = false;
 	strcpy(&confoutputDevice[0], section->Get_string("printoutput"));
 	confmultipageOutput = section->Get_bool("multipage");
+	shellhide = section->Get_bool("shellhide");
+	actstd = section->Get_string("openwith");
+    ResolvePath(actstd);
+	acterr = section->Get_string("openerror");
+    ResolvePath(acterr);
 
 	//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);
@@ -2202,6 +2277,32 @@ void PRINTER_Init()
     DOSBoxMenu::item *item;
 	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
     item->set_text("Send form-feed");
+
+#if defined(WIN32)
+    if (!inited && !strcasecmp(confoutputDevice, "printer")) {
+        DWORD dwNeeded = 0, dwReturned = 0;
+        bool fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)NULL, 0L, &dwNeeded, &dwReturned);        PRINTER_INFO_1* pInfo = NULL;
+        if (dwNeeded > 0) pInfo = (PRINTER_INFO_1 *)HeapAlloc(GetProcessHeap(), 0L, dwNeeded);
+        if (NULL != pInfo) {
+            dwReturned = 0;
+            fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)pInfo, dwNeeded, &dwNeeded, &dwReturned);
+        }
+        if (fnReturn) {
+            unsigned int devnum;
+            if (1!=sscanf(device.c_str(),"%u",&devnum)) devnum=-2;
+            prtlist = "Printer Device List\n-------------------------------------------------------------\n";
+            for (int i=1; i < dwReturned; i++) {
+                if(devnum>0&&i==devnum) device=pInfo[i].pName;
+                prtlist+=(i<10?"0":"")+std::to_string(i)+" "+pInfo[i].pName+"\n";
+            }
+            std::istringstream in(("\n"+prtlist+"\n").c_str());
+            if (in)	for (std::string line; std::getline(in, line); )
+                LOG_MSG("%s", line.c_str());
+        } else
+            pInfo = NULL;
+    }
+#endif
+	inited = true;
 }
 
 #endif

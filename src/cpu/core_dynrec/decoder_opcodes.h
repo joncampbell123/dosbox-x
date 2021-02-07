@@ -82,9 +82,11 @@ static void dyn_dop_ebgb_xchg(void) {
 		dyn_read_byte(FC_ADDR,FC_TMP_BA1);
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
+		gen_protect_reg(FC_TMP_BA1);
 		gen_restore_addr_reg();
 		dyn_write_byte(FC_ADDR,FC_TMP_BA2);
+		gen_restore_reg(FC_TMP_BA1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	} else {
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
@@ -1099,7 +1101,7 @@ static void dyn_sahf(void) {
 static void dyn_exit_link(int32_t eip_change) {
 	gen_add_direct_word(&reg_eip,(decode.code-decode.code_start)+eip_change,decode.big_op);
 	dyn_reduce_cycles();
-	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
 	dyn_closeblock();
 }
 
@@ -1113,12 +1115,12 @@ static void dyn_branched_exit(BranchTypes btype,int32_t eip_add) {
 
  	// Branch not taken
 	gen_add_direct_word(&reg_eip,eip_base,decode.big_op);
- 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+ 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
  	gen_fill_branch(data);
 
  	// Branch taken
 	gen_add_direct_word(&reg_eip,eip_base+eip_add,decode.big_op);
- 	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlockDynRec,cache.start));
+ 	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlockDynRec,cache.xstart));
  	dyn_closeblock();
 }
 
@@ -1171,7 +1173,7 @@ static void dyn_loop(LoopTypes type) {
 		break;
 	}
 	gen_add_direct_word(&reg_eip,eip_base+eip_add,true);
-	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
 	if (branch1) {
 		gen_fill_branch(branch1);
 		MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
@@ -1181,7 +1183,7 @@ static void dyn_loop(LoopTypes type) {
 	// Branch taken
 	gen_fill_branch(branch2);
 	gen_add_direct_word(&reg_eip,eip_base,decode.big_op);
-	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[1].to,offsetof(CacheBlockDynRec,cache.xstart));
 	dyn_closeblock();
 }
 
@@ -1213,7 +1215,7 @@ static void dyn_call_near_imm(void) {
 	gen_mov_word_from_reg(FC_OP1,decode.big_op?(void*)(&reg_eip):(void*)(&reg_ip),decode.big_op);
 
 	dyn_reduce_cycles();
-	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
 	dyn_closeblock();
 }
 

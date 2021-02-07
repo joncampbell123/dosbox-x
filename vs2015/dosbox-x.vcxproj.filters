@@ -121,6 +121,9 @@
     <Filter Include="Sources\libs\decoder">
       <UniqueIdentifier>{8c545daa-26e1-4aad-a8ee-48caa3730fab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\cpu\core_dyn_x86">
+      <UniqueIdentifier>{09ec76de-76b7-416f-9a14-f47a19aabc07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -1028,6 +1031,7 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
       <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -1514,6 +1518,9 @@
     <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
       <Filter>Sources\libs\decoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1855,6 +1862,24 @@
     <ClInclude Include="..\include\cp858_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cp860_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp861_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp862_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp863_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp864_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp865_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\cp866_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -1862,6 +1887,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp872_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp874_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp932_uni.h">
@@ -2319,6 +2347,7 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h">
       <Filter>Sources\hardware</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
@@ -2342,6 +2371,33 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\MidiStreamParser.h">
       <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

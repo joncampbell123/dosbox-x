@@ -119,12 +119,12 @@ private:
 			case 0:
 				if ((modrm&7)==5) {
 					// update offset to be RIP relative
-					Bits diff = offset - (Bits)cache.pos - 4 - imm_size;
+					Bits diff = offset - (Bits)cache_rwtox(cache.pos) - 4 - imm_size;
 					if ((int32_t)diff == diff) offset = diff;
 					else { // try 32-bit absolute address
 						if ((int32_t)offset != offset) IllegalOption("opcode::Emit: bad RIP address");
 						// change emitted modrm base from 5 to 4 (use sib)
-						cache.pos[-1] -= 1; 
+						cache_addb(modrm-1,cache.pos-1);
 						cache_addb(0x25); // sib: [none+1*none+simm32]
 					}
 				} else if ((modrm&7)!=4 || (sib&7)!=5)
@@ -275,7 +275,7 @@ static BlockReturn (*gen_runcode)(uint8_t *code) = gen_runcodeInit;
 static BlockReturn gen_runcodeInit(uint8_t *code) {
 	uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[128];
-	gen_runcode = (BlockReturn(*)(uint8_t*))cache.pos;
+	gen_runcode = (BlockReturn(*)(uint8_t*))cache_rwtox(cache.pos);
 
 	opcode(5).Emit8Reg(0x50);  // push rbp
 	opcode(15).Emit8Reg(0x50); // push r15
@@ -532,6 +532,26 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 	case 2: op.setword(); // mov r16, []
 	case 4: op.setreg(idx);
 		tmp = 0x8B; // mov r32, []
+		break;
+	default:
+		IllegalOption("gen_mov_host");
+	}
+	op.setabsaddr(data).Emit8(tmp);
+	dr1->flags|=DYNFLG_CHANGED;
+}
+
+static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
+	int idx = FindDynReg(dr1)->index;
+	opcode op;
+	uint8_t tmp;
+	switch (size) {
+	case 1:
+		op.setreg(idx,di1);
+		tmp = 0x88; // mov [], r8
+		break;
+	case 2: op.setword(); // mov [], r16
+	case 4: op.setreg(idx);
+		tmp = 0x89; // mov [], r32
 		break;
 	default:
 		IllegalOption("gen_mov_host");
@@ -1028,7 +1048,7 @@ static void gen_call_ptr(void *func=NULL, uint8_t ptr=0) {
 
 	/* Do the actual call to the procedure */
 	if (func!=NULL) {
-		Bits diff = (Bits)func - (Bits)cache.pos - 5;
+		Bits diff = (Bits)func - (Bits)cache_rwtox(cache.pos) - 5;
 		if ((int32_t)diff == diff) {
 			opcode(0).setimm(diff,4).Emit8Reg(0xE8); // call rel32
 			return;
@@ -1118,9 +1138,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	gen_load_arg_reg(0,dr,"rd");
 
 	switch (write_size) {
-		case 1: func = (void*)mem_writeb_checked; break;
-		case 2: func = (void*)mem_writew_checked; break;
-		case 4: func = (void*)mem_writed_checked; break;
+		case 1: func = (void*)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked); break;
+		case 2: func = (void*)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked); break;
+		case 4: func = (void*)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked); break;
 		default: IllegalOption("gen_call_write");
 	}
 
@@ -1207,6 +1227,10 @@ static void gen_save_host_direct(void *data,Bitu imm) {
 		opcode(0).setimm(imm>>32,4).setabsaddr((uint8_t*)data+4).Emit8(0xC7); // high dword
 	} else
 		opcode(0).set64().setimm(imm,4).setabsaddr(data).Emit8(0xC7); // mov qword[], int32_t
+}
+
+static void gen_test_host_byte(void * data, uint8_t imm) {
+	opcode(0).setimm(imm,1).setabsaddr(data).Emit8(0xF6); // test byte[], uint8_t
 }
 
 static void gen_return(BlockReturn retcode) {
@@ -1319,7 +1343,7 @@ static void (*gen_dh_fpu_save)(void)  = gen_dh_fpu_saveInit;
 static void gen_dh_fpu_saveInit(void) {
 	uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[64];
-	gen_dh_fpu_save = (void(*)(void))cache.pos;
+	gen_dh_fpu_save = (void(*)(void))cache_rwtox(cache.pos);
 
 	Bitu addr = (Bitu)&dyn_dh_fpu;
 	// mov RAX, &dyn_dh_fpu

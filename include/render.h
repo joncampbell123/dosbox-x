@@ -98,11 +98,8 @@ typedef struct Render_t {
 		Bitu inHeight, inLine, outLine;
 	} scale;
 	struct {
-		bool invalid;
-		bool nextInvalid;
 		uint8_t *pointer;
 		Bitu width, height;
-		int start_x, past_x, start_y, past_y, curr_y;
 	} cache;
 #if C_OPENGL
 	char* shader_src;
@@ -120,12 +117,14 @@ typedef struct Render_t {
 
 #if defined(USE_TTF)
 #include "SDL_ttf.h"
-#define txtMaxCols 160
-#define txtMaxLins 60
+#define txtMaxCols 255
+#define txtMaxLins 88
 typedef struct {
 	bool	inUse;
-	char	fontName[32];
 	TTF_Font *SDL_font;
+	TTF_Font *SDL_fontb;
+	TTF_Font *SDL_fonti;
+	TTF_Font *SDL_fontbi;
 	bool	DOSBox;								// is DOSBox-X internal TTF loaded, pointsizes should be even to look really nice
 	int		pointsize;
 	int		height;								// height of character cell

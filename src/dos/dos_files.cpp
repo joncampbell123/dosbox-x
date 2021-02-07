@@ -228,6 +228,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 	return true;	
 }
 
+bool checkwat=false;
 bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char pdir[LFN_NAMELENGTH+4], *p;
     uint8_t drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
@@ -282,6 +283,10 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			dta.GetResult(name,lname,size,date,time,attr);
 			strcat(SFNPath,name);
 			strcat(LFNPath,lname);
+        } else if (checkwat) {
+            lfn_filefind_handle=fbak;
+            dos.dta(save_dta);
+            return false;
 		} else {
 			strcat(SFNPath,p);
 			strcat(LFNPath,p);
@@ -627,14 +632,7 @@ bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#ifdef WIN32
 	return Files[handle]->LockFile(mode,pos,size);
-#else
-    (void)mode;//UNUSED
-    (void)size;//UNUSED
-    (void)pos;//UNUSED
-	return true;
-#endif
 }
 
 bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
@@ -2044,9 +2042,10 @@ void POD_Save_DOS_Files( std::ostream& stream )
             strcpy(dinfo, Drives[lcv]->GetInfo());
             WRITE_POD( &dinfo, dinfo);
             *overlaydir=0;
-            if (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6)) {
+            if (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) ) {
                 localDrive *ldp = dynamic_cast<localDrive*>(Drives[lcv]);
                 if (!ldp) ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
+                if (!ldp) ldp = dynamic_cast<physfsDrive*>(Drives[lcv]);
                 if (ldp) {
                     lalloc.bytes_sector=ldp->allocation.bytes_sector;
                     lalloc.sectors_cluster=ldp->allocation.sectors_cluster;
@@ -2062,6 +2061,10 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     oalloc.total_clusters=odp->allocation.total_clusters;
                     oalloc.free_clusters=odp->allocation.free_clusters;
                     oalloc.mediaid=odp->allocation.mediaid;
+                } else {
+                    physfsDrive *pdp = dynamic_cast<physfsDrive*>(Drives[lcv]);
+                    if (pdp && pdp->getOverlaydir())
+                        strcpy(overlaydir,pdp->getOverlaydir());
                 }
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
@@ -2224,7 +2227,7 @@ void POD_Load_DOS_Files( std::istream& stream )
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
             READ_POD( &opts, opts);
-            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
+            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
                 unmount(lcv);
             if( !Drives[lcv] ) {
                 std::vector<std::string> options;
@@ -2234,26 +2237,46 @@ void POD_Load_DOS_Files( std::istream& stream )
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                         if (strlen(overlaydir)) {
-                            uint8_t o_error = 0;
-                            Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.sectors_cluster,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,o_error,options);
+                            uint8_t error = 0;
+                            Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.sectors_cluster,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,error,options);
                         }
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+16);
-                } else if (!strncmp(dinfo,"CDRom ",6)) {
+                } else if (!strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS CDRom ",13)) {
                     int num = -1;
-                    int error;
+                    int error = 0;
                     int id, major, minor;
                     DOSBox_CheckOS(id, major, minor);
                     if ((id==VER_PLATFORM_WIN32_NT) && (major>5))
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
                     else
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
-                    Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
+                    if (!strncmp(dinfo,"PhysFS CDRom ",13)) {
+                        std::string str=std::string(dinfo+13);
+                        std::size_t found=str.find(", ");
+                        if (found!=std::string::npos)
+                            str=str.substr(0,found);
+                        Drives[lcv] = new physfscdromDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,0,lalloc.mediaid,error,options);
+                    } else
+                        Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
                     if (Drives[lcv]) {
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+6);
+                } else if (!strncmp(dinfo,"PhysFS directory ",17)) {
+                    int error = 0;
+                    std::string str=std::string(dinfo+17);
+                    std::size_t found=str.find(", ");
+                    if (found!=std::string::npos)
+                        str=str.substr(0,found);
+                    Drives[lcv]=new physfsDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
+                    if (Drives[lcv]) {
+                        if (strlen(overlaydir)) dynamic_cast<physfsDrive*>(Drives[lcv])->setOverlaydir(overlaydir);
+                        DOS_EnableDriveMenu('A'+lcv);
+                        mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
+                    } else
+                        LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+16);
                 } else if (!strncmp(dinfo,"isoDrive ",9) && *(dinfo+9)) {
                     MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
                     uint8_t mediaid = 0xF8;

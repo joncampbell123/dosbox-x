@@ -46,6 +46,7 @@
 
 #include "SDL_syswm.h"
 #include "sdlmain.h"
+#include "shell.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -59,6 +60,7 @@
 #define BMOD_Host               0x0008
 
 #define BFLG_Hold               0x0001
+#define BFLG_Hold_Temporary     0x0002 /* Emendelson alternate ctrl+alt host key combinations. Keep it SEPARATE so it does not disturb user changes to the mapper */
 #define BFLG_Repeat             0x0004
 
 
@@ -278,7 +280,6 @@ static KeyBlock combo_4[11] =
 static bool initjoy=true;
 static int cpage=1, maxpage=1;
 
-
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,uint8_t col);
@@ -292,6 +293,7 @@ Bitu                                            GUI_JoystickCount(void);        
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
+void                                            DOSBox_SetSysMenu(void);
 void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
 void                                            WindowsTaskbarResetPreviewRegion(void); // external
 #endif
@@ -575,7 +577,7 @@ public:
         if (event->IsTrigger()) {
             if (!active) return;
             active=false;
-            if (flags & BFLG_Hold) {
+            if (flags & (BFLG_Hold|BFLG_Hold_Temporary)) {
                 if (!holding) {
                     holding=true;
                     return;
@@ -674,7 +676,7 @@ void MAPPER_TriggerEvent(const CEvent *event, const bool deactivation_state) {
 	}
 }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 /* TODO: This is fine, but it should not call MAPPER functions from a separate thread.
  *       These functions are not necessarily reentrant and can cause screw ups when
  *       called from multiple threads.
@@ -783,7 +785,7 @@ static struct CMapper {
         Bitu                                    num_groups,num;
         CStickBindGroup*                        stick[MAXSTICKS];
     } sticks = {};
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	Typer										typist;
 #endif
     std::string                                 filename;
@@ -1036,7 +1038,12 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
+        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        if (!strcmp(r, "left super")) r = "left Windows";
+        else if (!strcmp(r, "right super")) r = "right Windows";
+        else if (!strcmp(r, "left meta")) r = "left Command";
+        else if (!strcmp(r, "right meta")) r = "right Command";
+        sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -1063,6 +1070,10 @@ public:
 				if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
 				if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
 				if (c!=NULL) *(c+1)=toupper(*(c+1));
+                else if (r=="Left super") r = "Left Windows";
+                else if (r=="Right super") r = "Right Windows";
+                else if (r=="Left meta") r = "Left Command";
+                else if (r=="Right meta") r = "Right Command";
 			}
 		}
 #endif
@@ -1096,12 +1107,14 @@ std::string CEvent::GetBindMenuText(void) {
             first=false;
             r += t;
         }
-        if (t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
+        if (t!="Right Windows"&&t!="Left Windows"&&t!="Right Command"&&t!="Left Command"&&t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
         s += t;
     }
-    if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
-    if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
-    if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
+    if (s=="Right WindowsLeft Windows"||s=="Left WindowsRight Windows") r="Windows";
+    else if (s=="Right CommandLeft Command"||s=="Left CommandRight Command") r="Command";
+    else if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
+    else if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
+    else if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
 
     return r;
 }
@@ -2073,7 +2086,9 @@ void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
     for (it=list->begin();it!=list->end();++it) {
         if ((*it)->mods==MMODHOST) {
             if ((!hostkeyalt&&validmod==(*it)->mods)||(hostkeyalt==1&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN))||(hostkeyalt==2&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))||(hostkeyalt==3&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))) {
-                (*it)->flags|=BFLG_Hold;
+                if (hostkeyalt != 0) /* only IF using an alternate host key */
+                    (*it)->flags|=BFLG_Hold_Temporary;
+
                 (*it)->ActivateBind(value,ev_trigger);
             }
         } else if (validmod==(*it)->mods)
@@ -2085,6 +2100,7 @@ void CBindGroup::DeactivateBindList(CBindList * list,bool ev_trigger) {
 	assert(list);
     CBindList_it it;
     for (it=list->begin();it!=list->end();++it) {
+        (*it)->flags&=~BFLG_Hold_Temporary;
         (*it)->DeActivateBind(ev_trigger);
     }
 }
@@ -2224,6 +2240,7 @@ protected:
 };
 
 class CEventButton;
+static CEventButton * hostbutton = NULL;
 static CEventButton * last_clicked = NULL;
 static std::vector<CEventButton *> ceventbuttons;
 
@@ -2726,6 +2743,36 @@ public:
         case MK_return:
             key=SDL_SCANCODE_RETURN;
             break;
+        case MK_tab:
+            key=SDL_SCANCODE_TAB;
+            break;
+        case MK_slash:
+            key=SDL_SCANCODE_SLASH;
+            break;
+        case MK_backslash:
+            key=SDL_SCANCODE_BACKSLASH;
+            break;
+        case MK_space:
+            key=SDL_SCANCODE_SPACE;
+            break;
+        case MK_backspace:
+            key=SDL_SCANCODE_BACKSPACE;
+            break;
+        case MK_delete:
+            key=SDL_SCANCODE_DELETE;
+            break;
+        case MK_insert:
+            key=SDL_SCANCODE_INSERT;
+            break;
+        case MK_semicolon:
+            key=SDL_SCANCODE_SEMICOLON;
+            break;
+        case MK_quote:
+            key=SDL_SCANCODE_APOSTROPHE;
+            break;
+        case MK_grave:
+            key=SDL_SCANCODE_GRAVE;
+            break;
         case MK_kpminus:
             key=SDL_SCANCODE_KP_MINUS;
             break;
@@ -2747,14 +2794,26 @@ public:
         case MK_printscreen:
             key=SDL_SCANCODE_PRINTSCREEN;
             break;
-        case MK_home: 
+        case MK_home:
             key=SDL_SCANCODE_HOME;
+            break;
+        case MK_end:
+            key=SDL_SCANCODE_END;
+            break;
+        case MK_pageup:
+            key=SDL_SCANCODE_PAGEUP;
+            break;
+        case MK_pagedown:
+            key=SDL_SCANCODE_PAGEDOWN;
             break;
         case MK_comma:
             key=SDL_SCANCODE_COMMA;
             break;
         case MK_period:
             key=SDL_SCANCODE_PERIOD;
+            break;
+        case MK_0:
+            key=SDL_SCANCODE_0;
             break;
         case MK_1:
             key=SDL_SCANCODE_1;
@@ -2768,6 +2827,21 @@ public:
         case MK_4:
             key=SDL_SCANCODE_4;
             break;
+        case MK_5:
+            key=SDL_SCANCODE_5;
+            break;
+        case MK_6:
+            key=SDL_SCANCODE_6;
+            break;
+        case MK_7:
+            key=SDL_SCANCODE_7;
+            break;
+        case MK_8:
+            key=SDL_SCANCODE_8;
+            break;
+        case MK_9:
+            key=SDL_SCANCODE_9;
+            break;
         case MK_a:
             key=SDL_SCANCODE_A;
             break;
@@ -2780,17 +2854,35 @@ public:
         case MK_d:
             key=SDL_SCANCODE_D;
             break;
+        case MK_e:
+            key=SDL_SCANCODE_E;
+            break;
         case MK_f:
             key=SDL_SCANCODE_F;
             break;
+        case MK_g:
+            key=SDL_SCANCODE_G;
+            break;
+        case MK_h:
+            key=SDL_SCANCODE_H;
+            break;
         case MK_i:
             key=SDL_SCANCODE_I;
+            break;
+        case MK_j:
+            key=SDL_SCANCODE_J;
+            break;
+        case MK_k:
+            key=SDL_SCANCODE_K;
             break;
         case MK_l:
             key=SDL_SCANCODE_L;
             break;
         case MK_m:
             key=SDL_SCANCODE_M;
+            break;
+        case MK_n:
+            key=SDL_SCANCODE_N;
             break;
         case MK_o:
             key=SDL_SCANCODE_O;
@@ -2807,17 +2899,29 @@ public:
         case MK_s:
             key=SDL_SCANCODE_S;
             break;
+        case MK_t:
+            key=SDL_SCANCODE_T;
+            break;
+        case MK_u:
+            key=SDL_SCANCODE_U;
+            break;
         case MK_v:
             key=SDL_SCANCODE_V;
             break;
         case MK_w:
             key=SDL_SCANCODE_W;
             break;
+        case MK_x:
+            key=SDL_SCANCODE_X;
+            break;
+        case MK_y:
+            key=SDL_SCANCODE_Y;
+            break;
+        case MK_z:
+            key=SDL_SCANCODE_Z;
+            break;
         case MK_escape:
             key=SDL_SCANCODE_ESCAPE;
-            break;
-        case MK_delete:
-            key=SDL_SCANCODE_DELETE;
             break;
         case MK_lbracket:
             key=SDL_SCANCODE_LEFTBRACKET;
@@ -2862,6 +2966,36 @@ public:
         case MK_return:
             key=SDLK_RETURN;
             break;
+        case MK_tab:
+            key=SDLK_TAB;
+            break;
+        case MK_slash:
+            key=SDLK_SLASH;
+            break;
+        case MK_backslash:
+            key=SDLK_BACKSLASH;
+            break;
+        case MK_space:
+            key=SDLK_SPACE;
+            break;
+        case MK_backspace:
+            key=SDLK_BACKSPACE;
+            break;
+        case MK_delete:
+            key=SDLK_DELETE;
+            break;
+        case MK_insert:
+            key=SDLK_INSERT;
+            break;
+        case MK_semicolon:
+            key=SDLK_SEMICOLON;
+            break;
+        case MK_quote:
+            key=SDLK_QUOTE;
+            break;
+        case MK_grave:
+            key=SDLK_BACKQUOTE;
+            break;
         case MK_kpminus:
             key=SDLK_KP_MINUS;
             break;
@@ -2894,11 +3028,23 @@ public:
         case MK_home:
             key=SDLK_HOME; 
             break;
+        case MK_end:
+            key=SDLK_END;
+            break;
+        case MK_pageup:
+            key=SDLK_PAGEUP;
+            break;
+        case MK_pagedown:
+            key=SDLK_PAGEDOWN;
+            break;
         case MK_comma:
             key=SDLK_COMMA;
             break;
         case MK_period:
             key=SDLK_PERIOD;
+            break;
+        case MK_0:
+            key=SDLK_0;
             break;
         case MK_1:
             key=SDLK_1;
@@ -2912,6 +3058,21 @@ public:
         case MK_4:
             key=SDLK_4;
             break;
+        case MK_5:
+            key=SDLK_5;
+            break;
+        case MK_6:
+            key=SDLK_6;
+            break;
+        case MK_7:
+            key=SDLK_7;
+            break;
+        case MK_8:
+            key=SDLK_8;
+            break;
+        case MK_9:
+            key=SDLK_9;
+            break;
         case MK_a:
             key=SDLK_a;
             break;
@@ -2924,17 +3085,35 @@ public:
         case MK_d:
             key=SDLK_d;
             break;
+        case MK_e:
+            key=SDLK_e;
+            break;
         case MK_f:
             key=SDLK_f;
             break;
+        case MK_g:
+            key=SDLK_g;
+            break;
+        case MK_h:
+            key=SDLK_h;
+            break;
         case MK_i:
             key=SDLK_i;
+            break;
+        case MK_j:
+            key=SDLK_j;
+            break;
+        case MK_k:
+            key=SDLK_k;
             break;
         case MK_l:
             key=SDLK_l;
             break;
         case MK_m:
             key=SDLK_m;
+            break;
+        case MK_n:
+            key=SDLK_n;
             break;
         case MK_o:
             key=SDLK_o;
@@ -2951,17 +3130,29 @@ public:
         case MK_s:
             key=SDLK_s;
             break;
+        case MK_t:
+            key=SDLK_t;
+            break;
+        case MK_u:
+            key=SDLK_u;
+            break;
         case MK_v:
             key=SDLK_v;
             break;
         case MK_w:
             key=SDLK_w;
             break;
+        case MK_x:
+            key=SDLK_x;
+            break;
+        case MK_y:
+            key=SDLK_y;
+            break;
+        case MK_z:
+            key=SDLK_z;
+            break;
         case MK_escape:
             key=SDLK_ESCAPE;
-            break;
-        case MK_delete:
-            key=SDLK_DELETE;
             break;
         case MK_lbracket:
             key=SDLK_LEFTBRACKET;
@@ -3216,6 +3407,10 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     CModEvent * event=new CModEvent(buf,_mod);
     CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
     event->notifybutton(button);
+    if (_mod == 4) {
+        button->Enable(hostkeyalt == 0);
+        hostbutton=button;
+    }
 
     assert(_mod < 8);
     mod_event[_mod] = event;
@@ -3895,11 +4090,29 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 }
 
 static void MAPPER_SaveBinds(void) {
+    std::string content="";
+    FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
+    if (loadfile) {
+        char secname[512], linein[512], *line=linein;
+        strcpy(secname, "");
+        while (fgets(linein,512,loadfile)) {
+            line=trim(line);
+            if (strlen(line)>2 && line[0]=='[' && line[strlen(line)-1]==']') {
+                linein[strlen(line)-1] = 0;
+                strcpy(secname, line+1);
+                if (strcasecmp(secname, SDL_STRING)) content+=std::string(line)+"]\n";
+            } else if (strlen(secname)&&strcasecmp(secname, SDL_STRING))
+                content+=std::string(linein)+"\n";
+        }
+        fclose(loadfile);
+    }
+
     FILE * savefile=fopen(mapper.filename.c_str(),"wt+");
     if (!savefile) {
         LOG_MSG("Can't open %s for saving the mappings",mapper.filename.c_str());
         return;
     }
+    fprintf(savefile,"[%s]\n",SDL_STRING);
     char buf[128];
     for (CEventVector_it event_it=events.begin();event_it!=events.end();++event_it) {
         CEvent * event=*(event_it);
@@ -3912,6 +4125,13 @@ static void MAPPER_SaveBinds(void) {
         }
         fprintf(savefile,"\n");
     }
+    if (content.size()) {
+        fprintf(savefile,"\n");
+        std::istringstream f(content);
+        std::string line;
+        while (std::getline(f, line))
+            fprintf(savefile,"%s \n",line.c_str());
+    }
     fclose(savefile);
     change_action_text("Mapper file saved.",CLR_WHITE);
 }
@@ -3920,11 +4140,22 @@ static bool MAPPER_LoadBinds(void) {
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) return false;
 	ClearAllBinds();
-    char linein[512];
+    bool othersec=false, hasbind=false;
+    char secname[512], linein[512], *line=linein;
+    strcpy(secname, "");
     while (fgets(linein,512,loadfile)) {
-        CreateStringBind(linein,/*loading*/true);
+        line=trim(line);
+        if (strlen(line)>2 && line[0]=='[' && line[strlen(line)-1]==']') {
+            linein[strlen(line)-1] = 0;
+            strcpy(secname, line+1);
+            if (strcasecmp(secname, SDL_STRING)) othersec=true;
+        } else if (!strlen(secname)||!strcasecmp(secname, SDL_STRING)) {
+            hasbind=true;
+            CreateStringBind(linein,/*loading*/true);
+        }
     }
     fclose(loadfile);
+    if (othersec&&!hasbind) return false;
     LOG(LOG_MISC,LOG_NORMAL)("MAPPER: Loading mapper settings from %s", mapper.filename.c_str());
     return true;
 }
@@ -4015,12 +4246,12 @@ void BIND_MappingEvents(void) {
     MAPPER_UpdateJoysticks();
 
 #if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
+    emscripten_sleep(0);
 #endif
 
     while (SDL_PollEvent(&event)) {
 #if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
+        emscripten_sleep(0);
 #endif
 
         switch (event.type) {
@@ -4126,7 +4357,7 @@ void BIND_MappingEvents(void) {
                 tmpl = 0;
 #if defined(WIN32)
 # if defined(C_SDL2)
-# else
+# elif defined(SDL_DOSBOX_X_SPECIAL)
                 {
                     char nm[256];
 
@@ -4317,6 +4548,7 @@ void MAPPER_ReleaseAllKeys(void) {
 }
 
 void MAPPER_RunEvent(Bitu /*val*/) {
+    if (hostbutton != NULL) hostbutton->Enable(hostkeyalt == 0);
     KEYBOARD_ClrBuffer();   //Clear buffer
     GFX_LosingFocus();      //Release any keys pressed (buffer gets filled again).
     MAPPER_RunInternal();
@@ -4331,10 +4563,6 @@ void MAPPER_Run(bool pressed) {
 void update_all_shortcuts() {
     for (auto &ev : events)
         if (ev != NULL) ev->update_menu_shortcut();
-#if defined(WIN32)
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
-#endif
 }
 
 void MAPPER_RunInternal() {
@@ -4420,7 +4648,7 @@ void MAPPER_RunInternal() {
 #endif
     while (!mapper.exit) {
 #if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
+        emscripten_sleep(0);
 #endif
 
         if (mapper.redraw) {
@@ -4490,6 +4718,10 @@ void MAPPER_RunInternal() {
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
+#if defined(USE_TTF)
+    bool TTF_using(void);
+    if (!TTF_using() || ttf.inUse)
+#endif
     GFX_ForceRedrawScreen();
 
     mapper.running = false;
@@ -4501,6 +4733,9 @@ void MAPPER_RunInternal() {
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
 #endif
 }
 
@@ -4551,7 +4786,7 @@ std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix) {
 void MAPPER_AutoType(std::vector<std::string> &sequence,
                      const uint32_t wait_ms,
                      const uint32_t pace_ms) {
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	mapper.typist.Start(&events, sequence, wait_ms, pace_ms);
 #endif
 }
@@ -4595,18 +4830,37 @@ void MAPPER_Init(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.rebuild();
 #endif
+#if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
+#endif
 }
 
+std::string GetDOSBoxXPath(bool withexe=false);
+void ResolvePath(std::string& in);
 void ReloadMapper(Section_prop *section, bool init) {
+    if (!init&&control->opt_defaultmapper) return;
     Prop_path* pp;
 #if defined(C_SDL2)
 	pp = section->Get_path("mapperfile_sdl2");
-    mapper.filename = pp->realpath;
-	if (mapper.filename=="") pp = section->Get_path("mapperfile");
 #else
-    pp = section->Get_path("mapperfile");
+	pp = section->Get_path("mapperfile_sdl1");
 #endif
     mapper.filename = pp->realpath;
+	if (mapper.filename=="") pp = section->Get_path("mapperfile");
+    mapper.filename = pp->realpath;
+    ResolvePath(mapper.filename);
+    FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
+    if (!loadfile) {
+        std::string exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            loadfile=fopen((exepath+mapper.filename).c_str(),"rt");
+            if (loadfile) {
+                mapper.filename = exepath+mapper.filename;
+                fclose(loadfile);
+            }
+        }
+    } else
+        fclose(loadfile);
 	if (init) {
 		GFX_LosingFocus(); //Release any keys pressed, or else they'll get stuck.
 		MAPPER_Init();

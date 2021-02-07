@@ -328,6 +328,10 @@ static void PIT0_Event(Bitu /*val*/) {
 	}
 }
 
+uint32_t PIT0_GetAssignedCounter(void) {
+    return pit[0].cntr;
+}
+
 static bool counter_output(Bitu counter) {
 	PIT_Block *p = &pit[counter];
     p->track_time(PIC_FullIndex());

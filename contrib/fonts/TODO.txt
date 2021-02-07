@@ -1,3 +1,11 @@
+The discussion for the new FREECG98.BMP file can be found at:
+
+https://github.com/joncampbell123/dosbox-x/issues/2132
+
+It is based on the Unifont Japanese TrueType font:
+
+http://unifoundry.com/unifont/index.html
+
 TODO:
 
 Write a Linux-based utility

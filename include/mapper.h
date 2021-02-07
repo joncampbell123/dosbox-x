@@ -24,12 +24,12 @@
 enum MapKeys {
     MK_nothing,
 	MK_f1,MK_f2,MK_f3,MK_f4,MK_f5,MK_f6,MK_f7,MK_f8,MK_f9,MK_f10,MK_f11,MK_f12,
-	MK_return,MK_kpminus,MK_kpplus,MK_minus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,MK_rightarrow,
-	MK_1, MK_2, MK_3, MK_4,
-    MK_a, MK_b, MK_c, MK_d, MK_f, MK_i, MK_l, MK_m, MK_o, MK_p, MK_q, MK_r, MK_s, MK_v, MK_w,
-    MK_escape,MK_delete,MK_uparrow,MK_downarrow,MK_leftarrow,
-    MK_lbracket,MK_rbracket,MK_comma,MK_period,
-
+	MK_return,MK_tab,MK_slash,MK_backslash,MK_space,MK_backspace,
+	MK_kpminus,MK_kpplus,MK_minus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,MK_end,MK_insert,MK_delete,
+	MK_0, MK_1, MK_2, MK_3, MK_4, MK_5, MK_6, MK_7, MK_8, MK_9,
+    MK_a, MK_b, MK_c, MK_d, MK_e, MK_f, MK_g, MK_h, MK_i, MK_j, MK_k, MK_l, MK_m, MK_n, MK_o, MK_p, MK_q, MK_r, MK_s, MK_t, MK_u, MK_v, MK_w, MK_x, MK_y, MK_z,
+    MK_escape,MK_uparrow,MK_downarrow,MK_leftarrow,MK_rightarrow,MK_pageup,MK_pagedown,
+    MK_lbracket,MK_rbracket,MK_comma,MK_period,MK_semicolon,MK_quote,MK_grave,
     MK_MAX
 };
 

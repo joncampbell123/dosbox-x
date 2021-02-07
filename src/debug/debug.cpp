@@ -52,6 +52,7 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "setup.h"
+#include "control.h"
 
 #ifdef WIN32
 void WIN32_Console();
@@ -1974,6 +1975,11 @@ bool ParseCommand(char* str) {
 		command = "logcode";
 	}
 
+	if (command == "LOGC") { // Create Cpu coverage log file
+		cpuLogType = 3;
+		command = "logcode";
+	}
+
 	if (command == "logcode") { //Shared code between all logs
 		DEBUG_ShowMsg("DEBUG: Starting log\n");
 		cpuLogFile.open("LOGCPU.TXT");
@@ -2619,8 +2625,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write cpu log file.\n");
-		DEBUG_ShowMsg("LOGS/LOGL [num]           - Write short/long cpu log file.\n");
-		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic cpu log when dosbox exits.\n");
+		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only cpu log file.\n");
+		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic cpu log when DOSBox-X exits.\n");
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detection.\n");
 #endif
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
@@ -3408,7 +3414,7 @@ void DEBUG_FlushInput(void);
 
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
-	if (!pressed)
+	if (!pressed || control->opt_display2)
 		return;
 
 #if defined(WIN32)
@@ -3961,6 +3967,11 @@ static void LogCPUInfo(void) {
 #if C_HEAVY_DEBUG
 static void LogInstruction(uint16_t segValue, uint32_t eipValue,  ofstream& out) {
 	static char empty[23] = { 32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
+
+	if (cpuLogType == 3) { //Log only cs:ip.
+		out << setw(4) << SegValue(cs) << ":" << setw(8) << reg_eip << endl;
+		return;
+	}
 
 	PhysPt start = (PhysPt)GetAddress(segValue,eipValue);
 	char dline[200];Bitu size;

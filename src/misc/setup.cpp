@@ -1088,7 +1088,6 @@ bool Config::ParseConfigFile(char const * const configfilename) {
         if (!gegevens.size()) continue;
 
         switch(gegevens[0]) {
-        case '%':
         case '\0':
         case '#':
         case ' ':
@@ -1105,6 +1104,8 @@ bool Config::ParseConfigFile(char const * const configfilename) {
             testsec = NULL;
         }
             break;
+        case '%':
+            if (strcasecmp(currentsection->GetName(), "autoexec")) continue;
         default:
             try {
                 if (currentsection) {
@@ -1215,6 +1216,34 @@ bool CommandLine::FindStringBegin(char const* const begin,std::string & value, b
         if (strncmp(begin,(*it).c_str(),len)==0) {
             value=((*it).c_str() + len);
             if (remove) cmds.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CommandLine::FindStringFullBegin(char const* const begin,std::string & value, bool squote, bool remove) {
+    size_t len = strlen(begin);
+    char c = squote?'\'':'\"';
+    for (cmd_it it=cmds.begin();it!=cmds.end();++it) {
+        if (strncmp(begin,(*it).c_str(),len)==0) {
+            bool q=(*it)[len]==c;
+            value=((*it).c_str() + len + (q?1:0));
+            if (remove) cmds.erase(it);
+            if (q) {
+                std::string str=value;
+                if (str.back()==c)
+                    value.pop_back();
+                else while (str.size()&&++it!=cmds.end()) {
+                    str=(*it);
+                    if (remove) cmds.erase(it);
+                    value+=" "+str;
+                    if (str.back()==c) {
+                        value.pop_back();
+                        break;
+                    }
+                }
+            }
             return true;
         }
     }
@@ -1509,7 +1538,7 @@ uint16_t CommandLine::Get_arglength() {
 }
 
 
-CommandLine::CommandLine(char const * const name,char const * const cmdline,enum opt_style opt) {
+CommandLine::CommandLine(char const * const name,char const * const cmdline,enum opt_style opt, bool squote) {
     if (name) file_name=name;
     /* Parse the cmds and put them in the list */
     bool inword,inquote;char c;
@@ -1520,7 +1549,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
     opt_style = opt;
     while ((c=*c_cmdline)!=0) {
         if (inquote) {
-            if (c!='"') str+=c;
+            if (c!='"'&&!squote) str+=c;
             else {
                 inquote=false;
                 cmds.push_back(str);
@@ -1534,7 +1563,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
                 str.erase();
             }
         }
-        else if (c=='\"') { inquote=true;}
+        else if (c=='\"'&&!squote) { inquote=true;}
         else if (c!=' ') { str+=c;inword=true;}
         c_cmdline++;
     }

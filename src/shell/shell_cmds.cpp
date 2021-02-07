@@ -37,6 +37,8 @@
 #include "support.h"
 #include "control.h"
 #include "paging.h"
+#include "menu.h"
+#include "render.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
@@ -60,6 +62,7 @@ SHELL_Cmd cmd_list[]={
 {	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"},
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
+{	"CHCP",			1,		&DOS_Shell::CMD_CHCP,		"SHELL_CMD_CHCP_HELP"},
 {	"COUNTRY",		1,		&DOS_Shell::CMD_COUNTRY,	"SHELL_CMD_COUNTRY_HELP"},
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
@@ -107,8 +110,8 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
-extern int enablelfn, lfn_filefind_handle;
-extern bool date_host_forced, usecon, rsize;
+extern int enablelfn, lfn_filefind_handle, file_access_tries;
+extern bool date_host_forced, usecon, rsize, sync_time, manualtime;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
@@ -601,7 +604,7 @@ continue_1:
 	dos.dta(save_dta);
 }
 
-static size_t GetPauseCount() {
+size_t GetPauseCount() {
 	uint16_t rows;
 	if (IS_PC98_ARCH)
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
@@ -2196,6 +2199,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 									}
 							} while (cont);
 							if (!DOS_CloseFile(sourceHandle)) failed=true;
+#if defined(WIN32)
+							if (file_access_tries>0 && DOS_FindDevice(name) == DOS_DEVICES) DOS_SetFileDate(targetHandle, ftime, fdate);
+#endif
 							if (!DOS_CloseFile(targetHandle)) failed=true;
 							if (failed)
                                 WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
@@ -2590,6 +2596,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 
 		reg_ah=0x2b; // set system date
 		CALLBACK_RunRealInt(0x21);
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	// check if a date was passed in command line
@@ -2668,6 +2675,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
+		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
 	}
 	uint32_t newhour,newminute,newsecond;
@@ -2689,6 +2697,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
 		}
+		if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
 		return;
 	}
 	bool timeonly = ScanCMDBool(args,"T");
@@ -3739,3 +3748,32 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
+void DOS_Shell::CMD_CHCP(char * args) {
+	HELP("CHCP");
+	args = trim(args);
+	if (!*args) {
+		WriteOut("Active code page: %d\r\n", dos.loaded_codepage);
+		return;
+	}
+    if (IS_PC98_ARCH) {
+        WriteOut("Changing code page is not supported for the PC98 system.\n");
+        return;
+    }
+    if (!ttf.inUse) {
+        WriteOut("Changing code page is only supported for the TrueType font output.\n");
+        return;
+    }
+#if defined(USE_TTF)
+	int newCP;
+	char buff[256];
+	if (sscanf(args, "%d%s", &newCP, buff) == 1 && (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874)) {
+		dos.loaded_codepage = newCP;
+		int setTTFCodePage();
+		int missing = setTTFCodePage();
+		WriteOut("Active code page: %d\n", dos.loaded_codepage);
+        if (missing > 0) WriteOut("Characters not defined in TTF font: %d\n", missing);
+    } else
+        WriteOut("Invalid code page number - %s\n", StripArg(args));
+#endif
+	return;
+}

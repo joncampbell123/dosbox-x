@@ -185,6 +185,7 @@ static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,uint32_t oldeip) {
 
 bool CPU_PrepareException(Bitu which,Bitu error);
 void CPU_Exception(Bitu which,Bitu error=0);
+void CPU_DebugException(uint32_t triggers,Bitu oldeip);
 
 bool CPU_SetSegGeneral(SegNames seg,uint16_t value);
 bool CPU_PopSeg(SegNames seg,bool use32);
@@ -197,7 +198,7 @@ void CPU_Push32(uint32_t value);
 
 void CPU_SetFlags(Bitu word,Bitu mask);
 
-
+#define EXCEPTION_DB            1
 #define EXCEPTION_UD			6u
 #define EXCEPTION_DF            8u
 #define EXCEPTION_TS			10u
@@ -214,6 +215,14 @@ void CPU_SetFlags(Bitu word,Bitu mask);
 #define CR0_WRITEPROTECT		0x00010000u
 #define CR0_PAGING				0x80000000u
 
+// reasons for triggering a debug exception
+#define DBINT_BP0               0x00000001
+#define DBINT_BP1               0x00000002
+#define DBINT_BP2               0x00000004
+#define DBINT_BP3               0x00000008
+#define DBINT_GD                0x00002000
+#define DBINT_STEP              0x00004000
+#define DBINT_TASKSWITCH        0x00008000
 
 // *********************************************************************
 // Descriptor
@@ -564,5 +573,37 @@ static INLINE void CPU_SetFlagsw(const Bitu word) {
 
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len);
 void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len);
+
+/* dynamic core allocation in effect */
+enum dyncore_alloc_t {
+    DYNCOREALLOC_NONE=0,
+    DYNCOREALLOC_MALLOC,            /* allocated with malloc(), base pointer and size rounded up to page size */
+    DYNCOREALLOC_MMAP_ANON,         /* allocated with mmap() and MAP_ANONYMOUS|MAP_PRIVATE */
+    DYNCOREALLOC_SHM_MMAP,          /* allocated as a file in shared memory (i.e. /dev/shm) using shmget */
+    DYNCOREALLOC_MEMFD,             /* allocated with a Linux memfd handle */
+    DYNCOREALLOC_VIRTUALALLOC,      /* allocated with VirtualAlloc() (in Windows) */
+
+    DYNCOREALLOC_MAX
+};
+
+/* dynamic core method in effect */
+enum dyncore_method_t {
+    DYNCOREM_NONE=0,
+    DYNCOREM_RWX,                   /* map with all read/write/execute permissions at once */
+    DYNCOREM_MPROTECT_RW_RX,        /* map with read/execute, mprotect to read/write when changes needed, then mprotect back */
+    DYNCOREM_DUAL_RW_X,             /* map twice in process space: once with read/write permissions, once with execute permissions */
+
+    DYNCOREM_MAX
+};
+
+/* dynamic core considerations */
+#define DYNCOREF_W_XOR_X            (1u << 0u)          /* write-xor-execute policy in effect */
+#define DYNCOREF_IMPOSSIBLE         (1u << 1u)          /* system policy makes dynamic core generation impossible (for example, SELinux) */
+
+typedef unsigned int        dyncore_flags_t;
+
+extern dyncore_alloc_t      dyncore_alloc;
+extern dyncore_flags_t      dyncore_flags;
+extern dyncore_method_t     dyncore_method;
 
 #endif

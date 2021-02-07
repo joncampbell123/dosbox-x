@@ -68,6 +68,8 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint size,
 # include <SDL_video.h>
 #endif
 
+enum GLKind {GLNearest, GLBilinear, GLPerfect};
+
 struct SDL_OpenGL {
     bool inited;
     Bitu pitch;
@@ -76,7 +78,7 @@ struct SDL_OpenGL {
     GLuint texture;
     GLuint displaylist;
     GLint max_texsize;
-    bool bilinear;
+    GLKind kind;
     bool packed_pixel;
     bool paletted_texture;
     bool pixel_buffer_object;
@@ -121,7 +123,10 @@ extern SDL_OpenGL sdl_opengl;
 
 // output API
 void OUTPUT_OPENGL_Initialize();
-void OUTPUT_OPENGL_Select();
+/* Anton Shepelev: the GLKind parameter violates the generality of the API, */
+/* but I think will do until a more useful general API is adopted. One      */
+/* example of doing it seen in my original Pixel-perfect patch:             */
+void OUTPUT_OPENGL_Select( GLKind );
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags);
 Bitu OUTPUT_OPENGL_SetSize();
 bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch);

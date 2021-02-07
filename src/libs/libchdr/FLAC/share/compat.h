@@ -136,7 +136,9 @@
 #  endif
 #endif /* defined _MSC_VER */
 
-#ifdef _WIN32
+#define FLUIDINC
+#include "config.h"
+#if defined(_WIN32) && !defined(C_HX_DOS)
 /* All char* strings are in UTF-8 format. Added to support Unicode files on Windows */
 
 #include "win_utf8_io.h"
@@ -167,7 +169,7 @@
 
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(C_HX_DOS)
 #define flac_stat_s __stat64 /* stat struct */
 #define flac_fstat _fstat64
 #else

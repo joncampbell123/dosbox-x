@@ -150,7 +150,7 @@ public:
             if (propname=="monochrome_pal" && value.ToString()=="green") return false;
             if (propname=="cycles" && value.ToString()=="auto") return false;
             if ((propname=="serial1" || propname=="serial2") && value.ToString()=="dummy") return false;
-            if ((propname=="serial3" || propname=="serial4") && value.ToString()=="disabled") return false;
+            if (propname.substr(0,6)=="serial" && propname[6]>='3' && propname[6]<='9' && value.ToString()=="disabled") return false;
         }
         return default_value.ToString()!=value.ToString();
     };

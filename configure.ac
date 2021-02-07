@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.8,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.11,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -194,6 +194,7 @@ fi
 
 if test x$enable_emscripten = xyes; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
+  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 fi
 
 dnl Some stuff for the icon.
@@ -283,10 +284,34 @@ int x=10;if( __builtin_expect ((x==1),0) ) ;
 #switch language back
 AC_LANG_POP(C++)
 
+dnl Check for mach_vm_remap (Darwin)
+AH_TEMPLATE(C_HAVE_MACH_VM_REMAP,[Define to 1 if you have the mach_vm_remap function])
+AC_CHECK_HEADER([mach/mach.h], [
+AC_CHECK_FUNC([mach_vm_remap],[AC_DEFINE(C_HAVE_MACH_VM_REMAP,1)])
+])
+
 dnl Check for mprotect. Needed for 64 bits linux 
 AH_TEMPLATE(C_HAVE_MPROTECT,[Define to 1 if you have the mprotect function])
 AC_CHECK_HEADER([sys/mman.h], [
 AC_CHECK_FUNC([mprotect],[AC_DEFINE(C_HAVE_MPROTECT,1)])
+])
+
+dnl Check for memfd_create, for dynamic core. You need the glibc version, not just the syscall.
+AH_TEMPLATE(C_HAVE_MEMFD_CREATE,[Define to 1 if you have the memfd_create function])
+AC_CHECK_HEADER([sys/mman.h], [
+AC_CHECK_FUNC([memfd_create],[AC_DEFINE(C_HAVE_MEMFD_CREATE,1)])
+])
+
+dnl Check for posix_memalign
+AH_TEMPLATE(C_HAVE_POSIX_MEMALIGN,[Define to 1 if you have the posix_memalign function])
+AC_CHECK_HEADER([stdlib.h], [
+AC_CHECK_FUNC([posix_memalign],[AC_DEFINE(C_HAVE_POSIX_MEMALIGN,1)])
+])
+
+dnl Check for mmap
+AH_TEMPLATE(C_HAVE_MMAP,[Define to 1 if you have the mmap function])
+AC_CHECK_HEADER([sys/mman.h], [
+AC_CHECK_FUNC([mmap],[AC_DEFINE(C_HAVE_MMAP,1)])
 ])
 
 dnl Check for realpath. Used on Linux
@@ -416,7 +441,7 @@ case "$host" in
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        if test x$have_sdl_net_h = xyes ; then
          dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
-         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -liphlpapi"
+         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -lwinspool -liphlpapi"
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
@@ -461,6 +486,11 @@ case "$host" in
        AC_DEFINE(BSD, 1, [Compiling on BSD])
        dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       ;;
+    *-*-haiku*)
+       AC_DEFINE(BSD, 1, [Compiling on BSD])
+       LIBS="$LIBS -lbsd -lnetwork"
+       CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
        ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
@@ -821,8 +851,8 @@ dnl FEATURE: Whether to enable dynamic core
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
 dnl FEATURE: Whether to enable x86 dynamic core
-AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
-AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
+AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86/x64 dynamic cpu core])
+AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86/x64 dynamic cpu core]),,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
 if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno -o x$c_targetcpu = xarm; then
    AC_MSG_RESULT(no)
@@ -999,7 +1029,7 @@ fi
 
 dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
-AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),,enable_libfluidsynth=yes)
+AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
 if test x$enable_libfluidsynth = xyes; then
     if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
       LIBS="$LIBS -lfluidsynth"
@@ -1011,7 +1041,7 @@ fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=yes,enable_ffmpeg=no)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=yes)
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
@@ -1026,7 +1056,7 @@ fi
 
 dnl FEATURE: Whether to use OpenGL
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),,enable_opengl=yes)
+AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
 AC_MSG_CHECKING(whether opengl display output will be enabled)
 
 # test

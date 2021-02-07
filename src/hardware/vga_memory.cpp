@@ -29,6 +29,7 @@
 #include "inout.h"
 #include "setup.h"
 #include "cpu.h"
+#include "control.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
 #include "zipfile.h"
@@ -1776,15 +1777,18 @@ public:
 
     /* byte-wise */
 	uint8_t readb(PhysPt addr) {
+        VGAMEM_USEC_read_delay();
         return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
     }
 	void writeb(PhysPt addr,uint8_t val) {
+        VGAMEM_USEC_write_delay();
         writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
     }
 
     /* word-wise.
      * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
 	uint16_t readw(PhysPt addr) {
+        VGAMEM_USEC_read_delay();
         addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             return readc<uint16_t>(addr);
@@ -1794,6 +1798,7 @@ public:
         }
     }
 	void writew(PhysPt addr,uint16_t val) {
+        VGAMEM_USEC_write_delay();
         addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             writec<uint16_t>(addr,val);
@@ -2180,6 +2185,7 @@ void VGA_ChangedBank(void) {
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);
 
+extern void DISP2_SetPageHandler(void);
 void VGA_SetupHandlers(void) {
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
 	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
@@ -2393,6 +2399,9 @@ void VGA_SetupHandlers(void) {
     non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
 
 range_done:
+#if C_DEBUG
+	if (control->opt_display2) DISP2_SetPageHandler();
+#endif
 	PAGING_ClearTLB();
 }
 

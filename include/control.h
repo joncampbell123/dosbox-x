@@ -77,6 +77,7 @@ public:
         opt_startui = false;
         initialised = false;
         opt_console = false;
+        opt_display2 = false;
         opt_logint21 = false;
         opt_userconf = false;
         opt_noconfig = false;
@@ -97,6 +98,7 @@ public:
         opt_resetmapper = false;
         opt_startmapper = false;
         opt_fastbioslogo = false;
+        opt_defaultmapper = false;
         opt_alt_vga_render = false;
         opt_date_host_forced = false;
         opt_disable_numlock_check = false;
@@ -130,6 +132,7 @@ public:
     bool opt_disable_numlock_check;
     bool opt_date_host_forced;
     bool opt_alt_vga_render;
+    bool opt_defaultmapper;
     bool opt_fastbioslogo;
     bool opt_break_start;
     bool opt_erasemapper;
@@ -148,6 +151,7 @@ public:
     bool opt_resetconf;
     bool opt_printconf;
     bool opt_logint21;
+    bool opt_display2;
     bool opt_userconf;
     bool opt_noconfig;
     bool opt_console;

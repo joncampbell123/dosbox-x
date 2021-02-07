@@ -20,6 +20,8 @@
 #include "control.h"
 #include "menu.h"
 
+bool informd3d = false;
+
 #if (HAVE_D3D9_H) && defined(WIN32)
 
 extern Bitu currentWindowWidth, currentWindowHeight;
@@ -57,11 +59,11 @@ std::string shader_translate_directory(const std::string& path) {
     /* DOSBox fork compatability: if only the name of a file is given, assume it
        exists in the shaders\ directory.
 
-       This fork's variation is to NOT prefix shaders\ to it if it looks like a
+       DOSBox-X's variation is to NOT prefix shaders\ to it if it looks like a
        full path, with or without a drive letter. */
     if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') /* drive letter ex. C:, D:, etc. */
         return path;
-    if (path.length() >= 1 && path[0] == '\\') /* perhaps a UNC path or an absolute path from the current drive */
+    if (path.length() >= 1 && path.find('\\') != std::string::npos) /* perhaps a path with "\" */
         return path;
 
     return std::string("shaders\\") + path;
@@ -121,7 +123,11 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 
     thread_run = true;
     thread_command = D3D_IDLE;
+#if defined(C_SDL2)
+    thread = SDL_CreateThread(EntryPoint, "Direct3D", this);
+#else
     thread = SDL_CreateThread(EntryPoint, this);
+#endif
     SDL_SemWait(thread_ack);
 #endif
 
@@ -950,6 +956,7 @@ HRESULT CDirect3D::RestoreDeviceObjects(void)
 }
 
 extern void RENDER_SetForceUpdate(bool);
+extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double scaley, bool forced)
 {
     if(!psEnabled) {
@@ -990,12 +997,17 @@ HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double sc
 	// Compare optimal scaling factor
 	bool dblgfx=((scalex < scaley ? scalex : scaley) >= psEffect->getScale());
 
+    std::string message;
 	if(dblgfx || forced) {
+	    message = "Loaded pixel shader - "+std::string(shader);
+	    if (informd3d) systemmessagebox("Direct3D shader", message.c_str(), "ok","info", 1);
 	    LOG_MSG("D3D:Pixel shader %s active", shader);
 	    RENDER_SetForceUpdate(psEffect->getForceUpdate());
 	    psActive = true;
 	    return S_OK;
 	} else {
+	    message = "Pixel shader not needed - "+std::string(shader);
+	    if (informd3d) systemmessagebox("Direct3D shader", message.c_str(), "ok","info", 1);
 	    LOG_MSG("D3D:Pixel shader not needed");
 	    psActive = false;
 	    return E_FAIL;

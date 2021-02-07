@@ -12,8 +12,8 @@ using namespace std;
 #if C_DIRECT3D
 
 CDirect3D* d3d = NULL;
-
-static void d3d_init(void) 
+void ResolvePath(std::string& in);
+void d3d_init(void)
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
     if (!sdl.using_windib) 
@@ -30,7 +30,11 @@ static void d3d_init(void)
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
 
-    if (!SDL_GetWMInfo(&wmi)) 
+#if defined(C_SDL2)
+    if (!SDL_GetWindowWMInfo(sdl.window, &wmi))
+#else
+    if (!SDL_GetWMInfo(&wmi))
+#endif
     {
         LOG_MSG("SDL:Error retrieving window information");
         LOG_MSG("Failed to get window info");
@@ -50,7 +54,11 @@ static void d3d_init(void)
             OUTPUT_SURFACE_Select();
             return;
         }
-        else if (d3d->InitializeDX(wmi.child_window, sdl.desktop.doublebuf) != S_OK) 
+#if defined(C_SDL2)
+        else if (d3d->InitializeDX(wmi.info.win.window, sdl.desktop.doublebuf) != S_OK)
+#else
+        else if (d3d->InitializeDX(wmi.child_window, sdl.desktop.doublebuf) != S_OK)
+#endif
         {
             LOG_MSG("Unable to initialize DirectX");
             OUTPUT_SURFACE_Select();
@@ -62,7 +70,9 @@ static void d3d_init(void)
     if (d3d) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
         Prop_multival* prop = section->Get_multival("pixelshader");
-        if (SUCCEEDED(d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), 0, 0)))
+        std::string path = prop->GetSection()->Get_string("type");
+        ResolvePath(path);
+        if (SUCCEEDED(d3d->LoadPixelShader(path.c_str(), 0, 0)))
             if (menu.startup)
                 GFX_ResetScreen();
     }
@@ -81,7 +91,6 @@ void OUTPUT_DIRECT3D_Select()
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
     render.aspectOffload = true;
-    d3d_init();
 
 #if defined(WIN32) && !defined(C_SDL2)
     SDL1_hax_inhibit_WM_PAINT = 1;
@@ -214,7 +223,9 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     {
         Prop_multival* prop = section->Get_multival("pixelshader");
         std::string f = prop->GetSection()->Get_string("force");
-        d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), sdl.draw.scalex, sdl.draw.scaley, (f == "forced"));
+        std::string path = prop->GetSection()->Get_string("type");
+        ResolvePath(path);
+        d3d->LoadPixelShader(path.c_str(), sdl.draw.scalex, sdl.draw.scaley, (f == "forced"));
     }
     else 
     {
@@ -228,18 +239,35 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     // Create a dummy sdl surface
     // D3D will hang or crash when using fullscreen with ddraw surface, therefore we hack SDL to provide
     // a GDI window with an additional 0x40 flag. If this fails or stock SDL is used, use WINDIB output
+    void GFX_SetResizeable(bool enable);
     if (GCC_UNLIKELY(d3d->bpp16)) 
     {
+#if defined(C_SDL2)
+        GFX_SetResizeable(true);
+        sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, SCREEN_SURFACE);
+        if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
+        else sdl.surface = NULL;
+        sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
+#else
         sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, 16, sdl.desktop.fullscreen ? SDL_FULLSCREEN | 0x40 : SDL_RESIZABLE | 0x40);
         sdl.deferred_resize = false;
         sdl.must_redraw_all = true;
+#endif
         retFlags = GFX_CAN_16 | GFX_SCALING;
     }
     else 
     {
+#if defined(C_SDL2)
+        GFX_SetResizeable(true);
+        sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, SCREEN_SURFACE);
+        if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
+        else sdl.surface = NULL;
+        sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
+#else
         sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, 0, sdl.desktop.fullscreen ? SDL_FULLSCREEN | 0x40 : SDL_RESIZABLE | 0x40);
         sdl.deferred_resize = false;
         sdl.must_redraw_all = true;
+#endif
         retFlags = GFX_CAN_32 | GFX_SCALING;
     }
 

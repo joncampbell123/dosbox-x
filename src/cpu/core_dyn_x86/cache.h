@@ -32,6 +32,7 @@ public:
 	} page;
 	struct {
 		uint8_t * start;					//Where in the cache are we
+		uint8_t * xstart;					//Where in the cache are we
 		Bitu size;
 		CacheBlock * next;
 		uint8_t * wmapmask;
@@ -390,6 +391,7 @@ void CacheBlock::Clear(void) {
 	}
 }
 
+static INLINE void *cache_rwtox(void *x);
 
 static CacheBlock * cache_openblock(void) {
 	CacheBlock * block=cache.block.active;
@@ -439,6 +441,7 @@ static void cache_closeblock(void) {
 			newblock->cache.start=block->cache.start+new_size;
 			newblock->cache.size=block->cache.size-new_size;
 			newblock->cache.next=block->cache.next;
+			newblock->cache.xstart=(uint8_t*)cache_rwtox(newblock->cache.start);
 			block->cache.next=newblock;
 			block->cache.size=new_size;
 		}
@@ -452,23 +455,40 @@ static void cache_closeblock(void) {
 	}
 }
 
+static INLINE void cache_addb(uint8_t val,uint8_t *pos) {
+	*pos=val;
+}
 static INLINE void cache_addb(uint8_t val) {
-	*cache.pos++=val;
+	uint8_t *pos=cache.pos+1;
+	cache_addb(val,cache.pos);
+	cache.pos=pos;
 }
 
+static INLINE void cache_addw(uint16_t val,uint8_t *pos) {
+	*(uint16_t*)pos=val;
+}
 static INLINE void cache_addw(uint16_t val) {
-	*(uint16_t*)cache.pos=val;
-	cache.pos+=2;
+	uint8_t *pos=cache.pos+2;
+	cache_addw(val,cache.pos);
+	cache.pos=pos;
 }
 
+static INLINE void cache_addd(uint32_t val,uint8_t *pos) {
+	*(uint32_t*)pos=val;
+}
 static INLINE void cache_addd(uint32_t val) {
-	*(uint32_t*)cache.pos=val;
-	cache.pos+=4;
+	uint8_t *pos=cache.pos+4;
+	cache_addd(val,cache.pos);
+	cache.pos=pos;
 }
 
+static INLINE void cache_addq(uint64_t val,uint8_t *pos) {
+	*(uint64_t*)pos=val;
+}
 static INLINE void cache_addq(uint64_t val) {
-	*(uint64_t*)cache.pos=val;
-	cache.pos+=8;
+	uint8_t *pos=cache.pos+8;
+	cache_addq(val,cache.pos);
+	cache.pos=pos;
 }
 
 static void gen_return(BlockReturn retcode);
@@ -478,14 +498,18 @@ static uint8_t * cache_code=NULL;
 static uint8_t * cache_code_link_blocks=NULL;
 static CacheBlock * cache_blocks=NULL;
 
-/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */
-#if (C_HAVE_MPROTECT)
-#define PAGESIZE_TEMP PAGESIZE
-#else 
-#define PAGESIZE_TEMP 4096
-#endif
-
 static bool cache_initialized = false;
+
+#include "cpu/dynamic_alloc_common.h"
+
+static void cache_ensure_allocation(void) {
+	if (cache_code_start_ptr==NULL) {
+        cache_dynamic_common_alloc(CACHE_TOTAL+CACHE_MAXSIZE); /* sets cache_code_start_ptr/cache_code */
+ 
+		cache_code_link_blocks=cache_code;
+		cache_code+=PAGESIZE_TEMP;
+	}
+}
 
 static void cache_init(bool enable) {
 	Bits i;
@@ -504,38 +528,24 @@ static void cache_init(bool enable) {
 			}
 		}
 		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if(!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
+			cache_ensure_allocation();
 
-			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting execute permission on the code cache has failed!");
-#endif
 			CacheBlock * block=cache_getblock();
 			cache.block.first=block;
 			cache.block.active=block;
 			block->cache.start=&cache_code[0];
+			block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 			block->cache.size=CACHE_TOTAL;
 			block->cache.next=0;								//Last block in the list
 		}
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
 		cache.free_pages=0;
 		cache.last_page=0;
@@ -598,41 +608,24 @@ static void cache_reset(void) {
 			cache_blocks[i].cache.next=&cache_blocks[i+1];
 		}
 
-		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if (!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
-
-			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting excute permission on the code cache has failed!");
-#endif
-		}
+		cache_ensure_allocation();
 
 		CacheBlock * block=cache_getblock();
 		cache.block.first=block;
 		cache.block.active=block;
 		block->cache.start=&cache_code[0];
+		block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 		block->cache.size=CACHE_TOTAL;
 		block->cache.next=0;								//Last block in the list
 
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
 		cache.free_pages=0;
 		cache.last_page=0;

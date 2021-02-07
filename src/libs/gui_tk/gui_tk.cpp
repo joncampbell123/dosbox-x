@@ -1608,6 +1608,7 @@ void Screen::paint(Drawable &d) const
 
 unsigned int Screen::update(void *surface, unsigned int ticks)
 {
+    return 0; // FIXME
     (void)ticks;//UNUSED
 	paintAll(*buffer);
 	RGB *buf = buffer->buffer;
@@ -1918,15 +1919,58 @@ public:
 	    SDL_FreeSurface(surface);
 	}
 
-	void update(SDL_Surface *dest) const {
-	    SDL_BlitSurface(surface, NULL, dest, NULL);
+	void update(SDL_Surface *dest, int scale) const {
+	    char            *dp, *sp, *spx, *sr0, *dr, *dr0;
+        int              x, y, v, h, p;
+        uint32_t        *pixP, alpha;
+        SDL_PixelFormat *fmt;
+
+        fmt = surface->format;
+        SDL_LockSurface( dest    );
+        SDL_LockSurface( surface );
+        dr0 = (char*)dest   ->pixels;
+        sr0 = (char*)surface->pixels;
+        //LOG_MSG(
+        //    "CONF: upscaling. surface: %i x %i, dest: %i x %i",
+        //    surface->w, surface->h, dest->w, dest->h );
+        for( y = 0; y < surface->h; y += 1 )
+        {   dp = dr0;
+            sp = sr0;
+            for( x = 0; x < surface->w; x += 1 )
+            {   pixP  = (uint32_t*)sp;
+                alpha = *pixP &  fmt->Amask;
+                alpha = alpha >> fmt->Ashift;
+                alpha = alpha << fmt->Aloss;
+                for( h = 0; h < scale; h += 1 )
+                {   spx = sp;
+                    for( p = 0; p < fmt->BytesPerPixel; p += 1 )
+                    {   if( alpha > 0 ) *dp = *spx;
+                        dp  += 1;
+                        spx += 1;
+                    }
+                }
+                sp = spx;
+            }
+            sr0 = sr0 + surface->pitch;
+            
+            dr = dr0 + dest->pitch;
+            for( v = 0; v < scale - 1; v += 1 )
+            {   memcpy( dr, dr0, scale * surface->w * dest->format->BytesPerPixel );
+                dr = dr + dest->pitch;
+            }
+            dr0 = dr;
+        }
+        SDL_UnlockSurface( dest    );
+        SDL_UnlockSurface( surface );
+
+	    //SDL_BlitSurface(surface, NULL, dest, NULL);
 	}
 };
 
 ScreenSDL::~ScreenSDL() {
 }
 
-ScreenSDL::ScreenSDL(SDL_Surface *surface) : Screen(new SDL_Drawable(surface->w, surface->h)), surface(surface), downx(0), downy(0), lastclick(0), lastdown(0) {
+ScreenSDL::ScreenSDL(SDL_Surface *surface, int scale) : Screen(new SDL_Drawable(surface->w/scale, surface->h/scale)), surface(surface), downx(0), downy(0), lastclick(0), lastdown(0), scale(scale) {
 	current_abs_time = start_abs_time = SDL_GetTicks();
 	current_time = 0;
 }
@@ -1935,7 +1979,7 @@ Ticks ScreenSDL::update(Ticks ticks)
 {
 	Timer::check_to(ticks);
 	paintAll(*buffer);
-	static_cast<SDL_Drawable*>(buffer)->update(surface);
+	static_cast<SDL_Drawable*>(buffer)->update(surface, scale);
 
 	return Timer::next();
 }
@@ -1950,9 +1994,12 @@ void ScreenSDL::paint(Drawable &d) const {
 	test(d);
 }
 
-bool ScreenSDL::event(const SDL_Event &event) {
+bool ScreenSDL::event(SDL_Event &event) {
 	bool rc;
 
+    event.button.x /= scale;
+    event.button.y /= scale;
+	
 #if defined(C_SDL2)
     /* handle mouse events only if it comes from the mouse.
      * ignore the fake mouse events some OSes generate from the touchscreen.

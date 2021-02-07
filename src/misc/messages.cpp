@@ -25,6 +25,7 @@
 #include "support.h"
 #include "setup.h"
 #include "control.h"
+#include "menu.h"
 #include <list>
 #include <string>
 using namespace std;
@@ -76,10 +77,14 @@ void LoadMessageFile(const char * fname) {
 	FILE * mfile=fopen(fname,"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
-		E_Exit("MSG:Can't load messages: %s",fname);
+		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
+		bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+		LOG_MSG("MSG:Cannot load language file: %s",fname);
+		return;
 	}
 	char linein[LINE_IN_MAXLEN];
-	char name[LINE_IN_MAXLEN];
+	char name[LINE_IN_MAXLEN], menu_name[LINE_IN_MAXLEN];
 	char string[LINE_IN_MAXLEN*10];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
@@ -99,15 +104,24 @@ void LoadMessageFile(const char * fname) {
 
 		/* New string name */
 		if (linein[0]==':') {
-			string[0]=0;
-			strcpy(name,linein+1);
+            string[0]=0;
+            if (!strncasecmp(linein+1, "MENU:", 5)) {
+                *name=0;
+                strcpy(menu_name,linein+6);
+            } else {
+                *menu_name=0;
+                strcpy(name,linein+1);
+            }
 		/* End of string marker */
 		} else if (linein[0]=='.') {
 			/* Replace/Add the string to the internal languagefile */
 			/* Remove last newline (marker is \n.\n) */
 			size_t ll = strlen(string);
 			if(ll && string[ll - 1] == '\n') string[ll - 1] = 0; //Second if should not be needed, but better be safe.
-			MSG_Replace(name,string);
+            if (strlen(name))
+                MSG_Replace(name,string);
+            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name))
+                mainMenu.get_item(menu_name).set_text(string);
 		} else {
 		/* Normal string to be added */
 			strcat(string,linein);
@@ -134,10 +148,22 @@ bool MSG_Write(const char * location) {
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
 		fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
 	}
+	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
+	for (auto &id : master_list) {
+		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")) {
+            std::string text = id.get_text();
+            if (id.get_name()=="hostkey_mapper"||id.get_name()=="clipboard_device") {
+                std::size_t found = text.find(":");
+                if (found!=std::string::npos) text = text.substr(0, found);
+            }
+            fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+        }
+	}
 	fclose(out);
 	return true;
 }
 
+void ResolvePath(std::string& in);
 void MSG_Init() {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
@@ -146,6 +172,10 @@ void MSG_Init() {
 	}
 	else {
 		Prop_path* pathprop = section->Get_path("language");
-		if (pathprop != NULL) LoadMessageFile(pathprop->realpath.c_str());
+        if (pathprop != NULL) {
+            std::string path = pathprop->realpath;
+            ResolvePath(path);
+            LoadMessageFile(path.c_str());
+        }
 	}
 }

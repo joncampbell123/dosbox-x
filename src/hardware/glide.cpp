@@ -57,7 +57,7 @@ extern void GFX_Stop(void);
 extern void GFX_ResetScreen(void);
 extern const char* RunningProgram;
 extern bool dpi_aware_enable;
-extern bool dos_kernel_disabled;
+extern bool DOS_GetMemory_unmapped;
 
 static float int_to_float(const uint32_t i)
 {
@@ -143,7 +143,7 @@ static void write_gl(Bitu port,Bitu val,Bitu iolen)
 
     // Allocate shared memory (80 bytes)
     if(val > GLIDE_MAX) {
-	if(glsegment==0 && !dos_kernel_disabled) {
+	if(glsegment==0 && !DOS_GetMemory_unmapped) {
 	    glsegment=DOS_GetMemory(5);
 #if LOG_GLIDE
 	    LOG_MSG("Glide:Memory allocated at 0x%x (segment: %hu)", glsegment<<4, glsegment);

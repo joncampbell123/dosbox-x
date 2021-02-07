@@ -87,10 +87,10 @@ public:
     uint32_t sectors = 0;
     bool hardDrive = false;
     uint64_t diskSizeK = 0;
+    FILE* diskimg = NULL;
 
 protected:
 	imageDisk(IMAGE_TYPE class_id);
-    FILE* diskimg = NULL;
     uint8_t floppytype = 0;
 
     uint32_t reserved_cylinders = 0;

@@ -113,11 +113,11 @@ static const char *def_menu_main[] =
 {
     "mapper_gui",
     "mapper_mapper",
-    "load_mapper_file",
+    "mapper_loadmap",
     "--",
     "MainSendKey",
     "MainHostKey",
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     "SharedClipboard",
 #endif
     "--",
@@ -190,9 +190,10 @@ static const char *def_menu_main_wheelarrow[] =
 static const char *def_menu_main_clipboard[] =
 {
 #if defined(WIN32) || defined(C_SDL2)
-    "clipboard_quick",
+    "mapper_fastedit",
     "clipboard_right",
     "clipboard_middle",
+    "clipboard_arrows",
 #endif
 #if defined(WIN32)
     "--",
@@ -204,7 +205,7 @@ static const char *def_menu_main_clipboard[] =
     "mapper_copyall",
 #endif
     "mapper_paste",
-    "clipboard_paste_stop",
+    "mapper_pasteend",
     NULL
 };
 
@@ -316,14 +317,13 @@ static const char *def_menu_video_scaler[] =
 static const char *def_menu_video_output[] =
 {
     "output_surface",
-#if !defined(C_SDL2) && !defined(HX_DOS)
-# if (HAVE_D3D9_H) && defined(WIN32)
+#if (HAVE_D3D9_H) && defined(WIN32) && !defined(HX_DOS)
     "output_direct3d",
-# endif
 #endif
 #if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",
     "output_openglnb",
+    "output_openglpp",
 #endif
 #if defined(USE_TTF)
     "output_ttf",
@@ -350,10 +350,16 @@ static const char *def_menu_video_textmode[] =
     "line_132x43",
     "line_132x50",
     "line_132x60",
+    NULL
+};
+
 #if defined(USE_TTF)
-    "--",
+/* video TTF menu ("VideoTTFMenu") */
+static const char *def_menu_video_ttf[] =
+{
     "mapper_ttf_incsize",
     "mapper_ttf_decsize",
+    "--",
     "ttf_showbold",
     "ttf_showital",
     "ttf_showline",
@@ -363,9 +369,9 @@ static const char *def_menu_video_textmode[] =
     "ttf_wpwp",
     "ttf_wpws",
     "ttf_wpxy",
-#endif
     NULL
 };
+#endif
 
 /* video vsync menu ("VideoVsyncMenu") */
 static const char *def_menu_video_vsync[] =
@@ -455,6 +461,9 @@ static const char *def_menu_video[] =
     "VideoOverscanMenu",
     "VideoFrameskipMenu",
     "VideoTextmodeMenu",
+#if defined(USE_TTF)
+    "VideoTTFMenu",
+#endif
     "VideoPC98Menu",
 #if defined(C_D3DSHADERS) || defined(C_OPENGL)
     "--",
@@ -474,26 +483,27 @@ static const char *def_menu_video[] =
 /* DOS menu ("DOSMenu") */
 static const char *def_menu_dos[] =
 {
-    "DOSMouseMenu",
-    "--",
-    "DOSVerMenu",
-    "DOSLFNMenu",
-    "DOSEMSMenu",
-    "--",
-#if defined(WIN32) && !defined(HX_DOS)
-    "DOSWinMenu",
-#endif
-    "shell_config_commands",
 #if !defined(HX_DOS)
     "mapper_quickrun",
 #endif
+    "DOSVerMenu",
+    "DOSLFNMenu",
+    "--",
+    "DOSMouseMenu",
+    "DOSEMSMenu",
+#if defined(WIN32) && !defined(HX_DOS)
+    "DOSWinMenu",
+#endif
     "--",
     "quick_reboot",
+    "sync_host_datetime",
+    "shell_config_commands",
     "--",
     "mapper_swapimg",
     "mapper_swapcd",
-    "--",
     "mapper_rescanall",
+    "--",
+    "make_diskimage",
     "list_drivenum",
     "list_ideinfo",
 #if C_PRINTER || C_DEBUG
@@ -600,7 +610,7 @@ static const char *def_menu_capture[] =
     "mapper_loadstate",
     "saveslotmenu",
     "browsesavefile",
-    "showstate",
+    "mapper_showstate",
     NULL
 };
 
@@ -619,6 +629,7 @@ static const char *def_menu_capture_format[] =
 /* Save/load options */
 static const char *save_load_options[] =
 {
+    "enable_autosave",
     "noremark_savestate",
     "force_loadstate",
     "usesavefile",
@@ -646,6 +657,7 @@ static const char *def_save_slots[] =
     "slot8",
     "slot9",
     "--",
+    "lastautosaveslot",
     "mapper_prevslot",
     "mapper_nextslot",
     "--",
@@ -695,7 +707,7 @@ static const char *def_menu_drive[] =
 /* help DOS commands ("HelpCommandMenu") */
 #define MENU_HELP_COMMAND_MAX 512
 static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
-char help_command_temp[512][30];
+char help_command_temp[MENU_HELP_COMMAND_MAX][30];
 
 /* help output debug ("HelpDebugMenu") */
 static const char *def_menu_help_debug[] =
@@ -731,11 +743,18 @@ static const char *def_menu_help[] =
     "help_issue",
 #endif
     "--",
+#if C_NE2000
     "help_nic",
+#endif
+#if C_PRINTER && defined(WIN32)
+    "help_prt",
+#endif
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
+#if C_NE2000 || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
+#endif
     "help_about",
     NULL
 };
@@ -923,6 +942,10 @@ void DOSBoxMenu::dump_log_debug(void) {
     }
     LOG_MSG("---- display list ----");
     dump_log_displaylist(display_list, 1);
+}
+
+std::vector<DOSBoxMenu::item> DOSBoxMenu::get_master_list(void) {
+    return master_list;
 }
 
 void DOSBoxMenu::clear_all_menu_items(void) {
@@ -1439,6 +1462,11 @@ void ConstructMenu(void) {
     /* video text-mode menu */
     ConstructSubMenu(mainMenu.get_item("VideoTextmodeMenu").get_master_id(), def_menu_video_textmode);
 
+#if defined(USE_TTF)
+    /* video TTF menu */
+    ConstructSubMenu(mainMenu.get_item("VideoTTFMenu").get_master_id(), def_menu_video_ttf);
+#endif
+
     /* video vsync menu */
     ConstructSubMenu(mainMenu.get_item("VideoVsyncMenu").get_master_id(), def_menu_video_vsync);
 
@@ -1713,6 +1741,12 @@ void ToggleMenu(bool pressed) {
         menu.toggle=false;
         DOSBox_NoMenu();
     }
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (ttf.inUse) {
+       void resetFontSize();
+       resetFontSize();
+    }
+#endif
 
     DOSBox_SetSysMenu();
 }
@@ -1823,7 +1857,6 @@ void DOSBox_SetSysMenu(void) {
     std::string get_mapper_shortcut(const char *name), key="";
     char msg[512];
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     {
         strcpy(msg, "Show &menu bar");
         key=get_mapper_shortcut("togmenu");
@@ -1841,7 +1874,6 @@ void DOSBox_SetSysMenu(void) {
 
         InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
     }
-#endif
 
     {
         strcpy(msg, "&Pause emulation");
@@ -1865,6 +1897,11 @@ void DOSBox_SetSysMenu(void) {
 
     {
         strcpy(msg, "Reset window size");
+        key=get_mapper_shortcut("resetsize");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;

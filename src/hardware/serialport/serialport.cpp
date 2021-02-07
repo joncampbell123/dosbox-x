@@ -101,20 +101,20 @@ device_COM::~device_COM() {
 
 
 // COM1 - COM4 objects
-CSerial* serialports[4] ={0,0,0,0};
+CSerial* serialports[9] ={0,0,0,0,0,0,0,0,0};
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
     (void)iolen;//UNUSED
-	Bitu i;
+	Bitu i=10;
 	Bitu retval;
 	Bitu index = port & 0x7;
-	switch(port&0xff8) {
-		case 0x3f8: i=0; break;
-		case 0x2f8: i=1; break;
-		case 0x3e8: i=2; break;
-		case 0x2e8: i=3; break;
-		default: return 0xff;
-	}
+    if ((port&0xff8) == 0) return 0xff;
+    for (int k=0; k<9; k++)
+        if ((port&0xff8) == serial_baseaddr[k]) {
+            i=k;
+            break;
+        }
+    if (i==10) return 0xff;
 	if(serialports[i]==0) return 0xff;
 
 	switch (index) {
@@ -157,15 +157,15 @@ static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
 	return retval;	
 }
 static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
-	Bitu i;
+	Bitu i=10;
 	Bitu index = port & 0x7;
-	switch(port&0xff8) {
-		case 0x3f8: i=0; break;
-		case 0x2f8: i=1; break;
-		case 0x3e8: i=2; break;
-		case 0x2e8: i=3; break;
-		default: return;
-	}
+    if ((port&0xff8) == 0) return;
+    for (int k=0; k<9; k++)
+        if ((port&0xff8) == serial_baseaddr[k]) {
+            i=k;
+            break;
+        }
+    if (i==10) return;
 	if(serialports[i]==0) return;
 	
 #if SERIAL_DEBUG
@@ -244,18 +244,18 @@ void CSerial::changeLineProperties() {
 }
 
 static void Serial_EventHandler(Bitu val) {
-	Bitu serclassid=val&0x3;
+	Bitu serclassid=val&0xf;
 	if(serialports[serclassid]!=0)
-		serialports[serclassid]->handleEvent((uint16_t)(val>>2));
+		serialports[serclassid]->handleEvent((uint16_t)(val>>4));
 }
 
 void CSerial::setEvent(uint16_t type, float duration) {
-    PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
+    PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<4u)|(unsigned int)idnumber));
 }
 
 void CSerial::removeEvent(uint16_t type) {
     // TODO
-	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
+	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<4u)|(unsigned int)idnumber));
 }
 
 void CSerial::handleEvent(uint16_t type) {
@@ -1090,7 +1090,6 @@ void CSerial::Init_Registers () {
 
 CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
-	uint16_t base = serial_baseaddr[id];
     InstallationSuccessful = false;
     bytetime = 0;
     waiting_interrupts = 0;
@@ -1121,6 +1120,9 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
     ri=false;			// bit6: RI
     cd=false;			// bit7: CD
 
+	std::string str;
+	uint16_t base = serial_baseaddr[id];
+	if(cmd->FindStringBegin("base:",str,true)) base = strtol(str.c_str(), NULL, 16);
 	irq = serial_defaultirq[id];
 	getBituSubstring("irq:",&irq, cmd);
 	if (irq < 2 || irq > 15) irq = serial_defaultirq[id];
@@ -1267,7 +1269,7 @@ bool CSerial::Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout) 
 	}
 	// wait for DSR+CTS on
 	if(wait_dsr||wait_cts) {
-		if(wait_dsr||wait_cts) {
+		if(wait_dsr&&wait_cts) {
 			while(((Read_MSR()&0x30)!=0x30)&&(starttime>PIC_FullIndex()-timeout))
 				CALLBACK_Idle();
 		} else if(wait_dsr) {
@@ -1299,8 +1301,8 @@ void BIOS_SetCOMPort(Bitu port, uint16_t baseaddr);
 void BIOS_Post_register_comports_PNP() {
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL) {
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i]) {
 			BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
 		}
 	}
@@ -1310,8 +1312,8 @@ Bitu bios_post_comport_count() {
 	Bitu count = 0;
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL)
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i])
 			count++;
 	}
 
@@ -1322,12 +1324,13 @@ Bitu bios_post_comport_count() {
 void BIOS_Post_register_comports() {
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL)
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i])
 			BIOS_SetCOMPort(i,serial_baseaddr[i]);
 	}
 }
 
+void ResolvePath(std::string& in);
 class SERIALPORTS:public Module_base {
 public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
@@ -1339,16 +1342,26 @@ public:
 
 #if C_MODEM
 		const Prop_path *pbFilename = section->Get_path("phonebookfile");
-		MODEM_ReadPhonebook(pbFilename->realpath);
+        std::string path=pbFilename->realpath;
+        ResolvePath(path);
+		MODEM_ReadPhonebook(path);
 #endif
                 
 		char s_property[] = "serialx"; 
-		for(uint8_t i = 0; i < 4; i++) {
+		for(uint8_t i = 0; i < 9; i++) {
 			// get the configuration property
 			s_property[6] = '1' + i;
 			Prop_multival* p = section->Get_multival(s_property);
 			std::string type = p->GetSection()->Get_string("type");
 			CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
+            CommandLine tmp(0,p->GetSection()->Get_string("parameters"), CommandLine::either, true);
+            std::string str;
+            bool squote = false;
+            // single quotes to quote string?
+            if(cmd.FindStringBegin("squote",str,false)) {
+                squote = true;
+                cmd=tmp;
+            }
 			
 			// detect the type
 			if (type=="dummy") {
@@ -1358,7 +1371,7 @@ public:
 				serialports[i] = new CSerialLog (i, &cmd);
 			}
 			else if (type=="file") {
-				serialports[i] = new CSerialFile (i, &cmd);
+				serialports[i] = new CSerialFile (i, &cmd, squote);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
@@ -1399,7 +1412,7 @@ public:
 	}
 
 	~SERIALPORTS () {
-		for (Bitu i = 0; i < 4; i++)
+		for (Bitu i = 0; i < 9; i++)
 			if (serialports[i]) {
 				delete serialports[i];
 				serialports[i] = 0;
@@ -1435,7 +1448,7 @@ void SERIAL_OnDOSKernelInit (Section * sec) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating COMx devices");
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->registerDOSDevice();
 	}
@@ -1445,7 +1458,7 @@ void SERIAL_OnDOSKernelExit (Section * sec) {
     (void)sec;//UNUSED
 	unsigned int i;
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->unregisterDOSDevice();
 	}
@@ -1456,7 +1469,7 @@ void SERIAL_OnReset (Section * sec) {
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->unregisterDOSDevice();
 	}
