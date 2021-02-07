@@ -24,9 +24,9 @@ Alternatively, you can force the TTF output when starting DOSBox-X from the comm
 
 You can also switch from a different output (such as the standard surface/opengl/direct3d outputs) to the TrueType font output from DOSBox-X's drop-down menu. Under "Video" menu, from the "Output" menu group select "TrueType font". Then DOSBox-X will automatically switch to the TTF output from another output. You can switch back and forth between these outputs by selecting a output from the "Output" menu group.
 
-Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the ```ttf.outputswitch``` config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.
+Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the ``ttf.outputswitch`` config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.
 
-The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration.
+The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration, or you can change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor, with the default value being 6 on PC-98 systems and 4 elsewhere.
 
 A screenshot showing the TrueType output with the default TTF font: 
 
@@ -34,17 +34,17 @@ image::images/DOSBox-X:TrueType_Font_Default.png[TrueType font output with the d
 
 ## Use your own TrueType font for the output
 
-By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference. If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.
+By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference (and your language). If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.
 
 Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as ``OratorStd.otf``), the .FON fonts (such as ``vgasys.fon``), and the .TTC fonts (TrueType Collection, such as ``msgothic.ttc``). These can also be used for rendering texts in the TrueType output.
 
 For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:
 
-```
+``
 ttf.font=Nouveau_IBM
-```
+``
 
-If the file extension is .ttf you can either omit the extension or put the full file name (e.g. ```ttf.font=Nouveau_IBM.ttf```).
+If the file extension is .ttf you can either omit the extension or put the full file name (e.g. ``ttf.font=Nouveau_IBM.ttf``).
 
 On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:
 
@@ -74,11 +74,13 @@ CONFIG -set ttf.font=
 
 The above commands will change the TTF font to Consola.ttf and the built-in TrueType font respectively.
 
+If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a ``CHCP`` command to view or change the current DOS code page for TTF output. For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font.
+
 If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC-98-emulation-in-DOSBox-X{suffixappend}[Guide: PC-98 emulation in DOSBox-X] page for more information about this.
 
 ## Modifying the screen dimension for the output
 
-You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [render] section to achieve this, namely ``ttf.winperc`` and ``ttf.ptsize``, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, ``ttf.winperc=75`` will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with ``ttf.ptsize``, and in such case ``ttf.winperc`` will be ignored. For example, ```ttf.ptsize=25``` will set the TTF font size to 25px.
+You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [render] section to achieve this, namely ``ttf.winperc`` and ``ttf.ptsize``, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, ``ttf.winperc=75`` will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with ``ttf.ptsize``, and in such case ``ttf.winperc`` will be ignored. For example, ``ttf.ptsize=25`` will set the TTF font size to 25px.
 
 The window size for the TrueType font output can also be increased or decreased dynamically from the menu ("Video" => "TTF options" => "Increase TTF font size"/"Decrease TTF font size"), or using keyboard shortcuts.
 
@@ -117,7 +119,7 @@ DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, W
 ttf.wp=XY
 ```
 
-Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set ```ttf.strikeout=true``` to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.
+Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set ``ttf.strikeout=true`` to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.
 
 For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:
 
@@ -153,7 +155,13 @@ The default color scheme is:
 ttf.colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
 ``
 
-You can supply a different color scheme so that it will be used instead of the default one. For example, the following will give a gray-scaled color scheme:
+You can supply a different color scheme so that it will be used instead of the default one. For example, the following will give a dark color scheme (as in TameDOS):
+
+``
+ttf.colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff
+``
+
+And the following will give a gray-scaled color scheme:
 
 ``
 ttf.colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)

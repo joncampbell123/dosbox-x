@@ -105,6 +105,11 @@ Starts DOSBox-X's graphical configuration tool, where you can review or change i
 Usage: Simply enter CFGTOOL without any parameters.
 +
 Note: You can also use CONFIG command to start DOSBox-X’s command-line configuration utility.
+* **CHCP** (internal command)
++
+Displays the current DOS code page, or changes the current code page when using the TrueType font (TTF) output.
++
+Usage: CHCP [codepage]
 * **CHOICE** (internal command)
 +
 Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.

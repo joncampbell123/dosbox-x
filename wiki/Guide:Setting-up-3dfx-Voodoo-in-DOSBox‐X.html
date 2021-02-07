@@ -473,9 +473,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_low_level_emulation">Low Level emulation</a></li>
 <li><a href="#_high_level_emulation">High Level emulation</a>
 <ul class="sectlevel2">
-<li><a href="#_windows_installing_glide2x_dll">Windows: Installing glide2x.dll</a></li>
-<li><a href="#_linux_installing_libglide2x_so">Linux: Installing libglide2x.so</a></li>
-<li><a href="#_macos_installing_libglide2x_dylib">macOS: Installing libglide2x.dylib</a></li>
+<li><a href="#_windows_host_installing_glide2x_dll">Windows host: Installing glide2x.dll</a></li>
+<li><a href="#_linux_host_installing_libglide2x_so">Linux host: Installing libglide2x.so</a></li>
+<li><a href="#_macos_host_installing_libglide2x_dylib">macOS host: Installing libglide2x.dylib</a></li>
 </ul>
 </li>
 </ul>
@@ -568,7 +568,7 @@ Unless otherwise noted the options effecting the 3dfx Voodoo emulation are in th
 </div>
 <div class="paragraph">
 <p>Enables high-level Glide API pass-through to the host OS.
-This requires that the host OS has a Glide API library (or Glide wrapper) installed, and in addition it requires the special GLIDE2X.OVL file provided by DOSBox-X.</p>
+This requires that the host OS has a Glide API library (or Glide wrapper) installed, and in addition it requires the special GLIDE2X.OVL file provided by DOSBox-X, or for Windows 9x games a specially patched <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -616,7 +616,7 @@ OpenGlide does not support locking aux buffer, as such please use _noaux modes.
 </div>
 <div class="paragraph">
 <p>This option only applies when using the high-level Glide API emulation.
-In addition, this is only supported on Windows, and it requires 3dfxSpl2.dll to be installed.</p>
+In addition, this is only supported on Windows hosts, and it requires 3dfxSpl2.dll to be installed.</p>
 </div>
 </div>
 </div>
@@ -662,24 +662,24 @@ It is the easiest mode to get working, and is in fact enabled by default.
 Depending on the game, you may not have to do anything, or you just need to select 3dfx Voodoo in the setup program.
 Some other games may require that you install a patch, or that you run a different executable to start in 3dfx mode.</p>
 </div>
-<div class="paragraph">
-<p>If you want to use 3dfx Voodoo emulation when running Windows 95 or 98 in DOSBox-X, you need to use this mode.</p>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_high_level_emulation">High Level emulation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This mode requires DOSBox-X 0.83.5 or newer, and it only works for DOS games that use GLIDE2X.OVL.</p>
+<p>This mode requires DOSBox-X 0.83.5 or newer, and it only works for DOS games that use GLIDE2X.OVL.
+Or DOSBox-X 0.83.10 for Windows 9x games that use GLIDE2X.DLL.</p>
 </div>
 <div class="paragraph">
 <p>Instead of emulating the 3dfx hardware, this method converts the Glide API calls to a modern 3D Graphics API, and is therefore more efficient.
 However, it also requires a few more steps to get working.
-It requires that the Host OS has a Glide API library installed (glide2x.dll for Windows, libglide2x.so for Linux, and libglide2x.dylib for macOS), and that you use the special GLIDE2X.OVL provided in DOSBox-X, instead of one that may be provided with the game or provided by 3dfx.</p>
+It requires that the Host OS has a Glide API library installed (glide2x.dll for Windows, libglide2x.so for Linux, and libglide2x.dylib for macOS), and that you use the special GLIDE2X.OVL provided in DOSBox-X (or for Windows games the <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a>), instead of one that may be provided with the game or provided by 3dfx.</p>
 </div>
 <div class="paragraph">
-<p>When DOSBox-X is started with glide=true the special GLIDE2X.OVL file will automatically appear on the emulated Z: drive. If the game already provides a GLIDE2X.DLL file located in the game directory, then you need to rename the game’s original GLIDE2X.OVL file to something like GLIDE2X.ORG. Then the game can usually find the GLIDE2X.DLL on the Z: drive automatically, but if not, you also need to copy the GLIDE2X.OVL file from the Z: drive to the game directory for use with the game.</p>
+<p>When DOSBox-X is started with glide=true the special GLIDE2X.OVL file will automatically appear on the emulated Z: drive.
+If the game already provides a GLIDE2X.OVL file located in the game directory, then you need to rename the game’s original GLIDE2X.OVL file to something like GLIDE2X.ORG.
+Then the game can usually find the GLIDE2X.OVL on the Z: drive automatically, but if not, you also need to copy the GLIDE2X.OVL file from the Z: drive to the game directory for use with the game.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -694,8 +694,20 @@ Hardware emulation requires that you use the games original Glide library, and n
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you want to boot a real DOS in DOSBox-X and use Glide pass-through, you need to copy the GLIDE2X.OVL file from the Z: drive to your harddisk image.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
-<h3 id="_windows_installing_glide2x_dll">Windows: Installing glide2x.dll</h3>
+<h3 id="_windows_host_installing_glide2x_dll">Windows host: Installing glide2x.dll</h3>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -705,36 +717,66 @@ Hardware emulation requires that you use the games original Glide library, and n
 <td class="content">
 Although this library has the same filename as the old Windows Glide library for real 3dfx Voodoo adapters, it is in fact not the same.
 The library used here converts Glide calls to a newer 3D API, and will not work with a real 3dfx Voodoo adapter.
-It may be possible to use a real 3dfx Voodoo adapter with the original glide2x.dll with the right hardware and software setup, but that has not been tested.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>There are several implementation providers for the Windows glide2x.dll library file, most notably nGlide, dgVoodoo, Glidos, and OpenGlide. They do not necessarily work exactly the same. Before trying to find an implementation of this library file, please keep in mind that the architecture of the DOSBox-X binary you are using does matter, e.g. whether the DOSBox-X executable is a 32-bit x86 or 64-bit x64 build. Due to the way how Windows works, 32-bit glide2x.dll can only be used by 32-bit DOSBox-X binaries, and 64-bit glide2x.dll can only be used by 64-bit DOSBox-X binaries. As a result, in order to make Glide work please make sure that you do not mix up the architectures of the applications and the .DLL files.</p>
+<p>There are several implementation providers for the Windows glide2x.dll library file, namely nGlide, dgVoodoo, Glidos, and OpenGlide.
+They do not necessarily work exactly the same.
+Before trying to find an implementation of this library file, please keep in mind that the architecture of the DOSBox-X binary you are using does matter, e.g. whether the DOSBox-X executable is a 32-bit x86 or 64-bit x64 build.
+Due to the way how Windows works, 32-bit glide2x.dll can only be used by 32-bit DOSBox-X binaries, and 64-bit glide2x.dll can only be used by 64-bit DOSBox-X binaries.
+As a result, in order to make Glide work please make sure that you do not mix up the architectures of the applications and the .DLL files.</p>
 </div>
+<div class="sect3">
+<h4 id="_nglide">nGlide</h4>
 <div class="paragraph">
-<p>nGlide appears to be a popular 3dfx Voodoo Glide wrapper provider to Direct3D or Vulkan for Windows XP and later. It comes with an installer to automatically install the Glide library files including glide2x.dll to your Windows directory. Note however that only 32-bit .DLL files are included in nGlide, as of its latest version. This means that if you choose to use nGlide as the Glide wrapper, then you must use the 32-bit (x86 architecture) DOSBox-X binaries (either SDL1 or SDL2 builds) for the Glide feature. The nGlide installer is available from:</p>
+<p>nGlide appears to be a popular 3dfx Voodoo Glide wrapper provider to Direct3D or Vulkan for Windows XP and later.
+It comes with an installer to automatically install the Glide library files including glide2x.dll to your Windows directory.
+Note however that only 32-bit .DLL files are included in nGlide, as of its latest version.
+This means that if you choose to use nGlide as the Glide wrapper, then you must use the 32-bit (x86 architecture) DOSBox-X binaries (either SDL1 or SDL2 builds) for the Glide feature.
+The nGlide installer is available from:</p>
 </div>
 <div class="paragraph">
 <p><a href="https://www.zeus-software.com/downloads/nglide" class="bare">https://www.zeus-software.com/downloads/nglide</a></p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_dgvoodoo">dgVoodoo</h4>
 <div class="paragraph">
-<p>dgVoodoo is another 3dfx Voodoo Glide wrapper to Direct3D provider for Windows. Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit and 64-bit glide2x.dll files in its zip packages. Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable. You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:</p>
+<p>dgVoodoo is another 3dfx Voodoo Glide wrapper to Direct3D provider for Windows.
+Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit and 64-bit glide2x.dll files in its zip packages.
+Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable. You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:</p>
 </div>
 <div class="paragraph">
 <p><a href="http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2.html" class="bare">http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2.html</a></p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_openglide">OpenGlide</h4>
 <div class="paragraph">
 <p>Furthermore, for advanced users you can build your own glide2x.dll file(s) if you wish.
 OpenGlide is an open-source Glide wrapper to OpenGL implementation, so that you can build the library file(s) from the source code by yourself, using Visual Studio or MinGW. The OpenGlide GitHub site is located at:</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><a href="https://github.com/voyageur/openglide" class="bare">https://github.com/voyageur/openglide</a></p>
 </div>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_linux_installing_libglide2x_so">Linux: Installing libglide2x.so</h3>
+<h3 id="_linux_host_installing_libglide2x_so">Linux host: Installing libglide2x.so</h3>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -744,13 +786,25 @@ OpenGlide is an open-source Glide wrapper to OpenGL implementation, so that you 
 <td class="content">
 Although this library has the same filename as the old Linux Glide library for real 3dfx Voodoo adapters, it is in fact not the same.
 The library used here converts Glide calls to OpenGL, and will not work with a real 3dfx Voodoo adapter.
-It may be possible to use a real 3dfx Voodoo adapter with the original libglide2x.so with the right hardware and software setup, but that has not been tested.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
+If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Unfortunately this library is not included with any of the modern Linux distributions, as such you need to compile it yourself.
+<p>Unfortunately this library is not included with any Linux distributions, as such you need to compile it yourself.
 The following steps assume that you have the necessary compiler, developer tools and header files already installed.</p>
 </div>
 <div class="paragraph">
@@ -797,9 +851,9 @@ sudo ldconfig</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_macos_installing_libglide2x_dylib">macOS: Installing libglide2x.dylib</h3>
+<h3 id="_macos_host_installing_libglide2x_dylib">macOS host: Installing libglide2x.dylib</h3>
 <div class="paragraph">
-<p>instructions needed&#8230;&#8203;</p>
+<p>In short, it seems there is no Glide implementation that works on modern macOS systems.</p>
 </div>
 </div>
 </div>
@@ -807,7 +861,7 @@ sudo ldconfig</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-02-02 19:02:41 -0500
+Last updated 2021-02-07 09:46:11 -0500
 </div>
 </div>
 </body>

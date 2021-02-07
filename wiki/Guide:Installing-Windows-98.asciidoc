@@ -400,7 +400,27 @@ If for some reason you do not want 3dfx Voodoo emulation, it can be disabled by 
 voodoo_card=false
 ....
 
-NOTE: Do not enable glide pass-through (``glide=true``) support with Windows 98. Glide pass-through only works with DOS Glide games that utilize GLIDE2X.OVL.
+### Glide pass-through
+
+Starting with DOSBox-X 0.83.10 it is possible to use glide pass-through with Windows 98.
+There are however a few points you need to be aware of.
+
+* The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
+So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper
+* The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue link:https://github.com/voyageur/openglide/issues/20[#20]).
+The work-around is to use the SDL1 DOSBox-X instead.
+
+You need to set the following DOSBox-X config option:
+
+....
+[voodoo]
+glide=true
+....
+
+You will also need a specially patched link:https://www.vogons.org/download/file.php?id=102360[GLIDE2X.DLL] which you can place in either the ``C:\Windows\System`` directory of Windows 98, or in the game directory.
+But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory. If so, you will have to remove this DLL file for glide pass-through to work.
+
+For more detail on 3dfx Voodoo emulation, see the link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X[Guide: Setting up 3dfx Voodoo in DOSBox-X]
 
 # Hard Disk Read-ahead optimization
 In "System Properties", select the "Performance" tab, and click the "File System..." button.

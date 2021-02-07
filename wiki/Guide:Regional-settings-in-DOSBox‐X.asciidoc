@@ -194,6 +194,8 @@ Most western European countries would have used codepage 850 back in the day, bu
 
 Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
 
+There is also a ``CHCP`` command to view the current DOS code page, and for the TrueType font (TTF) output it also allows to change the current DOS code page. For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish) when using the TrueType font output. It is also recommended to specify a TrueType font that has all characters of language to be used so that these characters will be rendered correctly with the specified font. More information about the TrueType font output is available from the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page.
+
 The Japanese keyboard layout is supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page.
 
 ### Support for the Euro symbol

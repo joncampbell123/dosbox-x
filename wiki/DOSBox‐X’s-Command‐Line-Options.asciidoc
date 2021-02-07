@@ -58,7 +58,7 @@ Starts DOSBox-X in full-screen mode.
 Uses the specified path as DOSBox-X's save path, including the location for the saved states.
 * **-defaultdir [path]**
 +
-Uses the specified path as DOSBox-X's default path (instead of the current directory which is usually the DOSBox-X program directory), the location for files including the dosbox-x.conf config file.
+Uses the specified path as DOSBox-X's default path (instead of the current directory which is usually the DOSBox-X program directory), the location for files including the dosbox-x.conf config file. If no path is specified and it is the only/last command-line option, then the directory of the primary config file (if any) will be used as DOSBox-X's default path.
 * **-defaultconf**
 +
 Uses the default config settings of DOSBox-X (do not try to load default config files such as dosbox-x.conf).
