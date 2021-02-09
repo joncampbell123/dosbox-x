@@ -1225,12 +1225,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pmulti = secprop->Add_multi("autosave",Property::Changeable::Always," ");
-    Pmulti->Set_help("Enable auto-save state feature. Specify a time interval in seconds, and optionally a save slot or start and end save slots.\n"
-            "For example, \"autosave=10 11 20\" will set a 10-second time interval for auto-saving, and the save slots used will be between 11 and 20.");
+    Pmulti->Set_help("Enable the auto-save state feature. Specify a time interval in seconds, and optionally a save slot or start and end save slots.\n"
+            "For example, \"autosave=10 11-20\" will set a 10-second time interval for auto-saving, and the save slots used will be between 11 and 20.\n"
+            "You can additionally specify up to 9 programs for this feature, e.g. \"autosave=10 11-20 EDIT:21-30 EDITOR:35\" for \"EDIT\" and \"EDITOR\".\n"
+            "Putting a minus sign (-) before the time interval causes the auto-saving function to not be activated at start.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("second",Property::Changeable::WhenIdle,"");
-    Pstring = Pmulti->GetSection()->Add_string("start",Property::Changeable::WhenIdle,"");
-    Pstring = Pmulti->GetSection()->Add_string("end",Property::Changeable::WhenIdle,"");
+    for (int i=0; i<10; i++) Pmulti->GetSection()->Add_string("arg"+std::to_string(i),Property::Changeable::WhenIdle,"");
 
     Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
     Pint->SetMinMax(1,100);

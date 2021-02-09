@@ -609,6 +609,7 @@ static const char *def_menu_capture[] =
     "mapper_savestate",
     "mapper_loadstate",
     "saveslotmenu",
+    "autosavecfg",
     "browsesavefile",
     "mapper_showstate",
     NULL

@@ -5,33 +5,44 @@
     852, 853, 855, 857, 858, 860, 861, 862, 863, 864,
     865, 866, 869, 872, and 874. (Wengier)
   - Added function to automatically save states in the
-    specified interval (in seconds). You can optionally
+    specified time interval (in seconds). You can also
     specify a save slot or start and end save slots to
-    be used. For example, "autosave=10 11 20" will set
+    be used. For example, "autosave=10 11-20" will set
     a 10-second time interval for auto-saving, and the
     save slots used will be between 11 and 20. If no
     save slot is specified, then the current save slot
     will be used for auto-saving. Putting a minus sign
     before time interval causes the auto-saving function
-    to not be activated at start. A menu option "Enable-
-    auto-saving state" is added to "Save/load options"
-    menu group under "Capture" to toggle the auto-saving
-    when the function is enabled. Likewise, menu option
-    "Select last auto-saved slot" is added to "Select
-    save slot" menu group (under "Capture") to switch to
-    the last auto-saved slot. (Wengier)
+    to not be activated at start. You can optionally
+    also specify up to 9 program names for this feature,
+    e.g. "autosave=10 11-20 EDIT:21-30 EDITOR:35" will
+    cause program "EDIT" to use save slots 21-30, and
+    "EDITOR" to use save slot 35, and other programs to
+    use save slots 11-20. Added a menu option "Auto-save
+    settings..." to manage the auto-saving feature at
+    run-time. A menu option "Enable auto-saving state"
+    is added to the "Save/load options" menu group under
+    "Capture" to toggle auto-saving when the function is
+    enabled. Likewise, a menu option "Select last auto-
+    saved slot" is added to the "Select save slot" menu
+    group (also under "Capture") to switch to the last
+    auto-saved slot (if any). (Wengier)
   - The Configuration Tool windows are now scalable, so
     that they will no longer look very small in e.g.
     full-screen or High DPI modes. (ant_222)
-  - If the -defaultdir option is the last command-line
-    option and no paramter is specified, then directory
-    of the primary config file (if any) will become the
-    default directory for DOSBox-X. (Wengier)
+  - If the -defaultdir option is the only or the last
+    command-line option and no parameter is specified,
+    then directory of the primary config file (if any)
+    becomes the DOSBox-X default directory. (Wengier)
   - You can now change the current output dynamically
     with CONFIG command, e.g. "CONFIG -set output=ttf"
     and "CONFIG -set output=default". (Wengier)
+  - The command "KEYB US" will return the DOS codepage
+    to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
+  - Fixed that the "Save" button in Configuration Tool
+    did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4320: Report Q-Channel track number in BCD,
     meaning it is not converted to binary by the
