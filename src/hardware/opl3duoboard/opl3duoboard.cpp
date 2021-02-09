@@ -36,6 +36,8 @@ void Opl3DuoBoard::disconnect() {
         stopOPL3DuoThread = true;
         thread.join();
     }
+#else
+    reset();
 #endif
 
     // Once buffer thread has stopped close the port.
@@ -76,10 +78,16 @@ void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 			printf("OPL3 Duo! Board: Write %d --> %d\n", val, reg);
 		#endif
 
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 		sendBuffer[bufferWrPos] = (reg >> 6) | 0x80;
 		sendBuffer[bufferWrPos + 1] = ((reg & 0x3f) << 1) | (val >> 7);
 		sendBuffer[bufferWrPos + 2] = (val & 0x7f);
         bufferWrPos = (bufferWrPos + 3) % OPL3_DUO_BUFFER_SIZE;
+#else
+        SERIAL_sendchar(comport, (reg >> 6) | 0x80);
+        SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
+        SERIAL_sendchar(comport, val & 0x7f);
+#endif
 	}
 }
 
