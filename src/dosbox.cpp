@@ -3391,10 +3391,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("height", Property::Changeable::WhenIdle, 110);
     Pint->Set_help("Height of paper in 1/10 inch (default 110 = 11.0'').");
     Pint->SetBasic(true);
+#if C_PRINTER && 0
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "printer");
-#if defined(C_LIBPNG)
+#elif defined(C_LIBPNG)
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "png");
-#elif C_PRINTER && defined(WIN32)
+#else
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
 #endif
     Pstring->Set_help("Output method for finished pages:\n"
