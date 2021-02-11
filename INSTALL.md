@@ -44,7 +44,7 @@ If you prefer to use one of the portable packages, please select the zip package
 
 Both RPM and Flatpak packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
-(RPM package to be updated for version 0.83.10)
+RPM packages are not available for the current version 0.83.10, but they are available for the previous version 0.83.9:
 
 The standard RPM package is available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") platforms:
 

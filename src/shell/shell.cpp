@@ -1005,7 +1005,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
-	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
+	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
@@ -1028,12 +1028,12 @@ void SHELL_Init() {
 									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
-	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
-	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
-    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
+	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
+	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
+    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
-	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
+	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete - %s\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
 	MSG_Add("SHELL_SYNTAXERROR","Syntax error\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
@@ -1061,11 +1061,11 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP_LONG","PAUSE\n");
-	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure : %s.\n");
+	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure - %s\n");
 	MSG_Add("SHELL_CMD_COPY_SUCCESS","   %d File(s) copied.\n");
 	MSG_Add("SHELL_CMD_COPY_CONFIRM","Overwrite %s (Yes/No/All)?");
 	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
-	MSG_Add("SHELL_CMD_COPY_ERROR","Error in copying file %s\n");
+	MSG_Add("SHELL_CMD_COPY_ERROR","Copy error - %s\n");
 	MSG_Add("SHELL_CMD_SUBST_DRIVE_LIST","The currently mounted local drives are:\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
@@ -1318,14 +1318,6 @@ void SHELL_Init() {
 		   "  /P            Prompts for confirmation before deleting one or more files.\n"
 		   "  /F            Force deleting of read-only files.\n"
 		   "  /Q            Quiet mode, do not ask if ok to delete on global wildcard.\n");
-	MSG_Add("SHELL_CMD_DELTREE_HELP","Deletes a directory and all the subdirectories and files in it.\n");
-	MSG_Add("SHELL_CMD_DELTREE_HELP_LONG","To delete one or more files and directories:\n"
-           "DELTREE [/Y] [drive:]path [[drive:]path[...]]\n\n"
-           "  /Y              Suppresses prompting to confirm you want to delete\n"
-           "                  the subdirectory.\n"
-           "  [drive:]path    Specifies the name of the directory you want to delete.\n\n"
-           "Note: Use DELTREE cautiously. Every file and subdirectory within the\n"
-           "specified directory will be deleted.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source        Specifies the file or files to be copied.\n"

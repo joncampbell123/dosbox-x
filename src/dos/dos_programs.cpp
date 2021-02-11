@@ -6207,6 +6207,44 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class DELTREE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Deletes a directory and all the subdirectories and files in it.\n\n"
+           "To delete one or more files and directories:\n"
+           "DELTREE [/Y] [drive:]path [[drive:]path[...]]\n\n"
+           "  /Y              Suppresses prompting to confirm you want to delete\n"
+           "                  the subdirectory.\n"
+           "  [drive:]path    Specifies the name of the directory you want to delete.\n\n"
+           "Note: Use DELTREE cautiously. Every file and subdirectory within the\n"
+           "specified directory will be deleted.\n";
+        WriteOut(msg);
+	}
+};
+
+void DELTREE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_DELTREE(args);
+}
+
+static void DELTREE_ProgramStart(Program * * make) {
+    *make=new DELTREE;
+}
+
 #if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
@@ -7298,6 +7336,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart);
     PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);

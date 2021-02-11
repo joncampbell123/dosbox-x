@@ -16,8 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  Heavy improvements by the DOSBox-X Team, 2011-2020
- *  DXCAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
- *  ATTRIB, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
+ *  DX-CAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
+ *  ATTRIB, CHCP, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
  *  LS command by the DOSBox Staging Team and Wengier
  */
 
@@ -67,7 +67,7 @@ SHELL_Cmd cmd_list[]={
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"},
+//{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DELTREE.EXE) instead of shell command
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
@@ -99,14 +99,14 @@ SHELL_Cmd cmd_list[]={
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
-// Advanced commands specific to DOSBox-X
-//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\ADDKEY.COM) instead of shell command
-{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
 //{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\INT2FDBG.COM) instead of shell command
 #endif
+// Advanced commands specific to DOSBox-X
+//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\ADDKEY.COM) instead of shell command
+{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 {0,0,0,0}
 };
 
@@ -751,7 +751,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 }
 
 void DOS_Shell::CMD_DELTREE(char * args) {
-	HELP("DELTREE");
+	//HELP("DELTREE");
 	StripSpaces(args);
 	bool optY=ScanCMDBool(args,"Y");
 	char * rem=ScanCMDRemain(args);
@@ -1250,7 +1250,6 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 uint32_t byte_count,file_count,dir_count;
 Bitu p_count;
 std::vector<std::string> dirs, adirs;
-
 static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	p_count+=optW?5:1;
 	if (optP && p_count%(GetPauseCount()*w_size)<1) {
@@ -1261,6 +1260,18 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 		if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 	}
 	return true;
+}
+
+extern bool ctrlbrk;
+bool CheckBreak(DOS_Shell * shell) {
+    if (ctrlbrk) {
+        uint8_t c;uint16_t n=1;
+        DOS_ReadFile (STDIN,&c,&n);
+        if (c == 3) shell->WriteOut("^C\n");
+        ctrlbrk=false;
+        return true;
+    } else
+        return false;
 }
 
 static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optZ, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optO, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
@@ -1349,7 +1360,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		}
 
 		for (std::vector<DtaResult>::iterator iter = results.begin(); iter != results.end(); ++iter) {
-
+			if (CheckBreak(shell)) return false;
 			char * name = iter->name;
 			char *lname = iter->lname;
 			uint32_t size = iter->size;
@@ -1646,6 +1657,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 	dirs.clear();
 	dirs.push_back(std::string(args));
 	while (!dirs.empty()) {
+		ctrlbrk=false;
 		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optZ, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optO, optOG, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);return;}
 		dirs.erase(dirs.begin());
 	}
@@ -1787,10 +1799,11 @@ void DOS_Shell::CMD_LS(char *args) {
 		for (size_t i=0; i<col; i++) total+=max[i];
 		if (total<tcols) break;
 	}
-	
+	ctrlbrk=false;
 	w_count = p_count = 0;
 
 	for (const auto &entry : results) {
+		if (CheckBreak(this)) {dos.dta(save_dta);return;}
 		std::string name = uselfn&&!optZ?entry.lname:entry.name;
 		if (name == "." || name == "..") continue;
 		if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
@@ -2063,7 +2076,15 @@ void DOS_Shell::CMD_COPY(char * args) {
 		}
 
 		bool echo=dos.echo, second_file_of_current_source = false;
+		ctrlbrk=false;
 		while (ret) {
+			if (CheckBreak(this)) {
+				dos.dta(save_dta);
+				DOS_CloseFile(sourceHandle);
+				if (targetHandle)
+					DOS_CloseFile(targetHandle);
+				return;
+			}
 			dta.GetResult(name,lname,size,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
@@ -2169,10 +2190,8 @@ void DOS_Shell::CMD_COPY(char * args) {
 							bool cont;
 							do {
 								if (!DOS_ReadFile(sourceHandle,buffer,&toread)) failed=true;
-								if (iscon)
-									{
-									if (dos.errorcode==77)
-										{
+								if (iscon) {
+									if (dos.errorcode==77) {
 										WriteOut("^C\r\n");
 										dos.dta(save_dta);
 										DOS_CloseFile(sourceHandle);
@@ -2180,23 +2199,21 @@ void DOS_Shell::CMD_COPY(char * args) {
 										if (!exist) DOS_UnlinkFile(nameTarget);
 										dos.echo=echo;
 										return;
-										}
+									}
 									cont=true;
 									for (int i=0;i<toread;i++)
-										if (buffer[i]==26)
-											{
+										if (buffer[i]==26) {
 											toread=i;
 											cont=false;
 											break;
-											}
+										}
 									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									if (cont) toread=0x8000;
-									}
-								else
-									{
+								} else {
+									if (DOS_FindDevice(nameTarget)==DOS_FindDevice("con")&&CheckBreak(this)) {failed=true;break;}
 									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									cont=toread == 0x8000;
-									}
+								}
 							} while (cont);
 							if (!DOS_CloseFile(sourceHandle)) failed=true;
 #if defined(WIN32)
@@ -2209,7 +2226,7 @@ void DOS_Shell::CMD_COPY(char * args) {
                                 WriteOut(" %s [%s]\n",lname,name);
                             else
                                 WriteOut(" %s\n",uselfn?lname:name);
-							if(!source.concat && !special) count++; //Only count concat files once
+							if(!source.concat && !special && !failed) count++; //Only count concat files once
 						} else {
 							DOS_CloseFile(sourceHandle);
 							WriteOut(MSG_Get("SHELL_CMD_COPY_FAILURE"),const_cast<char*>(target.filename.c_str()));
@@ -2441,6 +2458,7 @@ nextfile:
 		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
 		return;
 	}
+	ctrlbrk=false;
 	uint8_t c;uint16_t n=1;
 	bool iscon=DOS_FindDevice(word)==DOS_FindDevice("con");
 	while (n) {
@@ -2449,7 +2467,7 @@ nextfile:
 		if (iscon) {
 			if (c==3) {WriteOut("^C\r\n");break;}
 			else if (c==13) WriteOut("\r\n");
-		}
+		} else if (CheckBreak(this)) break;
 		DOS_WriteFile(STDOUT,&c,&n);
 	}
 	DOS_CloseFile(handle);
@@ -2926,6 +2944,7 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
 	while (res) {
+		if (CheckBreak(shell)) {ctrlbrk=true;return false;}
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..") || strchr(sargs, '*')!=NULL || strchr(sargs, '?')!=NULL) && attr & DOS_ATTR_DIRECTORY)) {
 			found=true;
@@ -3034,8 +3053,13 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 	adirs.push_back(std::string(args));
 	bool found=false;
 	while (!adirs.empty()) {
+		ctrlbrk=false;
 		if (doAttrib(this, (char *)adirs.begin()->c_str(), dta, optS, adda, adds, addh, addr, suba, subs, subh, subr))
 			found=true;
+		else if (ctrlbrk) {
+			ctrlbrk=false;
+			break;
+		}
 		adirs.erase(adirs.begin());
 	}
 	if (!found) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
