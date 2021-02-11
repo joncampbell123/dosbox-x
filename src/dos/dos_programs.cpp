@@ -6245,6 +6245,102 @@ static void DELTREE_ProgramStart(Program * * make) {
     *make=new DELTREE;
 }
 
+class COLOR : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Sets the default console foreground and background colors.\n\n"
+           "COLOR [attr]\n\n"
+           "  attr        Specifies color attribute of console output\n\n"
+           "Color attributes are specified by TWO hex digits -- the first\n"
+           "corresponds to the background; the second to the foreground.\n"
+           "Each digit can be any of the following values:\n\n"
+           "    0 = Black       8 = Gray\n"
+           "    1 = Blue        9 = Light Blue\n"
+           "    2 = Green       A = Light Green\n"
+           "    3 = Aqua        B = Light Aqua\n"
+           "    4 = Red         C = Light Red\n"
+           "    5 = Purple      D = Light Purple\n"
+           "    6 = Yellow      E = Light Yellow\n"
+           "    7 = White       F = Bright White\n\n"
+           "If no argument is given, this command restores the original color.\n\n"
+           "Example: \"COLOR fc\" produces light red on bright white\n";
+        WriteOut(msg);
+	}
+};
+
+void COLOR::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+    bool back=false;
+    char fg, bg;
+    int fgc=0, bgc=0;
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+    if (strlen(args)==2) {
+        bg=args[0];
+        fg=args[1];
+        if (fg=='0'||fg=='8')
+            fgc=30;
+        else if (fg=='1'||fg=='9')
+            fgc=34;
+        else if (fg=='2'||tolower(fg)=='a')
+            fgc=32;
+        else if (fg=='3'||tolower(fg)=='b')
+            fgc=36;
+        else if (fg=='4'||tolower(fg)=='c')
+            fgc=31;
+        else if (fg=='5'||tolower(fg)=='d')
+            fgc=35;
+        else if (fg=='6'||tolower(fg)=='e')
+            fgc=32;
+        else if (fg=='7'||tolower(fg)=='f')
+            fgc=37;
+        else
+            back=true;
+        if (bg=='0'||bg=='8')
+            bgc=40;
+        else if (bg=='1'||bg=='9')
+            bgc=44;
+        else if (bg=='2'||tolower(bg)=='a')
+            bgc=42;
+        else if (bg=='3'||tolower(bg)=='b')
+            bgc=46;
+        else if (bg=='4'||tolower(bg)=='c')
+            bgc=41;
+        else if (bg=='5'||tolower(bg)=='d')
+            bgc=45;
+        else if (bg=='6'||tolower(bg)=='e')
+            bgc=42;
+        else if (bg=='7'||tolower(bg)=='f')
+            bgc=47;
+        else
+            back=true;
+    } else
+       back=true;
+    if (back)
+        WriteOut("[0m");
+    else {
+        bool fgl=fg>='0'&&fg<='7', bgl=bg>='0'&&bg<='7';
+        WriteOut(("["+std::string(fgl||bgl?"0;":"")+std::string(fgl?"":"1;")+std::string(bgl?"":"5;")+std::to_string(fgc)+";"+std::to_string(bgc)+"m").c_str());
+    }
+}
+
+static void COLOR_ProgramStart(Program * * make) {
+    *make=new COLOR;
+}
+
+
+
 #if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
@@ -6259,7 +6355,7 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n";
+            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
         WriteOut(msg);
 	}
 };
@@ -7336,6 +7432,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart);
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart);
     PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
 #if defined C_DEBUG

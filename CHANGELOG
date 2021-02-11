@@ -6,6 +6,12 @@
     drive Z: as DELTREE.EXE instead of a builtin shell
     command, since it is an external command in a real
     DOS system. (Wengier).
+  - Added COLOR command to change current foreground
+    and background colors. It usage is similar to the
+    same-named command in the Windows command prompt.
+    For example, command "COLOR fc" produces light red
+    on bright white; COLOR without an argument restores
+    the original color. (Wengier)
   - Added CHCP command to view current code page, or
     change the current code page in the TrueType font
     output. Supported code pages include 437, 808, 850,
