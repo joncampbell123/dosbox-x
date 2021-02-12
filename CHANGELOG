@@ -8,6 +8,11 @@
     drive Z: as DELTREE.EXE instead of a builtin shell
     command, since it is an external command in a real
     DOS system. (Wengier).
+  - Added PUSHD and POPD commands so that you can store
+    the current directory and changes to the specified
+    directory (optionally also the current drive), then
+    changes the directory/drive back. PUSHD command
+    without arguments show stored path(s). (Wengier)
   - Added COLOR command to change current foreground
     and background colors. It usage is similar to the
     same-named command in the Windows command prompt.

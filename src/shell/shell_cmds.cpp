@@ -15,9 +15,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- *  Heavy improvements by the DOSBox-X Team, 2011-2020
+ *  Heavy improvements by the DOSBox-X Team, 2011-2021
  *  DX-CAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
- *  ATTRIB, CHCP, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
+ *  ATTRIB, CHCP, COUNTRY, DELTREE, FOR/LFNFOR, POPD/PUSHD, TREE, TRUENAME, VERIFY commands by Wengier
  *  LS command by the DOSBox Staging Team and Wengier
  */
 
@@ -98,6 +98,8 @@ SHELL_Cmd cmd_list[]={
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+{	"PUSHD",		1,		&DOS_Shell::CMD_PUSHD,		"SHELL_CMD_PUSHD_HELP"},
+{	"POPD",			1,		&DOS_Shell::CMD_POPD,		"SHELL_CMD_POPD_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
@@ -1236,6 +1238,56 @@ void DOS_Shell::CMD_ECHO(char * args){
 void DOS_Shell::CMD_EXIT(char * args) {
 	HELP("EXIT");
 	exit = true;
+}
+
+std::vector<uint8_t> olddrives;
+std::vector<std::string> olddirs;
+void DOS_Shell::CMD_PUSHD(char * args) {
+	HELP("PUSHD");
+	StripSpaces(args);
+	char sargs[CROSS_LEN];
+	if (strlen(args)>1 && args[1]==':' && toupper(args[0])>='A' && toupper(args[0])<='Z' && !Drives[toupper(args[0])-'A']) {
+        WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+        return;
+    }
+	if (*args && !DOS_GetSFNPath(args,sargs,false)) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+		return;
+	}
+	if (*args) {
+        char dir[DOS_PATHLENGTH];
+        uint8_t drive = DOS_GetDefaultDrive()+'A';
+        DOS_GetCurrentDir(0,dir,true);
+        if (strlen(args)>1 && args[1]==':') DOS_SetDefaultDrive(toupper(args[0])-'A');
+        if (DOS_ChangeDir(sargs)) {
+            olddrives.push_back(drive);
+            olddirs.push_back(std::string(dir));
+        } else {
+            if (strlen(args)>1 && args[1]==':') DOS_SetDefaultDrive(drive-'A');
+            WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"),args);
+        }
+    } else {
+        for (int i=olddrives.size()-1; i>=0; i--)
+            if (olddrives.at(i)>='A'&&olddrives.at(i)<='Z')
+                WriteOut("%c:\\%s\n",olddrives.at(i),olddirs.at(i).c_str());
+    }
+}
+
+void DOS_Shell::CMD_POPD(char * args) {
+	HELP("POPD");
+    if (!olddrives.size()) return;
+    uint8_t olddrive=olddrives.back();
+    std::string olddir=olddirs.back();
+    if (olddrive>='A'&&olddrive<='Z'&&Drives[olddrive-'A']) {
+        uint8_t drive = DOS_GetDefaultDrive()+'A';
+        if (olddrive!=DOS_GetDefaultDrive()+'A') DOS_SetDefaultDrive(olddrive-'A');
+        if (Drives[DOS_GetDefaultDrive()]->TestDir(olddir.c_str()))
+            strcpy(Drives[DOS_GetDefaultDrive()]->curdir,olddir.c_str());
+        else
+            DOS_SetDefaultDrive(drive-'A');
+    }
+    olddrives.pop_back();
+    olddirs.pop_back();
 }
 
 void DOS_Shell::CMD_CHDIR(char * args) {
