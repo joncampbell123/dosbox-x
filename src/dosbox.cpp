@@ -2477,7 +2477,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
+    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use\n"
+                      "(find the id/name with mixer/listmidi).\n"
                       "Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
                       "When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
                       "In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
