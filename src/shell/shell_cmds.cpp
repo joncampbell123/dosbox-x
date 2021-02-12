@@ -790,6 +790,156 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 	dos.dta(save_dta);
 }
 
+extern bool ctrlbrk;
+bool CheckBreak(DOS_Shell * shell) {
+    if (ctrlbrk) {
+        uint8_t c;uint16_t n=1;
+        DOS_ReadFile (STDIN,&c,&n);
+        if (c == 3) shell->WriteOut("^C\n");
+        ctrlbrk=false;
+        return true;
+    } else
+        return false;
+}
+
+bool cont[200];
+static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool optF) {
+    char *p=strchr(args, ':');
+    bool found=false, last=false, plast=false;
+    int level=1;
+    if (p) {
+        *p=0;
+        if (*args=='-') {
+            plast=true;
+            args++;
+        }
+        level=atoi(args);
+        args=p+1;
+        if (tdirs.size()<2) last=true;
+        else {
+            char * arg=(char *)(tdirs.begin()+1)->c_str();
+            p=strchr(arg, ':');
+            if (p) {
+                *p=0;
+                if (level!=atoi(*arg=='-'?arg+1:arg)) last=true;
+                *p=':';
+            }
+        }
+    }
+    if (level>=200) return false;
+    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
+	if (!DOS_Canonicalize(args,full)||strrchr(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return level; }
+	if (!DOS_GetSFNPath(args,spath,false)) {
+		if (!level) shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
+		return level;
+	}
+	if (!uselfn||!DOS_GetSFNPath(args,sfull,true)) strcpy(sfull,full);
+    if (level&&strlen(sfull)>4&&!strcasecmp(sfull+strlen(sfull)-4, "\\*.*")) {
+        *(sfull+strlen(sfull)-4)=0;
+        p=strrchr(sfull, '\\');
+        char c=optA?(last?'\\':'+'):(last?'À':'Ã');
+        cont[level]=!last;
+        for (int i=1; i<level; i++) shell->WriteOut("%c   ", cont[i]?(optA?'|':'³'):' ');
+        shell->WriteOut(optA?"%c---%s\n":"%cÄÄÄ%s\n", c, p?p+1:sfull);
+        *(sfull+strlen(sfull))='\\';
+    }
+    sprintf(sargs,"\"%s\"",spath);
+    bool res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+    if (!res) {
+        if (!level) shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
+        return level;
+    }
+    uint16_t attribute=0;
+	strcpy(path,full);
+	*(strrchr(path,'\\')+1)=0;
+	char * end=strrchr(full,'\\')+1;*end=0;
+	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    std::vector<std::string> cdirs;
+    cdirs.clear();
+	while (res) {
+        if (CheckBreak(shell)) return false;
+        strcpy(spath,((plast||level==1&&last?"-":"")+std::to_string(level+1)+":").c_str());
+        strcat(spath, path);
+		dta.GetResult(name,lname,size,date,time,attr);
+		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
+			strcpy(end,name);
+			strcpy(lend,lname);
+			if (strlen(full)&&DOS_GetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), &fattr)) {
+                if(attr&DOS_ATTR_DIRECTORY) {
+                    if (strcmp(name, ".")&&strcmp(name, "..")) {
+                        strcat(spath, name);
+                        strcat(spath, "\\*.*");
+                        cdirs.push_back(std::string(spath));
+                        found=true;
+                    }
+                } else if (optF) {
+                    for (int i=1; i<=level; i++) shell->WriteOut("%c   ", (i==1&&level>1?!plast:cont[i])?(optA?'|':'³'):' ');
+                    shell->WriteOut("    %s\n", uselfn?lname:name);
+                }
+            }
+		}
+		res=DOS_FindNext();
+	}
+    if (!found&&!level) {
+        shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
+        return false;
+    }
+    tdirs.insert(tdirs.begin()+1, cdirs.begin(), cdirs.end());
+	return true;
+}
+
+bool tree=false;
+void DOS_Shell::CMD_TREE(char * args) {
+	//HELP("TREE");
+	StripSpaces(args);
+	bool optA=ScanCMDBool(args,"A");
+	bool optF=ScanCMDBool(args,"F");
+	char * rem=ScanCMDRemain(args);
+	if (rem) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
+		return;
+	}
+	StripSpaces(args);
+	char buffer[CROSS_LEN];
+    strcpy(buffer, "0:");
+    strcat(buffer, *args?args:".");
+    if (strlen(args)==2&&args[1]==':') strcat(buffer, ".");
+    if (args[strlen(args)-1]!='\\') strcat(buffer, "\\");
+    strcat(buffer, "*.*");
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+	DOS_DTA dta(dos.dta());
+    if (strlen(args)>1&&args[1]==':') {
+        char c[]=" _:";
+        c[1]=toupper(args[0]);
+        if (!Drives[c[1]-'A']) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
+        tree=true;
+        CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+        tree=false;
+        WriteOut("%c:%s\n", c[1], *args?args+2:".");
+    } else {
+        tree=true;
+        CMD_VOL(empty_string);
+        tree=false;
+        uint8_t drive=DOS_GetDefaultDrive();
+        WriteOut("%c:%s\n", 'A'+drive, *args?args:".");
+    }
+    for (int i=0; i<200; i++) cont[i]=false;
+    ctrlbrk=false;
+	tdirs.clear();
+	tdirs.push_back(std::string(buffer));
+	while (!tdirs.empty()) {
+		if (!doTree(this, (char *)tdirs.begin()->c_str(), dta, optA, optF)) break;
+		tdirs.erase(tdirs.begin());
+	}
+	dos.dta(save_dta);
+}
+
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
@@ -1260,18 +1410,6 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 		if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 	}
 	return true;
-}
-
-extern bool ctrlbrk;
-bool CheckBreak(DOS_Shell * shell) {
-    if (ctrlbrk) {
-        uint8_t c;uint16_t n=1;
-        DOS_ReadFile (STDIN,&c,&n);
-        if (c == 3) shell->WriteOut("^C\n");
-        ctrlbrk=false;
-        return true;
-    } else
-        return false;
 }
 
 static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optZ, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optO, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
@@ -3176,15 +3314,19 @@ void DOS_Shell::CMD_VOL(char *args){
 		}
 	}
 	char const* bufin = Drives[drive]->GetLabel();
-	WriteOut(MSG_Get("SHELL_CMD_VOL_DRIVE"),drive+'A');
+    if (tree)
+        WriteOut(MSG_Get("SHELL_CMD_VOL_TREE"),bufin);
+    else {
+        WriteOut(MSG_Get("SHELL_CMD_VOL_DRIVE"),drive+'A');
 
-	//if((drive+'A')=='Z') bufin="DOSBOX-X";
-	if(strcasecmp(bufin,"")==0)
-		WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_NOLABEL"));
-	else
-		WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_LABEL"),bufin);
+        //if((drive+'A')=='Z') bufin="DOSBOX-X";
+        if(strcasecmp(bufin,"")==0)
+            WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_NOLABEL"));
+        else
+            WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_LABEL"),bufin);
+    }
 
-	WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL"));
+	WriteOut(tree?MSG_Get("SHELL_CMD_VOL_SERIAL")+1:MSG_Get("SHELL_CMD_VOL_SERIAL"));
 	unsigned long serial_number=0x1234;
 	if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 		fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);

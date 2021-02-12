@@ -992,6 +992,8 @@ void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
 
 	/* Add messages */
+	MSG_Add("SHELL_CMD_TREE_ERROR", "No subdirectories exist\n");
+	MSG_Add("SHELL_CMD_VOL_TREE", "Directory PATH listing for Volume %s\n");
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
 	MSG_Add("SHELL_CMD_VOL_DRIVEERROR","Cannot find the drive specified\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
@@ -1629,7 +1631,6 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);

@@ -6245,6 +6245,40 @@ static void DELTREE_ProgramStart(Program * * make) {
     *make=new DELTREE;
 }
 
+class TREE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Graphically displays the directory structure of a drive or path.\n\n"
+           "TREE [drive:][path] [/F] [/A]\n\n"
+           "  /F   Displays the names of the files in each directory.\n"
+           "  /A   Uses ASCII instead of extended characters.\n";
+        WriteOut(msg);
+	}
+};
+
+void TREE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_TREE(args);
+}
+
+static void TREE_ProgramStart(Program * * make) {
+    *make=new TREE;
+}
+
 class COLOR : public Program {
 public:
     void Run(void);
@@ -6338,8 +6372,6 @@ void COLOR::Run()
 static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
-
-
 
 #if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
@@ -7454,5 +7486,6 @@ void DOS_SetupPrograms(void) {
     if (startcmd)
         PROGRAMS_MakeFile("START.COM", START_ProgramStart);
 #endif
+    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart);
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
 }

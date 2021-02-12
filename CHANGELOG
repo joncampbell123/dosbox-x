@@ -2,6 +2,8 @@
   - You can now press Ctrl+C or Ctrl+Break to break
     from long outputs from commands like COPY, TYPE,
     DIR /S, and ATTRIB /S. (Wengier)
+  - Rewrote built-in TREE command instead of the one
+    from FreeDOS to support long filenames. (Wengier)
   - DELTREE is now an external command appearing on
     drive Z: as DELTREE.EXE instead of a builtin shell
     command, since it is an external command in a real

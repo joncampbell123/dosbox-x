@@ -260,6 +260,10 @@ public:
      */
 	void CMD_SHIFT(char * args);
 
+    /*! \brief      List directory tree (TREE)
+     */
+	void CMD_TREE(char * args);
+
     /*! \brief      File verification switch
      */
 	void CMD_VERIFY(char * args);
