@@ -52,7 +52,7 @@ public:
 	const char * GetFileName(){ return file_name.c_str();}
 
 	bool FindExist(char const * const name,bool remove=false);
-	bool FindHex(char const * const name,int & value,bool remove=false);
+	bool FindHex(char const * const name,unsigned int & value,bool remove=false);
 	bool FindInt(char const * const name,int & value,bool remove=false);
 	bool FindString(char const * const name,std::string & value,bool remove=false);
 	bool FindCommand(unsigned int which,std::string & value);

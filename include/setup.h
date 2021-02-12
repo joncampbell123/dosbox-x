@@ -98,7 +98,7 @@ public:
 	Value& operator= (char const * const in) { return copy(Value(in));}
 	Value& operator= (Value const& in)       { return copy(Value(in));}
 
-	bool operator== (Value const & other);
+	bool operator== (Value const & other) const;
 	operator bool () const;
 	operator Hex () const;
 	operator int () const;
@@ -169,7 +169,7 @@ protected:
 	bool is_basic=false;
 	bool is_modified;
 	std::vector<Value> suggested_values;
-	typedef std::vector<Value>::iterator iter;
+	typedef std::vector<Value>::const_iterator const_iter;
 	Value default_value;
 	const Changeable::Value change;
 	bool use_global_config_str;
