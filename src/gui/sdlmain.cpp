@@ -3855,6 +3855,20 @@ void ResetTTFSize(Bitu /*val*/) {
 }
 #endif
 
+void modeSwitched(bool full) {
+    LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
+
+#if defined (WIN32)
+    // (re-)assign menu to window
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
+#endif
+
+    // ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
+    auto locked = sdl.mouse.locked;
+    if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
+}
+
 void GFX_SwitchFullScreen(void)
 {
 #if defined(USE_TTF)
@@ -3906,6 +3920,7 @@ void GFX_SwitchFullScreen(void)
             OUTPUT_TTF_Select(2);
             resetFontSize();
         }
+        modeSwitched(sdl.desktop.fullscreen);
         return;
     }
 #endif
@@ -4013,24 +4028,13 @@ void GFX_SwitchFullScreen(void)
             sdl.desktop.fullscreen = false;
             LOG_MSG("WARNING: full screen canceled, surface size (%ix%i) exceeds screen size (%ix%i).",
                 width1, height1, width, height);
-            return;
         }
     }
 
-    LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
-
-#if defined (WIN32)
-    // (re-)assign menu to window
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
-#endif
-
-    // ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
-    auto locked = sdl.mouse.locked;
-    if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
+    modeSwitched(full);
 
     // disable/enable sticky keys for fullscreen/desktop
-#if defined (WIN32)     
+#if defined (WIN32)
     sticky_keys(!full);
 #endif
 
