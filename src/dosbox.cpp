@@ -187,6 +187,8 @@ Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
+bool                VGA_BIOS_use_rom = false; // load VGA BIOS from a ROM file rather than make our own
+std::string         VGA_BIOS_rom;
 
 uint32_t                  emulator_speed = 100;
 
@@ -751,6 +753,8 @@ void DOSBOX_InitTickLoop() {
 }
 
 void Init_VGABIOS() {
+    long rom_sz = 0;
+    FILE *rom_fp = NULL;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
     assert(section != NULL && video_section != NULL);
@@ -778,6 +782,35 @@ void Init_VGABIOS() {
     wpcolon = section->Get_bool("leading colon write protect image");
     lockmount = section->Get_bool("locking disk image mount");
 
+    VGA_BIOS_use_rom = video_section->Get_bool("vga bios use rom image");
+    VGA_BIOS_rom = video_section->Get_string("vga bios rom image");
+
+    if (VGA_BIOS_rom.empty()) {
+        if (IS_VGA_ARCH) {
+            if (svgaCard == SVGA_TsengET4K) {
+                VGA_BIOS_rom = "et4000.bin";    // Ref: PCem ROMs collection
+            }
+            else if (svgaCard == SVGA_S3Trio) {
+                VGA_BIOS_rom = "s3_764.bin";    // Ref: PCem ROMs collection
+            }
+            else if (svgaCard == SVGA_None) {
+                VGA_BIOS_rom = "ibm_vga.bin";   // Ref: PCem ROMs collection
+            }
+        }
+    }
+
+    if (!VGA_BIOS_rom.empty() && VGA_BIOS_use_rom) {
+        rom_fp = fopen(VGA_BIOS_rom.c_str(),"rb");
+        if (rom_fp != NULL) {
+            fseek(rom_fp,0,SEEK_END);
+            long sz = ftell(rom_fp);
+            if (sz >= 1024 && sz <= 65536) {
+                LOG_MSG("Using VGA BIOS image '%s', %ld bytes\n",VGA_BIOS_rom.c_str(),sz);
+                rom_sz = sz;
+            }
+        }
+    }
+
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
@@ -795,6 +828,9 @@ void Init_VGABIOS() {
 
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
+    else if (rom_sz != 0) {
+        VGA_BIOS_Size = rom_sz;
+    }
     else if (IS_VGA_ARCH) {
         if (svgaCard == SVGA_S3Trio)
             VGA_BIOS_Size = 0x4000;
@@ -818,9 +854,17 @@ void Init_VGABIOS() {
     VGA_BIOS_SEG = 0xC000;
     VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
 
-    /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
-    if (VGA_BIOS_Size != 0)
-        memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    if (rom_fp != NULL && rom_sz != 0) {
+        fseek(rom_fp,0,SEEK_SET);
+        fread((char*)MemBase+0xC0000,rom_sz,1,rom_fp);
+    }
+    else {
+        /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+        if (VGA_BIOS_Size != 0)
+            memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    }
+
+    if (rom_fp) fclose(rom_fp);
 }
 
 void SetCyclesCount_mapper_shortcut(bool pressed);
@@ -1621,6 +1665,10 @@ void DOSBOX_SetupConfigSections(void) {
             "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
             "  \n"
             "  4low behavior is default for ET4000 emulation.");
+
+    Pbool = secprop->Add_bool("vga bios use rom image", Property::Changeable::OnlyAtStart, false);
+
+    Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
