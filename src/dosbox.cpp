@@ -1667,8 +1667,14 @@ void DOSBOX_SetupConfigSections(void) {
             "  4low behavior is default for ET4000 emulation.");
 
     Pbool = secprop->Add_bool("vga bios use rom image", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
 
     Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
+    Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
+                    "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
+                    "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
+                    "(machine=et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped from\n"
+                    "real hardware or downloaded from the PCem ROMs collection.");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
