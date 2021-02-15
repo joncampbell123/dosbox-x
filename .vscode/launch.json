@@ -95,5 +95,16 @@
             "environment": [],
             "externalConsole": true
         },
+        {
+            "name": "(MacOS) Launch Debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/dosbox-x",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": true
+        }
     ]
 }

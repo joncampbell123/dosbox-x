@@ -141,6 +141,33 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build MacOS SDL1 Debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-debug-macosx",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "build MacOS SDL2 Debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-debug-macosx-sdl2",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

@@ -157,6 +157,88 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "msvc-x64"
+        },
+        {
+            "name": "SDL1 Debug MacOS",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/aviwriter",
+                "${workspaceFolder}/src/hardware/snd_pc98/cbus",
+                "${workspaceFolder}/src/hardware/snd_pc98/common",
+                "${workspaceFolder}/src/hardware/snd_pc98/generic",
+                "${workspaceFolder}/src/hardware/snd_pc98/sound",
+                "${workspaceFolder}/src/hardware/snd_pc98/sound/getsnd",
+                "${workspaceFolder}/src/hardware/snd_pc98/x11",
+                "${workspaceFolder}/src/hardware/opl3duoboard",
+                "${workspaceFolder}/src/mt32",
+                "${workspaceFolder}/vs2015",
+                "${workspaceFolder}/vs2015/libpdcurses",
+                "${workspaceFolder}/vs2015/libpng",
+                "${workspaceFolder}/vs2015/pcap",
+                "${workspaceFolder}/vs2015/sdl/include",
+                "${workspaceFolder}/vs2015/sdlnet",
+                "${workspaceFolder}/vs2015/zlib"
+            ],
+            "defines": [
+                "_DEBUG",
+                "_MBCS",
+                "_CRT_SECURE_NO_WARNINGS",
+                "MACOSX",
+                "__MACOSX__",
+                "C_SDL1",
+                "_FILE_OFFSET_BITS=64"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64"
+        },
+        {
+            "name": "SDL2 Debug MacOS",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/aviwriter",
+                "${workspaceFolder}/src/hardware/snd_pc98/cbus",
+                "${workspaceFolder}/src/hardware/snd_pc98/common",
+                "${workspaceFolder}/src/hardware/snd_pc98/generic",
+                "${workspaceFolder}/src/hardware/snd_pc98/sound",
+                "${workspaceFolder}/src/hardware/snd_pc98/sound/getsnd",
+                "${workspaceFolder}/src/hardware/snd_pc98/x11",
+                "${workspaceFolder}/src/hardware/opl3duoboard",
+                "${workspaceFolder}/src/mt32",
+                "${workspaceFolder}/vs2015",
+                "${workspaceFolder}/vs2015/libpdcurses",
+                "${workspaceFolder}/vs2015/libpng",
+                "${workspaceFolder}/vs2015/pcap",
+                "${workspaceFolder}/vs2015/sdl/include",
+                "${workspaceFolder}/vs2015/sdlnet",
+                "${workspaceFolder}/vs2015/zlib"
+            ],
+            "defines": [
+                "_DEBUG",
+                "_MBCS",
+                "_CRT_SECURE_NO_WARNINGS",
+                "MACOSX",
+                "__MACOSX__",
+                "C_SDL2",
+                "_FILE_OFFSET_BITS=64"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64"
         }
     ],
     "version": 4
