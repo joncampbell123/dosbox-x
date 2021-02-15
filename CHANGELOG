@@ -1,4 +1,27 @@
 0.83.11
+  - You can now press Ctrl+C or Ctrl+Break to break
+    from long outputs from commands like COPY, TYPE,
+    DIR /S, and ATTRIB /S. (Wengier)
+  - Rewrote built-in TREE command instead of the one
+    from FreeDOS to support long filenames. (Wengier)
+  - DELTREE is now an external command appearing on
+    drive Z: as DELTREE.EXE instead of a builtin shell
+    command, since it is an external command in a real
+    DOS system. (Wengier).
+  - Added REPLACE command to replace files, resembling
+    the MS-DOS counterpart. This command is compiled
+    with long filename support. (Wengier)
+  - Added PUSHD and POPD commands so that you can store
+    the current directory and changes to the specified
+    directory (optionally also the current drive), then
+    changes the directory/drive back. PUSHD command
+    without arguments show stored path(s). (Wengier)
+  - Added COLOR command to change current foreground
+    and background colors. It usage is similar to the
+    same-named command in the Windows command prompt.
+    For example, command "COLOR fc" produces light red
+    on bright white; COLOR without an argument restores
+    the original color. (Wengier)
   - Added CHCP command to view current code page, or
     change the current code page in the TrueType font
     output. Supported code pages include 437, 808, 850,
@@ -41,9 +64,13 @@
     to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
+  - Fixed an issue in MinGW builds that no data will be
+    sent to the OPL3Duo board. (DhrBaksteen)
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
+    - r4330: some big endian improvents and drive_fat
+    fixes. (jmarsh)
     - r4320: Report Q-Channel track number in BCD,
     meaning it is not converted to binary by the
     CD-ROM device driver. Fixes the CD-Player feature

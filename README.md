@@ -338,12 +338,19 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 ## Known DOSBox-X forks
 
-DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
-Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
-These significant changes require dropping some useful features (including the menus) but are required for performance.
+* DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1
 
-URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
+  Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
+  These significant changes require dropping some useful features (including the menus) but are required for performance.
 
+  URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
+
+* Win31DOSBox (Windows 3.1 for 64-bit Windows) by emendelson
+
+  Win31DOSBox aims to be an easy method of running Windows 3.x software for 64-bit Windows systems.
+  The system uses a custom build of DOSBox-X when running Windows 3.1x.
+
+  URL: http://www.columbia.edu/~em36/win31dosbox.html
 
 ## Support for international language translations and keyboard layouts
 

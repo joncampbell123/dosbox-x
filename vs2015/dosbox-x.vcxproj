@@ -910,8 +910,8 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\builtin\lastdriv_com.cpp" />
     <ClCompile Include="..\src\builtin\mem_com.cpp" />
     <ClCompile Include="..\src\builtin\move_exe.cpp" />
+    <ClCompile Include="..\src\builtin\replace_exe.cpp" />
     <ClCompile Include="..\src\builtin\sort_exe.cpp" />
-    <ClCompile Include="..\src\builtin\tree_exe.cpp" />
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
     <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
