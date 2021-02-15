@@ -71,7 +71,9 @@
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
-    - r4330: some big endian improvents and drive_fat
+    - r4336: Correct an oversight of r4186 when floppy
+    disks are mounted.
+    - r4330: some big endian improvements and drive_fat
     fixes. (jmarsh)
     - r4320: Report Q-Channel track number in BCD,
     meaning it is not converted to binary by the
