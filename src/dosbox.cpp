@@ -788,13 +788,13 @@ void Init_VGABIOS() {
     if (VGA_BIOS_rom.empty()) {
         if (IS_VGA_ARCH) {
             if (svgaCard == SVGA_TsengET4K) {
-                VGA_BIOS_rom = "et4000.bin";    // Ref: PCem ROMs collection
+                VGA_BIOS_rom = "et4000.bin";    // Ref: PCem ROMs collection. [TESTED] [WORKS]
             }
             else if (svgaCard == SVGA_S3Trio) {
-                VGA_BIOS_rom = "s3_764.bin";    // Ref: PCem ROMs collection
+                VGA_BIOS_rom = "s3_764.bin";    // Ref: PCem ROMs collection. [TESTED] [WORKS]
             }
             else if (svgaCard == SVGA_None) {
-                VGA_BIOS_rom = "ibm_vga.bin";   // Ref: PCem ROMs collection
+                VGA_BIOS_rom = "ibm_vga.bin";   // Ref: PCem ROMs collection. [TESTED] [WORKS]
             }
         }
     }
@@ -1674,7 +1674,11 @@ void DOSBOX_SetupConfigSections(void) {
                     "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
                     "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
                     "(machine=et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped from\n"
-                    "real hardware or downloaded from the PCem ROMs collection.");
+                    "real hardware or downloaded from the PCem ROMs collection.\n"
+                    "\n"
+                    "machine=vgaonly            ibm_vga.bin\n"
+                    "machine=svga_s3            s3_764.bin\n"
+                    "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
