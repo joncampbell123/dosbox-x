@@ -1,4 +1,11 @@
 0.83.11
+  - Added experimental option to load a VGA BIOS ROM
+    image and execute it, instead of our own INT 10h
+    emulation. If enabled, it will load the specific
+    ROM file into C000:0000. If not specified, it
+    will choose based on machine type. Tseng ET4000
+    emulation works well enough to run et4000.bin
+    from the PCem ROM collection.
   - Fixed PC-98 keyboard handling of CTRL+A through
     CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - You can now press Ctrl+C or Ctrl+Break to break
