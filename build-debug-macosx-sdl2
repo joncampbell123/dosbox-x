@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# I'm sick and tired of all the churn the three versions of autoconf
+# are causing in this repo. Stop committing the configure scripts
+# and just autoregen.
+./autogen.sh || exit 1
+
+# where are we?
+top=`pwd`
+if test -z "$top" ; then exit 1; fi
+
+# fix
+chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
+
+# prefer to compile against our own copy of SDL 2.x IF the system does not provide one
+#x=`which sdl2-config`
+#if test -z "$x" ; then
+    echo Compiling our internal SDL 2.x
+    (cd vs2015/sdl2 && ./build-dosbox.sh) || exit 1
+#fi
+
+# perfer to compile against our own zlib
+echo Compiling our internal zlib
+(cd vs2015/zlib && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/zlib/linux-host/include "
+nld="-L$top/vs2015/zlib/linux-host/lib "
+export CFLAGS="$new$CFLAGS -g3"
+export LDFLAGS="$nld$LDFLAGS -g3"
+export CPPFLAGS="$new$CPPFLAGS -g3"
+export CXXFLAGS="$new$CXXFLAGS -g3"
+
+# perfer to compile against our own libpng (comment this out to disable)
+echo Compiling our internal libpng
+(cd vs2015/libpng && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/libpng/linux-host/include "
+nld="-L$top/vs2015/libpng/linux-host/lib "
+export CFLAGS="$new$CFLAGS -g3"
+export LDFLAGS="$nld$LDFLAGS -g3"
+export CPPFLAGS="$new$CPPFLAGS -g3"
+export CXXFLAGS="$new$CXXFLAGS -g3"
+
+# perfer to compile against our own freetype
+echo Compiling our internal freetype
+(cd vs2015/freetype && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/freetype/linux-host/include/freetype2 "
+nld="-L$top/vs2015/freetype/linux-host/lib -lfreetype "
+export CFLAGS="$new$CFLAGS -g3"
+export LDFLAGS="$nld$LDFLAGS -g3"
+export CPPFLAGS="$new$CPPFLAGS -g3"
+export CXXFLAGS="$new$CXXFLAGS -g3"
+export INTERNAL_FREETYPE=1
+
+# now compile ourself
+echo Compiling DOSBox-X
+chmod +x configure
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 --disable-avcodec "$@" || exit 1
+make -j3 || exit 1
+
