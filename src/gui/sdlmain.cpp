@@ -10827,6 +10827,20 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
+bool auto_save_setting_menu_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(29);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
 void refresh_slots() {
     std::string text=mainMenu.get_item("current_page").get_text();
     std::size_t found = text.find(":");
@@ -12468,6 +12482,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"lastautosaveslot").set_text("Select last auto-saved slot").set_callback_function(last_autosave_slot_menu_callback).enable(false);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "autosavecfg").set_text("Auto-save settings...").set_callback_function(auto_save_setting_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
             {
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);

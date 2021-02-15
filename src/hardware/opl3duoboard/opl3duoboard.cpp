@@ -36,6 +36,8 @@ void Opl3DuoBoard::disconnect() {
         stopOPL3DuoThread = true;
         thread.join();
     }
+#else
+    reset();
 #endif
 
     // Once buffer thread has stopped close the port.
@@ -75,22 +77,19 @@ void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 		#if OPL3_DUO_BOARD_DEBUG
 			printf("OPL3 Duo! Board: Write %d --> %d\n", val, reg);
 		#endif
-    #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)) 
+
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 		sendBuffer[bufferWrPos] = (reg >> 6) | 0x80;
 		sendBuffer[bufferWrPos + 1] = ((reg & 0x3f) << 1) | (val >> 7);
 		sendBuffer[bufferWrPos + 2] = (val & 0x7f);
-        bufferWrPos = (bufferWrPos + 3) % OPL3_DUO_BUFFER_SIZE;
-    #else    
-        uint8_t sendBuffer[3];
+    bufferWrPos = (bufferWrPos + 3) % OPL3_DUO_BUFFER_SIZE;
+#else    
 
-		sendBuffer[0] = (reg >> 6) | 0x80;
-		sendBuffer[1] = ((reg & 0x3f) << 1) | (val >> 7);
-		sendBuffer[2] = (val & 0x7f);
+        SERIAL_sendchar(comport, (reg >> 6) | 0x80);
+        SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
+        SERIAL_sendchar(comport, val & 0x7f);
+#endif
 
-		SERIAL_sendchar(comport, sendBuffer[0]);
-		SERIAL_sendchar(comport, sendBuffer[1]);
-		SERIAL_sendchar(comport, sendBuffer[2]);
-    #endif
 	}
 }
 
