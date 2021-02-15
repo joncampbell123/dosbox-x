@@ -1,4 +1,6 @@
 0.83.11
+  - Fixed PC-98 keyboard handling of CTRL+A through
+    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - You can now press Ctrl+C or Ctrl+Break to break
     from long outputs from commands like COPY, TYPE,
     DIR /S, and ATTRIB /S. (Wengier)
