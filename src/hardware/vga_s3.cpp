@@ -548,6 +548,8 @@ bool SVGA_S3_AcceptsMode(Bitu mode) {
     return VideoModeMemSize(mode) < vga.mem.memsize;
 }
 
+extern bool VGA_BIOS_use_rom;
+
 void SVGA_Setup_S3Trio(void) {
     svga.write_p3d5 = &SVGA_S3_WriteCRTC;
     svga.read_p3d5 = &SVGA_S3_ReadCRTC;
@@ -590,8 +592,10 @@ void SVGA_Setup_S3Trio(void) {
         vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
     }
 
-    // S3 ROM signature
-    phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
+    if (!VGA_BIOS_use_rom) {
+        // S3 ROM signature
+        phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
+    }
 
     PCI_AddSVGAS3_Device();
 }
