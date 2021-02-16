@@ -7623,7 +7623,7 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("fullresolution",Property::Changeable::Always,"desktop");
     Pstring->Set_help("What resolution to use for fullscreen: original, desktop or a fixed size (e.g. 1024x768).\n"
                       "  Using your monitor's native resolution with aspect=true might give the best results.\n"
-              "  If you end up with small window on a large screen, try an output different from surface.\n");
+              "  If you end up with small window on a large screen, try an output different from surface.");
     Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
