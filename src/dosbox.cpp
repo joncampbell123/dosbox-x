@@ -793,9 +793,6 @@ void Init_VGABIOS() {
             else if (svgaCard == SVGA_S3Trio) {
                 VGA_BIOS_rom = "TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin"; // Ref: PCem ROMs collection
             }
-            else if (svgaCard == SVGA_None) {
-                VGA_BIOS_rom = "ibm_vga.bin"; // Ref: PCem ROMs collection
-            }
         }
     }
 
