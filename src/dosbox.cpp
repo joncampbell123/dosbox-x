@@ -1673,7 +1673,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "(machine=et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped from\n"
                     "real hardware or downloaded from the PCem ROMs collection.\n"
                     "\n"
-                    "machine=vgaonly            ibm_vga.bin\n"
                     "machine=svga_s3            TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin\n"
                     "machine=svga_et4000        et4000.bin");
 
