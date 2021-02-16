@@ -11171,6 +11171,7 @@ bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /
     return true;
 }
 
+bool toscale=true;
 std::string helpcmd="";
 bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const menuitem) {
     MAPPER_ReleaseAllKeys();
@@ -11187,9 +11188,11 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
+        toscale=false;
     }
     helpcmd = menuitem->get_name().substr(8);
     GUI_Shortcut(36);
+    toscale=true;
     helpcmd = "";
     if (switchfs) {
         GFX_SwitchFullScreen();
@@ -11221,8 +11224,10 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
+        toscale=false;
     }
     GUI_Shortcut(38);
+    toscale=true;
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)
@@ -11253,8 +11258,10 @@ bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
+        toscale=false;
     }
     GUI_Shortcut(39);
+    toscale=true;
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)

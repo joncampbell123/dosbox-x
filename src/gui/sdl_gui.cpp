@@ -180,6 +180,7 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+extern bool toscale;
 extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
@@ -231,6 +232,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     scaley = dh / 350; /* maximum vertical   scale */
     if( scalex > scaley ) scale = scaley;
     else                  scale = scalex;
+    if (!toscale) scale = 1;
 
     assert(sx < dw);
     assert(sy < dh);
