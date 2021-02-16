@@ -6711,7 +6711,7 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
         *size = (unsigned long)c[2] * 512UL;
         for (i=0;i < (unsigned int)(*size);i++) chksum += mem_readb(address+i);
         if (chksum != 0) {
-            LOG(LOG_MISC,LOG_WARN)("AdapterROM_Read: Found ROM at 0x%lx but checksum failed\n",(unsigned long)address);
+            LOG(LOG_MISC,LOG_WARN)("AdapterROM_Read: Found ROM at 0x%lx but checksum failed (got %02xh expect %02xh)\n",(unsigned long)address,chksum,0);
             return false;
         }
 
