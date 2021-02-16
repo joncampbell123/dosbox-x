@@ -797,15 +797,20 @@ void Init_VGABIOS() {
     }
 
     if (!VGA_BIOS_rom.empty() && VGA_BIOS_use_rom) {
+        VGA_BIOS_use_rom = false;
         rom_fp = fopen(VGA_BIOS_rom.c_str(),"rb");
         if (rom_fp != NULL) {
             fseek(rom_fp,0,SEEK_END);
             long sz = ftell(rom_fp);
             if (sz >= 1024 && sz <= 65536) {
                 LOG_MSG("Using VGA BIOS image '%s', %ld bytes\n",VGA_BIOS_rom.c_str(),sz);
+                VGA_BIOS_use_rom = true;
                 rom_sz = sz;
             }
         }
+    }
+    else {
+        VGA_BIOS_use_rom = false;
     }
 
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
