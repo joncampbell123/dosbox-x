@@ -34,6 +34,7 @@
 #ifdef WIN32
 #include "../dos/cdrom.h"
 #include <shellapi.h>
+#include <shlwapi.h>
 #endif
 
 #ifdef _MSC_VER
@@ -1270,7 +1271,7 @@ continue_1:
 #if defined (WIN32) && !defined(HX_DOS)
 		} else if (winautorun&&reqwin&&!control->SecureMode()) {
             char comline[256], *p=comline;
-            char winDirCur[512], winDirNew[512], winName[256];
+            char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
             uint8_t drive;
             if (!DOS_MakeName(fullname, winDirNew, &drive)) return false;
             if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
@@ -1286,11 +1287,29 @@ continue_1:
                 if (!useoverlay) {
                     strcpy(winName, Drives[drive]->GetBaseDir());
                     strcat(winName, winDirNew);
+                    if (!PathFileExists(winName)) {
+                        bool olfn=uselfn;
+                        uselfn=true;
+                        if (DOS_GetSFNPath(fullname,dir,true)&&DOS_MakeName(("\""+std::string(dir)+"\"").c_str(), winDirNew, &drive)) {
+                            strcpy(winName, Drives[drive]->GetBaseDir());
+                            strcat(winName, winDirNew);
+                        }
+                        uselfn=olfn;
+                    }
                 }
                 if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
                     Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
                     strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
                     strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+                    if (!PathFileExists(winDirNew)) {
+                        bool olfn=uselfn;
+                        uselfn=true;
+                        if (DOS_GetCurrentDir(0,dir,true)) {
+                            strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                            strcat(winDirNew, dir);
+                        }
+                        uselfn=olfn;
+                    }
                 } else {
                     strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
                     strcat(winDirNew, Drives[drive]->curdir);
@@ -1300,7 +1319,6 @@ continue_1:
                     strcpy(comline, args);
                     strcpy(comline, trim(p));
                     if (!startquiet) WriteOut("Now run it as a Windows application...\r\n");
-                    char dir[CROSS_LEN+15];
                     DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
                     if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
                     if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
