@@ -1,4 +1,7 @@
 0.83.11
+  - Improved handling for file- and record-locking
+    for non-Windows platforms. Portions of the code
+    are adopted from DOSEmu. (Wengier)
   - Added experimental option to load a VGA BIOS ROM
     image and execute it, instead of our own INT 10h
     emulation. If enabled, it will load the specific

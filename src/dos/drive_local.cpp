@@ -654,9 +654,8 @@ int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigne
 {
   fl->l_whence = SEEK_SET;
   fl->l_pid = 0;
-  /* first handle magic file lock value */
-  //if (start == 0x100000000LL)
-    //start = len = 0;
+  //if (start == 0x100000000LL) start = len = 0; //first handle magic file lock value
+#ifdef F_SETLK64
   if (cmd == F_SETLK64 || cmd == F_GETLK64) {
     struct flock64 fl64;
     int result;
@@ -672,6 +671,7 @@ int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigne
     fl->l_len = (long) fl64.l_len;
     return result;
   }
+#endif
   if (start == 0x100000000LL)
     start = 0x7fffffff;
   fl->l_start = start;
@@ -692,8 +692,11 @@ bool share(int fd, int mode, uint32_t flags) {
   fl.l_type = F_WRLCK;
   /* see whatever locks are possible */
 
+#ifdef F_GETLK64
   ret = lock_file_region( fd, F_GETLK64, &fl, 0x100000000LL, 1 );
-  if ( ret == -1 && errno == EINVAL ) ret = lock_file_region( fd, F_GETLK, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+  ret = lock_file_region( fd, F_GETLK, &fl, 0x100000000LL, 1 );
   if ( ret == -1 ) return true;
 
   /* file is already locked? then do not even open */
@@ -730,8 +733,11 @@ bool share(int fd, int mode, uint32_t flags) {
     return false;
     break;
   }
+#ifdef F_SETLK64
   ret = lock_file_region( fd, F_SETLK64, &fl, 0x100000000LL, 1 );
-  if ( ret == -1 && errno == EINVAL ) lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+    lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
     LOG_MSG("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
 
     return true;
@@ -1814,8 +1820,12 @@ bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
     larg.l_len &= ~mask;
     if ((larg.l_start & mask) != 0)
         larg.l_start = (larg.l_start & ~mask) | ((larg.l_start & mask) >> 2);
-    int ret = lock_file_region (fd,F_SETLK64,&larg,pos,size);
-    if (ret == -1 && errno == EINVAL) ret = lock_file_region (fd,F_SETLK,&larg,larg.l_start,larg.l_len);
+    int ret;
+#ifdef F_SETLK64
+    ret = lock_file_region (fd,F_SETLK64,&larg,pos,size);
+    if (ret == -1 && errno == EINVAL)
+#endif
+    ret = lock_file_region (fd,F_SETLK,&larg,larg.l_start,larg.l_len);
     return ret != -1;
 }
 #endif
