@@ -1219,7 +1219,11 @@ bool Input::keyDown(const Key &key)
 		break;
 	case Key::Backspace:
 		if (!key.shift && start_sel != end_sel) clearSelection();
-		else if (pos > 0) text.erase(text.begin()+int(--pos));
+		else if (pos > 0) {
+			text.erase(text.begin()+int(--pos));
+			if (start_sel > pos) start_sel = pos;
+			if (end_sel > pos) end_sel = pos;
+		}
 		break;
 	case Key::Delete:
 		if (key.shift) cutSelection();
