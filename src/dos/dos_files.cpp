@@ -1170,6 +1170,18 @@ bool DOS_ForceDuplicateEntry(uint16_t entry,uint16_t newentry) {
 	return true;
 }
 
+void initRand() {
+#ifdef WIN32
+    srand(GetTickCount());
+#else
+    struct timespec ts;
+    unsigned theTick = 0U;
+    clock_gettime( CLOCK_REALTIME, &ts );
+    theTick  = ts.tv_nsec / 1000000;
+    theTick += ts.tv_sec * 1000;
+    srand(theTick);
+#endif
+}
 
 bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 	size_t namelen=strlen(name);
@@ -1186,13 +1198,17 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 	}
 	dos.errorcode=0;
 	/* add random crap to the end of the name and try to open */
+	initRand();
+	bool cont;
 	do {
+		cont=false;
 		uint32_t i;
 		for (i=0;i<8;i++) {
 			tempname[i]=(rand()%26)+'A';
 		}
 		tempname[8]=0;
-	} while ((!DOS_CreateFile(name,0,entry)) && (dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
+		if (DOS_FileExists(name)) {cont=true;continue;}
+	} while (cont || (!DOS_CreateFile(name,0,entry) && dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
 	if (dos.errorcode) return false;
 	return true;
 }
