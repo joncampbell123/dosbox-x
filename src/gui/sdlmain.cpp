@@ -1441,7 +1441,7 @@ bool CheckQuit(void) {
         return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
     else if (warn == "false")
         return true;
-    if (dos_kernel_disabled)
+    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X"))
         return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {

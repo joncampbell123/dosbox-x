@@ -1322,7 +1322,13 @@ private:
 		READ_POD( &render.fullFrame, render.fullFrame );
 		READ_POD( &render.frameskip, render.frameskip );
 		READ_POD( &render.aspect, render.aspect );
+		scalerOperation_t op = render.scale.op;
+		Bitu size = render.scale.size;
+		bool hardware = render.scale.hardware;
 		READ_POD( &render.scale, render.scale );
+		render.scale.op = op;
+		render.scale.size = size;
+		render.scale.hardware = hardware;
 
 		//***************************************
 		//***************************************
