@@ -58,6 +58,7 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+void initRand();
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
@@ -357,16 +358,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char pipetmp[270];
 	uint16_t fattr;
 	if (toc) {
-#ifdef WIN32
-		srand(GetTickCount());
-#else
-		struct timespec ts;
-		unsigned theTick = 0U;
-		clock_gettime( CLOCK_REALTIME, &ts );
-		theTick  = ts.tv_nsec / 1000000;
-		theTick += ts.tv_sec * 1000;
-		srand(theTick);
-#endif
+		initRand();
 		std::string line;
 		if (!GetEnvStr("TEMP",line)&&!GetEnvStr("TMP",line))
 			sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
