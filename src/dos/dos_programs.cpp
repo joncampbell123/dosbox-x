@@ -934,6 +934,7 @@ public:
         cmd->FindString("-t",type,true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
+        bool exist = false, removed = false;
         if (type=="floppy" || type=="dir" || type=="cdrom" || type =="overlay") {
             uint16_t sizes[4] = { 0 };
             uint8_t mediaid;
@@ -1002,9 +1003,11 @@ public:
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
 			if (cmd->FindExist("-u",true)) {
+                bool curdrv = toupper(i_drive)-'A' == DOS_GetDefaultDrive();
                 const char *msg=UnmountHelper(i_drive);
 				if (!quiet) WriteOut(msg, toupper(i_drive));
 				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
+                if (curdrv && toupper(i_drive)-'A' != DOS_GetDefaultDrive()) removed = true;
 			}
             drive = static_cast<char>(i_drive);
             if (type == "overlay") {
@@ -1130,6 +1133,7 @@ public:
 
             if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
             uint8_t bit8size=(uint8_t) sizes[1];
+            exist = drive - 'A' < DOS_DRIVES && drive - 'A' >= 0 && Drives[drive - 'A'];
             if (type=="cdrom") {
                 int num = -1;
                 cmd->FindInt("-usecd",num,true);
@@ -1260,6 +1264,7 @@ public:
         }
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
+        if (removed && !exist) DOS_SetDefaultDrive(drive-'A');
         DOS_EnableDriveMenu(drive);
         /* Set the correct media byte in the table */
         mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
@@ -4336,9 +4341,9 @@ public:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED"),fstype.c_str());
             return;
         }
-            
+
         // find all file parameters, assuming that all option parameters have been removed
-        ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
+        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
 
         // some generic checks
         if (el_torito != "") {
@@ -4372,6 +4377,8 @@ public:
 			}
         }
 
+        int i_drive = drive - 'A';
+        bool exist = i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive];
         //====== call the proper subroutine ======
         if(fstype=="fat") {
             //mount floppy or hard drive
@@ -4385,6 +4392,7 @@ public:
                 //supports multiple files
                 if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave, reserved_cylinders, roflag)) return;
             }
+            if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="iso") {
             if (el_torito != "") {
                 WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
@@ -4392,6 +4400,7 @@ public:
             }
             //supports multiple files
             if (!MountIso(drive, paths, ide_index, ide_slave)) return;
+            if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="none") {
             unsigned char driveIndex = drive - '0';
 
@@ -4552,7 +4561,7 @@ private:
         }
         return true;
     }
-    void ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
+    bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
         while (cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
 			bool usedef=false;
@@ -4576,8 +4585,9 @@ private:
 #endif
 
 			if (!strcasecmp(commandLine.c_str(), "-u")) {
+                bool exist = toupper(drive) - 'A' == DOS_GetDefaultDrive();
 				Unmount(drive);
-				return;
+				return exist && drive - 'A' != DOS_GetDefaultDrive();
 			}
 
             pref_struct_stat test;
@@ -4596,13 +4606,13 @@ private:
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
-                        return;
+                        return false;
                     }
 
                     localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
                     if (ldp == NULL) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-                        return;
+                        return false;
                     }
 					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
                     ldp->GetSystemFilename(readonly?tmp+1:tmp, fullname);
@@ -4611,16 +4621,17 @@ private:
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-                        return;
+                        return false;
                     }
                 }
             }
             if (S_ISDIR(test.st_mode)&&!usedef) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
-                return;
+                return false;
             }
             paths.push_back(commandLine);
         }
+        return false;
     }
 
     bool Unmount(char &letter) {
