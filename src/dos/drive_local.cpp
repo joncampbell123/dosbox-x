@@ -619,7 +619,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
         if (nHandle == -1) {CloseHandle(handle);return false;}
         hand = _wfdopen(nHandle, L"wb+");
 #else
-        int fd = open(host_name, (O_RDWR | O_CREAT));
+        int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
         if (fd<0) {close(fd);return false;}
         hand = fdopen(fd, "wb+");
 #endif
