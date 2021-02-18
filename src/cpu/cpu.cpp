@@ -76,7 +76,7 @@ bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
 extern bool ignore_opcode_63;
-
+extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
@@ -1084,7 +1084,6 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 # endif
     if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
         if (num == 0x21 && boothax == BOOTHAX_MSDOS) {
-            extern bool dos_kernel_disabled;
             if (dos_kernel_disabled) {
                 if ((reg_ah == 0x4A/*alloc*/ || reg_ah == 0x49/*free*/) && guest_msdos_LoL == 0) { /* needed for MS-DOS 3.3 */
                     if (SegValue(cs) != CB_SEG) {
@@ -3301,7 +3300,8 @@ public:
 		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
 		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
 		if (auto_determine_dynamic_core_paging) {
-			use_dynamic_core_with_paging = PAGING_Enabled();
+            int coretype=CPU_IsDynamicCore();
+            use_dynamic_core_with_paging = coretype==1?PAGING_Enabled()&&dos_kernel_disabled:(coretype==2?PAGING_Enabled()&&!dos_kernel_disabled:PAGING_Enabled());
 		} else {
 			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
 		}

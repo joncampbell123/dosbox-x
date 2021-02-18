@@ -80,6 +80,9 @@
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive
     when combined unmounts & mounts are used. (Wengier)
+  - Fixed crash of Free Pascal compiler with dynamic
+    core and setting "use dynamic core with paging on =
+    auto" introduced in the previous version. (Wengier)
   - Fixed launching Windows programs when the working
     directory has no 8.3 filename entry. (Wengier)
   - Fixed an issue in MinGW builds that no data will be
