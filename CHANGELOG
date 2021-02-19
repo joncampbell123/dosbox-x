@@ -2,6 +2,10 @@
   - Improved handling for file- and record-locking
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
+  - Added a simple BIOS Setup Utlity, which will show
+    a summary of the current system configuration and
+    allow users to change the date and time. Press Del
+    key at the BIOS boot screen to enter. (Wengier)
   - Added experimental option to load a VGA BIOS ROM
     image and execute it, instead of our own INT 10h
     emulation. If enabled, it will load the specific
