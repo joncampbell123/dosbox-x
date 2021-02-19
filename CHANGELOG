@@ -2,9 +2,10 @@
   - Improved handling for file- and record-locking
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
-  - With the option "startcmd=true" or -winrun, you can
-    now start Windows applications from within a DOS
-    program or the 4DOS shell. (Wengier)
+  - With the config option "startcmd=true" or command-
+    line option -winrun, you can now launch Windows
+    applications from within a DOS program or from the
+    4DOS shell in addition to built-in shell. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del

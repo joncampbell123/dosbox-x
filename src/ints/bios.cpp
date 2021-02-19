@@ -101,7 +101,7 @@ void MOUSE_Startup(Section *sec);
 void runBoot(const char *str);
 #if defined(USE_TTF)
 bool TTF_using(void);
-void ttf_switch_on(bool ss), ttf_switch_off(bool ss);
+void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
 
 bool bochs_port_e9 = false;
@@ -7024,9 +7024,18 @@ void updateDateTime(int x, int y, int pos)
     CALLBACK_RunRealInt(0x10);
 }
 
+int oldcols = 0, oldlins = 0;
 void showBIOSSetup(const char* card, int x, int y) {
     reg_eax = 3;        // 80x25 text
     CALLBACK_RunRealInt(0x10);
+#if defined(USE_TTF)
+    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) {
+        oldcols = ttf.cols;
+        oldlins = ttf.lins;
+        ttf_setlines(80, 25);
+    } else
+        oldcols = oldlins = 0;
+#endif
     reg_eax = 0x0200u;
     reg_ebx = 0x0000u;
     reg_edx = 0x0000u;
@@ -8822,9 +8831,12 @@ startfunction:
                         CALLBACK_RunRealInt(0x16);
                     }
                     if (askexit) {
-                        if (reg_al == 'Y' || reg_al == 'y')
+                        if (reg_al == 'Y' || reg_al == 'y') {
+#if defined(USE_TTF)
+                            if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
+#endif
                             goto startfunction;
-                        else {
+                        } else {
                             reg_eax = 0x0200u;
                             reg_ebx = 0x0000u;
                             reg_edx = 0x1800u;
