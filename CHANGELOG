@@ -3,8 +3,8 @@
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
   - With the config option "startcmd=true" or command-
-    line option -winrun, you can now launch Windows
-    applications from within a DOS program or from the
+    line option -winrun, Windows applications can now
+    be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
