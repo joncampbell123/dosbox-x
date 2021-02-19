@@ -8460,6 +8460,7 @@ startfunction:
             return CBRET_NONE;
         }
         extern const char* RunningProgram;
+        extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
         RunningProgram = "DOSBOX-X";
         GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
