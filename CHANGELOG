@@ -95,6 +95,9 @@
     directory has no 8.3 filename entry. (Wengier)
   - Fixed an issue in MinGW builds that no data will be
     sent to the OPL3Duo board. (DhrBaksteen)
+  - Fixed screen flickering when hovering over the menu
+    with Direct3D output in the Windows SDL2 build that
+    was introduced in the last version. (Wengier)
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)

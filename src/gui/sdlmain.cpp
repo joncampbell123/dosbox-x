@@ -5736,6 +5736,7 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
     return unassigned_item_handle;
 }
 
+bool skipdraw=false;
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
     (void)menu;//UNUSED
     if (!OpenGL_using()) {
@@ -5744,6 +5745,7 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
         SDL_rect_cliptoscreen(uprect);
 
 #if defined(C_SDL2)
+        if (!Direct3D_using() || !skipdraw)
         SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
 #else
         SDL_UpdateRects( sdl.surface, 1, &uprect );
@@ -5893,7 +5895,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         /* do NOT draw SDL menu in OpenGL mode when 3Dfx emulation is using OpenGL */
     }
     else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
+        skipdraw=true;
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
+        skipdraw=false;
         SDL_ShowCursor(SDL_ENABLE);
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
