@@ -84,6 +84,7 @@ extern bool pc98_40col_text;
 extern bool en_bios_ps2mouse;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
+extern bool enable_fpu;
 
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
@@ -133,7 +134,7 @@ unsigned int APM_BIOS_connected_minor_version = 0;// what version the OS connect
 unsigned int APM_BIOS_minor_version = 2;    // what version to emulate e.g to emulate 1.2 set this to 2
 
 /* default bios type/version/date strings */
-const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS for DOSBox-X";
+const char* const bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
 const char* const bios_version_string = "DOSBox-X BIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
@@ -6928,6 +6929,162 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
     }
 }
 
+char *getSetupLine(const char *capt, const char *cont) {
+    unsigned int pad1=25-strlen(capt), pad2=41-strlen(cont);
+    static char line[90];
+    sprintf(line, "บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
+    return line;
+}
+
+const char *GetCPUType();
+void updateDateTime(int x, int y, int pos)
+{
+    char str[50];
+    Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
+    unsigned int sec=(uint8_t)((Bitu)time % 60);
+    time/=60;
+    unsigned int min=(uint8_t)((Bitu)time % 60);
+    time/=60;
+    unsigned int hour=(uint8_t)((Bitu)time % 24);
+    int val=0;
+    Bitu edx=0, pdx=0x0500u;
+    for (int i=1; i<7; i++) {
+        switch (i) {
+            case 1:
+                val = dos.date.year;
+                reg_edx = 0x0326u;
+                if (i==pos) pdx = reg_edx;
+                break;
+            case 2:
+                val = dos.date.month;
+                reg_edx = 0x032bu;
+                if (i==pos) pdx = reg_edx;
+                break;
+            case 3:
+                val = dos.date.day;
+                reg_edx = 0x032eu;
+                if (i==pos) pdx = reg_edx;
+                break;
+            case 4:
+                val = hour;
+                reg_edx = 0x0426u;
+                if (i==pos) pdx = reg_edx;
+                break;
+            case 5:
+                val = min;
+                reg_edx = 0x0429u;
+                if (i==pos) pdx = reg_edx;
+                break;
+            case 6:
+                val = sec;
+                reg_edx = 0x042cu;
+                if (i==pos) pdx = reg_edx;
+                break;
+        }
+        edx = reg_edx;
+        sprintf(str, i==1?"%04u":"%02u",val);
+        for (int j=0; j<strlen(str); j++) {
+            reg_eax = 0x0200u;
+            reg_ebx = 0x0000u;
+            reg_edx = edx + j;
+            CALLBACK_RunRealInt(0x10);
+            reg_eax = 0x0900u+str[j];
+            reg_ebx = i==pos?0x001fu:0x001eu;
+            reg_ecx = 0x0001u;
+            CALLBACK_RunRealInt(0x10);
+        }
+    }
+    if (pos) {
+        sprintf(str, "%-30s", GetCPUType());
+        for (int j=0; j<strlen(str); j++) {
+            reg_eax = 0x0200u;
+            reg_ebx = 0x0000u;
+            reg_edx = 0x0F26u + j;
+            CALLBACK_RunRealInt(0x10);
+            reg_eax = 0x0900u+str[j];
+            reg_ebx = 0x001eu;
+            reg_ecx = 0x0001u;
+            CALLBACK_RunRealInt(0x10);
+        }
+        sprintf(str, "%-30s", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str());
+        for (int j=0; j<strlen(str); j++) {
+            reg_eax = 0x0200u;
+            reg_ebx = 0x0000u;
+            reg_edx = 0x1026u + j;
+            CALLBACK_RunRealInt(0x10);
+            reg_eax = 0x0900u+str[j];
+            reg_ebx = 0x001eu;
+            reg_ecx = 0x0001u;
+            CALLBACK_RunRealInt(0x10);
+        }
+    }
+    reg_eax = 0x0200u;
+    reg_ebx = 0x0000u;
+    reg_edx = pdx;
+    CALLBACK_RunRealInt(0x10);
+}
+
+void showBIOSSetup(const char* card, int x, int y) {
+    reg_eax = 3;        // 80x25 text
+    CALLBACK_RunRealInt(0x10);
+    reg_eax = 0x0200u;
+    reg_ebx = 0x0000u;
+    reg_edx = 0x0000u;
+    CALLBACK_RunRealInt(0x10);
+    reg_eax = 0x0600u;
+    reg_ebx = 0x1e00u;
+    reg_ecx = 0x0000u;
+    reg_edx = 0x184Fu;
+    CALLBACK_RunRealInt(0x10);
+    BIOS_Int10RightJustifiedPrint(x,y,"                               BIOS Setup Utility                               ");
+    BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป");
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"));
+    updateDateTime(x,y,0);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "DOS"));
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+#define DOSNAMEBUF 256
+    char pcname[DOSNAMEBUF];
+    if (control->opt_securemode || control->SecureMode())
+        strcpy(pcname, "N/A");
+    else {
+#if defined(WIN32)
+        DWORD size = DOSNAMEBUF;
+        GetComputerName(pcname, &size);
+        if (!size)
+#else
+        int result = gethostname(pcname, DOSNAMEBUF);
+        if (result)
+#endif
+            strcpy(pcname, "N/A");
+    }
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Computer name:", pcname));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product name:", ("DOSBox-X "+std::string(VERSION)).c_str()));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product updated:", UPDATED_STR));
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS description:", bios_type_string));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS version:", bios_version_string));
+    uint32_t year,month,day;
+    if (sscanf(bios_date_string,"%u/%u/%u",&month,&day,&year)==3) {
+        char datestr[30];
+        sprintf(datestr, "%04u-%02u-%02u",year<80?2000+year:(year<100?1900+year:year),month,day);
+        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", datestr));
+    } else
+        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", bios_date_string));
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor type:", GetCPUType()));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor speed:", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str()));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Coprocessor:", enable_fpu?"Yes":"No"));
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video card:", card));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()));
+    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ");
+    BIOS_Int10RightJustifiedPrint(x,y,"              ESC: Exit  Arrows: Select Item  +/-: Change Values              ");
+}
+
 static Bitu ulimit = 0;
 static Bitu t_conv = 0;
 static bool bios_first_init=true;
@@ -8287,6 +8444,7 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
+startfunction:
         if (control->opt_fastlaunch && machine != MCH_PC98) {
 #if defined(USE_TTF)
             if (TTF_using()) {
@@ -8301,6 +8459,10 @@ private:
 #endif
             return CBRET_NONE;
         }
+        extern const char* RunningProgram;
+        extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+        RunningProgram = "DOSBOX-X";
+        GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 
@@ -8427,62 +8589,62 @@ private:
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
         }
 
+        const char *card = "Unknown Graphics Adapter";
+
+        switch (machine) {
+            case MCH_CGA:
+                card = "IBM Color Graphics Adapter";
+                break;
+            case MCH_MCGA:
+                card = "IBM Multi Color Graphics Adapter";
+                break;
+            case MCH_MDA:
+                card = "IBM Monochrome Display Adapter";
+                break;
+            case MCH_HERC:
+                card = "IBM Monochrome Display Adapter (Hercules)";
+                break;
+            case MCH_EGA:
+                card = "IBM Enhanced Graphics Adapter";
+                break;
+            case MCH_PCJR:
+                card = "PCjr Graphics Adapter";
+                break;
+            case MCH_TANDY:
+                card = "Tandy Graphics Adapter";
+                break;
+            case MCH_VGA:
+                switch (svgaCard) {
+                    case SVGA_TsengET4K:
+                        card = "Tseng ET4000 SVGA";
+                        break;
+                    case SVGA_TsengET3K:
+                        card = "Tseng ET3000 SVGA";
+                        break;
+                    case SVGA_ParadisePVGA1A:
+                        card = "Paradise SVGA";
+                        break;
+                    case SVGA_S3Trio:
+                        card = "S3 Trio SVGA";
+                        break;
+                    default:
+                        card = "Standard VGA";
+                        break;
+                }
+
+                break;
+            case MCH_PC98:
+                card = "PC98 graphics";
+                break;
+            case MCH_AMSTRAD:
+                card = "Amstrad graphics";
+                break;
+            default:
+                abort(); // should not happen
+        }
+
         {
             char tmp[512];
-            const char *card = "?";
-
-            switch (machine) {
-                case MCH_CGA:
-                    card = "IBM Color Graphics Adapter";
-                    break;
-                case MCH_MCGA:
-                    card = "IBM Multi Color Graphics Adapter";
-                    break;
-                case MCH_MDA:
-                    card = "IBM Monochrome Display Adapter";
-                    break;
-                case MCH_HERC:
-                    card = "IBM Monochrome Display Adapter (Hercules)";
-                    break;
-                case MCH_EGA:
-                    card = "IBM Enhanced Graphics Adapter";
-                    break;
-                case MCH_PCJR:
-                    card = "PCjr graohics adapter";
-                    break;
-                case MCH_TANDY:
-                    card = "Tandy graohics adapter";
-                    break;
-                case MCH_VGA:
-                    switch (svgaCard) {
-                        case SVGA_TsengET4K:
-                            card = "Tseng ET4000 SVGA";
-                            break;
-                        case SVGA_TsengET3K:
-                            card = "Tseng ET3000 SVGA";
-                            break;
-                        case SVGA_ParadisePVGA1A:
-                            card = "Paradise SVGA";
-                            break;
-                        case SVGA_S3Trio:
-                            card = "S3 Trio SVGA";
-                            break;
-                        default:
-                            card = "Standard VGA";
-                            break;
-                    }
-
-                    break;
-                case MCH_PC98:
-                    card = "PC98 graphics";
-                    break;
-                case MCH_AMSTRAD:
-                    card = "Amstrad graphics";
-                    break;
-                default:
-                    abort(); // should not happen
-            }
-
             sprintf(tmp,"Video card is %s\n",card);
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
         }
@@ -8516,6 +8678,9 @@ private:
                 case CPU_ARCHTYPE_PMMXSLOW:
                     cpuType = "Pentium MMX";
                     break;
+                case CPU_ARCHTYPE_PPROSLOW:
+                    cpuType = "Pentium Pro";
+                    break;
                 case CPU_ARCHTYPE_MIXED:
                     cpuType = "Auto (mixed)";
                     break;
@@ -8539,6 +8704,7 @@ private:
 
 #if !defined(C_EMSCRIPTEN)
         BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
+        if (machine != MCH_PC98) BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
         y--; /* next message should overprint */
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
@@ -8557,7 +8723,7 @@ private:
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
         //       I also envision adding the ability to hit DEL or F2 at this point to enter
-        //       a "BIOS setup" screen where all DOSBox configuration options can be
+        //       a "BIOS setup" screen where all DOSBox-X configuration options can be
         //       modified, with the same look and feel of an old BIOS.
 
 #if C_EMSCRIPTEN
@@ -8570,7 +8736,8 @@ private:
 #else
         bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
-            bool wait_for_user = false;
+            bool wait_for_user = false, bios_setup = false;
+            int pos=1;
             uint32_t lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
                 if (machine == MCH_PC98) {
@@ -8595,7 +8762,14 @@ private:
 
                     if (reg_al == 32) { // user hit space
                         BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
+                        if (machine != MCH_PC98) BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
                         wait_for_user = true;
+                        break;
+                    }
+
+                    if (machine != MCH_PC98 && reg_ax == 0x5300) { // user hit Del
+                        bios_setup = true;
+                        showBIOSSetup(card, x, y);
                         break;
                     }
                 }
@@ -8611,8 +8785,122 @@ private:
                     CALLBACK_RunRealInt(0x16);
                 }
 
+                if (machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) {
+                    bios_setup = true;
+                    showBIOSSetup(card, x, y);
+                    break;
+                }
+
                 if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
                     break;
+            }
+
+            lasttick=GetTicks();
+            bool askexit = false, mod = false;
+            while (bios_setup) {
+                if (GetTicks()-lasttick>=500 && !askexit) {
+                    lasttick=GetTicks();
+                    updateDateTime(x,y,pos);
+                }
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0100;   // sense key
+                    CALLBACK_RunRealInt(0x18);
+                    SETFLAGBIT(ZF,reg_bh == 0);
+                }
+                else {
+                    reg_eax = 0x0100;
+                    CALLBACK_RunRealInt(0x16);
+                }
+
+                if (!GETFLAG(ZF)) {
+                    if (machine == MCH_PC98) {
+                        reg_eax = 0x0000;   // read key
+                        CALLBACK_RunRealInt(0x18);
+                    }
+                    else {
+                        reg_eax = 0x0000;
+                        CALLBACK_RunRealInt(0x16);
+                    }
+                    if (askexit) {
+                        if (reg_al == 'Y' || reg_al == 'y')
+                            goto startfunction;
+                        else {
+                            reg_eax = 0x0200u;
+                            reg_ebx = 0x0000u;
+                            reg_edx = 0x1800u;
+                            CALLBACK_RunRealInt(0x10);
+                            BIOS_Int10RightJustifiedPrint(x,y,"              ESC: Exit  Arrows: Select Item  +/-: Change Values              ");
+                            askexit = false;
+                            continue;
+                        }
+                    }
+                    if (machine != MCH_PC98) {
+                        if (reg_ax == 0x4B00) { // Left key
+                            pos=pos>1?pos-1:6;
+                            lasttick-=500;
+                        } else if (reg_ax == 0x4D00) { // Right key
+                            pos=pos<6?pos+1:1;
+                            lasttick-=500;
+                        } else if (reg_ax == 0x4800 && pos>3) { // Up key
+                            if (pos==4||pos==5) pos=1;
+                            else if (pos==6) pos=2;
+                            lasttick-=500;
+                        } else if (reg_ax == 0x5000 && pos<4) { // Down key
+                            if (pos==1) pos=4;
+                            else if (pos==2||pos==3) pos=6;
+                            lasttick-=500;
+                        }
+                    }
+                    if (reg_al == 43) { // '+' key
+                        if (pos==1&&dos.date.year<2100) dos.date.year++;
+                        else if (pos==2) dos.date.month=dos.date.month<12?dos.date.month+1:1;
+                        else if (pos==3) dos.date.day=dos.date.day<(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30))?dos.date.day+1:1;
+                        else if (pos==4||pos==5||pos==6) {
+                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
+                            unsigned int sec=(uint8_t)((Bitu)time % 60);
+                            time/=60;
+                            unsigned int min=(uint8_t)((Bitu)time % 60);
+                            time/=60;
+                            unsigned int hour=(uint8_t)((Bitu)time % 24);
+                            if (pos==4) hour=hour<23?hour+1:0;
+                            else if (pos==5) min=min<59?min+1:0;
+                            else if (pos==6) sec=sec<59?sec+1:0;
+                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                        }
+                        mod = true;
+                        if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        lasttick-=500;
+                    } else if (reg_al == 45) { // '-' key
+                        if (pos==1&&dos.date.year>1900) dos.date.year--;
+                        else if (pos==2) dos.date.month=dos.date.month>1?dos.date.month-1:12;
+                        else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
+                        else if (pos==4||pos==5||pos==6) {
+                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
+                            unsigned int sec=(uint8_t)((Bitu)time % 60);
+                            time/=60;
+                            unsigned int min=(uint8_t)((Bitu)time % 60);
+                            time/=60;
+                            unsigned int hour=(uint8_t)((Bitu)time % 24);
+                            if (pos==4) hour=hour>0?hour-1:23;
+                            else if (pos==5) min=min>0?min-1:59;
+                            else if (pos==6) sec=sec>0?sec-1:59;
+                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                        }
+                        mod = true;
+                        if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        lasttick-=500;
+                    } else if (reg_al == 27/*ESC*/) {
+                        reg_eax = 0x0200u;
+                        reg_ebx = 0x0000u;
+                        reg_edx = 0x1800u;
+                        CALLBACK_RunRealInt(0x10);
+                        if (mod)
+                            BIOS_Int10RightJustifiedPrint(x,y,"              Save settings and exit the BIOS Setup Utility [Y/N]? ");
+                        else
+                            BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and reboot system [Y/N]? ");
+                        askexit = true;
+                    }
+                }
             }
 #if defined(USE_TTF)
         } else if (TTF_using() && machine != MCH_PC98) {

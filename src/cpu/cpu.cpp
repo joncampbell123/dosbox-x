@@ -283,6 +283,41 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
 }
 
+const char *GetCPUType() {
+    if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run))
+        return "8086";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run))
+        return "8086 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80186";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80186 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80286";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80286 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80386";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80386 prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486 (old)";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 (old) prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM)
+        return "Pentium";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW)
+        return "Pentium MMX";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
+        return "Pentium Pro";
+    else
+        return "Mixed/other x86";
+}
+
 int GetDynamicType() {
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
     std::string core(section->Get_string("core"));
