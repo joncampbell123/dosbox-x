@@ -695,6 +695,7 @@ void DOS_Shell::Run(void) {
 				}
 			} else input_line[0]='\0';
 		} else {
+			if (optInit && control->opt_exit) break;
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
 			if (echo && !input_eof) WriteOut("\n");
