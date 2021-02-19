@@ -1205,7 +1205,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
+    Pbool->Set_help("If set, DOSBox-X will skip the BIOS screen by activating fast BIOS logo mode (without 1-second pause).");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
@@ -3771,15 +3771,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
+    Pbool->Set_help("Allow starting Windows programs or commands to run on the Windows host including the use of START command.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows programs after they are started.");
+    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows applications after they are started.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, DOSBox-X will not show information messages before launching Windows programs to run on the host.");
+    Pbool->Set_help("If set, before launching Windows applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
