@@ -2786,7 +2786,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
@@ -3067,7 +3067,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pstring = secprop->Add_string("gustype",Property::Changeable::WhenIdle,"classic");
     Pstring->Set_values(gustypes);
@@ -4110,7 +4110,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("Sets the country code for country-specific date/time formats.");
+    Pstring->Set_help("Sets the country code for country-specific date & time formats.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");

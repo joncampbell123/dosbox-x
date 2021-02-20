@@ -8666,7 +8666,7 @@ startfunction:
                 card = "IBM Monochrome Display Adapter";
                 break;
             case MCH_HERC:
-                card = "IBM Monochrome Display Adapter (Hercules)";
+                card = "Hercules Monochrome Graphics Adapter";
                 break;
             case MCH_EGA:
                 card = "IBM Enhanced Graphics Adapter";
