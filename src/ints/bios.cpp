@@ -6932,7 +6932,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 char *getSetupLine(const char *capt, const char *cont) {
     unsigned int pad1=25-strlen(capt), pad2=41-strlen(cont);
     static char line[90];
-    sprintf(line, "บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
+    sprintf(line, machine == MCH_PC98?"|%*c%s%*c%s%*c|":"บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
     return line;
 }
 
@@ -6940,6 +6940,8 @@ const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
     char str[50];
+    time_t curtime = time(NULL);
+    struct tm *loctime = localtime (&curtime);
     Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     unsigned int sec=(uint8_t)((Bitu)time % 60);
     time/=60;
@@ -6947,81 +6949,106 @@ void updateDateTime(int x, int y, int pos)
     time/=60;
     unsigned int hour=(uint8_t)((Bitu)time % 24);
     int val=0;
+    unsigned int bo;
     Bitu edx=0, pdx=0x0500u;
     for (int i=1; i<7; i++) {
         switch (i) {
             case 1:
-                val = dos.date.year;
+                val = machine==MCH_PC98?loctime->tm_year+1900:dos.date.year;
                 reg_edx = 0x0326u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 2:
-                val = dos.date.month;
+                val = machine==MCH_PC98?loctime->tm_mon+1:dos.date.month;
                 reg_edx = 0x032bu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 3:
-                val = dos.date.day;
+                val = machine==MCH_PC98?loctime->tm_mday:dos.date.day;
                 reg_edx = 0x032eu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 4:
-                val = hour;
+                val = machine==MCH_PC98?loctime->tm_hour:hour;
                 reg_edx = 0x0426u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 5:
-                val = min;
+                val = machine==MCH_PC98?loctime->tm_min:min;
                 reg_edx = 0x0429u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 6:
-                val = sec;
+                val = machine==MCH_PC98?loctime->tm_sec:sec;
                 reg_edx = 0x042cu;
                 if (i==pos) pdx = reg_edx;
                 break;
         }
         edx = reg_edx;
         sprintf(str, i==1?"%04u":"%02u",val);
-        for (int j=0; j<strlen(str); j++) {
-            reg_eax = 0x0200u;
-            reg_ebx = 0x0000u;
-            reg_edx = edx + j;
-            CALLBACK_RunRealInt(0x10);
-            reg_eax = 0x0900u+str[j];
-            reg_ebx = i==pos?0x001fu:0x001eu;
-            reg_ecx = 0x0001u;
-            CALLBACK_RunRealInt(0x10);
+        for (unsigned int j=0; j<strlen(str); j++) {
+            if (machine == MCH_PC98) {
+                bo = (((unsigned int)(edx/0x100) * 80u) + (unsigned int)(edx%0x100) + j) * 2u;
+                mem_writew(0xA0000+bo,str[j]);
+                mem_writeb(0xA2000+bo,0xE1);
+            } else {
+                reg_eax = 0x0200u;
+                reg_ebx = 0x0000u;
+                reg_edx = edx + j;
+                CALLBACK_RunRealInt(0x10);
+                reg_eax = 0x0900u+str[j];
+                reg_ebx = i==pos?0x001fu:0x001eu;
+                reg_ecx = 0x0001u;
+                CALLBACK_RunRealInt(0x10);
+            }
         }
     }
     if (pos) {
         sprintf(str, "%-30s", GetCPUType());
-        for (int j=0; j<strlen(str); j++) {
-            reg_eax = 0x0200u;
-            reg_ebx = 0x0000u;
-            reg_edx = 0x0F26u + j;
-            CALLBACK_RunRealInt(0x10);
-            reg_eax = 0x0900u+str[j];
-            reg_ebx = 0x001eu;
-            reg_ecx = 0x0001u;
-            CALLBACK_RunRealInt(0x10);
+        for (unsigned int j=0; j<strlen(str); j++) {
+            if (machine == MCH_PC98) {
+                bo = ((0x0F * 80u) + (unsigned int)(0x26 + j)) * 2u;
+                mem_writew(0xA0000+bo,str[j]);
+                mem_writeb(0xA2000+bo,0xE1);
+            } else {
+                reg_eax = 0x0200u;
+                reg_ebx = 0x0000u;
+                reg_edx = 0x0F26u + j;
+                CALLBACK_RunRealInt(0x10);
+                reg_eax = 0x0900u+str[j];
+                reg_ebx = 0x001eu;
+                reg_ecx = 0x0001u;
+                CALLBACK_RunRealInt(0x10);
+            }
         }
         sprintf(str, "%-30s", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str());
-        for (int j=0; j<strlen(str); j++) {
-            reg_eax = 0x0200u;
-            reg_ebx = 0x0000u;
-            reg_edx = 0x1026u + j;
-            CALLBACK_RunRealInt(0x10);
-            reg_eax = 0x0900u+str[j];
-            reg_ebx = 0x001eu;
-            reg_ecx = 0x0001u;
-            CALLBACK_RunRealInt(0x10);
+        for (unsigned int j=0; j<strlen(str); j++) {
+            if (machine == MCH_PC98) {
+                bo = ((0x10 * 80u) + (unsigned int)(0x26 + j)) * 2u;
+                mem_writew(0xA0000+bo,str[j]);
+                mem_writeb(0xA2000+bo,0xE1);
+            } else {
+                reg_eax = 0x0200u;
+                reg_ebx = 0x0000u;
+                reg_edx = 0x1026u + j;
+                CALLBACK_RunRealInt(0x10);
+                reg_eax = 0x0900u+str[j];
+                reg_ebx = 0x001eu;
+                reg_ecx = 0x0001u;
+                CALLBACK_RunRealInt(0x10);
+            }
         }
     }
-    reg_eax = 0x0200u;
-    reg_ebx = 0x0000u;
-    reg_edx = pdx;
-    CALLBACK_RunRealInt(0x10);
+    if (machine == MCH_PC98) {
+        reg_eax = 0x1300;
+        reg_edx = 0x1826;
+        CALLBACK_RunRealInt(0x18);
+    } else {
+        reg_eax = 0x0200u;
+        reg_ebx = 0x0000u;
+        reg_edx = pdx;
+        CALLBACK_RunRealInt(0x10);
+    }
 }
 
 int oldcols = 0, oldlins = 0;
@@ -7036,23 +7063,45 @@ void showBIOSSetup(const char* card, int x, int y) {
     } else
         oldcols = oldlins = 0;
 #endif
-    reg_eax = 0x0200u;
-    reg_ebx = 0x0000u;
-    reg_edx = 0x0000u;
-    CALLBACK_RunRealInt(0x10);
-    reg_eax = 0x0600u;
-    reg_ebx = 0x1e00u;
-    reg_ecx = 0x0000u;
-    reg_edx = 0x184Fu;
-    CALLBACK_RunRealInt(0x10);
-    BIOS_Int10RightJustifiedPrint(x,y,"                               BIOS Setup Utility                               ");
-    BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป");
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    if (machine == MCH_PC98) {
+        for (unsigned int i=0;i < (80*400);i++) {
+            mem_writeb(0xA8000+i,0);        // B
+            mem_writeb(0xB0000+i,0);        // G
+            mem_writeb(0xB8000+i,0);        // R
+            mem_writeb(0xE0000+i,0);        // E
+        }
+        reg_eax = 0x1600;
+        reg_edx = 0xE100;
+        CALLBACK_RunRealInt(0x18);
+        reg_eax = 0x1300;
+        reg_edx = 0x0000;
+        CALLBACK_RunRealInt(0x18);
+        x = 0;
+        y = 0;
+    } else {
+        reg_eax = 0x0200u;
+        reg_ebx = 0x0000u;
+        reg_edx = 0x0000u;
+        CALLBACK_RunRealInt(0x10);
+        reg_eax = 0x0600u;
+        reg_ebx = 0x1e00u;
+        reg_ecx = 0x0000u;
+        reg_edx = 0x184Fu;
+        CALLBACK_RunRealInt(0x10);
+    }
+    char title[]="                               BIOS Setup Utility                               ";
+    char *p=machine == MCH_PC98?title+2:title;
+    BIOS_Int10RightJustifiedPrint(x,y,p);
+    if (machine == MCH_PC98)
+        BIOS_Int10RightJustifiedPrint(x,y,"+------------------------------------------------------------------------------+");
+    else
+        BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"));
     updateDateTime(x,y,0);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "DOS"));
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
 #define DOSNAMEBUF 256
     char pcname[DOSNAMEBUF];
     if (control->opt_securemode || control->SecureMode())
@@ -7071,7 +7120,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Computer name:", pcname));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product name:", ("DOSBox-X "+std::string(VERSION)).c_str()));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product updated:", UPDATED_STR));
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS description:", bios_type_string));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS version:", bios_version_string));
     uint32_t year,month,day;
@@ -7081,17 +7130,23 @@ void showBIOSSetup(const char* card, int x, int y) {
         BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", datestr));
     } else
         BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", bios_date_string));
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor type:", GetCPUType()));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor speed:", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str()));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Coprocessor:", enable_fpu?"Yes":"No"));
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video card:", card));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()));
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()));
-    BIOS_Int10RightJustifiedPrint(x,y,"บ                                                                              บ");
-    BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ");
-    BIOS_Int10RightJustifiedPrint(x,y,"              ESC: Exit  Arrows: Select Item  +/-: Change Values              ");
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
+    if (machine == MCH_PC98)
+        BIOS_Int10RightJustifiedPrint(x,y,"+------------------------------------------------------------------------------+");
+    else
+        BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ");
+    if (machine == MCH_PC98)
+        BIOS_Int10RightJustifiedPrint(x,y,"                                  ESC = Exit                                  ");
+    else
+        BIOS_Int10RightJustifiedPrint(x,y,"              ESC: Exit  Arrows: Select Item  +/-: Change Values              ");
 }
 
 static Bitu ulimit = 0;
@@ -8713,7 +8768,7 @@ startfunction:
 
 #if !defined(C_EMSCRIPTEN)
         BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
-        if (machine != MCH_PC98) BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
+        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
         y--; /* next message should overprint */
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
@@ -8771,12 +8826,12 @@ startfunction:
 
                     if (reg_al == 32) { // user hit space
                         BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
-                        if (machine != MCH_PC98) BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
+                        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
                         wait_for_user = true;
                         break;
                     }
 
-                    if (machine != MCH_PC98 && reg_ax == 0x5300) { // user hit Del
+                    if (machine != MCH_PC98 && reg_ax == 0x5300 || machine == MCH_PC98 && reg_ax == 0x3900) { // user hit Del
                         bios_setup = true;
                         showBIOSSetup(card, x, y);
                         break;
@@ -8794,7 +8849,7 @@ startfunction:
                     CALLBACK_RunRealInt(0x16);
                 }
 
-                if (machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) {
+                if (machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/ || machine == MCH_PC98 && reg_ax == 0x3900) {
                     bios_setup = true;
                     showBIOSSetup(card, x, y);
                     break;
@@ -8846,24 +8901,21 @@ startfunction:
                             continue;
                         }
                     }
-                    if (machine != MCH_PC98) {
-                        if (reg_ax == 0x4B00) { // Left key
-                            pos=pos>1?pos-1:6;
-                            lasttick-=500;
-                        } else if (reg_ax == 0x4D00) { // Right key
-                            pos=pos<6?pos+1:1;
-                            lasttick-=500;
-                        } else if (reg_ax == 0x4800 && pos>3) { // Up key
-                            if (pos==4||pos==5) pos=1;
-                            else if (pos==6) pos=2;
-                            lasttick-=500;
-                        } else if (reg_ax == 0x5000 && pos<4) { // Down key
-                            if (pos==1) pos=4;
-                            else if (pos==2||pos==3) pos=6;
-                            lasttick-=500;
-                        }
-                    }
-                    if (reg_al == 43) { // '+' key
+                    if (machine != MCH_PC98 && reg_ax == 0x4B00 || machine == MCH_PC98 && reg_ax == 0x3B00) { // Left key
+                        pos=pos>1?pos-1:6;
+                        lasttick-=500;
+                    } else if (machine != MCH_PC98 && reg_ax == 0x4D00 || machine == MCH_PC98 && reg_ax == 0x3C00) { // Right key
+                        pos=pos<6?pos+1:1;
+                        lasttick-=500;
+                    } else if ((machine != MCH_PC98 && reg_ax == 0x4800 || machine == MCH_PC98 && reg_ax == 0x3A00) && pos>3) { // Up key
+                        if (pos==4||pos==5) pos=1;
+                        else if (pos==6) pos=2;
+                        lasttick-=500;
+                    } else if ((machine != MCH_PC98 && reg_ax == 0x5000 || machine == MCH_PC98 && reg_ax == 0x3D00) && pos<4) { // Down key
+                        if (pos==1) pos=4;
+                        else if (pos==2||pos==3) pos=6;
+                        lasttick-=500;
+                    } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
                         if (pos==1&&dos.date.year<2100) dos.date.year++;
                         else if (pos==2) dos.date.month=dos.date.month<12?dos.date.month+1:1;
                         else if (pos==3) dos.date.day=dos.date.day<(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30))?dos.date.day+1:1;
@@ -8882,7 +8934,7 @@ startfunction:
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         lasttick-=500;
-                    } else if (reg_al == 45) { // '-' key
+                    } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
                         if (pos==1&&dos.date.year>1900) dos.date.year--;
                         else if (pos==2) dos.date.month=dos.date.month>1?dos.date.month-1:12;
                         else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
@@ -8902,6 +8954,15 @@ startfunction:
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         lasttick-=500;
                     } else if (reg_al == 27/*ESC*/) {
+                        if (machine == MCH_PC98) {
+                            reg_eax = 0x1600;
+                            reg_edx = 0xE100;
+                            CALLBACK_RunRealInt(0x18);
+#if defined(USE_TTF)
+                            if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
+#endif
+                            goto startfunction;
+                        }
                         reg_eax = 0x0200u;
                         reg_ebx = 0x0000u;
                         reg_edx = 0x1800u;
