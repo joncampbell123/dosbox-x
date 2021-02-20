@@ -2,6 +2,10 @@
   - Improved handling for file- and record-locking
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
+  - With the config option "startcmd=true" or command-
+    line option -winrun, Windows applications can now
+    be launched from within a DOS program or from the
+    4DOS shell in addition to built-in shell. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
@@ -91,6 +95,9 @@
     directory has no 8.3 filename entry. (Wengier)
   - Fixed an issue in MinGW builds that no data will be
     sent to the OPL3Duo board. (DhrBaksteen)
+  - Fixed screen flickering when hovering over the menu
+    with Direct3D output in the Windows SDL2 build that
+    was introduced in the last version. (Wengier)
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
