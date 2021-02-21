@@ -3462,8 +3462,8 @@ public:
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
-#if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
+#if defined(WIN32)
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
 #endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */

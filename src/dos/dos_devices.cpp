@@ -185,15 +185,18 @@ bool getClipboard() {
 #else
     PasteClipboard(true);
     clipSize = 0;
-    while (strPasteBuffer.length()) {
-        unsigned char head=strPasteBuffer[0];
-        if (head > 31 || head == 9 || head == 13)
-            clipAscii[clipSize++] = head;
-        if (head == 13) clipAscii[clipSize++] = 10;
-        strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-    }
+    unsigned int extra = 0;
+    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==13) extra++;
+	if (clipAscii = (uint8_t *)malloc(strPasteBuffer.length()+extra))
+        while (strPasteBuffer.length()) {
+            unsigned char head=strPasteBuffer[0];
+            if (head > 31 || head == 9 || head == 13)
+                clipAscii[clipSize++] = head;
+            if (head == 13) clipAscii[clipSize++] = 10;
+            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+        }
 #endif
-	return clipSize != 0;
+    return clipSize != 0;
 }
 
 class device_CLIP : public DOS_Device {
@@ -567,13 +570,11 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
-#if defined(WIN32)
 	if (dos_clipboard_device_access) {
 		DOS_Device * newdev4;
 		newdev4=new device_CLIP();
 		DOS_AddDevice(newdev4);
 	}
-#endif
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */

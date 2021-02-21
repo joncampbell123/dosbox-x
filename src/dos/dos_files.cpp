@@ -425,18 +425,16 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	bool clip=false;
 	if ( (DOS_FindDevice(oldname) != DOS_DEVICES) ||
 	     (DOS_FindDevice(newname) != DOS_DEVICES) ) {
-#if defined (WIN32)
-	if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
-		if (DOS_FindDevice(oldname) == DOS_DEVICES) {
-            const char* find_last;
-			find_last=strrchr(fullnew,'\\');
-			if (find_last==NULL) find_last=fullnew;
-			else find_last++;
-			if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
-				clip=true;
-		}
-	}
-#endif
+        if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
+            if (DOS_FindDevice(oldname) == DOS_DEVICES) {
+                const char* find_last;
+                find_last=strrchr(fullnew,'\\');
+                if (find_last==NULL) find_last=fullnew;
+                else find_last++;
+                if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
+                    clip=true;
+            }
+        }
 		if (!clip) {
 			DOS_SetError(DOSERR_FILE_NOT_FOUND);
 			return false;

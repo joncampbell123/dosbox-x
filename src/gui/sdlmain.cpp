@@ -8827,7 +8827,7 @@ bool DOSBOX_parse_argv() {
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
         }
-#if defined(WIN32)
+#if !defined(HX_DOS)
         else if (optname == "winrun") {
             winrun = true;
         }

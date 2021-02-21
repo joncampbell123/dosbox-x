@@ -194,14 +194,14 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_right",
     "clipboard_middle",
     "clipboard_arrows",
-#endif
     "--",
+#endif
     "clipboard_device",
 #if defined(WIN32)
     "clipboard_dosapi",
+    "--",
 #endif
 #if defined(WIN32) || defined(C_SDL2)
-    "--",
     "mapper_copyall",
 #endif
     "mapper_paste",
