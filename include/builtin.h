@@ -21,7 +21,7 @@ extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE
 extern struct BuiltinFileBlob bfb_REPLACE_EXE;		// REPLACE.EXE
 extern struct BuiltinFileBlob bfb_SORT_EXE;		// SORT.EXE
 extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE
-extern struct BuiltinFileBlob bfb_MEM_COM;		// MEM.COM
+extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE
 extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE
 extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM

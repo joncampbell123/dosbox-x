@@ -1656,7 +1656,7 @@ void SHELL_Init() {
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
 
 	/* DSXMENU.EXE */
 	if (IS_PC98_ARCH)
