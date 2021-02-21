@@ -303,8 +303,7 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
 bool colorChanged = false, justChanged = false;
 #endif
-#if defined(WIN32)
-#if !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 int curscreen;
 RECT monrect;
 typedef struct {
@@ -318,7 +317,6 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 }
 #endif
 extern int dos_clipboard_device_access;
-#endif
 extern bool dos_kernel_disabled;
 extern bool sync_time, manualtime;
 extern bool bootguest, bootfast, bootvm;
@@ -7784,6 +7782,8 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
+std::string strPasteBuffer = "";
+
 // added emendelson from dbDos; improved by Wengier
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 #include <cassert>
@@ -7921,7 +7921,6 @@ static void PasteInitMapSCToSDLKey()
     bScanCodeMapInited = true;
 }
 
-static std::string strPasteBuffer;
 // Just in case, to keep us from entering an unexpected KB state
 const  size_t      kPasteMinBufExtra = 4;
 /// Sightly inefficient, but who cares
@@ -8084,7 +8083,6 @@ void PasteClipboard(bool bPressed)
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-static std::string strPasteBuffer;
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
@@ -10717,6 +10715,7 @@ bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item *
     mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
     return true;
 }
+#endif
 
 bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -10726,7 +10725,6 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
     return true;
 }
-#endif
 
 bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -12788,10 +12786,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text on the DOS screen").set_callback_function(screen_to_clipboard_menu_callback);
 #endif
-#if defined (WIN32)
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+#if defined (WIN32)
+       mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
