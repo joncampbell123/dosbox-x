@@ -798,7 +798,23 @@ void Init_VGABIOS() {
 
     if (!VGA_BIOS_rom.empty() && VGA_BIOS_use_rom) {
         VGA_BIOS_use_rom = false;
+        void ResolvePath(std::string& in);
+        ResolvePath(VGA_BIOS_rom);
+        std::string path = "", GetDOSBoxXPath(bool withexe=false);
         rom_fp = fopen(VGA_BIOS_rom.c_str(),"rb");
+        if (rom_fp == NULL) {
+            path = GetDOSBoxXPath();
+            if (path.size()) {
+                path += VGA_BIOS_rom;
+                rom_fp = fopen(path.c_str(),"rb");
+            }
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::CreatePlatformConfigDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
         if (rom_fp != NULL) {
             fseek(rom_fp,0,SEEK_END);
             long sz = ftell(rom_fp);
@@ -1675,8 +1691,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
                     "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
                     "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
-                    "(machine=et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped from\n"
-                    "real hardware or downloaded from the PCem ROMs collection.\n"
+                    "(machine=svga_et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped\n"
+                    "from real hardware or downloaded from the PCem ROMs collection.\n"
                     "\n"
                     "machine=svga_s3            TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin\n"
                     "machine=svga_et4000        et4000.bin");
