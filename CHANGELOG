@@ -106,6 +106,13 @@
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
+    - r4346: Fix a long-standing crash that occurred
+    when disconnecting a second joystick after
+    partially mapping it.
+    - r4344: Add F8 to toggle printable characters on
+    and off in the debugger.
+    - r4340: Fix behavior when main memory allocation
+    fails.
     - r4336: Correct an oversight of r4186 when floppy
     disks are mounted.
     - r4330: some big endian improvements and drive_fat
