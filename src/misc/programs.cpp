@@ -192,7 +192,7 @@ void Program::ChangeToLongCmd() {
 	 * Length of arguments can be ~120. but switch when above 100 to be sure
 	 */
 
-	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100) {	
+	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100 && full_arguments.size()) {
 		CommandLine* temp = new CommandLine(cmd->GetFileName(),full_arguments.c_str());
 		delete cmd;
 		cmd = temp;

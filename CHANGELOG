@@ -15,8 +15,10 @@
     emulation. If enabled, it will load the specific
     ROM file into C000:0000. If not specified, it
     will choose based on machine type. VGA BIOS ROM
-    images can be dumped from real hardware or
-    downloaded from the PCem ROMs collection.
+    images (e.g. et4000.bin for Tseng ET4000 emulation)
+    can be dumped from real hardware or downloaded from
+    the PCem ROMs collection. It can be set with config
+    option "vga bios rom image" in [video] section.
   - Fixed PC-98 keyboard handling of CTRL+A through
     CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - You can now press Ctrl+C or Ctrl+Break to break
@@ -27,7 +29,7 @@
   - DELTREE is now an external command appearing on
     drive Z: as DELTREE.EXE instead of a builtin shell
     command, since it is an external command in a real
-    DOS system. (Wengier).
+    DOS system. (Wengier)
   - Added REPLACE command to replace files, resembling
     the MS-DOS counterpart. This command is compiled
     with long filename support. (Wengier)
@@ -98,6 +100,8 @@
   - Fixed screen flickering when hovering over the menu
     with Direct3D output in the Windows SDL2 build that
     was introduced in the last version. (Wengier)
+  - Fixed mounting disk/CD images with long paths from
+    the "Drive" menu may not work properly. (Wengier)
   - Fixed that the "Save" button in Configuration Tool
     did not save config file in last version. (Wengier)
   - Integrated SVN commits (Allofich)
