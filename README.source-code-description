@@ -146,11 +146,11 @@ For building the source code in Visual Studio 2015 or 2017,
 you may change the platform toolset to v140 or v141 respectively.
 
 Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
-and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included.
+and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included
+(set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
+(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it).
 
-Build the source code. FluidSynth support should be enabled for the DOSBox-X build.
-Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
-(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
+Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
 As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
 a processor that supports the SSE instruction set.
@@ -186,8 +186,8 @@ Libpng (optional)
     See http://www.libpng.org/pub/png/ for more details.
     License: zlib/libpng
 
-Zlib (optional)
-    Needed by libpng.
+Zlib
+    Needed by libpng, save state and CHD support.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See https://www.zlib.net/ for more details.
     License: zlib
