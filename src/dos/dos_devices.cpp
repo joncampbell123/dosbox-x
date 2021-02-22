@@ -165,6 +165,7 @@ typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 #endif
 
+bool swapad=true;
 extern std::string strPasteBuffer;
 void PasteClipboard(bool bPressed);
 bool getClipboard() {
@@ -183,17 +184,22 @@ bool getClipboard() {
         CloseClipboard();
     }
 #else
+    swapad=false;
     PasteClipboard(true);
+    swapad=true;
     clipSize = 0;
     unsigned int extra = 0;
-    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==13) extra++;
+    unsigned char head, last=13;
+    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
 	if (clipAscii = (uint8_t *)malloc(strPasteBuffer.length()+extra))
         while (strPasteBuffer.length()) {
-            unsigned char head=strPasteBuffer[0];
-            if (head > 31 || head == 9 || head == 13)
+            head = strPasteBuffer[0];
+            if (head == 10 && last != 13) clipAscii[clipSize++] = 13;
+            if (head > 31 || head == 9 || head == 10 || head == 13)
                 clipAscii[clipSize++] = head;
-            if (head == 13) clipAscii[clipSize++] = 10;
+            if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) clipAscii[clipSize++] = 10;
             strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+            last = head;
         }
 #endif
     return clipSize != 0;

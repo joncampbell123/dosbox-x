@@ -7783,6 +7783,7 @@ void SDL_SetupConfigSection() {
 }
 
 std::string strPasteBuffer = "";
+extern bool swapad;
 
 // added emendelson from dbDos; improved by Wengier
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
@@ -8148,7 +8149,7 @@ void PasteClipboard(bool bPressed) {
 #endif
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
         if (text[i]==9) result+="    ";
         else if (text[i]<0) {
             char c=text[i];
@@ -8209,9 +8210,9 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
     char *text=(char *)prop_ret;
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
         if (text[i]==9) result+="    ";
-        else if (text[i]==0x0A) continue;
+        else if (swapad&&text[i]==0x0A) continue;
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
