@@ -3041,13 +3041,9 @@ public:
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
 		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
-#if defined (WIN32)
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
-#else
-        clipboard_dosapi = false;
-#endif
 		if (dos_clipboard_device_access) {
 			bool valid=true;
 			char ch[]="*? .|<>/\\\"";
@@ -3463,9 +3459,7 @@ public:
 #endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
-#if defined(WIN32)
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
-#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

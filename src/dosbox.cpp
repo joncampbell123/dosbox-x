@@ -3882,7 +3882,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dos clipboard api",Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled.");
+    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ipx",&Null_Init,true);

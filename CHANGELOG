@@ -3,10 +3,12 @@
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
-  - Added support for the clipboard device (CLIP$) on
-    non-Windows platforms. In Linux/macOS SDL1 builds
-    only read access is supported whereas Linux/macOS
-    SDL2 builds support both read and write. (Wengier)
+  - Added support for the clipboard device (CLIP$) and
+    DOS clipboard API on non-Windows systems (they were
+    previously only supported on the Windows platform).
+    In Linux/macOS SDL1 builds only the read access is
+    supported whereas Linux/macOS SDL2 builds support
+    both read and write accesses. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
