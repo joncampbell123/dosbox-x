@@ -466,22 +466,22 @@ static bool DOS_MultiplexFunctions(void) {
             swapad=false;
             PasteClipboard(true);
             swapad=true;
-            unsigned int size = 0, extra = 0;
+            uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
             for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-            if (text = (uint8_t *)malloc(strPasteBuffer.length()+extra)) {
+            if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];
                     if (head == 10 && last != 13) text[size++] = 13;
-                    if (head > 31 || head == 9 || head == 10 || head == 13)
-                        text[size++] = head;
+                    if (head > 31 || head == 9 || head == 10 || head == 13) text[size++] = head;
                     if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) text[size++] = 10;
                     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
                     last = head;
                 }
-				reg_ax=(uint16_t)strlen((char *)text)+1;
-				reg_dx=(uint16_t)((strlen((char *)text)+1)/65536);
+                text[size]=0;
+				reg_ax=(uint16_t)size;
+				reg_dx=(uint16_t)(size/65536);
 			} else
 				reg_dx=0;
 #endif
@@ -503,16 +503,15 @@ static bool DOS_MultiplexFunctions(void) {
             swapad=false;
             PasteClipboard(true);
             swapad=true;
-            unsigned int size = 0, extra = 0;
+            uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
             for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-            if (text = (uint8_t *)malloc(strPasteBuffer.length()+extra)) {
+            if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];
                     if (head == 10 && last != 13) text[size++] = 13;
-                    if (head > 31 || head == 9 || head == 10 || head == 13)
-                        text[size++] = head;
+                    if (head > 31 || head == 9 || head == 10 || head == 13) text[size++] = head;
                     if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) text[size++] = 10;
                     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
                     last = head;
