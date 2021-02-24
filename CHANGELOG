@@ -94,7 +94,9 @@
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
   - Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
-    function buttons in the Mapper Editor. (Wengier)
+    function buttons in Mapper Editor, and the screen
+    colors after exiting from Mapper Editor when using
+    these machine types in Direct3D output. (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive

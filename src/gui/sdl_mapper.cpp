@@ -4667,6 +4667,12 @@ void MAPPER_RunInternal() {
     SDL_FreeSurface(mapper.draw_surface_nonpaletted);
     SDL_FreePalette(sdl2_map_pal_ptr);
     GFX_SetResizeable(true);
+#elif C_DIRECT3D
+    bool Direct3D_using(void);
+    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+        change_output(0);
+        change_output(6);
+    }
 #endif
 #if defined(USE_TTF)
     void resetFontSize();
