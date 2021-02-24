@@ -47,6 +47,7 @@ int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
 extern int autosave_second;
+extern bool swapad;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
@@ -60,7 +61,6 @@ extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
-
 bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
 
@@ -252,6 +252,7 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
@@ -267,7 +268,9 @@ Bitu frames = 0;
 unsigned int page=0;
 unsigned int hostkeyalt=0;
 unsigned int sendkeymap=0;
+std::string strPasteBuffer = "";
 ScreenSizeInfo          screen_size_info;
+
 
 #if defined(USE_TTF)
 Render_ttf ttf;
@@ -6771,8 +6774,6 @@ void GFX_LosingFocus(void) {
     DoExtendedKeyboardHook(false);
 }
 
-static bool PasteClipboardNext(); // added emendelson from dbDOS; improved by Wengier
-
 bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
@@ -7782,14 +7783,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-std::string strPasteBuffer = "";
-extern bool swapad;
-
-// added emendelson from dbDos; improved by Wengier
-#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
-#include <cassert>
-
-// Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
+#if defined(WIN32) && !defined(C_SDL2)
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -7920,6 +7914,7 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
 
     bScanCodeMapInited = true;
+
 }
 
 // Just in case, to keep us from entering an unexpected KB state
@@ -7941,19 +7936,17 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
     SDL_PushEvent(&evntKeyStroke);
 }
 
-static bool PasteClipboardNext()
-{
+static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
-
-    if (!bScanCodeMapInited)
-        PasteInitMapSCToSDLKey();
-	
 	if (IS_PC98_ARCH) {
 		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
 		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 		return true;
 	}
+
+    if (!bScanCodeMapInited)
+        PasteInitMapSCToSDLKey();
 
     const char cKey = strPasteBuffer[0];
     SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
@@ -8014,10 +8007,10 @@ static bool PasteClipboardNext()
 												 (bModShiftOn ? KMOD_LSHIFT : 0) |
 												 (bModCntrlOn ? KMOD_LCTRL  : 0) |
 												 (bModAltOn   ? KMOD_LALT   : 0));
-	   
+
 		if (!bModAltOn)                                                // Alt down if not already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
-		   
+
 		uint8_t ansiVal = cKey;
 		for (int i = 100; i; i /= 10)
 			{
@@ -8031,12 +8024,25 @@ static bool PasteClipboardNext()
 		if (bModAltOn)                                                // Alt down if is was already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
     }
-
     // Pop head. Could be made more efficient, but this is neater.
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
     return true;
 }
+#else
+static bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#endif
 
+// added emendelson from dbDos; improved by Wengier
+#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
@@ -8121,17 +8127,6 @@ void PasteClipboard(bool bPressed) {
     }
 	CloseClipboard();
 }
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
 #elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
@@ -8177,17 +8172,6 @@ void PasteClipboard(bool bPressed) {
     }
     delete text;
     strPasteBuffer.append(result.c_str());
-}
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
 }
 #elif defined(LINUX) && C_X11
 #include <X11/Xlib.h>
@@ -8282,26 +8266,10 @@ void PasteClipboard(bool bPressed) {
         }
     }
 }
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
 #else
 void PasteClipboard(bool bPressed) {
-    (void)bPressed;//UNUSED
+	if (!bPressed) return;
     // stub
-}
-
-bool PasteClipboardNext() {
-    // stub
-    return false;
 }
 #endif
 #endif

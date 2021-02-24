@@ -3496,11 +3496,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
-    Pstring->Set_help("The path where the output files are stored.");
+    Pstring->Set_help("The path (directory) where the output files are stored.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("fontpath", Property::Changeable::WhenIdle, "FONTS");
-    Pstring->Set_help("The path where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
+    Pstring->Set_help("The path (directory) where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("openwith", Property::Changeable::WhenIdle, "");
