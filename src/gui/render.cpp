@@ -1233,6 +1233,26 @@ void RENDER_Init() {
 	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Fit to aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
 
+	if (machine==MCH_HERC || machine==MCH_MDA) {
+		void HercBlend(bool pressed), CycleHercPal(bool pressed);
+		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Hercules Blending");
+		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Hercules Palette");
+	}
+
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
+		if(!mono_cga) {
+            void IncreaseHue(bool pressed), DecreaseHue(bool pressed), CGAModel(bool pressed), Composite(bool pressed);
+            MAPPER_AddHandler(IncreaseHue,MK_nothing,0,"inchue","Increase Hue");
+            MAPPER_AddHandler(DecreaseHue,MK_nothing,0,"dechue","Decrease Hue");
+            MAPPER_AddHandler(CGAModel,MK_nothing,0,"cgamodel","Early/Late CGA");
+            MAPPER_AddHandler(Composite,MK_nothing,0,"cgacomp","CGA Composite");
+        } else {
+            void CycleMonoCGAPal(bool pressed), CycleMonoCGABright(bool pressed);
+            MAPPER_AddHandler(CycleMonoCGAPal,MK_nothing,0,"monocgapal","Mono CGA Palette");
+            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabri","Mono CGA Brightness");
+        }
+	}
+
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);

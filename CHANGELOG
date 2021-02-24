@@ -93,6 +93,8 @@
     to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
+  - Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
+    function buttons in the Mapper Editor. (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive
