@@ -5458,13 +5458,11 @@ static void GUI_StartUp() {
     item->set_text("Copy all text on the DOS screen");
 #endif
 
-#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
     item->set_text("Stop clipboard pasting");
-#endif
 
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
@@ -8142,6 +8140,7 @@ void PasteClipboard(bool bPressed) {
     text = new char[clip.size()+1];
     strcpy(text, clip.c_str());
 #endif
+    if (text==NULL) return;
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
         if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
@@ -8328,12 +8327,10 @@ void CopyClipboard(int all) {
 }
 #endif
 
-#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
 void PasteClipStop(bool bPressed) {
     if (!bPressed) return;
     strPasteBuffer = "";
 }
-#endif
 
 void SDL_OnSectionPropChange(Section *x) {
     (void)x;//UNUSED
