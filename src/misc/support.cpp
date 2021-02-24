@@ -200,7 +200,6 @@ double ConvDblWord(char * word) {
 	return 0.0f;
 }
 
-
 int utf8_encode(char **ptr, const char *fence, uint32_t code) {
     int uchar_size=1;
     char *p = *ptr;
