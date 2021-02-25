@@ -13,6 +13,9 @@
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
     key at the BIOS boot screen to enter. (Wengier)
+  - Added config option "showbasic" in [sdl] section
+    which when set to false will hide DOSBox-X version
+    number and running speed in the titlebar. (Wengier)
   - Added experimental option to load a VGA BIOS ROM
     image and execute it, instead of our own INT 10h
     emulation. If enabled, it will load the specific

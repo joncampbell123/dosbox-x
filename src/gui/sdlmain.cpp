@@ -1366,16 +1366,20 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 //  if (timing != -1) internal_timing = timing;
 //  if (frameskip != -1) internal_frameskip = frameskip;
 
-    if (CPU_CycleAutoAdjust) {
-        sprintf(title,"%s%sDOSBox-X %s, %d%%",
-            dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-            VERSION,(int)internal_cycles);
-    }
-    else {
-        sprintf(title,"%s%sDOSBox-X %s, %d cycles/ms",
-            dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-            VERSION,(int)internal_cycles);
-    }
+    bool showbasic = section->Get_bool("showbasic");
+    if (showbasic) {
+        if (CPU_CycleAutoAdjust) {
+            sprintf(title,"%s%sDOSBox-X %s: %d%%",
+                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
+                VERSION,(int)internal_cycles);
+        }
+        else {
+            sprintf(title,"%s%sDOSBox-X %s: %d cycles/ms",
+                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
+                VERSION,(int)internal_cycles);
+        }
+    } else
+        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
 
     {
         const char *what = (titlebar != NULL && *titlebar != 0) ? titlebar : RunningProgram;
@@ -1383,7 +1387,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
         if (what != NULL && *what != 0) {
             char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,", %s",what);
+            sprintf(p,"%c %s",showbasic?',':':', what);
         }
     }
 
@@ -7767,6 +7771,14 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
     Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
     Pstring->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("showbasic", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will show basic information including the DOSBox-X version number and current running speed in the title bar.");
+    Pbool->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("showdetails", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will show the cycles count (FPS) and emulation speed relative to realtime in the title bar.");
+    Pbool->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("showdetails", Property::Changeable::Always, false);
     Pbool->Set_help("If set, DOSBox-X will show the cycles count (FPS) and emulation speed relative to realtime in the title bar.");
