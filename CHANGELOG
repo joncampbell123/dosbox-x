@@ -103,6 +103,8 @@
     Also fixed the messages in the welcome banner for
     these machine types to inform users the new default
     shortcuts (Ctrl(+Shift)+[F7/F8]). (Wengier)
+  - Fixed the screen messup of the welcome banner when
+    the config option "ansi.sys" is disabled. (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive

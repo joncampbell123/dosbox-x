@@ -479,11 +479,21 @@ void DOS_Shell::RunInternal(void) {
 
 char *str_replace(char *orig, char *rep, char *with);
 std::string GetPlatform(bool save);
+bool ANSI_SYS_installed();
 const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
+        if (!ANSI_SYS_installed()) {
+            msg = str_replace(str_replace((char *)msg, "\033[0m", ""), "\033[1m", "");
+            for (int i=1; i<8; i++) {
+                sprintf(str, "\033[3%dm", i);
+                msg = str_replace((char *)msg, str, "");
+                sprintf(str, "\033[4%d;1m", i);
+                msg = str_replace((char *)msg, str, "");
+            }
+        }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         std::string theme = section->Get_string("bannercolortheme");
         if (theme == "black")
