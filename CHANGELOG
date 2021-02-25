@@ -13,6 +13,9 @@
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
     key at the BIOS boot screen to enter. (Wengier)
+  - Added config option "showbasic" in [sdl] section
+    which when set to false will hide DOSBox-X version
+    number and running speed in the titlebar. (Wengier)
   - Added experimental option to load a VGA BIOS ROM
     image and execute it, instead of our own INT 10h
     emulation. If enabled, it will load the specific
@@ -25,8 +28,10 @@
   - Improved handling for file- and record-locking
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
-  - Fixed PC-98 keyboard handling of CTRL+A through
-    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
+  - Improved handling for the setting "ansi.sys=false",
+    such as fixing the welcome screen messup in this
+    case and allowing the use of a custom ANSI TSR
+    (such as NNANSI.COM) instead. (Wengier & stu)
   - You can now press Ctrl+C or Ctrl+Break to break
     from long outputs from commands like COPY, TYPE,
     DIR /S, and ATTRIB /S. (Wengier)
@@ -92,15 +97,20 @@
   - The command "KEYB US" will return the DOS codepage
     to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
-    output for the Linux platform if possible. (Wengier)
+    output for Linux systems if possible. (Wengier)
   - Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
     function buttons in Mapper Editor, and the screen
     colors after exiting from Mapper Editor when using
-    these machine types in Direct3D output. (Wengier)
+    these machine types in Direct3D output (SDL1 build).
+    Also fixed the messages in the welcome banner for
+    these machine types to inform users the new default
+    shortcuts (Ctrl(+Shift)+[F7/F8]). (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive
     when combined unmounts & mounts are used. (Wengier)
+  - Fixed PC-98 keyboard handling of CTRL+A through
+    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - Fixed crash of Free Pascal compiler with dynamic
     core and setting "use dynamic core with paging on =
     auto" introduced in the previous version. (Wengier)

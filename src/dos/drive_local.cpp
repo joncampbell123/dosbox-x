@@ -1814,7 +1814,8 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
     struct flock larg;
     unsigned long mask = 0xC0000000;
-    larg.l_type = is_lock ? (fcntl(fd, F_GETFL) == O_RDONLY ? F_RDLCK : F_WRLCK) : F_UNLCK;
+    int flag = fcntl(fd, F_GETFL);
+    larg.l_type = is_lock ? (flag & O_RDWR || flag & O_WRONLY ? F_WRLCK : F_RDLCK) : F_UNLCK;
     larg.l_start = pos;
     larg.l_len = size;
     larg.l_len &= ~mask;

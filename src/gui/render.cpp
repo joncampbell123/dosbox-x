@@ -1235,21 +1235,21 @@ void RENDER_Init() {
 
 	if (machine==MCH_HERC || machine==MCH_MDA) {
 		void HercBlend(bool pressed), CycleHercPal(bool pressed);
-		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Hercules Blending");
-		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Hercules Palette");
+		MAPPER_AddHandler(CycleHercPal,MK_f7,MMOD1,"hercpal","Hercules Palette");
+		MAPPER_AddHandler(HercBlend,MK_f8,MMOD1,"hercblend","Hercules Blending");
 	}
 
 	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
 		if(!mono_cga) {
             void IncreaseHue(bool pressed), DecreaseHue(bool pressed), CGAModel(bool pressed), Composite(bool pressed);
-            MAPPER_AddHandler(IncreaseHue,MK_nothing,0,"inchue","Increase Hue");
-            MAPPER_AddHandler(DecreaseHue,MK_nothing,0,"dechue","Decrease Hue");
-            MAPPER_AddHandler(CGAModel,MK_nothing,0,"cgamodel","Early/Late CGA");
-            MAPPER_AddHandler(Composite,MK_nothing,0,"cgacomp","CGA Composite");
+            MAPPER_AddHandler(DecreaseHue,MK_f7,MMOD1|MMOD3,"dechue","Decrease Hue");
+            MAPPER_AddHandler(IncreaseHue,MK_f8,MMOD1|MMOD3,"inchue","Increase Hue");
+            MAPPER_AddHandler(CGAModel,MK_f7,MMOD1,"cgamodel","Early/Late CGA");
+            MAPPER_AddHandler(Composite,MK_f8,MMOD1,"cgacomp","CGA Composite");
         } else {
             void CycleMonoCGAPal(bool pressed), CycleMonoCGABright(bool pressed);
-            MAPPER_AddHandler(CycleMonoCGAPal,MK_nothing,0,"monocgapal","Mono CGA Palette");
-            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabri","Mono CGA Brightness");
+            MAPPER_AddHandler(CycleMonoCGAPal,MK_f7,MMOD1,"monocgapal","Mono CGA Palette");
+            MAPPER_AddHandler(CycleMonoCGABright,MK_f8,MMOD1,"monocgabri","Mono CGA Brightness");
         }
 	}
 
