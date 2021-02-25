@@ -1,11 +1,14 @@
 0.83.11
-  - Improved handling for file- and record-locking
-    for non-Windows platforms. Portions of the code
-    are adopted from DOSEmu. (Wengier)
   - With the config option "startcmd=true" or command-
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
+  - Added support for the clipboard device (CLIP$) and
+    DOS clipboard API on non-Windows systems (they were
+    previously only supported on the Windows platform).
+    In Linux/macOS SDL1 builds only the read access is
+    supported whereas Linux/macOS SDL2 builds support
+    both read and write accesses. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
@@ -19,6 +22,9 @@
     can be dumped from real hardware or downloaded from
     the PCem ROMs collection. It can be set with config
     option "vga bios rom image" in [video] section.
+  - Improved handling for file- and record-locking
+    for non-Windows platforms. Portions of the code
+    are adopted from DOSEmu. (Wengier)
   - Fixed PC-98 keyboard handling of CTRL+A through
     CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - You can now press Ctrl+C or Ctrl+Break to break
@@ -87,6 +93,10 @@
     to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for the Linux platform if possible. (Wengier)
+  - Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
+    function buttons in Mapper Editor, and the screen
+    colors after exiting from Mapper Editor when using
+    these machine types in Direct3D output. (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive

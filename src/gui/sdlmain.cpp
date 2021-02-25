@@ -47,6 +47,7 @@ int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
 extern int autosave_second;
+extern bool swapad;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
@@ -60,7 +61,6 @@ extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
-
 bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
 
@@ -252,6 +252,7 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
@@ -267,7 +268,9 @@ Bitu frames = 0;
 unsigned int page=0;
 unsigned int hostkeyalt=0;
 unsigned int sendkeymap=0;
+std::string strPasteBuffer = "";
 ScreenSizeInfo          screen_size_info;
+
 
 #if defined(USE_TTF)
 Render_ttf ttf;
@@ -303,8 +306,7 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
 bool colorChanged = false, justChanged = false;
 #endif
-#if defined(WIN32)
-#if !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 int curscreen;
 RECT monrect;
 typedef struct {
@@ -318,7 +320,6 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 }
 #endif
 extern int dos_clipboard_device_access;
-#endif
 extern bool dos_kernel_disabled;
 extern bool sync_time, manualtime;
 extern bool bootguest, bootfast, bootvm;
@@ -5457,13 +5458,11 @@ static void GUI_StartUp() {
     item->set_text("Copy all text on the DOS screen");
 #endif
 
-#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
     item->set_text("Stop clipboard pasting");
-#endif
 
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
@@ -6773,8 +6772,6 @@ void GFX_LosingFocus(void) {
     DoExtendedKeyboardHook(false);
 }
 
-static bool PasteClipboardNext(); // added emendelson from dbDOS; improved by Wengier
-
 bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
@@ -7784,11 +7781,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-// added emendelson from dbDos; improved by Wengier
-#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
-#include <cassert>
-
-// Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
+#if defined(WIN32) && !defined(C_SDL2)
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -7919,9 +7912,9 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
 
     bScanCodeMapInited = true;
+
 }
 
-static std::string strPasteBuffer;
 // Just in case, to keep us from entering an unexpected KB state
 const  size_t      kPasteMinBufExtra = 4;
 /// Sightly inefficient, but who cares
@@ -7941,19 +7934,17 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
     SDL_PushEvent(&evntKeyStroke);
 }
 
-static bool PasteClipboardNext()
-{
+static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
-
-    if (!bScanCodeMapInited)
-        PasteInitMapSCToSDLKey();
-	
 	if (IS_PC98_ARCH) {
 		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
 		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 		return true;
 	}
+
+    if (!bScanCodeMapInited)
+        PasteInitMapSCToSDLKey();
 
     const char cKey = strPasteBuffer[0];
     SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
@@ -8014,10 +8005,10 @@ static bool PasteClipboardNext()
 												 (bModShiftOn ? KMOD_LSHIFT : 0) |
 												 (bModCntrlOn ? KMOD_LCTRL  : 0) |
 												 (bModAltOn   ? KMOD_LALT   : 0));
-	   
+
 		if (!bModAltOn)                                                // Alt down if not already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
-		   
+
 		uint8_t ansiVal = cKey;
 		for (int i = 100; i; i /= 10)
 			{
@@ -8031,12 +8022,25 @@ static bool PasteClipboardNext()
 		if (bModAltOn)                                                // Alt down if is was already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
     }
-
     // Pop head. Could be made more efficient, but this is neater.
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
     return true;
 }
+#else
+static bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+    if (strPasteBuffer[0]==13) {
+        KEYBOARD_AddKey(KBD_enter, true);
+        KEYBOARD_AddKey(KBD_enter, false);
+    } else
+        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#endif
 
+// added emendelson from dbDos; improved by Wengier
+#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
@@ -8084,7 +8088,6 @@ void PasteClipboard(bool bPressed)
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-static std::string strPasteBuffer;
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
@@ -8122,17 +8125,6 @@ void PasteClipboard(bool bPressed) {
     }
 	CloseClipboard();
 }
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
 #elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
@@ -8148,9 +8140,10 @@ void PasteClipboard(bool bPressed) {
     text = new char[clip.size()+1];
     strcpy(text, clip.c_str());
 #endif
+    if (text==NULL) return;
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
         if (text[i]==9) result+="    ";
         else if (text[i]<0) {
             char c=text[i];
@@ -8179,17 +8172,6 @@ void PasteClipboard(bool bPressed) {
     delete text;
     strPasteBuffer.append(result.c_str());
 }
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
 #elif defined(LINUX) && C_X11
 #include <X11/Xlib.h>
 typedef char host_cnv_char_t;
@@ -8211,9 +8193,9 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
     char *text=(char *)prop_ret;
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
         if (text[i]==9) result+="    ";
-        else if (text[i]==0x0A) continue;
+        else if (swapad&&text[i]==0x0A) continue;
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
@@ -8283,26 +8265,10 @@ void PasteClipboard(bool bPressed) {
         }
     }
 }
-
-bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
 #else
 void PasteClipboard(bool bPressed) {
-    (void)bPressed;//UNUSED
+	if (!bPressed) return;
     // stub
-}
-
-bool PasteClipboardNext() {
-    // stub
-    return false;
 }
 #endif
 #endif
@@ -8361,12 +8327,10 @@ void CopyClipboard(int all) {
 }
 #endif
 
-#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
 void PasteClipStop(bool bPressed) {
     if (!bPressed) return;
     strPasteBuffer = "";
 }
-#endif
 
 void SDL_OnSectionPropChange(Section *x) {
     (void)x;//UNUSED
@@ -8829,7 +8793,7 @@ bool DOSBOX_parse_argv() {
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
         }
-#if defined(WIN32)
+#if !defined(HX_DOS)
         else if (optname == "winrun") {
             winrun = true;
         }
@@ -10708,7 +10672,6 @@ void CopyAllClipboard(bool bPressed) {
 }
 #endif
 
-#if defined (WIN32)
 bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10726,7 +10689,6 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
     return true;
 }
-#endif
 
 bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -12788,11 +12750,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text on the DOS screen").set_callback_function(screen_to_clipboard_menu_callback);
 #endif
-#if defined (WIN32)
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
-#endif
+       mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);

@@ -117,9 +117,7 @@ static const char *def_menu_main[] =
     "--",
     "MainSendKey",
     "MainHostKey",
-#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     "SharedClipboard",
-#endif
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
@@ -194,14 +192,12 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_right",
     "clipboard_middle",
     "clipboard_arrows",
-#endif
-#if defined(WIN32)
     "--",
+#endif
     "clipboard_device",
     "clipboard_dosapi",
-#endif
-#if defined(WIN32) || defined(C_SDL2)
     "--",
+#if defined(WIN32) || defined(C_SDL2)
     "mapper_copyall",
 #endif
     "mapper_paste",

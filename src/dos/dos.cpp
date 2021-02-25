@@ -3029,10 +3029,11 @@ public:
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
         mountwarning = section->Get_bool("mountwarning");
-#if defined (WIN32)
         if (winrun) {
             Section* tsec = control->GetSection("dos");
+#if defined (WIN32)
             tsec->HandleInputline("startcmd=true");
+#endif
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
@@ -3062,10 +3063,6 @@ public:
             mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
 		} else
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
-#else
-        dos_clipboard_device_access = 0;
-		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
-#endif
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
 
@@ -3461,10 +3458,8 @@ public:
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
-#if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
-#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

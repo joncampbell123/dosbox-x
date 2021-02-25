@@ -1025,7 +1025,7 @@ void VGA_Reset(Section*) {
     const char * vsyncmodestr;
     vsyncmodestr=section2->Get_string("vsyncmode");
     void change_output(int output);
-    change_output(8);
+    change_output(9);
     VGA_VsyncUpdateMode(VGA_Vsync_Decode(vsyncmodestr));
 
     const char * vsyncratestr;

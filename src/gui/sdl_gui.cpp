@@ -520,7 +520,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     void res_init(void);
     void change_output(int output);
     res_init();
-    change_output(7);
+    change_output(8);
 #else
 #if 1
     GFX_RestoreMode();
