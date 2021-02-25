@@ -2,6 +2,7 @@
 #include <SDL_timer.h>
 #include "mixer.h"
 #include "control.h"
+#include "cross.h"
 
 #define MT32EMU_API_TYPE 3
 #define MT32EMU_EXPORTS_TYPE 1
@@ -67,13 +68,41 @@ private:
         MidiHandler_mt32::GetInstance().renderingLoop();
         return 0;
     }
-	static void makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator) {
-        strcpy(pathName, romDir);
-        if (addPathSeparator) {
-            strcat(pathName, "/");
-        }
-        strcat(pathName, fileName);
-    }
+	bool load_rom_set(std::string romDir) {
+		if (romDir.back() != '/' && romDir.back() != '\\') {
+			romDir.append("/");
+		}
+		char pathName[4096];
+		std::string roms = "";
+		strcpy(pathName, romDir.c_str());
+		strcat(pathName, "CM32L_CONTROL.ROM");
+		if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
+			strcpy(pathName, romDir.c_str());
+			strcat(pathName, "MT32_CONTROL.ROM");
+			if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
+				return false;
+			} else {
+				roms = "MT32_CONTROL.ROM and ";
+			}
+		} else {
+			roms = "CM32L_CONTROL.ROM and ";
+		}
+		strcpy(pathName, romDir.c_str());
+		strcat(pathName, "CM32L_PCM.ROM");
+		if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
+			strcpy(pathName, romDir.c_str());
+			strcat(pathName, "MT32_PCM.ROM");
+			if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
+				return false;
+			} else {
+				roms += "MT32_PCM.ROM";
+			}
+		} else {
+			roms += "CM32L_PCM.ROM";
+		}
+		LOG_MSG("MT32: Found ROM pair in %s: %s", romDir.c_str(), roms.c_str());
+		return true;
+	}
 	static mt32emu_report_handler_i getReportHandlerInterface() {
         class ReportHandler {
         public:
@@ -196,18 +225,7 @@ public:
 		return "mt32";
 	}
 
-    void user_romhelp(void) {
-        /* don't just grunt and say "ROM file not found", help the user get the ROMs in place so we can work! */
-        /* we're now 25 years past the era of limited RAM and "error code -25" we have more than enough disk and RAM
-         * to contain explanatory text where the user went wrong! */
-        LOG_MSG("MT32 emulation cannot work without the PCM and CONTROL ROM files.");
-        LOG_MSG("To eliminate this error message, either change mididevice= to something else, or");
-        LOG_MSG("place the ROM files in what will be the \"current working directory\" for DOSBox-X");
-        LOG_MSG("when it starts up and initializes MIDI emulation.");
-        LOG_MSG("The ROM files are: CM32L_CONTROL.ROM, MT32_CONTROL.ROM, CM32L_PCM.ROM, MT32_PCM.ROM");
-    }
-
-	bool Open(const char *conf) {
+    bool Open(const char *conf) {
         service = new MT32Emu::Service();
         uint32_t version = service->getLibraryVersionInt();
         if (version < 0x020100) {
@@ -221,51 +239,31 @@ public:
 
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
         std::string romDir = section->Get_string("mt32.romdir");
+
         void ResolvePath(std::string& in);
-        ResolvePath(romDir);
-        //if (romDir == NULL) romDir = "./"; // Paranoid NULL-check, should never happen
-        size_t romDirLen = romDir.size();
-        bool addPathSeparator = false;
-        if (romDirLen < 1) {
+		ResolvePath(romDir);
+        if (romDir.size() < 1) {
             romDir = "./";
-        } else if (4080 < romDirLen) {
-            LOG_MSG("MT32: mt32.romdir is too long, using the current dir.");
+        } else if (4080 < romDir.size()) {
+            LOG_MSG("MT32: mt32.romdir is too long, trying to find ROMs.");
             romDir = "./";
-        } else {
-            char lastChar = romDir.back();
-            addPathSeparator = lastChar != '/' && lastChar != '\\';
         }
 
-        char pathName[4096];
-        std::string roms = "";
-        makeROMPathName(pathName, romDir.c_str(), "CM32L_CONTROL.ROM", addPathSeparator);
-        if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
-            makeROMPathName(pathName, romDir.c_str(), "MT32_CONTROL.ROM", addPathSeparator);
-            if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
-                delete service;
-                service = NULL;
-                LOG_MSG("MT32: Control ROM file not found");
-                user_romhelp();
-                return false;
-            } else
-                roms = "MT32_CONTROL.ROM";
-        } else
-            roms = "CM32L_CONTROL.ROM";
-        if (roms.size()) roms += " and ";
-        makeROMPathName(pathName, romDir.c_str(), "CM32L_PCM.ROM", addPathSeparator);
-        if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
-            makeROMPathName(pathName, romDir.c_str(), "MT32_PCM.ROM", addPathSeparator);
-            if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
-                delete service;
-                service = NULL;
-                LOG_MSG("MT32: PCM ROM file not found");
-                user_romhelp();
-                return false;
-            } else
-                roms += "MT32_PCM.ROM";
-        } else
-            roms += "CM32L_PCM.ROM";
-        LOG_MSG("MT32: Found ROM pair in %s: %s", romDir.c_str(), roms.c_str());
+		if (!load_rom_set(romDir)) {
+			Cross::GetPlatformResDir(romDir);
+			if (!load_rom_set(romDir)) {
+					Cross::GetPlatformConfigDir(romDir);
+					if (!load_rom_set(romDir)) {
+							delete service;
+							service = NULL;
+							LOG_MSG("MT32: failed to locate ROMs.");
+							LOG_MSG("MT32 emulation requires the PCM and CONTROL ROM files.");
+							LOG_MSG("To eliminate this error message, check the DOSBox-X wiki.");
+							LOG_MSG("The ROM files are: CM32L_CONTROL.ROM and CM32L_PCM.ROM or MT32_CONTROL.ROM and MT32_PCM.ROM");
+							return false;
+					}
+			}
+		}
         sffile=romDir;
 
         service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));
