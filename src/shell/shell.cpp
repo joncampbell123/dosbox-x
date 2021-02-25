@@ -1172,20 +1172,20 @@ void SHELL_Init() {
                );
         if (!mono_cga) {
             MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                                        \xBA\033[0m"
-                    "\033[44;1m\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).                  \xBA\033[0m"
-                    "\033[44;1m\xBA \033[31m(Alt+)F11\033[37m changes hue; \033[31mCtrl+Alt+F11\033[37m selects early/late CGA model.            \xBA\033[0m"
+                    "\033[44;1m\xBA Use \033[31mCtrl+F8\033[37m to set composite output ON, OFF, or AUTO (default).              \xBA\033[0m"
+                    "\033[44;1m\xBA \033[31mCtrl+Shift+[F7/F8]\033[37m changes hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.        \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         } else {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color,           \xBA\033[0m"
-                    "\033[44;1m\xBA and \033[31mAlt+F11\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,       \xBA\033[0m"
+                   "\033[44;1m\xBA and \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         }
         MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
                 "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use F11 to cycle through white, amber, and green monochrome color.           \xBA\033[0m"
-                "\033[44;1m\xBA Use Alt+F11 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
+        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use Ctrl+F7 to cycle through white, amber, and green monochrome color.       \xBA\033[0m"
+                "\033[44;1m\xBA Use Ctrl+F8 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_DEBUG",
