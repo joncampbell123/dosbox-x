@@ -28,8 +28,10 @@
   - Improved handling for file- and record-locking
     for non-Windows platforms. Portions of the code
     are adopted from DOSEmu. (Wengier)
-  - Fixed PC-98 keyboard handling of CTRL+A through
-    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
+  - Improved handling for the setting "ansi.sys=false",
+    such as fixing the welcome screen messup in this
+    case and allowing the use of a custom ANSI TSR
+    (such as NNANSI.COM) instead. (Wengier & stu)
   - You can now press Ctrl+C or Ctrl+Break to break
     from long outputs from commands like COPY, TYPE,
     DIR /S, and ATTRIB /S. (Wengier)
@@ -103,12 +105,12 @@
     Also fixed the messages in the welcome banner for
     these machine types to inform users the new default
     shortcuts (Ctrl(+Shift)+[F7/F8]). (Wengier)
-  - Fixed the screen messup of the welcome banner when
-    the config option "ansi.sys" is disabled. (Wengier)
   - Fixed DOS Int21/AH=0x5a "Create temporary file"
     function not generating unique files. (Wengier)
   - Fixed that the current drive goes back to Z drive
     when combined unmounts & mounts are used. (Wengier)
+  - Fixed PC-98 keyboard handling of CTRL+A through
+    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
   - Fixed crash of Free Pascal compiler with dynamic
     core and setting "use dynamic core with paging on =
     auto" introduced in the previous version. (Wengier)
