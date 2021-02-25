@@ -7780,10 +7780,6 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("If set, DOSBox-X will show the cycles count (FPS) and emulation speed relative to realtime in the title bar.");
     Pbool->SetBasic(true);
 
-    Pbool = sdl_sec->Add_bool("showdetails", Property::Changeable::Always, false);
-    Pbool->Set_help("If set, DOSBox-X will show the cycles count (FPS) and emulation speed relative to realtime in the title bar.");
-    Pbool->SetBasic(true);
-
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
     Pbool->SetBasic(true);

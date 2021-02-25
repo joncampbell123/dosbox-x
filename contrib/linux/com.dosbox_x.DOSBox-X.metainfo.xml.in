@@ -10,7 +10,7 @@
     <category>Emulation</category>
   </categories>
   <releases>
-          <release version="@PACKAGE_VERSION@" date="2021-2-21"/>
+          <release version="@PACKAGE_VERSION@" date="2021-2-25"/>
   </releases>
   <screenshots>
 	  <screenshot type="default">
