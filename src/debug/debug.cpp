@@ -314,6 +314,7 @@ struct SCodeViewData {
 static uint16_t  dataSeg;
 static uint32_t  dataOfs;
 static bool    showExtend = true;
+static bool    showPrintable = true;
 
 static void ClearInputLine(void) {
 	codeViewData.inputStr[0] = 0;
@@ -960,8 +961,10 @@ static void DrawData(void) {
 
                 wattrset (dbg.win_data,0);
                 mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-                mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                if(showPrintable) {
+                    if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                    mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                } else mvwaddch(dbg.win_data,y,63+x,ch);
 
                 add++;
             }
@@ -977,8 +980,10 @@ static void DrawData(void) {
                     if (!mem_readb_checked((PhysPt)address,&ch)) {
                         wattrset (dbg.win_data,0);
                         mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                        if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-                        mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                        if(showPrintable) {
+                            if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                            mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                        } else mvwaddch(dbg.win_data,y,63+x,ch);
                     }
                     else {
                         wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
@@ -2663,6 +2668,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("F3/F6                     - Previous command in history.\n");
 		DEBUG_ShowMsg("F4/F7                     - Next command in history.\n");
 		DEBUG_ShowMsg("F5                        - Run.\n");
+		DEBUG_ShowMsg("F8                        - Toggle printable characters.\n");
 		DEBUG_ShowMsg("F9                        - Set/Remove breakpoint.\n");
 		DEBUG_ShowMsg("F10/F11                   - Step over / trace into instruction.\n");
 		DEBUG_ShowMsg("ALT + D/E/S/X/B           - Set data view to DS:SI/ES:DI/SS:SP/DS:DX/ES:BX.\n");
@@ -3203,6 +3209,9 @@ uint32_t DEBUG_CheckKeys(void) {
 
 				DOSBOX_SetNormalLoop();
 				break;
+		case KEY_F(8):	// Toggle printable characters
+				showPrintable = !showPrintable;
+				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
 				if (CBreakpoint::IsBreakpoint(codeViewData.cursorSeg, codeViewData.cursorOfs)) {
 					if (CBreakpoint::DeleteBreakpoint(codeViewData.cursorSeg, codeViewData.cursorOfs))
@@ -3733,8 +3742,7 @@ static void LogDOSKernMem(void) {
 }
 
 // Display the content of all Memory Control Blocks.
-static void LogMCBS(void)
-{
+static void LogMCBS(void) {
     if (dos_kernel_disabled) {
         if (boothax == BOOTHAX_MSDOS) {
             if (guest_msdos_LoL == 0 || guest_msdos_mcb_chain == 0) {
@@ -3777,8 +3785,7 @@ static void LogMCBS(void)
     DEBUG_EndPagedContent();
 }
 
-static void LogGDT(void)
-{
+static void LogGDT(void) {
 	char out1[512];
 	Descriptor desc;
 	Bitu length = cpu.gdt.GetLimit();

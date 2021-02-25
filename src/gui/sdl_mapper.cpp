@@ -1626,6 +1626,7 @@ private:
         return NULL;
     }
     CBind * CreateHatBind(Bitu hat,uint8_t value) {
+        if (hat < hats_cap) return NULL;
         Bitu hat_dir;
         if (value&SDL_HAT_UP) hat_dir=0;
         else if (value&SDL_HAT_RIGHT) hat_dir=1;

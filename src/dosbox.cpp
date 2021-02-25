@@ -249,7 +249,7 @@ void                TANDYSOUND_Init(Section*);
 void                DISNEY_Init(Section*);
 void                PS1SOUND_Init(Section*);
 void                INNOVA_Init(Section*);
-void                SERIAL_Init(Section*); 
+void                SERIAL_Init(Section*);
 void                DONGLE_Init(Section*);
 #if C_IPX
 void                IPX_Init(Section*);
@@ -811,7 +811,13 @@ void Init_VGABIOS() {
         }
         if (rom_fp == NULL) {
             path = "";
-            Cross::CreatePlatformConfigDir(path);
+            Cross::GetPlatformResDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::GetPlatformConfigDir(path);
             path += VGA_BIOS_rom;
             rom_fp = fopen(path.c_str(),"rb");
         }
@@ -1173,7 +1179,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         0 };
 
-    const char* scalers[] = { 
+    const char* scalers[] = {
         "none", "normal2x", "normal3x", "normal4x", "normal5x",
 #if RENDER_USE_ADVANCED_SCALERS>2
         "advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
@@ -1368,7 +1374,7 @@ void DOSBOX_SetupConfigSections(void) {
      * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
      *  before the age of SuperIO and PCI use either 10MHz (9.8304MHz) or 8MHz (7.9872MHz)
      *  for its C-Bus.
-     * 
+     *
      *  It's determined by the CPU clock base (2.4756Mhz or 1.9968MHz). For example, on a
      *  16MHz 386, C-Bus runs at 8MHz and on a 25MHz 386, C-Bus runs at 10MHz.
      *
@@ -2406,7 +2412,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
                     "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
-            
+
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.");
@@ -2511,8 +2517,8 @@ void DOSBOX_SetupConfigSections(void) {
             "require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
             "errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
 
-    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
-    Pbool->Set_help("Swaps the left and right stereo channels."); 
+    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Swaps the left and right stereo channels.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,44100);
@@ -2721,12 +2727,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("Fluidsynth period size, or default.");
 
 	const char *fluidreverb[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidreverb);
 	Pstring->Set_help("Fluidsynth use reverb.");
 
 	const char *fluidchorus[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
 
@@ -2742,7 +2748,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.reverb.level",Property::Changeable::WhenIdle,".57");
 	Pstring->Set_help("Fluidsynth reverb level.");
 
-	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);	
+	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);
 	Pint->Set_help("Fluidsynth chorus voices");
 
 	Pstring = secprop->Add_string("fluid.chorus.level",Property::Changeable::WhenIdle,"1.2");
@@ -2761,7 +2767,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
 
     secprop=control->AddSection_prop("sblaster",&Null_Init,true);
-    
+
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
     Pstring->Set_values(sbtypes);
     Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
@@ -2884,7 +2890,7 @@ void DOSBOX_SetupConfigSections(void) {
      *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
      *        timer "overflowed" (fairly typical Adlib detection code).
      *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
-     *                         100 I/O reads * (1 / 1388888) = 72us */ 
+     *                         100 I/O reads * (1 / 1388888) = 72us */
 
     Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
     Pstring->Set_values(oplemus);
@@ -2900,7 +2906,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
 	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
     Pstring->SetBasic(true);
-    
+
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
         "210,220,230,240,250,260,280");
@@ -2990,7 +2996,7 @@ void DOSBOX_SetupConfigSections(void) {
             "relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done
-    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);  
+    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
     Pbool->SetBasic(true);
 
@@ -3079,7 +3085,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(dmasgus);
     Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
     Pint->SetBasic(true);
- 
+
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
