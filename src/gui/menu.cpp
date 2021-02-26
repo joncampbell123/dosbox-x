@@ -196,6 +196,9 @@ static const char *def_menu_main_clipboard[] =
 #endif
     "clipboard_device",
     "clipboard_dosapi",
+#if defined(WIN32)
+    "clipboard_biospaste",
+#endif
     "--",
 #if defined(WIN32) || defined(C_SDL2)
     "mapper_copyall",

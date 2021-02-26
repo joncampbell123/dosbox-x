@@ -3,12 +3,22 @@
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
+  - Windows SDL2 builds now use same clipboard pasting
+    method as Windows SDL1 builds by default instead of
+    the BIOS function. A menu option "Use BIOS function
+    for keyboard pasting" is added to "Shared clipboard
+    functions" menu group (under "Main") to instead use
+    the BIOS function for the clipboard pasting in both
+    Windows SDL1 and SDL2 builds. (Wengier)
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).
     In Linux/macOS SDL1 builds only the read access is
     supported whereas Linux/macOS SDL2 builds support
     both read and write accesses. (Wengier)
+  - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
+    CONFIG.SYS and 4DOS.INI sections in Configuration
+    Tool for pasting clipboard contents. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del

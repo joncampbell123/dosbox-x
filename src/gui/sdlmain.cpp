@@ -1220,7 +1220,7 @@ bool                        startup_state_numlock = false; // Global for keyboar
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0, mbutton=3;
-bool wheel_guest = false, clipboard_dosapi = true;
+bool wheel_guest = false, clipboard_dosapi = true, clipboard_biospaste = false;
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -7789,7 +7789,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32)
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -7797,6 +7797,10 @@ void SDL_SetupConfigSection() {
 #endif
 #ifndef DIK_OEM_102
 #define DIK_OEM_102 0x56    /* < > | on UK/Germany keyboards */
+#endif
+#if defined(C_SDL2)
+#define SDLKey SDL_Keycode
+#define SDLMod SDL_Keymod
 #endif
 static SDLKey aryScanCodeToSDLKey[0xFF];
 static bool   bScanCodeMapInited = false;
@@ -7876,20 +7880,38 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_F8] = SDLK_F8;
     aryScanCodeToSDLKey[DIK_F9] = SDLK_F9;
     aryScanCodeToSDLKey[DIK_F10] = SDLK_F10;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCKCLEAR;
+    aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLLOCK;
+#else
     aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCK;
     aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLOCK;
+#endif
+    aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
+    aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP_7;
+    aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP_8;
+    aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP_9;
+    aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP_4;
+    aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP_5;
+    aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP_6;
+    aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP_1;
+    aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP_2;
+    aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP_3;
+    aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP_0;
+#else
     aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP7;
     aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP8;
     aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP9;
-    aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
     aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP4;
     aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP5;
     aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP6;
-    aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
     aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP1;
     aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP2;
     aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP3;
     aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP0;
+#endif
     aryScanCodeToSDLKey[DIK_DECIMAL] = SDLK_KP_PERIOD;
     aryScanCodeToSDLKey[DIK_F11] = SDLK_F11;
     aryScanCodeToSDLKey[DIK_F12] = SDLK_F12;
@@ -7902,7 +7924,11 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_NUMPADENTER] = SDLK_KP_ENTER;
     aryScanCodeToSDLKey[DIK_RCONTROL] = SDLK_RCTRL;
     aryScanCodeToSDLKey[DIK_DIVIDE] = SDLK_KP_DIVIDE;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINTSCREEN;
+#else
     aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINT;
+#endif
     aryScanCodeToSDLKey[DIK_RMENU] = SDLK_RALT;
     aryScanCodeToSDLKey[DIK_PAUSE] = SDLK_PAUSE;
     aryScanCodeToSDLKey[DIK_HOME] = SDLK_HOME;
@@ -7915,8 +7941,13 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_NEXT] = SDLK_PAGEDOWN;
     aryScanCodeToSDLKey[DIK_INSERT] = SDLK_INSERT;
     aryScanCodeToSDLKey[DIK_DELETE] = SDLK_DELETE;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LGUI;
+    aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RGUI;
+#else
     aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LMETA;
     aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RMETA;
+#endif
     aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
 
     bScanCodeMapInited = true;
@@ -7934,10 +7965,16 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
 
     SDL_Event evntKeyStroke = { 0 };
     evntKeyStroke.type = bDepressed ? SDL_KEYDOWN : SDL_KEYUP;
+#if defined(C_SDL2)
+    evntKeyStroke.key.keysym.scancode = SDL_GetScancodeFromKey(sdlkey);
+#else
     evntKeyStroke.key.keysym.scancode = (unsigned char)LOBYTE(uiScanCode);
+#endif
     evntKeyStroke.key.keysym.sym = sdlkey;
     evntKeyStroke.key.keysym.mod = keymods;
+#if !defined(C_SDL2)
     evntKeyStroke.key.keysym.unicode = 0;
+#endif
     evntKeyStroke.key.state = bDepressed ? SDL_PRESSED : SDL_RELEASED;
     SDL_PushEvent(&evntKeyStroke);
 }
@@ -7945,7 +7982,7 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
 static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
-	if (IS_PC98_ARCH) {
+	if (clipboard_biospaste) {
 		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
 		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 		return true;
@@ -10698,6 +10735,14 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     return true;
 }
 
+bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    clipboard_biospaste = !clipboard_biospaste;
+    mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
+    return true;
+}
+
 bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -12760,7 +12805,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
-       mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+#if defined (WIN32)
+        if (IS_PC98_ARCH) clipboard_biospaste = true;
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste);
+#endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
