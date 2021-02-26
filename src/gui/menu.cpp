@@ -1764,30 +1764,6 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 }
 #endif
 
-#if defined(WIN32)
-# if defined(HX_DOS) || !defined(C_SDL2)
-HWND GetHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if(!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.window;
-}
-
-HWND GetSurfaceHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if (!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.child_window;
-}
-# endif
-#endif
-
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if defined(WIN32) && !defined(HX_DOS)
     bool GFX_GetPreventFullscreen(void);

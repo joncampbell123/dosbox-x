@@ -1252,25 +1252,39 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 # include <os2.h>
 #endif
 
-#if defined(C_SDL2)
-# if defined(WIN32)
-HWND GetHWND()
-{
+#if defined(WIN32)
+HWND GetHWND(void) {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
+# if defined(C_SDL2)
     if (sdl.window == NULL)
         return nullptr;
     if (!SDL_GetWindowWMInfo(sdl.window, &wmi))
         return nullptr;
     return wmi.info.win.window;
+#else
+    if(!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.window;
+#endif
 }
 
-HWND GetSurfaceHWND()
-{
+HWND GetSurfaceHWND(void) {
+# if defined(C_SDL2)
     return GetHWND();
-}
+# else
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
+
+    if (!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.child_window;
 # endif
+}
 #endif
+
 void SDL_rect_cliptoscreen(SDL_Rect &r) {
     if (r.x < 0) {
         r.w += r.x;
