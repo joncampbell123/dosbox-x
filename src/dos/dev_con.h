@@ -1256,8 +1256,7 @@ void device_CON::ClearAnsi(void){
 
 void device_CON::Output(uint8_t chr) {
 	if (!ANSI_SYS_installed() && !IS_PC98_ARCH) {
-		uint16_t oldax;
-		oldax=reg_ax;
+		uint16_t oldax=reg_ax;
 		reg_ax=chr;
 		CALLBACK_RunRealInt(0x29);
 		reg_ax=oldax;
