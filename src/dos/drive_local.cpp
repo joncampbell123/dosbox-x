@@ -803,12 +803,12 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
-        hand = _wfdopen(nHandle, (flags&0xf)==OPEN_WRITE?"wb":type);
+        hand = _wfdopen(nHandle, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #else
         uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
         int fd = open(host_name, unix_mode);
         if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
-        hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?"wb":type);
+        hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #endif
     } else {
 #ifdef host_cnv_use_wchar

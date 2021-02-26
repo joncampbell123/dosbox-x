@@ -196,7 +196,7 @@ static const char *def_menu_main_clipboard[] =
 #endif
     "clipboard_device",
     "clipboard_dosapi",
-#if defined(WIN32)
+#if defined (WIN32) && !defined(__MINGW32__)
     "clipboard_biospaste",
 #endif
     "--",

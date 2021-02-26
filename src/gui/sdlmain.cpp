@@ -7789,7 +7789,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__MINGW32__)
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -10735,6 +10735,7 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     return true;
 }
 
+#if defined (WIN32) && !defined(__MINGW32__)
 bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10742,6 +10743,7 @@ bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
     return true;
 }
+#endif
 
 bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -12806,9 +12808,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
-#if defined (WIN32)
+#if defined (WIN32) && !defined(__MINGW32__)
         if (IS_PC98_ARCH) clipboard_biospaste = true;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste);
+#else
+        clipboard_biospaste = true;
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
