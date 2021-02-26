@@ -1300,11 +1300,15 @@ public:
 			PasteClipboard(true);
 			swapad=true;
 			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
 			while (strPasteBuffer.length()) {
+                key = NULL;
 				head = strPasteBuffer[0];
-				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
-				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
-				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
 				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 			}
             return;
@@ -1373,11 +1377,15 @@ public:
 			PasteClipboard(true);
 			swapad=true;
 			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
 			while (strPasteBuffer.length()) {
+                key = NULL;
 				head = strPasteBuffer[0];
-				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
-				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
-				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
 				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 			}
 			return;

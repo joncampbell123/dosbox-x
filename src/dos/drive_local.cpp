@@ -659,7 +659,7 @@ int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigne
   if (cmd == F_SETLK64 || cmd == F_GETLK64) {
     struct flock64 fl64;
     int result;
-    LOG_MSG("Large file locking start=%llx, len=%lx\n", start, len);
+    //LOG_MSG("Large file locking start=%llx, len=%lx\n", start, len);
     fl64.l_type = fl->l_type;
     fl64.l_whence = fl->l_whence;
     fl64.l_pid = fl->l_pid;
