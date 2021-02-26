@@ -67,7 +67,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern uint8_t                int10_font_14[256 * 14];
+extern uint8_t              int10_font_14[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -77,9 +77,11 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres;
+extern bool                 dos_kernel_disabled, confres, swapad;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
+extern std::string 			strPasteBuffer;
 
+extern void 				PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -1288,6 +1290,20 @@ public:
             else {
                 lookup->second->raise();
             }
+		} else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+			while (strPasteBuffer.length()) {
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
+				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
+				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+			return;
         } else ToplevelWindow::actionExecuted(b, arg);
     }
 
@@ -1317,7 +1333,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        ToplevelWindow(parent, x, y, 550, 260 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
             return;
@@ -1327,12 +1343,13 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Edit "+title);
         new GUI::Label(this, 5, 10, "Content:");
-        content = new GUI::Input(this, 5, 30, 450 - 10 - border_left - border_right, 185);
+        content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
-        if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 5, 220, "Paste Clipboard"))->addActionHandler(this);
+        if (first_shell) (new GUI::Button(this, 150, 220, "Append History"))->addActionHandler(this);
+        if (shell_idle) (new GUI::Button(this, 280, 220, "Execute Now"))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 390, 220, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 460, 220, "OK", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1346,6 +1363,21 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
+        else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+			while (strPasteBuffer.length()) {
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
+				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
+				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+			return;
+		}
         else if (arg == "Append History") {
             std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
@@ -1508,6 +1540,7 @@ public:
         name->setText(cycles.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 300, 60, "Paste", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
