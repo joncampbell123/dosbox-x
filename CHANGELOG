@@ -5,13 +5,14 @@
     4DOS shell in addition to built-in shell. (Wengier)
   - Windows SDL2 builds now use same clipboard pasting
     method as Windows SDL1 builds by default instead of
-    the BIOS function. A menu option "Use BIOS function
-    for keyboard pasting" is added to "Shared clipboard
-    functions" menu group (under "Main") to instead use
-    the BIOS function for the clipboard pasting in both
-    Windows SDL1 and SDL2 builds. This setting can also
-    be changed with the "clip_paste_bios" config option
-    in [sdl] section of the configuration. (Wengier)
+    the BIOS function. The method is now also available
+    for Linux and macOS builds. A menu option "Use BIOS
+    function for keyboard pasting" is added to "Shared
+    clipboard functions" menu group (under "Main") to
+    use BIOS function for the clipboard pasting instead
+    of the keystroke method. This setting can also be
+    changed with the "clip_paste_bios" config option in
+    [sdl] section of the configuration. (Wengier)
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).

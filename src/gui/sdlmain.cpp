@@ -317,6 +317,7 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 	curscreen++;
 	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
 	return TRUE;
+
 }
 #endif
 extern int dos_clipboard_device_access;
@@ -8129,8 +8130,10 @@ static bool PasteClipboardNext() {
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
 
 		uint8_t ansiVal = cKey;
+		unsigned int ct = 0;
 		for (int i = 100; i; i /= 10) {
 			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
+			if (!numKey) ct++;
 			ansiVal %= i;
 #if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
 			UINT uiScanCode = MapVirtualKey(numKey+VK_NUMPAD0, MAPVK_VK_TO_VSC);
@@ -8139,8 +8142,19 @@ static bool PasteClipboardNext() {
 #endif
 			GenKBStroke(uiScanCode, true, sdlmMods);
 			GenKBStroke(uiScanCode, false, sdlmMods);
-			}
+		}
 		GenKBStroke(uiScanCodeAlt, false, sdlmMods);                // Alt up
+		if (ct%2) {
+			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
+			UINT uiScanCode = MapVirtualKey(0+VK_NUMPAD0, MAPVK_VK_TO_VSC);
+#else
+			UINT uiScanCode = 0+'0';
+#endif
+			GenKBStroke(uiScanCode, true, sdlmMods);
+			GenKBStroke(uiScanCode, false, sdlmMods);
+			GenKBStroke(uiScanCodeAlt, false, sdlmMods);
+		}
 		if (bModAltOn)                                                // Alt down if is was already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
     }
