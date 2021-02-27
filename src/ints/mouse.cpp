@@ -709,7 +709,7 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 #include "render.h"
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {

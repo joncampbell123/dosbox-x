@@ -250,6 +250,8 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
+void GetClipboard(std::string* result);
+bool SetClipboard(std::string value);
 #endif
 
 static bool PasteClipboardNext();
@@ -5905,7 +5907,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
@@ -6079,7 +6081,7 @@ void MenuFreeScreen(void) {
 }
 #endif
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 bool isModifierApplied() {
     return direct_mouse_clipboard || !strcmp(modifier,"none") ||
     ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) ||
@@ -6660,7 +6662,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && isModifierApplied()) {
             if (mbutton==4 && selsrow>-1 && selscol>-1) {
                 Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
@@ -6742,7 +6744,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         }
         break;
     case SDL_RELEASED:
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
@@ -7314,7 +7316,7 @@ void GFX_Events() {
 			break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LCTRL) sdl.lctrlstate = event.key.type;
@@ -8252,7 +8254,6 @@ void PasteClipboard(bool bPressed) {
 #elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
-void GetClipboard(std::string* result);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
     char *text;
@@ -8429,7 +8430,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     }
 }
 
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 void CopyClipboard(int all) {
@@ -8447,7 +8448,11 @@ void CopyClipboard(int all) {
         result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
     }
     if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
     SDL_SetClipboardText(result.c_str());
+#else
+    SetClipboard(result);
+#endif
 }
 #endif
 

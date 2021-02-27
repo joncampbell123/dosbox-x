@@ -16,9 +16,9 @@
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).
-    In Linux/macOS SDL1 builds only the read access is
-    supported whereas Linux/macOS SDL2 builds support
-    both read and write accesses. (Wengier)
+    In Linux SDL1 build only read access is supported
+    whereas both read and write access are supported in
+    all other builds. (Wengier)
   - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
     CONFIG.SYS and 4DOS.INI sections in Configuration
     Tool for pasting clipboard contents. (Wengier)
