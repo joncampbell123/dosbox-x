@@ -18,7 +18,9 @@
     previously only supported on the Windows platform).
     In Linux SDL1 build only read access is supported
     whereas both read and write access are supported in
-    all other builds. (Wengier)
+    all other builds. Also, selecting and copying text
+    to the host clipboard using a mouse button or arrow
+    key is now supported in macOS SDL1 build. (Wengier)
   - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
     CONFIG.SYS and 4DOS.INI sections in Configuration
     Tool for pasting clipboard contents. (Wengier)

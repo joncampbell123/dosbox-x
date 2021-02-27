@@ -5479,7 +5479,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-#if defined(C_SDL2) || defined(WIN32)
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
     item->set_text("Quick edit: copy on select and paste text");
 
@@ -10745,7 +10745,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
 bool arrow_keys_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -12881,7 +12881,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);

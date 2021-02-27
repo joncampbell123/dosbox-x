@@ -187,7 +187,7 @@ static const char *def_menu_main_wheelarrow[] =
 /* main -> shared clipboard menu ("SharedClipboard") */
 static const char *def_menu_main_clipboard[] =
 {
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_fastedit",
     "clipboard_right",
     "clipboard_middle",
@@ -198,7 +198,7 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_dosapi",
     "clipboard_biospaste",
     "--",
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_copyall",
 #endif
     "mapper_paste",
