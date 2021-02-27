@@ -58,6 +58,7 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+void initRand();
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
@@ -357,16 +358,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char pipetmp[270];
 	uint16_t fattr;
 	if (toc) {
-#ifdef WIN32
-		srand(GetTickCount());
-#else
-		struct timespec ts;
-		unsigned theTick = 0U;
-		clock_gettime( CLOCK_REALTIME, &ts );
-		theTick  = ts.tv_nsec / 1000000;
-		theTick += ts.tv_sec * 1000;
-		srand(theTick);
-#endif
+		initRand();
 		std::string line;
 		if (!GetEnvStr("TEMP",line)&&!GetEnvStr("TMP",line))
 			sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
@@ -487,11 +479,21 @@ void DOS_Shell::RunInternal(void) {
 
 char *str_replace(char *orig, char *rep, char *with);
 std::string GetPlatform(bool save);
+bool ANSI_SYS_installed();
 const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
+        if (!ANSI_SYS_installed()) {
+            msg = str_replace(str_replace((char *)msg, "\033[0m", ""), "\033[1m", "");
+            for (int i=1; i<8; i++) {
+                sprintf(str, "\033[3%dm", i);
+                msg = str_replace((char *)msg, str, "");
+                sprintf(str, "\033[4%d;1m", i);
+                msg = str_replace((char *)msg, str, "");
+            }
+        }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         std::string theme = section->Get_string("bannercolortheme");
         if (theme == "black")
@@ -703,6 +705,7 @@ void DOS_Shell::Run(void) {
 				}
 			} else input_line[0]='\0';
 		} else {
+			if (optInit && control->opt_exit) break;
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
 			if (echo && !input_eof) WriteOut("\n");
@@ -992,6 +995,8 @@ void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
 
 	/* Add messages */
+	MSG_Add("SHELL_CMD_TREE_ERROR", "No subdirectories exist\n");
+	MSG_Add("SHELL_CMD_VOL_TREE", "Directory PATH listing for Volume %s\n");
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
 	MSG_Add("SHELL_CMD_VOL_DRIVEERROR","Cannot find the drive specified\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
@@ -1005,7 +1010,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
-	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
+	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
@@ -1028,12 +1033,12 @@ void SHELL_Init() {
 									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
-	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
-	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
-    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
+	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
+	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
+    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
-	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
+	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete - %s\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
 	MSG_Add("SHELL_SYNTAXERROR","Syntax error\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
@@ -1061,11 +1066,11 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP_LONG","PAUSE\n");
-	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure : %s.\n");
+	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure - %s\n");
 	MSG_Add("SHELL_CMD_COPY_SUCCESS","   %d File(s) copied.\n");
 	MSG_Add("SHELL_CMD_COPY_CONFIRM","Overwrite %s (Yes/No/All)?");
 	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
-	MSG_Add("SHELL_CMD_COPY_ERROR","Error in copying file %s\n");
+	MSG_Add("SHELL_CMD_COPY_ERROR","Copy error - %s\n");
 	MSG_Add("SHELL_CMD_SUBST_DRIVE_LIST","The currently mounted local drives are:\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
@@ -1177,20 +1182,20 @@ void SHELL_Init() {
                );
         if (!mono_cga) {
             MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                                        \xBA\033[0m"
-                    "\033[44;1m\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).                  \xBA\033[0m"
-                    "\033[44;1m\xBA \033[31m(Alt+)F11\033[37m changes hue; \033[31mCtrl+Alt+F11\033[37m selects early/late CGA model.            \xBA\033[0m"
+                    "\033[44;1m\xBA Use \033[31mCtrl+F8\033[37m to set composite output ON, OFF, or AUTO (default).              \xBA\033[0m"
+                    "\033[44;1m\xBA \033[31mCtrl+Shift+[F7/F8]\033[37m changes hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.        \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         } else {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color,           \xBA\033[0m"
-                    "\033[44;1m\xBA and \033[31mAlt+F11\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,       \xBA\033[0m"
+                   "\033[44;1m\xBA and \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         }
         MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
                 "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use F11 to cycle through white, amber, and green monochrome color.           \xBA\033[0m"
-                "\033[44;1m\xBA Use Alt+F11 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
+        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use Ctrl+F7 to cycle through white, amber, and green monochrome color.       \xBA\033[0m"
+                "\033[44;1m\xBA Use Ctrl+F8 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_DEBUG",
@@ -1318,14 +1323,6 @@ void SHELL_Init() {
 		   "  /P            Prompts for confirmation before deleting one or more files.\n"
 		   "  /F            Force deleting of read-only files.\n"
 		   "  /Q            Quiet mode, do not ask if ok to delete on global wildcard.\n");
-	MSG_Add("SHELL_CMD_DELTREE_HELP","Deletes a directory and all the subdirectories and files in it.\n");
-	MSG_Add("SHELL_CMD_DELTREE_HELP_LONG","To delete one or more files and directories:\n"
-           "DELTREE [/Y] [drive:]path [[drive:]path[...]]\n\n"
-           "  /Y              Suppresses prompting to confirm you want to delete\n"
-           "                  the subdirectory.\n"
-           "  [drive:]path    Specifies the name of the directory you want to delete.\n\n"
-           "Note: Use DELTREE cautiously. Every file and subdirectory within the\n"
-           "specified directory will be deleted.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source        Specifies the file or files to be copied.\n"
@@ -1372,6 +1369,12 @@ void SHELL_Init() {
 		   "PATH ;\n\n"
 		   "Type PATH ; to clear all search path settings.\n"
 		   "Type PATH without parameters to display the current path.\n");
+	MSG_Add("SHELL_CMD_PUSHD_HELP","Stores the current directory for use by the POPD command, then\nchanges to the specified directory.\n");
+	MSG_Add("SHELL_CMD_PUSHD_HELP_LONG","PUSHD [path]\n\n"
+	        "path        Specifies the directory to make the current directory.\n\n"
+	        "Type PUSHD with no parameters to display currently stored directories.\n");
+	MSG_Add("SHELL_CMD_POPD_HELP","Changes to the directory stored by the PUSHD command.\n");
+	MSG_Add("SHELL_CMD_POPD_HELP_LONG","POPD\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
@@ -1410,6 +1413,8 @@ void SHELL_Init() {
 		   "  $$   $ (dollar sign)\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
@@ -1609,8 +1614,9 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
@@ -1635,7 +1641,6 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
@@ -1661,7 +1666,7 @@ void SHELL_Init() {
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
 
 	/* DSXMENU.EXE */
 	if (IS_PC98_ARCH)

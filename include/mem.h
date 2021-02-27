@@ -63,14 +63,36 @@ MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
     Working on big or little endian machines 
 */
 
-#if !defined(C_UNALIGNED_MEMORY)
-/* meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
-            on such processors typecasting memory as uint16_t and higher can cause a fault if the
-        address is not aligned to that datatype when we read/write through it. */
-
 static INLINE uint8_t host_readb(ConstHostPt const off) {
     return *off;
 }
+
+static INLINE void host_writeb(HostPt const off,const uint8_t val) {
+    *off = val;
+}
+
+// use __builtin_bswap* for gcc >= 4.3
+#if defined(WORDS_BIGENDIAN) && defined(__GNUC__) && \
+    (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
+
+static INLINE uint16_t host_readw(ConstHostPt off) {
+    return __builtin_bswap16(*(uint16_t *)off);
+}
+static INLINE uint32_t host_readd(ConstHostPt off) {
+    return __builtin_bswap32(*(uint32_t *)off);
+}
+static INLINE void host_writew(HostPt off, const uint16_t val) {
+    *(uint16_t *)off = __builtin_bswap16(val);
+}
+static INLINE void host_writed(HostPt off, const uint32_t val) {
+    *(uint32_t *)off = __builtin_bswap32(val);
+}
+
+#elif defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
+/* !defined(C_UNALIGNED_MEMORY) meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
+        on such processors typecasting memory as uint16_t and higher can cause a fault if the
+        address is not aligned to that datatype when we read/write through it. */
+
 static INLINE uint16_t host_readw(ConstHostPt const off) {
     return (uint16_t)host_readb(off) + ((uint16_t)host_readb(off+(uintptr_t)1U) << (uint16_t)8U);
 }
@@ -81,9 +103,7 @@ static INLINE uint64_t host_readq(ConstHostPt const off) {
     return (uint64_t)host_readd(off) + ((uint64_t)host_readd(off+(uintptr_t)4U) << (uint64_t)32U);
 }
 
-static INLINE void host_writeb(HostPt const off,const uint8_t val) {
-    *off = val;
-}
+
 static INLINE void host_writew(HostPt const off,const uint16_t val) {
     host_writeb(off,   (uint8_t)(val));
     host_writeb(off+1U,(uint8_t)(val >> (uint16_t)8U));
@@ -99,9 +119,6 @@ static INLINE void host_writeq(HostPt const off,const uint64_t val) {
 
 #else
 
-static INLINE uint8_t host_readb(ConstHostPt const off) {
-    return *(const uint8_t *)off;
-}
 static INLINE uint16_t host_readw(ConstHostPt const off) {
     return le16toh((*(const uint16_t *)off)); // BSD endian.h
 }
@@ -112,9 +129,6 @@ static INLINE uint64_t host_readq(ConstHostPt const off) {
     return le64toh((*(const uint64_t *)off)); // BSD endian.h
 }
 
-static INLINE void host_writeb(HostPt const off,const uint8_t val) {
-    *(uint8_t *)(off) = val;
-}
 static INLINE void host_writew(HostPt const off,const uint16_t val) {
     *(uint16_t *)(off) = htole16(val);
 }
@@ -142,6 +156,14 @@ static INLINE void var_write(uint32_t * const var, const uint32_t val) {
 
 static INLINE void var_write(uint64_t * const var, const uint64_t val) {
     host_writeq((HostPt)var, val);
+}
+
+static INLINE uint16_t var_read(uint16_t * var) {
+    return host_readw((ConstHostPt)var);
+}
+
+static INLINE uint32_t var_read(uint32_t * var) {
+    return host_readd((ConstHostPt)var);
 }
 
 /* The Folowing six functions are slower but they recognize the paged memory system */

@@ -33,7 +33,7 @@ void fluid_win32_destroy_window(void);
 HWND fluid_win32_get_window(void);
 
 #ifndef FLUIDSYNTH_NOT_A_DLL
-BOOL WINAPI DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+/*BOOL WINAPI DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
   FLUID_LOG(FLUID_DBG, "DllMain");
   switch (ul_reason_for_call) {
@@ -52,7 +52,7 @@ BOOL WINAPI DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
     break;
   }
   return TRUE;
-}
+}*/
 #endif
 
 /**

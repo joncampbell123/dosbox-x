@@ -74,18 +74,6 @@
 #include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
-#include "zip.h"
-#include "unzip.h"
-#include "ioapi.h"
-#include "shell.h"
-#include "build_timestamp.h"
-#define MAXU32 0xffffffff
-#include "vs2015/zlib/contrib/minizip/zip.c"
-#include "vs2015/zlib/contrib/minizip/unzip.c"
-#include "vs2015/zlib/contrib/minizip/ioapi.c"
-#if !defined(HX_DOS)
-#include "libs/tinyfiledialogs/tinyfiledialogs.h"
-#endif
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -94,10 +82,6 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#endif
-
-#if defined(unix) || defined(__APPLE__)
-# include <utime.h>
 #endif
 
 #include <list>
@@ -133,7 +117,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-
+extern void         AddSaveStateMapper();
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -160,8 +144,6 @@ uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;
-bool                noremark_save_state = false;
-bool                force_load_state = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
 
@@ -205,6 +187,8 @@ Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
+bool                VGA_BIOS_use_rom = false; // load VGA BIOS from a ROM file rather than make our own
+std::string         VGA_BIOS_rom;
 
 uint32_t                  emulator_speed = 100;
 
@@ -220,7 +204,6 @@ extern double           rtdelta;
 static LoopHandler*     loop;
 
 void increaseticks();
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 /* The whole load of startups for all the subfunctions */
 void                MEM_Init(Section *);
@@ -266,7 +249,7 @@ void                TANDYSOUND_Init(Section*);
 void                DISNEY_Init(Section*);
 void                PS1SOUND_Init(Section*);
 void                INNOVA_Init(Section*);
-void                SERIAL_Init(Section*); 
+void                SERIAL_Init(Section*);
 void                DONGLE_Init(Section*);
 #if C_IPX
 void                IPX_Init(Section*);
@@ -314,8 +297,6 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
 #include "paging.h"
 
-extern std::string savefilename;
-extern bool use_save_file;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
@@ -696,232 +677,6 @@ void DOSBOX_SlowDown( bool pressed ) {
     }
 }
 
-std::string saveloaderr="";
-void refresh_slots(void);
-void MAPPER_ReleaseAllKeys(void);
-namespace
-{
-std::string getTime(bool date=false)
-{
-    const time_t current = time(NULL);
-    tm* timeinfo;
-    timeinfo = localtime(&current); //convert to local time
-    char buffer[80];
-    if (date)
-        ::strftime(buffer, 80, "%Y-%m-%d %H:%M", timeinfo);
-    else
-        ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
-    return buffer;
-}
-
-std::string getType() {
-    switch (machine) {
-        case MCH_HERC:
-            return "MCH_HERC";
-        case MCH_CGA:
-            return "MCH_CGA";
-        case MCH_TANDY:
-            return "MCH_TANDY";
-        case MCH_PCJR:
-            return "MCH_PCJR";
-        case MCH_EGA:
-            return "MCH_EGA";
-        case MCH_VGA:
-            return "MCH_VGA";
-        case MCH_AMSTRAD:
-            return "MCH_AMSTRAD";
-        case MCH_PC98:
-            return "MCH_PC98";
-        case MCH_FM_TOWNS:
-            return "MCH_FM_TOWNS";
-        case MCH_MCGA:
-            return "MCH_MCGA";
-        case MCH_MDA:
-            return "MCH_MDA";
-        default:
-            return "MCH_OTHER";
-    }
-}
-
-size_t GetGameState();
-
-class SlotPos
-{
-public:
-    SlotPos() : slot(0) {}
-
-    void next()
-    {
-        ++slot;
-        slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
-            page=(unsigned int)GetGameState()/SaveState::SLOT_COUNT;
-            refresh_slots();
-        }
-    }
-
-    void previous()
-    {
-        slot += SaveState::SLOT_COUNT*SaveState::MAX_PAGE - 1;
-        slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
-            page=(unsigned int)GetGameState()/SaveState::SLOT_COUNT;
-            refresh_slots();
-        }
-    }
-
-    void set(int value)
-    {
-        slot = value;
-    }
-
-    operator size_t() const
-    {
-        return slot;
-    }
-private:
-    size_t slot;
-};
-
-SlotPos currentSlot;
-
-void notifyError(const std::string& message, bool log=true)
-{
-    if (log) LOG_MSG("%s",message.c_str());
-    systemmessagebox("Error",message.c_str(),"ok","error", 1);
-}
-
-size_t GetGameState(void) {
-    return currentSlot;
-}
-
-void SetGameState(int value) {
-	char name[6]="slot0";
-	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    currentSlot.set(value);
-    if (page!=currentSlot/SaveState::SLOT_COUNT) {
-        page=(unsigned int)(currentSlot/SaveState::SLOT_COUNT);
-        refresh_slots();
-    }
-    name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-    mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-	const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1,  emptySlot ? "[Empty]" : "");
-}
-
-void SaveGameState(bool pressed) {
-    if (!pressed) return;
-
-    try
-    {
-        LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
-        SaveState::instance().save(currentSlot);
-        if (page!=GetGameState()/SaveState::SLOT_COUNT)
-            SetGameState((int)currentSlot);
-        else
-            refresh_slots();
-    }
-    catch (const SaveState::Error& err)
-    {
-        notifyError(err);
-    }
-}
-
-
-void LoadGameState(bool pressed) {
-    if (!pressed) return;
-
-//    if (SaveState::instance().isEmpty(currentSlot))
-//    {
-//        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
-//        return;
-//    }
-    try
-    {
-        LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
-        SaveState::instance().load(currentSlot);
-    }
-    catch (const SaveState::Error& err)
-    {
-        notifyError(err);
-    }
-}
-
-void NextSaveSlot(bool pressed) {
-    if (!pressed) return;
-
-	char name[6]="slot0";
-	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    currentSlot.next();
-    if (currentSlot/SaveState::SLOT_COUNT==page) {
-        name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-    }
-
-    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
-}
-
-void PreviousSaveSlot(bool pressed) {
-    if (!pressed) return;
-
-	char name[6]="slot0";
-	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    currentSlot.previous();
-    if (currentSlot/SaveState::SLOT_COUNT==page) {
-        name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-    }
-
-    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
-}
-}
-
-std::string GetPlatform(bool save) {
-	char platform[30];
-	strcpy(platform, 
-#if defined(HX_DOS)
-	"DOS "
-#elif defined(__MINGW32__)
-	"MinGW "
-#elif defined(WIN32)
-	"Windows "
-#elif defined(LINUX)
-	"Linux "
-#elif unix
-    "Unix "
-#elif defined(MACOSX)
-    "macOS "
-#else
-    save?"Other ":""
-#endif
-);
-    if (!save) strcat(platform, (std::string(SDL_STRING)+", ").c_str());
-#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
-	strcat(platform, "64");
-#else
-	strcat(platform, "32");
-#endif
-	strcat(platform, save?"-bit build":"-bit");
-	return std::string(platform);
-}
-
-size_t GetGameState_Run(void) { return GetGameState(); }
-void SetGameState_Run(int value) { SetGameState(value); }
-void SaveGameState_Run(void) { SaveGameState(true); }
-void LoadGameState_Run(void) { LoadGameState(true); }
-void NextSaveSlot_Run(void) { NextSaveSlot(true); }
-void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
-
-void ShowStateInfo(bool pressed) {
-    if (!pressed) return;
-    std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
-    systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
-}
 
 /* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
@@ -998,6 +753,8 @@ void DOSBOX_InitTickLoop() {
 }
 
 void Init_VGABIOS() {
+    long rom_sz = 0;
+    FILE *rom_fp = NULL;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
     assert(section != NULL && video_section != NULL);
@@ -1025,6 +782,59 @@ void Init_VGABIOS() {
     wpcolon = section->Get_bool("leading colon write protect image");
     lockmount = section->Get_bool("locking disk image mount");
 
+    VGA_BIOS_use_rom = video_section->Get_bool("vga bios use rom image");
+    VGA_BIOS_rom = video_section->Get_string("vga bios rom image");
+
+    if (VGA_BIOS_rom.empty()) {
+        if (IS_VGA_ARCH) {
+            if (svgaCard == SVGA_TsengET4K) {
+                VGA_BIOS_rom = "et4000.bin"; // Ref: PCem ROMs collection
+            }
+            else if (svgaCard == SVGA_S3Trio) {
+                VGA_BIOS_rom = "TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin"; // Ref: PCem ROMs collection
+            }
+        }
+    }
+
+    if (!VGA_BIOS_rom.empty() && VGA_BIOS_use_rom) {
+        VGA_BIOS_use_rom = false;
+        void ResolvePath(std::string& in);
+        ResolvePath(VGA_BIOS_rom);
+        std::string path = "", GetDOSBoxXPath(bool withexe=false);
+        rom_fp = fopen(VGA_BIOS_rom.c_str(),"rb");
+        if (rom_fp == NULL) {
+            path = GetDOSBoxXPath();
+            if (path.size()) {
+                path += VGA_BIOS_rom;
+                rom_fp = fopen(path.c_str(),"rb");
+            }
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::GetPlatformResDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::GetPlatformConfigDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
+        if (rom_fp != NULL) {
+            fseek(rom_fp,0,SEEK_END);
+            long sz = ftell(rom_fp);
+            if (sz >= 1024 && sz <= 65536) {
+                LOG_MSG("Using VGA BIOS image '%s', %ld bytes\n",VGA_BIOS_rom.c_str(),sz);
+                VGA_BIOS_use_rom = true;
+                rom_sz = sz;
+            }
+        }
+    }
+    else {
+        VGA_BIOS_use_rom = false;
+    }
+
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
@@ -1042,6 +852,9 @@ void Init_VGABIOS() {
 
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
+    else if (rom_sz != 0) {
+        VGA_BIOS_Size = rom_sz;
+    }
     else if (IS_VGA_ARCH) {
         if (svgaCard == SVGA_S3Trio)
             VGA_BIOS_Size = 0x4000;
@@ -1065,9 +878,17 @@ void Init_VGABIOS() {
     VGA_BIOS_SEG = 0xC000;
     VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
 
-    /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
-    if (VGA_BIOS_Size != 0)
-        memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    if (rom_fp != NULL && rom_sz != 0) {
+        fseek(rom_fp,0,SEEK_SET);
+        fread((char*)MemBase+0xC0000,rom_sz,1,rom_fp);
+    }
+    else {
+        /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+        if (VGA_BIOS_Size != 0)
+            memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    }
+
+    if (rom_fp) fclose(rom_fp);
 }
 
 void SetCyclesCount_mapper_shortcut(bool pressed);
@@ -1100,17 +921,7 @@ void DOSBOX_RealInit() {
 		item->set_text("Edit cycles");
 	}
 
-	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
-        item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
-        item->set_text("Load state");
-    MAPPER_AddHandler(ShowStateInfo, MK_nothing, 0,"showstate","Display state info", &item);
-        item->set_text("Display state information");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_comma, MMODHOST,"prevslot","Previous save slot", &item);
-        item->set_text("Select previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_period, MMODHOST,"nextslot","Next save slot", &item);
-        item->set_text("Select next slot");
+    AddSaveStateMapper(); //add support for loading/saving game states
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
@@ -1368,7 +1179,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         0 };
 
-    const char* scalers[] = { 
+    const char* scalers[] = {
         "none", "normal2x", "normal3x", "normal4x", "normal5x",
 #if RENDER_USE_ADVANCED_SCALERS>2
         "advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
@@ -1416,7 +1227,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
+    Pbool->Set_help("If set, DOSBox-X will skip the BIOS screen by activating fast BIOS logo mode (without 1-second pause).");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
@@ -1480,6 +1291,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
     Pstring->SetBasic(true);
+
+    Pmulti = secprop->Add_multi("autosave",Property::Changeable::Always," ");
+    Pmulti->Set_help("Enable the auto-save state feature. Specify a time interval in seconds, and optionally a save slot or start and end save slots.\n"
+            "For example, \"autosave=10 11-20\" will set a 10-second time interval for auto-saving, and the save slots used will be between 11 and 20.\n"
+            "You can additionally specify up to 9 programs for this feature, e.g. \"autosave=10 11-20 EDIT:21-30 EDITOR:35\" for \"EDIT\" and \"EDITOR\".\n"
+            "Putting a minus sign (-) before the time interval causes the auto-saving function to not be activated at start.");
+    Pmulti->SetBasic(true);
+    Pstring = Pmulti->GetSection()->Add_string("second",Property::Changeable::WhenIdle,"");
+    for (int i=0; i<10; i++) Pmulti->GetSection()->Add_string("arg"+std::to_string(i),Property::Changeable::WhenIdle,"");
 
     Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
     Pint->SetMinMax(1,100);
@@ -1554,7 +1374,7 @@ void DOSBOX_SetupConfigSections(void) {
      * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
      *  before the age of SuperIO and PCI use either 10MHz (9.8304MHz) or 8MHz (7.9872MHz)
      *  for its C-Bus.
-     * 
+     *
      *  It's determined by the CPU clock base (2.4756Mhz or 1.9968MHz). For example, on a
      *  16MHz 386, C-Bus runs at 8MHz and on a 25MHz 386, C-Bus runs at 10MHz.
      *
@@ -1869,6 +1689,19 @@ void DOSBOX_SetupConfigSections(void) {
             "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
             "  \n"
             "  4low behavior is default for ET4000 emulation.");
+
+    Pbool = secprop->Add_bool("vga bios use rom image", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
+
+    Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
+    Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
+                    "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
+                    "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
+                    "(machine=svga_et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped\n"
+                    "from real hardware or downloaded from the PCem ROMs collection.\n"
+                    "\n"
+                    "machine=svga_s3            TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin\n"
+                    "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
@@ -2267,6 +2100,7 @@ void DOSBOX_SetupConfigSections(void) {
         "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
         "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
         "          Should have none to negligible impact on performance, mostly being done in hardware\n"
+        "          For the pixel-perfect scaling (output=openglpp), it is recommended to enable this whenever the emulated display has an aspect ratio of 4:3\n"
         "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
         "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
         "          Slightly degrades visual image quality. Has a tiny impact on performance"
@@ -2310,7 +2144,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
             "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
             "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
-            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.");
+            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n"
+            "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
     Pbool->SetBasic(true);
 
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
@@ -2452,9 +2287,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
-	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, the cursor will blink for the TTF output.");
-    Pbool->SetBasic(true);
+	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
+    Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
+                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
+    Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
@@ -2558,7 +2394,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("cycleup",Property::Changeable::Always,10);
     Pint->SetMinMax(1,1000000);
-    Pint->Set_help("Amount of cycles to decrease/increase with keycombos.(CTRL-F11/CTRL-F12)");
+    Pint->Set_help("Amount of cycles to decrease/increase with the mapped keyboard shortcut.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("cycledown",Property::Changeable::Always,20);
@@ -2569,20 +2405,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("cycle emulation percentage adjust",Property::Changeable::Always,0);
     Pint->SetMinMax(-50,50);
     Pint->Set_help("The percentage adjustment for use with the \"Emulate CPU speed\" feature. Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.");
-    Pint->SetBasic(true);
 
-    Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"
+    Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
-                    "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.");
-    Pbool->SetBasic(true);
-            
+                    "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
+                    "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
+
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
-            "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
+            "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.");
 
     Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
+    Pbool->Set_help("Emulate Advanced Power Management (APM) BIOS calls.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
@@ -2592,7 +2428,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("apmbios version",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(apmbiosversions);
     Pstring->Set_help("What version of the APM BIOS specification to emulate.\n"
-            "You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME");
+            "You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME.");
 
     Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow guest OS to connect from real mode.");
@@ -2604,7 +2440,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
             "If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
             "Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.\n"
-            "Please note at this time that 32-bit APM is unstable under Windows ME");
+            "Please note at this time that 32-bit APM is unstable under Windows ME.");
 
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox-X integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
@@ -2615,6 +2451,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox-X to run a PnP aware DOS program or if booting Windows 9x.\n"
             "Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
@@ -2680,8 +2517,8 @@ void DOSBOX_SetupConfigSections(void) {
             "require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
             "errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
 
-    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
-    Pbool->Set_help("Swaps the left and right stereo channels."); 
+    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Swaps the left and right stereo channels.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,44100);
@@ -2721,7 +2558,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
+    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use\n"
+                      "(find the id/name with mixer/listmidi).\n"
                       "Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
                       "When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
                       "In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
@@ -2889,12 +2727,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("Fluidsynth period size, or default.");
 
 	const char *fluidreverb[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidreverb);
 	Pstring->Set_help("Fluidsynth use reverb.");
 
 	const char *fluidchorus[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
 
@@ -2910,7 +2748,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.reverb.level",Property::Changeable::WhenIdle,".57");
 	Pstring->Set_help("Fluidsynth reverb level.");
 
-	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);	
+	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);
 	Pint->Set_help("Fluidsynth chorus voices");
 
 	Pstring = secprop->Add_string("fluid.chorus.level",Property::Changeable::WhenIdle,"1.2");
@@ -2929,7 +2767,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
 
     secprop=control->AddSection_prop("sblaster",&Null_Init,true);
-    
+
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
     Pstring->Set_values(sbtypes);
     Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
@@ -2970,7 +2808,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
@@ -3052,7 +2890,7 @@ void DOSBOX_SetupConfigSections(void) {
      *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
      *        timer "overflowed" (fairly typical Adlib detection code).
      *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
-     *                         100 I/O reads * (1 / 1388888) = 72us */ 
+     *                         100 I/O reads * (1 / 1388888) = 72us */
 
     Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
     Pstring->Set_values(oplemus);
@@ -3068,7 +2906,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
 	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
     Pstring->SetBasic(true);
-    
+
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
         "210,220,230,240,250,260,280");
@@ -3158,7 +2996,7 @@ void DOSBOX_SetupConfigSections(void) {
             "relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done
-    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);  
+    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
     Pbool->SetBasic(true);
 
@@ -3247,11 +3085,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(dmasgus);
     Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
     Pint->SetBasic(true);
- 
+
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pstring = secprop->Add_string("gustype",Property::Changeable::WhenIdle,"classic");
     Pstring->Set_values(gustypes);
@@ -3458,7 +3296,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Additional parameters:\n"
         "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0),\n"
         "    squote to use single quotes instad of double quotes for quoted program commands.\n"
-        "    shellhide to hide the command window when opening programs on the Windows system.\n"
+        "    shellhide to hide the command window when opening programs on the Windows platform.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
         "for directserial: realport (required), rxdelay (optional).\n"
@@ -3503,37 +3341,47 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain = secprop->Add_multiremain("serial5",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial6",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial7",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial8",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial9",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
+    Pmulti_remain->SetBasic(true);
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+    Pmulti_remain->SetBasic(true);
 
     Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-dosbox-x.txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
@@ -3541,7 +3389,11 @@ void DOSBOX_SetupConfigSections(void) {
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
+#if C_PRINTER
+    Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"printer");
+#else
     Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
+#endif
     Pstring->Set_help(
             "parallel1-9 -- set type of device connected to the parallel (LPT) port.\n"
             "Can be:\n"
@@ -3564,7 +3416,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    Additional parameters:\n"
             "    timeout:<milliseconds> = how long to wait before closing the file on inactivity (default:0 or 500),\n"
             "    squote to use single quotes instad of double quotes for quoted program commands.\n"
-            "    shellhide to hide the command window when opening programs on the Windows system.\n"
+            "    shellhide to hide the command window when opening programs on the Windows platform.\n"
             "    addFF to add a formfeed when closing, addLF to add a linefeed if the app doesn't.\n"
             "    cp:<codepage number> to perform codepage translation, i.e. cp:437\n"
             "    openps:<program>: start a program to open the file if the print output is detected to be PostScript.\n"
@@ -3585,16 +3437,22 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel4",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel5",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel6",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel7",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel8",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel9",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable dongle");
@@ -3615,7 +3473,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("height", Property::Changeable::WhenIdle, 110);
     Pint->Set_help("Height of paper in 1/10 inch (default 110 = 11.0'').");
     Pint->SetBasic(true);
-#ifdef C_LIBPNG
+#if C_PRINTER && 0
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "printer");
+#elif defined(C_LIBPNG)
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "png");
 #else
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
@@ -3626,7 +3486,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         "  ps      : Creates PostScript\n"
         "  bmp     : Creates BMP images (very huge files, not recommended)\n"
-        "  printer : Send to an actual printer in Windows (Print dialog will appear)"
+        "  printer : Send to an actual printer in Windows (specify a printer, or Print dialog will appear)"
     );
     Pstring->SetBasic(true);
 
@@ -3634,12 +3494,19 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("device", Property::Changeable::WhenIdle, "-");
+    Pstring->Set_help("Specify the Windows printer device to use. You can see the list of devices from the Help\n"
+        "  menu (\'List printer devices\') or the Status Window. Then make your choice and put either\n"
+        "  the printer device number (e.g. 2) or your printer name (e.g. Microsoft Print to PDF).\n"
+        "  Leaving it empty will show the Windows Print dialog (or \'-\' for showing once).");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
-    Pstring->Set_help("The path where the output files are stored.");
+    Pstring->Set_help("The path (directory) where the output files are stored.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("fontpath", Property::Changeable::WhenIdle, "FONTS");
-    Pstring->Set_help("The path where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
+    Pstring->Set_help("The path (directory) where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("openwith", Property::Changeable::WhenIdle, "");
@@ -3651,7 +3518,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("shellhide", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows system.");
+    Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows platform.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
@@ -3735,7 +3602,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on the Windows system.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
@@ -3822,7 +3689,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"
             "This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.\n"
-            "This option also affects whether INT 67h is zeroed when booting a guest OS");
+            "This option also affects whether INT 67h is zeroed when booting a guest OS.");
 
     Pbool = secprop->Add_bool("zero unused int 68h",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Leave INT 68h zero at startup.\n"
@@ -3843,7 +3710,7 @@ void DOSBOX_SetupConfigSections(void) {
             "incur a slight to moderate performance penalty.");
 
     Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
-    Pint->Set_help("Amount of memory associated with system handle, in KB");
+    Pint->Set_help("Amount of memory associated with system handle, in KB.");
 
     Pbool = secprop->Add_bool("ems system handle on even megabyte",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, try to allocate the EMM system handle on an even megabyte.\n"
@@ -3869,15 +3736,16 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
-    Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+    Pstring = secprop->Add_string("keep private area on boot",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
 
     Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
             "If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
     Pbool = secprop->Add_bool("quick reboot",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the DOS restart call will reboot the emulated DOS (integrated DOS or guest DOS) instead of the virtual machine\n");
+    Pbool->Set_help("If set, the DOS restart call will reboot the emulated DOS (integrated DOS or guest DOS) instead of the virtual machine.\n");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
@@ -3925,15 +3793,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
+    Pbool->Set_help("Allow starting Windows programs or commands to run on the Windows host including the use of START command.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows programs after they are started.");
+    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows applications after they are started.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, DOSBox-X will not show information messages before launching Windows programs to run on the host.");
+    Pbool->Set_help("If set, before launching Windows applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
@@ -4007,20 +3875,20 @@ void DOSBOX_SetupConfigSections(void) {
             "set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
     Pstring = secprop->Add_string("dos clipboard device enable",Property::Changeable::WhenIdle, "false");
-    Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the Windows clipboard.\n"
+    Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the shared clipboard.\n"
 			"Setting to \"read\" will only allow read access, and setting to \"write\" will only allow write access.\n"
 			"Setting to \"full\" or \"true\" enables both; setting to \"false\" or \"disabled\" disables the access or device.\n"
             "The default device name is CLIP$, but can be changed with the \"dos clipboard device name\" setting below.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("dos clipboard device name",Property::Changeable::WhenIdle, "CLIP$");
-    Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the Windows clipboard.\n"
+    Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the shared clipboard.\n"
             "If unset or invalid, the default name CLIP$ will be used (e.g. \"TYPE CLIP$\" shows the clipboard contents).\n"
 			"It has no effect if \"dos clipboard device enable\" is disabled, and it is deactivated if the secure mode is enabled.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dos clipboard api",Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled.");
+    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
@@ -4031,15 +3899,14 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
     MSG_Add("NE2000_CONFIGFILE_HELP",
         "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBoxes running on your network,\n"
+        "           If you have multiple DOSBox-Xes running on your network,\n"
         "           this has to be changed. Modify the last three number blocks.\n"
         "           I.e. AC:DE:48:88:99:AB.\n"
         "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices in the\n"
-        "           Status Window. Then make your choice and put either the\n"
-        "           interface number (2 or something) or a part of your adapters\n"
-        "           name, e.g. VIA here.\n"
-
+        "           Write \'list\' here to see the list of devices from the Help\n"
+        "           menu (\'List network interfaces\') or from the Status Window.\n"
+        "           Then make your choice and put either the interface number\n"
+        "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
     );
 
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
@@ -4067,10 +3934,10 @@ void DOSBOX_SetupConfigSections(void) {
      *       can then compile NE2000 support with and without libpcap/winpcap support. */
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
     Pstring->Set_help("Specifies which of your network interfaces is used.\n"
-        "Write \'list\' here to see the list of devices in the\n"
-        "Status Window. Then make your choice and put either the\n"
-        "interface number (2 or something) or a part of your adapters\n"
-        "name, e.g. VIA here.");
+        "Write \'list\' here to see the list of devices from the Help\n"
+        "menu (\'List network interfaces\') or from the Status Window.\n"
+        "Then make your choice and put either the interface number\n"
+        "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
@@ -4265,7 +4132,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("Sets the country code for country-specific date/time formats.");
+    Pstring->Set_help("Sets the country code for country-specific date & time formats.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
@@ -4285,185 +4152,6 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("EMPTY_SLOT","Empty slot");
-}
-
-int utf8_encode(char **ptr, const char *fence, uint32_t code) {
-    int uchar_size=1;
-    char *p = *ptr;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (code >= (uint32_t)0x80000000UL) return UTF8ERR_INVALID;
-    if (p >= fence) return UTF8ERR_NO_ROOM;
-
-    if (code >= 0x4000000) uchar_size = 6;
-    else if (code >= 0x200000) uchar_size = 5;
-    else if (code >= 0x10000) uchar_size = 4;
-    else if (code >= 0x800) uchar_size = 3;
-    else if (code >= 0x80) uchar_size = 2;
-
-    if ((p+uchar_size) > fence) return UTF8ERR_NO_ROOM;
-
-    switch (uchar_size) {
-        case 1: *p++ = (char)code;
-            break;
-        case 2: *p++ = (char)(0xC0 | (code >> 6));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 3: *p++ = (char)(0xE0 | (code >> 12));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 4: *p++ = (char)(0xF0 | (code >> 18));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 5: *p++ = (char)(0xF8 | (code >> 24));
-            *p++ = (char)(0x80 | ((code >> 18) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 6: *p++ = (char)(0xFC | (code >> 30));
-            *p++ = (char)(0x80 | ((code >> 24) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 18) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-    }
-
-    *ptr = p;
-    return 0;
-}
-
-int utf8_decode(const char **ptr,const char *fence) {
-    const char *p = *ptr;
-    int uchar_size=1;
-    int ret = 0,c;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (p >= fence) return UTF8ERR_NO_ROOM;
-
-    ret = (unsigned char)(*p);
-    if (ret >= 0xFE) { p++; return UTF8ERR_INVALID; }
-    else if (ret >= 0xFC) uchar_size=6;
-    else if (ret >= 0xF8) uchar_size=5;
-    else if (ret >= 0xF0) uchar_size=4;
-    else if (ret >= 0xE0) uchar_size=3;
-    else if (ret >= 0xC0) uchar_size=2;
-    else if (ret >= 0x80) { p++; return UTF8ERR_INVALID; }
-
-    if ((p+uchar_size) > fence)
-        return UTF8ERR_NO_ROOM;
-
-    switch (uchar_size) {
-        case 1: p++;
-            break;
-        case 2: ret = (ret&0x1F)<<6; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 3: ret = (ret&0xF)<<12; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 4: ret = (ret&0x7)<<18; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 5: ret = (ret&0x3)<<24; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<18;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 6: ret = (ret&0x1)<<30; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<24;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<18;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-    }
-
-    *ptr = p;
-    return ret;
-}
-
-int utf16le_encode(char **ptr, const char *fence, uint32_t code) {
-    char *p = *ptr;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (code > 0x10FFFF) return UTF8ERR_INVALID;
-    if (code > 0xFFFF) { /* UTF-16 surrogate pair */
-        uint32_t lo = (code - 0x10000) & 0x3FF;
-        uint32_t hi = ((code - 0x10000) >> 10) & 0x3FF;
-        if ((p+2+2) > fence) return UTF8ERR_NO_ROOM;
-        *p++ = (char)( (hi+0xD800)       & 0xFF);
-        *p++ = (char)(((hi+0xD800) >> 8) & 0xFF);
-        *p++ = (char)( (lo+0xDC00)       & 0xFF);
-        *p++ = (char)(((lo+0xDC00) >> 8) & 0xFF);
-    }
-    else if ((code&0xF800) == 0xD800) { /* do not allow accidental surrogate pairs (0xD800-0xDFFF) */
-        return UTF8ERR_INVALID;
-    }
-    else {
-        if ((p+2) > fence) return UTF8ERR_NO_ROOM;
-        *p++ = (char)( code       & 0xFF);
-        *p++ = (char)((code >> 8) & 0xFF);
-    }
-
-    *ptr = p;
-    return 0;
-}
-
-int utf16le_decode(const char **ptr,const char *fence) {
-    const char *p = *ptr;
-    unsigned int ret,b=2;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if ((p+1) >= fence) return UTF8ERR_NO_ROOM;
-
-    ret = (unsigned char)p[0];
-    ret |= ((unsigned int)((unsigned char)p[1])) << 8;
-    if (ret >= 0xD800U && ret <= 0xDBFFU)
-        b=4;
-    else if (ret >= 0xDC00U && ret <= 0xDFFFU)
-        { p++; return UTF8ERR_INVALID; }
-
-    if ((p+b) > fence)
-        return UTF8ERR_NO_ROOM;
-
-    p += 2;
-    if (ret >= 0xD800U && ret <= 0xDBFFU) {
-        /* decode surrogate pair */
-        unsigned int hi = ret & 0x3FFU;
-        unsigned int lo = (unsigned char)p[0];
-        lo |= ((unsigned int)((unsigned char)p[1])) << 8;
-        p += 2;
-        if (lo < 0xDC00U || lo > 0xDFFFU) return UTF8ERR_INVALID;
-        lo &= 0x3FFU;
-        ret = ((hi << 10U) | lo) + 0x10000U;
-    }
-
-    *ptr = p;
-    return (int)ret;
 }
 
 extern void POD_Save_Sdlmain( std::ostream& stream );
@@ -4523,1413 +4211,4 @@ private:
 		ticksScheduled = 0;
 	}
 } dummy;
-}
-
-#include "zlib.h"
-#ifdef WIN32
-#include "direct.h"
-#endif
-#include "cross.h"
-#include "logging.h"
-#if defined (__APPLE__)
-#else
-#include <malloc.h>
-#endif
-#include <cstring>
-#include <fstream>
-
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <string>
-#include <stdlib.h>
-#include "SDL.h"
-
-#ifndef WIN32
-char* itoa(int value, char* str, int radix) {
-	/**
-		* C++ version 0.4 char* style "itoa":
-		* Written by LukÃ¡s Chmela
-		* Released under GPLv3.
-	*/
-		// check that the radix if valid
-		if (radix < 2 || radix > 36) { *str = '\0'; return str; }
-
-		char* ptr = str, *ptr1 = str, tmp_char;
-		int tmp_value;
-
-		do {
-			tmp_value = value;
-			value /= radix;
-			*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * radix)];
-		} while ( value );
-
-		// Apply negative sign
-		if (tmp_value < 0) *ptr++ = '-';
-		*ptr-- = '\0';
-		while(ptr1 < ptr) {
-			tmp_char = *ptr;
-			*ptr--= *ptr1;
-			*ptr1++ = tmp_char;
-		}
-		return str;
-}
-#endif
-
-SaveState& SaveState::instance() {
-    static SaveState singleton;
-    return singleton;
-}
-
-void SaveState::registerComponent(const std::string& uniqueName, Component& comp) {
-    components.insert(std::make_pair(uniqueName, CompData(comp)));
-}
-
-namespace Util {
-std::string compress(const std::string& input) { //throw (SaveState::Error)
-	if (input.empty())
-		return input;
-
-	const uLong bufferSize = ::compressBound((uLong)input.size());
-
-	std::string output;
-	output.resize(bufferSize);
-
-	uLongf actualSize = bufferSize;
-	if (::compress2(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					reinterpret_cast<const Bytef*>(input.c_str()), (uLong)input.size(), Z_BEST_SPEED) != Z_OK)
-		throw SaveState::Error("Compression failed!");
-
-	output.resize(actualSize);
-
-	//save size of uncompressed data
-	const size_t uncompressedSize = input.size(); //save size of uncompressed data
-	output.resize(output.size() + sizeof(uncompressedSize)); //won't trigger a reallocation
-	::memcpy(&output[0] + output.size() - sizeof(uncompressedSize), &uncompressedSize, sizeof(uncompressedSize));
-
-	return std::string(&output[0], output.size()); //strip reserved space
-}
-
-std::string decompress(const std::string& input) { //throw (SaveState::Error)
-	if (input.empty())
-		return input;
-
-	//retrieve size of uncompressed data
-	size_t uncompressedSize = 0;
-	::memcpy(&uncompressedSize, &input[0] + input.size() - sizeof(uncompressedSize), sizeof(uncompressedSize));
-
-	std::string output;
-	output.resize(uncompressedSize);
-
-	uLongf actualSize = (uLongf)uncompressedSize;
-	if (::uncompress(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					 reinterpret_cast<const Bytef*>(input.c_str()), (uLong)(input.size() - sizeof(uncompressedSize))) != Z_OK)
-		throw SaveState::Error("Decompression failed!");
-
-	output.resize(actualSize); //should be superfluous!
-
-	return output;
-}
-}
-
-inline void SaveState::RawBytes::set(const std::string& stream) {
-	bytes = stream;
-	isCompressed = false;
-	dataExists   = true;
-}
-
-inline std::string SaveState::RawBytes::get() const { //throw (Error){
-	if (isCompressed)
-		(Util::decompress(bytes)).swap(bytes);
-	isCompressed = false;
-	return bytes;
-}
-
-inline void SaveState::RawBytes::compress() const { //throw (Error)
-	if (!isCompressed)
-		(Util::compress(bytes)).swap(bytes);
-	isCompressed = true;
-}
-
-inline bool SaveState::RawBytes::dataAvailable() const {
-	return dataExists;
-}
-
-#define CASESENSITIVITY (0)
-#define MAXFILENAME (256)
-
-int mymkdir(const char* dirname)
-{
-    int ret=0;
-#ifdef _WIN32
-    ret = _mkdir(dirname);
-#elif unix
-    ret = mkdir (dirname,0775);
-#elif __APPLE__
-    ret = mkdir (dirname,0775);
-#endif
-    return ret;
-}
-
-int makedir(const char *newdir)
-{
-  char *buffer ;
-  char *p;
-  int  len = (int)strlen(newdir);
-
-  if (len <= 0)
-    return 0;
-
-  buffer = (char*)malloc(len+1);
-        if (buffer==NULL)
-        {
-                printf("Error allocating memory\n");
-                return UNZ_INTERNALERROR;
-        }
-  strcpy(buffer,newdir);
-
-  if (buffer[len-1] == '/') {
-    buffer[len-1] = '\0';
-  }
-  if (mymkdir(buffer) == 0)
-    {
-      free(buffer);
-      return 1;
-    }
-
-  p = buffer+1;
-  while (1)
-    {
-      char hold;
-
-      while(*p && *p != '\\' && *p != '/')
-        p++;
-      hold = *p;
-      *p = 0;
-      if ((mymkdir(buffer) == -1) && (errno == ENOENT))
-        {
-          printf("couldn't create directory %s\n",buffer);
-          free(buffer);
-          return 0;
-        }
-      if (hold == 0)
-        break;
-      *p++ = hold;
-    }
-  free(buffer);
-  return 1;
-}
-
-void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
-{
-    (void)dosdate;
-#ifdef _WIN32
-  HANDLE hFile;
-  FILETIME ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite;
-
-  hFile = CreateFileA(filename,GENERIC_READ | GENERIC_WRITE,
-                      0,NULL,OPEN_EXISTING,0,NULL);
-  GetFileTime(hFile,&ftCreate,&ftLastAcc,&ftLastWrite);
-  DosDateTimeToFileTime((WORD)(dosdate>>16),(WORD)dosdate,&ftLocal);
-  LocalFileTimeToFileTime(&ftLocal,&ftm);
-  SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
-  CloseHandle(hFile);
-#else
-#if defined(unix) || defined(__APPLE__)
-  struct utimbuf ut;
-  struct tm newdate;
-  newdate.tm_sec = tmu_date.tm_sec;
-  newdate.tm_min=tmu_date.tm_min;
-  newdate.tm_hour=tmu_date.tm_hour;
-  newdate.tm_mday=tmu_date.tm_mday;
-  newdate.tm_mon=tmu_date.tm_mon;
-  if (tmu_date.tm_year > 1900)
-      newdate.tm_year=tmu_date.tm_year - 1900;
-  else
-      newdate.tm_year=tmu_date.tm_year ;
-  newdate.tm_isdst=-1;
-
-  ut.actime=ut.modtime=mktime(&newdate);
-  utime(filename,&ut);
-#endif
-#endif
-}
-
-int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password, const char *savename=NULL)
-{
-    char filename_inzip[256];
-    char* filename_withoutpath;
-    char* p;
-    int err=UNZ_OK;
-    FILE *fout=NULL;
-    void* buf;
-    uInt size_buf;
-
-    unz_file_info64 file_info;
-    uLong ratio=0;
-    err = unzGetCurrentFileInfo64(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
-
-    (void)ratio;
-
-    if (err!=UNZ_OK)
-    {
-        printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
-        return err;
-    }
-
-    size_buf = 8192;
-    buf = (void*)malloc(size_buf);
-    if (buf==NULL)
-    {
-        printf("Error allocating memory\n");
-        return UNZ_INTERNALERROR;
-    }
-
-    p = filename_withoutpath = filename_inzip;
-    while ((*p) != '\0')
-    {
-        if (((*p)=='/') || ((*p)=='\\'))
-            filename_withoutpath = p+1;
-        p++;
-    }
-
-    if ((*filename_withoutpath)=='\0')
-    {
-        if ((*popt_extract_without_path)==0)
-        {
-            printf("creating directory: %s\n",filename_inzip);
-            mymkdir(filename_inzip);
-        }
-    }
-    else
-    {
-        const char* write_filename;
-        int skip=0;
-
-        if (savename!=NULL)
-            write_filename = savename;
-        else if ((*popt_extract_without_path)==0)
-            write_filename = filename_inzip;
-        else
-            write_filename = filename_withoutpath;
-
-        err = unzOpenCurrentFilePassword(uf,password);
-        if (err!=UNZ_OK)
-        {
-            printf("error %d with zipfile in unzOpenCurrentFilePassword\n",err);
-        }
-
-        if (((*popt_overwrite)==0) && (err==UNZ_OK))
-        {
-            char rep=0;
-            FILE* ftestexist;
-            ftestexist = FOPEN_FUNC(write_filename,"rb");
-            if (ftestexist!=NULL)
-            {
-                fclose(ftestexist);
-                do
-                {
-                    char answer[128];
-                    int ret;
-
-                    printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
-                    ret = scanf("%1s",answer);
-                    if (ret != 1)
-                    {
-                       exit(EXIT_FAILURE);
-                    }
-                    rep = answer[0] ;
-                    if ((rep>='a') && (rep<='z'))
-                        rep -= 0x20;
-                }
-                while ((rep!='Y') && (rep!='N') && (rep!='A'));
-            }
-
-            if (rep == 'N')
-                skip = 1;
-
-            if (rep == 'A')
-                *popt_overwrite=1;
-        }
-
-        if ((skip==0) && (err==UNZ_OK))
-        {
-            fout=FOPEN_FUNC(write_filename,"wb");
-            /* some zipfile don't contain directory alone before file */
-            if ((fout==NULL) && ((*popt_extract_without_path)==0) &&
-                                (filename_withoutpath!=(char*)filename_inzip))
-            {
-                char c=*(filename_withoutpath-1);
-                *(filename_withoutpath-1)='\0';
-                makedir(write_filename);
-                *(filename_withoutpath-1)=c;
-                fout=FOPEN_FUNC(write_filename,"wb");
-            }
-
-            if (fout==NULL)
-            {
-                printf("error opening %s\n",write_filename);
-            }
-        }
-
-        if (fout!=NULL)
-        {
-            printf(" extracting: %s\n",write_filename);
-
-            do
-            {
-                err = unzReadCurrentFile(uf,buf,size_buf);
-                if (err<0)
-                {
-                    printf("error %d with zipfile in unzReadCurrentFile\n",err);
-                    break;
-                }
-                if (err>0)
-                    if (fwrite(buf,err,1,fout)!=1)
-                    {
-                        printf("error in writing extracted file\n");
-                        err=UNZ_ERRNO;
-                        break;
-                    }
-            }
-            while (err>0);
-            if (fout)
-                    fclose(fout);
-
-            if (err==0)
-                change_file_date(write_filename,file_info.dosDate,
-                                 file_info.tmu_date);
-        }
-
-        if (err==UNZ_OK)
-        {
-            err = unzCloseCurrentFile (uf);
-            if (err!=UNZ_OK)
-            {
-                printf("error %d with zipfile in unzCloseCurrentFile\n",err);
-            }
-        }
-        else
-            unzCloseCurrentFile(uf); /* don't lose the error */
-    }
-
-    free(buf);
-    return err;
-}
-
-int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, const char* password)
-{
-    uLong i;
-    unz_global_info64 gi;
-    int err;
-    FILE* fout=NULL;
-
-    (void)fout;
-
-    err = unzGetGlobalInfo64(uf,&gi);
-    if (err!=UNZ_OK) {
-        printf("error %d with zipfile in unzGetGlobalInfo \n",err);
-        return 0;
-    }
-
-    for (i=0;i<gi.number_entry;i++)
-    {
-        if (do_extract_currentfile(uf,&opt_extract_without_path,
-                                      &opt_overwrite,
-                                      password) != UNZ_OK)
-            break;
-
-        if ((i+1)<gi.number_entry)
-        {
-            err = unzGoToNextFile(uf);
-            if (err!=UNZ_OK)
-            {
-                printf("error %d with zipfile in unzGoToNextFile\n",err);
-                break;
-            }
-        }
-    }
-
-    return 0;
-}
-
-int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password, const char *savename=NULL)
-{
-    int err = UNZ_OK;
-    (void)err;
-    if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
-    {
-        printf("file %s not found in the zipfile\n",filename);
-        return 2;
-    }
-
-    if (do_extract_currentfile(uf,&opt_extract_without_path,
-                                      &opt_overwrite,
-                                      password, savename) == UNZ_OK)
-        return 0;
-    else
-        return 1;
-}
-
-int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename = NULL) {
-    const char *zipfilename=NULL;
-    const char *filename_to_extract=NULL;
-    const char *password=NULL;
-    char filename_try[MAXFILENAME+16] = "";
-    int ret_value=0;
-    int opt_do_extract=1;
-    int opt_do_extract_withoutpath=0;
-    int opt_overwrite=0;
-    int opt_extractdir=0;
-    const char *dirname=NULL;
-    unzFile uf=NULL;
-
-		opt_do_extract = opt_do_extract_withoutpath = 1;
-		opt_overwrite=1;
-		opt_extractdir=1;
-		dirname=savedir;
-        zipfilename = (const char *)savefile;
-        filename_to_extract = savefile2;
-
-    if (zipfilename!=NULL)
-    {
-
-#        ifdef USEWIN32IOAPI
-        zlib_filefunc64_def ffunc;
-#        endif
-
-        strncpy(filename_try, zipfilename,MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
-        filename_try[ MAXFILENAME ] = '\0';
-
-#        ifdef USEWIN32IOAPI
-        fill_win32_filefunc64A(&ffunc);
-        uf = unzOpen2_64(zipfilename,&ffunc);
-#        else
-        uf = unzOpen64(zipfilename);
-#        endif
-    }
-
-    if (uf==NULL)
-    {
-        //printf("Cannot open %s\n",zipfilename,zipfilename);
-        return 1;
-    }
-    //printf("%s opened\n",filename_try);
-
-	if (opt_do_extract==1)
-    {
-		char cCurrentPath[FILENAME_MAX];
-		char *ret=getcwd(cCurrentPath, sizeof(cCurrentPath));
-        if (opt_extractdir && chdir(dirname))
-        {
-          printf("Error changing into %s, aborting\n", dirname);
-          exit(-1);
-        }
-
-        if (filename_to_extract == NULL)
-            ret_value = do_extract(uf, opt_do_extract_withoutpath, opt_overwrite, password);
-        else
-            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password, savename);
-		if (ret!=NULL) chdir(cCurrentPath);
-    }
-
-    unzClose(uf);
-
-    return ret_value;
-}
-
-#ifdef _WIN32
-uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
-{
-  int ret = 0;
-  {
-      FILETIME ftLocal;
-      HANDLE hFind;
-      WIN32_FIND_DATAA ff32;
-
-      hFind = FindFirstFileA(f,&ff32);
-      if (hFind != INVALID_HANDLE_VALUE)
-      {
-        FileTimeToLocalFileTime(&(ff32.ftLastWriteTime),&ftLocal);
-        FileTimeToDosDateTime(&ftLocal,((LPWORD)dt)+1,((LPWORD)dt)+0);
-        FindClose(hFind);
-        ret = 1;
-      }
-  }
-  return ret;
-}
-#else
-#if defined(unix) || defined(__APPLE__)
-uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
-{
-    (void)dt;
-  int ret=0;
-  struct stat s;        /* results of stat() */
-  struct tm* filedate;
-  time_t tm_t=0;
-
-  if (strcmp(f,"-")!=0)
-  {
-    char name[MAXFILENAME+1];
-    int len = strlen(f);
-    if (len > MAXFILENAME)
-      len = MAXFILENAME;
-
-    strncpy(name, f,MAXFILENAME-1);
-    /* strncpy doesnt append the trailing NULL, of the string is too long. */
-    name[ MAXFILENAME ] = '\0';
-
-    if (name[len - 1] == '/')
-      name[len - 1] = '\0';
-    /* not all systems allow stat'ing a file with / appended */
-    if (stat(name,&s)==0)
-    {
-      tm_t = s.st_mtime;
-      ret = 1;
-    }
-  }
-  filedate = localtime(&tm_t);
-
-  tmzip->tm_sec  = filedate->tm_sec;
-  tmzip->tm_min  = filedate->tm_min;
-  tmzip->tm_hour = filedate->tm_hour;
-  tmzip->tm_mday = filedate->tm_mday;
-  tmzip->tm_mon  = filedate->tm_mon ;
-  tmzip->tm_year = filedate->tm_year;
-
-  return ret;
-}
-#else
-uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
-{
-    return 0;
-}
-#endif
-#endif
-
-#ifdef __APPLE__
-// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
-#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
-#define FTELLO_FUNC(stream) ftello(stream)
-#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
-#else
-#define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
-#define FTELLO_FUNC(stream) ftello64(stream)
-#define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
-#endif
-
-int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
-{
-    unsigned long calculate_crc=0;
-    int err=ZIP_OK;
-    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
-
-    unsigned long size_read = 0;
-    unsigned long total_read = 0;
-    if (fin==NULL)
-       err = ZIP_ERRNO;
-
-    if (err == ZIP_OK)
-        do
-        {
-            err = ZIP_OK;
-            size_read = (int)fread(buf,1,size_buf,fin);
-            if (size_read < size_buf)
-                if (feof(fin)==0)
-            {
-                printf("error in reading %s\n",filenameinzip);
-                err = ZIP_ERRNO;
-            }
-
-            if (size_read>0)
-                calculate_crc = crc32(calculate_crc,(const Bytef*)buf,size_read);
-            total_read += size_read;
-
-        } while ((err == ZIP_OK) && (size_read>0));
-
-    if (fin)
-        fclose(fin);
-
-    *result_crc=calculate_crc;
-    printf("file %s crc %lx\n", filenameinzip, calculate_crc);
-    return err;
-}
-
-int isLargeFile(const char* filename)
-{
-  int largeFile = 0;
-  ZPOS64_T pos = 0;
-  FILE* pFile = FOPEN_FUNC(filename, "rb");
-
-  if(pFile != NULL)
-  {
-    int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
-    pos = FTELLO_FUNC(pFile);
-    (void)n;
-
-                printf("File : %s is %lld bytes\n", filename, pos);
-
-    if(pos >= 0xffffffff)
-     largeFile = 1;
-
-                fclose(pFile);
-  }
-
- return largeFile;
-}
-
-int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
-    int opt_overwrite=0;
-    int opt_compress_level=Z_DEFAULT_COMPRESSION;
-    int opt_exclude_path=savename==NULL?1:0;
-    int zipfilenamearg = 0;
-    (void)zipfilenamearg;
-    //char filename_try[MAXFILENAME16];
-    int err=0;
-    int size_buf=0;
-    void* buf=NULL;
-    const char* password=NULL;
-
-	opt_overwrite = 2;
-	opt_compress_level = 9;
-
-    size_buf = 16384;
-    buf = (void*)malloc(size_buf);
-    if (buf==NULL)
-    {
-        //printf("Error allocating memory\n");
-        return ZIP_INTERNALERROR;
-    }
-
-    {
-        zipFile zf;
-        int errclose;
-#        ifdef USEWIN32IOAPI
-        zlib_filefunc64_def ffunc;
-        fill_win32_filefunc64A(&ffunc);
-        zf = zipOpen2_64(savefile,(opt_overwrite==2) ? 2 : 0,NULL,&ffunc);
-#        else
-        zf = zipOpen64(savefile,(opt_overwrite==2) ? 2 : 0);
-#        endif
-
-        if (zf == NULL)
-        {
-            //printf("error opening %s\n",savefile);
-            err= ZIP_ERRNO;
-        }
-        else
-            //printf("creating %s\n",savefile);
-
-            {
-                FILE *fin = NULL;
-                int size_read;
-                char* filenameinzip = (char *)savefile2;
-                const char *savefilenameinzip;
-                zip_fileinfo zi;
-                unsigned long crcFile=0;
-                int zip64 = 0;
-
-                zi.tmz_date.tm_sec = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
-                zi.tmz_date.tm_mday = zi.tmz_date.tm_mon = zi.tmz_date.tm_year = 0;
-                zi.dosDate = 0;
-                zi.internal_fa = 0;
-                zi.external_fa = 0;
-                filetime(filenameinzip,&zi.tmz_date,&zi.dosDate);
-
-                if ((password != NULL) && (err==ZIP_OK))
-                    err = getFileCrc(filenameinzip,buf,size_buf,&crcFile);
-
-                zip64 = isLargeFile(filenameinzip);
-
-                                                         /* The path name saved, should not include a leading slash. */
-               /*if it did, windows/xp and dynazip couldn't read the zip file. */
-                 savefilenameinzip = savename == NULL ? filenameinzip : savename;
-                 while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )
-                 {
-                     savefilenameinzip++;
-                 }
-
-                 /*should the zip file contain any path at all?*/
-                 if( opt_exclude_path )
-                 {
-                     const char *tmpptr;
-                     const char *lastslash = 0;
-                     for( tmpptr = savefilenameinzip; *tmpptr; tmpptr++)
-                     {
-                         if( *tmpptr == '\\' || *tmpptr == '/')
-                         {
-                             lastslash = tmpptr;
-                         }
-                     }
-                     if( lastslash != NULL )
-                     {
-                         savefilenameinzip = lastslash+1; // base filename follows last slash.
-                     }
-                 }
-
-                 /**/
-                err = zipOpenNewFileInZip3_64(zf,savefilenameinzip,&zi,
-                                 NULL,0,NULL,0,NULL /* comment*/,
-                                 (opt_compress_level != 0) ? Z_DEFLATED : 0,
-                                 opt_compress_level,0,
-                                 /* -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, */
-                                 -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-                                 password,crcFile, zip64);
-
-                if (err != ZIP_OK) {
-                    //printf("error in opening %s in zipfile\n",filenameinzip);
-				}
-                else
-                {
-                    fin = fopen64(filenameinzip,"rb");
-                    if (fin==NULL)
-                    {
-                        err=ZIP_ERRNO;
-                        //printf("error in opening %s for reading\n",filenameinzip);
-                    }
-                }
-
-                if (err == ZIP_OK)
-                    do
-                    {
-                        err = ZIP_OK;
-                        size_read = (int)fread(buf,1,size_buf,fin);
-                        if (size_read < size_buf)
-                            if (feof(fin)==0)
-                        {
-                            //printf("error in reading %s\n",filenameinzip);
-                            err = ZIP_ERRNO;
-                        }
-
-                        if (size_read>0)
-                        {
-                            err = zipWriteInFileInZip (zf,buf,size_read);
-                            if (err<0)
-                            {
-                                //printf("error in writing %s in the zipfile\n",
-                                //                 filenameinzip);
-                            }
-
-                        }
-                    } while ((err == ZIP_OK) && (size_read>0));
-
-                if (fin)
-                    fclose(fin);
-
-                if (err<0)
-                    err=ZIP_ERRNO;
-                else
-                {
-                    err = zipCloseFileInZip(zf);
-                    if (err!=ZIP_OK) {
-                        //printf("error in closing %s in the zipfile\n",
-                        //            filenameinzip);
-					}
-                }
-            }
-        errclose = zipClose(zf,NULL);
-        if (errclose != ZIP_OK) {
-            //printf("error in closing %s\n",savefile);
-		}
-    }
-
-    free(buf);
-    return 0;
-}
-
-int flagged_backup(char *zip);
-int flagged_restore(char* zip);
-
-void SaveState::save(size_t slot) { //throw (Error)
-	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
-	SDL_PauseAudio(0);
-	bool save_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>1024) {
-		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-		notifyError("Unsupported memory size for saving states.", false);
-		return;
-	}
-    const char *save_remark = "";
-#if !defined(HX_DOS)
-    if (!noremark_save_state) {
-        /* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
-         *      It is not necessary to free the return string, but it is important to understand that
-         *      the next call to tinyfd_inputBox() will obliterate the previously returned string.
-         *      See src/libs/tinyfiledialogs/tinyfiledialogs.c line 5069 --J.C. */
-        /* NTS: The code was originally written to declare save_remark as char* default assigned to string
-         *      constant "", but GCC (rightfully so) complains you're pointing char* at something that
-         *      is stored const by the compiler. "save_remark" is not modified past this point, so it
-         *      has been changed to const char* and the return value of tinyfd_inputBox() is given to
-         *      a local temporary char* string where the modification can be made, and *then* assigned
-         *      to the const char* string for the rest of this function. */
-        char *new_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the 'Cancel' button to cancel the saving.", " ");
-        if (new_remark==NULL) return;
-        new_remark=trim(new_remark);
-        if (strlen(new_remark)>30) new_remark[30]=0;
-        save_remark = new_remark;
-    }
-#endif
-	bool create_version=false;
-	bool create_title=false;
-	bool create_memorysize=false;
-	bool create_machinetype=false;
-	bool create_timestamp=false;
-	bool create_saveremark=false;
-	extern const char* RunningProgram;
-	std::string path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path+=CROSS_FILESPLIT;
-		path+="save";
-		Cross::CreateDir(path);
-		path+=CROSS_FILESPLIT;
-	}
-
-	std::string temp, save2;
-	std::stringstream slotname;
-	slotname << slot+1;
-	temp=path;
-	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
-	remove(save.c_str());
-	std::ofstream file (save.c_str());
-	file << "";
-	file.close();
-	try {
-		for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-			std::ostringstream ss;
-			i->second.comp.getBytes(ss);
-			i->second.rawBytes[slot].set(ss.str());
-			
-			//LOG_MSG("Component is %s",i->first.c_str());
-
-			if(!create_version) {
-				std::string tempname = temp+"DOSBox-X_Version";
-				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
-				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
-				create_version=true;
-				emulatorversion.close();
-			}
-
-			if(!create_title) {
-				std::string tempname = temp+"Program_Name";
-				std::ofstream programname (tempname.c_str(), std::ofstream::binary);
-				programname << RunningProgram;
-				create_title=true;
-				programname.close();
-			}
-
-			if(!create_memorysize) {
-				std::string tempname = temp+"Memory_Size";
-				std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
-				memorysize << MEM_TotalPages();
-				create_memorysize=true;
-				memorysize.close();
-			}
-
-			if(!create_machinetype) {
-				std::string tempname = temp+"Machine_type";
-				std::ofstream machinetype (tempname.c_str(), std::ofstream::binary);
-				machinetype << getType();
-				create_machinetype=true;
-				machinetype.close();
-			}
-
-			if(!create_timestamp) {
-				std::string tempname = temp+"Time_Stamp";
-				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
-				timestamp << getTime(true);
-				create_timestamp=true;
-				timestamp.close();
-			}
-
-			if(!create_saveremark) {
-				std::string tempname = temp+"Save_Remark";
-				std::ofstream saveremark (tempname.c_str(), std::ofstream::binary);
-				saveremark << std::string(save_remark);
-				create_saveremark=true;
-				saveremark.close();
-			}
-
-			std::string realtemp;
-			realtemp = temp + i->first;
-			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
-			outfile << (Util::compress(ss.str()));
-			//compress all other saved states except position "slot"
-			//const std::vector<RawBytes>& rb = i->second.rawBytes;
-			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
-			//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
-			outfile.close();
-			ss.clear();
-			if(outfile.fail()) {
-				LOG_MSG("Save failed! - %s", realtemp.c_str());
-				save_err=true;
-				remove(save.c_str());
-				goto delete_all;
-			}
-		}
-	}
-	catch (const std::bad_alloc&) {
-		LOG_MSG("Save failed! Out of Memory!");
-		save_err=true;
-		remove(save.c_str());
-		goto delete_all;
-	}
-
-	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	}
-	save2=temp+"DOSBox-X_Version";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Program_Name";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Memory_Size";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Machine_Type";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Time_Stamp";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Save_Remark";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-    if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
-
-delete_all:
-	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		remove(save2.c_str());
-	}
-	save2=temp+"DOSBox-X_Version";
-	remove(save2.c_str());
-	save2=temp+"Program_Name";
-	remove(save2.c_str());
-	save2=temp+"Memory_Size";
-	remove(save2.c_str());
-	save2=temp+"Machine_Type";
-	remove(save2.c_str());
-	save2=temp+"Time_Stamp";
-	remove(save2.c_str());
-	save2=temp+"Save_Remark";
-	remove(save2.c_str());
-	if (save_err)
-		notifyError("Failed to save the current state.");
-	else
-		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
-}
-
-void savestatecorrupt(const char* part) {
-    LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-    systemmessagebox("Error","Save state corrupted! Program may not work.","ok","error", 1);
-}
-
-bool confres=false;
-bool loadstateconfirm(int ind) {
-    if (ind<0||ind>4) return false;
-    confres=false;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(23+ind);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    bool ret=confres;
-    confres=false;
-    return ret;
-}
-
-void SaveState::load(size_t slot) const { //throw (Error)
-//	if (isEmpty(slot)) return;
-	bool load_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>1024) {
-		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-		notifyError("Unsupported memory size for loading states.", false);
-		return;
-	}
-	SDL_PauseAudio(0);
-	extern const char* RunningProgram;
-	bool read_version=false;
-	bool read_title=false;
-	bool read_memorysize=false;
-	bool read_machinetype=false;
-	std::string path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path +="save";
-		path += CROSS_FILESPLIT;
-	}
-	std::string temp;
-	temp = path;
-	std::stringstream slotname;
-	slotname << slot+1;
-	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
-	std::ifstream check_slot;
-	check_slot.open(save.c_str(), std::ifstream::in);
-	if(check_slot.fail()) {
-		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
-		notifyError(use_save_file&&savefilename.size()?"The selected save file is currently empty.":"The selected save slot is an empty slot.", false);
-		load_err=true;
-		return;
-	}
-
-	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
-		std::filebuf * fb;
-		std::ifstream ss;
-		std::ifstream check_file;
-		fb = ss.rdbuf();
-		
-		//LOG_MSG("Component is %s",i->first.c_str());
-
-		my_miniunz((char **)save.c_str(),i->first.c_str(),temp.c_str());
-
-		if(!read_version) {
-			my_miniunz((char **)save.c_str(),"DOSBox-X_Version",temp.c_str());
-			std::ifstream check_version;
-			int length = 8;
-
-			std::string tempname = temp+"DOSBox-X_Version";
-			check_version.open(tempname.c_str(), std::ifstream::in);
-			if(check_version.fail()) {
-				savestatecorrupt("DOSBox-X_Version");
-				load_err=true;
-				goto delete_all;
-			}
-			check_version.seekg (0, std::ios::end);
-			length = (int)check_version.tellg();
-			check_version.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_version.read (buffer, length);
-			check_version.close();
-			buffer[length]='\0';
-			char *p=strrchr(buffer, '\n');
-			if (p!=NULL) *p=0;
-			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform(true);
-			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
-				if(!force_load_state&&!loadstateconfirm(0)) {
-					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_version=true;
-		}
-
-		if(!read_title) {
-			my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
-			std::ifstream check_title;
-			int length = 8;
-
-			std::string tempname = temp+"Program_Name";
-			check_title.open(tempname.c_str(), std::ifstream::in);
-			if(check_title.fail()) {
-				savestatecorrupt("Program_Name");
-				load_err=true;
-				goto delete_all;
-			}
-			check_title.seekg (0, std::ios::end);
-			length = (int)check_title.tellg();
-			check_title.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_title.read (buffer, length);
-			check_title.close();
-			if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
-				if(!force_load_state&&!loadstateconfirm(1)) {
-					buffer[length]='\0';
-					LOG_MSG("Aborted. Check your program name: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-				if (length<9) {
-					static char pname[9];
-					if (length) {
-						strncpy(pname,buffer,length);
-						pname[length]=0;
-					} else
-						strcpy(pname, "DOSBOX-X");
-					RunningProgram=pname;
-					GFX_SetTitle(-1,-1,-1,false);
-				}
-			}
-			read_title=true;
-		}
-
-		if(!read_memorysize) {
-			my_miniunz((char **)save.c_str(),"Memory_Size",temp.c_str());
-			std::fstream check_memorysize;
-			int length = 8;
-
-			std::string tempname = temp+"Memory_Size";
-			check_memorysize.open(tempname.c_str(), std::ifstream::in);
-			if(check_memorysize.fail()) {
-				savestatecorrupt("Memory_Size");
-				load_err=true;
-				goto delete_all;
-			}
-			check_memorysize.seekg (0, std::ios::end);
-			length = (int)check_memorysize.tellg();
-			check_memorysize.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_memorysize.read (buffer, length);
-			check_memorysize.close();
-			char str[10];
-			itoa((int)MEM_TotalPages(), str, 10);
-			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
-				if(!force_load_state&&!loadstateconfirm(2)) {
-					buffer[length]='\0';
-					int size=atoi(buffer)*4096/1024/1024;
-					LOG_MSG("Aborted. Check your memory size: %d MB", size);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_memorysize=true;
-		}
-
-		if(!read_machinetype) {
-			my_miniunz((char **)save.c_str(),"Machine_Type",temp.c_str());
-			std::ifstream check_machinetype;
-			int length = 8;
-
-			std::string tempname = temp+"Machine_Type";
-			check_machinetype.open(tempname.c_str(), std::ifstream::in);
-			if(check_machinetype.fail()) {
-				savestatecorrupt("Machine_Type");
-				load_err=true;
-				goto delete_all;
-			}
-			check_machinetype.seekg (0, std::ios::end);
-			length = (int)check_machinetype.tellg();
-			check_machinetype.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_machinetype.read (buffer, length);
-			check_machinetype.close();
-			char str[20];
-			strcpy(str, getType().c_str());
-			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
-				if(!force_load_state&&!loadstateconfirm(3)) {
-					LOG_MSG("Aborted. Check your machine type: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_machinetype=true;
-		}
-
-		std::string realtemp;
-		realtemp = temp + i->first;
-		check_file.open(realtemp.c_str(), std::ifstream::in);
-		check_file.close();
-		if(check_file.fail()) {
-			savestatecorrupt(i->first.c_str());
-			load_err=true;
-			goto delete_all;
-		}
-
-		clearline=true;
-		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
-		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
-		std::stringstream mystream;
-		mystream << (Util::decompress(str));
-		i->second.comp.setBytes(mystream);
-		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
-			savestatecorrupt(i->first.c_str());
-			load_err=true;
-			goto delete_all;
-		}
-		//compress all other saved states except position "slot"
-		//const std::vector<RawBytes>& rb = i->second.rawBytes;
-		//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
-		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
-		fb->close();
-		mystream.clear();
-        if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
-	}
-delete_all:
-	std::string save2;
-	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		remove(save2.c_str());
-	}
-	save2=temp+"DOSBox-X_Version";
-	remove(save2.c_str());
-	save2=temp+"Program_Name";
-	remove(save2.c_str());
-	save2=temp+"Memory_Size";
-	remove(save2.c_str());
-	save2=temp+"Machine_Type";
-	remove(save2.c_str());
-	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
-}
-
-bool SaveState::isEmpty(size_t slot) const {
-	if (slot >= SLOT_COUNT*MAX_PAGE) return true;
-	std::string path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path +="save";
-		path += CROSS_FILESPLIT;
-	}
-	std::string temp;
-	temp = path;
-	std::stringstream slotname;
-	slotname << slot+1;
-	std::string save=temp+slotname.str()+".sav";
-	std::ifstream check_slot;
-	check_slot.open(save.c_str(), std::ifstream::in);
-	return check_slot.fail();
-}
-
-void SaveState::removeState(size_t slot) const {
-	if (slot >= SLOT_COUNT*MAX_PAGE) return;
-	std::string path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path +="save";
-		path += CROSS_FILESPLIT;
-	}
-	std::string temp;
-	temp = path;
-	std::stringstream slotname;
-	slotname << slot+1;
-	std::string save=temp+slotname.str()+".sav";
-	std::ifstream check_slot;
-	check_slot.open(save.c_str(), std::ifstream::in);
-	if(check_slot.fail()) {
-		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
-		notifyError("The selected save slot is an empty slot.", false);
-		return;
-	}
-    if (loadstateconfirm(4)) {
-        check_slot.close();
-        remove(save.c_str());
-        check_slot.open(save.c_str(), std::ifstream::in);
-        if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
-        if (page!=GetGameState()/SaveState::SLOT_COUNT)
-            SetGameState((int)slot);
-        else
-            refresh_slots();
-    }
-}
-
-std::string SaveState::getName(size_t slot, bool nl) const {
-	if (slot >= SLOT_COUNT*MAX_PAGE) return "["+std::string(MSG_Get("EMPTY_SLOT"))+"]";
-	std::string path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path +="save";
-		path += CROSS_FILESPLIT;
-	}
-	std::string temp;
-	temp = path;
-	std::stringstream slotname;
-	slotname << slot+1;
-	std::string save=nl&&use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
-	std::ifstream check_slot;
-	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return nl?"(Empty state)":"["+std::string(MSG_Get("EMPTY_SLOT"))+"]";
-	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
-	std::ifstream check_title;
-	int length = 8;
-	std::string tempname = temp+"Program_Name";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return "";
-	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer1 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer1, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer1[length]='\0';
-    std::string ret=nl?"Program: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":"[Program: "+std::string(buffer1)+"]";
-	my_miniunz((char **)save.c_str(),"Time_Stamp",temp.c_str());
-    length=18;
-	tempname = temp+"Time_Stamp";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return ret;
-	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer2 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer2, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer2[length]='\0';
-    if (strlen(buffer2)) ret+=nl?"Timestamp: "+(!strlen(buffer2)?"-":std::string(buffer2))+"\n":" ("+std::string(buffer2);
-	my_miniunz((char **)save.c_str(),"Save_Remark",temp.c_str());
-    length=30;
-	tempname = temp+"Save_Remark";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return ret+(!nl?")":"");
-	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer3 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer3, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer3[length]='\0';
-    if (strlen(buffer3)) ret+=nl?"Remark: "+(!strlen(buffer3)?"-":std::string(buffer3))+"\n":" - "+std::string(buffer3)+")";
-    else if (!nl) ret+=")";
-	return ret;
 }

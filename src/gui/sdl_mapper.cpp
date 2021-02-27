@@ -912,9 +912,9 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
 	const char *usesc = section->Get_string("usescancodes");
-	if (!strcasecmp(usesc, "true"))
+	if (!strcasecmp(usesc, "true")||!strcmp(usesc, "1"))
 		usescancodes = 1;
-	else if (!strcasecmp(usesc, "false"))
+	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
 }
 void loadScanCode();
@@ -1038,7 +1038,12 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
+        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        if (!strcmp(r, "left super")) r = "left Windows";
+        else if (!strcmp(r, "right super")) r = "right Windows";
+        else if (!strcmp(r, "left meta")) r = "left Command";
+        else if (!strcmp(r, "right meta")) r = "right Command";
+        sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -1065,6 +1070,10 @@ public:
 				if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
 				if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
 				if (c!=NULL) *(c+1)=toupper(*(c+1));
+                else if (r=="Left super") r = "Left Windows";
+                else if (r=="Right super") r = "Right Windows";
+                else if (r=="Left meta") r = "Left Command";
+                else if (r=="Right meta") r = "Right Command";
 			}
 		}
 #endif
@@ -1098,12 +1107,14 @@ std::string CEvent::GetBindMenuText(void) {
             first=false;
             r += t;
         }
-        if (t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
+        if (t!="Right Windows"&&t!="Left Windows"&&t!="Right Command"&&t!="Left Command"&&t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
         s += t;
     }
-    if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
-    if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
-    if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
+    if (s=="Right WindowsLeft Windows"||s=="Left WindowsRight Windows") r="Windows";
+    else if (s=="Right CommandLeft Command"||s=="Left CommandRight Command") r="Command";
+    else if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
+    else if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
+    else if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
 
     return r;
 }
@@ -1615,6 +1626,7 @@ private:
         return NULL;
     }
     CBind * CreateHatBind(Bitu hat,uint8_t value) {
+        if (hat < hats_cap) return NULL;
         Bitu hat_dir;
         if (value&SDL_HAT_UP) hat_dir=0;
         else if (value&SDL_HAT_RIGHT) hat_dir=1;
@@ -4656,6 +4668,12 @@ void MAPPER_RunInternal() {
     SDL_FreeSurface(mapper.draw_surface_nonpaletted);
     SDL_FreePalette(sdl2_map_pal_ptr);
     GFX_SetResizeable(true);
+#elif C_DIRECT3D
+    bool Direct3D_using(void);
+    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+        change_output(0);
+        change_output(6);
+    }
 #endif
 #if defined(USE_TTF)
     void resetFontSize();

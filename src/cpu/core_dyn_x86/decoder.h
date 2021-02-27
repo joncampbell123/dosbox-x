@@ -2837,6 +2837,9 @@ restart_prefix:
 				decode.big_addr ? decode_fetchd() : decode_fetchw());
 			dyn_write_word_release(DREG(EA),DREG(EAX),decode.big_op);
 			break;
+		/* MOVSB/W/D*/
+		case 0xa4:dyn_string(STR_MOVSB);break;
+		case 0xa5:dyn_string(decode.big_op ? STR_MOVSD : STR_MOVSW);break;
 		/* CMPSB/W/D*/
 		case 0xa6:dyn_string(STR_CMPSB);break;
 		case 0xa7:dyn_string(decode.big_op ? STR_CMPSD : STR_CMPSW);break;

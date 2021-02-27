@@ -1,5 +1,5 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.10"
+#define MyAppVersion "0.83.11"
 #define MyAppPublisher "joncampbell123"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
@@ -200,7 +200,7 @@ begin
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may be used for lower-end systems.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features than Visual Studio builds and also be used for lower-end systems.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -217,10 +217,10 @@ procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. Click the "Help" button for more information about this.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
-    PageBuild.Add('Windows Release SDL1 (Default build)');
-    PageBuild.Add('Windows Release SDL2 (Alternative build)');
-    PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
-    PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
+    PageBuild.Add('Release SDL1 (Default Visual Studio build)');
+    PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');
+    PageBuild.Add('ARM Release SDL1 (ARM platform only)');
+    PageBuild.Add('ARM Release SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
     PageBuild.Add('MinGW build SDL1 for lower-end systems');
     PageBuild.Add('MinGW build SDL1 with custom drawn menu');
@@ -241,7 +241,7 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
-    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
+    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
     PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
     PageOutput.Add('Default output (Direct3D)');
     PageOutput.Add('OpenGL with pixel-perfect scaling');
@@ -250,7 +250,7 @@ begin
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(101, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
-    PageVer.Add('DOS version 5.00');
+    PageVer.Add('DOS version 5.00 (reported by default)');
     PageVer.Add('DOS version 6.22');
     PageVer.Add('DOS version 7.10 (for LFN and FAT32 support)');
 end;
@@ -299,13 +299,13 @@ begin
       msg:='32';
     msg:=msg+'-bit ';
     if (PageBuild.Values[0]) then
-      msg:=msg+'Windows Release SDL1';
+      msg:=msg+'Release SDL1';
     if (PageBuild.Values[1]) then
-      msg:=msg+'Windows Release SDL2';
+      msg:=msg+'Release SDL2';
     if (PageBuild.Values[2]) then
-      msg:=msg+'Windows ARM SDL1';
+      msg:=msg+'ARM Release SDL1';
     if (PageBuild.Values[3]) then
-      msg:=msg+'Windows ARM SDL2';
+      msg:=msg+'ARM Release SDL2';
     if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
@@ -376,6 +376,29 @@ begin
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
+      begin
+        FileLines := TStringList.Create;
+        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
+        for i := 0 to FileLines.Count - 1 do
+        begin
+          line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
+          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+            if (CompareText(linetmp, 'printoutput') = 0) and (CompareText(section, 'printer') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              FileLines[i] := linetmp+' printer';
+              break;
+            end
+          end
+        end
+        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
       begin
         FileLines := TStringList.Create;

@@ -97,6 +97,10 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
+// NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
+//      this works better with maximized window or full-screen mode and the
+//      setting "dpi aware=true".
+
 static void PPScale (
     uint16_t  fixed_w , uint16_t  fixed_h,
     uint16_t* window_w, uint16_t* window_h )
@@ -108,8 +112,8 @@ static void PPScale (
     orig_h = min_h = render.src.height;
 
     par = ( double) orig_w / orig_h * 3 / 4;
-    /* HACK: because REDNER_SetSize() does not set dblw and dblh correctly: */
-    /* E.g. in 360x360 mode DOXBox will wrongly allocate a 720x360 area. I  */
+    /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
+    /* E.g. in 360x360 mode DOSBox-X will wrongly allocate a 720x360 area. I  */
     /* therefore calculate square-pixel proportions par_sq myself:          */
          if( par < 0.707 ) { par_sq = 0.5; min_w *= 2; }
     else if( par > 1.414 ) { par_sq = 2.0; min_h *= 2; }

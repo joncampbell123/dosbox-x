@@ -99,6 +99,11 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
+extern bool auto_save_state, enable_autosave;
+extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
+extern std::string autosave_name[10];
+void SetGameState_Run(int value), SaveGameState_Run(void);
+size_t GetGameState_Run(void);
 
 void memxor(void *_d,unsigned int byte,size_t count) {
     unsigned char *d = (unsigned char*)_d;
@@ -2783,8 +2788,10 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern const char* RunningProgram;
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
@@ -3191,6 +3198,31 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         if (GCC_UNLIKELY((Bits)vga.draw.split_line < 0)) {
             vga.draw.address_line += (Bitu)(-((Bits)vga.draw.split_line) % (Bits)vga.draw.address_line_total);
             vga.draw.address += vga.draw.address_add * (Bitu)(-((Bits)vga.draw.split_line) / (Bits)vga.draw.address_line_total);
+        }
+    }
+
+    // NTS: To be moved
+    if (autosave_second>0&&enable_autosave) {
+        uint32_t ticksNew=GetTicks();
+        if (ticksNew-ticksPrev>autosave_second*1000) {
+            auto_save_state=true;
+            int index=0;
+            for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
+            if (autosave_start[index]>=1&&autosave_start[index]<=100) {
+                if (autosave_end[index]>=autosave_start[index]&&autosave_end[index]<=100&&autosave_end[index]>autosave_start[index]) {
+                    if (autosave_end[index]>autosave_last[index]&&autosave_last[index]>=autosave_start[index]) autosave_last[index]++;
+                    else autosave_last[index]=autosave_start[index];
+                } else autosave_last[index]=autosave_start[index];
+                int state = GetGameState_Run();
+                SetGameState_Run(autosave_last[index]-1);
+                SaveGameState_Run();
+                SetGameState_Run(state);
+            } else if (!autosave_start[index]) {
+                SaveGameState_Run();
+                autosave_last[index]=GetGameState_Run()+1;
+            }
+            auto_save_state=false;
+            ticksPrev=ticksNew;
         }
     }
 

@@ -201,10 +201,10 @@
     <ClCompile Include="..\src\builtin\move_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builtin\sort_exe.cpp">
+    <ClCompile Include="..\src\builtin\replace_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builtin\tree_exe.cpp">
+    <ClCompile Include="..\src\builtin\sort_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp">
@@ -1518,6 +1518,9 @@
     <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
       <Filter>Sources\libs\decoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1859,6 +1862,24 @@
     <ClInclude Include="..\include\cp858_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cp860_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp861_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp862_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp863_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp864_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp865_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\cp866_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -1866,6 +1887,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp872_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp874_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp932_uni.h">

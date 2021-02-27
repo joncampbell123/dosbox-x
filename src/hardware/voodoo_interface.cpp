@@ -286,8 +286,7 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 
 	v = new voodoo_state;
 	v->ogl = false;
-    extern bool OpenGL_using(void), Direct3D_using();
-    if (emulation_type == 2) v->ogl = OpenGL_using() || Direct3D_using();
+    if (emulation_type == 2) v->ogl = true;
 
 	vdraw.vfreq = 1000.0f/60.0f;
 
