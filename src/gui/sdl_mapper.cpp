@@ -912,9 +912,9 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
 	const char *usesc = section->Get_string("usescancodes");
-	if (!strcasecmp(usesc, "true"))
+	if (!strcasecmp(usesc, "true")||!strcmp(usesc, "1"))
 		usescancodes = 1;
-	else if (!strcasecmp(usesc, "false"))
+	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
 }
 void loadScanCode();

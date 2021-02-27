@@ -5220,8 +5220,8 @@ static void GUI_StartUp() {
     else mbutton=0;
     modifier = section->Get_string("clip_key_modifier");
     const char *pastebios = section->Get_string("clip_paste_bios");
-    if (!strcmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
-    else if (!strcmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
+    if (!strcasecmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
+    else if (!strcasecmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
     wheel_key = section->Get_int("mouse_wheel_key");
     wheel_guest=wheel_key>0;
@@ -7709,10 +7709,11 @@ void SDL_SetupConfigSection() {
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
-	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
 	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "auto");
 	Pstring->Set_values(truefalseautoopt);
-	Pstring->Set_help("Specify whether to use BIOS functions for clipboard pasting instead of the keyboard stroke method.");
+	Pstring->Set_help("Specify whether to use BIOS keyboard functions for clipboard pasting instead of the keystroke method.\n"
+		"For pasting clipboard text into Windows 3.x/9x applications, make sure to use the keystroke method.");
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
