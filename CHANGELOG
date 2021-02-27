@@ -9,7 +9,9 @@
     for keyboard pasting" is added to "Shared clipboard
     functions" menu group (under "Main") to instead use
     the BIOS function for the clipboard pasting in both
-    Windows SDL1 and SDL2 builds. (Wengier)
+    Windows SDL1 and SDL2 builds. This setting can also
+    be changed with the "clip_paste_bios" config option
+    in [sdl] section of the configuration. (Wengier)
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).

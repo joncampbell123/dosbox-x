@@ -1220,7 +1220,12 @@ bool                        startup_state_numlock = false; // Global for keyboar
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0, mbutton=3;
-bool wheel_guest = false, clipboard_dosapi = true, clipboard_biospaste = false;
+bool wheel_guest = false, clipboard_dosapi = true, clipboard_biospaste =
+#if defined (WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
+false;
+#else
+true;
+#endif
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -5214,6 +5219,9 @@ static void GUI_StartUp() {
     else if (!strcmp(clip_mouse_button, "arrows")) mbutton=4;
     else mbutton=0;
     modifier = section->Get_string("clip_key_modifier");
+    const char *pastebios = section->Get_string("clip_paste_bios");
+    if (!strcmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
+    else if (!strcmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
     wheel_key = section->Get_int("mouse_wheel_key");
     wheel_guest=wheel_key>0;
@@ -7701,6 +7709,12 @@ void SDL_SetupConfigSection() {
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
+	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
+	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "auto");
+	Pstring->Set_values(truefalseautoopt);
+	Pstring->Set_help("Specify whether to use BIOS functions for clipboard pasting instead of the keyboard stroke method.");
+    Pstring->SetBasic(true);
+
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
     Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
         "If the default setting of 30 causes lost keystrokes, increase the number.\n"
@@ -7771,7 +7785,6 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,"");
     Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL2 builds. If set it will override \"mapperfile\" for SDL2 builds.");
 
-	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
@@ -7803,7 +7816,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-#if defined(WIN32) && !defined(__MINGW32__)
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -7812,11 +7825,14 @@ void SDL_SetupConfigSection() {
 #ifndef DIK_OEM_102
 #define DIK_OEM_102 0x56    /* < > | on UK/Germany keyboards */
 #endif
+#else
+#define UINT unsigned int
+#endif
 #if defined(C_SDL2)
 #define SDLKey SDL_Keycode
 #define SDLMod SDL_Keymod
 #endif
-static SDLKey aryScanCodeToSDLKey[0xFF];
+static SDLKey aryScanCodeToSDLKey[0x100];
 static bool   bScanCodeMapInited = false;
 static void PasteInitMapSCToSDLKey()
 {
@@ -7825,6 +7841,7 @@ static void PasteInitMapSCToSDLKey()
         aryScanCodeToSDLKey[i] = SDLK_UNKNOWN;
 
     /* Defined DIK_* constants */
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
     aryScanCodeToSDLKey[DIK_ESCAPE] = SDLK_ESCAPE;
     aryScanCodeToSDLKey[DIK_1] = SDLK_1;
     aryScanCodeToSDLKey[DIK_2] = SDLK_2;
@@ -7963,7 +7980,31 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RMETA;
 #endif
     aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
-
+#elif defined(C_SDL2)
+    aryScanCodeToSDLKey['1'] = SDLK_KP_1;
+    aryScanCodeToSDLKey['2'] = SDLK_KP_2;
+    aryScanCodeToSDLKey['3'] = SDLK_KP_3;
+    aryScanCodeToSDLKey['4'] = SDLK_KP_4;
+    aryScanCodeToSDLKey['5'] = SDLK_KP_5;
+    aryScanCodeToSDLKey['6'] = SDLK_KP_6;
+    aryScanCodeToSDLKey['7'] = SDLK_KP_7;
+    aryScanCodeToSDLKey['8'] = SDLK_KP_8;
+    aryScanCodeToSDLKey['9'] = SDLK_KP_9;
+    aryScanCodeToSDLKey['0'] = SDLK_KP_0;
+    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
+#else
+    aryScanCodeToSDLKey['1'] = SDLK_KP1;
+    aryScanCodeToSDLKey['2'] = SDLK_KP2;
+    aryScanCodeToSDLKey['3'] = SDLK_KP3;
+    aryScanCodeToSDLKey['4'] = SDLK_KP4;
+    aryScanCodeToSDLKey['5'] = SDLK_KP5;
+    aryScanCodeToSDLKey['6'] = SDLK_KP6;
+    aryScanCodeToSDLKey['7'] = SDLK_KP7;
+    aryScanCodeToSDLKey['8'] = SDLK_KP8;
+    aryScanCodeToSDLKey['9'] = SDLK_KP9;
+    aryScanCodeToSDLKey['0'] = SDLK_KP0;
+    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
+#endif
     bScanCodeMapInited = true;
 
 }
@@ -7973,7 +8014,7 @@ const  size_t      kPasteMinBufExtra = 4;
 /// Sightly inefficient, but who cares
 static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLMod keymods)
 {
-    const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode];
+    const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode & 0xFF];
     if (sdlkey == SDLK_UNKNOWN)
         return;
 
@@ -7982,7 +8023,7 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
 #if defined(C_SDL2)
     evntKeyStroke.key.keysym.scancode = SDL_GetScancodeFromKey(sdlkey);
 #else
-    evntKeyStroke.key.keysym.scancode = (unsigned char)LOBYTE(uiScanCode);
+    evntKeyStroke.key.keysym.scancode = uiScanCode & 0xFF;
 #endif
     evntKeyStroke.key.keysym.sym = sdlkey;
     evntKeyStroke.key.keysym.mod = keymods;
@@ -7997,7 +8038,11 @@ static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
 	if (clipboard_biospaste) {
-		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
+        if (strPasteBuffer[0]==13) {
+            KEYBOARD_AddKey(KBD_enter, true);
+            KEYBOARD_AddKey(KBD_enter, false);
+        } else
+            BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
 		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 		return true;
 	}
@@ -8006,6 +8051,7 @@ static bool PasteClipboardNext() {
         PasteInitMapSCToSDLKey();
 
     const char cKey = strPasteBuffer[0];
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
     SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
     UINT uiScanCode = MapVirtualKey(LOBYTE(shVirKey), MAPVK_VK_TO_VSC);
     if (uiScanCode)
@@ -8052,11 +8098,24 @@ static bool PasteClipboardNext() {
         if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, bModAltOn, sdlmMods);
         //putchar(cKey); // For debugging dropped strokes
     } else {
+		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
+#else
+    {
+		UINT uiScanCode = cKey;
+		const UINT   uiScanCodeAlt = 0xFF;
+#endif
 		if (KEYBOARD_BufferSpaceAvail() < (10+kPasteMinBufExtra)) // For simplicity, we just mimic Alt+<3 digits>
 			return false;
 
+#if !defined(WIN32) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+        if (strPasteBuffer[0]==13) {
+            KEYBOARD_AddKey(KBD_enter, true);
+            KEYBOARD_AddKey(KBD_enter, false);
+            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+            return true;
+        }
+#endif
 		const SDLMod sdlmModsOn = SDL_GetModState();
-		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
 		const bool bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT|KMOD_RSHIFT)) > 0);
 		const bool bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL|KMOD_RCTRL )) > 0);
 		const bool bModAltOn = ((sdlmModsOn&(KMOD_LALT|KMOD_RALT)) > 0);
@@ -8069,11 +8128,14 @@ static bool PasteClipboardNext() {
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
 
 		uint8_t ansiVal = cKey;
-		for (int i = 100; i; i /= 10)
-			{
+		for (int i = 100; i; i /= 10) {
 			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
 			ansiVal %= i;
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
 			UINT uiScanCode = MapVirtualKey(numKey+VK_NUMPAD0, MAPVK_VK_TO_VSC);
+#else
+			UINT uiScanCode = numKey+'0';
+#endif
 			GenKBStroke(uiScanCode, true, sdlmMods);
 			GenKBStroke(uiScanCode, false, sdlmMods);
 			}
@@ -8085,18 +8147,6 @@ static bool PasteClipboardNext() {
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
     return true;
 }
-#else
-static bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
-#endif
 
 // added emendelson from dbDos; improved by Wengier
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
@@ -10749,7 +10799,6 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     return true;
 }
 
-#if defined (WIN32) && !defined(__MINGW32__)
 bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10757,7 +10806,6 @@ bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
     return true;
 }
-#endif
 
 bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -12822,12 +12870,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
-#if defined (WIN32) && !defined(__MINGW32__)
         if (IS_PC98_ARCH) clipboard_biospaste = true;
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste);
-#else
-        clipboard_biospaste = true;
-#endif
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste).enable(!IS_PC98_ARCH);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
