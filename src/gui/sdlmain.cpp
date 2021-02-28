@@ -4,7 +4,7 @@
  *
  * \section f Features
  *
- * \li Accurate x86 emulation
+ * \li Complete and accurate x86/DOS emulation
  *
 */
 
@@ -7728,9 +7728,9 @@ void SDL_SetupConfigSection() {
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
-	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
-	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "auto");
-	Pstring->Set_values(truefalseautoopt);
+	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", 0};
+	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "default");
+	Pstring->Set_values(truefalsedefaultopt);
 	Pstring->Set_help("Specify whether to use BIOS keyboard functions for clipboard pasting instead of the keystroke method.\n"
 		"For pasting clipboard text into Windows 3.x/9x applications, make sure to use the keystroke method.");
     Pstring->SetBasic(true);
@@ -7805,6 +7805,7 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,"");
     Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL2 builds. If set it will override \"mapperfile\" for SDL2 builds.");
 
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
@@ -9185,7 +9186,7 @@ void AUTOEXEC_Init();
 
 #if defined(WIN32)
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
-//      and then factor the DPI into DOSBox's scaler and UI decisions.
+//      and then factor the DPI into DOSBox-X's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
     // if the user says not to from the command line, or disables it from dosbox-x.conf, then don't enable DPI awareness.
     if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
@@ -12877,7 +12878,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         MSCDEX_Init();
         CDROM_Image_Init();
 
-        /* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
+        /* Init memhandle system. This part is used by DOSBox-X's XMS/EMS emulation to associate handles
          * per page. FIXME: I would like to push this down to the point that it's never called until
          * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
          * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
