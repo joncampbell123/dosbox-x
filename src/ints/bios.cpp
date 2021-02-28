@@ -6876,7 +6876,7 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 
 static int bios_pc98_posx = 0;
 
-static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
+static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bool boxdraw = false) {
     if (control->opt_fastlaunch) return;
     const char *s = msg;
 
@@ -6915,10 +6915,20 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
             }
             else {
                 bo = (((unsigned int)y * 80u) + (unsigned int)(bios_pc98_posx++)) * 2u; /* NTS: note the post increment */
-
-                mem_writew(0xA0000+bo,(unsigned char)(*s++));
+                if (boxdraw) {
+                    unsigned int ch = (unsigned char)*s;
+                    if (*s=='อ') ch = 0x250B;
+                    else if (*s=='บ') ch = 0x270B;
+                    else if (*s=='ษ') ch = 0x330B;
+                    else if (*s=='ป') ch = 0x370B;
+                    else if (*s=='ศ') ch = 0x3B0B;
+                    else if (*s=='ผ') ch = 0x3F0B;
+                    mem_writew(0xA0000+bo,ch);
+                } else
+                    mem_writew(0xA0000+bo,(unsigned char)*s);
                 mem_writeb(0xA2000+bo,0xE1);
 
+                s++;
                 bo += 2; /* and keep the cursor following the text */
             }
 
@@ -6932,7 +6942,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 char *getSetupLine(const char *capt, const char *cont) {
     unsigned int pad1=25-strlen(capt), pad2=41-strlen(cont);
     static char line[90];
-    sprintf(line, machine == MCH_PC98?"|%*c%s%*c%s%*c|":"บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
+    sprintf(line, "บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
     return line;
 }
 
@@ -7084,16 +7094,13 @@ void showBIOSSetup(const char* card, int x, int y) {
     char title[]="                               BIOS Setup Utility                               ";
     char *p=machine == MCH_PC98?title+2:title;
     BIOS_Int10RightJustifiedPrint(x,y,p);
-    if (machine == MCH_PC98)
-        BIOS_Int10RightJustifiedPrint(x,y,"+------------------------------------------------------------------------------+");
-    else
-        BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป");
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"));
+    BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป", true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
     updateDateTime(x,y,0);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "DOS"));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "DOS"), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
 #define DOSNAMEBUF 256
     char pcname[DOSNAMEBUF];
     if (control->opt_securemode || control->SecureMode())
@@ -7109,32 +7116,29 @@ void showBIOSSetup(const char* card, int x, int y) {
 #endif
             strcpy(pcname, "N/A");
     }
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Computer name:", pcname));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product name:", ("DOSBox-X "+std::string(VERSION)).c_str()));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product updated:", UPDATED_STR));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS description:", bios_type_string));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS version:", bios_version_string));
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Computer name:", pcname), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product name:", ("DOSBox-X "+std::string(VERSION)).c_str()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Product updated:", UPDATED_STR), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS description:", bios_type_string), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS version:", bios_version_string), true);
     uint32_t year,month,day;
     if (sscanf(bios_date_string,"%u/%u/%u",&month,&day,&year)==3) {
         char datestr[30];
         sprintf(datestr, "%04u-%02u-%02u",year<80?2000+year:(year<100?1900+year:year),month,day);
-        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", datestr));
+        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", datestr), true);
     } else
-        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", bios_date_string));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor type:", GetCPUType()));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor speed:", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str()));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Coprocessor:", enable_fpu?"Yes":"No"));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video card:", card));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()));
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""));
-    if (machine == MCH_PC98)
-        BIOS_Int10RightJustifiedPrint(x,y,"+------------------------------------------------------------------------------+");
-    else
-        BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ");
+        BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("BIOS date:", bios_date_string), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor type:", GetCPUType()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Processor speed:", (std::to_string(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax)+(CPU_CycleAutoAdjust?"%":" cycles/ms")).c_str()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Coprocessor:", enable_fpu?"Yes":"No"), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video card:", card), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
+    BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ", true);
     if (machine == MCH_PC98)
         BIOS_Int10RightJustifiedPrint(x,y,"                                  ESC = Exit                                  ");
     else
@@ -8636,7 +8640,7 @@ startfunction:
                 for (unsigned int i=0; i<7; i++) {
                     for (unsigned int j=0; j<strlen(logostr[i]); j++) {
                         bo = (((unsigned int)(i+2) * 80u) + (unsigned int)(j+0x36)) * 2u;
-                        mem_writew(0xA0000+bo,(unsigned char)logostr[i][j]);
+                        mem_writew(0xA0000+bo,i==0&&j==0?0x330B:(i==0&&j==strlen(logostr[0])-1?0x370B:(i==6&&j==0?0x3B0B:(i==6&&j==strlen(logostr[6])-1?0x3F0B:(logostr[i][j]=='-'&&i!=2&&i!=4?0x250B:(logostr[i][j]=='|'?0x270B:logostr[i][j]%0xff))))));
                         mem_writeb(0xA2000+bo+1,0xE1);
                     }
                 }
