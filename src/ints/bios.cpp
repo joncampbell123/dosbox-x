@@ -8645,18 +8645,27 @@ startfunction:
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
             int oldx = x, oldy = y;
-            const char *str[4];
-            str[0] = "+-------------------+";
-            str[1] = "|    Welcome  To    |";
-            str[2] = "| D O S B o x - X ! |";
-            str[3] = "+-------------------+";
-            for (unsigned int i=0; i<4; i++) {
+            char str[7][30];
+            strcpy(str[0], "+-------------------+");
+            strcpy(str[1], "|    Welcome  To    |");
+            strcpy(str[2], "| D O S B o x - X ! |");
+            strcpy(str[3], "|                   |");
+            sprintf(str[4], "|    %d-bit %s    |",
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
+            64
+#else^M
+            32
+#endif^M
+            , SDL_STRING);
+            sprintf(str[5], "|  Version %7s  |", VERSION);
+            strcpy(str[6], "+-------------------+");
+            for (unsigned int i=0; i<7; i++) {
                 for (unsigned int j=0; j<strlen(str[i]); j++) {
                     reg_eax = 0x0200u;
                     reg_ebx = 0x0000u;
                     reg_edx = 0x0236u + i*0x100 + j;
                     CALLBACK_RunRealInt(0x10);
-                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(str[0])-1?0xBF:(i==3&&j==0?0xD3:(i==3&&j==strlen(str[3])-1?0xD9:(str[i][j]=='-'&&i!=2?0xC4:(str[i][j]=='|'?0xB3:str[i][j]%0xff))))));
+                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(str[0])-1?0xBF:(i==6&&j==0?0xD3:(i==6&&j==strlen(str[6])-1?0xD9:(str[i][j]=='-'&&i!=2&&i!=4?0xC4:(str[i][j]=='|'?0xB3:str[i][j]%0xff))))));
                     reg_ebx = 0x002fu;
                     reg_ecx = 0x0001u;
                     CALLBACK_RunRealInt(0x10);
