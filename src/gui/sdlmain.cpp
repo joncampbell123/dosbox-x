@@ -4992,9 +4992,11 @@ bool has_GUI_StartUp = false;
 std::string GetDefaultOutput() {
     static std::string output = "surface";
 #if defined(USE_TTF)
+# if 0 /* TODO: If someone wants to compile DOSBox-X to default to TTF, change this to #if defined(...) here */
     std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
     if (mtype.substr(0, 3) == "vga" || mtype.substr(0, 4) == "svga" || mtype.substr(0, 4) == "vesa" || mtype.substr(0, 4) == "pc98")
         return "ttf";
+# endif
 #elif defined(WIN32)
 # if defined(HX_DOS)
     output = "surface"; /* HX-DOS should stick to surface */
