@@ -3898,15 +3898,16 @@ void modeSwitched(bool full) {
     if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
 }
 
-bool toaddmenu = false;
 void GFX_SwitchFullScreen(void)
 {
-    if (sdl.desktop.fullscreen && toaddmenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) {
-        DOSBox_SetMenu();
-        toaddmenu = false;
-    }
-
 #if defined(USE_TTF)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (ttf.fullScrn && ttf.inUse && !control->opt_nomenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) {
+        DOSBox_SetMenu();
+        lastmenu = true;
+    }
+#endif
+
     if (ttf.inUse) {
         if (ttf.fullScrn) {
             sdl.desktop.fullscreen = false;
@@ -4992,12 +4993,13 @@ bool has_GUI_StartUp = false;
 std::string GetDefaultOutput() {
     static std::string output = "surface";
 #if defined(USE_TTF)
-# if 0 /* TODO: If someone wants to compile DOSBox-X to default to TTF, change this to #if defined(...) here */
+# if 0 /* TODO: If someone wants to compile DOSBox-X to default to TTF, change this to "# if 1" or "# if defined(...)" here */
     std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
     if (mtype.substr(0, 3) == "vga" || mtype.substr(0, 4) == "svga" || mtype.substr(0, 4) == "vesa" || mtype.substr(0, 4) == "pc98")
         return "ttf";
 # endif
-#elif defined(WIN32)
+#endif
+#if defined(WIN32)
 # if defined(HX_DOS)
     output = "surface"; /* HX-DOS should stick to surface */
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
@@ -5262,10 +5264,7 @@ static void GUI_StartUp() {
         sdl.displayNumber = 0;
     }
     std::string output=section->Get_string("output");
-    std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
 
-    //if (output == "ttf" && (mtype == "tandy" || mtype == "pcjr"))
-        //output = "default";
 	if (output == "default") {
 		output=GetDefaultOutput();
 		LOG_MSG("The default output for the video system: %s", output.c_str());
@@ -10356,7 +10355,11 @@ bool toOutput(const char *what) {
             sdl.desktop.type = SCREEN_OPENGL;
         }
 #endif
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
+        bool switchfull = false;
+        if (GFX_IsFullscreen()) {
+            switchfull = true;
+            GFX_SwitchFullScreen();
+        } else if (window_was_maximized) {
 #if defined(WIN32)
             ShowWindow(GetHWND(), SW_RESTORE);
 #else
@@ -10368,6 +10371,11 @@ bool toOutput(const char *what) {
 #endif
         firstset=false;
         change_output(10);
+        if (!GFX_IsFullscreen() && switchfull) {
+            switchfull = false;
+            ttf.fullScrn = false;
+            GFX_SwitchFullScreen();
+        }
 #endif
     }
     if (reset) RENDER_Reset();
@@ -12759,7 +12767,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             menu.showrt = control->opt_showrt||sdl_sec->Get_bool("showdetails");
             menu.hidecycles = (control->opt_showcycles||sdl_sec->Get_bool("showdetails") ? false : true);
-            toaddmenu = false;
         }
 
         /* Start up main machine */
@@ -13149,10 +13156,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             /* -- -- decide whether to set menu */
             if (menu_gui && !control->opt_nomenu && cfg_want_menu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-                if (TTF_using() && sdl.desktop.fullscreen) {
-                    DOSBox_NoMenu();
-                    toaddmenu=true;
-                } else
+                if (!TTF_using() || !sdl.desktop.fullscreen)
 #endif
                     DOSBox_SetMenu();
             }
