@@ -1,8 +1,4 @@
 0.83.11
-  - With setting "output=default", the TrueType font
-    (TTF) output will be used by default for PC-98 and
-    VGA+ machine types. A text-mode BIOS screen will be
-    enabled for the TTF output. (Wengier)
   - With the config option "startcmd=true" or command-
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
@@ -28,6 +24,9 @@
   - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
     CONFIG.SYS and 4DOS.INI sections in Configuration
     Tool for pasting clipboard contents. (Wengier)
+  - If the TrueType font (TTF) output is enabled then
+    a text-mode BIOS splash screen will now be used
+    instead of the graphical one. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
