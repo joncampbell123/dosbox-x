@@ -600,7 +600,7 @@ void DOS_Shell::Run(void) {
 				int newCP = atoi(trim(r+1));
 				*r=',';
 #if defined(USE_TTF)
-                if (ttf.inUse) {
+                if (ttf.inUse && !IS_PC98_ARCH) {
                     void toSetCodePage(DOS_Shell *shell, int newCP);
                     if (newCP) toSetCodePage(this, newCP);
                     else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));

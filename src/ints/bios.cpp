@@ -8934,7 +8934,22 @@ startfunction:
                     }
                     if (askexit) {
                         if (reg_al == 'Y' || reg_al == 'y') {
+                            if (machine == MCH_PC98) {
+                                reg_eax = 0x1600;
+                                reg_edx = 0xE100;
+                                CALLBACK_RunRealInt(0x18);
+                            }
                             goto startfunction;
+                        } else if (machine == MCH_PC98) {
+                            const char *exitstr = "ESC = Exit";
+                            unsigned int bo;
+                            for (unsigned int i=0; i<strlen(exitstr); i++) {
+                                bo = (((unsigned int)24 * 80u) + (unsigned int)0x22+i) * 2u;
+                                mem_writew(0xA0000+bo,(unsigned char)exitstr[i]);
+                                mem_writeb(0xA2000+bo,0xE1);
+                            }
+                            askexit = false;
+                            continue;
                         } else {
                             reg_eax = 0x0200u;
                             reg_ebx = 0x0000u;
@@ -8999,19 +9014,23 @@ startfunction:
                         lasttick-=500;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
-                            reg_eax = 0x1600;
-                            reg_edx = 0xE100;
-                            CALLBACK_RunRealInt(0x18);
-                            goto startfunction;
+                            const char *exitstr = "Exit[Y/N]?";
+                            unsigned int bo;
+                            for (unsigned int i=0; i<strlen(exitstr); i++) {
+                                bo = (((unsigned int)24 * 80u) + (unsigned int)0x22+i) * 2u;
+                                mem_writew(0xA0000+bo,(unsigned char)exitstr[i]);
+                                mem_writeb(0xA2000+bo,0xE1);
+                            }
+                        } else {
+                            reg_eax = 0x0200u;
+                            reg_ebx = 0x0000u;
+                            reg_edx = 0x1800u;
+                            CALLBACK_RunRealInt(0x10);
+                            if (mod)
+                                BIOS_Int10RightJustifiedPrint(x,y,"              Save settings and exit the BIOS Setup Utility [Y/N]? ");
+                            else
+                                BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and reboot system [Y/N]? ");
                         }
-                        reg_eax = 0x0200u;
-                        reg_ebx = 0x0000u;
-                        reg_edx = 0x1800u;
-                        CALLBACK_RunRealInt(0x10);
-                        if (mod)
-                            BIOS_Int10RightJustifiedPrint(x,y,"              Save settings and exit the BIOS Setup Utility [Y/N]? ");
-                        else
-                            BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and reboot system [Y/N]? ");
                         askexit = true;
                     }
                 }
