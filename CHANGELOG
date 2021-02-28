@@ -28,9 +28,12 @@
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
-  - If the TrueType font (TTF) output is enabled then
-    a text-mode BIOS splash screen will now be used
-    instead of the graphical one. (Wengier)
+  - Added the "disable graphical splash" config option
+    in [dosbox] section which when set will cause a
+    text-mode BIOS splash screen to be always displayed
+    at startup instead of the graphical one. If the
+    TrueType font (TTF) output is enabled the text-
+    mode BIOS screen is used automatically. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del

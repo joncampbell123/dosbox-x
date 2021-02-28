@@ -1230,6 +1230,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X will skip the BIOS screen by activating fast BIOS logo mode (without 1-second pause).");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("disable graphical splash",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will always display text-mode BIOS splash screen instead of the graphical one.\n"
+                    "The text-mode BIOS screen will automatically be used if the TrueType font (TTF) output is enabled.");
+
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
     Pbool->SetBasic(true);

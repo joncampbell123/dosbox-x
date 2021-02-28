@@ -8519,7 +8519,22 @@ private:
         RunningProgram = "DOSBOX-X";
         GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
-        bool textsplash = false;
+        const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        bool textsplash = section->Get_bool("disable graphical splash");
+        char logostr[7][30];
+        strcpy(logostr[0], "+-------------------+");
+        strcpy(logostr[1], "|    Welcome  To    |");
+        strcpy(logostr[2], "| D O S B o x - X ! |");
+        strcpy(logostr[3], "|                   |");
+        sprintf(logostr[4], "|    %d-bit %s    |",
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
+        64
+#else^M
+        32
+#endif^M
+        , SDL_STRING);
+        sprintf(logostr[5], "|  Version %7s  |", VERSION);
+        strcpy(logostr[6], "+-------------------+");
 #if defined(USE_TTF)
         if (TTF_using()) {
             textsplash = true;
@@ -8538,9 +8553,6 @@ startfunction:
 
         if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
 
-        // TODO: For those who would rather not use the VGA graphical modes, add a configuration option to "disable graphical splash".
-        //       We would then revert to a plain text copyright and status message here (and maybe an ASCII art version of the DOSBox-X logo).
-        //       For TrueType font (TTF) output (which supports text-mode only) the text-mode splash will be used automatically.
         if (IS_VGA_ARCH && !textsplash) {
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
@@ -8619,7 +8631,16 @@ startfunction:
                 }
             }
 
-            if (!textsplash) {
+            if (textsplash) {
+                unsigned int bo;
+                for (unsigned int i=0; i<7; i++) {
+                    for (unsigned int j=0; j<strlen(logostr[i]); j++) {
+                        bo = (((unsigned int)(i+2) * 80u) + (unsigned int)(j+0x36)) * 2u;
+                        mem_writew(0xA0000+bo,(unsigned char)logostr[i][j]);
+                        mem_writeb(0xA2000+bo+1,0xE1);
+                    }
+                }
+            } else {
                 if (!control->opt_fastlaunch) DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
                 reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox-X logo
                 CALLBACK_RunRealInt(0x18);
@@ -8645,27 +8666,13 @@ startfunction:
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
             int oldx = x, oldy = y;
-            char str[7][30];
-            strcpy(str[0], "+-------------------+");
-            strcpy(str[1], "|    Welcome  To    |");
-            strcpy(str[2], "| D O S B o x - X ! |");
-            strcpy(str[3], "|                   |");
-            sprintf(str[4], "|    %d-bit %s    |",
-#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
-            64
-#else^M
-            32
-#endif^M
-            , SDL_STRING);
-            sprintf(str[5], "|  Version %7s  |", VERSION);
-            strcpy(str[6], "+-------------------+");
             for (unsigned int i=0; i<7; i++) {
-                for (unsigned int j=0; j<strlen(str[i]); j++) {
+                for (unsigned int j=0; j<strlen(logostr[i]); j++) {
                     reg_eax = 0x0200u;
                     reg_ebx = 0x0000u;
                     reg_edx = 0x0236u + i*0x100 + j;
                     CALLBACK_RunRealInt(0x10);
-                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(str[0])-1?0xBF:(i==6&&j==0?0xD3:(i==6&&j==strlen(str[6])-1?0xD9:(str[i][j]=='-'&&i!=2&&i!=4?0xC4:(str[i][j]=='|'?0xB3:str[i][j]%0xff))))));
+                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(logostr[0])-1?0xBF:(i==6&&j==0?0xC0:(i==6&&j==strlen(logostr[6])-1?0xD9:(logostr[i][j]=='-'&&i!=2&&i!=4?0xC4:(logostr[i][j]=='|'?0xB3:logostr[i][j]%0xff))))));
                     reg_ebx = 0x002fu;
                     reg_ecx = 0x0001u;
                     CALLBACK_RunRealInt(0x10);
@@ -8834,7 +8841,7 @@ startfunction:
             emscripten_sleep(100);
         }
 #else
-        bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
+        bool fastbioslogo=section->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false, bios_setup = false;
             int pos=1;
@@ -9036,6 +9043,11 @@ startfunction:
             reg_eax = 0x4200;   // setup 640x200 graphics
             reg_ecx = 0x8000;   // lower
             CALLBACK_RunRealInt(0x18);
+            if (textsplash) {
+                reg_eax = 0x1600;
+                reg_edx = 0xE100;
+                CALLBACK_RunRealInt(0x18);
+            }
         }
         else {
             // restore 80x25 text mode
