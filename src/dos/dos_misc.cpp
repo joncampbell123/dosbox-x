@@ -31,6 +31,9 @@ uint32_t DOS_HMA_FREE_START();
 uint32_t DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
+#if defined(MACOSX)
+bool SetClipboard(std::string value);
+#endif
 
 extern bool enable_share_exe, enable_network_redirector;
 
@@ -408,6 +411,8 @@ static bool DOS_MultiplexFunctions(void) {
 #elif defined(C_SDL2)
         SDL_SetClipboardText("");
         if (!SDL_HasClipboardText()) reg_ax=1;
+#elif defined(MACOSX)
+        if (SetClipboard("")) reg_ax=1;
 #endif
 		return true;
 	case 0x1703:
@@ -430,7 +435,7 @@ static bool DOS_MultiplexFunctions(void) {
 			SetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT,clipbuffer);
 			reg_ax++;
 			CloseClipboard();
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
         ) {
 			char *text = new char[reg_cx];
 			MEM_StrCopy(SegPhys(es)+reg_bx,text,reg_cx);
@@ -443,7 +448,11 @@ static bool DOS_MultiplexFunctions(void) {
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }
             if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
             if (SDL_SetClipboardText(result.c_str()) == 0) reg_ax++;
+#else
+            if (SetClipboard(result)) reg_ax++;
+#endif
 #else
         ) {
 #endif

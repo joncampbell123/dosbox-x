@@ -7055,14 +7055,6 @@ int oldcols = 0, oldlins = 0;
 void showBIOSSetup(const char* card, int x, int y) {
     reg_eax = 3;        // 80x25 text
     CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) {
-        oldcols = ttf.cols;
-        oldlins = ttf.lins;
-        ttf_setlines(80, 25);
-    } else
-        oldcols = oldlins = 0;
-#endif
     if (machine == MCH_PC98) {
         for (unsigned int i=0;i < (80*400);i++) {
             mem_writeb(0xA8000+i,0);        // B
@@ -8508,7 +8500,6 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
-startfunction:
         if (control->opt_fastlaunch && machine != MCH_PC98) {
 #if defined(USE_TTF)
             if (TTF_using()) {
@@ -8527,11 +8518,21 @@ startfunction:
         extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
         RunningProgram = "DOSBOX-X";
         GFX_SetTitle(-1,-1,-1,false);
-        const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
-        int logo_x,logo_y,x,y,rowheight=8;
-
-        y = 2;
-        x = 2;
+        const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
+        bool textsplash = false;
+#if defined(USE_TTF)
+        if (TTF_using()) {
+            textsplash = true;
+            if (ttf.cols != 80 || ttf.lins != 25) {
+                oldcols = ttf.cols;
+                oldlins = ttf.lins;
+                ttf_setlines(80, 25);
+            } else
+                oldcols = oldlins = 0;
+        }
+#endif
+startfunction:
+        int logo_x,logo_y,x=2,y=2,rowheight=8;
         logo_y = 2;
         logo_x = 80 - 2 - (224/8);
 
@@ -8539,14 +8540,14 @@ startfunction:
 
         // TODO: For those who would rather not use the VGA graphical modes, add a configuration option to "disable graphical splash".
         //       We would then revert to a plain text copyright and status message here (and maybe an ASCII art version of the DOSBox-X logo).
-        //       This option is especially useful for TrueType font (TTF) output which supports text-mode only
-        if (IS_VGA_ARCH) {
+        //       For TrueType font (TTF) output (which supports text-mode only) the text-mode splash will be used automatically.
+        if (IS_VGA_ARCH && !textsplash) {
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
             DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
-        else if (machine == MCH_EGA) {
+        else if (machine == MCH_EGA && !textsplash) {
             rowheight = 14;
             reg_eax = 16;       // 640x350 16-color
             CALLBACK_RunRealInt(0x10);
@@ -8560,7 +8561,7 @@ startfunction:
 
             DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
-        else if (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
+        else if ((machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) && !textsplash) {
             rowheight = 8;
             reg_eax = 6;        // 640x200 2-color
             CALLBACK_RunRealInt(0x10);
@@ -8618,10 +8619,11 @@ startfunction:
                 }
             }
 
-            if (!control->opt_fastlaunch) DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
-
-            reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
-            CALLBACK_RunRealInt(0x18);
+            if (!textsplash) {
+                if (!control->opt_fastlaunch) DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+                reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox-X logo
+                CALLBACK_RunRealInt(0x18);
+            }
         }
         else {
             reg_eax = 3;        // 80x25 text
@@ -8640,6 +8642,40 @@ startfunction:
         }
 
         BIOS_Int10RightJustifiedPrint(x,y,msg);
+        if (machine != MCH_PC98 && textsplash) {
+            Bitu edx = reg_edx;
+            int oldx = x, oldy = y;
+            char str[7][30];
+            strcpy(str[0], "+-------------------+");
+            strcpy(str[1], "|    Welcome  To    |");
+            strcpy(str[2], "| D O S B o x - X ! |");
+            strcpy(str[3], "|                   |");
+            sprintf(str[4], "|    %d-bit %s    |",
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
+            64
+#else^M
+            32
+#endif^M
+            , SDL_STRING);
+            sprintf(str[5], "|  Version %7s  |", VERSION);
+            strcpy(str[6], "+-------------------+");
+            for (unsigned int i=0; i<7; i++) {
+                for (unsigned int j=0; j<strlen(str[i]); j++) {
+                    reg_eax = 0x0200u;
+                    reg_ebx = 0x0000u;
+                    reg_edx = 0x0236u + i*0x100 + j;
+                    CALLBACK_RunRealInt(0x10);
+                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(str[0])-1?0xBF:(i==6&&j==0?0xD3:(i==6&&j==strlen(str[6])-1?0xD9:(str[i][j]=='-'&&i!=2&&i!=4?0xC4:(str[i][j]=='|'?0xB3:str[i][j]%0xff))))));
+                    reg_ebx = 0x002fu;
+                    reg_ecx = 0x0001u;
+                    CALLBACK_RunRealInt(0x10);
+                }
+            }
+            reg_eax = 0x0200u;
+            reg_ebx = 0x0000u;
+            reg_edx = edx;
+            CALLBACK_RunRealInt(0x10);
+        }
 
         {
             uint64_t sz = (uint64_t)MEM_TotalPages() * (uint64_t)4096;
@@ -8887,9 +8923,6 @@ startfunction:
                     }
                     if (askexit) {
                         if (reg_al == 'Y' || reg_al == 'y') {
-#if defined(USE_TTF)
-                            if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
-#endif
                             goto startfunction;
                         } else {
                             reg_eax = 0x0200u;
@@ -8958,9 +8991,6 @@ startfunction:
                             reg_eax = 0x1600;
                             reg_edx = 0xE100;
                             CALLBACK_RunRealInt(0x18);
-#if defined(USE_TTF)
-                            if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
-#endif
                             goto startfunction;
                         }
                         reg_eax = 0x0200u;
@@ -8986,6 +9016,9 @@ startfunction:
         }
 #endif
 
+#if defined(USE_TTF)
+        if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
+#endif
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
             CALLBACK_RunRealInt(0x18);

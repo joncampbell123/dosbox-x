@@ -283,7 +283,7 @@ private:
 				}
 			CloseClipboard();
 			}
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
             std::ifstream in(tmpAscii);
             std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
             std::string result="";
@@ -293,7 +293,12 @@ private:
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }
             if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
             SDL_SetClipboardText(result.c_str());
+#else
+            bool SetClipboard(std::string value);
+            SetClipboard(result);
+#endif
 #endif
 		fclose(fh);
 		remove(tmpAscii);

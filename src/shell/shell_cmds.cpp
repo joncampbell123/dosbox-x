@@ -2740,6 +2740,7 @@ nextfile:
 		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
 		return;
 	}
+	ctrlbrk=false;
 	do {
 		n=1;
 		DOS_ReadFile(handle,&c,&n);
@@ -2761,6 +2762,7 @@ nextfile:
 				nlines=0;
 			}
 		}
+        if (CheckBreak(this)) break;
 	} while (n);
 	DOS_CloseFile(handle);
 	if (*args) {

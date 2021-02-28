@@ -250,6 +250,8 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
+void GetClipboard(std::string* result);
+bool SetClipboard(std::string value);
 #endif
 
 static bool PasteClipboardNext();
@@ -317,6 +319,7 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 	curscreen++;
 	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
 	return TRUE;
+
 }
 #endif
 extern int dos_clipboard_device_access;
@@ -1220,7 +1223,12 @@ bool                        startup_state_numlock = false; // Global for keyboar
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0, mbutton=3;
-bool wheel_guest = false, clipboard_dosapi = true;
+bool wheel_guest = false, clipboard_dosapi = true, clipboard_biospaste =
+#if defined (WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
+false;
+#else
+true;
+#endif
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -1252,25 +1260,39 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 # include <os2.h>
 #endif
 
-#if defined(C_SDL2)
-# if defined(WIN32)
-HWND GetHWND()
-{
+#if defined(WIN32)
+HWND GetHWND(void) {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
+# if defined(C_SDL2)
     if (sdl.window == NULL)
         return nullptr;
     if (!SDL_GetWindowWMInfo(sdl.window, &wmi))
         return nullptr;
     return wmi.info.win.window;
+#else
+    if(!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.window;
+#endif
 }
 
-HWND GetSurfaceHWND()
-{
+HWND GetSurfaceHWND(void) {
+# if defined(C_SDL2)
     return GetHWND();
-}
+# else
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
+
+    if (!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.child_window;
 # endif
+}
 #endif
+
 void SDL_rect_cliptoscreen(SDL_Rect &r) {
     if (r.x < 0) {
         r.w += r.x;
@@ -1985,8 +2007,10 @@ void SDL_Prepare(void) {
 
     SDL_PumpEvents();
     DragAcceptFiles(GetHWND(), TRUE);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
+#endif
+#if !defined(C_SDL2)
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 }
 
@@ -3874,8 +3898,14 @@ void modeSwitched(bool full) {
     if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
 }
 
+bool toaddmenu = false;
 void GFX_SwitchFullScreen(void)
 {
+    if (sdl.desktop.fullscreen && toaddmenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) {
+        DOSBox_SetMenu();
+        toaddmenu = false;
+    }
+
 #if defined(USE_TTF)
     if (ttf.inUse) {
         if (ttf.fullScrn) {
@@ -4961,9 +4991,13 @@ bool has_GUI_StartUp = false;
 
 std::string GetDefaultOutput() {
     static std::string output = "surface";
-#ifdef __WIN32__
+#if defined(USE_TTF)
+    std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+    if (mtype.substr(0, 3) == "vga" || mtype.substr(0, 4) == "svga" || mtype.substr(0, 4) == "vesa" || mtype.substr(0, 4) == "pc98")
+        return "ttf";
+#elif defined(WIN32)
 # if defined(HX_DOS)
-    output ="surface"; /* HX DOS should stick to surface */
+    output = "surface"; /* HX-DOS should stick to surface */
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
     /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
     output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
@@ -5200,6 +5234,9 @@ static void GUI_StartUp() {
     else if (!strcmp(clip_mouse_button, "arrows")) mbutton=4;
     else mbutton=0;
     modifier = section->Get_string("clip_key_modifier");
+    const char *pastebios = section->Get_string("clip_paste_bios");
+    if (!strcasecmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
+    else if (!strcasecmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
     wheel_key = section->Get_int("mouse_wheel_key");
     wheel_guest=wheel_key>0;
@@ -5454,7 +5491,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-#if defined(C_SDL2) || defined(WIN32)
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
     item->set_text("Quick edit: copy on select and paste text");
 
@@ -5882,7 +5919,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
@@ -6056,7 +6093,7 @@ void MenuFreeScreen(void) {
 }
 #endif
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 bool isModifierApplied() {
     return direct_mouse_clipboard || !strcmp(modifier,"none") ||
     ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) ||
@@ -6637,7 +6674,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && isModifierApplied()) {
             if (mbutton==4 && selsrow>-1 && selscol>-1) {
                 Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
@@ -6719,7 +6756,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         }
         break;
     case SDL_RELEASED:
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
@@ -7291,7 +7328,7 @@ void GFX_Events() {
 			break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LCTRL) sdl.lctrlstate = event.key.type;
@@ -7579,7 +7616,9 @@ void GFX_Events() {
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
 #endif
-#if defined (MACOSX)            
+#if defined (MACOSX)
+            if (event.type == SDL_KEYDOWN && isModifierApplied())
+                ClipKeySelect(event.key.keysym.sym);
             /* On macs CMD-Q is the default key to close an application */
             if (event.key.keysym.sym == SDLK_q && (event.key.keysym.mod == KMOD_RMETA || event.key.keysym.mod == KMOD_LMETA) ) {
                 KillSwitch(true);
@@ -7687,6 +7726,13 @@ void SDL_SetupConfigSection() {
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "auto");
+	Pstring->Set_values(truefalseautoopt);
+	Pstring->Set_help("Specify whether to use BIOS keyboard functions for clipboard pasting instead of the keystroke method.\n"
+		"For pasting clipboard text into Windows 3.x/9x applications, make sure to use the keystroke method.");
+    Pstring->SetBasic(true);
+
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
     Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
         "If the default setting of 30 causes lost keystrokes, increase the number.\n"
@@ -7757,7 +7803,6 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,"");
     Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL2 builds. If set it will override \"mapperfile\" for SDL2 builds.");
 
-	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
@@ -7789,7 +7834,7 @@ void SDL_SetupConfigSection() {
 //  Pint->Set_help("Value of overscan color.");
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #ifndef DIK_PAUSE
@@ -7798,7 +7843,14 @@ void SDL_SetupConfigSection() {
 #ifndef DIK_OEM_102
 #define DIK_OEM_102 0x56    /* < > | on UK/Germany keyboards */
 #endif
-static SDLKey aryScanCodeToSDLKey[0xFF];
+#else
+#define UINT unsigned int
+#endif
+#if defined(C_SDL2)
+#define SDLKey SDL_Keycode
+#define SDLMod SDL_Keymod
+#endif
+static SDLKey aryScanCodeToSDLKey[0x100];
 static bool   bScanCodeMapInited = false;
 static void PasteInitMapSCToSDLKey()
 {
@@ -7807,6 +7859,7 @@ static void PasteInitMapSCToSDLKey()
         aryScanCodeToSDLKey[i] = SDLK_UNKNOWN;
 
     /* Defined DIK_* constants */
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
     aryScanCodeToSDLKey[DIK_ESCAPE] = SDLK_ESCAPE;
     aryScanCodeToSDLKey[DIK_1] = SDLK_1;
     aryScanCodeToSDLKey[DIK_2] = SDLK_2;
@@ -7876,20 +7929,38 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_F8] = SDLK_F8;
     aryScanCodeToSDLKey[DIK_F9] = SDLK_F9;
     aryScanCodeToSDLKey[DIK_F10] = SDLK_F10;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCKCLEAR;
+    aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLLOCK;
+#else
     aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCK;
     aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLOCK;
+#endif
+    aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
+    aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP_7;
+    aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP_8;
+    aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP_9;
+    aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP_4;
+    aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP_5;
+    aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP_6;
+    aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP_1;
+    aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP_2;
+    aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP_3;
+    aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP_0;
+#else
     aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP7;
     aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP8;
     aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP9;
-    aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
     aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP4;
     aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP5;
     aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP6;
-    aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
     aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP1;
     aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP2;
     aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP3;
     aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP0;
+#endif
     aryScanCodeToSDLKey[DIK_DECIMAL] = SDLK_KP_PERIOD;
     aryScanCodeToSDLKey[DIK_F11] = SDLK_F11;
     aryScanCodeToSDLKey[DIK_F12] = SDLK_F12;
@@ -7902,7 +7973,11 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_NUMPADENTER] = SDLK_KP_ENTER;
     aryScanCodeToSDLKey[DIK_RCONTROL] = SDLK_RCTRL;
     aryScanCodeToSDLKey[DIK_DIVIDE] = SDLK_KP_DIVIDE;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINTSCREEN;
+#else
     aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINT;
+#endif
     aryScanCodeToSDLKey[DIK_RMENU] = SDLK_RALT;
     aryScanCodeToSDLKey[DIK_PAUSE] = SDLK_PAUSE;
     aryScanCodeToSDLKey[DIK_HOME] = SDLK_HOME;
@@ -7915,10 +7990,39 @@ static void PasteInitMapSCToSDLKey()
     aryScanCodeToSDLKey[DIK_NEXT] = SDLK_PAGEDOWN;
     aryScanCodeToSDLKey[DIK_INSERT] = SDLK_INSERT;
     aryScanCodeToSDLKey[DIK_DELETE] = SDLK_DELETE;
+#if defined(C_SDL2)
+    aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LGUI;
+    aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RGUI;
+#else
     aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LMETA;
     aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RMETA;
+#endif
     aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
-
+#elif defined(C_SDL2)
+    aryScanCodeToSDLKey['1'] = SDLK_KP_1;
+    aryScanCodeToSDLKey['2'] = SDLK_KP_2;
+    aryScanCodeToSDLKey['3'] = SDLK_KP_3;
+    aryScanCodeToSDLKey['4'] = SDLK_KP_4;
+    aryScanCodeToSDLKey['5'] = SDLK_KP_5;
+    aryScanCodeToSDLKey['6'] = SDLK_KP_6;
+    aryScanCodeToSDLKey['7'] = SDLK_KP_7;
+    aryScanCodeToSDLKey['8'] = SDLK_KP_8;
+    aryScanCodeToSDLKey['9'] = SDLK_KP_9;
+    aryScanCodeToSDLKey['0'] = SDLK_KP_0;
+    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
+#else
+    aryScanCodeToSDLKey['1'] = SDLK_KP1;
+    aryScanCodeToSDLKey['2'] = SDLK_KP2;
+    aryScanCodeToSDLKey['3'] = SDLK_KP3;
+    aryScanCodeToSDLKey['4'] = SDLK_KP4;
+    aryScanCodeToSDLKey['5'] = SDLK_KP5;
+    aryScanCodeToSDLKey['6'] = SDLK_KP6;
+    aryScanCodeToSDLKey['7'] = SDLK_KP7;
+    aryScanCodeToSDLKey['8'] = SDLK_KP8;
+    aryScanCodeToSDLKey['9'] = SDLK_KP9;
+    aryScanCodeToSDLKey['0'] = SDLK_KP0;
+    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
+#endif
     bScanCodeMapInited = true;
 
 }
@@ -7928,16 +8032,22 @@ const  size_t      kPasteMinBufExtra = 4;
 /// Sightly inefficient, but who cares
 static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLMod keymods)
 {
-    const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode];
+    const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode & 0xFF];
     if (sdlkey == SDLK_UNKNOWN)
         return;
 
     SDL_Event evntKeyStroke = { 0 };
     evntKeyStroke.type = bDepressed ? SDL_KEYDOWN : SDL_KEYUP;
-    evntKeyStroke.key.keysym.scancode = (unsigned char)LOBYTE(uiScanCode);
+#if defined(C_SDL2)
+    evntKeyStroke.key.keysym.scancode = SDL_GetScancodeFromKey(sdlkey);
+#else
+    evntKeyStroke.key.keysym.scancode = uiScanCode & 0xFF;
+#endif
     evntKeyStroke.key.keysym.sym = sdlkey;
     evntKeyStroke.key.keysym.mod = keymods;
+#if !defined(C_SDL2)
     evntKeyStroke.key.keysym.unicode = 0;
+#endif
     evntKeyStroke.key.state = bDepressed ? SDL_PRESSED : SDL_RELEASED;
     SDL_PushEvent(&evntKeyStroke);
 }
@@ -7945,8 +8055,12 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
 static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
-	if (IS_PC98_ARCH) {
-		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
+	if (clipboard_biospaste) {
+        if (strPasteBuffer[0]==13) {
+            KEYBOARD_AddKey(KBD_enter, true);
+            KEYBOARD_AddKey(KBD_enter, false);
+        } else
+            BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
 		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 		return true;
 	}
@@ -7955,6 +8069,7 @@ static bool PasteClipboardNext() {
         PasteInitMapSCToSDLKey();
 
     const char cKey = strPasteBuffer[0];
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
     SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
     UINT uiScanCode = MapVirtualKey(LOBYTE(shVirKey), MAPVK_VK_TO_VSC);
     if (uiScanCode)
@@ -8001,11 +8116,24 @@ static bool PasteClipboardNext() {
         if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, bModAltOn, sdlmMods);
         //putchar(cKey); // For debugging dropped strokes
     } else {
+		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
+#else
+    {
+		UINT uiScanCode = cKey;
+		const UINT   uiScanCodeAlt = 0xFF;
+#endif
 		if (KEYBOARD_BufferSpaceAvail() < (10+kPasteMinBufExtra)) // For simplicity, we just mimic Alt+<3 digits>
 			return false;
 
+#if !defined(WIN32) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+        if (strPasteBuffer[0]==13) {
+            KEYBOARD_AddKey(KBD_enter, true);
+            KEYBOARD_AddKey(KBD_enter, false);
+            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+            return true;
+        }
+#endif
 		const SDLMod sdlmModsOn = SDL_GetModState();
-		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
 		const bool bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT|KMOD_RSHIFT)) > 0);
 		const bool bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL|KMOD_RCTRL )) > 0);
 		const bool bModAltOn = ((sdlmModsOn&(KMOD_LALT|KMOD_RALT)) > 0);
@@ -8018,15 +8146,31 @@ static bool PasteClipboardNext() {
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
 
 		uint8_t ansiVal = cKey;
-		for (int i = 100; i; i /= 10)
-			{
+		unsigned int ct = 0;
+		for (int i = 100; i; i /= 10) {
 			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
+			if (!numKey) ct++;
 			ansiVal %= i;
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
 			UINT uiScanCode = MapVirtualKey(numKey+VK_NUMPAD0, MAPVK_VK_TO_VSC);
+#else
+			UINT uiScanCode = numKey+'0';
+#endif
 			GenKBStroke(uiScanCode, true, sdlmMods);
 			GenKBStroke(uiScanCode, false, sdlmMods);
-			}
+		}
 		GenKBStroke(uiScanCodeAlt, false, sdlmMods);                // Alt up
+		if (ct%2) {
+			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
+#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
+			UINT uiScanCode = MapVirtualKey(0+VK_NUMPAD0, MAPVK_VK_TO_VSC);
+#else
+			UINT uiScanCode = 0+'0';
+#endif
+			GenKBStroke(uiScanCode, true, sdlmMods);
+			GenKBStroke(uiScanCode, false, sdlmMods);
+			GenKBStroke(uiScanCodeAlt, false, sdlmMods);
+		}
 		if (bModAltOn)                                                // Alt down if is was already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
     }
@@ -8034,18 +8178,6 @@ static bool PasteClipboardNext() {
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
     return true;
 }
-#else
-static bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0) return false;
-    if (strPasteBuffer[0]==13) {
-        KEYBOARD_AddKey(KBD_enter, true);
-        KEYBOARD_AddKey(KBD_enter, false);
-    } else
-        BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-	return true;
-}
-#endif
 
 // added emendelson from dbDos; improved by Wengier
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
@@ -8136,7 +8268,6 @@ void PasteClipboard(bool bPressed) {
 #elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
-void GetClipboard(std::string* result);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
     char *text;
@@ -8313,7 +8444,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     }
 }
 
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 void CopyClipboard(int all) {
@@ -8331,7 +8462,11 @@ void CopyClipboard(int all) {
         result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
     }
     if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
     SDL_SetClipboardText(result.c_str());
+#else
+    SetClipboard(result);
+#endif
 }
 #endif
 
@@ -10624,7 +10759,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
 bool arrow_keys_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10695,6 +10830,14 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     if (dos_clipboard_device_access == 4) dos_clipboard_device_access=1;
     else if (dos_clipboard_device_access) dos_clipboard_device_access=4;
     mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
+    return true;
+}
+
+bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    clipboard_biospaste = !clipboard_biospaste;
+    mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
     return true;
 }
 
@@ -12613,6 +12756,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             menu.showrt = control->opt_showrt||sdl_sec->Get_bool("showdetails");
             menu.hidecycles = (control->opt_showcycles||sdl_sec->Get_bool("showdetails") ? false : true);
+            toaddmenu = false;
         }
 
         /* Start up main machine */
@@ -12752,7 +12896,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-#if defined (WIN32) || defined(C_SDL2)
+#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
@@ -12760,7 +12904,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
-       mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+        if (IS_PC98_ARCH) clipboard_biospaste = true;
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste).enable(!IS_PC98_ARCH);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
@@ -12998,8 +13144,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             bool cfg_want_menu = section->Get_bool("showmenu");
 
             /* -- -- decide whether to set menu */
-            if (menu_gui && !control->opt_nomenu && cfg_want_menu)
-                DOSBox_SetMenu();
+            if (menu_gui && !control->opt_nomenu && cfg_want_menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                if (TTF_using() && sdl.desktop.fullscreen) {
+                    DOSBox_NoMenu();
+                    toaddmenu=true;
+                } else
+#endif
+                    DOSBox_SetMenu();
+            }
             else
                 DOSBox_NoMenu();
         }

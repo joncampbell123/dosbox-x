@@ -659,7 +659,7 @@ int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigne
   if (cmd == F_SETLK64 || cmd == F_GETLK64) {
     struct flock64 fl64;
     int result;
-    LOG_MSG("Large file locking start=%llx, len=%lx\n", start, len);
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Large file locking start=%llx, len=%lx\n", start, len);
     fl64.l_type = fl->l_type;
     fl64.l_whence = fl->l_whence;
     fl64.l_pid = fl->l_pid;
@@ -729,7 +729,7 @@ bool share(int fd, int mode, uint32_t flags) {
     if ((flags & 0x8000) && (fl.l_type != F_WRLCK)) return true;
     /* else fall through */
   default:
-    LOG_MSG("internal SHARE: unknown sharing mode %x\n", share_mode);
+    LOG(LOG_DOSMISC,LOG_WARN)("internal SHARE: unknown sharing mode %x\n", share_mode);
     return false;
     break;
   }
@@ -738,7 +738,7 @@ bool share(int fd, int mode, uint32_t flags) {
   if ( ret == -1 && errno == EINVAL )
 #endif
     lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
-    LOG_MSG("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
+    LOG(LOG_DOSMISC,LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
 
     return true;
 }
@@ -803,12 +803,12 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
-        hand = _wfdopen(nHandle, type);
+        hand = _wfdopen(nHandle, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #else
         uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
         int fd = open(host_name, unix_mode);
         if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
-        hand = fdopen(fd, type);
+        hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #endif
     } else {
 #ifdef host_cnv_use_wchar

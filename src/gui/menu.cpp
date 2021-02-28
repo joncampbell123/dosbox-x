@@ -187,7 +187,7 @@ static const char *def_menu_main_wheelarrow[] =
 /* main -> shared clipboard menu ("SharedClipboard") */
 static const char *def_menu_main_clipboard[] =
 {
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_fastedit",
     "clipboard_right",
     "clipboard_middle",
@@ -196,8 +196,9 @@ static const char *def_menu_main_clipboard[] =
 #endif
     "clipboard_device",
     "clipboard_dosapi",
+    "clipboard_biospaste",
     "--",
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_copyall",
 #endif
     "mapper_paste",
@@ -1759,30 +1760,6 @@ void DOSBox_RefreshMenu(void) {
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
     id=major=minor=0;
 }
-#endif
-
-#if defined(WIN32)
-# if defined(HX_DOS) || !defined(C_SDL2)
-HWND GetHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if(!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.window;
-}
-
-HWND GetSurfaceHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if (!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.child_window;
-}
-# endif
 #endif
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
