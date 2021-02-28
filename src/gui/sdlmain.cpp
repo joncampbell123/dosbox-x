@@ -4985,7 +4985,9 @@ bool has_GUI_StartUp = false;
 
 std::string GetDefaultOutput() {
     static std::string output = "surface";
-#ifdef __WIN32__
+#if defined(USE_TTF)
+    output ="ttf";
+#elif defined(WIN32)
 # if defined(HX_DOS)
     output ="surface"; /* HX DOS should stick to surface */
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
