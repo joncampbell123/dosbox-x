@@ -1,18 +1,4 @@
 0.83.11
-  - With the config option "startcmd=true" or command-
-    line option -winrun, Windows applications can now
-    be launched from within a DOS program or from the
-    4DOS shell in addition to built-in shell. (Wengier)
-  - Windows SDL2 builds now use same clipboard pasting
-    method as Windows SDL1 builds by default instead of
-    the BIOS function. The method is now also available
-    for Linux and macOS builds. A menu option "Use BIOS
-    function for keyboard pasting" is added to "Shared
-    clipboard functions" menu group (under "Main") to
-    use BIOS function for the clipboard pasting instead
-    of the keystroke method. This setting can also be
-    changed with the "clip_paste_bios" config option in
-    [sdl] section of the configuration. (Wengier)
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).
@@ -24,6 +10,24 @@
   - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
     CONFIG.SYS and 4DOS.INI sections in Configuration
     Tool for pasting clipboard contents. (Wengier)
+  - Windows SDL2 builds now use same clipboard pasting
+    method as Windows SDL1 builds by default instead of
+    the BIOS keyboard function. The method is now also
+    available for Linux and macOS (both SDL1 and SDL2)
+    builds (although it is disabled by default on these
+    platforms). A menu option "Use BIOS function for
+    keyboard pasting" is added to the "Shared clipboard
+    functions" menu group (under "Main") to use BIOS
+    function for the clipboard pasting instead of the
+    keystroke method. Make sure this option is disabled
+    if pasting clipboad text into Windows 3.x/9x apps
+    (e.g. Notepad & Write) is desired. This setting can
+    be changed with "clip_paste_bios" config option in
+    in [sdl] section of the config file too. (Wengier)
+  - With the config option "startcmd=true" or command-
+    line option -winrun, Windows applications can now
+    be launched from within a DOS program or from the
+    4DOS shell in addition to built-in shell. (Wengier)
   - If the TrueType font (TTF) output is enabled then
     a text-mode BIOS splash screen will now be used
     instead of the graphical one. (Wengier)
