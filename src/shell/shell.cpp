@@ -30,6 +30,7 @@
 #include "support.h"
 #include "builtin.h"
 #include "mapper.h"
+#include "render.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include <unistd.h>
@@ -589,7 +590,23 @@ void DOS_Shell::Run(void) {
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
-			int country = atoi(section->Get_string("country"));
+			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+			int country = 0;
+			if (r==NULL || !*(r+1))
+				country = atoi(trim(countrystr));
+			else {
+				*r=0;
+				country = atoi(trim(countrystr));
+				int newCP = atoi(trim(r+1));
+				*r=',';
+#if defined(USE_TTF)
+                if (ttf.inUse) {
+                    void toSetCodePage(DOS_Shell *shell, int newCP);
+                    if (newCP) toSetCodePage(this, newCP);
+                    else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                }
+#endif
+            }
 			if (country>0) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
@@ -1415,6 +1432,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n");
+	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");

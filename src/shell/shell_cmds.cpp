@@ -3968,6 +3968,19 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
+#if defined(USE_TTF)
+int setTTFCodePage();
+void toSetCodePage(DOS_Shell *shell, int newCP) {
+    if (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874) {
+		dos.loaded_codepage = newCP;
+		int missing = setTTFCodePage();
+		shell->WriteOut("Active code page: %d\n", dos.loaded_codepage);
+        if (missing > 0) shell->WriteOut("Characters not defined in TTF font: %d\n", missing);
+    } else
+       shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
+}
+#endif
+
 void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
 	args = trim(args);
@@ -3989,14 +4002,8 @@ void DOS_Shell::CMD_CHCP(char * args) {
 #if defined(USE_TTF)
 	int newCP;
 	char buff[256];
-	if (sscanf(args, "%d%s", &newCP, buff) == 1 && (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874)) {
-		dos.loaded_codepage = newCP;
-		int setTTFCodePage();
-		int missing = setTTFCodePage();
-		WriteOut("Active code page: %d\n", dos.loaded_codepage);
-        if (missing > 0) WriteOut("Characters not defined in TTF font: %d\n", missing);
-    } else
-        WriteOut("Invalid code page number - %s\n", StripArg(args));
+	if (sscanf(args, "%d%s", &newCP, buff) == 1) toSetCodePage(this, newCP);
+    else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
 #endif
 	return;
 }

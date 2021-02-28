@@ -75,11 +75,14 @@
     For example, command "COLOR fc" produces light red
     on bright white; COLOR without an argument restores
     the original color. (Wengier)
-  - Added CHCP command to view current code page, or
-    change the current code page in the TrueType font
-    output. Supported code pages include 437, 808, 850,
-    852, 853, 855, 857, 858, 860, 861, 862, 863, 864,
-    865, 866, 869, 872, and 874. (Wengier)
+  - Added CHCP command to view the current code page,
+    or change the current code page for the TrueType
+    font (TTF) output. Supported code pages include:
+    437, 808, 850, 852, 853, 855, 857, 858, 860, 861,
+    862, 863, 864, 865, 866, 869, 872, and 874. You can
+    now also set the code page for TTF output via the
+    optional second parameter of the "country" option
+    in [config] section of the configuration. (Wengier)
   - Added function to automatically save states in the
     specified time interval (in seconds). You can also
     specify a save slot or start and end save slots to
