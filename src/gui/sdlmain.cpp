@@ -3898,8 +3898,14 @@ void modeSwitched(bool full) {
     if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
 }
 
+bool toaddmenu = false;
 void GFX_SwitchFullScreen(void)
 {
+    if (sdl.desktop.fullscreen && toaddmenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) {
+        DOSBox_SetMenu();
+        toaddmenu = false;
+    }
+
 #if defined(USE_TTF)
     if (ttf.inUse) {
         if (ttf.fullScrn) {
@@ -12750,6 +12756,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             menu.showrt = control->opt_showrt||sdl_sec->Get_bool("showdetails");
             menu.hidecycles = (control->opt_showcycles||sdl_sec->Get_bool("showdetails") ? false : true);
+            toaddmenu = false;
         }
 
         /* Start up main machine */
@@ -13137,8 +13144,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             bool cfg_want_menu = section->Get_bool("showmenu");
 
             /* -- -- decide whether to set menu */
-            if (menu_gui && !control->opt_nomenu && cfg_want_menu)
-                DOSBox_SetMenu();
+            if (menu_gui && !control->opt_nomenu && cfg_want_menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                if (TTF_using() && sdl.desktop.fullscreen) {
+                    DOSBox_NoMenu();
+                    toaddmenu=true;
+                } else
+#endif
+                    DOSBox_SetMenu();
+            }
             else
                 DOSBox_NoMenu();
         }
