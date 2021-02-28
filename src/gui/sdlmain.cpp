@@ -4986,10 +4986,12 @@ bool has_GUI_StartUp = false;
 std::string GetDefaultOutput() {
     static std::string output = "surface";
 #if defined(USE_TTF)
-    output ="ttf";
+    std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+    if (mtype.substr(0, 3) == "vga" || mtype.substr(0, 4) == "svga" || mtype.substr(0, 4) == "vesa" || mtype.substr(0, 4) == "pc98")
+        return "ttf";
 #elif defined(WIN32)
 # if defined(HX_DOS)
-    output ="surface"; /* HX DOS should stick to surface */
+    output = "surface"; /* HX-DOS should stick to surface */
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
     /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
     output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */

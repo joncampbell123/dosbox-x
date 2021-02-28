@@ -1,4 +1,8 @@
 0.83.11
+  - With setting "output=default", the TrueType font
+    (TTF) output will be used by default for PC-98 and
+    VGA+ machine types. A text-mode BIOS screen will be
+    enabled for the TTF output. (Wengier)
   - With the config option "startcmd=true" or command-
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
