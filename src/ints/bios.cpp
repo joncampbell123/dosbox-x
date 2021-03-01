@@ -6876,11 +6876,11 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 
 static int bios_pc98_posx = 0;
 
-static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bool boxdraw = false) {
+static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bool boxdraw = false, bool tobold = false) {
     if (control->opt_fastlaunch) return;
     const char *s = msg;
-
     if (machine != MCH_PC98) {
+        unsigned int bold = 0;
         while (*s != 0) {
             if (*s == '\n') {
                 y++;
@@ -6892,8 +6892,28 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
                 s++;
             }
             else {
-                reg_eax = 0x0E00u | ((unsigned char)(*s++));
-                reg_ebx = 0x07u;
+                if (tobold&&!bold) {
+                    if (strlen(s)>3&&!strncmp(s, "DEL", 3)||!strncmp(s, "ESC", 3)) bold = 3;
+                    else if (strlen(s)>5&&!strncmp(s, "ENTER", 5)) bold = 5;
+                    else if (strlen(s)>8&&!strncmp(s, "SPACEBAR", 8)) bold = 8;
+                }
+                if (bold>0) {
+                    bold--;
+                    reg_eax = 0x0900u | ((unsigned char)(*s++));
+                    reg_ebx = 0x000fu;
+                    reg_ecx = 0x0001u;
+                    CALLBACK_RunRealInt(0x10);
+                    reg_eax = 0x0300u;
+                    reg_ebx = 0x0000u;
+                    CALLBACK_RunRealInt(0x10);
+                    reg_eax = 0x0200u;
+                    reg_ebx = 0x0000u;
+                    reg_edx++;
+                    CALLBACK_RunRealInt(0x10);
+                } else {
+                    reg_eax = 0x0E00u | ((unsigned char)(*s++));
+                    reg_ebx = 0x07u;
+                }
                 CALLBACK_RunRealInt(0x10);
             }
         }
@@ -8816,8 +8836,8 @@ startfunction:
         }
 
 #if !defined(C_EMSCRIPTEN)
-        BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
-        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
+        BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n", false, true);
+        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n", false, true);
         y--; /* next message should overprint */
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
@@ -8874,8 +8894,8 @@ startfunction:
                     }
 
                     if (reg_al == 32) { // user hit space
-                        BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
-                        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n");
+                        BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n", false, true); // overprint
+                        BIOS_Int10RightJustifiedPrint(x,y,"\nPress DEL to enter BIOS setup screen\n", false, true);
                         wait_for_user = true;
                         break;
                     }
