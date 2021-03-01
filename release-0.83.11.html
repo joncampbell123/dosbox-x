@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.11 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">March 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+
+            <div style="font-size: 20px; font-weight: 800">Full Changelog In This Version</div>
+<ul>
+<li>
+    Added support for the clipboard device (CLIP$) and
+    DOS clipboard API on non-Windows systems (they were
+    previously only supported on the Windows platform).
+    In Linux SDL1 build only read access is supported
+    whereas both read and write access are supported in
+    all other builds. Also, selecting and copying text
+    to the host clipboard using a mouse button or arrow
+    key is now supported in macOS SDL1 build. (Wengier)
+</li>
+<li>
+    Added "Paste Clipboard" button to the AUTOEXEC.BAT,
+    CONFIG.SYS and 4DOS.INI sections in Configuration
+    Tool for pasting clipboard contents. (Wengier)
+</li>
+<li>
+    Windows SDL2 builds now use same clipboard pasting
+    method as Windows SDL1 builds by default instead of
+    the BIOS keyboard function. The method is now also
+    available for Linux and macOS (both SDL1 and SDL2)
+    builds (although it is disabled by default on these
+    platforms). A menu option "Use BIOS function for
+    keyboard pasting" is added to the "Shared clipboard
+    functions" menu group (under "Main") to use BIOS
+    function for the clipboard pasting instead of the
+    keystroke method. Make sure this option is disabled
+    if pasting clipboad text into Windows 3.x/9x apps
+    (e.g. Notepad & Write) is desired. This setting can
+    be changed with "clip_paste_bios" config option in
+    in [sdl] section of the config file too. (Wengier)
+</li>
+<li>
+    With the config option "startcmd=true" or command-
+    line option -winrun, Windows applications can now
+    be launched from within a DOS program or from the
+    4DOS shell in addition to built-in shell. (Wengier)
+</li>
+<li>
+    Added the "disable graphical splash" config option
+    in [dosbox] section which when set will cause a
+    text-mode BIOS splash screen to be always displayed
+    at startup instead of the graphical one. If the
+    TrueType font (TTF) output is enabled the text-
+    mode BIOS screen is used automatically. (Wengier)
+</li>
+<li>
+    Added a simple BIOS Setup Utlity, which will show
+    a summary of the current system configuration and
+    allow users to change the date and time. Press Del
+    key at the BIOS boot screen to enter. (Wengier)
+</li>
+<li>
+    Added config option "showbasic" in [sdl] section
+    which when set to false will hide DOSBox-X version
+    number and running speed in the titlebar. (Wengier)
+</li>
+<li>
+    Added experimental option to load a VGA BIOS ROM
+    image and execute it, instead of our own INT 10h
+    emulation. If enabled, it will load the specific
+    ROM file into C000:0000. If not specified, it
+    will choose based on machine type. VGA BIOS ROM
+    images (e.g. et4000.bin for Tseng ET4000 emulation)
+    can be dumped from real hardware or downloaded from
+    the PCem ROMs collection. It can be set with config
+    option "vga bios rom image" in [video] section.
+</li>
+<li>
+    Improved handling for file- and record-locking
+    for non-Windows platforms. Portions of the code
+    are adopted from DOSEmu. (Wengier)
+</li>
+<li>
+    Improved handling for the setting "ansi.sys=false",
+    such as fixing the welcome screen messup in this
+    case and allowing the use of a custom ANSI TSR
+    (such as NNANSI.COM) instead. (Wengier & stu)
+</li>
+<li>
+    You can now press Ctrl+C or Ctrl+Break to break
+    from long outputs from commands like TYPE, MORE,
+    COPY, DIR /S, and ATTRIB /S. (Wengier)
+</li>
+<li>
+    Renamed MEM.COM to MEM.EXE to match DOS. (Wengier)
+</li>
+<li>
+    Rewrote built-in TREE command instead of the one
+    from FreeDOS to support long filenames. (Wengier)
+</li>
+<li>
+    DELTREE is now an external command appearing on
+    drive Z: as DELTREE.EXE instead of a builtin shell
+    command, since it is an external command in a real
+    DOS system. (Wengier)
+</li>
+<li>
+    Added REPLACE command to replace files, resembling
+    the MS-DOS counterpart. This command is compiled
+    with long filename support. (Wengier)
+</li>
+<li>
+    Added PUSHD and POPD commands so that you can store
+    the current directory and changes to the specified
+    directory (optionally also the current drive), then
+    changes the directory/drive back. PUSHD command
+    without arguments show stored path(s). (Wengier)
+</li>
+<li>
+    Added COLOR command to change current foreground
+    and background colors. It usage is similar to the
+    same-named command in the Windows command prompt.
+    For example, command "COLOR fc" produces light red
+    on bright white; COLOR without an argument restores
+    the original color. (Wengier)
+</li>
+<li>
+    Added CHCP command to view the current code page,
+    or change the current code page for the TrueType
+    font (TTF) output. Supported code pages include:
+    437, 808, 850, 852, 853, 855, 857, 858, 860, 861,
+    862, 863, 864, 865, 866, 869, 872, and 874. You can
+    now also set the code page for TTF output via the
+    optional second parameter of the "country" option
+    in [config] section of the configuration. (Wengier)
+</li>
+<li>
+    Added function to automatically save states in the
+    specified time interval (in seconds). You can also
+    specify a save slot or start and end save slots to
+    be used. For example, "autosave=10 11-20" will set
+    a 10-second time interval for auto-saving, and the
+    save slots used will be between 11 and 20. If no
+    save slot is specified, then the current save slot
+    will be used for auto-saving. Putting a minus sign
+    before time interval causes the auto-saving function
+    to not be activated at start. You can optionally
+    also specify up to 9 program names for this feature,
+    e.g. "autosave=10 11-20 EDIT:21-30 EDITOR:35" will
+    cause program "EDIT" to use save slots 21-30, and
+    "EDITOR" to use save slot 35, and other programs to
+    use save slots 11-20. Added a menu option "Auto-save
+    settings..." to manage the auto-saving feature at
+    run-time. A menu option "Enable auto-saving state"
+    is added to the "Save/load options" menu group under
+    "Capture" to toggle auto-saving when the function is
+    enabled. Likewise, a menu option "Select last auto-
+    saved slot" is added to the "Select save slot" menu
+    group (also under "Capture") to switch to the last
+    auto-saved slot (if any). (Wengier)
+</li>
+<li>
+    The Configuration Tool windows are now scalable, so
+    that they will no longer look very small in e.g.
+    full-screen or High DPI modes. (ant_222)
+</li>
+<li>
+    If the -defaultdir option is the only or the last
+    command-line option and no parameter is specified,
+    then directory of the primary config file (if any)
+    becomes the DOSBox-X default directory. (Wengier)
+</li>
+<li>
+    You can now change the current output dynamically
+    with CONFIG command, e.g. "CONFIG -set output=ttf"
+    and "CONFIG -set output=default". (Wengier)
+</li>
+<li>
+    The command "KEYB US" will return the DOS codepage
+    to 437 if current codepage is different. (Wengier)
+</li>
+<li>
+    The setting "output=default" will enable the OpenGL
+    output for Linux systems if possible. (Wengier)
+</li>
+<li>
+    Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
+    function buttons in Mapper Editor, and the screen
+    colors after exiting from Mapper Editor when using
+    these machine types in Direct3D output (SDL1 build).
+    Also fixed the messages in the welcome banner for
+    these machine types to inform users the new default
+    shortcuts (Ctrl(+Shift)+[F7/F8]). (Wengier)
+</li>
+<li>
+    Fixed DOS Int21/AH=0x5a "Create temporary file"
+    function not generating unique files. (Wengier)
+</li>
+<li>
+    Fixed that the current drive goes back to Z drive
+    when combined unmounts & mounts are used. (Wengier)
+</li>
+<li>
+    Fixed PC-98 keyboard handling of CTRL+A through
+    CTRL+Z. CTRL+C now works correctly in PC-98 mode.
+</li>
+<li>
+    Fixed crash of Free Pascal compiler with dynamic
+    core and setting "use dynamic core with paging on =
+    auto" introduced in the previous version. (Wengier)
+</li>
+<li>
+    Fixed launching Windows programs when the working
+    directory has no 8.3 filename entry. (Wengier)
+</li>
+<li>
+    Fixed issues with full-screen switch in some cases
+    when the TrueType font output is enabled. (Wengier)
+</li>
+<li>
+    Fixed an issue in MinGW builds that no data will be
+    sent to the OPL3Duo board. (DhrBaksteen)
+</li>
+<li>
+    Fixed screen flickering when hovering over the menu
+    with Direct3D output in the Windows SDL2 build that
+    was introduced in the last version. (Wengier)
+</li>
+<li>
+    Fixed mounting disk/CD images with long paths from
+    the "Drive" menu may not work properly. (Wengier)
+</li>
+<li>
+    Fixed that the "Save" button in Configuration Tool
+    did not save config file in last version. (Wengier)
+</li>
+<li>
+    Integrated SVN commits (Allofich)
+    - r4346: Fix a long-standing crash that occurred
+    when disconnecting a second joystick after
+    partially mapping it.
+    - r4344: Add F8 to toggle printable characters on
+    and off in the debugger.
+    - r4340: Fix behavior when main memory allocation
+    fails.
+    - r4336: Correct an oversight of r4186 when floppy
+    disks are mounted.
+    - r4330: some big endian improvements and drive_fat
+    fixes. (jmarsh)
+    - r4320: Report Q-Channel track number in BCD,
+    meaning it is not converted to binary by the
+    CD-ROM device driver. Fixes the CD-Player feature
+    of DOS Navigator 1.51 when playing past track 15.
+    - r4318: Add LOGC debug command to log cs:ip only.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.10 (<a href="release-0.83.10.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
