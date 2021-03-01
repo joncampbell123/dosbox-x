@@ -174,7 +174,7 @@ bool CDROM_Interface_Ioctl::mci_CDPosition(int *position) {
 
 
 CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
-	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, {0} };
+	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, { {0,0,0,0},{0,0,0,0} } };
 
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
