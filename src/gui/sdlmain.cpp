@@ -5957,7 +5957,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         return;
     }
     else {
+        skipdraw=true;
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+        skipdraw=false;
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
@@ -7164,7 +7166,9 @@ void GFX_Events() {
                 void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
                 void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
 
+                skipdraw=true;
                 GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                skipdraw=false;
                 GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
 
                 GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
