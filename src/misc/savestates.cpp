@@ -35,8 +35,11 @@
 #endif
 
 extern unsigned int page;
-extern std::string savefilename;
+extern int autosave_last[10], autosave_count;
+extern std::string autosave_name[10], savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
+extern const char* RunningProgram;
+bool auto_save_state=false;
 bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
@@ -223,6 +226,27 @@ void PreviousSaveSlot(bool pressed) {
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
+
+void LastAutoSaveSlot(bool pressed) {
+    if (!pressed) return;
+    int index=0;
+    for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
+    if (autosave_last[index]<1) return;
+
+	char name[6]="slot0";
+	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    currentSlot.set(autosave_last[index]-1);
+    if (page!=currentSlot/SaveState::SLOT_COUNT) {
+        page=(unsigned int)(currentSlot/SaveState::SLOT_COUNT);
+        refresh_slots();
+    }
+    name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+    mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+
+    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
+    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
+}
 }
 
 std::string GetPlatform(bool save) {
@@ -260,6 +284,7 @@ void SaveGameState_Run(void) { SaveGameState(true); }
 void LoadGameState_Run(void) { LoadGameState(true); }
 void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
+void LastAutoSaveSlot_Run(void) { LastAutoSaveSlot(true); }
 
 void ShowStateInfo(bool pressed) {
     if (!pressed) return;
@@ -1088,7 +1113,9 @@ void SaveState::save(size_t slot) { //throw (Error)
 	}
     const char *save_remark = "";
 #if !defined(HX_DOS)
-    if (!noremark_save_state) {
+    if (auto_save_state)
+        save_remark = "Auto-save";
+    else if (!noremark_save_state) {
         /* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
          *      It is not necessary to free the return string, but it is important to understand that
          *      the next call to tinyfd_inputBox() will obliterate the previously returned string.
@@ -1112,7 +1139,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_machinetype=false;
 	bool create_timestamp=false;
 	bool create_saveremark=false;
-	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {

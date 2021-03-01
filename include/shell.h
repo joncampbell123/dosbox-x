@@ -260,6 +260,10 @@ public:
      */
 	void CMD_SHIFT(char * args);
 
+    /*! \brief      List directory tree (TREE)
+     */
+	void CMD_TREE(char * args);
+
     /*! \brief      File verification switch
      */
 	void CMD_VERIFY(char * args);
@@ -290,7 +294,10 @@ public:
 
     /*! \brief      Change country code
      */
+	void CMD_CHCP(char * args);
 	void CMD_COUNTRY(char * args);
+	void CMD_PUSHD(char * args);
+	void CMD_POPD(char * args);
     void CMD_TRUENAME(char * args);
     void CMD_DXCAPTURE(char * args);
 

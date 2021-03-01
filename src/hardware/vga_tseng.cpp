@@ -582,6 +582,8 @@ void INT10Extensions_ET4K() {
     }
 }
 
+extern bool VGA_BIOS_use_rom;
+
 void SVGA_Setup_TsengET4K(void) {
     svga.write_p3d5 = &write_p3d5_et4k;
     svga.read_p3d5 = &read_p3d5_et4k;
@@ -630,8 +632,10 @@ void SVGA_Setup_TsengET4K(void) {
     else
         vga.mem.memsize = 1024*1024;
 
-    // Tseng ROM signature
-    phys_writes(PhysMake(0xc000,0)+0x0075, " Tseng ", 8);
+    if (!VGA_BIOS_use_rom) {
+        // Tseng ROM signature
+        phys_writes(PhysMake(0xc000,0)+0x0075, " Tseng ", 8);
+    }
 }
 
 

@@ -192,7 +192,7 @@ void Program::ChangeToLongCmd() {
 	 * Length of arguments can be ~120. but switch when above 100 to be sure
 	 */
 
-	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100) {	
+	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100 && full_arguments.size()) {
 		CommandLine* temp = new CommandLine(cmd->GetFileName(),full_arguments.c_str());
 		delete cmd;
 		cmd = temp;
@@ -1193,6 +1193,14 @@ void CONFIG::Run(void) {
                                 if (section->Get_bool("fullscreen")) {
                                     if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                                 } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                            }
+                            if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
+                                bool toOutput(const char *output);
+                                std::string GetDefaultOutput();
+                                std::string output=section->Get_string("output");
+                                if (output == "default") output=GetDefaultOutput();
+                                GFX_LosingFocus();
+                                toOutput(output.c_str());
                             }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);

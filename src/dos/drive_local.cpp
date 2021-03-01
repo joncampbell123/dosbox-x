@@ -76,9 +76,16 @@
 #include "cp855_uni.h"
 #include "cp857_uni.h"
 #include "cp858_uni.h"
+#include "cp860_uni.h"
+#include "cp861_uni.h"
+#include "cp862_uni.h"
+#include "cp863_uni.h"
+#include "cp864_uni.h"
+#include "cp865_uni.h"
 #include "cp866_uni.h"
 #include "cp869_uni.h"
 #include "cp872_uni.h"
+#include "cp874_uni.h"
 #include "cp932_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
@@ -385,12 +392,26 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -424,12 +445,26 @@ bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default: // Otherwise just use code page 437
@@ -457,12 +492,26 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -558,12 +607,29 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		fclose(test);
 		existing_file=true;
 	}
-	
-#ifdef host_cnv_use_wchar
-	FILE * hand=_wfopen(host_name,L"wb+");
+
+    FILE * hand;
+    if (enable_share_exe && !existing_file) {
+#if defined(WIN32)
+        int attribs = FILE_ATTRIBUTE_NORMAL;
+        if (attributes&3) attribs = attributes&3;
+        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, attribs, NULL);
+        if (handle == INVALID_HANDLE_VALUE) return false;
+        int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
+        if (nHandle == -1) {CloseHandle(handle);return false;}
+        hand = _wfdopen(nHandle, L"wb+");
 #else
-	FILE * hand=fopen(host_name,"wb+");
+        int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        if (fd<0) {close(fd);return false;}
+        hand = fdopen(fd, "wb+");
 #endif
+    } else {
+#ifdef host_cnv_use_wchar
+        hand=_wfopen(host_name,L"wb+");
+#else
+        hand=fopen(host_name,"wb+");
+#endif
+    }
 	if (!hand){
 		LOG_MSG("Warning: file creation failed: %s",newname);
 		return false;
@@ -582,6 +648,101 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 
 	return true;
 }
+
+#ifndef WIN32
+int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigned long len)
+{
+  fl->l_whence = SEEK_SET;
+  fl->l_pid = 0;
+  //if (start == 0x100000000LL) start = len = 0; //first handle magic file lock value
+#ifdef F_SETLK64
+  if (cmd == F_SETLK64 || cmd == F_GETLK64) {
+    struct flock64 fl64;
+    int result;
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Large file locking start=%llx, len=%lx\n", start, len);
+    fl64.l_type = fl->l_type;
+    fl64.l_whence = fl->l_whence;
+    fl64.l_pid = fl->l_pid;
+    fl64.l_start = start;
+    fl64.l_len = len;
+    result = fcntl( fd, cmd, &fl64 );
+    fl->l_type = fl64.l_type;
+    fl->l_start = (long) fl64.l_start;
+    fl->l_len = (long) fl64.l_len;
+    return result;
+  }
+#endif
+  if (start == 0x100000000LL)
+    start = 0x7fffffff;
+  fl->l_start = start;
+  fl->l_len = len;
+  return fcntl( fd, cmd, fl );
+}
+
+#define COMPAT_MODE	0x00
+#define DENY_ALL	0x01
+#define DENY_WRITE	0x02
+#define DENY_READ	0x03
+#define DENY_NONE	0x04
+#define FCB_MODE	0x07
+bool share(int fd, int mode, uint32_t flags) {
+  struct flock fl;
+  int ret;
+  int share_mode = ( flags >> 4 ) & 0x7;
+  fl.l_type = F_WRLCK;
+  /* see whatever locks are possible */
+
+#ifdef F_GETLK64
+  ret = lock_file_region( fd, F_GETLK64, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+  ret = lock_file_region( fd, F_GETLK, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 ) return true;
+
+  /* file is already locked? then do not even open */
+  /* a Unix read lock prevents writing;
+     a Unix write lock prevents reading and writing,
+     but for DOS compatibility we allow reading for write locks */
+  if ((fl.l_type == F_RDLCK && mode != O_RDONLY) || (fl.l_type == F_WRLCK && mode != O_WRONLY))
+    return false;
+
+  switch ( share_mode ) {
+  case COMPAT_MODE:
+    if (fl.l_type == F_WRLCK) return false;
+  case DENY_NONE:
+    return true;                   /* do not set locks at all */
+  case DENY_WRITE:
+    if (fl.l_type == F_WRLCK) return false;
+    if (mode == O_WRONLY) return true; /* only apply read locks */
+    fl.l_type = F_RDLCK;
+    break;
+  case DENY_READ:
+    if (fl.l_type == F_RDLCK) return false;
+    if (mode == O_RDONLY) return true; /* only apply write locks */
+    fl.l_type = F_WRLCK;
+    break;
+  case DENY_ALL:
+    if (fl.l_type == F_WRLCK || fl.l_type == F_RDLCK) return false;
+    fl.l_type = mode == O_RDONLY ? F_RDLCK : F_WRLCK;
+    break;
+  case FCB_MODE:
+    if ((flags & 0x8000) && (fl.l_type != F_WRLCK)) return true;
+    /* else fall through */
+  default:
+    LOG(LOG_DOSMISC,LOG_WARN)("internal SHARE: unknown sharing mode %x\n", share_mode);
+    return false;
+    break;
+  }
+#ifdef F_SETLK64
+  ret = lock_file_region( fd, F_SETLK64, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+    lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
+    LOG(LOG_DOSMISC,LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
+
+    return true;
+}
+#endif
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     if (nocachedir) EmptyCache();
@@ -634,30 +795,28 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     }
 
     FILE * hand;
-#if defined(WIN32)
     if (enable_share_exe) {
+#if defined(WIN32)
         int ohFlag = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?GENERIC_READ:((flags&0xf)==OPEN_WRITE?GENERIC_WRITE:GENERIC_READ|GENERIC_WRITE);
         int shhFlag = (flags&0x70)==0x10?0:((flags&0x70)==0x20?FILE_SHARE_READ:((flags&0x70)==0x30?FILE_SHARE_WRITE:FILE_SHARE_READ|FILE_SHARE_WRITE));
         HANDLE handle = CreateFileW(host_name, ohFlag, shhFlag, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
-        hand = _wfdopen(nHandle, type);
-    } else
-#endif
-    {
-#ifdef host_cnv_use_wchar
-	hand=_wfopen(host_name,type);
+        hand = _wfdopen(nHandle, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #else
-	hand=fopen(host_name,type);
+        uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
+        int fd = open(host_name, unix_mode);
+        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
+        hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
+#endif
+    } else {
+#ifdef host_cnv_use_wchar
+		hand=_wfopen(host_name,type);
+#else
+		hand=fopen(host_name,type);
 #endif
     }
-#if !defined(WIN32)
-    if (hand && enable_share_exe && (flags&0x70)==0x10 && flock(fileno(hand), LOCK_EX | LOCK_NB)==-1) {
-        fclose(hand); // Close the file handle
-        return false;
-    }
-#endif
 //	uint32_t err=errno;
 	if (!hand) {
 		if((flags&0xf) != OPEN_READ) {
@@ -1651,6 +1810,27 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
     }
 }
 
+#ifndef WIN32
+bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
+    struct flock larg;
+    unsigned long mask = 0xC0000000;
+    int flag = fcntl(fd, F_GETFL);
+    larg.l_type = is_lock ? (flag & O_RDWR || flag & O_WRONLY ? F_WRLCK : F_RDLCK) : F_UNLCK;
+    larg.l_start = pos;
+    larg.l_len = size;
+    larg.l_len &= ~mask;
+    if ((larg.l_start & mask) != 0)
+        larg.l_start = (larg.l_start & ~mask) | ((larg.l_start & mask) >> 2);
+    int ret;
+#ifdef F_SETLK64
+    ret = lock_file_region (fd,F_SETLK64,&larg,pos,size);
+    if (ret == -1 && errno == EINVAL)
+#endif
+    ret = lock_file_region (fd,F_SETLK,&larg,larg.l_start,larg.l_len);
+    return ret != -1;
+}
+#endif
+
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
 static bool lockWarn = true;
@@ -1691,8 +1871,8 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	case 0: bRet = ::LockFile (hFile, pos, 0, size, 0); break;
 	case 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); break;
 #else
-	case 0: bRet = flock(fileno(fhandle), LOCK_SH | LOCK_NB) == 0; break;
-	case 1: bRet = flock(fileno(fhandle), LOCK_UN | LOCK_NB) == 0; break;
+	case 0: bRet = toLock(fileno(fhandle), true, pos, size); break;
+	case 1: bRet = toLock(fileno(fhandle), false, pos, size); break;
 #endif
 	default: 
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -1727,7 +1907,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 		{
 		case EINTR:
 		case ENOLCK:
-		case EWOULDBLOCK:
+		case EAGAIN:
 			DOS_SetError(0x21);
 			break;
 		case EBADF:

@@ -1825,7 +1825,7 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
-    MemBase = new uint8_t[memory.pages*4096];
+    MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */

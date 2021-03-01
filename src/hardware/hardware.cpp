@@ -1825,7 +1825,49 @@ void CAPTURE_Destroy(Section *sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
+bool enable_autosave = false;
+int autosave_second = 0, autosave_count = 0, autosave_start[10], autosave_end[10], autosave_last[10];
+std::string autosave_name[10];
 void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
+
+void ParseAutoSaveArg(std::string arg) {
+    if (arg.size()) {
+        size_t found=arg.find_last_of(":");
+        int start, end;
+        if (found==std::string::npos||found==0) {
+            found=arg.find_last_of("-");
+            if (found==std::string::npos||found==0) {
+                start=atoi(arg.c_str());
+                if (start>0) autosave_start[0]=start;
+                else if (start<0) autosave_start[0]=-1;
+            } else {
+                start=atoi(arg.substr(0, found).c_str());
+                end=atoi(arg.substr(found+1).c_str());
+                if (start>0) {
+                    autosave_start[0]=start;
+                    if (end>=start) autosave_end[0]=end;
+                } else if (start<0) autosave_start[0]=-1;
+            }
+        } else if (autosave_count<9) {
+            autosave_name[++autosave_count]=arg.substr(0, found);
+            std::string remain=arg.substr(found+1);
+            found=remain.find_last_of("-");
+            if (found==std::string::npos||found==0) {
+                start=atoi(remain.c_str());
+                if (start>0) autosave_start[autosave_count]=start;
+                else if (start<0) autosave_start[autosave_count]=-1;
+            } else {
+                start=atoi(remain.substr(0, found).c_str());
+                end=atoi(remain.substr(found+1).c_str());
+                if (start>0) {
+                    autosave_start[autosave_count]=start;
+                    if (end>=start) autosave_end[autosave_count]=end;
+                } else if (start<0) autosave_start[autosave_count]=-1;
+            }
+        }
+    }
+}
+
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
 
@@ -1856,6 +1898,18 @@ void CAPTURE_Init() {
             mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
         }
     }
+    Prop_multival* prop = section->Get_multival("autosave");
+    autosave_second = atoi(prop->GetSection()->Get_string("second"));
+    for (int i=0; i<10; i++) {
+        autosave_name[i] = "";
+        autosave_start[i] = autosave_end[i] = 0;
+        autosave_last[i] = -1;
+        ParseAutoSaveArg(prop->GetSection()->Get_string("arg"+std::to_string(i)));
+    }
+    enable_autosave = autosave_second>0;
+    if (autosave_second<0) autosave_second=-autosave_second;
+    mainMenu.get_item("enable_autosave").check(enable_autosave).enable(autosave_second>0).refresh_item(mainMenu);
+    mainMenu.get_item("lastautosaveslot").enable(autosave_second>0).refresh_item(mainMenu);
     std::string hostkey = section->Get_string("hostkey");
     if (hostkey=="ctrlalt") hostkeyalt=1;
     else if (hostkey=="ctrlshift") hostkeyalt=2;

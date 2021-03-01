@@ -6,6 +6,7 @@
 #ifndef OPL3_DUO_BOARD
 	#define OPL3_DUO_BOARD
     #define OPL3_DUO_BUFFER_SIZE 9000
+   
 
 	// Output debug information to the DosBox console if set to 1
 	#define OPL3_DUO_BOARD_DEBUG 0
@@ -24,7 +25,8 @@
 
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
             std::thread thread;
-            bool stopOPL3DuoThread;
+            bool stopOPL3DuoThread = false;
+		
 #endif
             COMPORT comport;
             uint8_t sendBuffer[OPL3_DUO_BUFFER_SIZE];

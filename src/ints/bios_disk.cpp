@@ -133,6 +133,7 @@ void incrementFDD(void) {
         equipment|=(numofdisks<<6);
     } else equipment|=1;
     mem_writew(BIOS_CONFIGURATION,equipment);
+    if(IS_EGAVGA_ARCH) equipment &= ~0x30; //EGA/VGA startup display mode differs in CMOS
     CMOS_SetRegister(0x14, (uint8_t)(equipment&0xff));
 }
 

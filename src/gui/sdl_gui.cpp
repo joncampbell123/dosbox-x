@@ -67,7 +67,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern uint8_t                int10_font_14[256 * 14];
+extern uint8_t              int10_font_14[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -77,9 +77,11 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres;
+extern bool                 dos_kernel_disabled, confres, swapad;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
+extern std::string          strPasteBuffer;
 
+extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -180,6 +182,7 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+extern bool toscale;
 extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
@@ -198,7 +201,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
-    int sx, sy, sw, sh;
+    int sx, sy, sw, sh, scalex, scaley, scale;
     bool fs;
     GFX_GetSizeAndPos(sx, sy, sw, sh, fs);
 
@@ -227,6 +230,11 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     if (dw < 640) dw = 640;
     if (dh < 350) dh = 350;
+    scalex = dw / 640; /* maximum horisontal scale */
+    scaley = dh / 350; /* maximum vertical   scale */
+    if( scalex > scaley ) scale = scaley;
+    else                  scale = scalex;
+    if (!toscale) scale = 1;
 
     assert(sx < dw);
     assert(sy < dh);
@@ -433,7 +441,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
     if (screen) screen->setSurface(sdlscreen);
-    else screen = new GUI::ScreenSDL(sdlscreen);
+    else screen = new GUI::ScreenSDL(sdlscreen, scale); // CONF:SCALE
 
     saved_bpp = (int)render.src.bpp;
     render.src.bpp = 0;
@@ -514,7 +522,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     void res_init(void);
     void change_output(int output);
     res_init();
-    change_output(7);
+    change_output(8);
 #else
 #if 1
     GFX_RestoreMode();
@@ -1163,7 +1171,7 @@ public:
         int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 70;
         int button_pad_w = 10;
-        int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
+        int button_row_w = ((button_pad_w + button_w) * 4 + button_w) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
 
         resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + wiw->vscroll_display_width/*scrollbar*/ + 10,
@@ -1176,14 +1184,17 @@ public:
         content = new GUI::Input(this, 5, button_row_y-height+20, 510 - border_left - border_right, height-25);
         content->setText(extra_data);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Paste Clipboard", button_w*2);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
-
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, "OK", button_w);
 
         int i = 0;
         Property *prop;
@@ -1253,6 +1264,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
+        std::string lines = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
         else if (arg == "Help") {
             std::vector<GUI::Char> new_cfg_sname;
@@ -1282,6 +1294,24 @@ public:
             else {
                 lookup->second->raise();
             }
+		} else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
+			while (strPasteBuffer.length()) {
+                key = NULL;
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+            return;
         } else ToplevelWindow::actionExecuted(b, arg);
     }
 
@@ -1311,7 +1341,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        ToplevelWindow(parent, x, y, 550, 260 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
             return;
@@ -1321,12 +1351,13 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Edit "+title);
         new GUI::Label(this, 5, 10, "Content:");
-        content = new GUI::Input(this, 5, 30, 450 - 10 - border_left - border_right, 185);
+        content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
-        if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 5, 220, "Paste Clipboard"))->addActionHandler(this);
+        if (first_shell) (new GUI::Button(this, 147, 220, "Append History"))->addActionHandler(this);
+        if (shell_idle) (new GUI::Button(this, 281, 220, "Execute Now"))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 391, 220, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 461, 220, "OK", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1340,7 +1371,25 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Append History") {
+        else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
+			while (strPasteBuffer.length()) {
+                key = NULL;
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+			return;
+		} else if (arg == "Append History") {
             std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
             while (i != first_shell->l_history.rend()) {
@@ -1424,7 +1473,7 @@ public:
             name->setText(fullpath);
             return;
         }
-        if (arg == "OK" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == "Save" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
         if (arg == "Save & Restart") RebootConfig((const char*)name->getText(), true);
         close();
         if(shortcut) running=false;
@@ -1502,6 +1551,7 @@ public:
         name->setText(cycles.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 300, 60, "Paste", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1520,6 +1570,66 @@ public:
                 sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
                 sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
             }
+        }
+        close();
+        if(shortcut) running=false;
+    }
+};
+
+extern bool enable_autosave;
+extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
+extern std::string autosave_name[10];
+class SetAutoSave : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name[10], *start[10], *end[10];
+public:
+    SetAutoSave(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 630, 400, title) {
+        new GUI::Label(this, 5, 15, "Time interval (secs)");
+        name[0] = new GUI::Input(this, 175, 10, 80);
+        name[0]->setText(std::to_string(autosave_second).c_str());
+        new GUI::Label(this, 270, 15, "Start slot");
+        start[0] = new GUI::Input(this, 360, 10, 35);
+        start[0]->setText(std::to_string(autosave_start[0]).c_str());
+        new GUI::Label(this, 410, 15, "End slot (optional)");
+        end[0] = new GUI::Input(this, 575, 10, 35);
+        end[0]->setText(std::to_string(autosave_end[0]).c_str());
+        for (int i=1; i<10; i++) {
+            new GUI::Label(this, 5, 15+i*30, "Program "+std::to_string(i)+" (Optional)");
+            name[i] = new GUI::Input(this, 175, 10+i*30, 80);
+            name[i]->setText(autosave_name[i].c_str());
+            new GUI::Label(this, 270, 15+i*30, "Start slot");
+            start[i] = new GUI::Input(this, 360, 10+i*30, 35);
+            start[i]->setText(std::to_string(autosave_start[i]).c_str());
+            new GUI::Label(this, 410, 15+i*30, "End slot (optional)");
+            end[i] = new GUI::Input(this, 575, 10+i*30, 35);
+            end[i]->setText(std::to_string(autosave_end[i]).c_str());
+        }
+        new GUI::Label(this, 15, 315, "Note: 0 for start slot = use current slot; -1 for start slot = skip saving");
+        (new GUI::Button(this, 250, 335, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 330, 335, "Cancel", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "OK") {
+            autosave_second = atoi(name[0]->getText());
+            autosave_start[0] = atoi(start[0]->getText());
+            autosave_end[0] = atoi(end[0]->getText());
+            for (int i=1; i<10; i++) {
+                autosave_name[i] = (const char*)name[i]->getText();
+                if (autosave_name[i].size()) autosave_count=i;
+                autosave_start[i] = atoi(start[i]->getText());
+                if (autosave_start[i]<-1) autosave_start[i]=-1;
+                autosave_end[i] = atoi(end[i]->getText());
+                if (autosave_end[i]<autosave_start[i]) autosave_end[i]=0;
+                if (autosave_start[i]>1&&autosave_start[i]<=100&&autosave_last[i]<autosave_start[i]||autosave_last[i]>(autosave_end[i]>=autosave_start[i]&&autosave_end[i]<=100?autosave_end[i]:autosave_start[i])) autosave_last[i]=-1;
+            }
+            if (!mainMenu.get_item("enable_autosave").is_enabled()&&autosave_second) enable_autosave = autosave_second>0;
+            if (autosave_second<0) autosave_second=-autosave_second;
+            mainMenu.get_item("enable_autosave").check(enable_autosave).enable(autosave_second>0).refresh_item(mainMenu);
+            mainMenu.get_item("lastautosaveslot").enable(autosave_second>0).refresh_item(mainMenu);
         }
         close();
         if(shortcut) running=false;
@@ -2684,6 +2794,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
         case 28: {
             auto *np7 = new SetSensitivity(screen, 90, 100, "Set mouse sensitivity...");
+            np7->raise();
+            } break;
+        case 29: {
+            auto *np7 = new SetAutoSave(screen, 0, 0, "Auto-save settings...");
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {

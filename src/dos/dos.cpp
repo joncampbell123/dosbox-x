@@ -40,6 +40,9 @@
 #include "dos_network.h"
 #include "render.h"
 #if defined(WIN32)
+#include "../dos/cdrom.h"
+#include <shellapi.h>
+#include <shlwapi.h>
 #include <winsock.h>
 #else
 #include <unistd.h>
@@ -113,10 +116,10 @@ const char dos_clipboard_device_default[]="CLIP$";
 int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
-bool uselfn;
+bool uselfn, winautorun=false;
 extern int infix;
 extern bool int15_wait_force_unmask_irq, shellrun, i4dos;
-extern bool winrun, startcmd, startwait, startquiet, winautorun;
+extern bool winrun, startcmd, startwait, startquiet, ctrlbrk;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
@@ -573,6 +576,148 @@ typedef struct {
 } ext_space_info_t;
 
 #define DOSNAMEBUF 256
+char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
+
+#if defined (WIN32) && !defined(HX_DOS)
+intptr_t hret=0;
+void EndRunProcess() {
+    if(hret) {
+        DWORD exitCode;
+        GetExitCodeProcess((HANDLE)hret, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess((HANDLE)hret, 0);
+    }
+    ctrlbrk=false;
+}
+
+void HostAppRun() {
+    char comline[256], *p=comline;
+    char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
+    char *fullname=appname;
+    uint8_t drive;
+    if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
+    if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+        bool useoverlay=false;
+        Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+        if (odp != NULL) {
+            strcpy(winName, odp->getOverlaydir());
+            strcat(winName, winDirNew);
+            struct stat tempstat;
+            if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
+                useoverlay=true;
+        }
+        if (!useoverlay) {
+            strcpy(winName, Drives[drive]->GetBaseDir());
+            strcat(winName, winDirNew);
+            if (!PathFileExists(winName)) {
+                bool olfn=uselfn;
+                uselfn=true;
+                if (DOS_GetSFNPath(fullname,dir,true)&&DOS_MakeName(("\""+std::string(dir)+"\"").c_str(), winDirNew, &drive)) {
+                    strcpy(winName, Drives[drive]->GetBaseDir());
+                    strcat(winName, winDirNew);
+                }
+                uselfn=olfn;
+            }
+        }
+        if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
+            Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+            strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+            strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+            if (!PathFileExists(winDirNew)) {
+                bool olfn=uselfn;
+                uselfn=true;
+                if (DOS_GetCurrentDir(0,dir,true)) {
+                    strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                    strcat(winDirNew, dir);
+                }
+                uselfn=olfn;
+            }
+        } else {
+            strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
+            strcat(winDirNew, Drives[drive]->curdir);
+        }
+        if (SetCurrentDirectory(winDirNew)) {
+            SHELLEXECUTEINFO lpExecInfo;
+            strcpy(comline, appargs);
+            strcpy(comline, trim(p));
+            if (!startquiet) {
+                char msg[]="Now run it as a Windows application...\r\n";
+                uint16_t s = (uint16_t)strlen(msg);
+                DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+            }
+            DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
+            if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
+            if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
+                lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
+                lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
+                lpExecInfo.hwnd = NULL;
+                lpExecInfo.lpVerb = "open";
+                lpExecInfo.lpDirectory = NULL;
+                lpExecInfo.nShow = SW_SHOW;
+                lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
+                strcpy(dir, "/C \"");
+                strcat(dir, winName);
+                strcat(dir, " ");
+                strcat(dir, comline);
+                strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+                lpExecInfo.lpFile = "CMD.EXE";
+                lpExecInfo.lpParameters = dir;
+                ShellExecuteEx(&lpExecInfo);
+                hret = (intptr_t)lpExecInfo.hProcess;
+            } else {
+                char qwinName[258];
+                sprintf(qwinName,"\"%s\"",winName);
+                hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+            }
+            SetCurrentDirectory(winDirCur);
+            if (startwait && hret > 0) {
+                int count=0;
+                ctrlbrk=false;
+                DWORD exitCode = 0;
+                GetExitCodeProcess((HANDLE)hret, &exitCode);
+                while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
+                    CALLBACK_Idle();
+                    if (ctrlbrk) {
+                        uint8_t c;uint16_t n=1;
+                        DOS_ReadFile (STDIN,&c,&n);
+                        if (c == 3) {
+                            char msg[]="^C\r\n";
+                            uint16_t s = (uint16_t)strlen(msg);
+                            DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+                        }
+                        EndRunProcess();
+                        exitCode=0;
+                        break;
+                    }
+                    if (++count==20000&&!startquiet) {
+                        char msg[]="(Press Ctrl+C to exit immediately)\r\n";
+                        uint16_t s = (uint16_t)strlen(msg);
+                        DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+                    }
+                }
+                dos.return_code = exitCode&255;
+                dos.return_mode = 0;
+                hret = 0;
+            } else if (hret > 0)
+                hret = 0;
+            else
+                hret = errno;
+            DOS_SetError((uint16_t)hret);
+            hret=0;
+            return;
+        } else if (startquiet) {
+            char msg[]="This program cannot be run in DOS mode.\r\n";
+            uint16_t s = (uint16_t)strlen(msg);
+            DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+        }
+    } else if (startquiet) {
+        char msg[]="This program cannot be run in DOS mode.\r\n";
+        uint16_t s = (uint16_t)strlen(msg);
+        DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+    }
+}
+#endif
+
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
@@ -1688,7 +1833,15 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 LOG(LOG_EXEC,LOG_NORMAL)("Execute %s %d",name1,reg_al);
-                if (!DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
+                DOS_ParamBlock block(SegPhys(es)+reg_bx);
+                block.LoadData();
+                CommandTail ctail;
+                MEM_BlockRead(Real2Phys(block.exec.cmdtail),&ctail,CTBUF+1);
+                if (DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
+                    strcpy(appname, name1);
+                    strncpy(appargs, ctail.buffer, ctail.count);
+                    appargs[ctail.count]=0;
+                } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
@@ -1699,7 +1852,14 @@ static Bitu DOS_21Handler(void) {
         case 0x4c:                  /* EXIT Terminate with return code */
             DOS_Terminate(dos.psp(),false,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+#if defined (WIN32) && !defined(HX_DOS)
+            if (winautorun&&reqwin&&*appname&&!control->SecureMode())
+                HostAppRun();
+            reqwin=false;
+#endif
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x4d:                  /* Get Return code */
             reg_al=dos.return_code;/* Officially read from SDA and clear when read */
@@ -2869,10 +3029,11 @@ public:
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
         mountwarning = section->Get_bool("mountwarning");
-#if defined (WIN32)
         if (winrun) {
             Section* tsec = control->GetSection("dos");
+#if defined (WIN32)
             tsec->HandleInputline("startcmd=true");
+#endif
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
@@ -2902,10 +3063,6 @@ public:
             mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
 		} else
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
-#else
-        dos_clipboard_device_access = 0;
-		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
-#endif
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
 
@@ -3271,12 +3428,14 @@ public:
 
             real_writeb(0x60,0x113,0x01); /* 25-line mode */
         }
+        *appname=0;
+        *appargs=0;
 	}
 	~DOS(){
 		infix=-1;
 #if defined(WIN32) && !defined(HX_DOS)
 		if (startwait) {
-			void EndStartProcess(), EndRunProcess();
+			void EndStartProcess();
 			EndStartProcess();
 			EndRunProcess();
 		}
@@ -3299,10 +3458,8 @@ public:
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
-#if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
-#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

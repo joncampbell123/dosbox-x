@@ -31,10 +31,6 @@
 #include "inout.h"
 #include "../ints/int10.h"
 #include "../dos/drives.h"
-#ifdef WIN32
-#include "../dos/cdrom.h"
-#include <shellapi.h>
-#endif
 
 #ifdef _MSC_VER
 # if !defined(C_SDL2)
@@ -977,21 +973,8 @@ overflow:
 
 int infix=-1;
 std::string full_arguments = "";
-intptr_t hret=0;
 bool dos_a20_disable_on_exec=false;
-bool winautorun=false;
-extern bool packerr, reqwin, startwait, startquiet, ctrlbrk, mountwarning;
-#if defined (WIN32) && !defined(HX_DOS)
-void EndRunProcess() {
-    if(hret) {
-        DWORD exitCode;
-        GetExitCodeProcess((HANDLE)hret, &exitCode);
-        if (exitCode==STILL_ACTIVE)
-            TerminateProcess((HANDLE)hret, 0);
-    }
-    ctrlbrk=false;
-}
-#endif
+extern bool packerr, mountwarning, nowarn;
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1022,7 +1005,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
-			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
 first_1:
 			if(type==DRIVE_CDROM) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
@@ -1081,8 +1064,9 @@ continue_1:
 			strcat(mountstring,name);
 			strcat(mountstring,"\\");
 //			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
-			
+			nowarn=true;
 			this->ParseLine(mountstring);
+            nowarn=false;
 //failed:
 			if (!DOS_SetDrive(toupper(name[0])-'A'))
 #endif
@@ -1222,7 +1206,6 @@ continue_1:
 		reg_ip=RealOff(newcsip);
 #endif
 		packerr=false;
-		reqwin=false;
 		/* Start up a dos execute interrupt */
 		reg_ax=0x4b00;
 		//Filename pointer
@@ -1247,8 +1230,7 @@ continue_1:
 			Execute(name, args);
 			dos_a20_disable_on_exec=false;
 			infix=-1;
-		}
-		else if (packerr&&infix<1&&sec->Get_bool("autoloadfix")) {
+		} else if (packerr&&infix<1&&sec->Get_bool("autoloadfix")) {
 			uint16_t segment;
 			uint16_t blocks = (uint16_t)(1); /* start with one paragraph, resize up later. see if it comes up below the 64KB mark */
 			if (DOS_AllocateMemory(&segment,&blocks)) {
@@ -1267,101 +1249,8 @@ continue_1:
 			}
 		} else if (packerr&&infix<2&&!autofixwarn) {
             WriteOut("Packed file is corrupt");
-#if defined (WIN32) && !defined(HX_DOS)
-		} else if (winautorun&&reqwin&&!control->SecureMode()) {
-            char comline[256], *p=comline;
-            char winDirCur[512], winDirNew[512], winName[256];
-            uint8_t drive;
-            if (!DOS_MakeName(fullname, winDirNew, &drive)) return false;
-            if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
-                bool useoverlay=false;
-                Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
-                if (odp != NULL) {
-                    strcpy(winName, odp->getOverlaydir());
-                    strcat(winName, winDirNew);
-                    struct stat tempstat;
-                    if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
-                        useoverlay=true;
-                }
-                if (!useoverlay) {
-                    strcpy(winName, Drives[drive]->GetBaseDir());
-                    strcat(winName, winDirNew);
-                }
-                if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
-                    Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
-                    strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
-                    strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
-                } else {
-                    strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
-                    strcat(winDirNew, Drives[drive]->curdir);
-                }
-                if (SetCurrentDirectory(winDirNew)) {
-                    SHELLEXECUTEINFO lpExecInfo;
-                    strcpy(comline, args);
-                    strcpy(comline, trim(p));
-                    if (!startquiet) WriteOut("Now run it as a Windows application...\r\n");
-                    char dir[CROSS_LEN+15];
-                    DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
-                    if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
-                    if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
-                        lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
-                        lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
-                        lpExecInfo.hwnd = NULL;
-                        lpExecInfo.lpVerb = "open";
-                        lpExecInfo.lpDirectory = NULL;
-                        lpExecInfo.nShow = SW_SHOW;
-                        lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
-                        strcpy(dir, "/C \"");
-                        strcat(dir, winName);
-                        strcat(dir, " ");
-                        strcat(dir, comline);
-                        strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
-                        lpExecInfo.lpFile = "CMD.EXE";
-                        lpExecInfo.lpParameters = dir;
-                        ShellExecuteEx(&lpExecInfo);
-                        hret = (intptr_t)lpExecInfo.hProcess;
-                    } else {
-                        char qwinName[258];
-                        sprintf(qwinName,"\"%s\"",winName);
-                        hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
-                    }
-                    SetCurrentDirectory(winDirCur);
-                    if (startwait && hret > 0) {
-                        int count=0;
-                        ctrlbrk=false;
-                        DWORD exitCode = 0;
-                        GetExitCodeProcess((HANDLE)hret, &exitCode);
-                        while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
-                            CALLBACK_Idle();
-                            if (ctrlbrk) {
-                                uint8_t c;uint16_t n=1;
-                                DOS_ReadFile (STDIN,&c,&n);
-                                if (c == 3) WriteOut("^C\n");
-                                EndRunProcess();
-                                exitCode=0;
-                                break;
-                            }
-                            if (++count==20000&&!startquiet) WriteOut("(Press Ctrl+C to exit immediately)\n");
-                        }
-                        dos.return_code = exitCode&255;
-                        dos.return_mode = 0;
-                        hret = 0;
-                    } else if (hret > 0)
-                        hret = 0;
-                    else
-                        hret = errno;
-                    DOS_SetError((uint16_t)hret);
-                    bool ret=hret == 0;
-                    hret=0;
-                    return ret;
-                } else if (startquiet)
-                    WriteOut("This program cannot be run in DOS mode.\n");
-            } else if (startquiet)
-                WriteOut("This program cannot be run in DOS mode.\n");
-#endif
         }
 		packerr=false;
-		reqwin=false;
 	}
 	return true; //Executable started
 }
