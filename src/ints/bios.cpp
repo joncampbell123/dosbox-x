@@ -8525,20 +8525,21 @@ private:
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
         const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         bool textsplash = section->Get_bool("disable graphical splash");
-        char logostr[7][30];
+        char logostr[8][30];
         strcpy(logostr[0], "+-------------------+");
         strcpy(logostr[1], "|    Welcome  To    |");
-        strcpy(logostr[2], "| D O S B o x - X ! |");
-        strcpy(logostr[3], "|                   |");
-        sprintf(logostr[4], "|    %d-bit %s    |",
+        strcpy(logostr[2], "|                   |");
+        strcpy(logostr[3], "| D O S B o x - X ! |");
+        strcpy(logostr[4], "|                   |");
+        sprintf(logostr[5], "|    %d-bit %s    |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
 #else^M
         32
 #endif^M
         , SDL_STRING);
-        sprintf(logostr[5], "|  Version %7s  |", VERSION);
-        strcpy(logostr[6], "+-------------------+");
+        sprintf(logostr[6], "|  Version %7s  |", VERSION);
+        strcpy(logostr[7], "+-------------------+");
 #if defined(USE_TTF)
         if (TTF_using()) {
             textsplash = true;
@@ -8636,11 +8637,11 @@ startfunction:
             }
 
             if (textsplash) {
-                unsigned int bo;
-                for (unsigned int i=0; i<7; i++) {
+                unsigned int bo, lastline = 7;
+                for (unsigned int i=0; i<=lastline; i++) {
                     for (unsigned int j=0; j<strlen(logostr[i]); j++) {
                         bo = (((unsigned int)(i+2) * 80u) + (unsigned int)(j+0x36)) * 2u;
-                        mem_writew(0xA0000+bo,i==0&&j==0?0x330B:(i==0&&j==strlen(logostr[0])-1?0x370B:(i==6&&j==0?0x3B0B:(i==6&&j==strlen(logostr[6])-1?0x3F0B:(logostr[i][j]=='-'&&i!=2&&i!=4?0x250B:(logostr[i][j]=='|'?0x270B:logostr[i][j]%0xff))))));
+                        mem_writew(0xA0000+bo,i==0&&j==0?0x330B:(i==0&&j==strlen(logostr[0])-1?0x370B:(i==lastline&&j==0?0x3B0B:(i==lastline&&j==strlen(logostr[lastline])-1?0x3F0B:(logostr[i][j]=='-'&&(i==0||i==lastline)?0x250B:(logostr[i][j]=='|'?0x270B:logostr[i][j]%0xff))))));
                         mem_writeb(0xA2000+bo+1,0xE1);
                     }
                 }
@@ -8670,14 +8671,15 @@ startfunction:
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
             int oldx = x, oldy = y;
-            for (unsigned int i=0; i<7; i++) {
+            unsigned int lastline = 7;
+            for (unsigned int i=0; i<=lastline; i++) {
                 for (unsigned int j=0; j<strlen(logostr[i]); j++) {
                     reg_eax = 0x0200u;
                     reg_ebx = 0x0000u;
                     reg_edx = 0x0236u + i*0x100 + j;
                     CALLBACK_RunRealInt(0x10);
-                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(logostr[0])-1?0xBF:(i==6&&j==0?0xC0:(i==6&&j==strlen(logostr[6])-1?0xD9:(logostr[i][j]=='-'&&i!=2&&i!=4?0xC4:(logostr[i][j]=='|'?0xB3:logostr[i][j]%0xff))))));
-                    reg_ebx = 0x002fu;
+                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(logostr[0])-1?0xBF:(i==lastline&&j==0?0xC0:(i==lastline&&j==strlen(logostr[lastline])-1?0xD9:(logostr[i][j]=='-'&&(i==0||i==lastline)?0xC4:(logostr[i][j]=='|'?0xB3:logostr[i][j]%0xff))))));
+                    reg_ebx = i!=0&&i!=lastline&&logostr[i][j]!='|'?0x002eu:0x002fu;
                     reg_ecx = 0x0001u;
                     CALLBACK_RunRealInt(0x10);
                 }
