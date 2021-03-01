@@ -114,7 +114,7 @@ void MountAllDrives(Program * program) {
                 strcat(mountstring," -Q");
                 runMount(mountstring);
                 if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
-                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
             }
         }
     }
@@ -1078,7 +1078,6 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK","Do you want to give DOSBox-X access to your real network drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS","Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Bad command or filename - \"%s\"\n");
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");

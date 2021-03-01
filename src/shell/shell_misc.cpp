@@ -974,7 +974,7 @@ overflow:
 int infix=-1;
 std::string full_arguments = "";
 bool dos_a20_disable_on_exec=false;
-extern bool packerr, mountwarning;
+extern bool packerr, mountwarning, nowarn;
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1005,7 +1005,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
-			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
 first_1:
 			if(type==DRIVE_CDROM) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
@@ -1064,8 +1064,9 @@ continue_1:
 			strcat(mountstring,name);
 			strcat(mountstring,"\\");
 //			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
-			
+			nowarn=true;
 			this->ParseLine(mountstring);
+            nowarn=false;
 //failed:
 			if (!DOS_SetDrive(toupper(name[0])-'A'))
 #endif

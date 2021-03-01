@@ -77,6 +77,7 @@ bool startwait = true;
 bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
+bool nowarn = false;
 extern bool mountfro[26], mountiro[26];
 
 void DOS_EnableDriveMenu(char drv);
@@ -1188,7 +1189,7 @@ public:
                 }
             } else {
                 /* Give a warning when mount c:\ or the / */
-                if (mountwarning && !quiet) {
+                if (mountwarning && !quiet && !nowarn) {
 #if defined (WIN32) || defined(OS2)
                     if( (temp_line == "c:\\") || (temp_line == "C:\\") ||
                         (temp_line == "c:/") || (temp_line == "C:/")    )
@@ -6994,8 +6995,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting C:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","Warning: Mounting C:\\ is not recommended.\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","Warning: Mounting / is not recommended.\n");
 	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
