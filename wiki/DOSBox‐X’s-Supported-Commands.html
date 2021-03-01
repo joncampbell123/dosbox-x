@@ -646,6 +646,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>COLOR</strong> (external command)</p>
+<div class="paragraph">
+<p>Sets the default console foreground and background colors.</p>
+</div>
+<div class="paragraph">
+<p>Usage: COLOR [attr]</p>
+</div>
+<div class="paragraph">
+<p>Note: Use SETCOLOR command to views or changes the text-mode color scheme settings.</p>
+</div>
+</li>
+<li>
 <p><strong>COMMAND</strong> (external command)</p>
 <div class="paragraph">
 <p>Runs DOSBox-X&#8217;s internal command shell.</p>
@@ -657,7 +669,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>CONFIG</strong> (external command)</p>
 <div class="paragraph">
-<p>Starts DOSBox-X&#8217;s command-line configration utility to change it settings.</p>
+<p>Starts DOSBox-X&#8217;s command-line configuration utility to change it settings.</p>
 </div>
 <div class="paragraph">
 <p>Usage: CONFIG [options]</p>
@@ -730,7 +742,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>DELTREE</strong> (internal command)</p>
+<p><strong>DELTREE</strong> (external command)</p>
 <div class="paragraph">
 <p>Deletes a directory and all the subdirectories and files in it.</p>
 </div>
@@ -1147,12 +1159,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>POPD</strong> (internal command)</p>
+<div class="paragraph">
+<p>Changes to the directory stored by the PUSHD command.</p>
+</div>
+<div class="paragraph">
+<p>Usage: POPD</p>
+</div>
+</li>
+<li>
 <p><strong>PROMPT</strong> (internal command)</p>
 <div class="paragraph">
 <p>Changes the DOS command prompt.</p>
 </div>
 <div class="paragraph">
 <p>Usage: PROMPT [text]</p>
+</div>
+</li>
+<li>
+<p><strong>PUSHD</strong> (internal command)</p>
+<div class="paragraph">
+<p>Stores the current directory for use by the POPD command, then changes to the specified directory.</p>
+</div>
+<div class="paragraph">
+<p>Usage: PUSHD [path]</p>
 </div>
 </li>
 <li>
@@ -1192,6 +1222,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>REPLACE</strong> (external command)</p>
+<div class="paragraph">
+<p>Replaces files in the destination directory with files from the source directory that have the same name.</p>
+</div>
+<div class="paragraph">
+<p>Usage: REPLACE [drive1:][path1]filename [drive2:][path2] [/switches]</p>
+</div>
+</li>
+<li>
 <p><strong>RESCAN</strong> (external command)</p>
 <div class="paragraph">
 <p>Refreshes mounted drives by clearing their caches.</p>
@@ -1221,7 +1260,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Usage: SETCOLOR [color# [value]]</p>
 </div>
 <div class="paragraph">
-<p>Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output.</p>
+<p>Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output. Use COLOR command to change the current background and foreground colors.</p>
 </div>
 </li>
 <li>
@@ -1283,9 +1322,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Usage: TREE [drive:][path] [/F] [/A]</p>
 </div>
-<div class="paragraph">
-<p>Note: It uses the TREE command from FreeDOS.</p>
-</div>
 </li>
 <li>
 <p><strong>TRUENAME</strong> (internal command)</p>
@@ -1314,7 +1350,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Usage: VER [/R], VER [SET] number or VER SET [major minor]</p>
 </div>
 <div class="paragraph">
-<p>Note: "VER 3.3" or “VER SET 3.3” will set the reported DOS version as 3.3 (3.30), whereas "VER SET 3 3" will set the version as 3.03 if you use the [major minor] format.</p>
+<p>Note: "VER 3.3" or "VER SET 3.3" will set the reported DOS version as 3.3 (3.30), whereas "VER SET 3 3" will set the version as 3.03 if you use the [major minor] format.</p>
 </div>
 </li>
 <li>
@@ -1430,7 +1466,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-02-07 09:46:11 -0500
+Last updated 2021-03-01 11:34:16 -0500
 </div>
 </div>
 </body>

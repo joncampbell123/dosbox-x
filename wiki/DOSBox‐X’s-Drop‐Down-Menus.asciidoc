@@ -176,6 +176,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Select save slot**: Select a save slot (1 to 100) to save to or load from. There are 10 pages for save slots, with 10 save slots in each page.
 
+* **Auto save settings...**: Manages the feature to save states automatically such as the time interval as well as start and end save slots for different programs.
+
 * **Browse save file...**: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.
 
 * **Display state information**: Displays the status of the selected save slot or save file.

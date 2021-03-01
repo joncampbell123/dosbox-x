@@ -120,6 +120,13 @@ Usage: CHOICE [/C:choices] [/N] [/S] text
 Clears the screen of all input and returns just the current prompt in the upper left hand corner.
 +
 Usage: Simply enter CLS without any parameters.
+* **COLOR** (external command)
++
+Sets the default console foreground and background colors.
++
+Usage: COLOR [attr]
++
+Note: Use SETCOLOR command to views or changes the text-mode color scheme settings.
 * **COMMAND** (external command)
 +
 Runs DOSBox-X's internal command shell.
@@ -127,7 +134,7 @@ Runs DOSBox-X's internal command shell.
 Usage: COMMAND [options]
 * **CONFIG** (external command)
 +
-Starts DOSBox-X's command-line configration utility to change it settings.
+Starts DOSBox-X's command-line configuration utility to change it settings.
 +
 Usage: CONFIG [options]
 +
@@ -167,7 +174,7 @@ Usage: DEBUG [ [drive:][path]progname [arglist] ]
 Removes one or more files.
 +
 Usage: DEL [/P] [/Q] names or ERASE [/P] [/Q] names
-* **DELTREE** (internal command)
+* **DELTREE** (external command)
 +
 Deletes a directory and all the subdirectories and files in it.
 +
@@ -403,11 +410,21 @@ Usage: PATH [drive:]path[;...][;PATH] or PATH ;
 Waits for a keystroke to continue.
 +
 Usage: PAUSE [message]
+* **POPD** (internal command)
++
+Changes to the directory stored by the PUSHD command.
++
+Usage: POPD
 * **PROMPT** (internal command)
 +
 Changes the DOS command prompt.
 +
 Usage: PROMPT [text]
+* **PUSHD** (internal command)
++
+Stores the current directory for use by the POPD command, then changes to the specified directory.
++
+Usage: PUSHD [path]
 * **RD/RMDIR** (internal command)
 +
 Removes a directory.
@@ -428,6 +445,11 @@ Usage: REM [comment]
 Renames a file/directory or files.
 +
 Usage: REN [drive:][path]filename1 filename2 or RENAME [drive:][path]filename1 filename2
+* **REPLACE** (external command)
++
+Replaces files in the destination directory with files from the source directory that have the same name.
++
+Usage: REPLACE [drive1:][path1]filename [drive2:][path2] [/switches]
 * **RESCAN** (external command)
 +
 Refreshes mounted drives by clearing their caches.
@@ -446,7 +468,7 @@ Views or changes the text-mode color scheme settings.
 +
 Usage: SETCOLOR [color# [value]]
 +
-Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output.
+Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output. Use COLOR command to change the current background and foreground colors.
 * **SHIFT** (internal command)
 +
 Left-shifts command-line parameters in a batch script.
@@ -481,8 +503,6 @@ Usage: TIME [ [/T] [/H] | hh:mm:ss ]
 Graphically displays the directory structure of a drive or path.
 +
 Usage: TREE [drive:][path] [/F] [/A]
-+
-Note: It uses the TREE command from FreeDOS.
 * **TRUENAME** (internal command)
 +
 Finds the fully-expanded name for a file.
@@ -499,7 +519,7 @@ Views and sets the reported DOS version. Also displays the running DOSBox-X vers
 +
 Usage: VER [/R], VER [SET] number or VER SET [major minor]
 +
-Note: "VER 3.3" or “VER SET 3.3” will set the reported DOS version as 3.3 (3.30), whereas "VER SET 3 3" will set the version as 3.03 if you use the [major minor] format.
+Note: "VER 3.3" or "VER SET 3.3" will set the reported DOS version as 3.3 (3.30), whereas "VER SET 3 3" will set the version as 3.03 if you use the [major minor] format.
 * **VERIFY** (internal command)
 +
 Controls whether to verify that the files are written correctly to a disk.

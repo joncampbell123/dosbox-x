@@ -243,9 +243,12 @@ device="Microsoft Print to PDF"
 #### docpath
 * Default value: .
 
-The path where the output files are stored. Defaults to the current working directory.
+The path (directory) where the output files are stored. Defaults to the current working directory.
 
-Note: On Linux the use of the ~ character is not allowed to specify the home directory.
+#### fontpath
+* Default value: FONTS
+
+The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored. Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).
 
 #### openwith
 * Default value: \<blank\>
@@ -285,7 +288,7 @@ The emulated printer requires TrueType fonts in order to be able to print text.
 If no TTF font can be found then DOSBox-X will print with the internal TTF font (UnifontFullMediumMono) as used by the TrueType font output.
 
 ## Windows host
-DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located.
+DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
 If the fonts cannot be found, then it will search for the system fonts, as follows:
 
 |===
@@ -306,7 +309,7 @@ They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.
 
 ## Linux host
-DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory. If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:
+DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory). If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:
 |===
 |Font file in FONTS directory | Font file in system directory | Notes
 

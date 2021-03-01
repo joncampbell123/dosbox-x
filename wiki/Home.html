@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>DOSBox-X Wiki</title>
+<title>The DOSBox-X Wiki is now also available from: https://dosbox-x.com/wiki</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -448,6 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
+<h2 id="_the_dosbox_x_wiki_is_now_also_available_from_httpsdosbox_x_comwiki">The DOSBox-X Wiki is now also available from: <a target="_top" href="https://dosbox-x.com/wiki">https://dosbox-x.com/wiki</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_introduction">Introduction</h3>
@@ -463,7 +464,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
 <ul class="sectlevel1">
-<li>
+<li><a href="#_the_dosbox_x_wiki_is_now_also_available_from_httpsdosbox_x_comwiki">The DOSBox-X Wiki is now also available from: https://dosbox-x.com/wiki</a>
 <ul class="sectlevel2">
 <li><a href="#_introduction">Introduction</a></li>
 <li><a href="#_dosbox_xs_main_focus">DOSBox-X&#8217;s Main Focus</a></li>
@@ -483,7 +484,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_dosbox_xs_main_focus">DOSBox-X&#8217;s Main Focus</h3>
 <div class="paragraph">
-<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990&#8217;s configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to make retro-programming possible with confidence the program will run properly on actual hardware.</p>
+<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990&#8217;s configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to <a target="_top" href="https://dosbox-x.com/newdosdevelopment.html">help make new DOS developments possible</a> with confidence the program will run properly on actual DOS systems.</p>
 </div>
 </div>
 <div class="sect2">
@@ -535,7 +536,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>You can set various configuration options for use with DOSBox-X. DOSBox-X will load the configuration file from either the current directory (typically the directory where the DOSBox-X program is located), or from the platform-dependent user directory.</p>
 </div>
 <div class="paragraph">
-<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the -defaultdir command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:</p>
+<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the <code>-defaultdir</code> command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -545,13 +546,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>The config file is divided into several sections. Each section starts with a [section name] line. The settings are the property=value lines where value can be altered to customize DOSBox-X. Lines starting with # are comment-lines.</p>
+<p>The config file is divided into several sections. Each section starts with a [section name] line. The settings are the property=value lines where value can be altered to customize DOSBox-X. Lines starting with # are comment-lines. There are three special sections at the end of the config file, namely [4dos], [config] and [autoexec], which intend to emulate the 4DOS.INI (for the 4DOS shell), CONFIG.SYS and AUTOEXEC.BAT files respectively.</p>
 </div>
 <div class="paragraph">
-<p>Furthermore, you can start DOSBox-X with the -conf parameter to load a specified configuration file and use its settings. If this parameter is used, then DOSBox-X will try to load the specified configuration file before try to load the configuration file from the current directory or the user directory.</p>
+<p>Furthermore, you can start DOSBox-X with the <code>-conf</code> parameter to load a specified configuration file and use its settings. If this parameter is used, then DOSBox-X will try to load the specified configuration file before try to load the configuration file from the current directory or the user directory. There is also a <code>-defaultconf</code> command-line option which will force the use of the default DOSBox-X settings (ignoring any config files).</p>
 </div>
 <div class="paragraph">
-<p>You can override one or more config options when DOSBox-X starts by using the -set command-line option. For example, <code>-set machine=pc98</code> will force DOSBox-X to start in PC-98 mode regardless of the setting in the config file.</p>
+<p>You can override one or more config options when DOSBox-X starts by using the <code>-set</code> command-line option. For example, <code>-set machine=pc98</code> will force DOSBox-X to start in PC-98 mode regardless of the setting in the config file.</p>
 </div>
 <div class="paragraph">
 <p>DOSBox-X features the graphical configuration tool so that you can use its built-in GUI interface to modify its settings easily. An configuration file can be generated or updated by the configuration tool, or with the built-in CONFIG command (which can be found on the internal Z: drive when you run DOSBox-X).</p>
@@ -950,7 +951,7 @@ press the X key on your keyboard.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-02-07 09:46:11 -0500
+Last updated 2021-03-01 11:34:16 -0500
 </div>
 </div>
 </body>

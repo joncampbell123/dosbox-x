@@ -1062,10 +1062,20 @@ device="Microsoft Print to PDF"</pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>The path where the output files are stored. Defaults to the current working directory.</p>
+<p>The path (directory) where the output files are stored. Defaults to the current working directory.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_fontpath">fontpath</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: FONTS</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Note: On Linux the use of the ~ character is not allowed to specify the home directory.</p>
+<p>The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored. Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).</p>
 </div>
 </div>
 <div class="sect3">
@@ -1150,7 +1160,7 @@ device="Microsoft Print to PDF"</pre>
 <h2 id="_windows_host">Windows host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X will first search for fonts in the FONTS subdirectory in the directory where your dosbox-x.exe is located.
+<p>DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
 If the fonts cannot be found, then it will search for the system fonts, as follows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1209,7 +1219,7 @@ If you need them you may need to find those online.</p>
 <h2 id="_linux_host">Linux host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory. If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:</p>
+<p>DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory). If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1517,7 +1527,7 @@ parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-02-07 09:46:11 -0500
+Last updated 2021-03-01 11:34:16 -0500
 </div>
 </div>
 </body>
