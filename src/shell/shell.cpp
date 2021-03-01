@@ -1136,7 +1136,8 @@ void SHELL_Init() {
                 "\x86\x46 \033[36mGetting Started with DOSBox-X:\033[37m                                     \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction.  \x86\x46\n"
-                "\x86\x46 You can also complete various tasks through the \033[33mdrop-down menus\033[37m.   \x86\x46\n"
+                "\x86\x46 You may also complete various tasks through the \033[33mdrop-down menus\033[37m.   \x86\x46\n"
+                "\x86\x46 Hint: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option.    \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n");
         MSG_Add("SHELL_STARTUP_BEGIN2",
                     (std::string("\x86\x46 To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string(" \x86\x46\n")).c_str()
@@ -1183,7 +1184,8 @@ void SHELL_Init() {
                 "\033[44;1m\xBA \033[36mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction. \xBA\033[0m"
-                "\033[44;1m\xBA You can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
+                "\033[44;1m\xBA You may also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
+                "\033[44;1m\xBA Hint: Try select \033[33mTrueType font (TTF)\033[37m or \033[33mpixel-perfect scaling\033[37m output option. \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
