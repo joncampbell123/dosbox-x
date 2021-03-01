@@ -9035,14 +9035,6 @@ startfunction:
                     }
                 }
             }
-#if defined(USE_TTF)
-        } else if (TTF_using() && machine != MCH_PC98) {
-            uint32_t lasttick=GetTicks();
-            while ((GetTicks()-lasttick)<500) {
-                reg_eax = 0x0100;
-                CALLBACK_RunRealInt(0x16);
-            }
-#endif
         }
 #endif
 

@@ -7730,12 +7730,12 @@ void SDL_SetupConfigSection() {
 	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", 0};
 	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "default");
 	Pstring->Set_values(truefalsedefaultopt);
-	Pstring->Set_help("Specify whether to use BIOS keyboard functions for clipboard pasting instead of the keystroke method.\n"
-		"For pasting clipboard text into Windows 3.x/9x applications, make sure to use the keystroke method.");
+	Pstring->Set_help("Specify whether to use BIOS keyboard functions for the clipboard pasting instead of the keystroke method.\n"
+		"For pasting clipboard text into Windows 3.x/9x applications (e.g. Notepad), make sure to use the keystroke method.");
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
-    Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
+    Pint->Set_help("Set keyboard speed for pasting text from the shared clipboard.\n"
         "If the default setting of 30 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
     Pint->SetBasic(true);
