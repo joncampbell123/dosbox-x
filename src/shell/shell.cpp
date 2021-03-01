@@ -1185,23 +1185,20 @@ void SHELL_Init() {
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction. \xBA\033[0m"
                 "\033[44;1m\xBA You may also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
-                "\033[44;1m\xBA Hint: Try select \033[33mTrueType font (TTF)\033[37m or \033[33mpixel-perfect scaling\033[37m output option. \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_BEGIN2",
-                (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
+                IS_VGA_ARCH?"\033[44;1m\xBA Hint: Try select \033[33mTrueType font (TTF)\033[37m or \033[33mpixel-perfect scaling\033[37m output option. \xBA\033[0m":"");
+        MSG_Add("SHELL_STARTUP_BEGIN3",
+                (std::string("\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
                 (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
-        MSG_Add("SHELL_STARTUP_BEGIN3",
-                ""
-               );
         if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                                        \xBA\033[0m"
-                    "\033[44;1m\xBA Use \033[31mCtrl+F8\033[37m to set composite output ON, OFF, or AUTO (default).              \xBA\033[0m"
-                    "\033[44;1m\xBA \033[31mCtrl+Shift+[F7/F8]\033[37m changes hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.        \xBA\033[0m"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF. \xBA\033[0m"
+                    "\033[44;1m\xBA Use \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.  \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         } else {
