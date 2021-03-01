@@ -374,14 +374,15 @@ public:
 	}
 	void ClearRelease(void) {
 		// clear out all cache blocks in this page
-		for (Bitu index=0;index<(1+DYN_PAGE_HASH);index++) {
-			CacheBlockDynRec * block=hash_map[index];
-			while (block) {
-				CacheBlockDynRec * nextblock=block->hash.next;
-				block->page.handler=0;			// no need, full clear
-				block->Clear();
-				block=nextblock;
-			}
+		Bitu count=active_blocks;
+		CacheBlockDynRec **map=hash_map;
+		for (CacheBlockDynRec * block=*map;count;count--) {
+			while (block==NULL)
+				block=*++map;
+			CacheBlockDynRec * nextblock=block->hash.next;
+			block->page.handler=0;			// no need, full clear
+			block->Clear();
+			block=nextblock;
 		}
 		Release();	// now can release this page
 	}
