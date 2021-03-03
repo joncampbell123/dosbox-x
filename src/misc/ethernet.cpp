@@ -17,10 +17,31 @@
  */
 
 #include "ethernet.h"
+#include "ethernet_pcap.h"
+#include <cstring>
+#include "dosbox.h"
 
 EthernetConnection* OpenEthernetConnection(const std::string& backend)
 {
-    // We currently have no backends, so return nothing at the moment.
-    (void)backend;
-    return nullptr;
+    EthernetConnection* conn = nullptr;
+#ifdef C_PCAP
+    if (backend == "pcap")
+    {
+        conn = ((EthernetConnection*)new PcapEthernetConnection);
+    }
+#endif
+    if (!conn)
+    {
+        LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());
+        return nullptr;
+    }
+    if (conn->Initialize())
+    {
+        return conn;
+    }
+    else
+    {
+        delete conn;
+        return nullptr;
+    }
 }

@@ -618,6 +618,9 @@
     <ClCompile Include="..\src\misc\messages.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
@@ -1786,6 +1789,9 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\sha1\sha1.h">
       <Filter>Sources\libs\mt32\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_pcap.h">
+      <Filter>Sources\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\reSID\envelope.h">
       <Filter>Sources\hardware\reSID</Filter>
