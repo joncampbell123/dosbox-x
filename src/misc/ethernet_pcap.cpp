@@ -46,6 +46,8 @@ pcap_t* (*PacketOpen)(char const *,int,int,int,struct pcap_rmtauth *,char *) = 0
 int (*PacketNextEx)(pcap_t *, struct pcap_pkthdr **, const u_char **) = 0;
 int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) = 0;
 
+char pcap_src_if_string[] = PCAP_SRC_IF_STRING;
+
 #endif
 
 PcapEthernetConnection::PcapEthernetConnection()
@@ -127,7 +129,7 @@ bool PcapEthernetConnection::Initialize()
 	char errbuf[PCAP_ERRBUF_SIZE];
 	unsigned int userdev;
 #ifdef WIN32
-	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
+	if (pcap_findalldevs_ex(pcap_src_if_string, NULL, &alldevs, errbuf) == -1)
 #else
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 #endif
