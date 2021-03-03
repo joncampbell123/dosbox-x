@@ -92,8 +92,8 @@
 /* Define to 1 to enable MT32 emulation (x86/x86_64 only) */
 /* #undef C_MT32 */
 
-/* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-/* #undef C_NE2000 */
+/* Define to 1 to enable ethernet passthrough, requires libpcap */
+/* #undef C_PCAP */
 
 /* Define to 1 to use opengl display output support */
 //#define C_OPENGL 1

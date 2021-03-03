@@ -974,20 +974,20 @@ else
   AC_MSG_RESULT([no])
 fi
 
-dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
-AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
+dnl FEATURE: Whether to use libpcap, and enable ethernet passthrough
+AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet passthrough, requires libpcap])
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
        CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
-       AC_DEFINE(C_NE2000,1)
+       AC_DEFINE(C_PCAP,1)
     ;;
     *)
        if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
          LIBS="$LIBS -lpcap";
-         AC_DEFINE(C_NE2000,1)
+         AC_DEFINE(C_PCAP,1)
        else
-         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+         AC_MSG_WARN([Can't find libpcap, ethernet passthrough disabled])
        fi
     ;;
 esac
