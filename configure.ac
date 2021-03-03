@@ -430,19 +430,12 @@ LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
 CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 
-dnl LIBRARY TEST: SDLnet initial test
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
-
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_h = xyes ; then
-         dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
-         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -lwinspool -lshlwapi -liphlpapi"
-       fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        dnl FEATURE: Whether to support direct serial port passthrough
@@ -930,11 +923,13 @@ if test -n "$SDL2_LIBS"; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  else
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
@@ -944,6 +939,7 @@ else
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  else 
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
@@ -988,6 +984,24 @@ case "$host" in
          AC_DEFINE(C_PCAP,1)
        else
          AC_MSG_WARN([Can't find libpcap, ethernet passthrough disabled])
+       fi
+    ;;
+esac
+
+dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
+AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
+PKG_CHECK_MODULES(libslirp, slirp, [
+		have_slirp=yes
+		AC_DEFINE(C_SLIRP,1)
+		LIBS="$LIBS ${libslirp_LIBS}"
+		CFLAGS="$CFLAGS ${libslirp_CFLAGS}"
+		CPPFLAGS="$CPPFLAGS ${libslirp_CFLAGS}"], [
+		have_slirp=no
+		AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])])
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp = xyes; then
+         LIBS="$LIBS -lintl -liconv"
        fi
     ;;
 esac
@@ -1137,6 +1151,18 @@ fi
 dnl placeholder
 AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 
+dnl If networking is used, add networking libraries last on Windows
+dnl so SDL_net, fluidsynth and libslirp successfully link to them
+if test x$enable_emscripten != xyes; then
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_sdl_net = xyes -o x$enable_libfluidsynth = xyes -o x$have_slirp = xyes; then
+         LIBS="$LIBS -lwsock32 -lws2_32 -lwinspool -lshlwapi -liphlpapi"
+       fi
+    ;;
+esac
+fi
+
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
@@ -1181,4 +1207,3 @@ chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
 grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs2015/config_package.h
-

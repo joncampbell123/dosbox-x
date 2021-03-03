@@ -90,6 +90,9 @@
 /* Define to 1 to enable ethernet passthrough, requires libpcap */
 #define C_PCAP 1
 
+/* Define to 1 to enable userspace TCP/IP emulation, requires libslirp */
+//#define C_SLIRP 1
+
 /* Define to 1 to use opengl display output support */
 #if !defined(C_SDL2)
 #define C_OPENGL 1
