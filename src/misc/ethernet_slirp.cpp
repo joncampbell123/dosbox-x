@@ -145,24 +145,24 @@ SlirpEthernetConnection::~SlirpEthernetConnection()
 
 bool SlirpEthernetConnection::Initialize(Section* dosbox_config)
 {
-	(void)dosbox_config; /* Ignore for now */
+	Section_prop* section = static_cast<Section_prop*>(dosbox_config);
 
 	LOG_MSG("SLIRP: Slirp version: %s", slirp_version_string());
 
 	/* Config */
 	config.version = 1;
-	config.restricted = 0; /* Allow access to host */
-	config.disable_host_loopback = 0; /* Allow access to 127.0.0.1 */
-	config.if_mtu = 0; /* IF_MTU_DEFAULT */
-	config.if_mru = 0; /* IF_MRU_DEFAULT */
+	config.restricted = section->Get_bool("restricted");
+	config.disable_host_loopback = section->Get_bool("disable_host_loopback");
+	config.if_mtu = section->Get_int("mtu"); /* 0 = IF_MTU_DEFAULT */
+	config.if_mru = section->Get_int("mru"); /* 0 = IF_MRU_DEFAULT */
 	config.enable_emu = 0; /* Buggy, don't use */
 	/* IPv4 */
 	config.in_enabled = 1;
-	inet_pton(AF_INET, "10.0.2.0", &config.vnetwork);
-	inet_pton(AF_INET, "255.255.255.0", &config.vnetmask);
-	inet_pton(AF_INET, "10.0.2.2", &config.vhost);
-	inet_pton(AF_INET, "10.0.2.3", &config.vnameserver);
-	inet_pton(AF_INET, "10.0.2.15", &config.vdhcp_start);
+	inet_pton(AF_INET, section->Get_string("ipv4_network"), &config.vnetwork);
+	inet_pton(AF_INET, section->Get_string("ipv4_netmask"), &config.vnetmask);
+	inet_pton(AF_INET, section->Get_string("ipv4_host"), &config.vhost);
+	inet_pton(AF_INET, section->Get_string("ipv4_nameserver"), &config.vnameserver);
+	inet_pton(AF_INET, section->Get_string("ipv4_dhcp_start"), &config.vdhcp_start);
 	/* IPv6 code is left here as reference but disabled as no DOS-era
 	 * software supports it and might get confused by it */
 	config.in6_enabled = 0;

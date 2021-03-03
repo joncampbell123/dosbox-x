@@ -38,7 +38,7 @@ EthernetConnection* OpenEthernetConnection(const std::string& backend)
     if (backend == "slirp")
     {
         conn = ((EthernetConnection*)new SlirpEthernetConnection);
-        settings = control->GetSection("ethernet, pcap"); /* Dummy section for now */
+        settings = control->GetSection("ethernet, slirp");
     }
 #endif
     if (!conn)
