@@ -1477,9 +1477,11 @@ public:
 			return;
 		}
 
-		ethernet = OpenEthernetConnection("pcap");
+		const char* backendstring = section->Get_string("backend");
+		ethernet = OpenEthernetConnection(backendstring);
 		if(!ethernet)
 		{
+			LOG_MSG("NE2000: Failed to open Ethernet backend %s", backendstring);
 			load_success = false;
 			return;
 		}

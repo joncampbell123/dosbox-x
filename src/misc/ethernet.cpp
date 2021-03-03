@@ -20,14 +20,17 @@
 #include "ethernet_pcap.h"
 #include <cstring>
 #include "dosbox.h"
+#include "control.h"
 
 EthernetConnection* OpenEthernetConnection(const std::string& backend)
 {
     EthernetConnection* conn = nullptr;
+    Section* settings = nullptr;
 #ifdef C_PCAP
     if (backend == "pcap")
     {
         conn = ((EthernetConnection*)new PcapEthernetConnection);
+        settings = control->GetSection("ethernet, pcap");
     }
 #endif
     if (!conn)
@@ -35,7 +38,8 @@ EthernetConnection* OpenEthernetConnection(const std::string& backend)
         LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());
         return nullptr;
     }
-    if (conn->Initialize())
+    assert(settings);
+    if (conn->Initialize(settings))
     {
         return conn;
     }
