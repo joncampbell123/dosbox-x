@@ -49,8 +49,13 @@ int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) 
 char pcap_src_if_string[] = PCAP_SRC_IF_STRING;
 
 bool LoadPcapLibrary() {
+	// remember if we've already initialized the library
+	static HINSTANCE pcapinst = (HINSTANCE)-1;
+	if(pcapinst!=(HINSTANCE)-1) {
+		return (pcapinst!=NULL);
+	}
+
 	// init the library
-	HINSTANCE pcapinst;
 	pcapinst = LoadLibrary("WPCAP.DLL");
 	if(pcapinst==NULL) {
             niclist = "WinPcap has to be installed for the NE2000 to work.";
