@@ -1113,7 +1113,6 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 }
 
 bool device_CON::Seek(uint32_t * pos,uint32_t type) {
-    (void)pos; // UNUSED
     (void)type; // UNUSED
 	// seek is valid
 	*pos = 0;

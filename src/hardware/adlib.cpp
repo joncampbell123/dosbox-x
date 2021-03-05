@@ -862,8 +862,8 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 					CtrlWrite( (uint8_t)val );
 					break;
 				}
-			}
-			//Fall-through if not handled by control chip
+			} //Fall-through if not handled by control chip
+			/* FALLTHROUGH */
 		case MODE_OPL2:
 		case MODE_OPL3:
 			if ( !chip[0].Write( reg.normal, (uint8_t)val ) ) {
@@ -902,8 +902,8 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 					ctrl.index = val & 0xff;
 					break;
 				}
-			}
-			//Fall-through if not handled by control chip
+			} //Fall-through if not handled by control chip
+			/* FALLTHROUGH */
 		case MODE_OPL3:
 			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0x1ff;
 			break;
@@ -946,8 +946,8 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 			} else if ( port == 0x38b ) {
 				return CtrlRead();
 			}
-		}
-		//Fall-through if not handled by control chip
+		} //Fall-through if not handled by control chip
+		/* FALLTHROUGH */
 	case MODE_OPL3:
 		//We allocated 4 ports, so just return -1 for the higher ones
 		if ( !(port & 3 ) ) {
@@ -1021,6 +1021,7 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 /*
 	Save the current state of the operators as instruments in an reality adlib tracker file
 */
+#if 0
 void SaveRad() {
 	unsigned char b[16 * 1024];
 	unsigned int w = 0;
@@ -1059,7 +1060,7 @@ void SaveRad() {
 	fwrite( b, 1, w, handle );
 	fclose( handle );
 }
-
+#endif
 
 void OPL_SaveRawEvent(bool pressed) {
 	if (!pressed)

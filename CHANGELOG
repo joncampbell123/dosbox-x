@@ -1,5 +1,6 @@
 0.83.12
-  - 
+  - Integrated SVN commits (Allofich)
+    - r4405: Smarter clearing of the dynrec cache.
 0.83.11
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
