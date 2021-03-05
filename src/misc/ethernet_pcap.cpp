@@ -206,7 +206,7 @@ bool PcapEthernetConnection::Initialize(Section* config)
 	if(currentdev->description) desc=currentdev->description;
 	LOG_MSG("Using Network interface:\n%s\n(%s)\n",currentdev->name,desc);
 	
-	const char *timeoutstr = section->Get_string("pcaptimeout");
+	const char *timeoutstr = section->Get_string("timeout");
         char *end;
         int timeout = -1;
         if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) { // Default timeout values

@@ -3934,7 +3934,7 @@ void DOSBOX_SetupConfigSections(void) {
         "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
+    Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
 
     secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);

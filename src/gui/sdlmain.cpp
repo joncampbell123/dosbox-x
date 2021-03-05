@@ -11868,7 +11868,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			if (pcaptimeout_pos != std::string::npos &&
 			    eq_pos != std::string::npos &&
 			    pcaptimeout_pos < eq_pos) {
-				pcap_section->HandleInputline(line);
+				pcap_section->HandleInputline("timeout=" + line.substr(eq_pos + 1, std::string::npos));
 				LOG_MSG("Migrated pcaptimeout from [ne2000] to [ethernet, pcap] section");
 			}
 			if (realnic_pos != std::string::npos &&
