@@ -130,8 +130,11 @@
 /* Define to 1 to enable internal printer redirection support*/
 #define C_PRINTER 1
 
-/* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-#define C_NE2000 1
+/* Define to 1 to enable ethernet passthrough, requires libpcap */
+#define C_PCAP 1
+
+/* Define to 1 to enable userspace TCP/IP emulation, requires libslirp */
+/* #undef C_SLIRP */
 
 /* Set to 1 to enable SDL 1.x support */
 #define C_SDL1 1

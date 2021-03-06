@@ -814,6 +814,10 @@ std::string CapName(std::string name) {
         dispname="IDE Port #7";
     else if (name=="ide, octernary")
         dispname="IDE Port #8";
+    else if (name=="ethernet, pcap")
+        dispname="Ethernet pcap";
+    else if (name=="ethernet, slirp")
+        dispname="Ethernet Slirp";
     else
         dispname[0] = std::toupper(name[0]);
     return dispname;
@@ -859,6 +863,10 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE Port #8")
         dispname="ide, octernary";
+    else if (name=="Ethernet pcap")
+        dispname="ethernet, pcap";
+    else if (name=="Ethernet Slirp")
+        dispname="ethernet, slirp";
     return dispname;
 }
 
@@ -2348,7 +2356,7 @@ public:
     }
 };
 
-std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
+std::string niclist="pcap networking is not in use. Check [ne2000] and [ethernet, pcap] sections of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;

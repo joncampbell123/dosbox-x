@@ -54,6 +54,17 @@ modules:
         url: https://github.com/FluidSynth/fluidsynth/archive/v2.1.5.tar.gz
         sha256: b539b7c65a650b56f01cd60a4e83c6125c217c5a63c0c214ef6274894a677d00
 
+# Build libslirp for networking
+  - name: libslirp
+    buildsystem: meson
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+    sources:
+      - type: archive
+        url: https://gitlab.freedesktop.org/slirp/libslirp/uploads/a30aeca3c6ad23f176065d0ee832957b/libslirp-4.4.0.tar.xz
+        sha256: e903fc14c26030b51711bd7f098697c2393f237199e3681c2e22ea013c3635a7
+
 # Build DOSBox-X SDL1
   - name: dosbox-x
     rm-configure: true

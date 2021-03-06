@@ -3901,20 +3901,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
-    MSG_Add("NE2000_CONFIGFILE_HELP",
-        "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBox-Xes running on your network,\n"
-        "           this has to be changed. Modify the last three number blocks.\n"
-        "           I.e. AC:DE:48:88:99:AB.\n"
-        "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices from the Help\n"
-        "           menu (\'List network interfaces\') or from the Status Window.\n"
-        "           Then make your choice and put either the interface number\n"
-        "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
-    );
-
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Enable Ethernet passthrough. Requires [Win]Pcap.");
+    Pbool->Set_help("Enable NE2000 Ethernet emulation.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);
@@ -3926,26 +3914,65 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"AC:DE:48:88:99:AA");
-    Pstring->Set_help("The physical address the emulator will use on your network.\n"
-        "If you have multiple DOSBox-Xes running on your network,\n"
+    Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
+        "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
 
-    /* TODO: Change default to "nat" and then begin implementing support for emulating
-     *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
-     *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
-     *       can then compile NE2000 support with and without libpcap/winpcap support. */
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
+    Pstring->Set_help("The backend used for Ethernet emulation.");
+    Pstring->SetBasic(true);
+
+    secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
+
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
-    Pstring->Set_help("Specifies which of your network interfaces is used.\n"
+    Pstring->Set_help("Specifies which of your host network interfaces is used for pcap.\n"
         "Write \'list\' here to see the list of devices from the Help\n"
         "menu (\'List network interfaces\') or from the Status Window.\n"
         "Then make your choice and put either the interface number\n"
         "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
+    Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
+
+    secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
+
+    Pbool = secprop->Add_bool("restricted", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables access to the host from the guest.\n"
+        "Services such as libslirp's DHCP server will no longer work.\n");
+
+    Pbool = secprop->Add_bool("disable_host_loopback", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables guest access to the host's loopback interfaces.\n");
+
+    Pint = secprop->Add_int("mtu", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum transmission unit for Ethernet packets transmitted from the guest.\n"
+        "Specifying 0 will use libslirp's default MTU.");
+
+    Pint = secprop->Add_int("mru", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum recieve unit for Ethernet packets transmitted to the guest.\n"
+        "Specifying 0 will use libslirp's default MRU.");
+
+    Pstring = secprop->Add_string("ipv4_network", Property::Changeable::WhenIdle, "10.0.2.0");
+    Pstring->Set_help("The IPv4 network the guest and host services are on.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_netmask", Property::Changeable::WhenIdle, "255.255.255.0");
+    Pstring->Set_help("The netmask for the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_host", Property::Changeable::WhenIdle, "10.0.2.2");
+    Pstring->Set_help("The address of the guest on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_nameserver", Property::Changeable::WhenIdle, "10.0.2.3");
+    Pstring->Set_help("The address of the nameserver service provided by the host on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_dhcp_start", Property::Changeable::WhenIdle, "10.0.2.15");
+    Pstring->Set_help("The start address used for DHCP by the host services on the IPv4 network.");
+    Pstring->SetBasic(true);
 
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
