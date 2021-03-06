@@ -10762,6 +10762,27 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
+bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.log","*.LOG"};
+    const char *lFilterDescription = "Log files (*.log)";
+    char const * lTheSaveFileName = tinyfd_saveFileDialog("Save log file...","",2,lFilterPatterns,lFilterDescription);
+    if (lTheSaveFileName==NULL) return false;
+#if C_DEBUG
+    void savetologfile(const char *name);
+    savetologfile(lTheSaveFileName);
+#endif
+    chdir( Temp_CurrentDir );
+#endif
+    return true;
+}
+
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
 #if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
@@ -12739,7 +12760,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
 #endif
+#if C_DEBUG
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"save_logas").set_text("Save logging as...").set_callback_function(save_logas_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+#endif
             }
 
             {
