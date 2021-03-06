@@ -488,6 +488,7 @@ private:
 	uint32_t partSectSize = 0;
 	uint32_t firstDataSector = 0;
 	uint32_t firstRootDirSect = 0;
+	uint32_t physToLogAdj = 0; // Some PC-98 HDI images have larger logical than physical bytes/sector and the partition is not a multiple of it, so this is needed
 
 	uint32_t cwdDirCluster = 0;
 

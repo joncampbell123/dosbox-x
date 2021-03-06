@@ -114,7 +114,7 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
     // TODO: Bit 6 may have effect on emulation
     STORE_ET4K(3d4, 34);
 
-    case 0x35: 
+    case 0x35:
     /*
     3d4h index 35h (R/W): Overflow High
     bit    0  Vertical Blank Start Bit 10 (3d4h index 15h).
@@ -350,7 +350,7 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     // Reinterpret hor_overflow. Curiously, three bits out of four are
     // in the same places. Input has hdispend (not supported), output
     // has CRTC offset (also not supported)
-    uint8_t et4k_hor_overflow = 
+    uint8_t et4k_hor_overflow =
         (modeData->hor_overflow & 0x01) |
         (modeData->hor_overflow & 0x04) |
         (modeData->hor_overflow & 0x10);
