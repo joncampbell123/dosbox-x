@@ -93,7 +93,7 @@ static void cmos_timerevent(Bitu val) {
 }
 
 static void cmos_checktimer(void) {
-    PIC_RemoveEvents(cmos_timerevent);  
+    PIC_RemoveEvents(cmos_timerevent);
     if (cmos.timer.div<=2) cmos.timer.div+=7;
     cmos.timer.delay=(1000.0f/(32768.0f / (1 << (cmos.timer.div - 1))));
     if (!cmos.timer.div || !cmos.timer.enabled) return;
@@ -552,7 +552,7 @@ void CMOS_SetRegister(Bitu regNr, uint8_t val) {
 
 
 static IO_ReadHandleObject ReadHandler[2];
-static IO_WriteHandleObject WriteHandler[2];    
+static IO_WriteHandleObject WriteHandler[2];
 
 void CMOS_Destroy(Section* sec) {
     (void)sec;//UNUSED
