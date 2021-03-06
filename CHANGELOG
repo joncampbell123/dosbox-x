@@ -5,6 +5,8 @@
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
   - Integrated SVN commits (Allofich)
+    - r4416: Added ability to start and stop avi
+	recording, and to start keymapper, from config.
     - r4405: Smarter clearing of the dynrec cache.
 0.83.11
   - Added support for the clipboard device (CLIP$) and
