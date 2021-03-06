@@ -715,14 +715,15 @@ static const char *def_menu_help_debug[] =
 #endif
 #if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
-    "wait_on_error",
 #endif
 #if C_DEBUG
+    "save_logas",
     "--",
     "debug_blankrefreshtest",
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+    "wait_on_error",
     "debug_logint21",
     "debug_logfileio",
 #endif

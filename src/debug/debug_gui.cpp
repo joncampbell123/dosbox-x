@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fstream>
 
 #if defined(WIN32)
 #include <conio.h>
@@ -105,6 +106,14 @@ static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
+
+void savetologfile(const char *name) {
+    std::ofstream out(name);
+    std::list<string>::iterator it;
+    for (it = logBuff.begin(); it != logBuff.end(); ++it)
+        out << (std::string)(*it) << endl;
+    out.close();
+}
 
 const char *DBGBlock::get_winname(int idx) {
     if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
