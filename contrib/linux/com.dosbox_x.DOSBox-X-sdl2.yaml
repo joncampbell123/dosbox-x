@@ -72,6 +72,8 @@ modules:
       - --enable-core-inline
       - --enable-debug=heavy
       - --enable-sdl2
+    cleanup:
+      - /share/man
     sources:
       - type: dir
         path: ../..

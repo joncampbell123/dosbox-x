@@ -78,6 +78,8 @@ modules:
       # Build the SDL1 debugger enabled version of DOSBox-X
       - ./build-debug
       - make bindir=/app/bin prefix=/app install
+    cleanup:
+      - /share/man
     post-install:
       - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
       - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop
