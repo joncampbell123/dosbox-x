@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *  OPL2/OPL3 emulation library
  *
  *  This library is free software; you can redistribute it and/or
