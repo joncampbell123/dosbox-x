@@ -1840,7 +1840,7 @@ static Bitu DOS_21Handler(void) {
                 if (DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
                     strcpy(appname, name1);
                     strncpy(appargs, ctail.buffer, ctail.count);
-                    appargs[ctail.count]=0;
+                    *(appargs+ctail.count)=0;
                 } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);

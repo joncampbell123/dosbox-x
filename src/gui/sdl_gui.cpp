@@ -896,7 +896,30 @@ public:
             while ((p = sec->Get_prop(i++))) {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
                 if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
-                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
+                std::string propvalues = "";
+                std::vector<Value> pv = p->GetValues();
+                if (p->Get_type()==Value::V_BOOL) {
+                    // possible values for boolean are true, false
+                    propvalues += "true, false";
+                } else if (p->Get_type()==Value::V_INT) {
+                    // print min, max for integer values if used
+                    Prop_int* pint = dynamic_cast <Prop_int*>(p);
+                    if (pint==NULL) E_Exit("Int property dynamic cast failed.");
+                    if (pint->getMin() != pint->getMax()) {
+                        std::ostringstream oss;
+                        oss << pint->getMin();
+                        oss << "..";
+                        oss << pint->getMax();
+                        propvalues += oss.str();
+                    }
+                }
+                for(Bitu k = 0; k < pv.size(); k++) {
+                    if (pv[k].ToString() =="%u")
+                        propvalues += MSG_Get("PROGRAM_CONFIG_HLP_POSINT");
+                    else propvalues += pv[k].ToString();
+                    if ((k+1) < pv.size()) propvalues += ", ";
+                }
+                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+(propvalues==""?"":"\nPossible values: \033[32m"+propvalues+"\033[0m")+"\nDefault value: \033[32m"+p->Get_Default_Value().ToString()+"\033[0m\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);
@@ -2356,7 +2379,7 @@ public:
     }
 };
 
-std::string niclist="pcap networking is not in use. Check [ne2000] and [ethernet, pcap] sections of the configuration.";
+std::string niclist="The pcap networking for NE2000 Ethernet emulation is not currently active.\nPlease check [ne2000] and [ethernet, pcap] sections of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2497,13 +2520,13 @@ public:
         }
 
         const auto finalgridpos = gridfunc(i - 1);
-        int closerow_y = finalgridpos.second + 12 + gridbtnheight;
+        int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         (saveButton = new GUI::Button(this, 190, closerow_y, "Save...", 80))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 275, closerow_y, "Close", 80))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
-               closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
+               closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);

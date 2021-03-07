@@ -3941,10 +3941,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("restricted", Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Disables access to the host from the guest.\n"
-        "Services such as libslirp's DHCP server will no longer work.\n");
+        "Services such as libslirp's DHCP server will no longer work.");
 
     Pbool = secprop->Add_bool("disable_host_loopback", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Disables guest access to the host's loopback interfaces.\n");
+    Pbool->Set_help("Disables guest access to the host's loopback interfaces.");
 
     Pint = secprop->Add_int("mtu", Property::Changeable::WhenIdle, 0);
     Pint->Set_help("The maximum transmission unit for Ethernet packets transmitted from the guest.\n"

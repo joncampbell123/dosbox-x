@@ -107,12 +107,14 @@ static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
-void savetologfile(const char *name) {
+bool savetologfile(const char *name) {
     std::ofstream out(name);
+    if (!out.is_open()) return false;
     std::list<string>::iterator it;
     for (it = logBuff.begin(); it != logBuff.end(); ++it)
         out << (std::string)(*it) << endl;
     out.close();
+    return true;
 }
 
 const char *DBGBlock::get_winname(int idx) {

@@ -240,7 +240,7 @@ LIBS_BACKUP=$LIBS;
 LIBS="$LIBS -lm";
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
         powf(1.0f, 1.0f);
-]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn’t include powf])])
+]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm does not include powf])])
 LIBS=$LIBS_BACKUP
 
 dnl Look for clock_gettime, a DB_HAVE_CLOCK_GETTIME is set when present
@@ -601,6 +601,10 @@ AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
 dnl LIBRARY TEST: libpcap
 AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
 AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
+
+dnl LIBRARY TEST: libslirp
+AC_CHECK_HEADER(slirp/libslirp.h,have_slirp_h=yes,)
+AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libiconv
 dnl This may be provided by glibc itself, -liconv may not be needed.
@@ -990,14 +994,16 @@ esac
 
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
-PKG_CHECK_MODULES(libslirp, slirp, [
-		have_slirp=yes
-		AC_DEFINE(C_SLIRP,1)
-		LIBS="$LIBS ${libslirp_LIBS}"
-		CFLAGS="$CFLAGS ${libslirp_CFLAGS}"
-		CPPFLAGS="$CPPFLAGS ${libslirp_CFLAGS}"], [
-		have_slirp=no
-		AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])])
+if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
+    have_slirp=yes
+    AC_DEFINE(C_SLIRP,1)
+    LIBS="$LIBS ${libslirp_LIBS}"
+    CFLAGS="$CFLAGS ${libslirp_CFLAGS}"
+    CPPFLAGS="$CPPFLAGS ${libslirp_CFLAGS}"
+else
+    have_slirp=no
+    AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
+fi
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        if test x$have_slirp = xyes; then

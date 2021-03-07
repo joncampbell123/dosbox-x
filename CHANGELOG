@@ -1,18 +1,30 @@
 0.83.12
-  - Fixed well intended but erroneous fall through case
-    that prevented 3rd party mouse drivers from detecting
-    the PS/2 mouse.
+  - The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
+  - Added slirp backend support for the NE2000 network
+    feature (in addition to the existing pcap backend).
+    There are config sections named [ethernet, slirp]
+    and [ethernet, pcap] now to set the options for the
+    slirp and pcap backends respectively. (Jookia)
   - FAT driver can now support PC-98 HDI images with
     partitions that start at any physical sector even
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
+  - Fixed well-intended but erroneous fall through case
+    in the INT15 handler that prevented 3rd party mouse
+    drivers from detecting the PS/2 mouse.
+  - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
+    not working (but "ttf.wp=xy" did work). (Wengier)
+  - Fixed preview function in WordStar not working for
+    TrueType font output in previous version. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4416: Added ability to start and stop avi
-	recording, and to start keymapper, from config.
+    recording, and to start keymapper, from config.
     - r4405: Smarter clearing of the dynrec cache.
 0.83.11
   - Added support for the clipboard device (CLIP$) and

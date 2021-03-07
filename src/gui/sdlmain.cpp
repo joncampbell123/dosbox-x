@@ -3584,7 +3584,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         if (strlen(wpstr)>1) {
             if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
             else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
-            else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
+            else if (!strncasecmp(wpstr, "XY", 2)) wpType=3;
             if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
         }
         wpBG = render_section->Get_int("ttf.wpbg");
@@ -10775,8 +10775,8 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     char const * lTheSaveFileName = tinyfd_saveFileDialog("Save log file...","",2,lFilterPatterns,lFilterDescription);
     if (lTheSaveFileName==NULL) return false;
 #if C_DEBUG
-    void savetologfile(const char *name);
-    savetologfile(lTheSaveFileName);
+    bool savetologfile(const char *name);
+    if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", ("Cannot save to the file: "+std::string(lTheSaveFileName)).c_str(), "ok","warning", 1);
 #endif
     chdir( Temp_CurrentDir );
 #endif
@@ -12747,7 +12747,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
                     set_callback_function(help_open_url_callback);
-#if C_NE2000
+#if C_PCAP
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
                     set_callback_function(help_nic_callback);
 #endif

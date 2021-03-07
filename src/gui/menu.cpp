@@ -742,7 +742,7 @@ static const char *def_menu_help[] =
     "help_issue",
 #endif
     "--",
-#if C_NE2000
+#if C_PCAP
     "help_nic",
 #endif
 #if C_PRINTER && defined(WIN32)
@@ -751,7 +751,7 @@ static const char *def_menu_help[] =
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
-#if C_NE2000 || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if C_PCAP || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
 #endif
     "help_about",

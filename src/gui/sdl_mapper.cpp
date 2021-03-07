@@ -1813,8 +1813,8 @@ public:
 
         axes_cap=emulated_axes;
         if (axes_cap>axes) axes_cap=axes;
-        hats_cap=emulated_hats;
-        if (hats_cap>hats) hats_cap=hats;
+        //hats_cap=emulated_hats;
+        //if (hats_cap>hats) hats_cap=hats;
 
         JOYSTICK_Enable(1,true);
         JOYSTICK_Move_Y(1,1.0);
