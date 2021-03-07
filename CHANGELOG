@@ -1,4 +1,7 @@
 0.83.12
+  - The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
@@ -12,6 +15,8 @@
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
+  - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
+    not working (but "ttf.wp=xy" did work). (WengieR)
   - Integrated SVN commits (Allofich)
     - r4416: Added ability to start and stop avi
 	recording, and to start keymapper, from config.
