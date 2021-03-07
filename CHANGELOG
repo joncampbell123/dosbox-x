@@ -1,4 +1,7 @@
 0.83.12
+  - Fixed well intended but erroneous fall through case
+    that prevented 3rd party mouse drivers from detecting
+    the PS/2 mouse.
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
