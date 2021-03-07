@@ -2379,7 +2379,7 @@ public:
     }
 };
 
-std::string niclist="pcap networking is not in use. Check [ne2000] and [ethernet, pcap] sections of the configuration.";
+std::string niclist="The pcap networking for NE2000 Ethernet emulation is not currently active.\nPlease check [ne2000] and [ethernet, pcap] sections of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;

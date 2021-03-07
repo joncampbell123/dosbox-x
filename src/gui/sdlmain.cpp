@@ -12747,7 +12747,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
                     set_callback_function(help_open_url_callback);
-#if C_NE2000
+#if C_PCAP
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
                     set_callback_function(help_nic_callback);
 #endif
