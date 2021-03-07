@@ -2497,13 +2497,13 @@ public:
         }
 
         const auto finalgridpos = gridfunc(i - 1);
-        int closerow_y = finalgridpos.second + 12 + gridbtnheight;
+        int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         (saveButton = new GUI::Button(this, 190, closerow_y, "Save...", 80))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 275, closerow_y, "Close", 80))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
-               closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
+               closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);

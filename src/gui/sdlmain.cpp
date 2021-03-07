@@ -10775,8 +10775,8 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     char const * lTheSaveFileName = tinyfd_saveFileDialog("Save log file...","",2,lFilterPatterns,lFilterDescription);
     if (lTheSaveFileName==NULL) return false;
 #if C_DEBUG
-    void savetologfile(const char *name);
-    savetologfile(lTheSaveFileName);
+    bool savetologfile(const char *name);
+    if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", ("Cannot save to the file: "+std::string(lTheSaveFileName)).c_str(), "ok","warning", 1);
 #endif
     chdir( Temp_CurrentDir );
 #endif
