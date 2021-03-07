@@ -649,21 +649,24 @@ AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
   if test x$INTERNAL_FREETYPE = x1; then
-    # CFLAGS and LDFLAGS were already updated by build-macosx
-    AC_DEFINE(C_FREETYPE,1)
-    AC_MSG_RESULT(yes)
+	CFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CFLAGS"
+	LDFLAGS="-L$top/vs2015/freetype/linux-host/lib -lfreetype $LDFLAGS"
+	CPPFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CPPFLAGS"
+	CXXFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CXXFLAGS"
   else
     pkg-config --exists freetype2; RES=$?
     if test x$RES = x0; then
       CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
       CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
       LIBS="$LIBS "`pkg-config freetype2 --libs`
-      AC_DEFINE(C_FREETYPE,1)
-      AC_MSG_RESULT(yes)
     else
-      enable_freetype=no
-      AC_MSG_RESULT(no)
+      CFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CFLAGS"
+      LDFLAGS="-L$top/vs2015/freetype/linux-host/lib -lfreetype $LDFLAGS"
+      CPPFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CPPFLAGS"
+      CXXFLAGS="-I$pwd/vs2015/freetype/linux-host/include/freetype2 $CXXFLAGS"
     fi
+    AC_DEFINE(C_FREETYPE,1)
+    AC_MSG_RESULT(yes)
   fi
 fi
 
