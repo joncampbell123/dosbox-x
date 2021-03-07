@@ -6000,8 +6000,14 @@ static Bitu INT15_Handler(void) {
                     KEYBOARD_AUX_Write(0xFF);
                     Mouse_SetPS2State(false);
                     KEYBOARD_ClrBuffer();
-                    reg_bx=0x00aa;  // mouse
-                    // fall through
+                    reg_bx=0x00aa;  // mouse (BH=device ID  BL=value returned by attached device after reset) [http://www.ctyme.com/intr/rb-1597.htm]
+                    LOG_MSG("INT 15h mouse reset\n");
+                    KEYBOARD_AUX_Write(0xF6); /* set defaults */
+                    Mouse_SetPS2State(false);
+                    KEYBOARD_ClrBuffer();
+                    CALLBACK_SCF(false);
+                    reg_ah=0; // must return success. Fall through was well intended but, no, causes an error code that confuses mouse drivers
+                    break;
                 case 0x05:      // initialize
                     if (reg_bh >= 3 && reg_bh <= 4) {
                         /* TODO: BIOSes remember this value as the number of bytes to store before
