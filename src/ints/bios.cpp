@@ -6000,7 +6000,7 @@ static Bitu INT15_Handler(void) {
                     KEYBOARD_AUX_Write(0xFF);
                     Mouse_SetPS2State(false);
                     KEYBOARD_ClrBuffer();
-                    reg_bx=0x00aa;  // mouse
+                    reg_bx=0x00aa;  // mouse (BH=device ID  BL=value returned by attached device after reset) [http://www.ctyme.com/intr/rb-1597.htm]
                     // fall through
                 case 0x05:      // initialize
                     if (reg_bh >= 3 && reg_bh <= 4) {
