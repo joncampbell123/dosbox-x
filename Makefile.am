@@ -5,7 +5,7 @@ SUBDIRS = src include
 
 .PHONY: dosbox-x.app
 
-dosbox-x.app: src/dosbox-x contrib/icons/dosbox.icns
+dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 	rm -Rfv dosbox-x.app
 	mkdir dosbox-x.app
 	mkdir dosbox-x.app/Contents
@@ -13,7 +13,7 @@ dosbox-x.app: src/dosbox-x contrib/icons/dosbox.icns
 	mkdir dosbox-x.app/Contents/Resources
 	cp -v contrib/macos/dosbox-x.plist dosbox-x.app/Contents/Info.plist
 	cp -v contrib/macos/dosbox-x.pkginfo dosbox-x.app/Contents/PkgInfo
-	cp -v contrib/icons/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v contrib/macos/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
@@ -35,13 +35,18 @@ dosbox-x.app: src/dosbox-x contrib/icons/dosbox.icns
 		done; \
 	done
 
-contrib/icons/dosbox.icns: contrib/icons/dosbox-x.ico
+contrib/macos/dosbox.icns: contrib/macos/dosbox-x.png
 	rm -Rfv src/dosbox.iconset
 	mkdir src/dosbox.iconset
-	sips -z 16 16    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16.png
-	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16@2.png
-	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_32x32.png
-	iconutil -c icns -o contrib/icons/dosbox.icns src/dosbox.iconset
+	sips -z 16 16     contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_16x16.png
+	sips -z 32 32     contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_16x16@2.png
+	sips -z 32 32     contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_32x32.png
+	sips -z 128 128   contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_128x128.png
+	sips -z 256 256   contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_256x256.png
+	sips -z 512 512   contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_512x512.png
+	sips -z 1024 1024 contrib/macos/dosbox-x.png    --out src/dosbox.iconset/icon_1024x1024.png
+
+	iconutil -c icns -o contrib/macos/dosbox.icns src/dosbox.iconset
 	rm -Rfv src/dosbox.iconset
 
 dox:
