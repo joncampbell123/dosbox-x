@@ -1894,7 +1894,6 @@ public:
         }
     }
 
-
 private:
     Uint8 old_hat_position;
 
@@ -1942,7 +1941,6 @@ private:
         }
     }
 };
-
 
 class CCHBindGroup : public  CStickBindGroup {
 public:
