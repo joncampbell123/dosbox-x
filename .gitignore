@@ -329,6 +329,10 @@ windows-installer/DOSBox-X-standalone-*
 windows-installer/DOSBox-X-setup-*.exe
 windows-installer/DOSBox-X-setup-*.zip
 
+make-rpm.sh
+contrib/linux/dosbox-x.spec
+contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml
+
 \!DosBox-X/*,ff8
 \!DosBox-X/CHANGELOG,fff
 \!DosBox-X/resources/*
