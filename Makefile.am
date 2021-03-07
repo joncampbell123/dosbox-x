@@ -88,6 +88,8 @@ install: src/dosbox-x
 	install -m 644 $(srcdir)/contrib/linux/com.dosbox_x.DOSBox-X.desktop $(DESTDIR)$(prefix)/share/applications
 	mkdir -p $(DESTDIR)$(prefix)/share/metainfo
 	install -m 644 $(srcdir)/contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml $(DESTDIR)$(prefix)/share/metainfo
+	mkdir -p $(DESTDIR)$(mandir)/man1
+	install -m 644 $(srcdir)/contrib/linux/dosbox-x.1 $(DESTDIR)$(mandir)/man1
 	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 install_strip: src/dosbox-x install
@@ -106,4 +108,5 @@ uninstall:
 	rm -f $(DESTDIR)$(prefix)/share/applications/com.dosbox_x.DOSBox-X.desktop
 	rm -f $(DESTDIR)$(prefix)/share/metainfo/dosbox-x.metainfo.xml
 	rm -f $(DESTDIR)$(prefix)/share/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
+	rm -f $(DESTDIR)$(mandir)/man1/dosbox-x.1
 

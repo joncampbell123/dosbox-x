@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.11,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.12,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -430,19 +430,12 @@ LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
 CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 
-dnl LIBRARY TEST: SDLnet initial test
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
-
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_h = xyes ; then
-         dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
-         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -lwinspool -liphlpapi"
-       fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        dnl FEATURE: Whether to support direct serial port passthrough
@@ -536,7 +529,7 @@ case "$host_cpu" in
     c_targetcpu="m68k"
     c_unalignedmemory=yes
     ;;
-   armv7l)
+   armv7*)
     AC_DEFINE(C_TARGETCPU,ARMV7LE)
     AC_MSG_RESULT(ARMv7 Little Endian)
     c_targetcpu="arm"
@@ -854,11 +847,13 @@ dnl FEATURE: Whether to enable x86 dynamic core
 AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86/x64 dynamic cpu core])
 AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86/x64 dynamic cpu core]),,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
-if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno -o x$c_targetcpu = xarm; then
+if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
    AC_MSG_RESULT(no)
-else
+elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64; then
    AC_DEFINE(C_DYNAMIC_X86,1)
    AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
 fi
 
 dnl FEATURE: Whether to enable recompiling dynamic core
@@ -867,9 +862,12 @@ AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu 
 AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
-else
+# test for MIPS32 is missing from this Dynamic Recompiler whitelist
+elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = arm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
 fi
 
 dnl FEATURE: Whether to emulate the floating point unit
@@ -925,11 +923,13 @@ if test -n "$SDL2_LIBS"; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  else
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
@@ -939,6 +939,7 @@ else
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  have_sdl_net=yes
  else 
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
@@ -969,20 +970,38 @@ else
   AC_MSG_RESULT([no])
 fi
 
-dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
-AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
+dnl FEATURE: Whether to use libpcap, and enable ethernet passthrough
+AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet passthrough, requires libpcap])
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
        CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
-       AC_DEFINE(C_NE2000,1)
+       AC_DEFINE(C_PCAP,1)
     ;;
     *)
        if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
          LIBS="$LIBS -lpcap";
-         AC_DEFINE(C_NE2000,1)
+         AC_DEFINE(C_PCAP,1)
        else
-         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+         AC_MSG_WARN([Can't find libpcap, ethernet passthrough disabled])
+       fi
+    ;;
+esac
+
+dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
+AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
+PKG_CHECK_MODULES(libslirp, slirp, [
+		have_slirp=yes
+		AC_DEFINE(C_SLIRP,1)
+		LIBS="$LIBS ${libslirp_LIBS}"
+		CFLAGS="$CFLAGS ${libslirp_CFLAGS}"
+		CPPFLAGS="$CPPFLAGS ${libslirp_CFLAGS}"], [
+		have_slirp=no
+		AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])])
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp = xyes; then
+         LIBS="$LIBS -lintl -liconv"
        fi
     ;;
 esac
@@ -1132,6 +1151,18 @@ fi
 dnl placeholder
 AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 
+dnl If networking is used, add networking libraries last on Windows
+dnl so SDL_net, fluidsynth and libslirp successfully link to them
+if test x$enable_emscripten != xyes; then
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_sdl_net = xyes -o x$enable_libfluidsynth = xyes -o x$have_slirp = xyes; then
+         LIBS="$LIBS -lwsock32 -lws2_32 -lwinspool -lshlwapi -liphlpapi"
+       fi
+    ;;
+esac
+fi
+
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
@@ -1176,4 +1207,3 @@ chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
 grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs2015/config_package.h
-

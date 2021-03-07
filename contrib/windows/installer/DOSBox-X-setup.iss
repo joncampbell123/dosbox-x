@@ -1,5 +1,5 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.11"
+#define MyAppVersion "0.83.12"
 #define MyAppPublisher "joncampbell123"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
@@ -189,6 +189,18 @@ var
   build64: Boolean;    
   HelpButton: TNewButton;
   PageBuild, PageOutput, PageVer: TInputOptionWizardPage;
+function IsVerySilent(): Boolean;
+var
+  k: Integer;
+begin
+  Result := False;
+  for k := 1 to ParamCount do
+    if CompareText(ParamStr(k), '/verysilent') = 0 then
+    begin
+      Result := True;
+      Break;
+    end;
+end;
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
 var
   Version: TWindowsVersion;
@@ -241,7 +253,7 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
-    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
+    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
     PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
     PageOutput.Add('Default output (Direct3D)');
     PageOutput.Add('OpenGL with pixel-perfect scaling');
@@ -250,7 +262,7 @@ begin
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(101, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
-    PageVer.Add('DOS version 5.00');
+    PageVer.Add('DOS version 5.00 (reported by default)');
     PageVer.Add('DOS version 6.22');
     PageVer.Add('DOS version 7.10 (for LFN and FAT32 support)');
 end;
@@ -262,7 +274,7 @@ begin
     build64:=False;
     if IsWin64 then
     begin
-      if (MsgBox('You are running 64-bit Windows. Do you want to install 64-bit version of DOSBox-X, which is recommended?' #13#13 'If you select No, then 32-bit version of DOSBox-X will be installed.', mbInformation, MB_YESNO) = IDYES) then
+      if IsVerySilent() or (MsgBox('You are running 64-bit Windows. Do you want to install 64-bit version of DOSBox-X, which is recommended?' #13#13 'If you select No, then 32-bit version of DOSBox-X will be installed.', mbInformation, MB_YESNO) = IDYES) then
         build64:=True;
     end;
   end;
@@ -459,7 +471,14 @@ begin
     else if (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant(refname))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant(refname))) <> 0) then
     begin
       msg:='The configuration file dosbox-x.conf already exists in the destination. Do you want to keep your current settings?' #13#13 'If you choose "Yes", your current settings will be kept and the file dosbox-x.conf will be automatically upgraded to the latest version format (recommended).' #13#13 'If you choose "No", the dosbox-x.conf file will be reset to the new default configuration, and your old dosbox-x.conf file will be named dosbox-x.conf.old in the installation directory.' #13#13 'If you choose "Cancel", your current dosbox-x.conf file will be kept as is without any modifications.' #13 #13 'In any case, the new default configuration file will be named dosbox-x.reference.conf in the installation directory.';
-      res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
+      if IsVerySilent() then
+      begin
+        res := IDYES;
+      end
+      else
+      begin
+        res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
+      end
       if (res = IDNO) then
       begin
         FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);

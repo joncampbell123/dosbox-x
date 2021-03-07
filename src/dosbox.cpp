@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -187,6 +187,8 @@ Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
+bool                VGA_BIOS_use_rom = false; // load VGA BIOS from a ROM file rather than make our own
+std::string         VGA_BIOS_rom;
 
 uint32_t                  emulator_speed = 100;
 
@@ -247,7 +249,7 @@ void                TANDYSOUND_Init(Section*);
 void                DISNEY_Init(Section*);
 void                PS1SOUND_Init(Section*);
 void                INNOVA_Init(Section*);
-void                SERIAL_Init(Section*); 
+void                SERIAL_Init(Section*);
 void                DONGLE_Init(Section*);
 #if C_IPX
 void                IPX_Init(Section*);
@@ -751,6 +753,8 @@ void DOSBOX_InitTickLoop() {
 }
 
 void Init_VGABIOS() {
+    long rom_sz = 0;
+    FILE *rom_fp = NULL;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
     assert(section != NULL && video_section != NULL);
@@ -778,6 +782,59 @@ void Init_VGABIOS() {
     wpcolon = section->Get_bool("leading colon write protect image");
     lockmount = section->Get_bool("locking disk image mount");
 
+    VGA_BIOS_use_rom = video_section->Get_bool("vga bios use rom image");
+    VGA_BIOS_rom = video_section->Get_string("vga bios rom image");
+
+    if (VGA_BIOS_rom.empty()) {
+        if (IS_VGA_ARCH) {
+            if (svgaCard == SVGA_TsengET4K) {
+                VGA_BIOS_rom = "et4000.bin"; // Ref: PCem ROMs collection
+            }
+            else if (svgaCard == SVGA_S3Trio) {
+                VGA_BIOS_rom = "TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin"; // Ref: PCem ROMs collection
+            }
+        }
+    }
+
+    if (!VGA_BIOS_rom.empty() && VGA_BIOS_use_rom) {
+        VGA_BIOS_use_rom = false;
+        void ResolvePath(std::string& in);
+        ResolvePath(VGA_BIOS_rom);
+        std::string path = "", GetDOSBoxXPath(bool withexe=false);
+        rom_fp = fopen(VGA_BIOS_rom.c_str(),"rb");
+        if (rom_fp == NULL) {
+            path = GetDOSBoxXPath();
+            if (path.size()) {
+                path += VGA_BIOS_rom;
+                rom_fp = fopen(path.c_str(),"rb");
+            }
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::GetPlatformResDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
+        if (rom_fp == NULL) {
+            path = "";
+            Cross::GetPlatformConfigDir(path);
+            path += VGA_BIOS_rom;
+            rom_fp = fopen(path.c_str(),"rb");
+        }
+        if (rom_fp != NULL) {
+            fseek(rom_fp,0,SEEK_END);
+            long sz = ftell(rom_fp);
+            if (sz >= 1024 && sz <= 65536) {
+                LOG_MSG("Using VGA BIOS image '%s', %ld bytes\n",VGA_BIOS_rom.c_str(),sz);
+                VGA_BIOS_use_rom = true;
+                rom_sz = sz;
+            }
+        }
+    }
+    else {
+        VGA_BIOS_use_rom = false;
+    }
+
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
@@ -795,6 +852,9 @@ void Init_VGABIOS() {
 
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
+    else if (rom_sz != 0) {
+        VGA_BIOS_Size = rom_sz;
+    }
     else if (IS_VGA_ARCH) {
         if (svgaCard == SVGA_S3Trio)
             VGA_BIOS_Size = 0x4000;
@@ -818,9 +878,17 @@ void Init_VGABIOS() {
     VGA_BIOS_SEG = 0xC000;
     VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
 
-    /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
-    if (VGA_BIOS_Size != 0)
-        memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    if (rom_fp != NULL && rom_sz != 0) {
+        fseek(rom_fp,0,SEEK_SET);
+        fread((char*)MemBase+0xC0000,rom_sz,1,rom_fp);
+    }
+    else {
+        /* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+        if (VGA_BIOS_Size != 0)
+            memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+    }
+
+    if (rom_fp) fclose(rom_fp);
 }
 
 void SetCyclesCount_mapper_shortcut(bool pressed);
@@ -1111,7 +1179,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         0 };
 
-    const char* scalers[] = { 
+    const char* scalers[] = {
         "none", "normal2x", "normal3x", "normal4x", "normal5x",
 #if RENDER_USE_ADVANCED_SCALERS>2
         "advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
@@ -1159,8 +1227,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
+    Pbool->Set_help("If set, DOSBox-X will skip the BIOS screen by activating fast BIOS logo mode (without 1-second pause).");
     Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("disable graphical splash",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will always display text-mode BIOS splash screen instead of the graphical one.\n"
+                    "The text-mode BIOS screen will automatically be used if the TrueType font (TTF) output is enabled.");
 
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
@@ -1306,7 +1378,7 @@ void DOSBOX_SetupConfigSections(void) {
      * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
      *  before the age of SuperIO and PCI use either 10MHz (9.8304MHz) or 8MHz (7.9872MHz)
      *  for its C-Bus.
-     * 
+     *
      *  It's determined by the CPU clock base (2.4756Mhz or 1.9968MHz). For example, on a
      *  16MHz 386, C-Bus runs at 8MHz and on a 25MHz 386, C-Bus runs at 10MHz.
      *
@@ -1621,6 +1693,19 @@ void DOSBOX_SetupConfigSections(void) {
             "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
             "  \n"
             "  4low behavior is default for ET4000 emulation.");
+
+    Pbool = secprop->Add_bool("vga bios use rom image", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
+
+    Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
+    Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
+                    "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
+                    "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
+                    "(machine=svga_et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped\n"
+                    "from real hardware or downloaded from the PCem ROMs collection.\n"
+                    "\n"
+                    "machine=svga_s3            TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin\n"
+                    "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
@@ -2331,7 +2416,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
                     "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
-            
+
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.");
@@ -2436,8 +2521,8 @@ void DOSBOX_SetupConfigSections(void) {
             "require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
             "errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
 
-    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
-    Pbool->Set_help("Swaps the left and right stereo channels."); 
+    Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Swaps the left and right stereo channels.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,44100);
@@ -2477,7 +2562,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
+    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use\n"
+                      "(find the id/name with mixer/listmidi).\n"
                       "Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
                       "When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
                       "In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
@@ -2645,12 +2731,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("Fluidsynth period size, or default.");
 
 	const char *fluidreverb[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidreverb);
 	Pstring->Set_help("Fluidsynth use reverb.");
 
 	const char *fluidchorus[] = {"no", "yes",0};
-	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");	
+	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
 
@@ -2666,7 +2752,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.reverb.level",Property::Changeable::WhenIdle,".57");
 	Pstring->Set_help("Fluidsynth reverb level.");
 
-	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);	
+	Pint = secprop->Add_int("fluid.chorus.number",Property::Changeable::WhenIdle,3);
 	Pint->Set_help("Fluidsynth chorus voices");
 
 	Pstring = secprop->Add_string("fluid.chorus.level",Property::Changeable::WhenIdle,"1.2");
@@ -2685,7 +2771,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
 
     secprop=control->AddSection_prop("sblaster",&Null_Init,true);
-    
+
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
     Pstring->Set_values(sbtypes);
     Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
@@ -2726,7 +2812,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
@@ -2808,7 +2894,7 @@ void DOSBOX_SetupConfigSections(void) {
      *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
      *        timer "overflowed" (fairly typical Adlib detection code).
      *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
-     *                         100 I/O reads * (1 / 1388888) = 72us */ 
+     *                         100 I/O reads * (1 / 1388888) = 72us */
 
     Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
     Pstring->Set_values(oplemus);
@@ -2824,7 +2910,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
 	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
     Pstring->SetBasic(true);
-    
+
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
         "210,220,230,240,250,260,280");
@@ -2914,7 +3000,7 @@ void DOSBOX_SetupConfigSections(void) {
             "relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done
-    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);  
+    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
     Pbool->SetBasic(true);
 
@@ -3003,11 +3089,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(dmasgus);
     Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
     Pint->SetBasic(true);
- 
+
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
     Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
     Pstring = secprop->Add_string("gustype",Property::Changeable::WhenIdle,"classic");
     Pstring->Set_values(gustypes);
@@ -3420,11 +3506,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
-    Pstring->Set_help("The path where the output files are stored.");
+    Pstring->Set_help("The path (directory) where the output files are stored.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("fontpath", Property::Changeable::WhenIdle, "FONTS");
-    Pstring->Set_help("The path where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
+    Pstring->Set_help("The path (directory) where the printer fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are located.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("openwith", Property::Changeable::WhenIdle, "");
@@ -3711,15 +3797,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
+    Pbool->Set_help("Allow starting Windows programs or commands to run on the Windows host including the use of START command.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows programs after they are started.");
+    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows applications after they are started.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, DOSBox-X will not show information messages before launching Windows programs to run on the host.");
+    Pbool->Set_help("If set, before launching Windows applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
@@ -3793,20 +3879,20 @@ void DOSBOX_SetupConfigSections(void) {
             "set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
     Pstring = secprop->Add_string("dos clipboard device enable",Property::Changeable::WhenIdle, "false");
-    Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the Windows clipboard.\n"
+    Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the shared clipboard.\n"
 			"Setting to \"read\" will only allow read access, and setting to \"write\" will only allow write access.\n"
 			"Setting to \"full\" or \"true\" enables both; setting to \"false\" or \"disabled\" disables the access or device.\n"
             "The default device name is CLIP$, but can be changed with the \"dos clipboard device name\" setting below.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("dos clipboard device name",Property::Changeable::WhenIdle, "CLIP$");
-    Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the Windows clipboard.\n"
+    Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the shared clipboard.\n"
             "If unset or invalid, the default name CLIP$ will be used (e.g. \"TYPE CLIP$\" shows the clipboard contents).\n"
 			"It has no effect if \"dos clipboard device enable\" is disabled, and it is deactivated if the secure mode is enabled.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dos clipboard api",Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled.");
+    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
@@ -3815,20 +3901,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
-    MSG_Add("NE2000_CONFIGFILE_HELP",
-        "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBox-Xes running on your network,\n"
-        "           this has to be changed. Modify the last three number blocks.\n"
-        "           I.e. AC:DE:48:88:99:AB.\n"
-        "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices from the Help\n"
-        "           menu (\'List network interfaces\') or from the Status Window.\n"
-        "           Then make your choice and put either the interface number\n"
-        "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
-    );
-
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Enable Ethernet passthrough. Requires [Win]Pcap.");
+    Pbool->Set_help("Enable NE2000 Ethernet emulation.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);
@@ -3840,26 +3914,65 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"AC:DE:48:88:99:AA");
-    Pstring->Set_help("The physical address the emulator will use on your network.\n"
-        "If you have multiple DOSBox-Xes running on your network,\n"
+    Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
+        "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
 
-    /* TODO: Change default to "nat" and then begin implementing support for emulating
-     *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
-     *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
-     *       can then compile NE2000 support with and without libpcap/winpcap support. */
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
+    Pstring->Set_help("The backend used for Ethernet emulation.");
+    Pstring->SetBasic(true);
+
+    secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
+
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
-    Pstring->Set_help("Specifies which of your network interfaces is used.\n"
+    Pstring->Set_help("Specifies which of your host network interfaces is used for pcap.\n"
         "Write \'list\' here to see the list of devices from the Help\n"
         "menu (\'List network interfaces\') or from the Status Window.\n"
         "Then make your choice and put either the interface number\n"
         "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
+    Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
+
+    secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
+
+    Pbool = secprop->Add_bool("restricted", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables access to the host from the guest.\n"
+        "Services such as libslirp's DHCP server will no longer work.\n");
+
+    Pbool = secprop->Add_bool("disable_host_loopback", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables guest access to the host's loopback interfaces.\n");
+
+    Pint = secprop->Add_int("mtu", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum transmission unit for Ethernet packets transmitted from the guest.\n"
+        "Specifying 0 will use libslirp's default MTU.");
+
+    Pint = secprop->Add_int("mru", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum recieve unit for Ethernet packets transmitted to the guest.\n"
+        "Specifying 0 will use libslirp's default MRU.");
+
+    Pstring = secprop->Add_string("ipv4_network", Property::Changeable::WhenIdle, "10.0.2.0");
+    Pstring->Set_help("The IPv4 network the guest and host services are on.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_netmask", Property::Changeable::WhenIdle, "255.255.255.0");
+    Pstring->Set_help("The netmask for the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_host", Property::Changeable::WhenIdle, "10.0.2.2");
+    Pstring->Set_help("The address of the guest on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_nameserver", Property::Changeable::WhenIdle, "10.0.2.3");
+    Pstring->Set_help("The address of the nameserver service provided by the host on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_dhcp_start", Property::Changeable::WhenIdle, "10.0.2.15");
+    Pstring->Set_help("The start address used for DHCP by the host services on the IPv4 network.");
+    Pstring->SetBasic(true);
 
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
@@ -4050,7 +4163,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("Sets the country code for country-specific date/time formats.");
+    Pstring->Set_help("The country code for date/time formats and optionally the code page for TTF output.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
@@ -4070,185 +4183,6 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("EMPTY_SLOT","Empty slot");
-}
-
-int utf8_encode(char **ptr, const char *fence, uint32_t code) {
-    int uchar_size=1;
-    char *p = *ptr;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (code >= (uint32_t)0x80000000UL) return UTF8ERR_INVALID;
-    if (p >= fence) return UTF8ERR_NO_ROOM;
-
-    if (code >= 0x4000000) uchar_size = 6;
-    else if (code >= 0x200000) uchar_size = 5;
-    else if (code >= 0x10000) uchar_size = 4;
-    else if (code >= 0x800) uchar_size = 3;
-    else if (code >= 0x80) uchar_size = 2;
-
-    if ((p+uchar_size) > fence) return UTF8ERR_NO_ROOM;
-
-    switch (uchar_size) {
-        case 1: *p++ = (char)code;
-            break;
-        case 2: *p++ = (char)(0xC0 | (code >> 6));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 3: *p++ = (char)(0xE0 | (code >> 12));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 4: *p++ = (char)(0xF0 | (code >> 18));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 5: *p++ = (char)(0xF8 | (code >> 24));
-            *p++ = (char)(0x80 | ((code >> 18) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-        case 6: *p++ = (char)(0xFC | (code >> 30));
-            *p++ = (char)(0x80 | ((code >> 24) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 18) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 12) & 0x3F));
-            *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
-            *p++ = (char)(0x80 | (code & 0x3F));
-            break;
-    }
-
-    *ptr = p;
-    return 0;
-}
-
-int utf8_decode(const char **ptr,const char *fence) {
-    const char *p = *ptr;
-    int uchar_size=1;
-    int ret = 0,c;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (p >= fence) return UTF8ERR_NO_ROOM;
-
-    ret = (unsigned char)(*p);
-    if (ret >= 0xFE) { p++; return UTF8ERR_INVALID; }
-    else if (ret >= 0xFC) uchar_size=6;
-    else if (ret >= 0xF8) uchar_size=5;
-    else if (ret >= 0xF0) uchar_size=4;
-    else if (ret >= 0xE0) uchar_size=3;
-    else if (ret >= 0xC0) uchar_size=2;
-    else if (ret >= 0x80) { p++; return UTF8ERR_INVALID; }
-
-    if ((p+uchar_size) > fence)
-        return UTF8ERR_NO_ROOM;
-
-    switch (uchar_size) {
-        case 1: p++;
-            break;
-        case 2: ret = (ret&0x1F)<<6; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 3: ret = (ret&0xF)<<12; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 4: ret = (ret&0x7)<<18; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 5: ret = (ret&0x3)<<24; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<18;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-        case 6: ret = (ret&0x1)<<30; p++;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<24;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<18;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<12;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= (c&0x3F)<<6;
-            c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
-            ret |= c&0x3F;
-            break;
-    }
-
-    *ptr = p;
-    return ret;
-}
-
-int utf16le_encode(char **ptr, const char *fence, uint32_t code) {
-    char *p = *ptr;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if (code > 0x10FFFF) return UTF8ERR_INVALID;
-    if (code > 0xFFFF) { /* UTF-16 surrogate pair */
-        uint32_t lo = (code - 0x10000) & 0x3FF;
-        uint32_t hi = ((code - 0x10000) >> 10) & 0x3FF;
-        if ((p+2+2) > fence) return UTF8ERR_NO_ROOM;
-        *p++ = (char)( (hi+0xD800)       & 0xFF);
-        *p++ = (char)(((hi+0xD800) >> 8) & 0xFF);
-        *p++ = (char)( (lo+0xDC00)       & 0xFF);
-        *p++ = (char)(((lo+0xDC00) >> 8) & 0xFF);
-    }
-    else if ((code&0xF800) == 0xD800) { /* do not allow accidental surrogate pairs (0xD800-0xDFFF) */
-        return UTF8ERR_INVALID;
-    }
-    else {
-        if ((p+2) > fence) return UTF8ERR_NO_ROOM;
-        *p++ = (char)( code       & 0xFF);
-        *p++ = (char)((code >> 8) & 0xFF);
-    }
-
-    *ptr = p;
-    return 0;
-}
-
-int utf16le_decode(const char **ptr,const char *fence) {
-    const char *p = *ptr;
-    unsigned int ret,b=2;
-
-    if (!p) return UTF8ERR_NO_ROOM;
-    if ((p+1) >= fence) return UTF8ERR_NO_ROOM;
-
-    ret = (unsigned char)p[0];
-    ret |= ((unsigned int)((unsigned char)p[1])) << 8;
-    if (ret >= 0xD800U && ret <= 0xDBFFU)
-        b=4;
-    else if (ret >= 0xDC00U && ret <= 0xDFFFU)
-        { p++; return UTF8ERR_INVALID; }
-
-    if ((p+b) > fence)
-        return UTF8ERR_NO_ROOM;
-
-    p += 2;
-    if (ret >= 0xD800U && ret <= 0xDBFFU) {
-        /* decode surrogate pair */
-        unsigned int hi = ret & 0x3FFU;
-        unsigned int lo = (unsigned char)p[0];
-        lo |= ((unsigned int)((unsigned char)p[1])) << 8;
-        p += 2;
-        if (lo < 0xDC00U || lo > 0xDFFFU) return UTF8ERR_INVALID;
-        lo &= 0x3FFU;
-        ret = ((hi << 10U) | lo) + 0x10000U;
-    }
-
-    *ptr = p;
-    return (int)ret;
 }
 
 extern void POD_Save_Sdlmain( std::ostream& stream );

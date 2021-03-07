@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern uint8_t                int10_font_14[256 * 14];
+extern uint8_t              int10_font_14[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -77,9 +77,11 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres;
+extern bool                 dos_kernel_disabled, confres, swapad;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
+extern std::string          strPasteBuffer;
 
+extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -180,6 +182,7 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+extern bool toscale;
 extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
@@ -231,6 +234,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     scaley = dh / 350; /* maximum vertical   scale */
     if( scalex > scaley ) scale = scaley;
     else                  scale = scalex;
+    if (!toscale) scale = 1;
 
     assert(sx < dw);
     assert(sy < dh);
@@ -518,7 +522,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     void res_init(void);
     void change_output(int output);
     res_init();
-    change_output(7);
+    change_output(8);
 #else
 #if 1
     GFX_RestoreMode();
@@ -810,6 +814,10 @@ std::string CapName(std::string name) {
         dispname="IDE Port #7";
     else if (name=="ide, octernary")
         dispname="IDE Port #8";
+    else if (name=="ethernet, pcap")
+        dispname="Ethernet pcap";
+    else if (name=="ethernet, slirp")
+        dispname="Ethernet Slirp";
     else
         dispname[0] = std::toupper(name[0]);
     return dispname;
@@ -855,6 +863,10 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE Port #8")
         dispname="ide, octernary";
+    else if (name=="Ethernet pcap")
+        dispname="ethernet, pcap";
+    else if (name=="Ethernet Slirp")
+        dispname="ethernet, slirp";
     return dispname;
 }
 
@@ -1167,7 +1179,7 @@ public:
         int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 70;
         int button_pad_w = 10;
-        int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
+        int button_row_w = ((button_pad_w + button_w) * 4 + button_w) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
 
         resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + wiw->vscroll_display_width/*scrollbar*/ + 10,
@@ -1180,14 +1192,17 @@ public:
         content = new GUI::Input(this, 5, button_row_y-height+20, 510 - border_left - border_right, height-25);
         content->setText(extra_data);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Paste Clipboard", button_w*2);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
-
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, "OK", button_w);
 
         int i = 0;
         Property *prop;
@@ -1257,6 +1272,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
+        std::string lines = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
         else if (arg == "Help") {
             std::vector<GUI::Char> new_cfg_sname;
@@ -1286,6 +1302,24 @@ public:
             else {
                 lookup->second->raise();
             }
+		} else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
+			while (strPasteBuffer.length()) {
+                key = NULL;
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+            return;
         } else ToplevelWindow::actionExecuted(b, arg);
     }
 
@@ -1315,7 +1349,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        ToplevelWindow(parent, x, y, 550, 260 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
             return;
@@ -1325,12 +1359,13 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Edit "+title);
         new GUI::Label(this, 5, 10, "Content:");
-        content = new GUI::Input(this, 5, 30, 450 - 10 - border_left - border_right, 185);
+        content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
-        if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 5, 220, "Paste Clipboard"))->addActionHandler(this);
+        if (first_shell) (new GUI::Button(this, 147, 220, "Append History"))->addActionHandler(this);
+        if (shell_idle) (new GUI::Button(this, 281, 220, "Execute Now"))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 391, 220, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 461, 220, "OK", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1344,7 +1379,25 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Append History") {
+        else if (arg == "Paste Clipboard") {
+			strPasteBuffer="";
+			swapad=false;
+			PasteClipboard(true);
+			swapad=true;
+			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
+			while (strPasteBuffer.length()) {
+                key = NULL;
+				head = strPasteBuffer[0];
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
+				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+			}
+			return;
+		} else if (arg == "Append History") {
             std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
             while (i != first_shell->l_history.rend()) {
@@ -1506,6 +1559,7 @@ public:
         name->setText(cycles.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 300, 60, "Paste", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -2302,7 +2356,7 @@ public:
     }
 };
 
-std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
+std::string niclist="pcap networking is not in use. Check [ne2000] and [ethernet, pcap] sections of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1444,7 +1444,7 @@ void PAGING_Enable(bool enabled) {
 	paging.enabled=enabled;
 	if (auto_determine_dynamic_core_paging) {
 		int coretype=CPU_IsDynamicCore();
-		use_dynamic_core_with_paging = coretype==1?enabled&&dos_kernel_disabled:(coretype==2?enabled&&!dos_kernel_disabled:enabled);
+		if (coretype) use_dynamic_core_with_paging = coretype==1?enabled&&dos_kernel_disabled:enabled&&!dos_kernel_disabled;
 	}
 	if (enabled) {
 //		LOG(LOG_PAGING,LOG_NORMAL)("Enabled");

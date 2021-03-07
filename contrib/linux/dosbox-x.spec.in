@@ -1,4 +1,4 @@
-Name:          dosbox-x
+Name:          @PACKAGE_NAME@
 Version:       @PACKAGE_VERSION@
 Release:       1%{?dist}
 Summary:       DOS emulator for running DOS games and applications including Windows 3.x/9x
@@ -27,9 +27,6 @@ BuildRequires: zlib-devel
 
 Requires:      fluid-soundfont-gm
 
-# Dynamic recompiler only supports x86 and arm
-ExclusiveArch: %{ix86} %{arm} x86_64 aarch64
-
 %description
 DOSBox-X is an open-source DOS emulator for running DOS games and applications.
 DOS-based Windows such as Windows 3.x and Windows 9x are officially supported.
@@ -52,11 +49,11 @@ DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation
 options and features.
 
 %prep
-%autosetup -n dosbox-x
+%autosetup -n %{name}
 
 %build
 ./autogen.sh
-./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2
+%configure --enable-core-inline --enable-debug=heavy --enable-sdl2
 %make_build
 
 %install
@@ -68,6 +65,7 @@ options and features.
 %{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
 %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
 %{_datadir}/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
+%{_mandir}/man1/dosbox-x.1
 
 # Required for NE2000 pcap networking support (promiscuous mode)
 %post

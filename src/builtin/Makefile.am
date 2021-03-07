@@ -10,7 +10,7 @@ libbuiltin_a_SOURCES = \
 	hexmem16_exe.cpp \
 	hexmem32_exe.cpp \
 	debug_exe.cpp \
-	tree_exe.cpp \
+	replace_exe.cpp \
 	sort_exe.cpp \
 	move_exe.cpp \
 	mem_com.cpp \

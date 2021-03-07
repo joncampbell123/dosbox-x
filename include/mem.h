@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -87,7 +87,9 @@ static INLINE void host_writew(HostPt off, const uint16_t val) {
 static INLINE void host_writed(HostPt off, const uint32_t val) {
     *(uint32_t *)off = __builtin_bswap32(val);
 }
-
+static INLINE void host_writeq(HostPt off, const uint64_t val) {
+    *(uint64_t *)off = __builtin_bswap64(val);
+}
 #elif defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 /* !defined(C_UNALIGNED_MEMORY) meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
         on such processors typecasting memory as uint16_t and higher can cause a fault if the

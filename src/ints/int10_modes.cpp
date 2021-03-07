@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #include "programs.h"
 #include "render.h"
 #include "menu.h"
+#include "regs.h"
+#include "callback.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -1179,6 +1181,11 @@ void ttf_switch_off(bool ss=true) {
 
 void ttf_switch_on(bool ss=true) {
     if (ss&&ttfswitch||!ss&&switch_output_from_ttf) {
+        uint16_t oldax=reg_ax;
+        reg_ax=0x1600;
+        CALLBACK_RunRealInt(0x2F);
+        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
+        reg_ax=oldax;
         change_output(10);
         SetVal("sdl", "output", "ttf");
         void OutputSettingMenuUpdate(void);

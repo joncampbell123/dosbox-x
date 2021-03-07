@@ -321,11 +321,11 @@ Las unidades virtuales no pueden ser desmontadas (unMOUNTed).
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-[31;1mMontar C:\ NO esta recomendado. Monta un subdirectorio la proxima vez.[0m
+Aviso: Montar C:\ NO est  recomendado.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-[31;1mMontar / no esta recomendado. Monta un subdirectorio la proxima vez.[0m
+Aviso: Montar / no est  recomendado.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
@@ -536,12 +536,12 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 [33;1m  -c[0m    command
 	Ejecuta el comando especificado antes de ejecutar nombre. 
-	M£ltiples ordenes se pueden indicar. Cada una debe empezar con -c.
+	Multiples ordenes se pueden indicar. Cada una debe empezar con -c.
 	Un comando puede ser: un programa, comando DOS u otro ejecutable.
 
 [33;1m  -set[0m  <section property=value>
 	Establece la opcion de config (ignorando el archivo de configuraci¢n).
-	M£ltiples opciones pueden indicarse. Cada una deberia empezar con -set.
+	Multiples opciones pueden indicarse. Cada una deberia empezar con -set.
 
 .
 :PROGRAM_INTRO_INFO
@@ -837,7 +837,7 @@ La imagen debe estar en un anfitri¢n o en una unidad local.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
-Usar m£ltiples archivos solo esta soportado para imagenes cue/iso.
+Usar multiples archivos solo esta soportado para imagenes cue/iso.
 
 .
 :PROGRAM_IMGMOUNT_HELP
@@ -1011,6 +1011,14 @@ Configura dispositivos de sistema.
 Par metro(s) no v lido(s).
 
 .
+:SHELL_CMD_TREE_ERROR
+No existen subdirectorios
+
+.
+:SHELL_CMD_VOL_TREE
+Listado de directorios del volumen %s
+
+.
 :SHELL_CMD_VOL_DRIVE
 
  Volumen en disco %c 
@@ -1067,7 +1075,7 @@ Par metro requerido no encontrado.
 
 .
 :SHELL_CMD_CHDIR_ERROR
-Incapaz de cambiar a: %s.
+Directorio inv lido - %s.
 
 .
 :SHELL_CMD_CHDIR_HINT
@@ -1133,15 +1141,15 @@ TIME [[/T] [/H] | time]
 
 .
 :SHELL_CMD_MKDIR_ERROR
-Incapaz de crear: %s.
+Incapaz de crear directorio - %s
 
 .
 :SHELL_CMD_RMDIR_ERROR
-Incapaz de eliminar: %s.
+Ruta no v lida, no es un directorio o no est  vac¡o - %s
 
 .
 :SHELL_CMD_RENAME_ERROR
-Incapaz de renombrar: %s.
+Incapaz de renombrar - %s
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
@@ -1153,7 +1161,7 @@ Incapaz de establecer atributos: %s
 
 .
 :SHELL_CMD_DEL_ERROR
-Incapaz de borrar: %s.
+Incapaz de borrar - %s
 
 .
 :SHELL_CMD_DEL_SURE
@@ -1241,10 +1249,6 @@ en tu disco duro real %c [Y/N]?
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
 ¨Quieres dar a DOSBox-X acceso a tu disco duro real %c [Y/N]?
 .
-:SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN
-Montar C:\ NO esta recomendado.
-
-.
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Comando o nombre de archivo incorrecto - "%s"
 
@@ -1262,7 +1266,7 @@ PAUSE
 
 .
 :SHELL_CMD_COPY_FAILURE
-Fallo de copia : %s.
+Fallo de copia - %s
 
 .
 :SHELL_CMD_COPY_SUCCESS
@@ -1338,8 +1342,8 @@ SUBST: Hay un error en tu l¡nea de comando.
 
 .
 :SHELL_STARTUP_HERC
- [44;1mºUsa F11 para pasar de color monocromo blanco,  mbar, y f¢sforo verde.        º
-[44;1mºUsa Alt+F11 para activar mezclado horizontal (s¢lo en modo gr fico).         º
+ [44;1mºUsa CTRL+F7 para cambiar de color monocromo blanco,  mbar, y f¢sforo verde.  º
+[44;1mºUsa CTRL+F8 para activar mezclado horizontal (s¢lo en modo gr fico).         º
 [44;1mº                                                                             º
 .
 :SHELL_STARTUP_DEBUG
@@ -1611,23 +1615,8 @@ ERASE [/P] [/F] [/Q] nombres
   /Q            Modo silencioso, no pide confirmaci¢n con comodines
 
 .
-:SHELL_CMD_DELTREE_HELP
-Borra un directorio, sus subdirectorios y los archivos.
-
-.
-:SHELL_CMD_DELTREE_HELP_LONG
-Para borrar uno o m s archivos y directorios;
-DELTREE [/Y] [unidad:]ruta [[unidad:]ruta[...]]
-
-  /Y              Suprime confirmaciones de borrado de subdirectorios.
-  [drive:]path    Indica el nombre del directorio que quieres borrar.
-
-Nota: Usa DELTREE con cuidado, ya que todo archivo y subdirectorio del
-interior de dicho directorio ser  borrado.
-
-.
 :SHELL_CMD_COPY_HELP
-Opia uno o m s archivos.
+Copia uno o m s archivos.
 
 .
 :SHELL_CMD_COPY_HELP_LONG
@@ -1723,6 +1712,27 @@ Teclea PATH ; para limpiar todas las configuraci¢nes de ruta de b£squeda.
 Teclea PATH sin par metros para mostrar la ruta actual.
 
 .
+:SHELL_CMD_PUSHD_HELP
+Almacena el directorio actual para uso con la orden POPD y 
+cambia al directorio especificado.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [path]
+
+path        Especifica el directorio para hacer de directorio actual.
+
+Teclea PUSHD sin par metros para listar los directorios actualmente guardados.
+
+.
+:SHELL_CMD_POPD_HELP
+Cambia al directorio almacenado por el comando PUSHD.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
 :SHELL_CMD_VERIFY_HELP
 Verifica o no la correcta escritura de los archivos en disco.
 
@@ -1802,8 +1812,29 @@ Define o muestra alias.
 :SHELL_CMD_ALIAS_HELP_LONG
 ALIAS [nombre[=valor] ... ]
 
-Type ALIAS without parameters to display the list of aliases in the form:
+Teclea ALIAS sin parametros para listar alias acutales en el formato:      
 `ALIAS NOMBRE = VALOR'
+
+.
+:SHELL_CMD_CHCP_HELP
+Muestra o cambia el c¢digo de p gina DOS en uso.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn]
+
+  nnn   Especifica un n£mero de c¢digo de p gina.
+
+C¢digo de p gina compatibles para cambiar la salida de fuente TrueType:
+437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+C¢digo de p gina activa: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+N£mero de c¢digo de p gina no v lido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
@@ -2437,20 +2468,29 @@ Opciones de Carga / Guardado
 :MENU:saveslotmenu
 Seleccionar slot de guardado
 .
+:MENU:enable_autosave
+Habilita auto-guardar estado
+.
 :MENU:noremark_savestate
 Sin indicaciones al guardar estado
 .
 :MENU:force_loadstate
-Sin advertencias al cargar estado
+Sin advertencias al cargar el estado
 .
 :MENU:removestate
-Eliminar estado de slot actual
+Eliminar estado del slot seleccionado
 .
 :MENU:refreshslot
 Actualizar estado de pantalla
 .
+:MENU:lastautosaveslot
+Selecciona el £ltimo slot autoguardado
+.
 :MENU:usesavefile
-Guardar estado en un archivo
+Guardar estado en un archivo no en slot
+.
+:MENU:autosavecfg
+Auto-salvar ajustes...
 .
 :MENU:browsesavefile
 Examinar archivo guardado...
@@ -2498,7 +2538,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_A_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_A_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2546,7 +2586,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_B_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_B_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2588,7 +2628,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_C_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_C_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2636,7 +2676,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_D_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_D_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2684,7 +2724,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_E_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_E_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2726,7 +2766,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_F_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_F_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2768,7 +2808,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_G_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_G_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2810,7 +2850,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_H_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_H_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2852,7 +2892,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_I_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_I_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2894,7 +2934,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_J_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_J_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2936,7 +2976,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_K_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_K_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -2978,7 +3018,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_L_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_L_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3020,7 +3060,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_M_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_M_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3062,7 +3102,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_N_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_N_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3104,7 +3144,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_O_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_O_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3146,7 +3186,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_P_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_P_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3188,7 +3228,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Q_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Q_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3230,7 +3270,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_R_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_R_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3272,7 +3312,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_S_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_S_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3314,7 +3354,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_T_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_T_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3356,7 +3396,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_U_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_U_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3398,7 +3438,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_V_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_V_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3440,7 +3480,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_W_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_W_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3482,7 +3522,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_X_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_X_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3524,7 +3564,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Y_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Y_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3566,7 +3606,7 @@ Montar un fichero comprimido (Zip/7z)
 Montar una imagen de disco o CD
 .
 :MENU:drive_Z_mountimgs
-Montar m£ltiples imagenes de disco/CD
+Montar multiples imagenes de disco/CD
 .
 :MENU:drive_Z_mountiro
 Opci¢n: montar imagenes solo lectura
@@ -3676,14 +3716,14 @@ CALL
 :MENU:command_CHOICE
 CHOICE
 .
+:MENU:command_CHCP
+CHCP
+.
 :MENU:command_COUNTRY
 COUNTRY
 .
 :MENU:command_CTTY
 CTTY
-.
-:MENU:command_DELTREE
-DELTREE
 .
 :MENU:command_FOR
 FOR
@@ -3726,6 +3766,12 @@ SUBST
 .
 :MENU:command_VERIFY
 VERIFY
+.
+:MENU:command_PUSHD
+PUSHD
+.
+:MENU:command_POPD
+POPD
 .
 :MENU:command_TRUENAME
 TRUENAME
@@ -3770,13 +3816,13 @@ Guardar estado
 Cargar estado
 .
 :MENU:mapper_showstate
-Mostrar informaci¢n de slot actual
+Mostrar informaci¢n del slot actual
 .
 :MENU:mapper_prevslot
-Seleccionar slot anterior
+Seleccionar slot de guardado anterior
 .
 :MENU:mapper_nextslot
-Seleccionar slot posterior
+Seleccionar slot de guardado posterior
 .
 :MENU:mapper_togmenu
 Mostrar / Ocultar barra de men£
@@ -3857,37 +3903,37 @@ Autom tico
 8086
 .
 :MENU:cputype_8086_prefetch
-8086         (prefetch)
+8086 con prefetch
 .
 :MENU:cputype_80186
 80186
 .
 :MENU:cputype_80186_prefetch
-80186        (prefetch)
+80186 con prefetch
 .
 :MENU:cputype_286
 286
 .
 :MENU:cputype_286_prefetch
-286          (prefetch)
+286 con prefetch
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386          (prefetch)
+386 con prefetch
 .
 :MENU:cputype_486old
 486 (viejo)
 .
 :MENU:cputype_486old_prefetch
-486 (viejo)  (prefetch)
+486 (viejo) con prefetch
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486          (prefetch)
+486 con prefetch
 .
 :MENU:cputype_pentium
 Pentium
@@ -3942,6 +3988,9 @@ Habilitar acceso al dispositivo del portapapeles DOS: CLIP$
 .
 :MENU:clipboard_dosapi
 Habilitar la API del portapapeles DOS para aplicaciones
+.
+:MENU:clipboard_biospaste
+Usar funci¢n de BIOS para pegar del portapapeles
 .
 :MENU:sendkey_winlogo
 Enviar tecla de logo

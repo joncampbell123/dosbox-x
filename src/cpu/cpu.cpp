@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
 extern bool ignore_opcode_63;
-
+extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
@@ -281,6 +281,41 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
+}
+
+const char *GetCPUType() {
+    if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run))
+        return "8086";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run))
+        return "8086 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80186";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80186 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80286";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80286 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80386";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80386 prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486 (old)";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 (old) prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM)
+        return "Pentium";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW)
+        return "Pentium MMX";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
+        return "Pentium Pro";
+    else
+        return "Mixed/other x86";
 }
 
 int GetDynamicType() {
@@ -1084,7 +1119,6 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 # endif
     if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
         if (num == 0x21 && boothax == BOOTHAX_MSDOS) {
-            extern bool dos_kernel_disabled;
             if (dos_kernel_disabled) {
                 if ((reg_ah == 0x4A/*alloc*/ || reg_ah == 0x49/*free*/) && guest_msdos_LoL == 0) { /* needed for MS-DOS 3.3 */
                     if (SegValue(cs) != CB_SEG) {
@@ -3301,7 +3335,8 @@ public:
 		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
 		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
 		if (auto_determine_dynamic_core_paging) {
-			use_dynamic_core_with_paging = PAGING_Enabled();
+            int coretype=CPU_IsDynamicCore();
+            use_dynamic_core_with_paging = coretype==1?PAGING_Enabled()&&dos_kernel_disabled:(coretype==2?PAGING_Enabled()&&!dos_kernel_disabled:PAGING_Enabled());
 		} else {
 			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
 		}

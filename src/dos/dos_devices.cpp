@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 /* Include all the devices */
 
 #include "dev_con.h"
-
+#include <fstream>
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
@@ -136,13 +136,12 @@ uint16_t cpMap[512] = { // Codepage is standard 437
 	0x0111, 0x0110, 0x0127, 0x0126, 0x0167, 0x0166, 0x0142, 0x0141, 0x0140, 0x013f, 0x00fe, 0x00de, 0x014a, 0x014b, 0x0149, 0x0000
 };
 
-#if defined(WIN32)
 bool lastwrite = false;
 uint8_t *clipAscii = NULL;
 uint32_t clipSize = 0, cPointer = 0, fPointer;
 
-void Unicode2Ascii(const uint16_t* unicode)
-	{
+#if defined(WIN32)
+void Unicode2Ascii(const uint16_t* unicode) {
 	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
 		return;
@@ -160,28 +159,51 @@ void Unicode2Ascii(const uint16_t* unicode)
 		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13)	// Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
 			clipAscii[clipSize++] = clipAscii[i];
 	return;																			// clipAscii dould be downsized, but of no real interest
-	}	
+}
+#else
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
 
-bool getClipboard()
-	{
-	if (clipAscii)
-		{
+bool swapad=true;
+extern std::string strPasteBuffer;
+void PasteClipboard(bool bPressed);
+bool getClipboard() {
+	if (clipAscii) {
 		free(clipAscii);
 		clipAscii = NULL;
-		}
-	clipSize = 0;
-	if (OpenClipboard(NULL))
-		{
-		if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT))
-			{
-			uint16_t *unicode = (uint16_t *)GlobalLock(cbText);
-			Unicode2Ascii(unicode);
-			GlobalUnlock(cbText);
-			}
-		CloseClipboard();
-		}
-	return clipSize != 0;
 	}
+#if defined(WIN32)
+    clipSize = 0;
+    if (OpenClipboard(NULL)) {
+        if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT)) {
+            uint16_t *unicode = (uint16_t *)GlobalLock(cbText);
+            Unicode2Ascii(unicode);
+            GlobalUnlock(cbText);
+        }
+        CloseClipboard();
+    }
+#else
+    swapad=false;
+    PasteClipboard(true);
+    swapad=true;
+    clipSize = 0;
+    unsigned int extra = 0;
+    unsigned char head, last=13;
+    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+	if (clipAscii = (uint8_t *)malloc(strPasteBuffer.length()+extra))
+        while (strPasteBuffer.length()) {
+            head = strPasteBuffer[0];
+            if (head == 10 && last != 13) clipAscii[clipSize++] = 13;
+            if (head > 31 || head == 9 || head == 10 || head == 13)
+                clipAscii[clipSize++] = head;
+            if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) clipAscii[clipSize++] = 10;
+            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+            last = head;
+        }
+#endif
+    return clipSize != 0;
+}
 
 class device_CLIP : public DOS_Device {
 private:
@@ -241,6 +263,7 @@ private:
 			rawdata.clear();
 			return;
 			}
+#if defined(WIN32)
 		if (OpenClipboard(NULL))
 			{
 			if (EmptyClipboard())
@@ -260,6 +283,23 @@ private:
 				}
 			CloseClipboard();
 			}
+#elif defined(C_SDL2) || defined(MACOSX)
+            std::ifstream in(tmpAscii);
+            std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            std::string result="";
+            std::istringstream iss(contents.c_str());
+            for (std::string token; std::getline(iss, token); ) {
+                char* uname = CodePageGuestToHost(token.c_str());
+                result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
+            }
+            if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
+            SDL_SetClipboardText(result.c_str());
+#else
+            bool SetClipboard(std::string value);
+            SetClipboard(result);
+#endif
+#endif
 		fclose(fh);
 		remove(tmpAscii);
 		remove(tmpUnicode);
@@ -383,7 +423,6 @@ public:
 		return 0x80E0;
 	}
 };
-#endif
 
 bool DOS_Device::Read(uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Read(data,size);
@@ -542,13 +581,11 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
-#if defined(WIN32)
 	if (dos_clipboard_device_access) {
 		DOS_Device * newdev4;
 		newdev4=new device_CLIP();
 		DOS_AddDevice(newdev4);
 	}
-#endif
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */

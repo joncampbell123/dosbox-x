@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1328,7 +1328,7 @@ uint8_t fatDrive::Read_AbsoluteSector(uint32_t sectnum, void * data) {
         unsigned int c = sector_size / lsz;
 
         if (c != 0 && (sector_size % lsz) == 0) {
-            uint32_t ssect = sectnum * c;
+            uint32_t ssect = (sectnum * c) + physToLogAdj;
 
             while (c-- != 0) {
                 if (loadedDisk->Read_AbsoluteSector(ssect++,data) != 0)
@@ -1351,7 +1351,7 @@ uint8_t fatDrive::Write_AbsoluteSector(uint32_t sectnum, void * data) {
         unsigned int c = sector_size / lsz;
 
         if (c != 0 && (sector_size % lsz) == 0) {
-            uint32_t ssect = sectnum * c;
+            uint32_t ssect = (sectnum * c) + physToLogAdj;
 
             while (c-- != 0) {
                 if (loadedDisk->Write_AbsoluteSector(ssect++,data) != 0)
@@ -1409,6 +1409,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	bool is_hdd = (filesize > 2880);
 	struct partTable mbrData;
 
+	physToLogAdj = 0;
 	req_ver_major = req_ver_minor = 0;
 
 	if(!loadedDisk) {
@@ -1762,21 +1763,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
         LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u:1 shift=%u",
                 fatDrive::getSectSize(),BPB.v.BPB_BytsPerSec,ratio,ratioshift);
 
-        if ((unsigned int)(BPB.v.BPB_BytsPerSec >> ratioshift) == fatDrive::getSectSize()) {
-            assert(ratio >= 2);
+		if ((unsigned int)(BPB.v.BPB_BytsPerSec >> ratioshift) == fatDrive::getSectSize()) {
+			assert(ratio >= 2);
 
-            /* we can hack things in place IF the starting sector is an even number */
-            if ((partSectOff & (ratio - 1)) == 0) {
-                partSectOff >>= ratioshift;
-                startSector >>= ratioshift;
-                sector_size = BPB.v.BPB_BytsPerSec;
-                LOG_MSG("Using logical sector size %u",sector_size);
-            }
-            else {
-                LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
-            }
-        }
-    }
+			/* the best case conversion is one where the starting sector is a multiple
+			 * of the ratio, but there are enough PC-98 HDI images (Dragon Knight 4 reported by
+			 * shiningforceforever) that don't fit that model, so we have to make do with a
+			 * physical sector adjust too. */
+			physToLogAdj = partSectOff & (ratio - 1);
+			partSectOff >>= ratioshift;
+			startSector >>= ratioshift;
+			sector_size = BPB.v.BPB_BytsPerSec;
+			LOG_MSG("Using logical sector size %u, offset by %u physical sectors",sector_size,physToLogAdj);
+		}
+	}
 
 	/* Sanity checks */
     /* NTS: DOSBox-X *does* support non-standard sector sizes, though not in IBM PC mode and not through INT 13h.

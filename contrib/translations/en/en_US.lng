@@ -1,14 +1,13 @@
 :NE2000_CONFIGFILE_HELP
 macaddr -- The physical address the emulator will use on your network.
-           If you have multiple DOSBoxes running on your network,
+           If you have multiple DOSBox-Xes running on your network,
            this has to be changed. Modify the last three number blocks.
            I.e. AC:DE:48:88:99:AB.
 realnic -- Specifies which of your network interfaces is used.
-           Write 'list' here to see the list of devices in the
-           Status Window. Then make your choice and put either the
-           interface number (2 or something) or a part of your adapters
-           name, e.g. VIA here.
-
+           Write 'list' here to see the list of devices from the Help
+           menu ('List network interfaces') or from the Status Window.
+           Then make your choice and put either the interface number
+           (e.g. 2) or a part of your adapters name (e.g. VIA here).
 .
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -321,11 +320,11 @@ Virtual Drives can not be unMOUNTed.
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-[31;1mMounting C:\ is NOT recommended. Please mount a (sub)directory next time.[0m
+Warning: Mounting C:\ is not recommended.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.[0m
+Warning: Mounting / is not recommended.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
@@ -338,6 +337,17 @@ Please MOUNT a normal directory first before adding an overlay on top.
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
 The overlay is NOT compatible with the drive that is specified.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+The overlay directory can not be the same as underlying drive.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+An error occurred when trying to create an overlay drive.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
@@ -638,16 +648,15 @@ This command boots DOSBox-X from either a floppy or hard disk image.
 For this command, one can specify a succession of floppy disks swappable
 by the menu command, and drive: specifies the mounted drive to boot from.
 If no drive letter is specified, this defaults to boot from the A drive.
+If no parameter is specified, it will try to boot from the current drive.
 The only bootable drive letters are A, C, and D.  For booting from a hard
 drive (C or D), ensure the image is already mounted by [34;1mIMGMOUNT[0m command.
 
-The syntax of this command is:
+The syntax of this command is one of the following:
+
+[34;1mBOOT [driveletter:][0m
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
-
-Or:
-
-[34;1mBOOT driveletter:[0m
 
 Note: An image file with a leading colon (:) will be booted in write-protected
 mode if the "leading colon write protect image" option is enabled.
@@ -790,7 +799,7 @@ Format "%s" is unsupported. Specify "fat" or "iso" or "none".
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_FILE
-Must specify file-image to mount.
+Must specify image file(s) to mount.
 
 .
 :PROGRAM_IMGMOUNT_FILE_NOT_FOUND
@@ -826,7 +835,7 @@ Drive number %d mounted as %s
 
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
-The image must be on a host or local drive.
+The image must be on a host, local or network drive.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
@@ -1004,6 +1013,14 @@ Configures system devices.
 Invalid parameter(s).
 
 .
+:SHELL_CMD_TREE_ERROR
+No subdirectories exist
+
+.
+:SHELL_CMD_VOL_TREE
+Directory PATH listing for Volume %s
+
+.
 :SHELL_CMD_VOL_DRIVE
 
  Volume in drive %c 
@@ -1058,7 +1075,7 @@ Required parameter missing.
 
 .
 :SHELL_CMD_CHDIR_ERROR
-Unable to change to: %s.
+Invalid directory - %s
 
 .
 :SHELL_CMD_CHDIR_HINT
@@ -1124,15 +1141,15 @@ TIME [[/T] [/H] | time]
 
 .
 :SHELL_CMD_MKDIR_ERROR
-Unable to make: %s.
+Unable to create directory - %s
 
 .
 :SHELL_CMD_RMDIR_ERROR
-Unable to remove: %s.
+Invalid path, not directory, or directory not empty - %s
 
 .
 :SHELL_CMD_RENAME_ERROR
-Unable to rename: %s.
+Unable to rename - %s
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
@@ -1144,7 +1161,7 @@ Unable to set attributes: %s
 
 .
 :SHELL_CMD_DEL_ERROR
-Unable to delete: %s.
+Unable to delete - %s
 
 .
 :SHELL_CMD_DEL_SURE
@@ -1232,10 +1249,6 @@ on your real hard drive %c [Y/N]?
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
 Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?
 .
-:SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN
-Mounting C:\ is NOT recommended.
-
-.
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Bad command or filename - "%s"
 
@@ -1253,7 +1266,7 @@ PAUSE
 
 .
 :SHELL_CMD_COPY_FAILURE
-Copy failure : %s.
+Copy failure - %s
 
 .
 :SHELL_CMD_COPY_SUCCESS
@@ -1268,7 +1281,7 @@ Insufficient disk space - %s
 
 .
 :SHELL_CMD_COPY_ERROR
-Error in copying file %s
+Copy error - %s
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
@@ -1296,16 +1309,16 @@ SUBST: There is an error in your command line.
 
 .
 :SHELL_STARTUP_BEGIN
-[44;1mษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป[0m[44;1mบ [32mWelcome to DOSBox-X ! [33m%*s[37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ [36mGetting started with DOSBox-X:                                              [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ Type [32mHELP[37m to see the list of shell commands, [32mINTRO[37m for a brief introduction. บ[0m[44;1mบ You can also complete various tasks in DOSBox-X through the [33mdrop-down menus[37m. บ[0m[44;1mบ                                                                              บ[0m[44;1mบ [36mUseful default shortcuts:                                                   [37m บ[0m[44;1mบ                                                                              บ[0m
+[44;1mษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป[0m[44;1mบ [32mWelcome to DOSBox-X ! [33m%*s[37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ [36mGetting started with DOSBox-X:                                              [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ Type [32mHELP[37m to see the list of shell commands, [32mINTRO[37m for a brief introduction. บ[0m[44;1mบ You may also complete various tasks in DOSBox-X through the [33mdrop-down menus[37m. บ[0m
 .
 :SHELL_STARTUP_BEGIN2
-[44;1mบ - switch between windowed and full-screen mode with key combination [31mF11 [37m+ [31mF[37m [37m บ[0m[44;1mบ - launch [33mConfiguration Tool[37m using [31mF11 [37m+ [31mC[37m[37m, and [33mMapper Editor[37m using [31mF11 [37m+ [31mM[37m  [37m บ[0m[44;1mบ - increase or decrease the emulation speed with [31mF11 [37m+ [31mPlus[37m[37m or [31mF11 [37m+ [31mMinus[37m   [37m บ[0m
+[44;1mบ [32mExample[37m: Try select the [33mTrueType font[37m or [33mOpenGL pixel-perfect[37m output option. บ[0m
 .
 :SHELL_STARTUP_BEGIN3
-
+[44;1mบ                                                                              บ[0m[44;1mบ [36mUseful default shortcuts:                                                   [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ - switch between windowed and full-screen mode with key combination [31mF11 [37m+ [31mF[37m [37m บ[0m[44;1mบ - launch [33mConfiguration Tool[37m using [31mF11 [37m+ [31mC[37m[37m, and [33mMapper Editor[37m using [31mF11 [37m+ [31mM[37m  [37m บ[0m[44;1mบ - increase or decrease the emulation speed with [31mF11 [37m+ [31mPlus[37m[37m or [31mF11 [37m+ [31mMinus[37m   [37m บ[0m
 .
 :SHELL_STARTUP_CGA
-[44;1mบ DOSBox-X supports Composite CGA mode.                                        บ[0m[44;1mบ Use [31mF12[37m to set composite output ON, OFF, or AUTO (default).                  บ[0m[44;1mบ [31m(Alt+)F11[37m changes hue; [31mCtrl+Alt+F11[37m selects early/late CGA model.            บ[0m[44;1mบ                                                                              บ[0m
+[44;1mบ Composite CGA mode is supported. Use [31mCtrl+F8[37m to set composite output ON/OFF. บ[0m[44;1mบ Use [31mCtrl+Shift+[F7/F8][37m to change hue; [31mCtrl+F7[37m selects early/late CGA model.  บ[0m[44;1mบ                                                                              บ[0m
 .
 :SHELL_STARTUP_PC98
 บ DOSBox-X is now running in NEC PC-98 emulation mode.               บ
@@ -1313,7 +1326,7 @@ SUBST: There is an error in your command line.
 
 .
 :SHELL_STARTUP_HERC
-[44;1mบ Use F11 to cycle through white, amber, and green monochrome color.           บ[0m[44;1mบ Use Alt+F11 to toggle horizontal blending (only in graphics mode).           บ[0m[44;1mบ                                                                              บ[0m
+[44;1mบ Use Ctrl+F7 to cycle through white, amber, and green monochrome color.       บ[0m[44;1mบ Use Ctrl+F8 to toggle horizontal blending (only in graphics mode).           บ[0m[44;1mบ                                                                              บ[0m
 .
 :SHELL_STARTUP_DEBUG
 [44;1mบ                                                                              บ[0m
@@ -1577,22 +1590,6 @@ ERASE [/P] [/F] [/Q] names
   /Q            Quiet mode, do not ask if ok to delete on global wildcard.
 
 .
-:SHELL_CMD_DELTREE_HELP
-Deletes a directory and all the subdirectories and files in it.
-
-.
-:SHELL_CMD_DELTREE_HELP_LONG
-To delete one or more files and directories:
-DELTREE [/Y] [drive:]path [[drive:]path[...]]
-
-  /Y              Suppresses prompting to confirm you want to delete
-                  the subdirectory.
-  [drive:]path    Specifies the name of the directory you want to delete.
-
-Note: Use DELTREE cautiously. Every file and subdirectory within the
-specified directory will be deleted.
-
-.
 :SHELL_CMD_COPY_HELP
 Copies one or more files.
 
@@ -1690,6 +1687,27 @@ Type PATH ; to clear all search path settings.
 Type PATH without parameters to display the current path.
 
 .
+:SHELL_CMD_PUSHD_HELP
+Stores the current directory for use by the POPD command, then
+changes to the specified directory.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [path]
+
+path        Specifies the directory to make the current directory.
+
+Type PUSHD with no parameters to display currently stored directories.
+
+.
+:SHELL_CMD_POPD_HELP
+Changes to the directory stored by the PUSHD command.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
 :SHELL_CMD_VERIFY_HELP
 Controls whether to verify files are written correctly to a disk.
 
@@ -1771,6 +1789,27 @@ ALIAS [name[=value] ... ]
 
 Type ALIAS without parameters to display the list of aliases in the form:
 `ALIAS NAME = VALUE'
+
+.
+:SHELL_CMD_CHCP_HELP
+Displays or changes the current DOS code page.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn]
+
+  nnn   Specifies a code page number.
+
+Supported code pages for changing in the TrueType font output:
+437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+Active code page: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Invalid code page number - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
@@ -2115,7 +2154,10 @@ Direct3D
 OpenGL
 .
 :MENU:output_openglnb
-OpenGL NB
+OpenGL nearest
+.
+:MENU:output_openglpp
+OpenGL perfect
 .
 :MENU:output_ttf
 TrueType font
@@ -2402,6 +2444,9 @@ Save/load options
 :MENU:saveslotmenu
 Select save slot
 .
+:MENU:enable_autosave
+Enable auto-saving state
+.
 :MENU:noremark_savestate
 No remark when saving state
 .
@@ -2414,8 +2459,14 @@ Remove state in slot
 :MENU:refreshslot
 Refresh display status
 .
+:MENU:lastautosaveslot
+Select last auto-saved slot
+.
 :MENU:usesavefile
 Use save file instead of save slot
+.
+:MENU:autosavecfg
+Auto-save settings...
 .
 :MENU:browsesavefile
 Browse save file...
@@ -3566,6 +3617,9 @@ DOSBox-X support
 :MENU:help_nic
 List network interfaces
 .
+:MENU:help_prt
+List printer devices
+.
 :MENU:help_about
 About DOSBox-X
 .
@@ -3641,14 +3695,14 @@ CALL
 :MENU:command_CHOICE
 CHOICE
 .
+:MENU:command_CHCP
+CHCP
+.
 :MENU:command_COUNTRY
 COUNTRY
 .
 :MENU:command_CTTY
 CTTY
-.
-:MENU:command_DELTREE
-DELTREE
 .
 :MENU:command_FOR
 FOR
@@ -3691,6 +3745,12 @@ SUBST
 .
 :MENU:command_VERIFY
 VERIFY
+.
+:MENU:command_PUSHD
+PUSHD
+.
+:MENU:command_POPD
+POPD
 .
 :MENU:command_TRUENAME
 TRUENAME
@@ -3795,7 +3855,7 @@ Decrease recording volume
 Send special key
 .
 :MENU:mapper_cycauto
-Auto cycles [max]
+Auto cycles [auto]
 .
 :MENU:mapper_cycledown
 Decrement cycles
@@ -3907,6 +3967,9 @@ Enable DOS clipboard device access
 .
 :MENU:clipboard_dosapi
 Enable DOS clipboard API for applications
+.
+:MENU:clipboard_biospaste
+Use BIOS function for clipboard pasting
 .
 :MENU:sendkey_winlogo
 Send logo key

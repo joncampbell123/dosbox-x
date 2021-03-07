@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,6 +77,7 @@ bool startwait = true;
 bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
+bool nowarn = false;
 extern bool mountfro[26], mountiro[26];
 
 void DOS_EnableDriveMenu(char drv);
@@ -934,6 +935,7 @@ public:
         cmd->FindString("-t",type,true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
+        bool exist = false, removed = false;
         if (type=="floppy" || type=="dir" || type=="cdrom" || type =="overlay") {
             uint16_t sizes[4] = { 0 };
             uint8_t mediaid;
@@ -1002,9 +1004,11 @@ public:
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
 			if (cmd->FindExist("-u",true)) {
+                bool curdrv = toupper(i_drive)-'A' == DOS_GetDefaultDrive();
                 const char *msg=UnmountHelper(i_drive);
 				if (!quiet) WriteOut(msg, toupper(i_drive));
 				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
+                if (curdrv && toupper(i_drive)-'A' != DOS_GetDefaultDrive()) removed = true;
 			}
             drive = static_cast<char>(i_drive);
             if (type == "overlay") {
@@ -1130,6 +1134,7 @@ public:
 
             if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
             uint8_t bit8size=(uint8_t) sizes[1];
+            exist = drive - 'A' < DOS_DRIVES && drive - 'A' >= 0 && Drives[drive - 'A'];
             if (type=="cdrom") {
                 int num = -1;
                 cmd->FindInt("-usecd",num,true);
@@ -1184,7 +1189,7 @@ public:
                 }
             } else {
                 /* Give a warning when mount c:\ or the / */
-                if (mountwarning && !quiet) {
+                if (mountwarning && !quiet && !nowarn) {
 #if defined (WIN32) || defined(OS2)
                     if( (temp_line == "c:\\") || (temp_line == "C:\\") ||
                         (temp_line == "c:/") || (temp_line == "C:/")    )
@@ -1260,6 +1265,7 @@ public:
         }
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
+        if (removed && !exist) DOS_SetDefaultDrive(drive-'A');
         DOS_EnableDriveMenu(drive);
         /* Set the correct media byte in the table */
         mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
@@ -4336,9 +4342,9 @@ public:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED"),fstype.c_str());
             return;
         }
-            
+
         // find all file parameters, assuming that all option parameters have been removed
-        ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
+        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
 
         // some generic checks
         if (el_torito != "") {
@@ -4372,6 +4378,8 @@ public:
 			}
         }
 
+        int i_drive = drive - 'A';
+        bool exist = i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive];
         //====== call the proper subroutine ======
         if(fstype=="fat") {
             //mount floppy or hard drive
@@ -4385,6 +4393,7 @@ public:
                 //supports multiple files
                 if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave, reserved_cylinders, roflag)) return;
             }
+            if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="iso") {
             if (el_torito != "") {
                 WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
@@ -4392,6 +4401,7 @@ public:
             }
             //supports multiple files
             if (!MountIso(drive, paths, ide_index, ide_slave)) return;
+            if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="none") {
             unsigned char driveIndex = drive - '0';
 
@@ -4552,7 +4562,7 @@ private:
         }
         return true;
     }
-    void ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
+    bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
         while (cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
 			bool usedef=false;
@@ -4576,8 +4586,9 @@ private:
 #endif
 
 			if (!strcasecmp(commandLine.c_str(), "-u")) {
+                bool exist = toupper(drive) - 'A' == DOS_GetDefaultDrive();
 				Unmount(drive);
-				return;
+				return exist && drive - 'A' != DOS_GetDefaultDrive();
 			}
 
             pref_struct_stat test;
@@ -4596,13 +4607,13 @@ private:
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
-                        return;
+                        return false;
                     }
 
                     localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
                     if (ldp == NULL) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-                        return;
+                        return false;
                     }
 					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
                     ldp->GetSystemFilename(readonly?tmp+1:tmp, fullname);
@@ -4611,16 +4622,17 @@ private:
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-                        return;
+                        return false;
                     }
                 }
             }
             if (S_ISDIR(test.st_mode)&&!usedef) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
-                return;
+                return false;
             }
             paths.push_back(commandLine);
         }
+        return false;
     }
 
     bool Unmount(char &letter) {
@@ -6207,6 +6219,172 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class DELTREE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Deletes a directory and all the subdirectories and files in it.\n\n"
+           "To delete one or more files and directories:\n"
+           "DELTREE [/Y] [drive:]path [[drive:]path[...]]\n\n"
+           "  /Y              Suppresses prompting to confirm you want to delete\n"
+           "                  the subdirectory.\n"
+           "  [drive:]path    Specifies the name of the directory you want to delete.\n\n"
+           "Note: Use DELTREE cautiously. Every file and subdirectory within the\n"
+           "specified directory will be deleted.\n";
+        WriteOut(msg);
+	}
+};
+
+void DELTREE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_DELTREE(args);
+}
+
+static void DELTREE_ProgramStart(Program * * make) {
+    *make=new DELTREE;
+}
+
+class TREE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Graphically displays the directory structure of a drive or path.\n\n"
+           "TREE [drive:][path] [/F] [/A]\n\n"
+           "  /F   Displays the names of the files in each directory.\n"
+           "  /A   Uses ASCII instead of extended characters.\n";
+        WriteOut(msg);
+	}
+};
+
+void TREE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_TREE(args);
+}
+
+static void TREE_ProgramStart(Program * * make) {
+    *make=new TREE;
+}
+
+class COLOR : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Sets the default console foreground and background colors.\n\n"
+           "COLOR [attr]\n\n"
+           "  attr        Specifies color attribute of console output\n\n"
+           "Color attributes are specified by TWO hex digits -- the first\n"
+           "corresponds to the background; the second to the foreground.\n"
+           "Each digit can be any of the following values:\n\n"
+           "    0 = Black       8 = Gray\n"
+           "    1 = Blue        9 = Light Blue\n"
+           "    2 = Green       A = Light Green\n"
+           "    3 = Aqua        B = Light Aqua\n"
+           "    4 = Red         C = Light Red\n"
+           "    5 = Purple      D = Light Purple\n"
+           "    6 = Yellow      E = Light Yellow\n"
+           "    7 = White       F = Bright White\n\n"
+           "If no argument is given, this command restores the original color.\n\n"
+           "Example: \"COLOR fc\" produces light red on bright white\n";
+        WriteOut(msg);
+	}
+};
+
+void COLOR::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+    bool back=false;
+    char fg, bg;
+    int fgc=0, bgc=0;
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+    if (strlen(args)==2) {
+        bg=args[0];
+        fg=args[1];
+        if (fg=='0'||fg=='8')
+            fgc=30;
+        else if (fg=='1'||fg=='9')
+            fgc=34;
+        else if (fg=='2'||tolower(fg)=='a')
+            fgc=32;
+        else if (fg=='3'||tolower(fg)=='b')
+            fgc=36;
+        else if (fg=='4'||tolower(fg)=='c')
+            fgc=31;
+        else if (fg=='5'||tolower(fg)=='d')
+            fgc=35;
+        else if (fg=='6'||tolower(fg)=='e')
+            fgc=32;
+        else if (fg=='7'||tolower(fg)=='f')
+            fgc=37;
+        else
+            back=true;
+        if (bg=='0'||bg=='8')
+            bgc=40;
+        else if (bg=='1'||bg=='9')
+            bgc=44;
+        else if (bg=='2'||tolower(bg)=='a')
+            bgc=42;
+        else if (bg=='3'||tolower(bg)=='b')
+            bgc=46;
+        else if (bg=='4'||tolower(bg)=='c')
+            bgc=41;
+        else if (bg=='5'||tolower(bg)=='d')
+            bgc=45;
+        else if (bg=='6'||tolower(bg)=='e')
+            bgc=42;
+        else if (bg=='7'||tolower(bg)=='f')
+            bgc=47;
+        else
+            back=true;
+    } else
+       back=true;
+    if (back)
+        WriteOut("[0m");
+    else {
+        bool fgl=fg>='0'&&fg<='7', bgl=bg>='0'&&bg<='7';
+        WriteOut(("["+std::string(fgl||bgl?"0;":"")+std::string(fgl?"":"1;")+std::string(bgl?"":"5;")+std::to_string(fgc)+";"+std::to_string(bgc)+"m").c_str());
+    }
+}
+
+static void COLOR_ProgramStart(Program * * make) {
+    *make=new COLOR;
+}
+
 #if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
@@ -6221,7 +6399,7 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n";
+            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
         WriteOut(msg);
 	}
 };
@@ -6817,8 +6995,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting C:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","Warning: Mounting C:\\ is not recommended.\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","Warning: Mounting / is not recommended.\n");
 	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
@@ -7298,6 +7476,8 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart);
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart);
     PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
@@ -7318,5 +7498,6 @@ void DOS_SetupPrograms(void) {
     if (startcmd)
         PROGRAMS_MakeFile("START.COM", START_ProgramStart);
 #endif
+    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart);
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
 }

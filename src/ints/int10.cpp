@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1135,6 +1135,8 @@ RealPt GetSystemBiosINT10Vector(void) {
         return 0;
 }
 
+extern bool VGA_BIOS_use_rom;
+
 void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
@@ -1151,20 +1153,22 @@ void INT10_Startup(Section *sec) {
 	int10_vga_bios_vector = video_section->Get_bool("int 10h points at vga bios");
 
     if (!IS_PC98_ARCH) {
-        INT10_InitVGA();
-        if (IS_TANDY_ARCH) SetupTandyBios();
-        /* Setup the INT 10 vector */
-        call_10=CALLBACK_Allocate();	
-        CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
-        RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-        //Init the 0x40 segment and init the datastructures in the the video rom area
-        INT10_SetupRomMemory();
-        INT10_Seg40Init();
-        INT10_SetupBasicVideoParameterTable();
+        if (!VGA_BIOS_use_rom) {
+            INT10_InitVGA();
+            if (IS_TANDY_ARCH) SetupTandyBios();
+            /* Setup the INT 10 vector */
+            call_10=CALLBACK_Allocate();	
+            CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
+            RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+            //Init the 0x40 segment and init the datastructures in the the video rom area
+            INT10_SetupRomMemory();
+            INT10_Seg40Init();
+            INT10_SetupBasicVideoParameterTable();
 
-        LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
-        if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
-            E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
+            LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
+            if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
+                E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
+        }
 
         /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
         if (VGA_BIOS_Size > 0) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -260,6 +260,10 @@ public:
      */
 	void CMD_SHIFT(char * args);
 
+    /*! \brief      List directory tree (TREE)
+     */
+	void CMD_TREE(char * args);
+
     /*! \brief      File verification switch
      */
 	void CMD_VERIFY(char * args);
@@ -292,6 +296,8 @@ public:
      */
 	void CMD_CHCP(char * args);
 	void CMD_COUNTRY(char * args);
+	void CMD_PUSHD(char * args);
+	void CMD_POPD(char * args);
     void CMD_TRUENAME(char * args);
     void CMD_DXCAPTURE(char * args);
 
