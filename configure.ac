@@ -997,9 +997,9 @@ AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires
 if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
-    LIBS="$LIBS ${libslirp_LIBS}"
-    CFLAGS="$CFLAGS ${libslirp_CFLAGS}"
-    CPPFLAGS="$CPPFLAGS ${libslirp_CFLAGS}"
+    LIBS="$LIBS "`pkg-config slirp --libs`
+    CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
+    CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
 else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])

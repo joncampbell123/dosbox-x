@@ -4255,7 +4255,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
         }
         else if (showline && (colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7) {
             style = TTF_STYLE_UNDERLINE;
-            colorBG = 1;
+            colorBG = wpBG > -1 ? wpBG : 1;
             colorFG = colorFG == 1 ? 7 : 0xf;
         }
         else if (showsout && colorFG == 0 && (colorBG&15) == 3) {
