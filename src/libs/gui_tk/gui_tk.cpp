@@ -2101,6 +2101,15 @@ bool ScreenSDL::event(SDL_Event &event) {
 	return false;
 }
 
+void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
+    /* scroll bar border, background */
+    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+    dscroll.drawRect(0,0,vsl.scrollbarRegion.w-1,vsl.scrollbarRegion.h-1);
+
+    dscroll.setColor(Color::Background3D);
+    dscroll.fillRect(1,1,vsl.scrollbarRegion.w-2,vsl.scrollbarRegion.h-2);
+}
+
 void WindowInWindow::paintAll(Drawable &d) const {
     int xadj = -scroll_pos_x;
     int yadj = -scroll_pos_y;
@@ -2136,18 +2145,6 @@ void WindowInWindow::paintAll(Drawable &d) const {
     }
 
     if (vscroll) {
-        struct vscrollbarlayout {
-            SDL_Rect scrollbarRegion = {0,0,0,0};
-            int thumbwidth = 0;
-            int thumbheight = 0;
-            int thumbtravel = 0;
-            bool drawthumb = false;
-            bool disabled = true;
-            bool draw = false;
-            int xleft = -1;
-            int ytop = -1;
-        };
-
         vscrollbarlayout vsl;
 
         if (vscroll_display_width >= 4 && height >= 4) {
@@ -2179,12 +2176,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
         if (vsl.draw) {
             Drawable dscroll(d,vsl.scrollbarRegion.x,vsl.scrollbarRegion.y,vsl.scrollbarRegion.w,vsl.scrollbarRegion.h);
 
-            /* scroll bar border, background */
-            dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-            dscroll.drawRect(0,0,vsl.scrollbarRegion.w-1,vsl.scrollbarRegion.h-1);
-
-            dscroll.setColor(Color::Background3D);
-            dscroll.fillRect(1,1,vsl.scrollbarRegion.w-2,vsl.scrollbarRegion.h-2);
+            paintScrollBarBackground(dscroll,vsl);
 
             if (vsl.drawthumb) {
                 dscroll.setColor(Color::Light3D);
