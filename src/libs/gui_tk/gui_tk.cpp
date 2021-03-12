@@ -2302,9 +2302,27 @@ void WindowInWindow::paintAll(Drawable &d) const {
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
     if (vscroll_uparrowhold) {
+        vscrollbarlayout vsl;
+
+        getVScrollInfo(vsl);
+
+        if (x >= 0 && x < width && y >= 0 && y < vsl.scrollthumbRegion.y)
+            vscroll_uparrowdown = true;
+        else
+            vscroll_uparrowdown = false;
+
         return true;
     }
     if (vscroll_downarrowhold) {
+        vscrollbarlayout vsl;
+
+        getVScrollInfo(vsl);
+
+        if (x >= 0 && x < width && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height)
+            vscroll_downarrowdown = true;
+        else
+            vscroll_downarrowdown = false;
+
         return true;
     }
     if (vscroll_dragging) {
