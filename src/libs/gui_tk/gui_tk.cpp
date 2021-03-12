@@ -2160,12 +2160,11 @@ void WindowInWindow::paintAll(Drawable &d) const {
         int thumbheight = scrollbarRegion.w - 2;
         int thumbtravel = scrollbarRegion.h - 2 - thumbheight;
         if (thumbtravel < 0) thumbtravel = 0;
-        int ytop = 1 + ((scroll_pos_h > 0) ?
-            ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
-            0);
 
         if (thumbheight <= (scrollbarRegion.h + 2) && !disabled) {
+            int ytop = 1 + ((thumbtravel * scroll_pos_y) / scroll_pos_h);
             int xleft = 1;
+
             dscroll.setColor(Color::Light3D);
             dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
             dscroll.drawLine(xleft,ytop,xleft,ytop+thumbheight-1);
