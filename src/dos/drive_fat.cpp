@@ -1666,6 +1666,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
         bootbuffer.bpb.v.BPB_NumHeads = var_read(&bootbuffer.bpb.v.BPB_NumHeads);
         bootbuffer.bpb.v.BPB_HiddSec = var_read(&bootbuffer.bpb.v.BPB_HiddSec);
         bootbuffer.bpb.v.BPB_TotSec32 = var_read(&bootbuffer.bpb.v.BPB_TotSec32);
+        bootbuffer.bpb.v.BPB_VolID = var_read(&bootbuffer.bpb.v.BPB_VolID);
 
         if (!is_hdd) {
             /* Identify floppy format */

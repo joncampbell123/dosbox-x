@@ -81,16 +81,16 @@ static INLINE uint16_t host_readw(ConstHostPt off) {
 static INLINE uint32_t host_readd(ConstHostPt off) {
     return __builtin_bswap32(*(uint32_t *)off);
 }
-static INLINE void host_writew(HostPt off, const uint16_t val) {
+static INLINE void host_writew(HostPt const off, const uint16_t val) {
     *(uint16_t *)off = __builtin_bswap16(val);
 }
-static INLINE void host_writed(HostPt off, const uint32_t val) {
+static INLINE void host_writed(HostPt const off, const uint32_t val) {
     *(uint32_t *)off = __builtin_bswap32(val);
 }
-static INLINE void host_writeq(HostPt off, const uint64_t val) {
+static INLINE void host_writeq(HostPt const off, const uint64_t val) {
     *(uint64_t *)off = __builtin_bswap64(val);
 }
-#elif defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
+#elif !defined(C_UNALIGNED_MEMORY)
 /* !defined(C_UNALIGNED_MEMORY) meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
         on such processors typecasting memory as uint16_t and higher can cause a fault if the
         address is not aligned to that datatype when we read/write through it. */
