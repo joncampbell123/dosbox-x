@@ -835,6 +835,8 @@ public:
     bool    vscroll_dragging = false;
     bool    vscroll_uparrowhold = false;
     bool    vscroll_downarrowhold = false;
+    bool    vscroll_uparrowdown = false;
+    bool    vscroll_downarrowdown = false;
 
     bool    dragging = false;
     int     drag_x = 0, drag_y = 0;

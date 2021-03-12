@@ -2259,13 +2259,13 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
-                if (vscroll_uparrowhold)
+                if (vscroll_uparrowhold && vscroll_uparrowdown)
                     paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
                 else
                     paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
                 // up arrow
-                const int nudge = (vscroll_uparrowhold ? 1 : 0);
+                const int nudge = ((vscroll_uparrowhold && vscroll_uparrowdown) ? 1 : 0);
                 paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/false,vsl.disabled);
             }
 
@@ -2281,13 +2281,13 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
-                if (vscroll_downarrowhold)
+                if (vscroll_downarrowhold && vscroll_downarrowdown)
                     paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
                 else
                     paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
                 // down arrow
-                const int nudge = (vscroll_downarrowhold ? 1 : 0);
+                const int nudge = ((vscroll_downarrowhold && vscroll_downarrowdown) ? 1 : 0);
                 paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/true,vsl.disabled);
             }
 
@@ -2354,6 +2354,7 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
         getVScrollInfo(vsl);
 
         if (y < vsl.scrollthumbRegion.y) {
+            vscroll_uparrowdown = true;
             vscroll_uparrowhold = true;
             mouseChild = this;
             drag_x = x;
@@ -2361,6 +2362,7 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 
         }
         else if (y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
+            vscroll_downarrowdown = true;
             vscroll_downarrowhold = true;
             mouseChild = this;
             drag_x = x;
@@ -2421,11 +2423,13 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 {
     if (vscroll_uparrowhold) {
+        vscroll_uparrowdown = false;
         vscroll_uparrowhold = false;
         mouseChild = NULL;
         return true;
     }
     if (vscroll_downarrowhold) {
+        vscroll_downarrowdown = false;
         vscroll_downarrowhold = false;
         mouseChild = NULL;
         return true;
