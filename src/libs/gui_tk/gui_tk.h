@@ -818,6 +818,7 @@ public:
 	virtual bool keyDown(const Key &key);
 
 	virtual void getVScrollInfo(vscrollbarlayout &vsl) const;
+	virtual void paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const;
 	virtual void paintScrollBarThumbDragOutline(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;

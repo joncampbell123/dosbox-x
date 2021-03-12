@@ -2179,6 +2179,24 @@ void WindowInWindow::getVScrollInfo(vscrollbarlayout &vsl) const {
     }
 }
 
+void WindowInWindow::paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const {
+    const int aw = 7;
+    const int ah = 7;
+    const int ax = ((w - aw) / 2) + x;
+    const int ay = ((h - ah) / 2) + y;
+
+    dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
+
+    if (downArrow) {
+        dscroll.fillRect(ax+2,ay,3,3);
+        for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-(3-c), ay+3+c, ax+3+(3-c), ay+3+c);
+    }
+    else {
+        for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-c, ay+c, ax+3+c, ay+c);
+        dscroll.fillRect(ax+2,ay+4,3,3);
+    }
+}
+
 void WindowInWindow::paintAll(Drawable &d) const {
     int xadj = -scroll_pos_x;
     int yadj = -scroll_pos_y;
@@ -2237,14 +2255,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
                 // up arrow
-                const int aw = 7;
-                const int ah = 7;
-                const int ax = (w - aw) / 2;
-                const int ay = (h - ah) / 2;
-
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-                for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-c, ay+c, ax+3+c, ay+c);
-                dscroll.fillRect(ax+2,ay+4,3,3);
+                paintScrollBarArrowInBox(dscroll,x,y,w,h,/*downArrow*/false,vsl.disabled);
             }
 
             /* down arrow */
@@ -2261,15 +2272,8 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
-                // up arrow
-                const int aw = 7;
-                const int ah = 7;
-                const int ax = (w - aw) / 2;
-                const int ay = ((h - ah) / 2) + y;
-
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-                dscroll.fillRect(ax+2,ay,3,3);
-                for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-(3-c), ay+3+c, ax+3+(3-c), ay+3+c);
+                // down arrow
+                paintScrollBarArrowInBox(dscroll,x,y,w,h,/*downArrow*/true,vsl.disabled);
             }
 
             if (vsl.drawthumb) {
