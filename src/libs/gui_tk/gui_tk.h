@@ -818,6 +818,7 @@ public:
 
 	virtual void paintAll(Drawable &d) const;
 	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
+	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
 
 	virtual void resize(int w, int h);
 
