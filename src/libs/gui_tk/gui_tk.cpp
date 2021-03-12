@@ -2306,10 +2306,16 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 
         getVScrollInfo(vsl);
 
-        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= 0 && y < vsl.scrollthumbRegion.y)
-            vscroll_uparrowdown = true;
-        else
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= 0 && y < vsl.scrollthumbRegion.y) {
+            if (!vscroll_uparrowdown) {
+                vscroll_uparrowdown = true;
+                drag_start = Timer::now();
+                drag_start_pos = scroll_pos_y;
+            }
+        }
+        else {
             vscroll_uparrowdown = false;
+        }
 
         return true;
     }
@@ -2318,10 +2324,16 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 
         getVScrollInfo(vsl);
 
-        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height)
-            vscroll_downarrowdown = true;
-        else
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height) {
+            if (!vscroll_downarrowdown) {
+                vscroll_downarrowdown = true;
+                drag_start = Timer::now();
+                drag_start_pos = scroll_pos_y;
+            }
+        }
+        else {
             vscroll_downarrowdown = false;
+        }
 
         return true;
     }
@@ -2374,18 +2386,20 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
         if (y < vsl.scrollthumbRegion.y) {
             vscroll_uparrowdown = true;
             vscroll_uparrowhold = true;
+            drag_start_pos = scroll_pos_y;
+            drag_start = Timer::now();
             mouseChild = this;
             drag_x = x;
             drag_y = y;
-
         }
         else if (y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
             vscroll_downarrowdown = true;
             vscroll_downarrowhold = true;
+            drag_start_pos = scroll_pos_y;
+            drag_start = Timer::now();
             mouseChild = this;
             drag_x = x;
             drag_y = y;
-
         }
         else if (y >= vsl.scrollthumbRegion.y && y < (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
             vscroll_dragging = true;

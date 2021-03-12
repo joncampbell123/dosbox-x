@@ -840,6 +840,8 @@ public:
 
     bool    dragging = false;
     int     drag_x = 0, drag_y = 0;
+    Ticks   drag_start = 0;
+    int     drag_start_pos = 0;
 
     int     scroll_pos_x = 0;
     int     scroll_pos_y = 0;
