@@ -779,6 +779,7 @@ public:
 };
 
 struct vscrollbarlayout {
+    SDL_Rect scrollthumbRegion = {0,0,0,0};
     SDL_Rect scrollbarRegion = {0,0,0,0};
     int thumbwidth = 0;
     int thumbheight = 0;
