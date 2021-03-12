@@ -2299,6 +2299,45 @@ void WindowInWindow::paintAll(Drawable &d) const {
     }
 }
 
+Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
+    if (wnd != NULL) {
+        if (wnd->vscroll_downarrowhold) {
+            const Ticks tdelta = Timer::now() - wnd->drag_start;
+            const int pdelta = (int)((tdelta * 500) / 1000); // 500 pixels per 1 second
+
+            wnd->scroll_pos_y = wnd->drag_start_pos + pdelta;
+            if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                wnd->scroll_pos_y = wnd->scroll_pos_h;
+                return 0;
+            }
+            if (wnd->scroll_pos_y < 0) {
+                wnd->scroll_pos_y = 0;
+                return 0;
+            }
+
+            return 55;
+        }
+        if (wnd->vscroll_uparrowhold) {
+            const Ticks tdelta = Timer::now() - wnd->drag_start;
+            const int pdelta = (int)((tdelta * 500) / 1000); // 500 pixels per 1 second
+
+            wnd->scroll_pos_y = wnd->drag_start_pos - pdelta;
+            if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                wnd->scroll_pos_y = wnd->scroll_pos_h;
+                return 0;
+            }
+            if (wnd->scroll_pos_y < 0) {
+                wnd->scroll_pos_y = 0;
+                return 0;
+            }
+
+            return 55;
+        }
+    }
+
+    return 0;
+}
+
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
     if (vscroll_uparrowhold) {
@@ -2311,10 +2350,15 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
                 vscroll_uparrowdown = true;
                 drag_start = Timer::now();
                 drag_start_pos = scroll_pos_y;
+
+                drag_timer_cb.wnd = this;
+                drag_timer.remove(&drag_timer_cb);
+                drag_timer.add(&drag_timer_cb,55);
             }
         }
         else {
             vscroll_uparrowdown = false;
+            drag_timer.remove(&drag_timer_cb);
         }
 
         return true;
@@ -2329,10 +2373,15 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
                 vscroll_downarrowdown = true;
                 drag_start = Timer::now();
                 drag_start_pos = scroll_pos_y;
+
+                drag_timer_cb.wnd = this;
+                drag_timer.remove(&drag_timer_cb);
+                drag_timer.add(&drag_timer_cb,55);
             }
         }
         else {
             vscroll_downarrowdown = false;
+            drag_timer.remove(&drag_timer_cb);
         }
 
         return true;
@@ -2391,6 +2440,10 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
             mouseChild = this;
             drag_x = x;
             drag_y = y;
+
+            drag_timer_cb.wnd = this;
+            drag_timer.remove(&drag_timer_cb);
+            drag_timer.add(&drag_timer_cb,55);
         }
         else if (y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
             vscroll_downarrowdown = true;
@@ -2400,6 +2453,10 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
             mouseChild = this;
             drag_x = x;
             drag_y = y;
+
+            drag_timer_cb.wnd = this;
+            drag_timer.remove(&drag_timer_cb);
+            drag_timer.add(&drag_timer_cb,55);
         }
         else if (y >= vsl.scrollthumbRegion.y && y < (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
             vscroll_dragging = true;
@@ -2455,12 +2512,14 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 {
     if (vscroll_uparrowhold) {
+        drag_timer.remove(&drag_timer_cb);
         vscroll_uparrowdown = false;
         vscroll_uparrowhold = false;
         mouseChild = NULL;
         return true;
     }
     if (vscroll_downarrowhold) {
+        drag_timer.remove(&drag_timer_cb);
         vscroll_downarrowdown = false;
         vscroll_downarrowhold = false;
         mouseChild = NULL;
