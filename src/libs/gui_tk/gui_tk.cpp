@@ -2306,7 +2306,7 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 
         getVScrollInfo(vsl);
 
-        if (x >= 0 && x < width && y >= 0 && y < vsl.scrollthumbRegion.y)
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= 0 && y < vsl.scrollthumbRegion.y)
             vscroll_uparrowdown = true;
         else
             vscroll_uparrowdown = false;
@@ -2318,7 +2318,7 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 
         getVScrollInfo(vsl);
 
-        if (x >= 0 && x < width && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height)
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height)
             vscroll_downarrowdown = true;
         else
             vscroll_downarrowdown = false;
