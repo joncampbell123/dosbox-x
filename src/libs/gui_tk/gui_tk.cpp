@@ -2136,30 +2136,35 @@ void WindowInWindow::paintAll(Drawable &d) const {
     }
 
     if (vscroll && vscroll_display_width >= 4) {
-        // TODO: Need a vertical scrollbar window object
+        SDL_Rect scrollbarRegion;
 
-        Drawable dscroll(d,width - vscroll_display_width,0,vscroll_display_width,height);
+        scrollbarRegion.x = width - vscroll_display_width;
+        scrollbarRegion.y = 0;
+        scrollbarRegion.w = vscroll_display_width;
+        scrollbarRegion.h = height;
+
+        Drawable dscroll(d,scrollbarRegion.x,scrollbarRegion.y,scrollbarRegion.w,scrollbarRegion.h);
 
         bool disabled = (scroll_pos_h == 0);
 
         /* scroll bar border, gray background */
         dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
-        dscroll.drawRect(0,0,vscroll_display_width-1,height-1);
+        dscroll.drawRect(0,0,scrollbarRegion.w-1,scrollbarRegion.h-1);
 
         dscroll.setColor(Color::Background3D);
-        dscroll.fillRect(1,1,vscroll_display_width-2,height-2);
+        dscroll.fillRect(1,1,scrollbarRegion.w-2,scrollbarRegion.h-2);
 
         /* the "thumb". make it fixed size, Windows 3.1 style.
          * this code could adapt to the more range-aware visual style of Windows 95 later. */
-        int thumbwidth = vscroll_display_width - 2;
-        int thumbheight = vscroll_display_width - 2;
-        int thumbtravel = height - 2 - thumbheight;
+        int thumbwidth = scrollbarRegion.w - 2;
+        int thumbheight = scrollbarRegion.w - 2;
+        int thumbtravel = scrollbarRegion.h - 2 - thumbheight;
         if (thumbtravel < 0) thumbtravel = 0;
         int ytop = 1 + ((scroll_pos_h > 0) ?
             ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
             0);
 
-        if (thumbheight <= (height + 2) && !disabled) {
+        if (thumbheight <= (scrollbarRegion.h + 2) && !disabled) {
             int xleft = 1;
             dscroll.setColor(Color::Light3D);
             dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
