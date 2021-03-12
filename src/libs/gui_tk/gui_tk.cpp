@@ -2299,7 +2299,10 @@ void WindowInWindow::paintAll(Drawable &d) const {
     }
 }
 
-static const Ticks vscroll_holdwait = 250;
+static const Ticks vscroll_holdwait = 150;
+static const Ticks vscroll_unitstep = 50;
+static const Ticks vscroll_unitinit = 50;
+static const Ticks vscroll_unitpersec = 600;
 
 Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
     if (wnd != NULL) {
@@ -2307,7 +2310,8 @@ Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
             Ticks tdelta = Timer::now() - wnd->drag_start;
             if (tdelta >= vscroll_holdwait) {
                 tdelta -= vscroll_holdwait;
-                const int pdelta = (int)((tdelta * 500) / 1000) + 250; // 500 pixels per 1 second
+
+                const int pdelta = (int)((tdelta * vscroll_unitpersec) / 1000) + vscroll_unitinit;
 
                 wnd->scroll_pos_y = wnd->drag_start_pos + pdelta;
                 if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
@@ -2326,7 +2330,8 @@ Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
             Ticks tdelta = Timer::now() - wnd->drag_start;
             if (tdelta >= vscroll_holdwait) {
                 tdelta -= vscroll_holdwait;
-                const int pdelta = (int)((tdelta * 500) / 1000) + 250; // 500 pixels per 1 second
+
+                const int pdelta = (int)((tdelta * vscroll_unitpersec) / 1000) + vscroll_unitinit;
 
                 wnd->scroll_pos_y = wnd->drag_start_pos - pdelta;
                 if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
@@ -2526,7 +2531,7 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
         mouseChild = NULL;
 
         if (scroll_pos_y == drag_start_pos) {
-            if ((scroll_pos_y -= 250) < 0)
+            if ((scroll_pos_y -= vscroll_unitstep) < 0)
                 scroll_pos_y = 0;
         }
 
@@ -2539,7 +2544,7 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
         mouseChild = NULL;
 
         if (scroll_pos_y == drag_start_pos) {
-            if ((scroll_pos_y += 250) > scroll_pos_h)
+            if ((scroll_pos_y += vscroll_unitstep) > scroll_pos_h)
                 scroll_pos_y = scroll_pos_h;
         }
 
