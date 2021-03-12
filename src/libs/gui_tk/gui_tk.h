@@ -816,6 +816,7 @@ public:
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 
+	virtual void getVScrollInfo(vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarThumbDragOutline(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;

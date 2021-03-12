@@ -2139,6 +2139,35 @@ void WindowInWindow::paintScrollBarThumbDragOutline(Drawable &dscroll,const vscr
     dscroll.drawDotRect(x,y,vsl.thumbwidth-1,vsl.thumbheight-1);
 }
 
+void WindowInWindow::getVScrollInfo(vscrollbarlayout &vsl) const {
+    vsl.draw = vsl.drawthumb = vsl.disabled = false;
+    if (vscroll_display_width >= 4 && height >= 4) {
+        vsl.disabled = (scroll_pos_h == 0);
+
+        vsl.draw = true;
+        vsl.scrollbarRegion.x = width - vscroll_display_width;
+        vsl.scrollbarRegion.y = 0;
+        vsl.scrollbarRegion.w = vscroll_display_width;
+        vsl.scrollbarRegion.h = height;
+
+        /* the "thumb". make it fixed size, Windows 3.1 style.
+         * this code could adapt to the more range-aware visual style of Windows 95 later. */
+        vsl.thumbwidth = vsl.scrollbarRegion.w;
+        vsl.thumbheight = vsl.scrollbarRegion.w;
+        vsl.thumbtravel = vsl.scrollbarRegion.h - vsl.thumbheight;
+        if (vsl.thumbtravel < 0) vsl.thumbtravel = 0;
+        vsl.drawthumb = (vsl.thumbheight <= vsl.scrollbarRegion.h) && (!vsl.disabled) && (scroll_pos_h > 0);
+
+        if (vsl.drawthumb) {
+            vsl.ytop = (vsl.thumbtravel * scroll_pos_y) / scroll_pos_h;
+            vsl.xleft = 0;
+        }
+        else {
+            vsl.thumbwidth = vsl.thumbheight = vsl.thumbtravel = 0;
+        }
+    }
+}
+
 void WindowInWindow::paintAll(Drawable &d) const {
     int xadj = -scroll_pos_x;
     int yadj = -scroll_pos_y;
@@ -2176,32 +2205,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
     if (vscroll) {
         vscrollbarlayout vsl;
 
-        if (vscroll_display_width >= 4 && height >= 4) {
-            vsl.disabled = (scroll_pos_h == 0);
-
-            vsl.draw = true;
-            vsl.scrollbarRegion.x = width - vscroll_display_width;
-            vsl.scrollbarRegion.y = 0;
-            vsl.scrollbarRegion.w = vscroll_display_width;
-            vsl.scrollbarRegion.h = height;
-
-            /* the "thumb". make it fixed size, Windows 3.1 style.
-             * this code could adapt to the more range-aware visual style of Windows 95 later. */
-            vsl.thumbwidth = vsl.scrollbarRegion.w;
-            vsl.thumbheight = vsl.scrollbarRegion.w;
-            vsl.thumbtravel = vsl.scrollbarRegion.h - vsl.thumbheight;
-            if (vsl.thumbtravel < 0) vsl.thumbtravel = 0;
-            vsl.drawthumb = (vsl.thumbheight <= vsl.scrollbarRegion.h) && (!vsl.disabled) && (scroll_pos_h > 0);
-
-            if (vsl.drawthumb) {
-                vsl.ytop = (vsl.thumbtravel * scroll_pos_y) / scroll_pos_h;
-                vsl.xleft = 0;
-            }
-            else {
-                vsl.thumbwidth = vsl.thumbheight = vsl.thumbtravel = 0;
-            }
-        }
-
+        getVScrollInfo(vsl);
         if (vsl.draw) {
             Drawable dscroll(d,vsl.scrollbarRegion.x,vsl.scrollbarRegion.y,vsl.scrollbarRegion.w,vsl.scrollbarRegion.h);
 
