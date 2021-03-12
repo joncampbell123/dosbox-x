@@ -416,13 +416,20 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			}
 			if (!loadedSector) {
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
-				if(currentSector == 0) loadedSector = false;
-				else {
-					curSectOff = 0;
+				if(currentSector == 0) {
+					/* EOC reached before EOF - try to increase file allocation */
+					myDrive->appendCluster(firstCluster);
+					/* Try getting sector again */
+					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+					if(currentSector == 0) {
+						/* No can do. lets give up and go home.  We must be out of room */
+						goto finalizeWrite;
+					}
+				}
+				curSectOff = seekpos % myDrive->getSectorSize();
 					myDrive->readSector(currentSector, sectorBuffer);
 					loadedSector = true;
 				}
-			}
 			filelength = seekpos+1;
 		}
 		--sizedec;
