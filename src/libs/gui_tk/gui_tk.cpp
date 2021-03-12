@@ -2299,36 +2299,44 @@ void WindowInWindow::paintAll(Drawable &d) const {
     }
 }
 
+static const Ticks vscroll_holdwait = 250;
+
 Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
     if (wnd != NULL) {
         if (wnd->vscroll_downarrowhold) {
-            const Ticks tdelta = Timer::now() - wnd->drag_start;
-            const int pdelta = (int)((tdelta * 500) / 1000); // 500 pixels per 1 second
+            Ticks tdelta = Timer::now() - wnd->drag_start;
+            if (tdelta >= vscroll_holdwait) {
+                tdelta -= vscroll_holdwait;
+                const int pdelta = (int)((tdelta * 500) / 1000) + 250; // 500 pixels per 1 second
 
-            wnd->scroll_pos_y = wnd->drag_start_pos + pdelta;
-            if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
-                wnd->scroll_pos_y = wnd->scroll_pos_h;
-                return 0;
-            }
-            if (wnd->scroll_pos_y < 0) {
-                wnd->scroll_pos_y = 0;
-                return 0;
+                wnd->scroll_pos_y = wnd->drag_start_pos + pdelta;
+                if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                    wnd->scroll_pos_y = wnd->scroll_pos_h;
+                    return 0;
+                }
+                if (wnd->scroll_pos_y < 0) {
+                    wnd->scroll_pos_y = 0;
+                    return 0;
+                }
             }
 
             return 55;
         }
         if (wnd->vscroll_uparrowhold) {
-            const Ticks tdelta = Timer::now() - wnd->drag_start;
-            const int pdelta = (int)((tdelta * 500) / 1000); // 500 pixels per 1 second
+            Ticks tdelta = Timer::now() - wnd->drag_start;
+            if (tdelta >= vscroll_holdwait) {
+                tdelta -= vscroll_holdwait;
+                const int pdelta = (int)((tdelta * 500) / 1000) + 250; // 500 pixels per 1 second
 
-            wnd->scroll_pos_y = wnd->drag_start_pos - pdelta;
-            if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
-                wnd->scroll_pos_y = wnd->scroll_pos_h;
-                return 0;
-            }
-            if (wnd->scroll_pos_y < 0) {
-                wnd->scroll_pos_y = 0;
-                return 0;
+                wnd->scroll_pos_y = wnd->drag_start_pos - pdelta;
+                if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                    wnd->scroll_pos_y = wnd->scroll_pos_h;
+                    return 0;
+                }
+                if (wnd->scroll_pos_y < 0) {
+                    wnd->scroll_pos_y = 0;
+                    return 0;
+                }
             }
 
             return 55;
@@ -2516,6 +2524,12 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
         vscroll_uparrowdown = false;
         vscroll_uparrowhold = false;
         mouseChild = NULL;
+
+        if (scroll_pos_y == drag_start_pos) {
+            if ((scroll_pos_y -= 250) < 0)
+                scroll_pos_y = 0;
+        }
+
         return true;
     }
     if (vscroll_downarrowhold) {
@@ -2523,6 +2537,12 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
         vscroll_downarrowdown = false;
         vscroll_downarrowhold = false;
         mouseChild = NULL;
+
+        if (scroll_pos_y == drag_start_pos) {
+            if ((scroll_pos_y += 250) > scroll_pos_h)
+                scroll_pos_y = scroll_pos_h;
+        }
+
         return true;
     }
     if (vscroll_dragging) {
