@@ -820,6 +820,7 @@ public:
 	virtual void paintScrollBarThumbDragOutline(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
+	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintAll(Drawable &d) const;
 
 	virtual void resize(int w, int h);

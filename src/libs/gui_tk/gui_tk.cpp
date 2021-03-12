@@ -2101,22 +2101,27 @@ bool ScreenSDL::event(SDL_Event &event) {
 	return false;
 }
 
+void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const {
+    dscroll.setColor(Color::Light3D);
+    dscroll.drawLine(x,y,x+w-2,y);
+    dscroll.drawLine(x,y,x,    y+h-2);
+
+    // Windows 3.1 renders the shadow two pixels wide
+    dscroll.setColor(Color::Shadow3D);
+    dscroll.drawLine(x,    y+h-1,x+w-1,y+h-1);
+    dscroll.drawLine(x+w-1,y,    x+w-1,y+h-1);
+
+    dscroll.drawLine(x+1,  y+h-2,x+w-1,y+h-2);
+    dscroll.drawLine(x+w-2,y+1,  x+w-2,y+h-2);
+}
+
 void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
     // black border
     dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
     dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
 
-    dscroll.setColor(Color::Light3D);
-    dscroll.drawLine(vsl.xleft+1,vsl.ytop+1,vsl.xleft+1+vsl.thumbwidth-2-2,vsl.ytop+1);
-    dscroll.drawLine(vsl.xleft+1,vsl.ytop+1,vsl.xleft+1,                   vsl.ytop+1+vsl.thumbheight-2-2);
-
-    // Windows 3.1 renders the shadow two pixels wide
-    dscroll.setColor(Color::Shadow3D);
-    dscroll.drawLine(vsl.xleft+1,                   vsl.ytop+1+vsl.thumbheight-2-1,vsl.xleft+1+vsl.thumbwidth-2-1,vsl.ytop+1+vsl.thumbheight-2-1);
-    dscroll.drawLine(vsl.xleft+1+vsl.thumbwidth-2-1,vsl.ytop+1,                    vsl.xleft+1+vsl.thumbwidth-2-1,vsl.ytop+1+vsl.thumbheight-2-1);
-
-    dscroll.drawLine(vsl.xleft+2,                   vsl.ytop+1+vsl.thumbheight-2-2,vsl.xleft+1+vsl.thumbwidth-2-2,vsl.ytop+1+vsl.thumbheight-2-2);
-    dscroll.drawLine(vsl.xleft+1+vsl.thumbwidth-2-2,vsl.ytop+2,                    vsl.xleft+1+vsl.thumbwidth-2-2,vsl.ytop+1+vsl.thumbheight-2-2);
+    // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
+    paintScrollBar3DOutset(dscroll, vsl.xleft+1, vsl.ytop+1, vsl.thumbwidth-2, vsl.thumbheight-2);
 }
 
 void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
