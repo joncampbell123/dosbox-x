@@ -2235,6 +2235,16 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
+
+                // up arrow
+                const int aw = 7;
+                const int ah = 7;
+                const int ax = (w - aw) / 2;
+                const int ay = (h - ah) / 2;
+
+                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-c, ay+c, ax+3+c, ay+c);
+                dscroll.fillRect(ax+2,ay+4,3,3);
             }
 
             /* down arrow */
@@ -2250,6 +2260,16 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
+
+                // up arrow
+                const int aw = 7;
+                const int ah = 7;
+                const int ax = (w - aw) / 2;
+                const int ay = ((h - ah) / 2) + y;
+
+                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                dscroll.fillRect(ax+2,ay,3,3);
+                for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-(3-c), ay+3+c, ax+3+(3-c), ay+3+c);
             }
 
             if (vsl.drawthumb) {
