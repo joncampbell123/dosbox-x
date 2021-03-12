@@ -823,6 +823,7 @@ public:
 	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
 	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
+	virtual void paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintAll(Drawable &d) const;
 
 	virtual void resize(int w, int h);
@@ -832,6 +833,8 @@ public:
 
     bool    hscroll_dragging = false;
     bool    vscroll_dragging = false;
+    bool    vscroll_uparrowhold = false;
+    bool    vscroll_downarrowhold = false;
 
     bool    dragging = false;
     int     drag_x = 0, drag_y = 0;

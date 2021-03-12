@@ -2101,6 +2101,13 @@ bool ScreenSDL::event(SDL_Event &event) {
 	return false;
 }
 
+void WindowInWindow::paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const {
+    // Windows 3.1 renders the shadow one pixel wide, no highlight
+    dscroll.setColor(Color::Shadow3D);
+    dscroll.drawLine(x,y,x+w-1,y);
+    dscroll.drawLine(x,y,x,    y+h-1);
+}
+
 void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const {
     dscroll.setColor(Color::Light3D);
     dscroll.drawLine(x,y,x+w-2,y);
@@ -2252,10 +2259,14 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
-                paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
+                if (vscroll_uparrowhold)
+                    paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
+                else
+                    paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
                 // up arrow
-                paintScrollBarArrowInBox(dscroll,x,y,w,h,/*downArrow*/false,vsl.disabled);
+                const int nudge = (vscroll_uparrowhold ? 1 : 0);
+                paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/false,vsl.disabled);
             }
 
             /* down arrow */
@@ -2270,10 +2281,14 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
-                paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
+                if (vscroll_downarrowhold)
+                    paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
+                else
+                    paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
                 // down arrow
-                paintScrollBarArrowInBox(dscroll,x,y,w,h,/*downArrow*/true,vsl.disabled);
+                const int nudge = (vscroll_downarrowhold ? 1 : 0);
+                paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/true,vsl.disabled);
             }
 
             if (vsl.drawthumb) {
@@ -2286,6 +2301,12 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
+    if (vscroll_uparrowhold) {
+        return true;
+    }
+    if (vscroll_downarrowhold) {
+        return true;
+    }
     if (vscroll_dragging) {
         vscrollbarlayout vsl;
 
@@ -2332,7 +2353,21 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 
         getVScrollInfo(vsl);
 
-        if (y >= vsl.scrollthumbRegion.y && y < (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
+        if (y < vsl.scrollthumbRegion.y) {
+            vscroll_uparrowhold = true;
+            mouseChild = this;
+            drag_x = x;
+            drag_y = y;
+
+        }
+        else if (y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
+            vscroll_downarrowhold = true;
+            mouseChild = this;
+            drag_x = x;
+            drag_y = y;
+
+        }
+        else if (y >= vsl.scrollthumbRegion.y && y < (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
             vscroll_dragging = true;
             mouseChild = this;
             drag_x = x;
@@ -2385,6 +2420,16 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 
 bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 {
+    if (vscroll_uparrowhold) {
+        vscroll_uparrowhold = false;
+        mouseChild = NULL;
+        return true;
+    }
+    if (vscroll_downarrowhold) {
+        vscroll_downarrowhold = false;
+        mouseChild = NULL;
+        return true;
+    }
     if (vscroll_dragging) {
         vscrollbarlayout vsl;
 
