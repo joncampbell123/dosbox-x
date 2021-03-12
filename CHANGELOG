@@ -1,4 +1,7 @@
 0.83.12
+  - Added scrollbar buttons to the Configuration GUI,
+    so that the scrollbars better resemble the style of
+    Windows 3.1
   - The help window for the Configuration Tool will now
     display possible and default values for the config
     options in addition to the descriptions. (Wengier)
