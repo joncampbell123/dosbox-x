@@ -223,8 +223,8 @@ private:
 		TrackFile(uint16_t _chunkSize) : chunkSize(_chunkSize) {}
 	public:
 		virtual          ~TrackFile() = default;
-		virtual bool     read(uint8_t *buffer, int seek, int count) = 0;
-		virtual bool     seek(uint32_t offset) = 0;
+		virtual bool     read(uint8_t *buffer,int64_t seek, int count) = 0;
+		virtual bool     seek(int64_t offset) = 0;
 		virtual uint16_t   decode(uint8_t *buffer) = 0;
 		virtual uint16_t   getEndian() = 0;
 		virtual uint32_t   getRate() = 0;
@@ -245,8 +245,8 @@ private:
 		BinaryFile      (const BinaryFile&) = delete; // prevent copying
 		BinaryFile&     operator= (const BinaryFile&) = delete; // prevent assignment
 
-		bool            read(uint8_t *buffer, int seek, int count);
-		bool            seek(uint32_t offset);
+		bool            read(uint8_t *buffer,int64_t seek, int count);
+		bool            seek(int64_t offset);
 		uint16_t          decode(uint8_t *buffer);
 		uint16_t          getEndian();
 		uint32_t          getRate() { return 44100; }
@@ -266,8 +266,8 @@ private:
 		AudioFile       (const AudioFile&) = delete; // prevent copying
 		AudioFile&      operator= (const AudioFile&) = delete; // prevent assignment
 
-		bool            read(uint8_t *buffer, int seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
-		bool            seek(uint32_t offset);
+		bool            read(uint8_t *buffer,int64_t seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
+		bool            seek(int64_t offset);
 		uint16_t          decode(uint8_t *buffer);
 		uint16_t          getEndian();
 		uint32_t          getRate();
@@ -287,8 +287,8 @@ private:
         CHDFile(const CHDFile&) = delete;
         CHDFile& operator= (const CHDFile&) = delete;
 
-        bool            read(uint8_t* buffer, int seek, int count);
-        bool            seek(uint32_t offset);
+        bool            read(uint8_t* buffer, int64_t seek, int count);
+        bool            seek(int64_t offset);
         uint16_t        decode(uint8_t* buffer);
         uint16_t        getEndian();
         uint32_t        getRate() { return 44100; }
