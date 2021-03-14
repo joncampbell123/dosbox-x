@@ -1,9 +1,13 @@
 0.83.12
+  - Added scrollbar buttons to the Configuration GUI,
+    so that the scrollbars better resemble the style of
+    the Windows 3.1 user interface.
   - The help window for the Configuration Tool will now
     display possible and default values for the config
     options in addition to the descriptions. (Wengier)
-  - Improved the compatbility of AUTOTYPE command to
-    work with more DOS programs. (Wengier)
+  - Updated the MMX patch code by kekko. (Wengier)
+  - Improved the compatibility of AUTOTYPE command with
+    the game Asterix & Obelix. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)

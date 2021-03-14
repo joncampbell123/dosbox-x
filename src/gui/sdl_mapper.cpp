@@ -737,9 +737,9 @@ class Typer {
 					for (auto &event : *m_events) {
 						if (bind_name == event->GetName()) {
 							found = true;
-                            event->Active(true);
-                            SDL_Delay(10);
-                            event->Active(false);
+							event->Active(true);
+							SDL_Delay(10);
+							event->Active(false);
 							break;
 						}
 					}

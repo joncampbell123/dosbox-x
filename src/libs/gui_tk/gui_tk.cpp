@@ -2101,6 +2101,109 @@ bool ScreenSDL::event(SDL_Event &event) {
 	return false;
 }
 
+void WindowInWindow::paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const {
+    // Windows 3.1 renders the shadow one pixel wide, no highlight
+    dscroll.setColor(Color::Shadow3D);
+    dscroll.drawLine(x,y,x+w-1,y);
+    dscroll.drawLine(x,y,x,    y+h-1);
+}
+
+void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const {
+    dscroll.setColor(Color::Light3D);
+    dscroll.drawLine(x,y,x+w-2,y);
+    dscroll.drawLine(x,y,x,    y+h-2);
+
+    // Windows 3.1 renders the shadow two pixels wide
+    dscroll.setColor(Color::Shadow3D);
+    dscroll.drawLine(x,    y+h-1,x+w-1,y+h-1);
+    dscroll.drawLine(x+w-1,y,    x+w-1,y+h-1);
+
+    dscroll.drawLine(x+1,  y+h-2,x+w-1,y+h-2);
+    dscroll.drawLine(x+w-2,y+1,  x+w-2,y+h-2);
+}
+
+void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
+    // black border
+    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
+
+    // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
+    paintScrollBar3DOutset(dscroll, vsl.xleft+1, vsl.ytop+1, vsl.thumbwidth-2, vsl.thumbheight-2);
+}
+
+void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
+    /* scroll bar border, background */
+    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
+
+    dscroll.setColor(Color::Background3D);
+    dscroll.fillRect(vsl.scrollthumbRegion.x+1,vsl.scrollthumbRegion.y+1,vsl.scrollthumbRegion.w-2,vsl.scrollthumbRegion.h-2);
+}
+
+void WindowInWindow::paintScrollBarThumbDragOutline(Drawable &dscroll,const vscrollbarlayout &vsl) const {
+    // Windows 3.1 also draws an inverted dotted rectangle around the thumb where it WOULD be
+    // before quantization to scroll position.
+    int x = 0;
+    int y = (drag_y - vsl.scrollthumbRegion.y) - ((vsl.thumbheight + 2) / 2);
+    if (y < 0) y = 0;
+    if (y > vsl.thumbtravel) y = vsl.thumbtravel;
+    dscroll.setColor(Color::Light3D);
+    dscroll.drawDotRect(x+vsl.scrollthumbRegion.x,y+vsl.scrollthumbRegion.y,vsl.thumbwidth-1,vsl.thumbheight-1);
+}
+
+void WindowInWindow::getVScrollInfo(vscrollbarlayout &vsl) const {
+    vsl.draw = vsl.drawthumb = vsl.disabled = false;
+    if (vscroll_display_width >= 4 && height >= 4) {
+        vsl.disabled = (scroll_pos_h == 0);
+
+        vsl.draw = true;
+        vsl.scrollbarRegion.x = width - vscroll_display_width;
+        vsl.scrollbarRegion.y = 0;
+        vsl.scrollbarRegion.w = vscroll_display_width;
+        vsl.scrollbarRegion.h = height;
+
+        /* the "thumb". make it fixed size, Windows 3.1 style.
+         * this code could adapt to the more range-aware visual style of Windows 95 later. */
+        vsl.thumbwidth = vsl.scrollbarRegion.w;
+        vsl.thumbheight = vsl.scrollbarRegion.w;
+
+        vsl.scrollthumbRegion.x = 0; /* relative to scrollbarRegion */
+        vsl.scrollthumbRegion.y = vsl.thumbheight - 1;/* relative to scrollbarRegion */
+        vsl.scrollthumbRegion.w = vsl.scrollbarRegion.w;
+        vsl.scrollthumbRegion.h = vsl.scrollbarRegion.h - ((vsl.thumbheight - 1) * 2);
+
+        vsl.thumbtravel = vsl.scrollthumbRegion.h - vsl.thumbheight;
+        if (vsl.thumbtravel < 0) vsl.thumbtravel = 0;
+        vsl.drawthumb = (vsl.thumbheight <= vsl.scrollthumbRegion.h) && (!vsl.disabled) && (scroll_pos_h > 0);
+
+        if (vsl.drawthumb) {
+            vsl.ytop = ((vsl.thumbtravel * scroll_pos_y) / scroll_pos_h) + vsl.scrollthumbRegion.y;
+            vsl.xleft = vsl.scrollthumbRegion.x;
+        }
+        else {
+            vsl.thumbwidth = vsl.thumbheight = vsl.thumbtravel = 0;
+        }
+    }
+}
+
+void WindowInWindow::paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const {
+    const int aw = 7;
+    const int ah = 7;
+    const int ax = ((w - aw) / 2) + x;
+    const int ay = ((h - ah) / 2) + y;
+
+    dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
+
+    if (downArrow) {
+        dscroll.fillRect(ax+2,ay,3,3);
+        for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-(3-c), ay+3+c, ax+3+(3-c), ay+3+c);
+    }
+    else {
+        for (int c=0;c <= 3;c++) dscroll.drawLine(ax+3-c, ay+c, ax+3+c, ay+c);
+        dscroll.fillRect(ax+2,ay+4,3,3);
+    }
+}
+
 void WindowInWindow::paintAll(Drawable &d) const {
     int xadj = -scroll_pos_x;
     int yadj = -scroll_pos_y;
@@ -2135,78 +2238,180 @@ void WindowInWindow::paintAll(Drawable &d) const {
         dchild.drawLine(w,0,w,h);
     }
 
-    if (vscroll && vscroll_display_width >= 4) {
-        // TODO: Need a vertical scrollbar window object
+    if (vscroll) {
+        vscrollbarlayout vsl;
 
-        Drawable dscroll(d,width - vscroll_display_width,0,vscroll_display_width,height);
+        getVScrollInfo(vsl);
+        if (vsl.draw) {
+            Drawable dscroll(d,vsl.scrollbarRegion.x,vsl.scrollbarRegion.y,vsl.scrollbarRegion.w,vsl.scrollbarRegion.h);
 
-        bool disabled = (scroll_pos_h == 0);
+            paintScrollBarBackground(dscroll,vsl);
 
-        /* scroll bar border, gray background */
-        dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
-        dscroll.drawRect(0,0,vscroll_display_width-1,height-1);
+            /* up arrow */
+            {
+                const int x = 0;
+                const int y = 0;
+                const int w = vsl.scrollbarRegion.w;
+                const int h = vsl.scrollthumbRegion.y + 1; /* want black border of thumb to overlap our black border 1 pixel */
 
-        dscroll.setColor(Color::Background3D);
-        dscroll.fillRect(1,1,vscroll_display_width-2,height-2);
+                // black border
+                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                dscroll.drawRect(x,y,w-1,h-1);
 
-        /* the "thumb". make it fixed size, Windows 3.1 style.
-         * this code could adapt to the more range-aware visual style of Windows 95 later. */
-        int thumbwidth = vscroll_display_width - 2;
-        int thumbheight = vscroll_display_width - 2;
-        int thumbtravel = height - 2 - thumbheight;
-        if (thumbtravel < 0) thumbtravel = 0;
-        int ytop = 1 + ((scroll_pos_h > 0) ?
-            ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
-            0);
+                // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
+                if (vscroll_uparrowhold && vscroll_uparrowdown)
+                    paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
+                else
+                    paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
-        if (thumbheight <= (height + 2) && !disabled) {
-            int xleft = 1;
-            dscroll.setColor(Color::Light3D);
-            dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
-            dscroll.drawLine(xleft,ytop,xleft,ytop+thumbheight-1);
+                // up arrow
+                const int nudge = ((vscroll_uparrowhold && vscroll_uparrowdown) ? 1 : 0);
+                paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/false,vsl.disabled);
+            }
 
-            // Windows 3.1 renders the shadow two pixels wide
-            dscroll.setColor(Color::Shadow3D);
-            dscroll.drawLine(xleft,ytop+thumbheight-1,xleft+thumbwidth-1,ytop+thumbheight-1);
-            dscroll.drawLine(xleft+thumbwidth-1,ytop,xleft+thumbwidth-1,ytop+thumbheight-1);
+            /* down arrow */
+            {
+                const int x = 0;
+                const int y = vsl.scrollthumbRegion.y + vsl.scrollthumbRegion.h - 1; /* want black border of thumb to overlap our black border 1 pixel */
+                const int w = vsl.scrollbarRegion.w;
+                const int h = height - y;
 
-            dscroll.drawLine(xleft+1,ytop+thumbheight-2,xleft+thumbwidth-2,ytop+thumbheight-2);
-            dscroll.drawLine(xleft+thumbwidth-2,ytop+1,xleft+thumbwidth-2,ytop+thumbheight-2);
+                // black border
+                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                dscroll.drawRect(x,y,w-1,h-1);
 
-            // Windows 3.1 also draws a hard black line around the thumb that can coincide with the border
-            dscroll.setColor(Color::Black);
-            dscroll.drawLine(xleft,ytop-1,xleft+thumbwidth-1,ytop-1);
-            dscroll.drawLine(xleft,ytop+thumbheight,xleft+thumbwidth-1,ytop+thumbheight);
+                // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
+                if (vscroll_downarrowhold && vscroll_downarrowdown)
+                    paintScrollBar3DInset(dscroll,x+1,y+1,w-2,h-2);
+                else
+                    paintScrollBar3DOutset(dscroll,x+1,y+1,w-2,h-2);
 
-            // Windows 3.1 also draws an inverted dotted rectangle around the thumb where it WOULD be
-            // before quantization to scroll position.
-            if (vscroll_dragging) {
-                xleft = 0;
-                ytop = drag_y - ((thumbheight + 2) / 2);
-                if (ytop < 0) ytop = 0;
-                if (ytop > thumbtravel) ytop = thumbtravel;
-                dscroll.setColor(Color::Light3D);
-                dscroll.drawDotRect(xleft,ytop,thumbwidth+1,thumbheight+1);
+                // down arrow
+                const int nudge = ((vscroll_downarrowhold && vscroll_downarrowdown) ? 1 : 0);
+                paintScrollBarArrowInBox(dscroll,x+nudge,y+nudge,w,h,/*downArrow*/true,vsl.disabled);
+            }
+
+            if (vsl.drawthumb) {
+                paintScrollBarThumb(dscroll,vsl);
+                if (vscroll_dragging) paintScrollBarThumbDragOutline(dscroll,vsl);
             }
         }
     }
 }
 
+static const Ticks vscroll_holdwait = 150;
+static const Ticks vscroll_unitstep = 50;
+static const Ticks vscroll_unitinit = 50;
+static const Ticks vscroll_unitpersec = 600;
+
+Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
+    if (wnd != NULL) {
+        if (wnd->vscroll_downarrowhold) {
+            Ticks tdelta = Timer::now() - wnd->drag_start;
+            if (tdelta >= vscroll_holdwait) {
+                tdelta -= vscroll_holdwait;
+
+                const int pdelta = (int)((tdelta * vscroll_unitpersec) / 1000) + vscroll_unitinit;
+
+                wnd->scroll_pos_y = wnd->drag_start_pos + pdelta;
+                if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                    wnd->scroll_pos_y = wnd->scroll_pos_h;
+                    return 0;
+                }
+                if (wnd->scroll_pos_y < 0) {
+                    wnd->scroll_pos_y = 0;
+                    return 0;
+                }
+            }
+
+            return 55;
+        }
+        if (wnd->vscroll_uparrowhold) {
+            Ticks tdelta = Timer::now() - wnd->drag_start;
+            if (tdelta >= vscroll_holdwait) {
+                tdelta -= vscroll_holdwait;
+
+                const int pdelta = (int)((tdelta * vscroll_unitpersec) / 1000) + vscroll_unitinit;
+
+                wnd->scroll_pos_y = wnd->drag_start_pos - pdelta;
+                if (wnd->scroll_pos_y > wnd->scroll_pos_h) {
+                    wnd->scroll_pos_y = wnd->scroll_pos_h;
+                    return 0;
+                }
+                if (wnd->scroll_pos_y < 0) {
+                    wnd->scroll_pos_y = 0;
+                    return 0;
+                }
+            }
+
+            return 55;
+        }
+    }
+
+    return 0;
+}
+
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
-    if (vscroll_dragging) {
-        int thumbheight = vscroll_display_width - 2;
-        int thumbtravel = height - 2 - thumbheight;
-        if (thumbtravel < 0) thumbtravel = 0;
+    if (vscroll_uparrowhold) {
+        vscrollbarlayout vsl;
 
-        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
+        getVScrollInfo(vsl);
+
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= 0 && y < vsl.scrollthumbRegion.y) {
+            if (!vscroll_uparrowdown) {
+                vscroll_uparrowdown = true;
+                drag_start = Timer::now();
+                drag_start_pos = scroll_pos_y;
+
+                drag_timer_cb.wnd = this;
+                drag_timer.remove(&drag_timer_cb);
+                drag_timer.add(&drag_timer_cb,55);
+            }
+        }
+        else {
+            vscroll_uparrowdown = false;
+            drag_timer.remove(&drag_timer_cb);
+        }
+
+        return true;
+    }
+    if (vscroll_downarrowhold) {
+        vscrollbarlayout vsl;
+
+        getVScrollInfo(vsl);
+
+        if (x >= vsl.scrollbarRegion.x && x < (vsl.scrollbarRegion.x+vsl.scrollbarRegion.w) && y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h) && y < height) {
+            if (!vscroll_downarrowdown) {
+                vscroll_downarrowdown = true;
+                drag_start = Timer::now();
+                drag_start_pos = scroll_pos_y;
+
+                drag_timer_cb.wnd = this;
+                drag_timer.remove(&drag_timer_cb);
+                drag_timer.add(&drag_timer_cb,55);
+            }
+        }
+        else {
+            vscroll_downarrowdown = false;
+            drag_timer.remove(&drag_timer_cb);
+        }
+
+        return true;
+    }
+    if (vscroll_dragging) {
+        vscrollbarlayout vsl;
+
+        getVScrollInfo(vsl);
+
+        drag_x = x;
+        drag_y = y;
+
+        double npos = (double(y - vsl.scrollthumbRegion.y - (vsl.thumbheight / 2)) * scroll_pos_h) / vsl.thumbtravel;
         int nipos = int(floor(npos + 0.5));
         if (nipos < 0) nipos = 0;
         if (nipos > scroll_pos_h) nipos = scroll_pos_h;
         scroll_pos_y = nipos;
-
-        drag_x = x;
-        drag_y = y;
         return true;
     }
 
@@ -2236,20 +2441,48 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 {
     if (vscroll && x >= (width - vscroll_display_width) && button == GUI::Left) {
-        mouseChild = this;
-        vscroll_dragging = true;
-        drag_x = x;
-        drag_y = y;
+        vscrollbarlayout vsl;
 
-        int thumbheight = vscroll_display_width - 2;
-        int thumbtravel = height - 2 - thumbheight;
-        if (thumbtravel < 0) thumbtravel = 0;
+        getVScrollInfo(vsl);
 
-        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
-        int nipos = int(floor(npos + 0.5));
-        if (nipos < 0) nipos = 0;
-        if (nipos > scroll_pos_h) nipos = scroll_pos_h;
-        scroll_pos_y = nipos;
+        if (y < vsl.scrollthumbRegion.y) {
+            vscroll_uparrowdown = true;
+            vscroll_uparrowhold = true;
+            drag_start_pos = scroll_pos_y;
+            drag_start = Timer::now();
+            mouseChild = this;
+            drag_x = x;
+            drag_y = y;
+
+            drag_timer_cb.wnd = this;
+            drag_timer.remove(&drag_timer_cb);
+            drag_timer.add(&drag_timer_cb,55);
+        }
+        else if (y >= (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
+            vscroll_downarrowdown = true;
+            vscroll_downarrowhold = true;
+            drag_start_pos = scroll_pos_y;
+            drag_start = Timer::now();
+            mouseChild = this;
+            drag_x = x;
+            drag_y = y;
+
+            drag_timer_cb.wnd = this;
+            drag_timer.remove(&drag_timer_cb);
+            drag_timer.add(&drag_timer_cb,55);
+        }
+        else if (y >= vsl.scrollthumbRegion.y && y < (vsl.scrollthumbRegion.y+vsl.scrollthumbRegion.h)) {
+            vscroll_dragging = true;
+            mouseChild = this;
+            drag_x = x;
+            drag_y = y;
+
+            double npos = (double(y - vsl.scrollthumbRegion.y - (vsl.thumbheight / 2)) * scroll_pos_h) / vsl.thumbtravel;
+            int nipos = int(floor(npos + 0.5));
+            if (nipos < 0) nipos = 0;
+            if (nipos > scroll_pos_h) nipos = scroll_pos_h;
+            scroll_pos_y = nipos;
+        }
 
         return true;
     }
@@ -2291,12 +2524,41 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 
 bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 {
-    if (vscroll_dragging) {
-        int thumbheight = vscroll_display_width - 2;
-        int thumbtravel = height - 2 - thumbheight;
-        if (thumbtravel < 0) thumbtravel = 0;
+    if (vscroll_uparrowhold) {
+        drag_timer.remove(&drag_timer_cb);
+        vscroll_uparrowdown = false;
+        vscroll_uparrowhold = false;
+        mouseChild = NULL;
 
-        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
+        if (scroll_pos_y == drag_start_pos) {
+            if ((scroll_pos_y -= vscroll_unitstep) < 0)
+                scroll_pos_y = 0;
+        }
+
+        return true;
+    }
+    if (vscroll_downarrowhold) {
+        drag_timer.remove(&drag_timer_cb);
+        vscroll_downarrowdown = false;
+        vscroll_downarrowhold = false;
+        mouseChild = NULL;
+
+        if (scroll_pos_y == drag_start_pos) {
+            if ((scroll_pos_y += vscroll_unitstep) > scroll_pos_h)
+                scroll_pos_y = scroll_pos_h;
+        }
+
+        return true;
+    }
+    if (vscroll_dragging) {
+        vscrollbarlayout vsl;
+
+        getVScrollInfo(vsl);
+
+        drag_x = x;
+        drag_y = y;
+
+        double npos = (double(y - vsl.scrollthumbRegion.y - (vsl.thumbheight / 2)) * scroll_pos_h) / vsl.thumbtravel;
         int nipos = int(floor(npos + 0.5));
         if (nipos < 0) nipos = 0;
         if (nipos > scroll_pos_h) nipos = scroll_pos_h;

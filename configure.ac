@@ -1162,6 +1162,9 @@ dnl so SDL_net, fluidsynth and libslirp successfully link to them
 if test x$enable_emscripten != xyes; then
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp = xyes; then
+         LIBS="$LIBS -lole32"
+       fi
        LIBS="$LIBS -lwsock32 -lws2_32 -liphlpapi -lshlwapi"
        if test x$enable_freetype = xyes; then
          LIBS="$LIBS -lfreetype -lwinspool"
