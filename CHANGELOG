@@ -10,7 +10,7 @@
     options in addition to the descriptions. (Wengier)
   - Updated the MMX patch code by kekko. (Wengier)
   - Improved the compatibility of AUTOTYPE command with
-    the game Asterix & Obelix. (Wengier)
+    games like Asterix & Obelix. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
@@ -24,6 +24,8 @@
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
+  - Fixed Windows 9x installation failures caused by
+    FAT driver changes in the previous version.
   - Fixed well-intended but erroneous fall through case
     in the INT15 handler that prevented 3rd party mouse
     drivers from detecting the PS/2 mouse.
