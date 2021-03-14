@@ -1175,28 +1175,6 @@ skip_extend_word:
 	}
 }
 
-
-
-// add code that checks if port access is allowed
-// the port is given in a register
-static void dyn_add_iocheck(HostReg reg_port,Bitu access_size) {
-	if (cpu.pmode) {
-		gen_call_function_RI(CPU_IO_Exception,reg_port,access_size);
-		dyn_check_exception(FC_RETOP);
-	}
-}
-
-// add code that checks if port access is allowed
-// the port is a constant
-static void dyn_add_iocheck_var(uint8_t accessed_port,Bitu access_size) {
-	if (cpu.pmode) {
-		gen_call_function_II(CPU_IO_Exception,accessed_port,access_size);
-		dyn_check_exception(FC_RETOP);
-	}
-}
-
-
-
 // save back the address register
 static void gen_protect_addr_reg(void) {
 #ifdef DRC_PROTECT_ADDR_REG
