@@ -16,7 +16,7 @@ extern uint32_t * lookupRMEAregd[256];
 static void gen_mmx_op(Bitu op, Bitu rm, Bitu imm = 0, PhysPt eaa = 0) {
 	switch (op)
 	{
-#include "..\core_normal\prefix_0f_mmx.h"
+#include "../core_normal/prefix_0f_mmx.h"
 	default:
 		break;
 	}
