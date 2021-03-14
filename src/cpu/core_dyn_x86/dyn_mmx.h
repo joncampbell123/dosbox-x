@@ -1,9 +1,9 @@
 #include "mmx.h"
 
-extern Bit32u * lookupRMEAregd[256];
+extern uint32_t * lookupRMEAregd[256];
 
 #define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd_inline(off+4)<<32 | (Bit64u)mem_readd_inline(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd_inline(off+4)<<32 | (uint64_t)mem_readd_inline(off)))
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
 
@@ -11,7 +11,7 @@ extern Bit32u * lookupRMEAregd[256];
 #define GetRM
 #define GetEAa
 #define Fetchb() imm
-#define GetEArd	Bit32u * eard=lookupRMEAregd[rm];
+#define GetEArd	uint32_t * eard=lookupRMEAregd[rm];
 
 static void gen_mmx_op(Bitu op, Bitu rm, Bitu imm = 0, PhysPt eaa = 0) {
 	switch (op)
