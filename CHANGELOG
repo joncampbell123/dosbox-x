@@ -1,4 +1,7 @@
 0.83.12
+  - CD-ROM image emulation now supports ISO images
+    that are 2GB or larger, 32-bit integer size limit
+    has been lifted.
   - Added scrollbar buttons to the Configuration GUI,
     so that the scrollbars better resemble the style of
     Windows 3.1
