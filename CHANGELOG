@@ -2,6 +2,8 @@
   - The help window for the Configuration Tool will now
     display possible and default values for the config
     options in addition to the descriptions. (Wengier)
+  - Improved the compatbility of AUTOTYPE command to
+    work with more DOS programs. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
