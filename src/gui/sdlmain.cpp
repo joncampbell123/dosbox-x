@@ -1448,12 +1448,15 @@ void GFX_ReleaseMouse();
 void CPU_Snap_Back_To_Real_Mode();
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
+    bool fs=sdl.desktop.fullscreen;
+    if (fs) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
     bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
     return ret;
 #else
     return true;
@@ -13563,6 +13566,7 @@ fresh_boot:
     SDL_ShowCursor(SDL_ENABLE);
 
     /* Exit functions */
+    if (machine != MCH_AMSTRAD) // FIXME
     while (!exitfunctions.empty()) {
         Function_wrapper &ent = exitfunctions.front();
 

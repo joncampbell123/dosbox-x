@@ -2402,10 +2402,10 @@
     <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h">
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h">
