@@ -2537,7 +2537,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
-    Pint->SetMinMax(0,100);
+    Pint->SetMinMax(0,250);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
     secprop=control->AddSection_prop("midi",&Null_Init,true);//done

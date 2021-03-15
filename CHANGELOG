@@ -33,6 +33,8 @@
     not working (but "ttf.wp=xy" did work). (Wengier)
   - Fixed preview function in WordStar not working for
     TrueType font output in previous version. (Wengier)
+  - Increased upper limit of "prebuffer" config option
+    (in [mixer] section) from 100 to 250. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4416: Added ability to start and stop avi
     recording, and to start keymapper, from config.
