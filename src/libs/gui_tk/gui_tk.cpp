@@ -1931,8 +1931,8 @@ public:
         return a>0;
     }
 
-	void update(SDL_Surface *dest, int scale) const {
-	    char            *dp, *sp, *sr0, *dr, *dr0;
+    void update(SDL_Surface *dest, int scale) const {
+        char            *dp, *sp, *sr0, *dr, *dr0;
         int              x, y, v, h;
         uint32_t         pix;
         SDL_PixelFormat *fmt, *df;
@@ -1974,7 +1974,7 @@ public:
         }
         SDL_UnlockSurface( dest    );
         SDL_UnlockSurface( surface );
-	}
+    }
 };
 
 ScreenSDL::~ScreenSDL() {
