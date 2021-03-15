@@ -1923,37 +1923,45 @@ public:
 	    SDL_FreeSurface(surface);
 	}
 
-	void update(SDL_Surface *dest, int scale) const {
-	    char            *dp, *sp, *spx, *sr0, *dr, *dr0;
-        int              x, y, v, h, p;
-        uint32_t        *pixP, alpha;
-        SDL_PixelFormat *fmt;
+    static bool get_dest_pix
+    (   char* sp, SDL_PixelFormat *sf, SDL_PixelFormat *df, Uint32* pix )
+    {   Uint8 r, g, b, a;
+               SDL_GetRGBA( *(Uint32*)sp, sf, &r, &g, &b, &a );
+        *pix = SDL_MapRGBA( df, r, g, b, a );
+        return a>0;
+    }
 
-        fmt = surface->format;
+	void update(SDL_Surface *dest, int scale) const {
+	    char            *dp, *sp, *sr0, *dr, *dr0;
+        int              x, y, v, h;
+        uint32_t         pix;
+        SDL_PixelFormat *fmt, *df;
+        bool             is_alpha;
+
+        // Direct blitting for pixel-to-pixel scale:
+        if( scale == 1 )
+        {   SDL_BlitSurface(surface, NULL, dest, NULL);
+            return;
+        }
+
+        fmt  = surface->format;
+        df   = dest   ->format;
         SDL_LockSurface( dest    );
         SDL_LockSurface( surface );
         dr0 = (char*)dest   ->pixels;
         sr0 = (char*)surface->pixels;
-        //LOG_MSG(
-        //    "CONF: upscaling. surface: %i x %i, dest: %i x %i",
-        //    surface->w, surface->h, dest->w, dest->h );
+
         for( y = 0; y < surface->h; y += 1 )
         {   dp = dr0;
             sp = sr0;
             for( x = 0; x < surface->w; x += 1 )
-            {   pixP  = (uint32_t*)sp;
-                alpha = *pixP &  fmt->Amask;
-                alpha = alpha >> fmt->Ashift;
-                alpha = alpha << fmt->Aloss;
+            {   is_alpha = get_dest_pix( sp, fmt, df, &pix ) > 0;
                 for( h = 0; h < scale; h += 1 )
-                {   spx = sp;
-                    for( p = 0; p < fmt->BytesPerPixel; p += 1 )
-                    {   if( alpha > 0 ) *dp = *spx;
-                        dp  += 1;
-                        spx += 1;
-                    }
+                {   if( is_alpha )
+                    {   memcpy( dp, &pix, df->BytesPerPixel );  }
+                    dp += df->BytesPerPixel;
                 }
-                sp = spx;
+                sp += fmt->BytesPerPixel;
             }
             sr0 = sr0 + surface->pitch;
             
@@ -1966,8 +1974,6 @@ public:
         }
         SDL_UnlockSurface( dest    );
         SDL_UnlockSurface( surface );
-
-	    //SDL_BlitSurface(surface, NULL, dest, NULL);
 	}
 };
 
