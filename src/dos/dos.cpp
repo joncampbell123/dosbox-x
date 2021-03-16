@@ -4150,24 +4150,33 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0,o=0;
             char c[13];
-            const char* s = strrchr(name1, '.');
-			for (i=0;i<8;j++) {
-					if (name1[j] == 0 || s-name1 <= j) break;
-					if (name1[j] == '.') continue;
-					c[o++] = toupper(name1[j]);
-					i++;
-			}
-			if (s != NULL) {
-					s++;
-					if (s != 0 && reg_dh == 1) c[o++] = '.';
-					for (i=0;i<3;i++) {
-							if (*(s+i) == 0) break;
-							c[o++] = toupper(*(s+i));
-					}
-			}
-			assert(o <= 12);
-			c[o] = 0;
-			MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+            if (reg_dh == 0) memset(c, 0, sizeof(c));
+            if (strcmp(name1, ".") && strcmp(name1, "..")) {
+                const char* s = strrchr(name1, '.');
+                for (i=0;i<8;j++) {
+                        if (name1[j] == 0 || (s==NULL?8:s-name1) <= j) {
+                            if (reg_dh == 0 && s != NULL) for (int j=0; j<8-i; j++) c[o++] = ' ';
+                            break;
+                        }
+                        while (name1[j]&&name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*') j++;
+                        c[o++] = toupper(name1[j]);
+                        i++;
+                }
+                if (s != NULL) {
+                        s++;
+                        if (s != 0 && reg_dh == 1) c[o++] = '.';
+                        j=0;
+                        for (i=0;i<3;i++) {
+                                if (*(s+i+j) == 0) break;
+                                while (*(s+i+j)&&*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*') j++;
+                                c[o++] = toupper(*(s+i+j));
+                        }
+                }
+                assert(o <= 12);
+                c[o] = 0;
+            } else
+                strcpy(c, name1);
+			MEM_BlockWrite(SegPhys(es)+reg_di,c,reg_dh==1?strlen(c)+1:11);
 			reg_ax=0;
 			CALLBACK_SCF(false);
 	} else {
