@@ -40,5 +40,5 @@ static void dyn_mmx_op(Bitu op) {
 }
 
 static void dyn_mmx_emms() {
-	dyn_call_function_pagefault_check((void*)&setFPUTagEmpty, "");
+	gen_call_function((void*)&setFPUTagEmpty, "");
 }
