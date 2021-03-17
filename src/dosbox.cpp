@@ -2710,7 +2710,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.soundfont",Property::Changeable::WhenIdle,"");
-	Pstring->Set_help("Soundfont to use with Fluidsynth. One must be specified.");
+	Pstring->Set_help("Soundfont (.SF2 or .SF3) to use with Fluidsynth. One must be specified (e.g. GeneralUser_GS.sf2).");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.samplerate",Property::Changeable::WhenIdle,"48000");
@@ -3922,7 +3922,7 @@ void DOSBOX_SetupConfigSections(void) {
         "I.e. AC:DE:48:88:99:AB.");
 
     Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
-    Pstring->Set_help("The backend used for Ethernet emulation.");
+    Pstring->Set_help("The backend (pcap or slirp) used for Ethernet emulation.");
     Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
