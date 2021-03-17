@@ -30,12 +30,12 @@ static void dyn_mmx_op(Bitu op) {
 
 	if (decode.modrm.mod < 3) {
 		dyn_fill_ea();
-		gen_call_function((void*)&gen_mmx_op, "%I%I%I%Ddr", op, decode.modrm.val, imm, DREG(EA));
+		dyn_call_function_pagefault_check((void*)&gen_mmx_op, "%I%I%I%Ddr", op, decode.modrm.val, imm, DREG(EA));
 	}
 	else {
 		if ((op == 0x71) || (op == 0x72) || (op == 0x73))
 			decode_fetchb_imm(imm);
-		gen_call_function((void*)&gen_mmx_op, "%I%I%I", op, decode.modrm.val, imm);
+		dyn_call_function_pagefault_check((void*)&gen_mmx_op, "%I%I%I", op, decode.modrm.val, imm);
 	}
 }
 

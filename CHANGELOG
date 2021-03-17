@@ -2,6 +2,8 @@
   - CD-ROM image emulation now supports ISO images
     that are 2GB or larger, 32-bit integer size limit
     has been lifted.
+  - Increased upper limit of "prebuffer" config option
+    (in [mixer] section) from 100 to 250. (Wengier)
   - Added scrollbar buttons to the Configuration Tool,
     so that the scrollbars better resemble the style of
     the Windows 3.1 scrollbars.
@@ -24,17 +26,17 @@
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
-  - Fixed Windows 9x installation failures caused by
-    FAT driver changes in the previous version.
+  - Fixed Windows 95/98 installation failures caused by
+    FAT driver and DOS API changes in previous version.
   - Fixed well-intended but erroneous fall through case
     in the INT15 handler that prevented 3rd party mouse
     drivers from detecting the PS/2 mouse.
+  - Fixed the color issue with the Configuration Tool
+    in the macOS SDL1 build. (ant_222)
   - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
     not working (but "ttf.wp=xy" did work). (Wengier)
   - Fixed preview function in WordStar not working for
     TrueType font output in previous version. (Wengier)
-  - Increased upper limit of "prebuffer" config option
-    (in [mixer] section) from 100 to 250. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4416: Added ability to start and stop avi
     recording, and to start keymapper, from config.
