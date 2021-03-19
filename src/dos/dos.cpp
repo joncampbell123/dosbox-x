@@ -4011,7 +4011,30 @@ void DOS_Int21_716c(char *name1, const char *name2) {
 }
 
 void DOS_Int21_71a0(char *name1, char *name2) {
+		/* NTS:  Windows Millenium Edition's SETUP program will make this LFN call to
+		 *		 canonicalize "C:", except the protected mode kernel does not translate
+		 *		 DS:DX and ES:DI from protected mode. So DS:DX correctly points to
+		 *		 ASCII-Z string "C:" but when the jump is made back to real mode and
+		 *		 our INT 21h is actually called, DS:DX points to unrelated memory and
+		 *		 the string we read is gibberish, and ES:DI likewise point to unrelated
+		 *		 memory.
+		 *
+		 *		 If we write to ES:DI, we corrupt memory in a way that quickly causes
+		 *		 the setup program to fault and crash (often, a Segment Not Present
+		 *		 exception but sometimes worse).
+		 *
+		 *		 The reason nobody ever encounters this error when installing Windows
+		 *		 ME normally from a boot disk is because in pure DOS mode where SETUP
+		 *		 is normally run, LFN functions do not exist. This call, INT 21h AX=71A0h,
+		 *		 will normally return an error (CF=1) without reading or writing any
+		 *		 memory, and SETUP carries on without crashing.
+		 *
+		 *		 Therefore, if you want to install Windows ME from the DOSBox-X DOS
+		 *		 environment, you need to disable Long Filename emulation first before
+		 *		 running SETUP.EXE to avoid crashes and instability during the install
+		 *		 process. --J.C. */
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+
 		if (DOS_Canonicalize(name1,name2)) {
 				if (reg_cx > 3)
 						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
