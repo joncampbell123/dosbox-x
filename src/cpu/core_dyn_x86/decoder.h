@@ -352,10 +352,10 @@ enum save_info_type {db_exception, cycle_check, normal, fpu_restore, trap, page_
 static struct {
 	save_info_type type;
 	DynState state;
-	uint8_t * branch_pos;
+	const uint8_t * branch_pos;
 	uint32_t eip_change;
 	Bitu cycles;
-	uint8_t * return_pos;
+	const uint8_t * return_pos;
 	pagefault_restore pf_restore;
 #ifdef DYN_DEBUG_PAGEFAULT
 	const char * debug_message;
@@ -719,13 +719,13 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	cache_addb(0x85);
 	cache_addd((uint32_t)(&paging.tlb.read[0]));
 	cache_addw(0xc085);		// test eax,eax
-	uint8_t* je_loc=gen_create_branch(BR_Z);
+	const uint8_t* je_loc=gen_create_branch(BR_Z);
 
 
 	cache_addw(0x048a);		// mov al,[eax+ecx]
 	cache_addb(0x08);
 
-	uint8_t* jmp_loc=gen_create_jump();
+	const uint8_t* jmp_loc=gen_create_jump();
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
@@ -801,20 +801,20 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	cache_addb(0x0c);
 	cache_addb(0x3d);       // cmp eax, 0xFFD00000/0xFFF00000
 	cache_addd(dword ? 0xffd00000:0xfff00000);
-	uint8_t* jb_loc1=gen_create_branch(BR_NB);
+	const uint8_t* jb_loc1=gen_create_branch(BR_NB);
 	cache_addb(0x25);       // and eax, 0x000FFFFF
 	cache_addd(0x000fffff);
 	cache_addw(0x048b);		// mov eax,paging.tlb.read[eax*TYPE uint32_t]
 	cache_addb(0x85);
 	cache_addd((uint32_t)(&paging.tlb.read[0]));
 	cache_addw(0xc085);		// test eax,eax
-	uint8_t* je_loc=gen_create_branch(BR_Z);
+	const uint8_t* je_loc=gen_create_branch(BR_Z);
 
 	if (!dword) cache_addb(0x66);
 	cache_addw(0x048b+(genreg->index <<(8+3)));		// mov dest,[eax+ecx]
 	cache_addb(0x08);
 
-	uint8_t* jmp_loc=gen_create_jump();
+	const uint8_t* jmp_loc=gen_create_jump();
 	gen_fill_branch(jb_loc1);
 	gen_fill_branch(je_loc);
 
@@ -879,12 +879,12 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	cache_addb(0x8d);
 	cache_addd((uint32_t)(&paging.tlb.write[0]));
 	cache_addw(0xc985);		// test ecx,ecx
-	uint8_t* je_loc=gen_create_branch(BR_Z);
+	const uint8_t* je_loc=gen_create_branch(BR_Z);
 
 	cache_addw(0x0488+(genreg->index<<11)+(high?0x2000:0));		// mov [eax+ecx],reg
 	cache_addb(0x08);
 
-	uint8_t* jmp_loc=gen_create_jump();
+	const uint8_t* jmp_loc=gen_create_jump();
 	gen_fill_branch(je_loc);
 
 	cache_addb(0x52);	// push edx
@@ -916,20 +916,20 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	cache_addb(0x0c);
 	cache_addw(0xf981);     // cmp ecx, 0xFFD00000/0xFFF00000
 	cache_addd(dword ? 0xffd00000:0xfff00000);
-	uint8_t* jb_loc1=gen_create_branch(BR_NB);
+	const uint8_t* jb_loc1=gen_create_branch(BR_NB);
 	cache_addw(0xe181);     // and ecx, 0x000FFFFF
 	cache_addd(0x000fffff);
 	cache_addw(0x0c8b);		// mov ecx,paging.tlb.write[ecx*TYPE uint32_t]
 	cache_addb(0x8d);
 	cache_addd((uint32_t)(&paging.tlb.write[0]));
 	cache_addw(0xc985);		// test ecx,ecx
-	uint8_t* je_loc=gen_create_branch(BR_Z);
+	const uint8_t* je_loc=gen_create_branch(BR_Z);
 
 	if (!dword) cache_addb(0x66);
 	cache_addw(0x0489+(genreg->index <<(8+3)));		// mov [eax+ecx],reg
 	cache_addb(0x08);
 
-	uint8_t* jmp_loc=gen_create_jump();
+	const uint8_t* jmp_loc=gen_create_jump();
 	gen_fill_branch(jb_loc1);
 	gen_fill_branch(je_loc);
 
@@ -1043,7 +1043,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	x64gen.regs[reg_args[1]]->notusable=false;
 	dyn_savestate(&callstate);
 
-	uint8_t *page_brk;
+	const uint8_t *page_brk;
 	opcode(tmp).set64().setea(gensrc->index,-1,0,dword?3:1).Emit8(0x8D); // lea tmp, [dst+(dword?3:1)]
 	if (dword) {
 		opcode(4).set64().setimm(~0xFFF,4).setrm(tmp).Emit8(0x81); // and tmp, ~0xFFF
@@ -1058,16 +1058,16 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	// mov tmp, [8*tmp+paging.tlb.read(rbp)]
 	opcode(tmp).set64().setea(5,tmp,3,(Bits)paging.tlb.read-(Bits)&cpu_regs).Emit8(0x8B);
 	opcode(tmp).set64().setrm(tmp).Emit8(0x85); // test tmp,tmp
-	uint8_t *nomap=gen_create_branch(BR_Z);
+	const uint8_t *nomap=gen_create_branch(BR_Z);
 	//mov dst, [tmp+src]
 	opcode(gendst->index,dword).setea(tmp,gensrc->index).Emit8(0x8B);
-	uint8_t* jmp_loc = gen_create_jump();
+	const uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
 	gen_load_imm(tmp, (Bitu)(dword
 		?(void*)(use_dynamic_core_with_paging ? mem_unalignedreadd_checked_pagefault : mem_unalignedreadd_checked)
 		:(void*)(use_dynamic_core_with_paging ? mem_unalignedreadw_checked_pagefault : mem_unalignedreadw_checked)));
-	uint8_t* page_jmp = gen_create_short_jump();
+	const uint8_t* page_jmp = gen_create_short_jump();
 
 	gen_fill_branch(nomap);
 	gen_load_imm(tmp, (Bitu)(dword
@@ -1109,7 +1109,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	// mov tmp, [8*tmp+paging.tlb.read(rbp)]
 	opcode(tmp).set64().setea(5,tmp,3,(Bits)paging.tlb.read-(Bits)&cpu_regs).Emit8(0x8B);
 	opcode(tmp).set64().setrm(tmp).Emit8(0x85); // test tmp,tmp
-	uint8_t *nomap=gen_create_branch(BR_Z);
+	const uint8_t *nomap=gen_create_branch(BR_Z);
 
 	int src = gensrc->index;
 	if (high && src>=8) { // can't use REX prefix with high-byte reg
@@ -1118,7 +1118,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	}
 	// mov dst, byte [tmp+src]
 	opcode(gendst->index,true,high?4:0).setea(tmp,src).Emit8(0x8A);
-	uint8_t* jmp_loc=gen_create_jump();
+	const uint8_t* jmp_loc=gen_create_jump();
 
 	gen_fill_branch(nomap);
 	if (gensrc->index != ARG0_REG) {
@@ -1152,7 +1152,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	if (release) gen_releasereg(addr);
 	dyn_savestate(&callstate);
 
-	uint8_t *page_brk;
+	const uint8_t *page_brk;
 	opcode(tmp).set64().setea(gendst->index,-1,0,dword?3:1).Emit8(0x8D); // lea tmp, [dst+(dword?3:1)]
 	if (dword) {
 		opcode(4).set64().setimm(~0xFFF,4).setrm(tmp).Emit8(0x81); // and tmp, ~0xFFF
@@ -1167,16 +1167,16 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	// mov tmp, [8*tmp+paging.tlb.write(rbp)]
 	opcode(tmp).set64().setea(5,tmp,3,(Bits)paging.tlb.write-(Bits)&cpu_regs).Emit8(0x8B);
 	opcode(tmp).set64().setrm(tmp).Emit8(0x85); // test tmp,tmp
-	uint8_t *nomap=gen_create_branch(BR_Z);
+	const uint8_t *nomap=gen_create_branch(BR_Z);
 	//mov [tmp+src], dst
 	opcode(genval->index,dword).setea(tmp,gendst->index).Emit8(0x89);
-	uint8_t* jmp_loc = gen_create_jump();
+	const uint8_t* jmp_loc = gen_create_jump();
 
 	gen_fill_branch(page_brk);
 	gen_load_imm(tmp, (Bitu)(dword
 		?(void*)(use_dynamic_core_with_paging ? mem_unalignedwrited_checked_pagefault : mem_unalignedwrited_checked)
 		:(void*)(use_dynamic_core_with_paging ? mem_unalignedwritew_checked_pagefault : mem_unalignedwritew_checked)));
-	uint8_t* page_jmp = gen_create_short_jump();
+	const uint8_t* page_jmp = gen_create_short_jump();
 	gen_fill_branch(nomap);
 	gen_load_imm(tmp, (Bitu)(dword
 		?(void*)(use_dynamic_core_with_paging ? mem_writed_checked_dcx64_pagefault : mem_writed_checked_dcx64)
@@ -1213,7 +1213,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	// mov tmp, [8*tmp+paging.tlb.write(rbp)]
 	opcode(tmp).set64().setea(5,tmp,3,(Bits)paging.tlb.write-(Bits)&cpu_regs).Emit8(0x8B);
 	opcode(tmp).set64().setrm(tmp).Emit8(0x85); // test tmp,tmp
-	uint8_t *nomap=gen_create_branch(BR_Z);
+	const uint8_t *nomap=gen_create_branch(BR_Z);
 
 	int dst = gendst->index;
 	if (high && dst>=8) { // can't use REX prefix with high-byte reg
@@ -1223,7 +1223,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	// mov byte [tmp+src], val
 	opcode(genval->index,true,high?4:0).setea(tmp,dst).Emit8(0x88);
 
-	uint8_t* jmp_loc=gen_create_short_jump();
+	const uint8_t* jmp_loc=gen_create_short_jump();
 	gen_fill_branch(nomap);
 
 	if (gendst->index != ARG0_REG) {
@@ -1705,9 +1705,9 @@ static void dyn_set_cc(BranchTypes btype) {
 	
 	gen_needflags();
 	gen_preloadreg(rm_reg);
-	uint8_t * mov_1_start = gen_create_branch(btype);
+	const uint8_t * mov_1_start = gen_create_branch(btype);
 	gen_dop_byte_imm(DOP_MOV,rm_reg,rm_regi,0);
-	uint8_t * mov_0_end = gen_create_short_jump();
+	const uint8_t * mov_0_end = gen_create_short_jump();
 	gen_fill_branch(mov_1_start);
 	gen_dop_byte_imm(DOP_MOV,rm_reg,rm_regi,1);
 	gen_fill_short_jump(mov_0_end);
@@ -1794,7 +1794,7 @@ static void dyn_cmpxchg_evgv(void) {
 	gen_dop_word(DOP_MOV,decode.big_op,DREG(TMPB),&DynRegs[decode.modrm.reg]);
 	// TMPB=src,TMPW=temp
 	gen_dop_word(DOP_CMP,decode.big_op,DREG(EAX),DREG(TMPW));
-	uint8_t * branch=gen_create_branch(BR_Z);
+	const uint8_t * branch=gen_create_branch(BR_Z);
 	// if eax!=temp: TMPB=temp
 	gen_dop_word(DOP_MOV,decode.big_op,DREG(TMPB),DREG(TMPW));
 	gen_fill_branch(branch);
@@ -2206,7 +2206,7 @@ static void dyn_branched_exit(BranchTypes btype,int32_t eip_add) {
 	DynReg save_cycles,save_eip;
 	dyn_saveregister(DREG(CYCLES),&save_cycles);
 	dyn_saveregister(DREG(EIP),&save_eip);
-	uint8_t * data=gen_create_branch(btype);
+	const uint8_t * data=gen_create_branch(btype);
 
  	/* Branch not taken */
 	dyn_reduce_cycles();
@@ -2233,7 +2233,7 @@ enum LoopTypes {
 
 static void dyn_loop(LoopTypes type) {
 	Bits eip_add=(int8_t)decode_fetchb();
-	uint8_t * branch1=0;uint8_t * branch2=0;
+	const uint8_t * branch1=0;const uint8_t * branch2=0;
 	gen_preloadreg(DREG(ECX));
 	gen_preloadreg(DREG(CYCLES));
 	gen_preloadreg(DREG(EIP));
@@ -2428,7 +2428,7 @@ static void dyn_larlsl(bool islar) {
 		gen_releasereg(DREG(TMPW));
 		DynState s;
 		dyn_savestate(&s);
-		uint8_t *is_pmode = gen_create_branch(BR_Z);
+		const uint8_t *is_pmode = gen_create_branch(BR_Z);
 		gen_call_function((void*)CPU_PrepareException,"%Id%Id",EXCEPTION_UD,0);
 		dyn_check_bool_exception_al();
 		gen_fill_branch(is_pmode);
@@ -2447,7 +2447,7 @@ static void dyn_larlsl(bool islar) {
 	dyn_flags_host_to_gen();
 	gen_needflags();
 	gen_preloadreg(&DynRegs[decode.modrm.reg]);
-	uint8_t *br = gen_create_branch(BR_NZ);
+	const uint8_t *br = gen_create_branch(BR_NZ);
 	gen_mov_host(&core_dyn.readdata, &DynRegs[decode.modrm.reg], decode.big_op?4:2);
 	gen_fill_branch(br);
 }

@@ -80,8 +80,8 @@ static void dyn_string(STRING_OP op) {
 	}
 	DynState rep_state, cmp_state;
 	dyn_savestate(&rep_state);
-	uint8_t * rep_start=cache.pos;
-	uint8_t * rep_ecx_jmp, * rep_cmp_jmp;
+	const uint8_t * rep_start=cache.pos;
+	const uint8_t * rep_ecx_jmp, * rep_cmp_jmp;
 	/* Check if ECX!=zero */
 	if (decode.rep) {
 		gen_dop_word(DOP_TEST,decode.big_addr,DREG(ECX),DREG(ECX));

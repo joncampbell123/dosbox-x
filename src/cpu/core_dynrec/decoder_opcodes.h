@@ -459,7 +459,7 @@ static void dyn_pop_ev(void) {
 		if (decode.big_op) gen_call_function_raw(mem_writed_checked_drc);
 		else gen_call_function_raw(mem_writew_checked_drc);
 		gen_extend_byte(false,FC_RETOP); // bool -> dword
-		DRC_PTR_SIZE_IM no_fault = gen_create_branch_on_zero(FC_RETOP, true);
+		const uint8_t* no_fault = gen_create_branch_on_zero(FC_RETOP, true);
 		// restore original ESP
 		gen_restore_reg(FC_OP2);
 		MOV_REG_WORD32_FROM_HOST_REG(FC_OP2,DRC_REG_ESP);
@@ -1040,7 +1040,7 @@ static void dyn_larlsl(bool is_lar) {
 	gen_extend_word(false,FC_RETOP);
 	if (is_lar) gen_call_function((void*)CPU_LAR,"%R%A",FC_RETOP,(DRC_PTR_SIZE_IM)&core_dynrec.readdata);
 	else gen_call_function((void*)CPU_LSL,"%R%A",FC_RETOP,(DRC_PTR_SIZE_IM)&core_dynrec.readdata);
-	DRC_PTR_SIZE_IM brnz=gen_create_branch_on_nonzero(FC_RETOP,true);
+	const uint8_t* brnz=gen_create_branch_on_nonzero(FC_RETOP,true);
 	gen_mov_word_to_reg(FC_OP2,&core_dynrec.readdata,true);
 	MOV_REG_WORD_FROM_HOST_REG(FC_OP2,decode.modrm.reg,decode.big_op);
 	gen_fill_branch(brnz);
@@ -1050,7 +1050,7 @@ static void dyn_larlsl(bool is_lar) {
 
 static void dyn_mov_from_crx(void) {
 	dyn_get_modrm();
-	gen_call_function_IA(CPU_READ_CRX,decode.modrm.reg,(DRC_PTR_SIZE_IM)&core_dynrec.readdata);
+	gen_call_function_IA(CPU_READ_CRX,decode.modrm.reg,(Bitu)&core_dynrec.readdata);
 	dyn_check_exception(FC_RETOP);
 	gen_mov_word_to_reg(FC_OP2,&core_dynrec.readdata,true);
 	MOV_REG_WORD32_FROM_HOST_REG(FC_OP2,decode.modrm.rm);
@@ -1111,7 +1111,7 @@ static void dyn_branched_exit(BranchTypes btype,int32_t eip_add) {
 	dyn_reduce_cycles();
 
 	dyn_branchflag_to_reg(btype);
-	DRC_PTR_SIZE_IM data=gen_create_branch_on_nonzero(FC_RETOP,true);
+	const uint8_t* data=gen_create_branch_on_nonzero(FC_RETOP,true);
 
  	// Branch not taken
 	gen_add_direct_word(&reg_eip,eip_base,decode.big_op);
@@ -1142,8 +1142,8 @@ static void dyn_loop(LoopTypes type) {
 	dyn_reduce_cycles();
 	int8_t eip_add=(int8_t)decode_fetchb();
 	uint32_t eip_base=decode.code-decode.code_start;
-	DRC_PTR_SIZE_IM branch1=0;
-	DRC_PTR_SIZE_IM branch2=0;
+	const uint8_t* branch1=0;
+	const uint8_t* branch2=0;
 	switch (type) {
 	case LOOP_E:
 		dyn_branchflag_to_reg(BR_NZ);

@@ -29,9 +29,6 @@
 // try to replace _simple functions by code
 #define DRC_FLAGS_INVALIDATION_DCODE
 
-// type with the same size as a pointer
-#define DRC_PTR_SIZE_IM uint64_t
-
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */
 #define DRC_FC			/* nothing */
@@ -290,7 +287,7 @@ static void gen_mov_direct_dword(void* dest,uint32_t imm) {
 
 
 // move an address into memory
-static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
+static void INLINE gen_mov_direct_ptr(void* dest,Bitu imm) {
 	gen_mov_reg_qword(HOST_EAX,imm);
 	gen_mov_word_from_reg(HOST_EAX,dest,true,0x48);		// 0x48 prefixes full 64-bit mov
 }
@@ -383,11 +380,11 @@ template <typename T> static void INLINE gen_call_function_raw(const T func) {
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-template <typename T> static uint64_t INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+template <typename T> static INLINE const uint8_t* gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
 	(void)paramcount;
 	(void)fastcall;
 
-	uint64_t proc_addr = (uint64_t)cache.pos;
+	const uint8_t* proc_addr = cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }
@@ -427,7 +424,7 @@ static void INLINE gen_load_param_imm(Bitu imm,Bitu param) {
 }
 
 // load an address as param'th function parameter
-static void INLINE gen_load_param_addr(DRC_PTR_SIZE_IM addr,Bitu param) {
+static void INLINE gen_load_param_addr(Bitu addr,Bitu param) {
 	// move an immediate 64bit value into a 64bit param reg
 	switch (param) {
 		case 0:			// mov param1,addr64
@@ -545,40 +542,40 @@ static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 
 // short conditional jump (+-127 bytes) if register is zero
 // the destination is set by gen_fill_branch() later
-static uint64_t gen_create_branch_on_zero(HostReg reg,bool dword) {
+static const uint8_t* gen_create_branch_on_zero(HostReg reg,bool dword) {
 	if (!dword) cache_addb(0x66);
 	cache_addb(0x0b);					// or reg,reg
 	cache_addb(0xc0+reg+(reg<<3));
 
 	cache_addw(0x0074);					// jz addr
-	return ((uint64_t)cache.pos-1);
+	return (cache.pos-1);
 }
 
 // short conditional jump (+-127 bytes) if register is nonzero
 // the destination is set by gen_fill_branch() later
-static uint64_t gen_create_branch_on_nonzero(HostReg reg,bool dword) {
+static const uint8_t* gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 	if (!dword) cache_addb(0x66);
 	cache_addb(0x0b);					// or reg,reg
 	cache_addb(0xc0+reg+(reg<<3));
 
 	cache_addw(0x0075);					// jnz addr
-	return ((uint64_t)cache.pos-1);
+	return (cache.pos-1);
 }
 
 // calculate relative offset and fill it into the location pointed to by data
-static void gen_fill_branch(DRC_PTR_SIZE_IM data) {
+static void gen_fill_branch(const uint8_t* data) {
 #if C_DEBUG
-	int64_t len=(uint64_t)cache.pos-data;
+	int64_t len=cache.pos-data;
 	if (len<0) len=-len;
 	if (len>126) LOG_MSG("Big jump %d",(int)len);
 #endif
-	*(uint8_t*)data=(uint8_t)((uint64_t)cache.pos-data-1);
+	cache_addb((uint8_t)(cache.pos-data-1),data);
 }
 
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
-static uint64_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+static const uint8_t* gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	// isdword: cmp reg32,0
 	// not isdword: cmp reg8,0
 	cache_addb(0x0a+(isdword?1:0));				// or reg,reg
@@ -586,22 +583,22 @@ static uint64_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 
 	cache_addw(0x850f);		// jnz
 	cache_addd(0);
-	return ((uint64_t)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // compare 32bit-register against zero and jump if value less/equal than zero
-static uint64_t gen_create_branch_long_leqzero(HostReg reg) {
+static const uint8_t* gen_create_branch_long_leqzero(HostReg reg) {
 	cache_addw(0xf883+(reg<<8));
 	cache_addb(0x00);		// cmp reg,0
 
 	cache_addw(0x8e0f);		// jle
 	cache_addd(0);
-	return ((uint64_t)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // calculate long relative offset and fill it into the location pointed to by data
-static void gen_fill_branch_long(uint64_t data) {
-	*(uint32_t*)data=(uint32_t)((uint64_t)cache.pos-data-4);
+static void gen_fill_branch_long(const uint8_t* data) {
+	cache_addd((uint32_t)(cache.pos-data-4),data);
 }
 
 static void gen_run_code(void) {
@@ -624,7 +621,7 @@ static void gen_return_function(void) {
 // call to a simpler function
 // check gen_call_function_raw and gen_call_function_setup
 // for the targeted code
-static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(const uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	// try to avoid function calls but rather directly fill in code
 	switch (flags_type) {
@@ -632,41 +629,36 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 		case t_ADDw:
 		case t_ADDd:
 			// mov eax,FC_OP1; add eax,FC_OP2
-			*(uint32_t*)(pos+0)=0xc001c089+(FC_OP1<<11)+(FC_OP2<<27);
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addd(0xC001c089+(FC_OP1<<11)+(FC_OP2<<27),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_ORb:
 		case t_ORw:
 		case t_ORd:
 			// mov eax,FC_OP1; or eax,FC_OP2
-			*(uint32_t*)(pos+0)=0xc009c089+(FC_OP1<<11)+(FC_OP2<<27);
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addd(0xc009c089+(FC_OP1<<11)+(FC_OP2<<27),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_ANDb:
 		case t_ANDw:
 		case t_ANDd:
 			// mov eax,FC_OP1; and eax,FC_OP2
-			*(uint32_t*)(pos+0)=0xc021c089+(FC_OP1<<11)+(FC_OP2<<27);
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addd(0xc021c089+(FC_OP1<<11)+(FC_OP2<<27),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_SUBb:
 		case t_SUBw:
 		case t_SUBd:
 			// mov eax,FC_OP1; sub eax,FC_OP2
-			*(uint32_t*)(pos+0)=0xc029c089+(FC_OP1<<11)+(FC_OP2<<27);
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addd(0xc029c089+(FC_OP1<<11)+(FC_OP2<<27),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_XORb:
 		case t_XORw:
 		case t_XORd:
 			// mov eax,FC_OP1; xor eax,FC_OP2
-			*(uint32_t*)(pos+0)=0xc031c089+(FC_OP1<<11)+(FC_OP2<<27);
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addd(0xc031c089+(FC_OP1<<11)+(FC_OP2<<27),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_CMPb:
 		case t_CMPw:
@@ -674,38 +666,36 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 		case t_TESTb:
 		case t_TESTw:
 		case t_TESTd:
-			*(uint32_t*)(pos+0)=0x90900aeb;	// skip
-			*(uint32_t*)(pos+4)=0x90909090;
-			*(uint32_t*)(pos+8)=0x90909090;
+			cache_addw(0x0aeb,pos);         // skip
 			return;
 		case t_INCb:
 		case t_INCw:
 		case t_INCd:
-			*(uint32_t*)(pos+0)=0xc0ffc089+(FC_OP1<<11); // mov eax,ecx; inc eax
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
-				return;
+			// mov eax,FC_OP1; inc eax
+			cache_addd(0xc0ffc089+(FC_OP1<<11),pos);
+			cache_addw(0x06eb,pos+4);       // skip
+			return;
 		case t_DECb:
 		case t_DECw:
 		case t_DECd:
-			*(uint32_t*)(pos+0)=0xc8ffc089+(FC_OP1<<11); // mov eax, FC_OP1; dec eax
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			// mov eax,FC_OP1; dec eax
+			cache_addd(0xc8ffc089+(FC_OP1<<11),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 		case t_NEGb:
 		case t_NEGw:
 		case t_NEGd:
-			*(uint32_t*)(pos+0)=0xd8f7c089+(FC_OP1<<11); // mov eax, FC_OP1; neg eax
-			*(uint32_t*)(pos+4)=0x909006eb;	// skip
-			*(uint32_t*)(pos+8)=0x90909090;
+			// mov eax,FC_OP1; neg eax
+			cache_addd(0xd8f7c089+(FC_OP1<<11),pos);
+			cache_addw(0x06eb,pos+4);       // skip
 			return;
 	}
 #endif
-	*(uint64_t*)(pos+2)=(uint64_t)fct_ptr;		// fill function pointer
+	cache_addq((uint64_t)fct_ptr,pos+2);      // fill function pointer
 }
 #endif
 
-static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
+static void cache_block_closing(const uint8_t* block_start,Bitu block_size) {
 	(void)block_start;
 	(void)block_size;
 }

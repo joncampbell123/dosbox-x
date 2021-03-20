@@ -269,13 +269,13 @@ public:
 	}
 };
 
-static BlockReturn gen_runcodeInit(uint8_t *code);
-static BlockReturn (*gen_runcode)(uint8_t *code) = gen_runcodeInit;
+static BlockReturn gen_runcodeInit(const uint8_t *code);
+static BlockReturn (*gen_runcode)(const uint8_t *code) = gen_runcodeInit;
 
-static BlockReturn gen_runcodeInit(uint8_t *code) {
-	uint8_t* oldpos = cache.pos;
+static BlockReturn gen_runcodeInit(const uint8_t *code) {
+	const uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[128];
-	gen_runcode = (BlockReturn(*)(uint8_t*))cache_rwtox(cache.pos);
+	gen_runcode = (BlockReturn(*)(const uint8_t*))cache_rwtox(cache.pos);
 
 	opcode(5).Emit8Reg(0x50);  // push rbp
 	opcode(15).Emit8Reg(0x50); // push r15
@@ -296,7 +296,7 @@ static BlockReturn gen_runcodeInit(uint8_t *code) {
 	opcode(15).set64().setrm(4).Emit8(0x8B);  // mov r15, rsp
 	opcode(0).setimm(FMASK_TEST,4).Emit8Reg(0x25); // and eax, FMASK_TEST
 	cache_addb(0x48);cache_addw(0x158D); // lea rdx, [rip+simm32]
-	uint8_t *diff = cache.pos;
+	const uint8_t *diff = cache.pos;
 	cache_addd(0);
 	opcode(4).set64().setrm(4).setimm(~15,1).Emit8(0x83); // and rsp, ~15
 	opcode(15).Emit8Reg(0x50);  // push r15
@@ -305,7 +305,7 @@ static BlockReturn gen_runcodeInit(uint8_t *code) {
 	opcode(0).setea(4,-1,0,CALLSTACK).Emit8(0x89);  // mov [rsp+8/40], eax
 	opcode(4).setrm(ARG0_REG).Emit8(0xFF);   // jmp ARG0
 
-	*(uint32_t*)diff = (uint32_t)(cache.pos - diff - 4);
+	cache_addd((uint32_t)(cache.pos - diff - 4),diff);
 	// eax = return value, ecx = flags
 	opcode(1).setea(5,-1,0,offsetof(CPU_Regs,flags)).Emit8(0x33); // xor ecx, reg_flags
 	opcode(4).setrm(1).setimm(FMASK_TEST,4).Emit8(0x81);          // and ecx,FMASK_TEST
@@ -1149,56 +1149,50 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	gen_call_ptr(func);
 }
 
-static uint8_t * gen_create_branch(BranchTypes type) {
+static const uint8_t * gen_create_branch(BranchTypes type) {
 	/* First free all registers */
 	cache_addw(0x70+type);
 	return (cache.pos-1);
 }
 
-static void gen_fill_branch(uint8_t * data,uint8_t * from=cache.pos) {
+static void gen_fill_branch(const uint8_t * data,const uint8_t * from=cache.pos) {
 #if C_DEBUG
 	Bits len=from-data-1;
 	if (len<0) len=~len;
 	if (len>127)
 		LOG_MSG("Big jump %d",len);
 #endif
-	*data=(uint8_t)(from-data-1);
+	cache_addb((uint8_t)(from-data-1),data);
 }
 
-static uint8_t * gen_create_branch_long(BranchTypes type) {
+static const uint8_t * gen_create_branch_long(BranchTypes type) {
 	cache_addw(0x800f+(type<<8));
 	cache_addd(0);
 	return (cache.pos-4);
 }
 
-static void gen_fill_branch_long(uint8_t * data,uint8_t * from=cache.pos) {
-	*(uint32_t*)data=(uint32_t)(from-data-4);
+static void gen_fill_branch_long(const uint8_t * data,const uint8_t * from=cache.pos) {
+	cache_addd((uint32_t)(from-data-4),data);
 }
 
-static uint8_t * gen_create_jump(uint8_t * to=0) {
+static const uint8_t * gen_create_jump(const uint8_t * to=0) {
 	/* First free all registers */
 	cache_addb(0xe9);
 	cache_addd((uint32_t)(to-(cache.pos+4)));
 	return (cache.pos-4);
 }
 
-static void gen_fill_jump(uint8_t * data,uint8_t * to=cache.pos) {
-	*(uint32_t*)data=(uint32_t)(to-data-4);
+static void gen_fill_jump(const uint8_t * data,const uint8_t * to=cache.pos) {
+	gen_fill_branch_long(data,to);
 }
 
-static uint8_t * gen_create_short_jump(void) {
+static const uint8_t * gen_create_short_jump(void) {
 	cache_addw(0x00EB);
 	return cache.pos-1;
 }
 
-static void gen_fill_short_jump(uint8_t * data, uint8_t * to=cache.pos) {
-#if C_DEBUG
-	Bits len=to-data-1;
-	if (len<0) len=~len;
-	if (len>127)
-		LOG_MSG("Big jump %d",len);
-#endif
-	data[0] = (uint8_t)(to-data-1);
+static void gen_fill_short_jump(const uint8_t * data, const uint8_t * to=cache.pos) {
+	gen_fill_branch(data, to);
 }
 
 static void gen_jmp_ptr(void * _ptr,int32_t imm=0) {
@@ -1341,7 +1335,7 @@ static void (*gen_dh_fpu_save)(void)  = gen_dh_fpu_saveInit;
 
 // DO NOT USE opcode::setabsaddr IN THIS FUNCTION (RBP unavailable at execution time)
 static void gen_dh_fpu_saveInit(void) {
-	uint8_t* oldpos = cache.pos;
+	const uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[64];
 	gen_dh_fpu_save = (void(*)(void))cache_rwtox(cache.pos);
 

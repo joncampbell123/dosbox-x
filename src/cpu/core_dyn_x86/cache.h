@@ -31,7 +31,7 @@ public:
 		CodePageHandler * handler;		//Page containing this code
 	} page;
 	struct {
-		uint8_t * start;					//Where in the cache are we
+		const uint8_t * start;				//Where in the cache are we
 		uint8_t * xstart;					//Where in the cache are we
 		Bitu size;
 		CacheBlock * next;
@@ -58,7 +58,7 @@ static struct {
 		CacheBlock * free;
 		CacheBlock * running;
 	} block;
-	uint8_t * pos;
+	const uint8_t * pos;		// position in the cache block
 	CodePageHandler * free_pages;
 	CodePageHandler * used_pages;
 	CodePageHandler * last_page;
@@ -391,7 +391,7 @@ void CacheBlock::Clear(void) {
 	}
 }
 
-static INLINE void *cache_rwtox(void *x);
+static INLINE void *cache_rwtox(const void *x);
 
 static CacheBlock * cache_openblock(void) {
 	CacheBlock * block=cache.block.active;
@@ -455,38 +455,38 @@ static void cache_closeblock(void) {
 	}
 }
 
-static INLINE void cache_addb(uint8_t val,uint8_t *pos) {
-	*pos=val;
+static INLINE void cache_addb(uint8_t val,const uint8_t *pos) {
+	*(uint8_t*)pos = val;
 }
 static INLINE void cache_addb(uint8_t val) {
-	uint8_t *pos=cache.pos+1;
+	const uint8_t *pos=cache.pos+1;
 	cache_addb(val,cache.pos);
 	cache.pos=pos;
 }
 
-static INLINE void cache_addw(uint16_t val,uint8_t *pos) {
+static INLINE void cache_addw(uint16_t val,const uint8_t *pos) {
 	*(uint16_t*)pos=val;
 }
 static INLINE void cache_addw(uint16_t val) {
-	uint8_t *pos=cache.pos+2;
+	const uint8_t *pos=cache.pos+2;
 	cache_addw(val,cache.pos);
 	cache.pos=pos;
 }
 
-static INLINE void cache_addd(uint32_t val,uint8_t *pos) {
+static INLINE void cache_addd(uint32_t val,const uint8_t *pos) {
 	*(uint32_t*)pos=val;
 }
 static INLINE void cache_addd(uint32_t val) {
-	uint8_t *pos=cache.pos+4;
+	const uint8_t *pos=cache.pos+4;
 	cache_addd(val,cache.pos);
 	cache.pos=pos;
 }
 
-static INLINE void cache_addq(uint64_t val,uint8_t *pos) {
+static INLINE void cache_addq(uint64_t val,const uint8_t *pos) {
 	*(uint64_t*)pos=val;
 }
 static INLINE void cache_addq(uint64_t val) {
-	uint8_t *pos=cache.pos+8;
+	const uint8_t *pos=cache.pos+8;
 	cache_addq(val,cache.pos);
 	cache.pos=pos;
 }

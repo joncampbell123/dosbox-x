@@ -35,7 +35,7 @@ public:
 		CodePageHandlerDynRec * handler;			// page containing this code
 	} page;
 	struct {
-		uint8_t * start;			// where in the cache are we
+		const uint8_t * start;		// where in the cache are we
 		uint8_t * xstart;			// where in the cache are we, executable mapping (because so much of the risc generation points at this pointer!)
 		Bitu size;
 		CacheBlockDynRec * next;
@@ -64,7 +64,7 @@ static struct {
 		CacheBlockDynRec * free;		// pointer to the free list
 		CacheBlockDynRec * running;		// the last block that was entered for execution
 	} block;
-	uint8_t * pos;		// position in the cache block
+	const uint8_t * pos;		// position in the cache block
 	CodePageHandlerDynRec * free_pages;		// pointer to the free list
 	CodePageHandlerDynRec * used_pages;		// pointer to the list of used pages
 	CodePageHandlerDynRec * last_page;		// the last used page
@@ -486,7 +486,7 @@ void CacheBlockDynRec::Clear(void) {
 	}
 }
 
-static INLINE void *cache_rwtox(void *x);
+static INLINE void *cache_rwtox(const void *x);
 
 static CacheBlockDynRec * cache_openblock(void) {
 	CacheBlockDynRec * block=cache.block.active;
@@ -557,41 +557,41 @@ static void cache_closeblock(void) {
 
 
 // place an 8bit value into the cache
-static INLINE void cache_addb(uint8_t val,uint8_t *pos) {
-	*pos=val;
+static INLINE void cache_addb(uint8_t val,const uint8_t *pos) {
+	*(uint8_t*)pos = val;
 }
 static INLINE void cache_addb(uint8_t val) {
-	uint8_t *pos=cache.pos+1;
+	const uint8_t *pos=cache.pos+1;
 	cache_addb(val,cache.pos);
 	cache.pos=pos;
 }
 
 // place a 16bit value into the cache
-static INLINE void cache_addw(uint16_t val,uint8_t *pos) {
+static INLINE void cache_addw(uint16_t val,const uint8_t *pos) {
 	*(uint16_t*)pos=val;
 }
 static INLINE void cache_addw(uint16_t val) {
-	uint8_t *pos=cache.pos+2;
+	const uint8_t *pos=cache.pos+2;
 	cache_addw(val,cache.pos);
 	cache.pos=pos;
 }
 
 // place a 32bit value into the cache
-static INLINE void cache_addd(uint32_t val,uint8_t *pos) {
+static INLINE void cache_addd(uint32_t val,const uint8_t *pos) {
 	*(uint32_t*)pos=val;
 }
 static INLINE void cache_addd(uint32_t val) {
-	uint8_t *pos=cache.pos+4;
+	const uint8_t *pos=cache.pos+4;
 	cache_addd(val,cache.pos);
 	cache.pos=pos;
 }
 
 // place a 64bit value into the cache
-static INLINE void cache_addq(uint64_t val,uint8_t *pos) {
+static INLINE void cache_addq(uint64_t val,const uint8_t *pos) {
 	*(uint64_t*)pos=val;
 }
 static INLINE void cache_addq(uint64_t val) {
-	uint8_t *pos=cache.pos+8;
+	const uint8_t *pos=cache.pos+8;
 	cache_addq(val,cache.pos);
 	cache.pos=pos;
 }

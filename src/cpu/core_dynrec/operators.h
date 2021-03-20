@@ -1310,20 +1310,20 @@ static uint32_t DRC_CALL_CONV dynrec_dshr_dword_simple(uint32_t op1,uint32_t op2
 
 static void dyn_dpshift_word_gencall(bool left) {
 	if (left) {
-		DRC_PTR_SIZE_IM proc_addr=gen_call_function_R3(dynrec_dshl_word,FC_OP3);
+		const uint8_t* proc_addr=gen_call_function_R3(dynrec_dshl_word,FC_OP3);
 		InvalidateFlagsPartially(dynrec_dshl_word_simple,proc_addr,t_DSHLw);
 	} else {
-		DRC_PTR_SIZE_IM proc_addr=gen_call_function_R3(dynrec_dshr_word,FC_OP3);
+		const uint8_t* proc_addr=gen_call_function_R3(dynrec_dshr_word,FC_OP3);
 		InvalidateFlagsPartially(dynrec_dshr_word_simple,proc_addr,t_DSHRw);
 	}
 }
 
 static void dyn_dpshift_dword_gencall(bool left) {
 	if (left) {
-		DRC_PTR_SIZE_IM proc_addr=gen_call_function_R3(dynrec_dshl_dword,FC_OP3);
+		const uint8_t* proc_addr=gen_call_function_R3(dynrec_dshl_dword,FC_OP3);
 		InvalidateFlagsPartially(dynrec_dshl_dword_simple,proc_addr,t_DSHLd);
 	} else {
-		DRC_PTR_SIZE_IM proc_addr=gen_call_function_R3(dynrec_dshr_dword,FC_OP3);
+		const uint8_t* proc_addr=gen_call_function_R3(dynrec_dshr_dword,FC_OP3);
 		InvalidateFlagsPartially(dynrec_dshr_dword_simple,proc_addr,t_DSHRd);
 	}
 }

@@ -32,9 +32,6 @@
 // try to replace _simple functions by code
 #define DRC_FLAGS_INVALIDATION_DCODE
 
-// type with the same size as a pointer
-#define DRC_PTR_SIZE_IM uint64_t
-
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */
 #define DRC_FC			/* nothing */
@@ -670,7 +667,7 @@ static void gen_mov_direct_dword(void* dest,uint32_t imm) {
 }
 
 // move an address into memory
-static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
+static void INLINE gen_mov_direct_ptr(void* dest,Bitu imm) {
 	gen_mov_qword_to_reg_imm(temp3, imm);
 	if (!gen_mov_memval_from_reg(temp3, dest, 8)) {
 		gen_mov_qword_to_reg_imm(temp1, (uint64_t)dest);
@@ -768,8 +765,8 @@ template <typename T> static void INLINE gen_call_function_raw(const T func) {
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
-    DRC_PTR_SIZE_IM proc_addr = (DRC_PTR_SIZE_IM)cache.pos;
+template <typename T> static INLINE const uint8_t* gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+	const uint8_t* proc_addr = cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }
@@ -780,7 +777,7 @@ static void INLINE gen_load_param_imm(Bitu imm,Bitu param) {
 }
 
 // load an address as param'th function parameter
-static void INLINE gen_load_param_addr(DRC_PTR_SIZE_IM addr,Bitu param) {
+static void INLINE gen_load_param_addr(Bitu addr,Bitu param) {
 	gen_mov_qword_to_reg_imm(param, addr);
 }
 
@@ -815,42 +812,44 @@ static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 
 // short conditional jump (+-127 bytes) if register is zero
 // the destination is set by gen_fill_branch() later
-static DRC_PTR_SIZE_IM gen_create_branch_on_zero(HostReg reg,bool dword) {
+static const uint8_t* gen_create_branch_on_zero(HostReg reg,bool dword) {
 	if (dword) {
 		cache_addd( CBZ_FWD(reg, 0) );      // cbz reg, j
 	} else {
 		cache_addd( UXTH(temp1, reg) );     // uxth temp1, reg
 		cache_addd( CBZ_FWD(temp1, 0) );    // cbz temp1, j
 	}
-	return ((DRC_PTR_SIZE_IM)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // short conditional jump (+-127 bytes) if register is nonzero
 // the destination is set by gen_fill_branch() later
-static DRC_PTR_SIZE_IM gen_create_branch_on_nonzero(HostReg reg,bool dword) {
+static const uint8_t* gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 	if (dword) {
 		cache_addd( CBNZ_FWD(reg, 0) );     // cbnz reg, j
 	} else {
 		cache_addd( UXTH(temp1, reg) );     // uxth temp1, reg
 		cache_addd( CBNZ_FWD(temp1, 0) );   // cbnz temp1, j
 	}
-	return ((DRC_PTR_SIZE_IM)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // calculate relative offset and fill it into the location pointed to by data
-static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
+static void INLINE gen_fill_branch(const uint8_t* data) {
 #if C_DEBUG
-	Bits len=(uint64_t)cache.pos-data;
+	Bits len=cache.pos-data;
 	if (len<0) len=-len;
 	if (len>=0x00100000) LOG_MSG("Big jump %d",len);
 #endif
-	*(uint32_t*)data=( (*(uint32_t*)data) & 0xff00001f ) | ( ( ((uint64_t)cache.pos - data) << 3 ) & 0x00ffffe0 );
+	uint32_t offset = (uint32_t)(cache.pos-data) << 3;
+	cache_addw(((uint16_t)offset&~0x1f)|(data[0]&0x1f),data);
+	cache_addb((uint8_t)(offset>>16),data+2);
 }
 
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
-static DRC_PTR_SIZE_IM gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+static const uint8_t* gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	if (isdword) {
 		cache_addd( CBZ_FWD(reg, 8) );      // cbz reg, pc+8    // skip next instruction
 	} else {
@@ -858,25 +857,26 @@ static DRC_PTR_SIZE_IM gen_create_branch_long_nonzero(HostReg reg,bool isdword) 
 		cache_addd( CBZ_FWD(temp1, 8) );    // cbz temp1, pc+8  // skip next instruction
 	}
 	cache_addd( B_FWD(0) );         // b j
-	return ((DRC_PTR_SIZE_IM)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // compare 32bit-register against zero and jump if value less/equal than zero
-static DRC_PTR_SIZE_IM gen_create_branch_long_leqzero(HostReg reg) {
+static const uint8_t* gen_create_branch_long_leqzero(HostReg reg) {
 	cache_addd( CMP_IMM(reg, 0, 0) );       // cmp reg, #0
 	cache_addd( BGT_FWD(8) );               // bgt pc+8 // skip next instruction
 	cache_addd( B_FWD(0) );                 // b j
-	return ((DRC_PTR_SIZE_IM)cache.pos-4);
+	return (cache.pos-4);
 }
 
 // calculate long relative offset and fill it into the location pointed to by data
-static void INLINE gen_fill_branch_long(DRC_PTR_SIZE_IM data) {
+static void INLINE gen_fill_branch_long(const uint8_t* data) {
 	// optimize for shorter branches ?
-	*(uint32_t*)data=( (*(uint32_t*)data) & 0xfc000000 ) | ( ( ((uint64_t)cache.pos - data) >> 2 ) & 0x03ffffff );
+	uint32_t offset = (uint32_t)(cache.pos-data) >> 2;
+	cache_addd(((data[3]<<24)&~0x03ffffff)|(offset&0x03ffffff),data);
 }
 
 static void gen_run_code(void) {
-	uint8_t *pos1, *pos2, *pos3;
+	const uint8_t *pos1, *pos2, *pos3;
 
 	cache_addd( 0xa9bd7bfd );                                           // stp fp, lr, [sp, #-48]!
 	cache_addd( 0x910003fd );                                           // mov fp, sp
@@ -897,13 +897,13 @@ static void gen_run_code(void) {
 		cache.pos = cache.pos + (32 - (((Bitu)cache.pos) & 0x1f));
 	}
 
-	*(uint32_t *)pos1 = LDR64_PC(FC_SEGS_ADDR, cache.pos - pos1);   // ldr FC_SEGS_ADDR, [pc, #(&Segs)]
+	cache_addd(LDR64_PC(FC_SEGS_ADDR, cache.pos - pos1),pos1);   // ldr FC_SEGS_ADDR, [pc, #(&Segs)]
 	cache_addq((uint64_t)&Segs);                      // address of "Segs"
 
-	*(uint32_t *)pos2 = LDR64_PC(FC_REGS_ADDR, cache.pos - pos2);   // ldr FC_REGS_ADDR, [pc, #(&cpu_regs)]
+	cache_addd(LDR64_PC(FC_REGS_ADDR, cache.pos - pos2),pos2);   // ldr FC_REGS_ADDR, [pc, #(&cpu_regs)]
 	cache_addq((uint64_t)&cpu_regs);                  // address of "cpu_regs"
 
-	*(uint32_t *)pos3 = LDR64_PC(readdata_addr, cache.pos - pos3);  // ldr readdata_addr, [pc, #(&core_dynrec.readdata)]
+	cache_addd(LDR64_PC(readdata_addr, cache.pos - pos3),pos3);  // ldr readdata_addr, [pc, #(&core_dynrec.readdata)]
 	cache_addq((uint64_t)&core_dynrec.readdata);      // address of "core_dynrec.readdata"
 
 	// align cache.pos to 32 bytes
@@ -924,54 +924,54 @@ static void gen_return_function(void) {
 
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(const uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	// try to avoid function calls but rather directly fill in code
 	switch (flags_type) {
 		case t_ADDb:
 		case t_ADDw:
 		case t_ADDd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=ADD_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0);	// add FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(ADD_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0),pos+8);	// add FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_ORb:
 		case t_ORw:
 		case t_ORd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=ORR_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0);	// orr FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(ORR_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0),pos+8);	// orr FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_ANDb:
 		case t_ANDw:
 		case t_ANDd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=AND_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0);	// and FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(AND_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0),pos+8);	// and FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SUBb:
 		case t_SUBw:
 		case t_SUBd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=SUB_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0);	// sub FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(SUB_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0),pos+8);	// sub FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_XORb:
 		case t_XORw:
 		case t_XORd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=EOR_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0);	// eor FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(EOR_REG_LSL_IMM(FC_RETOP, HOST_w0, HOST_w1, 0),pos+8);	// eor FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_CMPb:
 		case t_CMPw:
@@ -979,164 +979,164 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 		case t_TESTb:
 		case t_TESTw:
 		case t_TESTd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_INCb:
 		case t_INCw:
 		case t_INCd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=ADD_IMM(FC_RETOP, HOST_w0, 1, 0);	// add FC_RETOP, w0, #1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(ADD_IMM(FC_RETOP, HOST_w0, 1, 0),pos+8);	// add FC_RETOP, w0, #1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_DECb:
 		case t_DECw:
 		case t_DECd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=SUB_IMM(FC_RETOP, HOST_w0, 1, 0);	// sub FC_RETOP, w0, #1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(SUB_IMM(FC_RETOP, HOST_w0, 1, 0),pos+8);	// sub FC_RETOP, w0, #1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SHLb:
 		case t_SHLw:
 		case t_SHLd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=LSLV(FC_RETOP, HOST_w0, HOST_w1);	// lslv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(LSLV(FC_RETOP, HOST_w0, HOST_w1),pos+8);	// lslv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SHRb:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=UXTB(FC_RETOP, HOST_w0);				// uxtb FC_RETOP, w0
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=LSRV(FC_RETOP, FC_RETOP, HOST_w1);	// lsrv FC_RETOP, FC_RETOP, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(UXTB(FC_RETOP, HOST_w0),pos+4);				// uxtb FC_RETOP, w0
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(LSRV(FC_RETOP, FC_RETOP, HOST_w1),pos+12);	// lsrv FC_RETOP, FC_RETOP, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SHRw:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=UXTH(FC_RETOP, HOST_w0);				// uxth FC_RETOP, w0
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=LSRV(FC_RETOP, FC_RETOP, HOST_w1);	// lsrv FC_RETOP, FC_RETOP, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(UXTH(FC_RETOP, HOST_w0),pos+4);				// uxth FC_RETOP, w0
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(LSRV(FC_RETOP, FC_RETOP, HOST_w1),pos+12);	// lsrv FC_RETOP, FC_RETOP, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SHRd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=LSRV(FC_RETOP, HOST_w0, HOST_w1);	// lsrv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(LSRV(FC_RETOP, HOST_w0, HOST_w1),pos+8);	// lsrv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SARb:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=SXTB(FC_RETOP, HOST_w0);				// sxtb FC_RETOP, w0
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=ASRV(FC_RETOP, FC_RETOP, HOST_w1);	// asrv FC_RETOP, FC_RETOP, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(SXTB(FC_RETOP, HOST_w0),pos+4);				// sxtb FC_RETOP, w0
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(ASRV(FC_RETOP, FC_RETOP, HOST_w1),pos+12);	// asrv FC_RETOP, FC_RETOP, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SARw:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=SXTH(FC_RETOP, HOST_w0);				// sxth FC_RETOP, w0
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=ASRV(FC_RETOP, FC_RETOP, HOST_w1);	// asrv FC_RETOP, FC_RETOP, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(SXTH(FC_RETOP, HOST_w0),pos+4);				// sxth FC_RETOP, w0
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(ASRV(FC_RETOP, FC_RETOP, HOST_w1),pos+12);	// asrv FC_RETOP, FC_RETOP, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_SARd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=ASRV(FC_RETOP, HOST_w0, HOST_w1);	// asrv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(ASRV(FC_RETOP, HOST_w0, HOST_w1),pos+8);	// asrv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_RORb:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=BFI(HOST_w0, HOST_w0, 8, 8);			// bfi w0, w0, 8, 8
-			*(uint32_t*)(pos+8)=BFI(HOST_w0, HOST_w0, 16, 16);		// bfi w0, w0, 16, 16
-			*(uint32_t*)(pos+12)=RORV(FC_RETOP, HOST_w0, HOST_w1);	// rorv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(BFI(HOST_w0, HOST_w0, 8, 8),pos+4);			// bfi w0, w0, 8, 8
+			cache_addd(BFI(HOST_w0, HOST_w0, 16, 16),pos+8);		// bfi w0, w0, 16, 16
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w1),pos+12);	// rorv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_RORw:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=BFI(HOST_w0, HOST_w0, 16, 16);		// bfi w0, w0, 16, 16
-			*(uint32_t*)(pos+8)=NOP;				// nop
-			*(uint32_t*)(pos+12)=RORV(FC_RETOP, HOST_w0, HOST_w1);	// rorv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(BFI(HOST_w0, HOST_w0, 16, 16),pos+4);		// bfi w0, w0, 16, 16
+			cache_addd(NOP,pos+8);				// nop
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w1),pos+12);	// rorv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_RORd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=RORV(FC_RETOP, HOST_w0, HOST_w1);	// rorv FC_RETOP, w0, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w1),pos+8);	// rorv FC_RETOP, w0, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_ROLb:
-			*(uint32_t*)pos=MOVZ(HOST_w2, 32, 0);									// movz w2, #32
-			*(uint32_t*)(pos+4)=BFI(HOST_w0, HOST_w0, 8, 8);						// bfi w0, w0, 8, 8
-			*(uint32_t*)(pos+8)=SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0);	// sub w2, w2, w1
-			*(uint32_t*)(pos+12)=BFI(HOST_w0, HOST_w0, 16, 16);					// bfi w0, w0, 16, 16
-			*(uint32_t*)(pos+16)=RORV(FC_RETOP, HOST_w0, HOST_w2);				// rorv FC_RETOP, w0, w2
+			cache_addd(MOVZ(HOST_w2, 32, 0),pos+0);									// movz w2, #32
+			cache_addd(BFI(HOST_w0, HOST_w0, 8, 8),pos+4);						// bfi w0, w0, 8, 8
+			cache_addd(SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0),pos+8);	// sub w2, w2, w1
+			cache_addd(BFI(HOST_w0, HOST_w0, 16, 16),pos+12);					// bfi w0, w0, 16, 16
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w2),pos+16);				// rorv FC_RETOP, w0, w2
 			break;
 		case t_ROLw:
-			*(uint32_t*)pos=MOVZ(HOST_w2, 32, 0);									// movz w2, #32
-			*(uint32_t*)(pos+4)=BFI(HOST_w0, HOST_w0, 16, 16);					// bfi w0, w0, 16, 16
-			*(uint32_t*)(pos+8)=SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0);	// sub w2, w2, w1
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=RORV(FC_RETOP, HOST_w0, HOST_w2);				// rorv FC_RETOP, w0, w2
+			cache_addd(MOVZ(HOST_w2, 32, 0),pos+0);									// movz w2, #32
+			cache_addd(BFI(HOST_w0, HOST_w0, 16, 16),pos+4);					// bfi w0, w0, 16, 16
+			cache_addd(SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0),pos+8);	// sub w2, w2, w1
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w2),pos+16);				// rorv FC_RETOP, w0, w2
 			break;
 		case t_ROLd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=MOVZ(HOST_w2, 32, 0);								// movz w2, #32
-			*(uint32_t*)(pos+8)=SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0);	// sub w2, w2, w1
-			*(uint32_t*)(pos+12)=RORV(FC_RETOP, HOST_w0, HOST_w2);				// rorv FC_RETOP, w0, w2
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(MOVZ(HOST_w2, 32, 0),pos+4);								// movz w2, #32
+			cache_addd(SUB_REG_LSL_IMM(HOST_w2, HOST_w2, HOST_w1, 0),pos+8);	// sub w2, w2, w1
+			cache_addd(RORV(FC_RETOP, HOST_w0, HOST_w2),pos+12);				// rorv FC_RETOP, w0, w2
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_NEGb:
 		case t_NEGw:
 		case t_NEGd:
-			*(uint32_t*)pos=NOP;					// nop
-			*(uint32_t*)(pos+4)=NOP;				// nop
-			*(uint32_t*)(pos+8)=SUB_REG_LSL_IMM(FC_RETOP, HOST_wzr, HOST_w0, 0);	// sub FC_RETOP, wzr, w0
-			*(uint32_t*)(pos+12)=NOP;				// nop
-			*(uint32_t*)(pos+16)=NOP;				// nop
+			cache_addd(NOP,pos+0);					// nop
+			cache_addd(NOP,pos+4);				// nop
+			cache_addd(SUB_REG_LSL_IMM(FC_RETOP, HOST_wzr, HOST_w0, 0),pos+8);	// sub FC_RETOP, wzr, w0
+			cache_addd(NOP,pos+12);				// nop
+			cache_addd(NOP,pos+16);				// nop
 			break;
 		case t_DSHLd:
-			*(uint32_t*)pos=MOVZ64(HOST_x3, 0x1f, 0);								// movz x3, #0x1f
-			*(uint32_t*)(pos+4)=BFI64(HOST_x1, HOST_x0, 32, 32);					// bfi x1, x0, 32, 32
-			*(uint32_t*)(pos+8)=AND64_REG_LSL_IMM(HOST_x2, HOST_x2, HOST_x3, 0);	// and x2, x2, x3
-			*(uint32_t*)(pos+12)=LSLV64(FC_RETOP, HOST_x1, HOST_x2);				// lslv FC_RETOP, x1, x2
-			*(uint32_t*)(pos+16)=LSR64_IMM(FC_RETOP, FC_RETOP, 32);				// lsr FC_RETOP, FC_RETOP, #32
+			cache_addd(MOVZ64(HOST_x3, 0x1f, 0),pos+0);								// movz x3, #0x1f
+			cache_addd(BFI64(HOST_x1, HOST_x0, 32, 32),pos+4);					// bfi x1, x0, 32, 32
+			cache_addd(AND64_REG_LSL_IMM(HOST_x2, HOST_x2, HOST_x3, 0),pos+8);	// and x2, x2, x3
+			cache_addd(LSLV64(FC_RETOP, HOST_x1, HOST_x2),pos+12);				// lslv FC_RETOP, x1, x2
+			cache_addd(LSR64_IMM(FC_RETOP, FC_RETOP, 32),pos+16);				// lsr FC_RETOP, FC_RETOP, #32
 			break;
 		case t_DSHRd:
-			*(uint32_t*)pos=MOVZ64(HOST_x3, 0x1f, 0);								// movz x3, #0x1f
-			*(uint32_t*)(pos+4)=BFI64(HOST_x0, HOST_x1, 32, 32);					// bfi x0, x1, 32, 32
-			*(uint32_t*)(pos+8)=AND64_REG_LSL_IMM(HOST_x2, HOST_x2, HOST_x3, 0);	// and x2, x2, x3
-			*(uint32_t*)(pos+12)=NOP;												// nop
-			*(uint32_t*)(pos+16)=LSRV64(FC_RETOP, HOST_x0, HOST_x2);				// lsrv FC_RETOP, x0, x2
+			cache_addd(MOVZ64(HOST_x3, 0x1f, 0),pos+0);								// movz x3, #0x1f
+			cache_addd(BFI64(HOST_x0, HOST_x1, 32, 32),pos+4);					// bfi x0, x1, 32, 32
+			cache_addd(AND64_REG_LSL_IMM(HOST_x2, HOST_x2, HOST_x3, 0),pos+8);	// and x2, x2, x3
+			cache_addd(NOP,pos+12);												// nop
+			cache_addd(LSRV64(FC_RETOP, HOST_x0, HOST_x2),pos+16);				// lsrv FC_RETOP, x0, x2
 			break;
 		default:
-			*(uint32_t*)pos=MOVZ64(temp1, ((uint64_t)fct_ptr) & 0xffff, 0);                 // movz temp1, #(fct_ptr & 0xffff)
-			*(uint32_t*)(pos+4)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 16) & 0xffff, 16);    // movk temp1, #((fct_ptr >> 16) & 0xffff), lsl #16
-			*(uint32_t*)(pos+8)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 32) & 0xffff, 32);    // movk temp1, #((fct_ptr >> 32) & 0xffff), lsl #32
-			*(uint32_t*)(pos+12)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 48) & 0xffff, 48);   // movk temp1, #((fct_ptr >> 48) & 0xffff), lsl #48
+			cache_addd(MOVZ64(temp1, ((uint64_t)fct_ptr) & 0xffff, 0),pos+0);                 // movz temp1, #(fct_ptr & 0xffff)
+			cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 16) & 0xffff, 16),pos+4);    // movk temp1, #((fct_ptr >> 16) & 0xffff), lsl #16
+			cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 32) & 0xffff, 32),pos+8);    // movk temp1, #((fct_ptr >> 32) & 0xffff), lsl #32
+			cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 48) & 0xffff, 48),pos+12);   // movk temp1, #((fct_ptr >> 48) & 0xffff), lsl #48
 			break;
 
 	}
 #else
-	*(uint32_t*)pos=MOVZ64(temp1, ((uint64_t)fct_ptr) & 0xffff, 0);                 // movz temp1, #(fct_ptr & 0xffff)
-	*(uint32_t*)(pos+4)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 16) & 0xffff, 16);    // movk temp1, #((fct_ptr >> 16) & 0xffff), lsl #16
-	*(uint32_t*)(pos+8)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 32) & 0xffff, 32);    // movk temp1, #((fct_ptr >> 32) & 0xffff), lsl #32
-	*(uint32_t*)(pos+12)=MOVK64(temp1, (((uint64_t)fct_ptr) >> 48) & 0xffff, 48);   // movk temp1, #((fct_ptr >> 48) & 0xffff), lsl #48
+	cache_addd(MOVZ64(temp1, ((uint64_t)fct_ptr) & 0xffff, 0),pos+0);                 // movz temp1, #(fct_ptr & 0xffff)
+	cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 16) & 0xffff, 16),pos+4);    // movk temp1, #((fct_ptr >> 16) & 0xffff), lsl #16
+	cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 32) & 0xffff, 32),pos+8);    // movk temp1, #((fct_ptr >> 32) & 0xffff), lsl #32
+	cache_addd(MOVK64(temp1, (((uint64_t)fct_ptr) >> 48) & 0xffff, 48),pos+12);   // movk temp1, #((fct_ptr >> 48) & 0xffff), lsl #48
 #endif
 }
 #endif
 
-static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
+static void cache_block_closing(const uint8_t* block_start,Bitu block_size) {
 #ifdef _MSC_VER
     //flush cache - Win32 API for MSVC
     FlushInstructionCache(GetCurrentProcess(), block_start, block_size);

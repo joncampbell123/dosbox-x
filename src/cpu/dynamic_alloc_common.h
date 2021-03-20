@@ -21,7 +21,7 @@ static uint8_t *cache_code_init = NULL; // NTS: Because dynamic code modifies ca
 static uint8_t *cache_exec_ptr = NULL;
 static Bitu cache_map_size = 0;
 
-static INLINE void *cache_rwtox(void *x) {
+static INLINE void *cache_rwtox(const void *x) {
     return (void*)((uintptr_t)((char*)x) + (uintptr_t)((char*)cache_exec_ptr) - (uintptr_t)((char*)cache_code_init));
 }
 

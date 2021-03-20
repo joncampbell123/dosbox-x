@@ -16,8 +16,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-
 /* MIPS32 (little endian) backend by crazyc */
 
 
@@ -31,9 +29,6 @@
 #define DRC_FLAGS_INVALIDATION
 // try to replace _simple functions by code
 #define DRC_FLAGS_INVALIDATION_DCODE
-
-// type with the same size as a pointer
-#define DRC_PTR_SIZE_IM uint32_t
 
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */
@@ -332,8 +327,8 @@ static void INLINE gen_mov_direct_dword(void* dest,uint32_t imm) {
 }
 
 // move an address into memory
-static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
-	gen_mov_direct_dword(dest,(uint32_t)imm);
+static void INLINE gen_mov_direct_ptr(void* dest,uint32_t imm) {
+	gen_mov_direct_dword(dest,imm);
 }
 
 // add a 32bit (dword==true) or 16bit (dword==false) constant value to a memory value
@@ -388,7 +383,7 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 // generate a call to a parameterless function
 template <typename T> static void INLINE gen_call_function_raw(const T func) {
 #if C_DEBUG
-    if ((cache.pos ^ func) & 0xf0000000) LOG_MSG("jump overflow\n");
+    if(((uint32_t)cache.pos ^ (uint32_t)func) & 0xf0000000) LOG_MSG("jump overflow\n");
 #endif
     temp1_valid = false;
     cache_addd(0x0c000000+(((uint32_t)func>>2)&0x3ffffff));		// jal func
@@ -398,8 +393,8 @@ template <typename T> static void INLINE gen_call_function_raw(const T func) {
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-template <typename T> static uint32_t INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
-    uint32_t proc_addr = (uint32_t)cache.pos;
+template <typename T> static INLINE const uint8_t* gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+	const uint8_t* proc_addr = cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }
@@ -446,7 +441,7 @@ static void INLINE gen_jmp_ptr(void * ptr,Bits imm=0) {
 
 // short conditional jump (+-127 bytes) if register is zero
 // the destination is set by gen_fill_branch() later
-static uint32_t INLINE gen_create_branch_on_zero(HostReg reg,bool dword) {
+static INLINE const uint8_t* gen_create_branch_on_zero(HostReg reg,bool dword) {
 	temp1_valid = false;
 	if(!dword) { 
 		cache_addw(0xffff);	// andi temp1, reg, 0xffff
@@ -455,12 +450,12 @@ static uint32_t INLINE gen_create_branch_on_zero(HostReg reg,bool dword) {
 	cache_addw(0);			// beq $0, reg, 0
 	cache_addw(0x1000+(dword?reg:temp1));
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // short conditional jump (+-127 bytes) if register is nonzero
 // the destination is set by gen_fill_branch() later
-static uint32_t INLINE gen_create_branch_on_nonzero(HostReg reg,bool dword) {
+static INLINE const uint8_t* gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 	temp1_valid = false;
 	if(!dword) { 
 		cache_addw(0xffff);	// andi temp1, reg, 0xffff
@@ -469,18 +464,18 @@ static uint32_t INLINE gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 	cache_addw(0);			// bne $0, reg, 0
 	cache_addw(0x1400+(dword?reg:temp1));
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // calculate relative offset and fill it into the location pointed to by data
-static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
+static void INLINE gen_fill_branch(const uint8_t* data) {
 #if C_DEBUG
-	Bits len=(uint32_t)cache.pos-data;
+	Bits len=cache.pos-data;
 	if (len<0) len=-len;
 	if (len>126) LOG_MSG("Big jump %d",len);
 #endif
 	temp1_valid = false;			// this is a branch target
-	*(uint16_t*)data=((uint16_t)((uint32_t)cache.pos-data-4)>>2);
+	cache_addw((uint16_t)(cache.pos-data-4)>>2,data);
 }
 
 #if 0	// assume for the moment no branch will go farther then +/- 128KB
@@ -488,7 +483,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
-static uint32_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+static const uint8_t* gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	temp1_valid = false;
 	if (!isdword) {
 		cache_addw(0xff);	// andi temp1, reg, 0xff
@@ -499,31 +494,31 @@ static uint32_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	DELAY;
 	cache_addd(0x00000000);		// fill j
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // compare 32bit-register against zero and jump if value less/equal than zero
-static uint32_t INLINE gen_create_branch_long_leqzero(HostReg reg) {
+static INLINE const uint8_t* gen_create_branch_long_leqzero(HostReg reg) {
 	temp1_valid = false;
 	cache_addw(3);				// bgtz reg, +12
 	cache_addw(0x1c00+(reg<<5));
 	DELAY;
 	cache_addd(0x00000000);			// fill j 
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // calculate long relative offset and fill it into the location pointed to by data
-static void INLINE gen_fill_branch_long(uint32_t data) {
+static void INLINE gen_fill_branch_long(const uint8_t* data) {
 	temp1_valid = false;
 	// this is an absolute branch
-	*(uint32_t*)data=0x08000000+(((uint32_t)cache.pos>>2)&0x3ffffff);
+	cache_addd(0x08000000+(((uint32_t)cache.pos>>2)&0x3ffffff),data);
 }
 #else		
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
-static uint32_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+static const uint8_t* gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	temp1_valid = false;
 	if (!isdword) {
 		cache_addw(0xff);	// andi temp1, reg, 0xff
@@ -532,20 +527,20 @@ static uint32_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	cache_addw(0);			// bne $0, reg, 0
 	cache_addw(0x1400+(isdword?reg:temp1));	
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // compare 32bit-register against zero and jump if value less/equal than zero
-static uint32_t INLINE gen_create_branch_long_leqzero(HostReg reg) {
+static INLINE const uint8_t* gen_create_branch_long_leqzero(HostReg reg) {
 	temp1_valid = false;
 	cache_addw(0);			// blez reg, 0
 	cache_addw(0x1800+(reg<<5));
 	DELAY;
-	return ((uint32_t)cache.pos-8);
+	return (cache.pos-8);
 }
 
 // calculate long relative offset and fill it into the location pointed to by data
-static void INLINE gen_fill_branch_long(uint32_t data) {
+static void INLINE gen_fill_branch_long(const uint8_t* data) {
 	gen_fill_branch(data);
 }
 #endif
@@ -570,34 +565,34 @@ static void gen_return_function(void) {
 #ifdef DRC_FLAGS_INVALIDATION
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(const uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	// try to avoid function calls but rather directly fill in code
 	switch (flags_type) {
 		case t_ADDb:
 		case t_ADDw:
 		case t_ADDd:
-			*(uint32_t*)pos=0x00851021;					// addu $v0, $a0, $a1
+			cache_addd(0x00851021,pos);					// addu $v0, $a0, $a1
 			break;
 		case t_ORb:
 		case t_ORw:
 		case t_ORd:
-			*(uint32_t*)pos=0x00851025;					// or $v0, $a0, $a1
+			cache_addd(0x00851025,pos);					// or $v0, $a0, $a1
 			break;
 		case t_ANDb:
 		case t_ANDw:
 		case t_ANDd:
-			*(uint32_t*)pos=0x00851024;					// and $v0, $a0, $a1
+			cache_addd(0x00851024,pos);					// and $v0, $a0, $a1
 			break;
 		case t_SUBb:
 		case t_SUBw:
 		case t_SUBd:
-			*(uint32_t*)pos=0x00851023;					// subu $v0, $a0, $a1
+			cache_addd(0x00851023,pos);					// subu $v0, $a0, $a1
 			break;
 		case t_XORb:
 		case t_XORw:
 		case t_XORd:
-			*(uint32_t*)pos=0x00851026;					// xor $v0, $a0, $a1
+			cache_addd(0x00851026,pos);					// xor $v0, $a0, $a1
 			break;
 		case t_CMPb:
 		case t_CMPw:
@@ -605,52 +600,52 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 		case t_TESTb:
 		case t_TESTw:
 		case t_TESTd:
-			*(uint32_t*)pos=0;							// nop
+			cache_addd(0,pos);							// nop
 			break;
 		case t_INCb:
 		case t_INCw:
 		case t_INCd:
-			*(uint32_t*)pos=0x24820001;					// addiu $v0, $a0, 1
+			cache_addd(0x24820001,pos);					// addiu $v0, $a0, 1
 			break;
 		case t_DECb:
 		case t_DECw:
 		case t_DECd:
-			*(uint32_t*)pos=0x2482ffff;					// addiu $v0, $a0, -1
+			cache_addd(0x2482ffff,pos);					// addiu $v0, $a0, -1
 			break;
 		case t_SHLb:
 		case t_SHLw:
 		case t_SHLd:
-			*(uint32_t*)pos=0x00a41004;					// sllv $v0, $a0, $a1
+			cache_addd(0x00a41004,pos);					// sllv $v0, $a0, $a1
 			break;
 		case t_SHRb:
 		case t_SHRw:
 		case t_SHRd:
-			*(uint32_t*)pos=0x00a41006;					// srlv $v0, $a0, $a1
+			cache_addd(0x00a41006,pos);					// srlv $v0, $a0, $a1
 			break;
 		case t_SARd:
-			*(uint32_t*)pos=0x00a41007;					// srav $v0, $a0, $a1
+			cache_addd(0x00a41007,pos);					// srav $v0, $a0, $a1
 			break;
 #if (_MIPS_ISA==MIPS32R2) || defined(PSP)
 		case t_RORd:
-			*(uint32_t*)pos=0x00a41046;					// rotr $v0, $a0, $a1
+			cache_addd(0x00a41046,pos);					// rotr $v0, $a0, $a1
 			break;
 #endif
 		case t_NEGb:
 		case t_NEGw:
 		case t_NEGd:
-			*(uint32_t*)pos=0x00041023;					// subu $v0, $0, $a0
+			cache_addd(0x00041023,pos);					// subu $v0, $0, $a0
 			break;
 		default:
-			*(uint32_t*)pos=0x0c000000+((((uint32_t)fct_ptr)>>2)&0x3ffffff);		// jal simple_func
+			cache_addd(0x0c000000+(((uint32_t)fct_ptr)>>2)&0x3ffffff,pos);		// jal simple_func
 			break;
 	}
 #else
-	*(uint32_t*)pos=0x0c000000+(((uint32_t)fct_ptr)>>2)&0x3ffffff);		// jal simple_func
+	cache_addd(0x0c000000+(((uint32_t)fct_ptr)>>2)&0x3ffffff,pos);	// jal simple_func
 #endif
 }
 #endif
 
-static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
+static void cache_block_closing(const uint8_t* block_start,Bitu block_size) {
 #ifdef PSP
 // writeback dcache and invalidate icache
 	uint32_t inval_start = ((uint32_t)block_start) & ~63;

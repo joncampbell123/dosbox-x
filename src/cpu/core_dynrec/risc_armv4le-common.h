@@ -32,9 +32,6 @@
 // try to replace _simple functions by code
 #define DRC_FLAGS_INVALIDATION_DCODE
 
-// type with the same size as a pointer
-#define DRC_PTR_SIZE_IM uint32_t
-
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */
 #define DRC_FC			/* nothing */
@@ -87,7 +84,7 @@ typedef uint8_t HostReg;
 #define HOST_pc HOST_r15
 
 
-static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
+static void cache_block_closing(const uint8_t* block_start,Bitu block_size) {
 #ifdef _MSC_VER
     //flush cache - Win32 API for MSVC
     FlushInstructionCache(GetCurrentProcess(), block_start, block_size);
