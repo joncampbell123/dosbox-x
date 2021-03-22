@@ -9307,6 +9307,21 @@ public:
         /* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
         if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
 
+        if (machine == MCH_TANDY) {
+            /* The shared video/system memory design, and the placement of video RAM at top
+             * of conventional memory, means that if conventional memory is less than 640KB
+             * and not a multiple of 32KB, things can break. */
+            if ((t_conv % 32) != 0)
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+        }
+        else if (machine == MCH_PCJR) {
+            /* PCjr also shares video/system memory, but the video memory can only exist
+             * below 128KB because IBM intended it to only carry 64KB or 128KB on the
+             * motherboard. Any memory past 128KB is likely provided by addons (sidecars) */
+            if (t_conv < 128 && (t_conv % 32) != 0)
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+        }
+
         /* and then unmap RAM between t_conv and ulimit */
         if (t_conv < ulimit) {
             Bitu start = (t_conv+3)/4;  /* start = 1KB to page round up */
