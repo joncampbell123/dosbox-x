@@ -9286,11 +9286,15 @@ public:
             if (t_conv > 640) t_conv = 640;
         }
 
+#if 0 /* NTS: This breaks Tandy games that write to system RAM addresses to draw on video RAM i.e.
+              not at B800:xxxx but at (TOP_OF_MEMORY minus 32KB). What is the correct behavior
+              here? */
         if (IS_TANDY_ARCH) {
             /* reduce reported memory size for the Tandy (32k graphics memory
                at the end of the conventional 640k) */
             if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
         }
+#endif
 
         /* allow user to further limit the available memory below 1MB */
         if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
