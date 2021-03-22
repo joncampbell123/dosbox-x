@@ -1,4 +1,10 @@
 0.83.12
+  - Fixed bug that limited Tandy mode to 624KB of
+    conventional memory. 32KB of video RAM is taken
+    from top of memory, losing half of the 32KB
+    breaks games that write to the system RAM instead
+    of B800:0000 segment and causes half the graphics
+    to not render.
   - CD-ROM image emulation now supports ISO images
     that are 2GB or larger, 32-bit integer size limit
     has been lifted.
