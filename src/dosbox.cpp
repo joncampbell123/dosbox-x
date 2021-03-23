@@ -1495,7 +1495,7 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 #endif
-    Pint->SetMinMax(1,3584); // 3.5GB
+    Pint->SetMinMax(0,3584); // 3.5GB
     Pint->Set_help(
         "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
