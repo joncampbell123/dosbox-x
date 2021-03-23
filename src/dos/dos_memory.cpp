@@ -559,11 +559,10 @@ void DOS_SetupMemory(void) {
 	if (machine==MCH_TANDY) {
 		if (seg_limit < ((384*1024)/16))
 			E_Exit("Tandy requires at least 384K");
-		/* memory up to 608k available, the rest (to 640k) is used by
-			the tandy graphics system's variable mapping of 0xb800 */
-/*
-		mcb.SetSize(0x9BFF - DOS_MEM_START - mcb_sizes);
-*/		mcb.SetSize(/*0x9BFF*/(seg_limit-0x801) - DOS_MEM_START - mcb_sizes);
+
+		/* map memory as normal, the BIOS initialization is the code responsible
+		 * for subtracting 32KB from top of system memory for video memory. */
+		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
 	} else if (machine==MCH_PCJR) {
 		DOS_MCB mcb_devicedummy((uint16_t)0x2000);
 

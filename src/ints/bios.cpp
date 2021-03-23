@@ -9286,16 +9286,6 @@ public:
             if (t_conv > 640) t_conv = 640;
         }
 
-#if 0 /* NTS: This breaks Tandy games that write to system RAM addresses to draw on video RAM i.e.
-              not at B800:xxxx but at (TOP_OF_MEMORY minus 32KB). What is the correct behavior
-              here? */
-        if (IS_TANDY_ARCH) {
-            /* reduce reported memory size for the Tandy (32k graphics memory
-               at the end of the conventional 640k) */
-            if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
-        }
-#endif
-
         /* allow user to further limit the available memory below 1MB */
         if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
             t_conv = dos_conventional_limit;
@@ -9308,11 +9298,26 @@ public:
         if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
 
         if (machine == MCH_TANDY) {
+            if (t_conv < 384)
+                E_Exit("Tandy requires at least 384KB of RAM");
+
             /* The shared video/system memory design, and the placement of video RAM at top
              * of conventional memory, means that if conventional memory is less than 640KB
              * and not a multiple of 32KB, things can break. */
             if ((t_conv % 32) != 0)
                 LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+
+            /* take 32KB off the top for video RAM. */
+            if (t_conv > 640) t_conv = 640;
+            if (ulimit > 640) ulimit = 640;
+            t_conv -= 32;
+            ulimit -= 32;
+
+            /* FIXME: INT 10h emulation currently points video RAM at 9800:0000 regardless of
+             *        the amount of conventional memory, which happens to work as long as the
+             *        game or application only writes to segment B800:0000. The system RAM
+             *        backing the video ram is invisible because it's beyond the available
+             *        conventional memory reported to the guest and therefore not mapped. */
         }
         else if (machine == MCH_PCJR) {
             /* PCjr also shares video/system memory, but the video memory can only exist
