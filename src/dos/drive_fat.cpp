@@ -440,10 +440,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if(loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 			loadedSector = false;
 
-			if (sizedec == 0) { curSectOff = 0; goto finalizeWrite; }
-
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
 			if(currentSector == 0) {
+			    if (sizedec == 0) goto finalizeWrite;
 				/* EOC reached before EOF - try to increase file allocation */
 				myDrive->appendCluster(firstCluster);
 				/* Try getting sector again */
