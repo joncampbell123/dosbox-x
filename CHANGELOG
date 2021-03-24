@@ -1,4 +1,10 @@
 0.83.12
+  - Added Tandy "real memory size" field in the
+    BIOS data area.
+  - Tandy emulation updated to subtract 16KB from
+    top of conventional memory, which fixes some
+    games and follows DOSBox SVN behavior and real
+    hardware according to others on the Vogons forums.
   - Fixed bug that limited Tandy mode to 624KB of
     conventional memory. 32KB of video RAM is taken
     from top of memory, losing half of the 32KB
