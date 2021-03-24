@@ -9369,6 +9369,15 @@ public:
             LOG(LOG_MISC,LOG_DEBUG)("BIOS: setting tandy 128KB base region to %lxh",(unsigned long)tandy_128kbase);
         }
         else if (machine == MCH_PCJR) {
+            /* PCjr reserves the top of it's internal 128KB of RAM for video RAM.
+             * Sidecars can extend it past 128KB but it requires DOS drivers or TSRs
+             * to modify the MCB chain so that it a) marks the video memory as reserved
+             * and b) creates a new free region above the video RAM region.
+             *
+             * Therefore, only subtract 16KB if 128KB or less is configured for this machine.
+             *
+             * Note this is not speculation, it's there in the PCjr BIOS source code:
+             * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/PCjr/IBM%20Personal%20Computer%20PCjr%20Hardware%20Reference%20Library%20Technical%20Reference%20%281983%2d11%29%20First%20Edition%20Revised%2epdf] ROM BIOS source code page A-16 */
             if (t_conv <= (128+16)) {
                 if (t_conv > 128) t_conv = 128;
                 t_conv -= 16;
