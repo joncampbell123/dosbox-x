@@ -568,19 +568,26 @@ void DOS_SetupMemory(void) {
          *        DOSBox-X needs to support memsizekb=64 or memsizekb=128,
          *        and adjust video ram location appropriately. */
 
-		if (seg_limit < ((256*1024)/16))
-			E_Exit("PCjr requires at least 256K");
-		/* memory from 128k to 640k is available */
-		mcb_devicedummy.SetPt((uint16_t)0x2000);
-		mcb_devicedummy.SetPSPSeg(MCB_FREE);
-		mcb_devicedummy.SetSize(/*0x9FFF*/(seg_limit-1) - 0x2000);
-		mcb_devicedummy.SetType(0x5a);
+		/* TODO: Allow memsizekb=64 to emulate a PCjr without the memory extension */
+		/* NTS: BIOS takes 16KB off the top, therefore the 128-16 KB check */
+		if (seg_limit < (((128-16)*1024)/16))
+			E_Exit("PCjr requires at least 128K");
+
+		bool extend = seg_limit > ((128*1024)/16);
+
+		if (extend) {
+			/* memory from 128k to 640k is available */
+			mcb_devicedummy.SetPt((uint16_t)0x2000);
+			mcb_devicedummy.SetPSPSeg(MCB_FREE);
+			mcb_devicedummy.SetSize(/*0x9FFF*/(seg_limit-1) - 0x2000);
+			mcb_devicedummy.SetType(0x5a);
+		}
 
 		/* exclude PCJr graphics region */
 		mcb_devicedummy.SetPt((uint16_t)0x17ff);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);
 		mcb_devicedummy.SetSize(0x800);
-		mcb_devicedummy.SetType(0x4d);
+		mcb_devicedummy.SetType(extend ? 0x4d/*continue*/ : 0x5a/*end*/);
 
 		/* memory below 96k */
 		mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));

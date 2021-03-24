@@ -7976,7 +7976,8 @@ private:
         //        This cannot be removed, because the DOS kernel uses this variable even in PC-98 mode.
         mem_writew(BIOS_MEMORY_SIZE,t_conv);
         // According to Ripsaw, Tandy systems hold the real memory size in a normally reserved field [https://www.vogons.org/viewtopic.php?p=948898#p948898]
-        if (machine == MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE+2,t_conv_real);
+        // According to the PCjr hardware reference library that memory location means the same thing
+        if (machine == MCH_PCJR || machine == MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE+2,t_conv_real);
 
         RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
         // pseudocode for CB_IRQ0:
@@ -9317,6 +9318,9 @@ public:
                 LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
         }
         else if (machine == MCH_PCJR) {
+            if (t_conv < 64)
+                t_conv = 64;
+
             /* PCjr also shares video/system memory, but the video memory can only exist
              * below 128KB because IBM intended it to only carry 64KB or 128KB on the
              * motherboard. Any memory past 128KB is likely provided by addons (sidecars) */
@@ -9363,6 +9367,16 @@ public:
              * FIXME: Is this controlled by the "extended ram page register?" How? */
             tandy_128kbase = ((t_conv - 16u) << 10u) & 0xE0000; /* byte offset = (KB - 16) * 64, round down to multiple of 128KB */
             LOG(LOG_MISC,LOG_DEBUG)("BIOS: setting tandy 128KB base region to %lxh",(unsigned long)tandy_128kbase);
+        }
+        else if (machine == MCH_PCJR) {
+            if (t_conv <= (128+16)) {
+                if (t_conv > 128) t_conv = 128;
+                t_conv -= 16;
+            }
+            if (ulimit <= (128+16)) {
+                if (ulimit > 128) ulimit = 128;
+                ulimit -= 16;
+            }
         }
 
         /* INT 4B. Now we can safely signal error instead of printing "Invalid interrupt 4B"
