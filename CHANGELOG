@@ -1,4 +1,10 @@
 0.83.12
+  - You can now run PCjr mode with as little as
+    128KB of RAM. Removed 256KB minimum check from
+    DOS kernel. Certain games (Mickey's Space
+    Adventure) require memsizekb=128 and memsize=0
+    in PCjr mode or else it will not work correctly
+    due to how the game locates video system memory.
   - Fixed Tandy mode to place video memory at the
     top of conventional memory and allow running
     Tandy mode with a memsizekb setting as low as
