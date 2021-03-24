@@ -67,9 +67,9 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
 
-* Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
+* Support for FluidSynth MIDI synthesizer (with sound fonts) and MT-32 emulation
 
-* Support for NE2000 Ethernet for networking and modem phone book mapping
+* Support for NE2000 Ethernet for networking features and modem phone book mapping
 
 * Support for features such as V-Sync, overscan border and stereo swapping
 
@@ -344,6 +344,13 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
   These significant changes require dropping some useful features (including the menus) but are required for performance.
 
   URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
+  
+* DOSBox-X-App (for Windows and macOS) by emendelson
+
+  DOSBox-X-App is a slightly customized version of DOSBox-X, combined with external programs and commands that make it
+  easy to print and create PDFs from DOS applications. It is customized for use with applications, not games.
+
+  URL: http://www.columbia.edu/~em36/dosboxapp.html
 
 * Win31DOSBox (Windows 3.1 for 64-bit Windows) by emendelson
 
