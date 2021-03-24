@@ -9310,22 +9310,6 @@ public:
              * and not a multiple of 32KB, things can break. */
             if ((t_conv % 32) != 0)
                 LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
-
-            /* Take 16KB off the top for video RAM.
-             * This value never changes after boot, even if you then use the 16-color modes which then moves
-             * the video RAM region down 16KB to make a 32KB region. Neither MS-DOS nor INT 10h change this
-             * top of memory value. I hope your DOS game doesn't put any important structures or MCBs above
-             * the 32KB below top of memory, because it WILL get overwritten with graphics!
-             *
-             * This is apparently correct behavior, and DOSBox SVN and other forks follow it too.
-             *
-             * See also: [https://www.vogons.org/viewtopic.php?p=948879#p948879]
-             * Issue: [https://github.com/joncampbell123/dosbox-x/issues/2380]
-             *
-             * Mickeys Space Adventure assumes it can find video RAM by calling INT 12h, subtracting 16KB, and
-             * converting KB to paragraphs. Note that it calls INT 12h while in CGA mode, and subtracts 16KB
-             * knowing video memory will extend downward 16KB into a 32KB region when it switches into the
-             * Tandy/PCjr 16-color mode. */
         }
         else if (machine == MCH_PCJR) {
             /* PCjr also shares video/system memory, but the video memory can only exist
@@ -9343,6 +9327,21 @@ public:
         }
 
         if (machine == MCH_TANDY) {
+            /* Take 16KB off the top for video RAM.
+             * This value never changes after boot, even if you then use the 16-color modes which then moves
+             * the video RAM region down 16KB to make a 32KB region. Neither MS-DOS nor INT 10h change this
+             * top of memory value. I hope your DOS game doesn't put any important structures or MCBs above
+             * the 32KB below top of memory, because it WILL get overwritten with graphics!
+             *
+             * This is apparently correct behavior, and DOSBox SVN and other forks follow it too.
+             *
+             * See also: [https://www.vogons.org/viewtopic.php?p=948879#p948879]
+             * Issue: [https://github.com/joncampbell123/dosbox-x/issues/2380]
+             *
+             * Mickeys Space Adventure assumes it can find video RAM by calling INT 12h, subtracting 16KB, and
+             * converting KB to paragraphs. Note that it calls INT 12h while in CGA mode, and subtracts 16KB
+             * knowing video memory will extend downward 16KB into a 32KB region when it switches into the
+             * Tandy/PCjr 16-color mode. */
             if (t_conv > 640) t_conv = 640;
             if (ulimit > 640) ulimit = 640;
             t_conv -= 16;
