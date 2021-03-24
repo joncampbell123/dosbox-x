@@ -7173,6 +7173,7 @@ void showBIOSSetup(const char* card, int x, int y) {
 
 static Bitu ulimit = 0;
 static Bitu t_conv = 0;
+static Bitu t_conv_real = 0;
 static bool bios_first_init=true;
 static bool bios_has_exec_vga_bios=false;
 static Bitu adapter_scan_start;
@@ -7972,6 +7973,8 @@ private:
         // FIXME: We're using IBM PC memory size storage even in PC-98 mode.
         //        This cannot be removed, because the DOS kernel uses this variable even in PC-98 mode.
         mem_writew(BIOS_MEMORY_SIZE,t_conv);
+        // According to Ripsaw, Tandy systems hold the real memory size in a normally reserved field [https://www.vogons.org/viewtopic.php?p=948898#p948898]
+        if (machine == MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE+2,t_conv_real);
 
         RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
         // pseudocode for CB_IRQ0:
@@ -9296,6 +9299,7 @@ public:
 
         /* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
         if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
+        t_conv_real = t_conv;
 
         if (machine == MCH_TANDY) {
             if (t_conv < 384)
