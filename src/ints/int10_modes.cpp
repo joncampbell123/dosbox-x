@@ -835,6 +835,18 @@ static void FinishSetMode(bool clearmem) {
 	VGA_DAC_UpdateColorPalette();
 }
 
+uint8_t TandyGetCRTPage(void) {
+	uint16_t tom = mem_readw(BIOS_MEMORY_SIZE+2);
+
+	if (CurMode->mode>=0x9)
+		tom -= 32;
+	else
+		tom -= 16;
+
+	const uint8_t bank = (tom >> 4u) & 7; /* KB to 16KB bank paying attention only to 16KB page in 128KB region */
+	return ((CurMode->mode>=0x9) ? 0xc0 : 0x00) + (bank * 0x09);    /* 0x09 = 001001 equiv bank | (bank << 3) */
+}
+
 extern bool en_int33;
 void change_output(int output);
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
@@ -1062,7 +1074,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 		//Clear monitor mode
 		IO_WriteB(0x3da,0x8);
 		IO_WriteB(0x3de,0x0);
-		crtpage=(CurMode->mode>=0x9) ? 0xf6 : 0x3f;
+		crtpage=TandyGetCRTPage();
 		IO_WriteB(0x3df,crtpage);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CRTCPU_PAGE,crtpage);
 		mode_control=mode_control_list[CurMode->mode];
