@@ -7320,6 +7320,8 @@ static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     return CBRET_NONE;
 }
 
+extern uint32_t tandy_128kbase;
+
 static int bios_post_counter = 0;
 
 class BIOS:public Module_base{
@@ -9302,8 +9304,11 @@ public:
         t_conv_real = t_conv;
 
         if (machine == MCH_TANDY) {
-            if (t_conv < 384)
-                E_Exit("Tandy requires at least 384KB of RAM");
+            /* Tandy models are said to have started with 256KB. We'll allow down to 64KB */
+            if (t_conv < 64)
+                t_conv = 64;
+            if (t_conv < 256)
+                LOG(LOG_MISC,LOG_WARN)("Warning: Tandy with less than 256KB is unusual");
 
             /* The shared video/system memory design, and the placement of video RAM at top
              * of conventional memory, means that if conventional memory is less than 640KB
@@ -9346,6 +9351,18 @@ public:
             if (ulimit > 640) ulimit = 640;
             t_conv -= 16;
             ulimit -= 16;
+
+            /* if 32KB would cross a 128KB boundary, then adjust again or else
+             * things will horribly break between text and graphics modes */
+            if ((t_conv % 128) < 16)
+                t_conv -= 16;
+
+            /* Our choice also affects which 128KB bank within which the 16KB banks
+             * select what system memory becomes video memory.
+             *
+             * FIXME: Is this controlled by the "extended ram page register?" How? */
+            tandy_128kbase = ((t_conv - 16u) << 10u) & 0xE0000; /* byte offset = (KB - 16) * 64, round down to multiple of 128KB */
+            LOG(LOG_MISC,LOG_DEBUG)("BIOS: setting tandy 128KB base region to %lxh",(unsigned long)tandy_128kbase);
         }
 
         /* INT 4B. Now we can safely signal error instead of printing "Invalid interrupt 4B"

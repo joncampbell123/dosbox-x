@@ -557,9 +557,6 @@ void DOS_SetupMemory(void) {
 	mcb.SetPSPSeg(MCB_FREE);						//Free
 	mcb.SetType(0x5a);								//Last Block
 	if (machine==MCH_TANDY) {
-		if (seg_limit < ((384*1024)/16))
-			E_Exit("Tandy requires at least 384K");
-
 		/* map memory as normal, the BIOS initialization is the code responsible
 		 * for subtracting 32KB from top of system memory for video memory. */
 		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);

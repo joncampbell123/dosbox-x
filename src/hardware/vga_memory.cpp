@@ -60,7 +60,9 @@ extern bool enable_pc98_256color;
 #define CHECKED3(v) ((v)&vga.mem.memmask)
 #define CHECKED4(v) ((v)&(vga.mem.memmask>>2))
 
-#define TANDY_VIDBASE(_X_)  &MemBase[ 0x80000 + (_X_)]
+uint32_t tandy_128kbase = 0x80000;
+
+#define TANDY_VIDBASE(_X_)  &MemBase[ tandy_128kbase + (_X_)]
 
 /* how much delay to add to VGA memory I/O in nanoseconds */
 int vga_memio_delay_ns = 1000;
