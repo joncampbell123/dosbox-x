@@ -1,4 +1,8 @@
 0.83.12
+  - Fixed Tandy mode to place video memory at the
+    top of conventional memory and allow running
+    Tandy mode with a memsizekb setting as low as
+    64KB, though 256KB or higher is recommended.
   - Added Tandy "real memory size" field in the
     BIOS data area.
   - Tandy emulation updated to subtract 16KB from
