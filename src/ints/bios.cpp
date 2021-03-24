@@ -9326,16 +9326,6 @@ public:
              * converting KB to paragraphs. Note that it calls INT 12h while in CGA mode, and subtracts 16KB
              * knowing video memory will extend downward 16KB into a 32KB region when it switches into the
              * Tandy/PCjr 16-color mode. */
-            if (t_conv > 640) t_conv = 640;
-            if (ulimit > 640) ulimit = 640;
-            t_conv -= 16;
-            ulimit -= 16;
-
-            /* FIXME: INT 10h emulation currently points video RAM at 9800:0000 regardless of
-             *        the amount of conventional memory, which happens to work as long as the
-             *        game or application only writes to segment B800:0000. The system RAM
-             *        backing the video ram is invisible because it's beyond the available
-             *        conventional memory reported to the guest and therefore not mapped. */
         }
         else if (machine == MCH_PCJR) {
             /* PCjr also shares video/system memory, but the video memory can only exist
@@ -9350,6 +9340,13 @@ public:
             Bitu start = (t_conv+3)/4;  /* start = 1KB to page round up */
             Bitu end = ulimit/4;        /* end = 1KB to page round down */
             if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
+        }
+
+        if (machine == MCH_TANDY) {
+            if (t_conv > 640) t_conv = 640;
+            if (ulimit > 640) ulimit = 640;
+            t_conv -= 16;
+            ulimit -= 16;
         }
 
         /* INT 4B. Now we can safely signal error instead of printing "Invalid interrupt 4B"
