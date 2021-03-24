@@ -1511,7 +1511,9 @@ void DOSBOX_SetupConfigSections(void) {
         "If nonzero, it is added to the memsize parameter.\n"
         "Finer grained control of total memory may be useful in\n"
         "emulating ancient DOS machines with less than 640KB of\n"
-        "RAM or early 386 systems with odd extended memory sizes.");
+        "RAM or early 386 systems with odd extended memory sizes.\n"
+        "For Tandy and PCjr emulation, it is strongly recommended.\n"
+        "to specify a size that is a multiple of 32 (kb).\n");
 
     Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1023);
