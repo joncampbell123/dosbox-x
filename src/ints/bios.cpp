@@ -7173,6 +7173,7 @@ void showBIOSSetup(const char* card, int x, int y) {
 
 static Bitu ulimit = 0;
 static Bitu t_conv = 0;
+static Bitu t_conv_real = 0;
 static bool bios_first_init=true;
 static bool bios_has_exec_vga_bios=false;
 static Bitu adapter_scan_start;
@@ -7318,6 +7319,8 @@ static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
 
     return CBRET_NONE;
 }
+
+extern uint32_t tandy_128kbase;
 
 static int bios_post_counter = 0;
 
@@ -7972,6 +7975,9 @@ private:
         // FIXME: We're using IBM PC memory size storage even in PC-98 mode.
         //        This cannot be removed, because the DOS kernel uses this variable even in PC-98 mode.
         mem_writew(BIOS_MEMORY_SIZE,t_conv);
+        // According to Ripsaw, Tandy systems hold the real memory size in a normally reserved field [https://www.vogons.org/viewtopic.php?p=948898#p948898]
+        // According to the PCjr hardware reference library that memory location means the same thing
+        if (machine == MCH_PCJR || machine == MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE+2,t_conv_real);
 
         RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
         // pseudocode for CB_IRQ0:
@@ -9286,16 +9292,6 @@ public:
             if (t_conv > 640) t_conv = 640;
         }
 
-#if 0 /* NTS: This breaks Tandy games that write to system RAM addresses to draw on video RAM i.e.
-              not at B800:xxxx but at (TOP_OF_MEMORY minus 32KB). What is the correct behavior
-              here? */
-        if (IS_TANDY_ARCH) {
-            /* reduce reported memory size for the Tandy (32k graphics memory
-               at the end of the conventional 640k) */
-            if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
-        }
-#endif
-
         /* allow user to further limit the available memory below 1MB */
         if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
             t_conv = dos_conventional_limit;
@@ -9306,8 +9302,15 @@ public:
 
         /* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
         if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
+        t_conv_real = t_conv;
 
         if (machine == MCH_TANDY) {
+            /* Tandy models are said to have started with 256KB. We'll allow down to 64KB */
+            if (t_conv < 64)
+                t_conv = 64;
+            if (t_conv < 256)
+                LOG(LOG_MISC,LOG_WARN)("Warning: Tandy with less than 256KB is unusual");
+
             /* The shared video/system memory design, and the placement of video RAM at top
              * of conventional memory, means that if conventional memory is less than 640KB
              * and not a multiple of 32KB, things can break. */
@@ -9315,6 +9318,9 @@ public:
                 LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
         }
         else if (machine == MCH_PCJR) {
+            if (t_conv < 64)
+                t_conv = 64;
+
             /* PCjr also shares video/system memory, but the video memory can only exist
              * below 128KB because IBM intended it to only carry 64KB or 128KB on the
              * motherboard. Any memory past 128KB is likely provided by addons (sidecars) */
@@ -9327,6 +9333,59 @@ public:
             Bitu start = (t_conv+3)/4;  /* start = 1KB to page round up */
             Bitu end = ulimit/4;        /* end = 1KB to page round down */
             if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
+        }
+
+        if (machine == MCH_TANDY) {
+            /* Take 16KB off the top for video RAM.
+             * This value never changes after boot, even if you then use the 16-color modes which then moves
+             * the video RAM region down 16KB to make a 32KB region. Neither MS-DOS nor INT 10h change this
+             * top of memory value. I hope your DOS game doesn't put any important structures or MCBs above
+             * the 32KB below top of memory, because it WILL get overwritten with graphics!
+             *
+             * This is apparently correct behavior, and DOSBox SVN and other forks follow it too.
+             *
+             * See also: [https://www.vogons.org/viewtopic.php?p=948879#p948879]
+             * Issue: [https://github.com/joncampbell123/dosbox-x/issues/2380]
+             *
+             * Mickeys Space Adventure assumes it can find video RAM by calling INT 12h, subtracting 16KB, and
+             * converting KB to paragraphs. Note that it calls INT 12h while in CGA mode, and subtracts 16KB
+             * knowing video memory will extend downward 16KB into a 32KB region when it switches into the
+             * Tandy/PCjr 16-color mode. */
+            if (t_conv > 640) t_conv = 640;
+            if (ulimit > 640) ulimit = 640;
+            t_conv -= 16;
+            ulimit -= 16;
+
+            /* if 32KB would cross a 128KB boundary, then adjust again or else
+             * things will horribly break between text and graphics modes */
+            if ((t_conv % 128) < 16)
+                t_conv -= 16;
+
+            /* Our choice also affects which 128KB bank within which the 16KB banks
+             * select what system memory becomes video memory.
+             *
+             * FIXME: Is this controlled by the "extended ram page register?" How? */
+            tandy_128kbase = ((t_conv - 16u) << 10u) & 0xE0000; /* byte offset = (KB - 16) * 64, round down to multiple of 128KB */
+            LOG(LOG_MISC,LOG_DEBUG)("BIOS: setting tandy 128KB base region to %lxh",(unsigned long)tandy_128kbase);
+        }
+        else if (machine == MCH_PCJR) {
+            /* PCjr reserves the top of it's internal 128KB of RAM for video RAM.
+             * Sidecars can extend it past 128KB but it requires DOS drivers or TSRs
+             * to modify the MCB chain so that it a) marks the video memory as reserved
+             * and b) creates a new free region above the video RAM region.
+             *
+             * Therefore, only subtract 16KB if 128KB or less is configured for this machine.
+             *
+             * Note this is not speculation, it's there in the PCjr BIOS source code:
+             * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/PCjr/IBM%20Personal%20Computer%20PCjr%20Hardware%20Reference%20Library%20Technical%20Reference%20%281983%2d11%29%20First%20Edition%20Revised%2epdf] ROM BIOS source code page A-16 */
+            if (t_conv <= (128+16)) {
+                if (t_conv > 128) t_conv = 128;
+                t_conv -= 16;
+            }
+            if (ulimit <= (128+16)) {
+                if (ulimit > 128) ulimit = 128;
+                ulimit -= 16;
+            }
         }
 
         /* INT 4B. Now we can safely signal error instead of printing "Invalid interrupt 4B"

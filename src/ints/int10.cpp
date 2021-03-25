@@ -806,15 +806,30 @@ CX	640x480	800x600	  1024x768/1280x1024
 
 bool DISP2_Active(void);
 static void INT10_Seg40Init(void) {
-	// the default char height
-	real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
-	// Clear the screen 
-	real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
-	// Set the basic screen we have
-	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
-	// Set the basic modeset options
+	// Clear the screen.
+	//
+	// The byte value at 40:87 (BIOSMEM_VIDEO_CTL) only means something if EGA/VGA.
+	// Should be zero for PCjr (which defines it as function key), and Tandy (which does not define it),
+	// and MDA/Hercules/CGA (which also does not define this byte).
+	// 
+	// Furthermore, some games such as "Road Runner" by Mindscape use that byte as part of it's
+	// detection routines to differentiate between CGA, EGA, and Tandy. For the game to work properly
+	// in Tandy emulation, this byte must be zero.
+	if (IS_EGAVGA_ARCH) {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
+	}
+	else {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x00);
+		if (machine == MCH_TANDY || machine == MCH_CGA || machine == MCH_PCJR)
+			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,8); /* FIXME: INT 10h teletext routines depend on this */
+		else
+			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,0);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x00);
+	}
 #if C_DEBUG
-    if (control->opt_display2)
+	if (control->opt_display2)
 		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
     else
 #endif

@@ -1,4 +1,31 @@
 0.83.12
+  - INT 10h will no longer fill in three fields in
+    the BIOS data area (video CTL, char height, and
+    video switches) unless the machine type is
+    EGA or VGA. Those fields do not exist otherwise.
+    Certain games like Mindscape's "Road Runner" game
+    require those fields to be zero as part of it's
+    Tandy detection routine.
+  - PCjr mode will omit the reserved graphics RAM
+    MCB block, and will subtract 16KB from the top
+    at the BIOS level, if emulating 128KB system
+    memory or less.
+  - You can now run PCjr mode with as little as
+    128KB of RAM. Removed 256KB minimum check from
+    DOS kernel. Certain games (Mickey's Space
+    Adventure) require memsizekb=128 and memsize=0
+    in PCjr mode or else it will not work correctly
+    due to how the game locates video system memory.
+  - Fixed Tandy mode to place video memory at the
+    top of conventional memory and allow running
+    Tandy mode with a memsizekb setting as low as
+    64KB, though 256KB or higher is recommended.
+  - Added Tandy "real memory size" field in the
+    BIOS data area.
+  - Tandy emulation updated to subtract 16KB from
+    top of conventional memory, which fixes some
+    games and follows DOSBox SVN behavior and real
+    hardware according to others on the Vogons forums.
   - Fixed bug that limited Tandy mode to 624KB of
     conventional memory. 32KB of video RAM is taken
     from top of memory, losing half of the 32KB
