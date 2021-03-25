@@ -1,4 +1,6 @@
 0.83.12
+  - Fix for windows 3.x group file corruption
+    on hard disk image files.
   - INT 10h will no longer fill in three fields in
     the BIOS data area (video CTL, char height, and
     video switches) unless the machine type is
