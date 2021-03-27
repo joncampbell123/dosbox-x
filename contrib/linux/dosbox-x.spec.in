@@ -12,6 +12,7 @@ BuildRequires: freetype-devel
 BuildRequires: gcc-c++
 BuildRequires: libpcap-devel
 BuildRequires: libpng-devel
+BuildRequires: libslirp-devel
 BuildRequires: libtool
 BuildRequires: libX11-devel
 BuildRequires: libXext-devel
