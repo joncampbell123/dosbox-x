@@ -75,7 +75,10 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x04:		//Vertical total
 		if (vga.other.vtotal ^ val) VGA_StartResize();
-		vga.other.vtotal=(uint8_t)(val&0x7f);
+		if (machine == MCH_TANDY) // FIXME: This is needed for "Math Rabbit", but does Tandy hardware *really* use all 8 bits? Or is it limited to 7 bits like MDA/CGA/Hercules/PCjr? This is default DOSBox SVN behavior.
+			vga.other.vtotal=(uint8_t)(val&0xff);
+		else
+			vga.other.vtotal=(uint8_t)(val&0x7f);
 		break;
 	case 0x05:		//Vertical display adjust
 		if (vga.other.vadjust ^ val) VGA_StartResize();
@@ -83,7 +86,10 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x06:		//Vertical rows
 		if (vga.other.vdend ^ val) VGA_StartResize();
-		vga.other.vdend=(uint8_t)(val&0x7f);
+		if (machine == MCH_TANDY) // FIXME: This is needed for "Math Rabbit", but does Tandy hardware *really* use all 8 bits? Or is it limited to 7 bits like MDA/CGA/Hercules/PCjr? This is default DOSBox SVN behavior.
+			vga.other.vdend=(uint8_t)(val&0xff);
+		else
+			vga.other.vdend=(uint8_t)(val&0x7f);
 		break;
 	case 0x07:		//Vertical sync position
 		vga.other.vsyncp=(uint8_t)val;
