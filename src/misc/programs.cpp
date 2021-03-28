@@ -48,7 +48,7 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, lastset;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, lastset;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
@@ -1407,6 +1407,10 @@ void CONFIG::Run(void) {
                                 mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
                                 mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
                                 resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
+#if defined(USE_TTF)
+                                wpBG = section->Get_int("ttf.wpbg");
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
 #if defined(USE_TTF)
