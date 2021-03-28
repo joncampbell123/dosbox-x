@@ -1,4 +1,9 @@
 0.83.12
+  - Tandy graphics emulation fixed to accept 8 bits
+    for vertical total and vertical display CRTC
+    registers, which is needed for the tweaked
+    graphics mode used by Math Rabbit to display
+    correctly.
   - Fix for windows 3.x group file corruption
     on hard disk image files.
   - INT 10h will no longer fill in three fields in
