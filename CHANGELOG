@@ -1,4 +1,9 @@
 0.83.12
+  - Tandy graphics emulation fixed to accept 8 bits
+    for vertical total and vertical display CRTC
+    registers, which is needed for the tweaked
+    graphics mode used by Math Rabbit to display
+    correctly.
   - Fix for windows 3.x group file corruption
     on hard disk image files.
   - INT 10h will no longer fill in three fields in
@@ -68,6 +73,8 @@
     drivers from detecting the PS/2 mouse.
   - Fixed the color issue with the Configuration Tool
     in the macOS SDL1 build. (ant_222)
+  - Fixed switching ttf.cols, ttf.lins, and ttf.font
+    options dynamically in full-screen mode. (Wengier)
   - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
     not working (but "ttf.wp=xy" did work). (Wengier)
   - Fixed preview function in WordStar not working for
