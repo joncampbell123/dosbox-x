@@ -3592,7 +3592,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         }
         wpBG = render_section->Get_int("ttf.wpbg");
         winPerc = render_section->Get_int("ttf.winperc");
-        if (winPerc>100||(fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
+        if (winPerc>100||(fsize==3&&GFX_IsFullscreen())||(fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
         if (fsize==1&&winPerc==100) winPerc=60;
         fontSize = render_section->Get_int("ttf.ptsize");
@@ -10127,8 +10127,8 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 #endif
 
 #ifdef USE_TTF
-void ttf_reset(void) {
-    OUTPUT_TTF_Select();
+void ttf_reset() {
+    OUTPUT_TTF_Select(3);
     resetFontSize();
 }
 

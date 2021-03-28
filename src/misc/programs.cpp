@@ -1373,10 +1373,7 @@ void CONFIG::Run(void) {
                             void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
 #if defined(USE_TTF)
-                                bool fs=GFX_IsFullscreen();
-                                if (fs) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                                 ttf_reset();
-                                if (fs&&!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
 #if defined(USE_TTF)
@@ -1392,10 +1389,7 @@ void CONFIG::Run(void) {
                                     CALLBACK_RunRealInt(0x10);
                                 }
                                 lastset=iscol?2:1;
-                                bool fs=GFX_IsFullscreen();
-                                if (fs) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                                 ttf_setlines(0, 0);
-                                if (fs&&!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                                 lastset=0;
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
