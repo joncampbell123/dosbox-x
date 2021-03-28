@@ -7,9 +7,11 @@ URL:           https://dosbox-x.com
 Source:        @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 
 BuildRequires: alsa-lib-devel
+BuildRequires: desktop-file-utils
 BuildRequires: fluidsynth-devel
 BuildRequires: freetype-devel
 BuildRequires: gcc-c++
+BuildRequires: libappstream-glib
 BuildRequires: libpcap-devel
 BuildRequires: libpng-devel
 BuildRequires: libslirp-devel
@@ -59,6 +61,8 @@ options and features.
 
 %install
 %make_install
+desktop-file-validate %{buildroot}/%{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
+appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 %files
 %{_bindir}/%{name}
@@ -66,7 +70,7 @@ options and features.
 %{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
 %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
 %{_datadir}/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
-%{_mandir}/man1/dosbox-x.1
+%{_mandir}/man1/dosbox-x.1.gz
 
 # Required for NE2000 pcap networking support (promiscuous mode)
 %post
