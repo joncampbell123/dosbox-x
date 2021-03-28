@@ -4,8 +4,6 @@
     registers, which is needed for the tweaked
     graphics mode used by Math Rabbit to display
     correctly.
-  - Fix for windows 3.x group file corruption
-    on hard disk image files.
   - INT 10h will no longer fill in three fields in
     the BIOS data area (video CTL, char height, and
     video switches) unless the machine type is
@@ -53,6 +51,9 @@
   - Updated the MMX patch code by kekko. (Wengier)
   - Improved the compatibility of AUTOTYPE command with
     games like Asterix & Obelix. (Wengier)
+  - The config options ttf.wpbg, ttf.bold, ttf.italic,
+    ttf.underline, ttf.strikeout can now be modified
+    dynamically via CONFIG -SET ... commands. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
@@ -79,6 +80,8 @@
     not working (but "ttf.wp=xy" did work). (Wengier)
   - Fixed preview function in WordStar not working for
     TrueType font output in previous version. (Wengier)
+  - Fixed the issue that caused Windows 3.x group file
+    corruption on hard disk image files. (SnikoLoft)
   - Integrated SVN commits (Allofich)
     - r4416: Added ability to start and stop avi
     recording, and to start keymapper, from config.

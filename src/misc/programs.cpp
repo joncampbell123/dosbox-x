@@ -49,7 +49,7 @@ typedef struct {
 Bitu call_program;
 extern const char *modifier;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, lastset;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1411,6 +1411,32 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
 #if defined(USE_TTF)
                                 wpBG = section->Get_int("ttf.wpbg");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.bold=")) {
+#if defined(USE_TTF)
+                                showbold = section->Get_bool("ttf.bold");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.italic=")) {
+#if defined(USE_TTF)
+                                showital = section->Get_bool("ttf.italic");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.underline=")) {
+#if defined(USE_TTF)
+                                showline = section->Get_bool("ttf.underline");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.strikeout=")) {
+#if defined(USE_TTF)
+                                showsout = section->Get_bool("ttf.strikeout");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "ttf.char512=")) {
+#if defined(USE_TTF)
+                                char512 = section->Get_bool("ttf.char512");
+                                resetFontSize();
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
 #if defined(USE_TTF)

@@ -1209,7 +1209,7 @@ void ttf_switch_on(bool ss=true) {
         mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         if (ttf.fullScrn) {
             if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-            OUTPUT_TTF_Select(2);
+            OUTPUT_TTF_Select(3);
             resetreq = true;
         }
         resetFontSize();
