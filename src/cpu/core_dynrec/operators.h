@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -2005,4 +2005,46 @@ static uint32_t DRC_CALL_CONV dynrec_pop_dword(void) {
 	uint32_t val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
 	return val;
+}
+
+static bool DRC_CALL_CONV dynrec_io_writeB(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_writeB(Bitu port) {
+	bool ex = CPU_IO_Exception(port,1);
+	if (!ex) IO_WriteB(port,reg_al);
+	return ex;
+}
+
+static bool DRC_CALL_CONV dynrec_io_writeW(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_writeW(Bitu port) {
+	bool ex = CPU_IO_Exception(port,2);
+	if (!ex) IO_WriteW(port,reg_ax);
+	return ex;
+}
+
+static bool DRC_CALL_CONV dynrec_io_writeD(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_writeD(Bitu port) {
+	bool ex = CPU_IO_Exception(port,4);
+	if (!ex) IO_WriteD(port,reg_eax);
+	return ex;
+};
+
+static bool DRC_CALL_CONV dynrec_io_readB(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_readB(Bitu port) {
+	bool ex = CPU_IO_Exception(port,1);
+	if (!ex) reg_al = (uint8_t)IO_ReadB(port);
+	return ex;
+}
+
+static bool DRC_CALL_CONV dynrec_io_readW(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_readW(Bitu port) {
+	bool ex = CPU_IO_Exception(port,2);
+	if (!ex) reg_ax = (uint16_t)IO_ReadW(port);
+	return ex;
+}
+
+static bool DRC_CALL_CONV dynrec_io_readD(Bitu port) DRC_FC;
+static bool DRC_CALL_CONV dynrec_io_readD(Bitu port) {
+	bool ex = CPU_IO_Exception(port,4);
+	if (!ex) reg_eax = (uint32_t)IO_ReadD(port);
+	return ex;
 }

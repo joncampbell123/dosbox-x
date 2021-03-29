@@ -51,9 +51,7 @@ Commit#:	Reason for skipping:
 4329		Conflict
 4334		Conflict
 4335		Conflict
-
-(Commits in this interval are still TODO)
-
+4347		Conflict
 4357		Conflict
 4360		Conflict
 4367		Conflict
@@ -68,3 +66,10 @@ Commit#:	Reason for skipping:
 4396		Conflict. DOSBox-X's cache.h files differ from SVN's. Can they be merged in the same way?
 4397		Conflict
 4400		No "sBitfs" in DOSBox-X
+4407		Conflict
+4408		Conflict
+4411		What spacing do we want in DOSBox-X code?
+4413		Conflict
+4415		Conflict
+4417		No function definition in DOSBox-X, so unnecessary.
+4418		No C_SRECORD in DOSBox-X

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1330,84 +1330,68 @@ static void dyn_string(StringOps op) {
 
 
 static void dyn_read_port_byte_direct(uint8_t port) {
-	dyn_add_iocheck_var(port,1);
-	gen_call_function_I(IO_ReadB,port);
-	MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,DRC_REG_EAX,0);
+	gen_mov_dword_to_reg_imm(FC_OP1,port);
+	gen_call_function_raw(dynrec_io_readB);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_read_port_word_direct(uint8_t port) {
-	dyn_add_iocheck_var(port,decode.big_op?4:2);
-    if (decode.big_op)
-        gen_call_function_I(IO_ReadD,port);
+	gen_mov_dword_to_reg_imm(FC_OP1,port);
+    if(decode.big_op)
+        gen_call_function_raw(dynrec_io_readD);
     else
-        gen_call_function_I(IO_ReadW,port);
-    MOV_REG_WORD_FROM_HOST_REG(FC_RETOP,DRC_REG_EAX,decode.big_op);
+        gen_call_function_raw(dynrec_io_readW);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_byte_direct(uint8_t port) {
-	dyn_add_iocheck_var(port,1);
-	MOV_REG_BYTE_TO_HOST_REG_LOW(FC_RETOP,DRC_REG_EAX,0);
-	gen_extend_byte(false,FC_RETOP);
-	gen_call_function_IR(IO_WriteB,port,FC_RETOP);
+	gen_mov_dword_to_reg_imm(FC_OP1,port);
+	gen_call_function_raw(dynrec_io_writeB);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_word_direct(uint8_t port) {
-	dyn_add_iocheck_var(port,decode.big_op?4:2);
-	MOV_REG_WORD_TO_HOST_REG(FC_RETOP,DRC_REG_EAX,decode.big_op);
-	if (!decode.big_op) gen_extend_word(false,FC_RETOP);
-    if (decode.big_op)
-        gen_call_function_IR(IO_WriteD,port,FC_RETOP);
+	gen_mov_dword_to_reg_imm(FC_OP1,port);
+    if(decode.big_op)
+        gen_call_function_raw(dynrec_io_writeD);
     else
-        gen_call_function_IR(IO_WriteW,port,FC_RETOP);
+        gen_call_function_raw(dynrec_io_writeW);
+	dyn_check_exception(FC_RETOP);
 }
 
 
 static void dyn_read_port_byte(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_ADDR,DRC_REG_EDX);
-	gen_extend_word(false,FC_ADDR);
-	gen_protect_addr_reg();
-	dyn_add_iocheck(FC_ADDR,1);
-	gen_restore_addr_reg();
-	gen_call_function_R(IO_ReadB,FC_ADDR);
-	MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,DRC_REG_EAX,0);
+	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
+	gen_extend_word(false,FC_OP1);
+	gen_call_function_raw(dynrec_io_readB);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_read_port_word(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_ADDR,DRC_REG_EDX);
-	gen_extend_word(false,FC_ADDR);
-	gen_protect_addr_reg();
-	dyn_add_iocheck(FC_ADDR,decode.big_op?4:2);
-	gen_restore_addr_reg();
-    if (decode.big_op)
-        gen_call_function_R(IO_ReadD,FC_ADDR);
+	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
+	gen_extend_word(false,FC_OP1);
+    if(decode.big_op)
+        gen_call_function_raw(dynrec_io_readD);
     else
-        gen_call_function_R(IO_ReadW,FC_ADDR);
-	MOV_REG_WORD_FROM_HOST_REG(FC_RETOP,DRC_REG_EAX,decode.big_op);
+        gen_call_function_raw(dynrec_io_readW);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_byte(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_ADDR,DRC_REG_EDX);
-	gen_extend_word(false,FC_ADDR);
-	gen_protect_addr_reg();
-	dyn_add_iocheck(FC_ADDR,1);
-	MOV_REG_BYTE_TO_HOST_REG_LOW(FC_RETOP,DRC_REG_EAX,0);
-	gen_extend_byte(false,FC_RETOP);
-	gen_restore_addr_reg();
-	gen_call_function_RR(IO_WriteB,FC_ADDR,FC_RETOP);
+	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
+	gen_extend_word(false,FC_OP1);
+	gen_call_function_raw(dynrec_io_writeB);
+	dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_word(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_ADDR,DRC_REG_EDX);
-	gen_extend_word(false,FC_ADDR);
-	gen_protect_addr_reg();
-	dyn_add_iocheck(FC_ADDR,decode.big_op?4:2);
-	MOV_REG_WORD_TO_HOST_REG(FC_RETOP,DRC_REG_EAX,decode.big_op);
-	if (!decode.big_op) gen_extend_word(false,FC_RETOP);
-	gen_restore_addr_reg();
-    if (decode.big_op)
-    	gen_call_function_RR(IO_WriteD,FC_ADDR,FC_RETOP);
+	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
+	gen_extend_word(false,FC_OP1);
+    if(decode.big_op)
+        gen_call_function_raw(dynrec_io_writeD);
     else
-    	gen_call_function_RR(IO_WriteW,FC_ADDR,FC_RETOP);
+        gen_call_function_raw(dynrec_io_writeW);
+	dyn_check_exception(FC_RETOP);
 }
 
 

@@ -16,7 +16,7 @@ At the beginning you have got a Z:\> instead of a C:\> at the DOSBox-X prompt. S
 
 To change to the drive mounted like above, type "C:". If everything went fine, DOSBox-X will display the prompt "C:\>". You do not have to manually mount drives after DOSBox-X starts. Click the "Main" menu, and select "Configuration tool". Then select the "AUTOEXEC.BAT" setting group, where you can change its contents. The commands present here are run when DOSBox-X starts, so you can use this section for the mounting and other purposes, such as launching a specific program you want to use, or a game you want to play. You can also quickly launch a DOS program or game in DOSBox-X by clicking "Quick launch program..." under "DOS" menu.
 
-Hint: DOSBox-X supports different video output systems for different purposes. By default it uses the Direct3D output, but if you desire the pixel-perfect scaling feature for improved image quality you may want to select the openglpp output ("OpenGL perfect"). Also, if you use text-mode DOS applications and/or the DOS shell a lot you probably want to select the TrueType font (TTF) output to make the text screen look much better.
+Hint: DOSBox-X supports different video output systems for different purposes. By default it uses the Direct3D output, but if you desire the pixel-perfect scaling feature for improved image quality you may want to select the openglpp output ("OpenGL perfect"). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.
 
 Further Information
 ===================

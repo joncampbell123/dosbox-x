@@ -1,14 +1,82 @@
+0.83.12
+  - CD-ROM image emulation now supports ISO images
+    that are 2GB or larger, 32-bit integer size limit
+    has been lifted.
+  - Increased upper limit of "prebuffer" config option
+    (in [mixer] section) from 100 to 250. (Wengier)
+  - Added scrollbar buttons to the Configuration Tool,
+    so that the scrollbars better resemble the style of
+    the Windows 3.1 scrollbars.
+  - The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
+  - Updated the MMX patch code by kekko. (Wengier)
+  - Improved the compatibility of AUTOTYPE command with
+    games like Asterix & Obelix. (Wengier)
+  - Added menu item "Save logging as..." (under "Help"
+    -> "Debugging options") to save the current logging
+    content to the specified file. (Wengier)
+  - Added slirp backend support for the NE2000 network
+    feature (in addition to the existing pcap backend).
+    There are config sections named [ethernet, slirp]
+    and [ethernet, pcap] now to set the options for the
+    slirp and pcap backends respectively. (Jookia)
+  - FAT driver can now support PC-98 HDI images with
+    partitions that start at any physical sector even
+    if the start is not a multiple of the ratio of
+    logical to physical sector size. This allows the
+    HDI image of Dragon Knight 4 to mount.
+  - Fixed Windows 95/98 installation failures caused by
+    FAT driver and DOS API changes in previous version.
+  - Fixed well-intended but erroneous fall through case
+    in the INT15 handler that prevented 3rd party mouse
+    drivers from detecting the PS/2 mouse.
+  - Fixed the color issue with the Configuration Tool
+    in the macOS SDL1 build. (ant_222)
+  - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
+    not working (but "ttf.wp=xy" did work). (Wengier)
+  - Fixed preview function in WordStar not working for
+    TrueType font output in previous version. (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4416: Added ability to start and stop avi
+    recording, and to start keymapper, from config.
+    - r4405: Smarter clearing of the dynrec cache.
 0.83.11
+  - Added support for the clipboard device (CLIP$) and
+    DOS clipboard API on non-Windows systems (they were
+    previously only supported on the Windows platform).
+    In Linux SDL1 build only read access is supported
+    whereas both read and write access are supported in
+    all other builds. Also, selecting and copying text
+    to the host clipboard using a mouse button or arrow
+    key is now supported in macOS SDL1 build. (Wengier)
+  - Added "Paste Clipboard" button to the AUTOEXEC.BAT,
+    CONFIG.SYS and 4DOS.INI sections in Configuration
+    Tool for pasting clipboard contents. (Wengier)
+  - Windows SDL2 builds now use same clipboard pasting
+    method as Windows SDL1 builds by default instead of
+    the BIOS keyboard function. The method is now also
+    available for Linux and macOS (both SDL1 and SDL2)
+    builds (although it is disabled by default on these
+    platforms). A menu option "Use BIOS function for
+    keyboard pasting" is added to the "Shared clipboard
+    functions" menu group (under "Main") to use BIOS
+    function for the clipboard pasting instead of the
+    keystroke method. Make sure this option is disabled
+    if pasting clipboad text into Windows 3.x/9x apps
+    (e.g. Notepad & Write) is desired. This setting can
+    be changed with "clip_paste_bios" config option in
+    in [sdl] section of the config file too. (Wengier)
   - With the config option "startcmd=true" or command-
     line option -winrun, Windows applications can now
     be launched from within a DOS program or from the
     4DOS shell in addition to built-in shell. (Wengier)
-  - Added support for the clipboard device (CLIP$) and
-    DOS clipboard API on non-Windows systems (they were
-    previously only supported on the Windows platform).
-    In Linux/macOS SDL1 builds only the read access is
-    supported whereas Linux/macOS SDL2 builds support
-    both read and write accesses. (Wengier)
+  - Added the "disable graphical splash" config option
+    in [dosbox] section which when set will cause a
+    text-mode BIOS splash screen to be always displayed
+    at startup instead of the graphical one. If the
+    TrueType font (TTF) output is enabled the text-
+    mode BIOS screen is used automatically. (Wengier)
   - Added a simple BIOS Setup Utlity, which will show
     a summary of the current system configuration and
     allow users to change the date and time. Press Del
@@ -33,8 +101,8 @@
     case and allowing the use of a custom ANSI TSR
     (such as NNANSI.COM) instead. (Wengier & stu)
   - You can now press Ctrl+C or Ctrl+Break to break
-    from long outputs from commands like COPY, TYPE,
-    DIR /S, and ATTRIB /S. (Wengier)
+    from long outputs from commands like TYPE, MORE,
+    COPY, DIR /S, and ATTRIB /S. (Wengier)
   - Renamed MEM.COM to MEM.EXE to match DOS. (Wengier)
   - Rewrote built-in TREE command instead of the one
     from FreeDOS to support long filenames. (Wengier)
@@ -56,11 +124,14 @@
     For example, command "COLOR fc" produces light red
     on bright white; COLOR without an argument restores
     the original color. (Wengier)
-  - Added CHCP command to view current code page, or
-    change the current code page in the TrueType font
-    output. Supported code pages include 437, 808, 850,
-    852, 853, 855, 857, 858, 860, 861, 862, 863, 864,
-    865, 866, 869, 872, and 874. (Wengier)
+  - Added CHCP command to view the current code page,
+    or change the current code page for the TrueType
+    font (TTF) output. Supported code pages include:
+    437, 808, 850, 852, 853, 855, 857, 858, 860, 861,
+    862, 863, 864, 865, 866, 869, 872, and 874. You can
+    now also set the code page for TTF output via the
+    optional second parameter of the "country" option
+    in [config] section of the configuration. (Wengier)
   - Added function to automatically save states in the
     specified time interval (in seconds). You can also
     specify a save slot or start and end save slots to
@@ -116,6 +187,8 @@
     auto" introduced in the previous version. (Wengier)
   - Fixed launching Windows programs when the working
     directory has no 8.3 filename entry. (Wengier)
+  - Fixed issues with full-screen switch in some cases
+    when the TrueType font output is enabled. (Wengier)
   - Fixed an issue in MinGW builds that no data will be
     sent to the OPL3Duo board. (DhrBaksteen)
   - Fixed screen flickering when hovering over the menu

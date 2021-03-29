@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -79,9 +79,9 @@ extern unsigned char        GFX_Bshift;
 extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 dos_kernel_disabled, confres, swapad;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
-extern std::string 			strPasteBuffer;
+extern std::string          strPasteBuffer;
 
-extern void 				PasteClipboard(bool bPressed);
+extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
@@ -814,6 +814,10 @@ std::string CapName(std::string name) {
         dispname="IDE Port #7";
     else if (name=="ide, octernary")
         dispname="IDE Port #8";
+    else if (name=="ethernet, pcap")
+        dispname="Ethernet pcap";
+    else if (name=="ethernet, slirp")
+        dispname="Ethernet Slirp";
     else
         dispname[0] = std::toupper(name[0]);
     return dispname;
@@ -859,6 +863,10 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE Port #8")
         dispname="ide, octernary";
+    else if (name=="Ethernet pcap")
+        dispname="ethernet, pcap";
+    else if (name=="Ethernet Slirp")
+        dispname="ethernet, slirp";
     return dispname;
 }
 
@@ -888,7 +896,30 @@ public:
             while ((p = sec->Get_prop(i++))) {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
                 if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
-                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
+                std::string propvalues = "";
+                std::vector<Value> pv = p->GetValues();
+                if (p->Get_type()==Value::V_BOOL) {
+                    // possible values for boolean are true, false
+                    propvalues += "true, false";
+                } else if (p->Get_type()==Value::V_INT) {
+                    // print min, max for integer values if used
+                    Prop_int* pint = dynamic_cast <Prop_int*>(p);
+                    if (pint==NULL) E_Exit("Int property dynamic cast failed.");
+                    if (pint->getMin() != pint->getMax()) {
+                        std::ostringstream oss;
+                        oss << pint->getMin();
+                        oss << "..";
+                        oss << pint->getMax();
+                        propvalues += oss.str();
+                    }
+                }
+                for(Bitu k = 0; k < pv.size(); k++) {
+                    if (pv[k].ToString() =="%u")
+                        propvalues += MSG_Get("PROGRAM_CONFIG_HLP_POSINT");
+                    else propvalues += pv[k].ToString();
+                    if ((k+1) < pv.size()) propvalues += ", ";
+                }
+                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+(propvalues==""?"":"\nPossible values: \033[32m"+propvalues+"\033[0m")+"\nDefault value: \033[32m"+p->Get_Default_Value().ToString()+"\033[0m\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);
@@ -1171,7 +1202,7 @@ public:
         int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 70;
         int button_pad_w = 10;
-        int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
+        int button_row_w = ((button_pad_w + button_w) * 4 + button_w) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
 
         resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + wiw->vscroll_display_width/*scrollbar*/ + 10,
@@ -1184,14 +1215,17 @@ public:
         content = new GUI::Input(this, 5, button_row_y-height+20, 510 - border_left - border_right, height-25);
         content->setText(extra_data);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Paste Clipboard", button_w*2);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
-
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, "OK", button_w);
 
         int i = 0;
         Property *prop;
@@ -1261,6 +1295,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
+        std::string lines = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
         else if (arg == "Help") {
             std::vector<GUI::Char> new_cfg_sname;
@@ -1296,14 +1331,18 @@ public:
 			PasteClipboard(true);
 			swapad=true;
 			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
 			while (strPasteBuffer.length()) {
+                key = NULL;
 				head = strPasteBuffer[0];
-				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
-				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
-				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
 				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 			}
-			return;
+            return;
         } else ToplevelWindow::actionExecuted(b, arg);
     }
 
@@ -1346,10 +1385,10 @@ public:
         content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
         (new GUI::Button(this, 5, 220, "Paste Clipboard"))->addActionHandler(this);
-        if (first_shell) (new GUI::Button(this, 150, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 280, 220, "Execute Now"))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 390, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 460, 220, "OK", 70))->addActionHandler(this);
+        if (first_shell) (new GUI::Button(this, 147, 220, "Append History"))->addActionHandler(this);
+        if (shell_idle) (new GUI::Button(this, 281, 220, "Execute Now"))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 391, 220, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 461, 220, "OK", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1369,16 +1408,19 @@ public:
 			PasteClipboard(true);
 			swapad=true;
 			unsigned char head;
+            GUI::Key *key;
+            GUI::Key::Special ksym = (GUI::Key::Special)0;
 			while (strPasteBuffer.length()) {
+                key = NULL;
 				head = strPasteBuffer[0];
-				if (head == 9) for (int i=0; i<8; i++) content->keyDown(GUI::Key(' ', GUI::Key::None, false, false, false, false));
-				else if (head == 13) content->keyDown(GUI::Key(GUI::Key::None, GUI::Key::Enter, false, false, false, false));
-				else if (head > 31) content->keyDown(GUI::Key(head, GUI::Key::None, false, false, false, false));
+				if (head == 9) for (int i=0; i<8; i++) key = new GUI::Key(' ', ksym, false, false, false, false);
+				else if (head == 13) key = new GUI::Key(0, GUI::Key::Enter, false, false, false, false);
+				else if (head > 31) key = new GUI::Key(head, ksym, false, false, false, false);
+                if (key != NULL) content->keyDown(*key);
 				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 			}
 			return;
-		}
-        else if (arg == "Append History") {
+		} else if (arg == "Append History") {
             std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
             while (i != first_shell->l_history.rend()) {
@@ -2337,7 +2379,7 @@ public:
     }
 };
 
-std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
+std::string niclist="The pcap networking for NE2000 Ethernet emulation is not currently active.\nPlease check [ne2000] and [ethernet, pcap] sections of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2478,13 +2520,13 @@ public:
         }
 
         const auto finalgridpos = gridfunc(i - 1);
-        int closerow_y = finalgridpos.second + 12 + gridbtnheight;
+        int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         (saveButton = new GUI::Button(this, 190, closerow_y, "Save...", 80))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 275, closerow_y, "Close", 80))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
-               closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
+               closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);

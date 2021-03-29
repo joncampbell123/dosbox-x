@@ -612,7 +612,16 @@
     <ClCompile Include="..\src\misc\cross.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\messages.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp">
@@ -1784,6 +1793,12 @@
     <ClInclude Include="..\src\libs\mt32\sha1\sha1.h">
       <Filter>Sources\libs\mt32\sha1</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_pcap.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_slirp.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\reSID\envelope.h">
       <Filter>Sources\hardware\reSID</Filter>
     </ClInclude>
@@ -1917,6 +1932,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dosbox.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ethernet.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\fpu.h">
@@ -2384,10 +2402,10 @@
     <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h">
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h">

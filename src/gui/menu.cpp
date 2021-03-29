@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -187,7 +187,7 @@ static const char *def_menu_main_wheelarrow[] =
 /* main -> shared clipboard menu ("SharedClipboard") */
 static const char *def_menu_main_clipboard[] =
 {
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_fastedit",
     "clipboard_right",
     "clipboard_middle",
@@ -196,8 +196,9 @@ static const char *def_menu_main_clipboard[] =
 #endif
     "clipboard_device",
     "clipboard_dosapi",
+    "clipboard_biospaste",
     "--",
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
     "mapper_copyall",
 #endif
     "mapper_paste",
@@ -714,14 +715,15 @@ static const char *def_menu_help_debug[] =
 #endif
 #if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
-    "wait_on_error",
 #endif
 #if C_DEBUG
+    "save_logas",
     "--",
     "debug_blankrefreshtest",
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+    "wait_on_error",
     "debug_logint21",
     "debug_logfileio",
 #endif
@@ -740,7 +742,7 @@ static const char *def_menu_help[] =
     "help_issue",
 #endif
     "--",
-#if C_NE2000
+#if C_PCAP
     "help_nic",
 #endif
 #if C_PRINTER && defined(WIN32)
@@ -749,7 +751,7 @@ static const char *def_menu_help[] =
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
-#if C_NE2000 || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if C_PCAP || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
 #endif
     "help_about",
@@ -1759,30 +1761,6 @@ void DOSBox_RefreshMenu(void) {
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
     id=major=minor=0;
 }
-#endif
-
-#if defined(WIN32)
-# if defined(HX_DOS) || !defined(C_SDL2)
-HWND GetHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if(!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.window;
-}
-
-HWND GetSurfaceHWND(void) {
-    SDL_SysWMinfo wmi;
-    SDL_VERSION(&wmi.version);
-
-    if (!SDL_GetWMInfo(&wmi)) {
-        return NULL;
-    }
-    return wmi.child_window;
-}
-# endif
 #endif
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {

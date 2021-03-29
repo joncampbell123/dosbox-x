@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1113,7 +1113,6 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 }
 
 bool device_CON::Seek(uint32_t * pos,uint32_t type) {
-    (void)pos; // UNUSED
     (void)type; // UNUSED
 	// seek is valid
 	*pos = 0;
@@ -1256,8 +1255,7 @@ void device_CON::ClearAnsi(void){
 
 void device_CON::Output(uint8_t chr) {
 	if (!ANSI_SYS_installed() && !IS_PC98_ARCH) {
-		uint16_t oldax;
-		oldax=reg_ax;
+		uint16_t oldax=reg_ax;
 		reg_ax=chr;
 		CALLBACK_RunRealInt(0x29);
 		reg_ax=oldax;

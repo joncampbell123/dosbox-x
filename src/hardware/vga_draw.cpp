@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -3260,18 +3260,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         /* Single wide, yet DBCS encoding.
                          * This includes proprietary box characters specific to PC-98 */
                         // Manually convert box characters to Unicode for now
-                        if (*charram==0x330B) // ASCII 201
+                        if (*charram==0x330B) // top-left
                             (*draw).chr=0x250C;
-                        else if (*charram==0x250B) // ASCII 205
-                            (*draw).chr=0x2500;
-                        else if (*charram==0x370B) // ASCII 187
+                        else if (*charram==0x370B) // top-right
                             (*draw).chr=0x2510;
-                        else if (*charram==0x270B) // ASCII 186
-                            (*draw).chr=0x2502;
-                        else if (*charram==0x3B0B) // ASCII 200
+                        else if (*charram==0x3B0B) // buttom-left
                             (*draw).chr=0x2514;
-                        else if (*charram==0x3F0B) // ASCII 188
+                        else if (*charram==0x3F0B) // buttom-right
                             (*draw).chr=0x2518;
+                        else if (*charram==0x250B) // '-'
+                            (*draw).chr=0x2500;
+                        else if (*charram==0x270B) // '|'
+                            (*draw).chr=0x2502;
                         else
                             (*draw).chr=' ';
                         (*draw).unicode=1;

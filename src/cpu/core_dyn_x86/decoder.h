@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -2371,14 +2371,40 @@ static void dyn_interrupt(Bitu num) {
 	dyn_closeblock();
 }
 
-static void dyn_add_iocheck(Bitu access_size) {
-	dyn_call_function_pagefault_check((void *)&CPU_IO_Exception,"%Dw%Id",DREG(EDX),access_size);
-	dyn_check_bool_exception_al();
+static bool dyn_io_writeB(Bitu port,uint8_t val) {
+	bool ex = CPU_IO_Exception(port,1);
+	if (!ex) IO_WriteB(port,val);
+	return ex;
 }
 
-static void dyn_add_iocheck_var(uint8_t accessed_port,Bitu access_size) {
-	dyn_call_function_pagefault_check((void *)&CPU_IO_Exception,"%Id%Id",accessed_port,access_size);
-	dyn_check_bool_exception_al();
+static bool dyn_io_writeW(Bitu port,uint16_t val) {
+	bool ex = CPU_IO_Exception(port,2);
+	if (!ex) IO_WriteW(port,val);
+	return ex;
+}
+
+static bool dyn_io_writeD(Bitu port,uint32_t val) {
+	bool ex = CPU_IO_Exception(port,4);
+	if (!ex) IO_WriteD(port,val);
+	return ex;
+}
+
+static bool dyn_io_readB(Bitu port) {
+	bool ex = CPU_IO_Exception(port,1);
+	if (!ex) core_dyn.readdata = IO_ReadB(port);
+	return ex;
+}
+
+static bool dyn_io_readW(Bitu port) {
+	bool ex = CPU_IO_Exception(port,2);
+	if (!ex) core_dyn.readdata = IO_ReadW(port);
+	return ex;
+}
+
+static bool dyn_io_readD(Bitu port) {
+	bool ex = CPU_IO_Exception(port,4);
+	if (!ex) core_dyn.readdata = IO_ReadD(port);
+	return ex;
 }
 
 static void dyn_xlat(void) {
@@ -2444,8 +2470,8 @@ static void dyn_larlsl(bool islar) {
 #include "dyn_fpu.h"
 
 #ifdef X86_DYNREC_MMX_ENABLED
-#include "mmx_gen.h"
-#define dyn_mmx_check() if ((dyn_dh_fpu.dh_fpu_enabled) && (!fpu_used)) {dh_fpu_startup();}
+#include "dyn_mmx.h"
+//#define dyn_mmx_check() if ((dyn_dh_fpu.dh_fpu_enabled) && (!fpu_used)) {dh_fpu_startup();}
 #endif
 
 static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bitu max_opcodes) {
@@ -2595,22 +2621,22 @@ restart_prefix:
 			case 0xe2:case 0xe5:case 0xe8:case 0xe9:case 0xeb:case 0xec:
 			case 0xed:case 0xef:case 0xf1:case 0xf2:case 0xf3:case 0xf5:
 			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:
-				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
-
 			/* SHIFT mm, imm8*/
 			case 0x71:case 0x72:case 0x73:
-				dyn_mmx_check(); dyn_mmx_shift_imm8(dual_code); break;
-
 			/* MOVD mm, r/m32 */
-			case 0x6e:dyn_mmx_check(); dyn_mmx_movd_pqed(); break;
+			case 0x6e:
 			/* MOVQ mm, mm/m64 */
-			case 0x6f:dyn_mmx_check(); dyn_mmx_movq_pqqq(); break;
+			case 0x6f:
 			/* MOVD r/m32, mm */
-			case 0x7e:dyn_mmx_check(); dyn_mmx_movd_edpq(); break;
+			case 0x7e:
 			/* MOVQ mm/m64, mm */
-			case 0x7f:dyn_mmx_check(); dyn_mmx_movq_qqpq(); break;
+			case 0x7f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				//dyn_mmx_check();
+				dyn_mmx_op(dual_code); break;
 			/* EMMS */
-			case 0x77:dyn_mmx_check(); dyn_mmx_emms(); break;
+			case 0x77:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				//dyn_mmx_check();
+				dyn_mmx_emms(); break;
 #endif
 
 			default:
@@ -3016,35 +3042,33 @@ restart_prefix:
 		case 0xe2:dyn_loop(LOOP_NONE);goto finish_block;
 		case 0xe3:dyn_loop(LOOP_JCXZ);goto finish_block;
 		//IN AL/AX,imm
-		case 0xe4: {
-			Bitu port=decode_fetchb();
-			dyn_add_iocheck_var(port,1);
-			dyn_call_function_pagefault_check((void*)&IO_ReadB,"%Id%Rl",port,DREG(EAX));
-			} break;
-		case 0xe5: {
-			Bitu port=decode_fetchb();
-			dyn_add_iocheck_var(port,decode.big_op?4:2);
-			if (decode.big_op) {
-                dyn_call_function_pagefault_check((void*)&IO_ReadD,"%Id%Rd",port,DREG(EAX));
+		case 0xe4:
+			dyn_call_function_pagefault_check((void*)&dyn_io_readB,"%Id",decode_fetchb());
+			dyn_check_bool_exception_al();
+			gen_mov_host(&core_dyn.readdata,DREG(EAX),1);
+			break;
+		case 0xe5:
+			if (!decode.big_op) {
+				dyn_call_function_pagefault_check((void*)&dyn_io_readW,"%Id",decode_fetchb());
 			} else {
-				dyn_call_function_pagefault_check((void*)&IO_ReadW,"%Id%Rw",port,DREG(EAX));
+				dyn_call_function_pagefault_check((void*)&dyn_io_readD,"%Id",decode_fetchb());
 			}
-			} break;
+			dyn_check_bool_exception_al();
+			gen_mov_host(&core_dyn.readdata,DREG(EAX),decode.big_op?4:2);
+			break;
 		//OUT imm,AL
-		case 0xe6: {
-			Bitu port=decode_fetchb();
-			dyn_add_iocheck_var(port,1);
-			dyn_call_function_pagefault_check((void*)&IO_WriteB,"%Id%Dl",port,DREG(EAX));
-			} break;
-		case 0xe7: {
-			Bitu port=decode_fetchb();
-			dyn_add_iocheck_var(port,decode.big_op?4:2);
-			if (decode.big_op) {
-                dyn_call_function_pagefault_check((void*)&IO_WriteD,"%Id%Dd",port,DREG(EAX));
+		case 0xe6:
+			dyn_call_function_pagefault_check((void*)&dyn_io_writeB,"%Id%Dl",decode_fetchb(),DREG(EAX));
+			dyn_check_bool_exception_al();
+			break;
+		case 0xe7:
+			if (!decode.big_op) {
+				dyn_call_function_pagefault_check((void*)&dyn_io_writeW,"%Id%Dw",decode_fetchb(),DREG(EAX));
 			} else {
-				dyn_call_function_pagefault_check((void*)&IO_WriteW,"%Id%Dw",port,DREG(EAX));
+				dyn_call_function_pagefault_check((void*)&dyn_io_writeD,"%Id%Dd",decode_fetchb(),DREG(EAX));
 			}
-			} break;
+			dyn_check_bool_exception_al();
+			break;
 		case 0xe8:		/* CALL Ivx */
 			dyn_call_near_imm();
 			goto finish_block;
@@ -3058,29 +3082,31 @@ restart_prefix:
 		case 0xeb:dyn_exit_link((int8_t)decode_fetchb());goto finish_block;
 		/* IN AL/AX,DX*/
 		case 0xec:
-			dyn_add_iocheck(1);
-			dyn_call_function_pagefault_check((void*)&IO_ReadB,"%Dw%Rl",DREG(EDX),DREG(EAX));
+			dyn_call_function_pagefault_check((void*)&dyn_io_readB,"%Dw",DREG(EDX));
+			dyn_check_bool_exception_al();
+			gen_mov_host(&core_dyn.readdata,DREG(EAX),1);
 			break;
 		case 0xed:
-			dyn_add_iocheck(decode.big_op?4:2);
-			if (decode.big_op) {
-                dyn_call_function_pagefault_check((void*)&IO_ReadD,"%Dw%Rd",DREG(EDX),DREG(EAX));
+			if (!decode.big_op) {
+				dyn_call_function_pagefault_check((void*)&dyn_io_readW,"%Dw",DREG(EDX));
 			} else {
-				dyn_call_function_pagefault_check((void*)&IO_ReadW,"%Dw%Rw",DREG(EDX),DREG(EAX));
+				dyn_call_function_pagefault_check((void*)&dyn_io_readD,"%Dw",DREG(EDX));
 			}
+			dyn_check_bool_exception_al();
+			gen_mov_host(&core_dyn.readdata,DREG(EAX),decode.big_op?4:2);
 			break;
 		/* OUT DX,AL/AX */
 		case 0xee:
-			dyn_add_iocheck(1);
-			dyn_call_function_pagefault_check((void*)&IO_WriteB,"%Dw%Dl",DREG(EDX),DREG(EAX));
+			dyn_call_function_pagefault_check((void*)&dyn_io_writeB,"%Dw%Dl",DREG(EDX),DREG(EAX));
+			dyn_check_bool_exception_al();
 			break;
 		case 0xef:
-			dyn_add_iocheck(decode.big_op?4:2);
-			if (decode.big_op) {
-                dyn_call_function_pagefault_check((void*)&IO_WriteD,"%Dw%Dd",DREG(EDX),DREG(EAX));
+			if (!decode.big_op) {
+				dyn_call_function_pagefault_check((void*)&dyn_io_writeW,"%Dw%Dw",DREG(EDX),DREG(EAX));
 			} else {
-				dyn_call_function_pagefault_check((void*)&IO_WriteW,"%Dw%Dw",DREG(EDX),DREG(EAX));
+				dyn_call_function_pagefault_check((void*)&dyn_io_writeD,"%Dw%Dd",DREG(EDX),DREG(EAX));
 			}
+			dyn_check_bool_exception_al();
 			break;
 		case 0xf0:		//LOCK
 			goto restart_prefix;

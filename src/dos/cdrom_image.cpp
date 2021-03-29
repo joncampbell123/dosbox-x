@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -123,10 +123,10 @@ CDROM_Interface_Image::BinaryFile::~BinaryFile()
 	file = nullptr;
 }
 
-bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer, int offset, int count)
+bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer,int64_t offset, int count)
 {
     if (!seek(offset)) return false;
-	file->seekg(offset, ios::beg);
+	file->seekg((streampos)offset, ios::beg);
 	file->read((char*)buffer, count);
 	return !(file->fail());
 }
@@ -149,11 +149,11 @@ uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 	#endif
 }
 
-bool CDROM_Interface_Image::BinaryFile::seek(uint32_t offset)
+bool CDROM_Interface_Image::BinaryFile::seek(int64_t offset)
 {
-	if (static_cast<uint32_t>(file->tellg()) == offset)
+	if (static_cast<int64_t>(file->tellg()) == offset)
 		return true;
-	file->seekg(offset, ios::beg);
+	file->seekg((streamoff)offset, ios::beg);
 	return !file->fail();
 }
 
@@ -205,13 +205,13 @@ CDROM_Interface_Image::AudioFile::~AudioFile()
  *  or number of channels.  To do this, we convert the byte offset to a
  *  time-offset, and use the Sound_Seek() function to move the read position.
  */
-bool CDROM_Interface_Image::AudioFile::seek(uint32_t offset)
+bool CDROM_Interface_Image::AudioFile::seek(int64_t offset)
 {
 	#ifdef DEBUG
 	const auto begin = std::chrono::steady_clock::now();
 	#endif
 
-	if (audio_pos == offset) {
+	if (audio_pos == (uint32_t)offset) {
 #ifdef DEBUG
 		LOG_MSG("CDROM: seek to %u avoided with position-tracking", offset);
 #endif
@@ -321,14 +321,14 @@ void hunk_thread_func(chd_file* chd, int hunk_index, uint8_t* buffer, bool* erro
 }
 #endif
 
-bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count)
+bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer,int64_t offset, int count)
 {
     // we can not read more than a single sector currently
     if (count > RAW_SECTOR_SIZE) {
         return false;
     }
 
-    int needed_hunk = offset / this->header->hunkbytes;
+    uint64_t needed_hunk = (uint64_t)offset / (uint64_t)this->header->hunkbytes;
 
     // EOF
     if (needed_hunk > this->header->totalhunks) {
@@ -336,7 +336,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
     }
 
     // read new hunk if needed
-    if (needed_hunk != this->hunk_buffer_index) {
+    if ((int)needed_hunk != this->hunk_buffer_index) {
 #if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
         if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE)
             return false;
@@ -345,7 +345,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
         if (this->hunk_thread) this->hunk_thread->join();
 
         // can we use our prefetched hunk
-        if ((needed_hunk == (this->hunk_buffer_index + 1)) && (!this->hunk_thread_error)) {
+        if (((int)needed_hunk == (this->hunk_buffer_index + 1)) && (!this->hunk_thread_error)) {
             // swap pointers and we're good :)
             std::swap(this->hunk_buffer, this->hunk_buffer_next);
 
@@ -397,11 +397,11 @@ uint16_t CDROM_Interface_Image::CHDFile::getEndian()
 #endif
 }
 
-bool CDROM_Interface_Image::CHDFile::seek(uint32_t offset)
+bool CDROM_Interface_Image::CHDFile::seek(int64_t offset)
 {
     // only checks if seek range is valid ? only used for audio ?
     // only used by PlayAudioSector ?
-    if ((offset / this->header->hunkbytes) < this->header->hunkcount) {
+    if ((uint32_t)((uint64_t)offset / this->header->hunkbytes) < this->header->hunkcount) {
         return true;
     } else {
         return false;
@@ -760,7 +760,7 @@ bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, unsigned long 
 	int track = GetTrack(sector) - 1;
 	if (track < 0) return false;
 
-	int seek = tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize;
+	int64_t seek = (int64_t)tracks[track].skip + ((int64_t)(sector - tracks[track].start)) * (int64_t)tracks[track].sectorSize;
 	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
 	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
 	if ((tracks[track].sectorSize == RAW_SECTOR_SIZE || tracks[track].sectorSize == 2448) && !tracks[track].mode2 && !raw) seek += 16;

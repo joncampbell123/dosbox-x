@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -737,7 +737,9 @@ class Typer {
 					for (auto &event : *m_events) {
 						if (bind_name == event->GetName()) {
 							found = true;
-							MAPPER_TriggerEvent(event, true);
+							event->Active(true);
+						        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+							event->Active(false);
 							break;
 						}
 					}
@@ -912,9 +914,9 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
 	const char *usesc = section->Get_string("usescancodes");
-	if (!strcasecmp(usesc, "true"))
+	if (!strcasecmp(usesc, "true")||!strcmp(usesc, "1"))
 		usescancodes = 1;
-	else if (!strcasecmp(usesc, "false"))
+	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
 }
 void loadScanCode();
@@ -1813,8 +1815,8 @@ public:
 
         axes_cap=emulated_axes;
         if (axes_cap>axes) axes_cap=axes;
-        hats_cap=emulated_hats;
-        if (hats_cap>hats) hats_cap=hats;
+        //hats_cap=emulated_hats;
+        //if (hats_cap>hats) hats_cap=hats;
 
         JOYSTICK_Enable(1,true);
         JOYSTICK_Move_Y(1,1.0);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -417,6 +417,7 @@ Bits Operator::TemplateVolume(  ) {
 			return vol;
 		}
 		//In sustain phase, but not sustaining, do regular release
+		/* FALLTHROUGH */
 	case RELEASE: 
 		vol += RateForward( releaseAdd );
 		if ( GCC_UNLIKELY(vol >= ENV_MAX) ) {
