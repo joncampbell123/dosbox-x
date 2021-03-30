@@ -657,6 +657,18 @@ public:
 	}
 };
 
+void MIDI_ListHandler(Program *caller, const char *name)
+{
+    if (!*name) return;
+    bool found=false;
+    for (auto *handler = handler_list; handler; handler = handler->next)
+        if (!strcmp(handler->GetName(), name)) {
+            handler->ListAll(caller);
+            found=true;
+            break;
+        }
+    if (!found) caller->WriteOut("MIDI handler not available - %s\n", name);
+}
 
 static MIDI* test = NULL;
 void MIDI_Destroy(Section* /*sec*/){

@@ -14,6 +14,7 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *  ListAll function by the DOSBox Staging Team, cleaned up by Wengier
  */
 
 
@@ -34,13 +35,59 @@
 #define my_snd_seq_open(seqp) snd_seq_open(seqp, SND_SEQ_OPEN)
 #endif
 
+struct alsa_address {
+	int client;
+	int port;
+};
+
 class MidiHandler_alsa : public MidiHandler {
 private:
 	snd_seq_event_t ev;
 	snd_seq_t *seq_handle;
+	alsa_address seq = {-1, -1}; // address of input port we're connected to
 	int seq_client, seq_port;
 	int my_client, my_port;
-	void send_event(int do_flush) {
+
+    using port_action_t = std::function<void(snd_seq_client_info_t *client_info, snd_seq_port_info_t *port_info)>;
+
+    static void for_each_alsa_seq_port(port_action_t action) {
+        // We can't reuse the sequencer from midi handler, as the function might
+        // be called before that sequencer is created.
+        snd_seq_t *seq = nullptr;
+        if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
+            LOG_MSG("ALSA: Error: Can't open MIDI sequencer");
+            return;
+        }
+        assert(seq);
+
+        snd_seq_client_info_t *client_info = nullptr;
+        snd_seq_client_info_malloc(&client_info);
+        assert(client_info);
+
+        snd_seq_port_info_t *port_info = nullptr;
+        snd_seq_port_info_malloc(&port_info);
+        assert(port_info);
+
+        snd_seq_client_info_set_client(client_info, -1);
+        while (snd_seq_query_next_client(seq, client_info) >= 0) {
+            const int client_id = snd_seq_client_info_get_client(client_info);
+            snd_seq_port_info_set_client(port_info, client_id);
+            snd_seq_port_info_set_port(port_info, -1);
+            while (snd_seq_query_next_port(seq, port_info) >= 0)
+                action(client_info, port_info);
+        }
+
+        snd_seq_port_info_free(port_info);
+        snd_seq_client_info_free(client_info);
+        snd_seq_close(seq);
+    }
+
+    static bool port_is_writable(const unsigned int port_caps) {
+        constexpr unsigned int mask = SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE;
+        return (port_caps & mask) == mask;
+    }
+
+    void send_event(int do_flush) {
 		snd_seq_ev_set_direct(&ev);
 		snd_seq_ev_set_source(&ev, my_port);
 		snd_seq_ev_set_dest(&ev, seq_client, seq_port);
@@ -194,6 +241,22 @@ public:
 		LOG(LOG_MISC,LOG_DEBUG)("ALSA:Client initialised [%d:%d]", seq_client, seq_port);
 		return true;
 	}
+
+    void ListAll(Program* base) {
+        auto print_port = [base, this](auto *client_info, auto *port_info) {
+            const auto *addr = snd_seq_port_info_get_addr(port_info);
+            const unsigned int type = snd_seq_port_info_get_type(port_info);
+            const unsigned int caps = snd_seq_port_info_get_capability(port_info);
+
+            if ((type & SND_SEQ_PORT_TYPE_SYNTHESIZER) || port_is_writable(caps)) {
+                const bool selected = (addr->client == this->seq.client && addr->port == this->seq.port);
+                const char esc_color[] = "\033[32;1m";
+                const char esc_nocolor[] = "\033[0m";
+                base->WriteOut("%c %s%3d:%d - %s - %s%s\n", selected?'*':' ', selected?esc_color : "", addr->client, addr->port, snd_seq_client_info_get_name(client_info), snd_seq_port_info_get_name(port_info), selected?esc_nocolor:"");
+            }
+        };
+        for_each_alsa_seq_port(print_port);
+    }
 
 };
 

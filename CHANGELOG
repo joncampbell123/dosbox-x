@@ -49,6 +49,12 @@
     display possible and default values for the config
     options in addition to the descriptions. (Wengier)
   - Updated the MMX patch code by kekko. (Wengier)
+  - MIXER command now supports the /GUI option to show
+    a popup window to display the mixer information.
+    Also improved its /LISTMIDI option which will show
+    the name of the current MIDI handler and you can
+    optionally specify a MIDI handler name (win32/alsa)
+    to show the information for this handler. (Wengier)
   - Improved the compatibility of AUTOTYPE command with
     games like Asterix & Obelix. (Wengier)
   - The config options ttf.wpbg, ttf.bold, ttf.italic,
