@@ -662,7 +662,7 @@ void MIDI_ListHandler(Program *caller, const char *name)
     if (!*name) return;
     bool found=false;
     for (auto *handler = handler_list; handler; handler = handler->next)
-        if (!strcmp(handler->GetName(), name)) {
+        if (!strcasecmp(handler->GetName(), name)) {
             handler->ListAll(caller);
             found=true;
             break;
