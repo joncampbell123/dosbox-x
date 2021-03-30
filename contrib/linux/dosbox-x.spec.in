@@ -74,7 +74,7 @@ appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 # Required for NE2000 pcap networking support (promiscuous mode)
 %post
-if [ -x /usr/sbin/setcap ]; then
+if [ -x %{_sbindir}/setcap ]; then
     setcap cap_net_raw+ep %{_bindir}/%{name}
 fi
 
