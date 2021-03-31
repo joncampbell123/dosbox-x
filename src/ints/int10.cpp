@@ -819,6 +819,8 @@ static void INT10_Seg40Init(void) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
+		// Set the pointer to video save pointer table
+		real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 	}
 	else {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x00);
@@ -833,11 +835,11 @@ static void INT10_Seg40Init(void) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
     else
 #endif
+	if (IS_EGAVGA_ARCH) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
-	// Set the  default MSR
+	}
+	// Set the default MSR
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
-	// Set the pointer to video save pointer table
-	real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 }
 
 static void INT10_InitVGA(void) {
