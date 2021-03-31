@@ -801,38 +801,42 @@ static void FinishSetMode(bool clearmem) {
 	real_writew(BIOSMEM_SEG,BIOSMEM_NB_COLS,(uint16_t)CurMode->twidth);
 	real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)CurMode->plength);
 	real_writew(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS,((CurMode->mode==7 )|| (CurMode->mode==0x0f)) ? 0x3b4 : 0x3d4);
-	real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
+
 	if (IS_EGAVGA_ARCH) {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
 		real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint16_t)CurMode->cheight);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x60|(clearmem?0:0x80)));
 		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
-	}
-
-	// this is an index into the dcc table:
+		// this is an index into the dcc table:
 #if C_DEBUG
-	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
+		if(IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
 #else
-	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
+		if(IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
 #endif
+
+		/* Set font pointer */
+		if (CurMode->mode<=3 || CurMode->mode==7)
+			RealSetVec(0x43,int10.rom.font_8_first);
+		else {
+			switch (CurMode->cheight) {
+			case 8:RealSetVec(0x43,int10.rom.font_8_first);break;
+			case 14:RealSetVec(0x43,int10.rom.font_14);break;
+			case 16:RealSetVec(0x43,int10.rom.font_16);break;
+			}
+		}
+	}
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
-		INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
+		if (machine==MCH_HERC)
+			INT10_SetCursorShape(0x0c,0x0d);
+		else
+			INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 	}
 	// Set cursor pos for page 0..7
 	for (uint8_t ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
 	// Set active page 0
 	INT10_SetActivePage(0);
-	/* Set some interrupt vectors */
-	if (CurMode->mode<=3 || CurMode->mode==7) {
-		RealSetVec(0x43,int10.rom.font_8_first);
-	} else {
-		switch (CurMode->cheight) {
-		case 8:RealSetVec(0x43,int10.rom.font_8_first);break;
-		case 14:RealSetVec(0x43,int10.rom.font_14);break;
-		case 16:RealSetVec(0x43,int10.rom.font_16);break;
-		}
-	}
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
 }

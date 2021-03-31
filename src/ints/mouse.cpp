@@ -637,7 +637,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     } else if (CurMode != NULL) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8;
-            mouse.y = y*(real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1)*8;
+            mouse.y = y*(IS_EGAVGA_ARCH?(real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1):25)*8;
         /* NTS: DeluxePaint II enhanced sets a large range (5112x3832) for VGA mode 0x12 640x480 16-color */
         } else {
             if ((mouse.max_x > 0) && (mouse.max_y > 0)) {
@@ -1044,7 +1044,7 @@ void Mouse_AfterNewVideoMode(bool setmode) {
             mouse.max_y = 400 - 1;
         }
         else {
-            Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
+            Bitu rows = IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24;
             if ((rows == 0) || (rows > 250)) rows = 25 - 1;
             mouse.max_y = 8*(rows+1) - 1;
         }
