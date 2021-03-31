@@ -13384,8 +13384,11 @@ fresh_boot:
             dos_kernel_disabled = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
-            if (!strcmp(RunningProgram, "LOADLIN") && core == "auto")
+            if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
                 cpudecoder=&CPU_Core_Normal_Run;
+                mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+                mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+            }
 
             /* new code: fire event */
             if (reboot_machine)

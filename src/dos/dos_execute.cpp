@@ -26,6 +26,7 @@
 #include "callback.h"
 #include "debug.h"
 #include "cpu.h"
+#include "menu.h"
 
 const char * RunningProgram="DOSBOX-X";
 
@@ -94,7 +95,7 @@ static void RestoreRegisters(void) {
 }
 
 extern uint8_t ZDRIVE_NUM;
-extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), menu_update_autocycle(void);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
 	static char name[9];
@@ -151,12 +152,15 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 		CPU_Cycles=0;
 		CPU_CycleMax=CPU_OldCycleMax;
 		GFX_SetTitle((int32_t)CPU_OldCycleMax,-1,-1,false);
+		menu_update_autocycle();
 	} else {
 		GFX_SetTitle(-1,-1,-1,false);
 	}
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 		cpudecoder=&CPU_Core_Normal_Run;
+        mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 	}
