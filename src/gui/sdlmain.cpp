@@ -3521,6 +3521,7 @@ void CheckTTFLimit() {
     }
 }
 
+#define MIN_PTSIZE 9
 bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
@@ -3533,7 +3534,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     int winPerc = 0;
     if (fsize==3)
         winPerc = 100;
-    else if (fsize>9)
+    else if (fsize>=MIN_PTSIZE)
         fontSize = fsize;
     else {
         Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
@@ -3707,11 +3708,11 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
     }
 #endif
-    int	curSize = fontSize>9?fontSize:30;															// no clear idea what would be a good starting value
+    int	curSize = fontSize>=MIN_PTSIZE?fontSize:30;													// no clear idea what would be a good starting value
     int lastGood = -1;
     int trapLoop = 0;
 
-    if (fontSize<10) {
+    if (fontSize<MIN_PTSIZE) {
         while (curSize != lastGood) {
             GFX_SelectFontByPoints(curSize);
             if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {				// if it fits on screen
@@ -3720,16 +3721,16 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
                     break;
                 curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
-                if (curSize < 10)																	// minimum size = 10
-                    curSize = 10;
-            } else if (--curSize < 10)																// silly, but OK, one never can tell..
+                if (curSize < MIN_PTSIZE)															// minimum size = 9
+                    curSize = MIN_PTSIZE;
+            } else if (--curSize < MIN_PTSIZE)														// silly, but OK, one never can tell..
                 E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
         }
-        if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
+        if (ttf.DOSBox && curSize > MIN_PTSIZE)														// make it even for DOSBox-X internal font (a bit nicer)
             curSize &= ~1;
     }
     GFX_SelectFontByPoints(curSize);
-    if (fontSize>9 && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
+    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     resetreq=false;
     sdl.desktop.want_type = SCREEN_TTF;
@@ -3859,8 +3860,8 @@ void change_output(int output) {
         EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFDECSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
     }
 #endif
-    mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("mapper_ttf_decsize").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
@@ -4946,8 +4947,9 @@ void resetFontSize() {
 }
 
 void decreaseFontSize() {
-	if (ttf.inUse && ttf.pointsize > 10) {
-		GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
+	int dec=ttf.DOSBox ? 2 : 1;
+	if (ttf.inUse && ttf.pointsize >= MIN_PTSIZE + dec) {
+		GFX_SelectFontByPoints(ttf.pointsize - dec);
 		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
 		if (ttf.fullScrn) {																// smaller content area leaves old one behind
@@ -4959,6 +4961,7 @@ void decreaseFontSize() {
 }
 
 void increaseFontSize() {
+	int inc=ttf.DOSBox ? 2 : 1;
 	if (ttf.inUse) {																	// increase fontsize
         int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
@@ -4968,13 +4971,13 @@ void increaseFontSize() {
 			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
 		}
 #endif
-		GFX_SelectFontByPoints(ttf.pointsize + (ttf.DOSBox ? 2 : 1));
+		GFX_SelectFontByPoints(ttf.pointsize + inc);
 		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {		// if it fits on screen
 			GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 			wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);						// force redraw of complete window
 			GFX_EndTextLines(true);
 		} else
-			GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
+			GFX_SelectFontByPoints(ttf.pointsize - inc);
 	}
 }
 
@@ -5527,10 +5530,10 @@ static void GUI_StartUp() {
     item->set_text("Reset window size");
 
 #if defined(USE_TTF)
-    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "ttf_incsize", "Increase TTF size", &item);
+    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
     item->set_text("Increase TTF font size");
 
-    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "ttf_decsize", "Decrease TTF size", &item);
+    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
 #endif
 
@@ -13072,8 +13075,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
-        mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using());
-        mainMenu.get_item("mapper_ttf_decsize").enable(TTF_using());
+        mainMenu.get_item("mapper_incsize").enable(TTF_using());
+        mainMenu.get_item("mapper_decsize").enable(TTF_using());
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);

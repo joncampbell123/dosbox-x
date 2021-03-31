@@ -61,6 +61,8 @@
     ttf.underline, ttf.strikeout, and ttf.char512 can
     now be modified dynamically with CONFIG -SET ...
     commands, e.g. CONFIG -SET ttf.wpbg=2. (Wengier)
+  - The minimal value for the ttf.ptsize config option
+    has been decreased from 10 to 9. (Wengier)
   - Added menu item "Save logging as..." (under "Help"
     -> "Debugging options") to save the current logging
     content to the specified file. (Wengier)
@@ -89,6 +91,10 @@
     in the macOS SDL1 build. (ant_222)
   - Fixed switching ttf.cols, ttf.lins, and ttf.font
     options dynamically in full-screen mode. (Wengier)
+  - Fixed menu options "Increase TTF font size" and
+    "Decrease TTF font size" (both under "Video" =>
+    "TTF options") not working (but keyboard shortcuts
+    and those in the system menu work). (Wengier)
   - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
     not working (but "ttf.wp=xy" did work). (Wengier)
   - Fixed preview function in WordStar not working for

@@ -354,8 +354,8 @@ static const char *def_menu_video_textmode[] =
 /* video TTF menu ("VideoTTFMenu") */
 static const char *def_menu_video_ttf[] =
 {
-    "mapper_ttf_incsize",
-    "mapper_ttf_decsize",
+    "mapper_incsize",
+    "mapper_decsize",
     "--",
     "ttf_showbold",
     "ttf_showital",
@@ -1892,7 +1892,7 @@ void DOSBox_SetSysMenu(void) {
     bool TTF_using(void);
     {
         strcpy(msg, "Increase TTF font size");
-        key=get_mapper_shortcut("ttf_incsize");
+        key=get_mapper_shortcut("incsize");
         if (key.size()) {
             strcat(msg, "\t");
             strcat(msg, key.c_str());
@@ -1910,7 +1910,7 @@ void DOSBox_SetSysMenu(void) {
 
     {
         strcpy(msg, "Decrease TTF font size");
-        key=get_mapper_shortcut("ttf_decsize");
+        key=get_mapper_shortcut("decsize");
         if (key.size()) {
             strcat(msg, "\t");
             strcat(msg, key.c_str());
