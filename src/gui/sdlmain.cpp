@@ -5299,8 +5299,12 @@ static void GUI_StartUp() {
 
     // output type selection
     // "overlay" was removed, pre-map to Direct3D or OpenGL or surface
-    if (output == "overlay") 
-    {
+    if (output == "overlay"
+#if !defined(USE_TTF)
+       || output == "ttf"
+#endif
+    ) {
+        LOG_MSG(output == "ttf"?"The TrueType font (TTF) output is not enabled.":"The overlay output has been removed.");
 #if C_DIRECT3D
         output = "direct3d";
 #elif C_OPENGL
@@ -5308,6 +5312,7 @@ static void GUI_StartUp() {
 #else
         output = "surface";
 #endif
+        LOG_MSG("The following output will be switched to: %s\n", output.c_str());
     }
 
     // FIXME: this selection of output is duplicated in change_output:
@@ -7688,16 +7693,13 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
-        "default", "surface", "overlay",
+        "default", "surface", "overlay", "ttf",
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
         "ddraw",
 #if C_DIRECT3D
         "direct3d",
-#endif
-#if defined(USE_TTF)
-        "ttf",
 #endif
         0 };
 
