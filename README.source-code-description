@@ -187,10 +187,20 @@ Libpng (optional)
     License: zlib/libpng
 
 Zlib
-    Needed by libpng, save state and CHD support.
+    Needed by libpng, and for saving state and CHD support.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See https://www.zlib.net/ for more details.
     License: zlib
+
+FreeType (optional)
+    Needed for TrueType font (TTF) output and printing support.
+    It is available from https://www.freetype.org/download.html
+    License: FTL or GPLv2+
+
+FluidSynth (optional)
+    For soundfont support.
+    It is available from https://www.fluidsynth.org/download/
+    License: LGPLv2+
 
 SDL_Net (optional)
     For modem/ipx support.
