@@ -41,7 +41,8 @@
     that are 2GB or larger, 32-bit integer size limit
     has been lifted.
   - Increased upper limit of "prebuffer" config option
-    (in [mixer] section) from 100 to 250. (Wengier)
+    (in [mixer] section) from 100 to 250. It is still
+    recommended to set a value less than 100. (Wengier)
   - Added scrollbar buttons to the Configuration Tool,
     so that the scrollbars better resemble the style of
     the Windows 3.1 scrollbars.

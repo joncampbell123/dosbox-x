@@ -2256,7 +2256,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 10), it will override the ttf.winperc setting.");
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the ttf.winperc setting.");
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
