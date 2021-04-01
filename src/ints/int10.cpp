@@ -1168,6 +1168,7 @@ void INT10_Startup(Section *sec) {
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
 	int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
 	int10_vga_bios_vector = video_section->Get_bool("int 10h points at vga bios");
+	int size_override = video_section->Get_int("vga bios size override");
 
     if (!IS_PC98_ARCH) {
         if (!VGA_BIOS_use_rom) {
@@ -1183,7 +1184,7 @@ void INT10_Startup(Section *sec) {
             INT10_SetupBasicVideoParameterTable();
 
             LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
-            if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
+            if (int10.rom.used > VGA_BIOS_Size && size_override > -512) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
                 E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
         }
 
