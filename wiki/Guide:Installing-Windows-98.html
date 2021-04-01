@@ -461,7 +461,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_installing_microsoft_windows_98_in_dosbox_x">Installing Microsoft Windows 98 in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
-<li><a href="#_cd_rom_editions_this_applies_to">CD-ROM editions this applies to</a></li>
+<li><a href="#_windows_editions_this_guide_applies_to">Windows editions this guide applies to</a></li>
 <li><a href="#_external_links">External links</a></li>
 </ul>
 </li>
@@ -487,7 +487,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_booting_windows_98_after_installation">Booting Windows 98 after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after Installation</a></li>
 <li><a href="#_mounting_cd_or_diskette_images">Mounting CD or Diskette images</a></li>
-<li><a href="#_enabling_networking">Enabling networking</a></li>
+<li><a href="#_enabling_networking">Enabling networking</a>
+<ul class="sectlevel1">
+<li><a href="#_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</a>
+<ul class="sectlevel2">
+<li><a href="#_backendpcap">backend=pcap</a></li>
+<li><a href="#_backendslirp">backend=slirp</a></li>
+</ul>
+</li>
+<li><a href="#_setting_up_ne2000_networking_in_windows_98">Setting up NE2000 networking in Windows 98</a></li>
+</ul>
+</li>
 <li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a>
 <ul class="sectlevel2">
 <li><a href="#_vesa_driver">VESA driver</a></li>
@@ -517,24 +527,38 @@ This guide will give a general description of installing Windows 98 in DOSBox-X,
 </div>
 </div>
 <div class="sect1">
-<h2 id="_cd_rom_editions_this_applies_to">CD-ROM editions this applies to</h2>
+<h2 id="_windows_editions_this_guide_applies_to">Windows editions this guide applies to</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p>Windows 98 (RTM; Original release)</p>
+<p>Windows 98 (RTM; Original release) - Retail Full</p>
 </li>
 <li>
-<p>Windows 98 Second Edition (98SE)</p>
+<p>Windows 98 (RTM; Original release) - OEM Full</p>
+</li>
+<li>
+<p>Windows 98 Second Edition (98SE) - Retail Full</p>
+</li>
+<li>
+<p>Windows 98 Second Edition (98SE) - OEM Full</p>
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>This guide assumes a Full Retail or OEM version of Windows 98.
-Upgrade editions have additional requirements not covered by this guide.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Windows 98 or 98SE <strong>Upgrade</strong> editions have additional requirements and are not covered by this guide.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>If you don&#8217;t know which Windows 98 version to install, we recommend that you install <strong>Windows 98SE</strong>.</p>
+<p>If you don&#8217;t know which Windows 98 edition to install, we recommend that you install <strong>Windows 98SE</strong>.</p>
 </div>
 </div>
 </div>
@@ -572,7 +596,7 @@ autolock=true
 
 [dosbox]
 title=Windows 98
-memsize=64
+memsize=128
 
 [video]
 vmemsize=8
@@ -588,13 +612,6 @@ core=normal
 
 [sblaster]
 sbtype=sb16vibra
-
-[ne2000]
-# If you want networking in Windows, set ne2000=true.
-# This also requires that you set realnic= to a suitable value for your PC
-ne2000=false
-nicirq=10
-realnic=list
 
 [fdc, primary]
 int13fakev86io=true
@@ -617,22 +634,18 @@ scaler=none
 <div class="paragraph">
 <p>Copy the above config and save it as <strong>win98.conf</strong></p>
 </div>
-<div class="paragraph">
-<p><strong>Notes</strong></p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>You can increase the allocated RAM up to 512MB by setting <code>memsize=512</code>. Larger values may be possible with tweaks, but are not covered here.</p>
-</li>
-<li>
-<p>The <code>[autoexec]</code> section will need lines added later.</p>
-</li>
-<li>
-<p>If you want networking in Windows, you need to set <code>ne2000=true</code> and change the <code>realnic=</code> value to one suitable for your PC. See:
-<a href="Guide%3A-Setting-up-networking-in-DOSBox-X">Guide: Setting up networking</a> for more information.</p>
-</li>
-</ul>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You can increase the allocated RAM up to the Windows 98 maximum of 512MB by setting <code>memsize=512</code>.
+Larger values may be possible with tweaks, but are not covered here.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1032,10 +1045,10 @@ This is also the command you use, after the installation is finished, to start W
 <p>Install GDI+ redistributable</p>
 </li>
 <li>
-<p>Install/Update to Adobe Flash Player 7.0.73</p>
+<p>Install/Update to Adobe Flash Player 9.0.47.0</p>
 </li>
 <li>
-<p>Install Apple Quicktime 5.0.5</p>
+<p>Install Apple Quicktime 6.5.2</p>
 </li>
 </ul>
 </div>
@@ -1072,6 +1085,98 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
 <div class="openblock partintro">
 <div class="content">
+To enable networking you first need to enable NE2000 adapter emulation in your win98.conf config file and select an appropriate back-end for the NE2000 emulation.
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is <code>backend=pcap</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_backendpcap">backend=pcap</h3>
+<div class="paragraph">
+<p>The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
+</div>
+<div class="paragraph">
+<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+</li>
+<li>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+</li>
+<li>
+<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the pcap back-end, add the following to your win98.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_backendslirp">backend=slirp</h3>
+<div class="paragraph">
+<p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+</div>
+<div class="paragraph">
+<p>But obviously, it has its own limitations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For now it only works on Linux</p>
+</li>
+<li>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+</li>
+<li>
+<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the slirp back-end, add the following to your win98.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_ne2000_networking_in_windows_98">Setting up NE2000 networking in Windows 98</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If you enabled NE2000 support in the DOSBox-X config file, Windows 98 should detect it during installation and you should get a screen like the following.</p>
 </div>
@@ -1081,25 +1186,61 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Change the Interrupt (IRQ) to 10 to match the value set in your <code>win98.conf</code> file.</p>
+<p>Change the Interrupt (IRQ) to 10 to match the <code>nicirq=</code> value set in your <code>win98.conf</code> file.</p>
 </div>
 <div class="paragraph">
 <p>If Windows 98 did not detect the adapter during installation, or you enabled NE2000 emulation after you did the installation.
 Go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
 It should find the emulated Novell NE2000 adapter, and install the drivers.</p>
 </div>
-<div class="paragraph">
-<p>By default TCP/IP will try to get it&#8217;s network configuration over DHCP, if you need to manually specify the settings, in "Control Panel", double-click "Network".
-Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+By default TCP/IP will try to get it&#8217;s network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
+Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
+</td>
+</tr>
+</table>
 </div>
-<div class="paragraph">
-<p>In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
+</td>
+</tr>
+</table>
 </div>
-<div class="paragraph">
-<p>Additionally, if you don&#8217;t want the Windows logon dialog on startup, and don&#8217;t care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you don&#8217;t want the Windows logon dialog on startup, and don&#8217;t care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
+</td>
+</tr>
+</table>
 </div>
-<div class="paragraph">
-<p>If you want to share files between Windows 98 and Windows 10 on the network, have a look at this blog: <a href="http://kishy.ca/?p=1511">SMB File Sharing between Win10 and Win98</a>, but apparently this fails with Win10 build 2004 and 20H2.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you want to share files between Windows 98 and Windows 10 on the network, have a look at this blog: <a href="http://kishy.ca/?p=1511">SMB File Sharing between Win10 and Win98</a>, but apparently this fails with the latest Win10 builds 2004 and 20H2.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>If networking does not work, see <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a></p>
@@ -1327,7 +1468,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

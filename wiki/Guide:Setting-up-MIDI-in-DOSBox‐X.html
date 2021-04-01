@@ -1826,7 +1826,7 @@ midiconfig=localhost:8000</pre>
 </div>
 <div class="paragraph">
 <p>Alternatively it is also possible to connect to TiMidity&#43;&#43; over ALSA as follows.
-First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using <code>aconnect -i</code>. Then use the following config options:</p>
+First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using <code>aconnect -i</code> (in the Linux terminal) or <code>mixer /listmidi alsa</code> (in the command line of DOSBox-X 0.83.12 or later). Then use the following config options:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1846,7 +1846,16 @@ You can use ALSA if you have a real MIDI sequencer, or a sound card with MIDI su
 You can optionally also use ALSA with a separate software sequencer that creates a ALSA MIDI interface, such as TiMidity&#43;&#43; or Munt.</p>
 </div>
 <div class="paragraph">
-<p>Use <code>aconnect -i</code> to find which "device" is your MIDI output, and then add the device ID to the <code>midiconfig=</code> line.
+<p>In DOSBox-X 0.83.12 or later you can use DOSBox-X’s built-in MIXER command to find which "device" is your MIDI output, e.g.</p>
+</div>
+<div class="paragraph">
+<p><code>mixer /listmidi alsa</code></p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use the command <code>aconnect -i</code> in the Linux terminal to find which "device" is your MIDI output.</p>
+</div>
+<div class="paragraph">
+<p>Once you get the device ID (e.g. 128:0) you can then add it to the <code>midiconfig=</code> line.
 e.g.</p>
 </div>
 <div class="literalblock">
@@ -1903,7 +1912,7 @@ On a modern Windows system, there are no configuration options either.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

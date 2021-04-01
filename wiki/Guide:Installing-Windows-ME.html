@@ -461,77 +461,1114 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_installing_microsoft_windows_millennium_edition_in_dosbox_x">Installing Microsoft Windows Millennium Edition in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
-<li><a href="#_cd_rom_editions_this_applies_to">CD-ROM editions this applies to</a></li>
-<li><a href="#_general_guidance">General guidance</a></li>
+<li><a href="#_windows_editions_this_guide_applies_to">Windows editions this guide applies to</a></li>
+<li><a href="#_external_links">External links</a></li>
 </ul>
 </li>
+<li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
+<li><a href="#_general_installation_notes">General installation Notes</a></li>
+<li><a href="#_creating_a_harddisk_image">Creating a Harddisk image</a></li>
+<li><a href="#_installation_method_1_boot_from_cd_rom_image">Installation Method 1: Boot from CD-ROM image</a>
+<ul class="sectlevel1">
+<li><a href="#_requirements">Requirements</a></li>
+<li><a href="#_starting_the_installation">Starting the installation</a></li>
+<li><a href="#_transfer_windows_me_install_files_to_your_hdd_image">Transfer Windows ME install files to your HDD image</a></li>
+</ul>
+</li>
+<li><a href="#_installation_method_2">Installation Method 2</a>
+<ul class="sectlevel1">
+<li><a href="#_requirements_2">Requirements</a></li>
+<li><a href="#_starting_the_installation_2">Starting the installation</a></li>
+<li><a href="#_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</a></li>
+<li><a href="#_running_setup_exe">Running SETUP.EXE</a></li>
+</ul>
+</li>
+<li><a href="#_booting_windows_me_after_installation">Booting Windows ME after installation</a></li>
+<li><a href="#_steps_to_take_after_installation">Steps to take after Installation</a></li>
+<li><a href="#_mounting_cd_or_diskette_images">Mounting CD or Diskette images</a></li>
+<li><a href="#_enabling_networking">Enabling networking</a>
+<ul class="sectlevel1">
+<li><a href="#_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</a>
+<ul class="sectlevel2">
+<li><a href="#_backendpcap">backend=pcap</a></li>
+<li><a href="#_backendslirp">backend=slirp</a></li>
+</ul>
+</li>
+<li><a href="#_setting_up_ne2000_networking_in_windows_me">Setting up NE2000 networking in Windows ME</a></li>
+</ul>
+</li>
+<li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a>
+<ul class="sectlevel2">
+<li><a href="#_vesa_driver">VESA driver</a></li>
+</ul>
+</li>
+<li><a href="#_emulated_sound_card">Emulated sound card</a>
+<ul class="sectlevel1">
+<li><a href="#_enabling_general_midi">Enabling General MIDI</a></li>
+</ul>
+</li>
+<li><a href="#_enabling_printing">Enabling printing</a></li>
+<li><a href="#_3dfx_voodoo">3dfx Voodoo</a>
+<ul class="sectlevel2">
+<li><a href="#_glide_pass_through">Glide pass-through</a></li>
+</ul>
+</li>
+<li><a href="#_hard_disk_read_ahead_optimization">Hard Disk Read-ahead optimization</a></li>
+<li><a href="#_outstanding_issues">Outstanding issues</a></li>
 </ul>
 </div>
 </div>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
+<div class="openblock partintro">
+<div class="content">
+This guide will give a general description of installing Windows Millennium Edition (aka Windows ME) in DOSBox-X, in addition to addressing some common issues.
+</div>
+</div>
 <div class="sect1">
-<h2 id="_cd_rom_editions_this_applies_to">CD-ROM editions this applies to</h2>
+<h2 id="_windows_editions_this_guide_applies_to">Windows editions this guide applies to</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p>Windows Millennium Edition (Windows ME)</p>
+<p>Windows ME - Retail Full</p>
+</li>
+<li>
+<p>Windows ME - OEM Full</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Windows ME <strong>Upgrade</strong> editions have additional requirements and are not covered by this guide.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+In general Windows ME has received less testing, and also has more compatibility issues with programs designed for Windows 95 and 98.
+As such, unless you have a specific requirement for Windows ME, the DOSBox-X team recommands to use Windows 98SE instead.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_external_links">External links</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
+</li>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Windows_ME">Wikipedia: Windows ME</a></p>
+</li>
+<li>
+<p><a href="https://microsoft.fandom.com/wiki/Windows_ME">Fandom: Windows ME</a></p>
+</li>
+<li>
+<p><a href="https://betawiki.net/wiki/Windows_ME">Betawiki: Windows ME</a></p>
 </li>
 </ul>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_general_guidance">General guidance</h2>
-<div class="sectionbody">
+<h1 id="_dosbox_x_config_file" class="sect0">DOSBox-X config file</h1>
+<div class="openblock partintro">
+<div class="content">
 <div class="paragraph">
-<p>There is no specific guide at this point for installing Windows ME in DOSBox-X, as Windows ME is not currently supported. It is possible to install Windows ME in DOSBox-X, but you are likely to quickly encounter problems.</p>
+<p>You first need to create a DOSBox-X config file.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[sdl]
+autolock=true
+
+[dosbox]
+title=Windows ME
+memsize=128
+
+[video]
+vmemsize=8
+vesa modelist width limit=0
+vesa modelist height limit=0
+
+[dos]
+ver=8.0
+lfn=false
+
+[cpu]
+cputype=pentium_mmx
+core=normal
+
+[sblaster]
+sbtype=sb16vibra
+
+[fdc, primary]
+int13fakev86io=false
+
+[ide, primary]
+int13fakeio=true
+int13fakev86io=false
+
+[ide, secondary]
+int13fakeio=true
+int13fakev86io=false
+cd-rom insertion delay=4000
+
+[render]
+scaler=none
+
+[autoexec]</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Since generally Windows 98SE is considered more compatible with games of the era, that is what is recommended if you want to play Windows 9x games in DOSBox-X.</p>
+<p>Copy the above config and save it as <strong>winme.conf</strong></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It is recommended by DOSBox-X developers that at this time, you do not enable int13fakev86io in your config file when using Windows ME.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You can increase the allocated RAM up to the Windows ME maximum of 512MB by setting <code>memsize=512</code>.
+Larger values may be possible with tweaks, but are not covered here.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_general_installation_notes" class="sect0">General installation Notes</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.</p>
+</li>
+<li>
+<p>When creating your HDD image with <code>IMGMAKE</code>, instead of specifying a custom size, you can choose a pre-defined template. The pre-defined HDD templates can be seen by running <code>IMGMAKE</code> without arguments.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h1 id="_creating_a_harddisk_image" class="sect0">Creating a Harddisk image</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>If you have the technical skills, and want to assist in improving DOSBox-X, assistance with fixing bugs that happen with Windows ME is welcome.</p>
-</div>
-<div class="paragraph">
-<p><strong>Some notes if you want to proceed</strong></p>
+<p>Some quick rules about IMGMAKE (for more detail, see: <a href="Guide%3AManaging-image-files-in-DOSBox%E2%80%90X">Guide: Managing image files in DOSBox-X</a>):</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Follow the Windows 98 installation guide as the process is similar.</p>
+<p>Diskette (floppy) images are always created as FAT12</p>
 </li>
 <li>
-<p>It is recommended by DOSBox-X developers that at this time, you do not enable int13fakev86io in your config file when using Windows ME.</p>
+<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default</p>
 </li>
 <li>
-<p>You may want to use the Windows ME <strong>Full OEM</strong> version, if possible, as its CD-ROM is bootable.</p>
-</li>
-<li>
-<p>When booting for the first time from the CD, exit to DOS with CD-ROM support, and start installation using <code>SETUP.EXE /NM</code> to bypass an error that you must have a 150MHz CPU</p>
+<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p><strong>A few known issues after installation:</strong></p>
+<p>Alternatively, you can use the <code>-fat</code> option to instruct <code>IMGMAKE</code> to create a certain FAT type (assuming that is possible for the harddisk size).</p>
+</div>
+<div class="paragraph">
+<p>First you need to start DOSBox-X from the command-line, using your newly created winme.conf.
+This assumes that dosbox-x is in your path and winme.conf is in your current directory.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf winme.conf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then in DOSBox-X you need to create a new harddisk image file with <code>IMGMAKE</code>.</p>
+</div>
+<div class="paragraph">
+<p>This example uses a 8GB hard disk image with a single FAT32 formatted partition. The maximum FAT32 partition size for Windows ME should be 2TB, but this has not yet been tested in DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd_8gig</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or if you want to create a larger disk, you can create a custom type.
+This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -size 16384</pre>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_installation_method_1_boot_from_cd_rom_image" class="sect0">Installation Method 1: Boot from CD-ROM image</h1>
+<div class="openblock partintro">
+<div class="content">
+It is possible to boot directly from the Windows ME CD-ROM, as long as you have the "OEM Full" edition, in which case no separate bootdisk is needed.
+</div>
+</div>
+<div class="sect1">
+<h2 id="_requirements">Requirements</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>DOSBox-X 0.83.12 or later, these instructions will NOT work with other DOSBox forks.</p>
+</li>
+<li>
+<p>Windows ME <strong>OEM Full</strong> edition CD-ROM image (named "WinME.iso" in the example below).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Getting this image file is outside the scope of this guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_starting_the_installation">Starting the installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This assumes you have already started DOSBox-X with the winme.conf config file, and created your harddisk image.</p>
+</div>
+<div class="paragraph">
+<p>First mount the harddisk image you created earlier:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let’s boot from the CD-ROM and start the installation.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT D WinME.iso
+IMGMOUNT A -bootcd D
+BOOT A:</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the second <code>IMGMOUNT</code> command gives an error "<strong>El Torito CD-ROM boot record not found</strong>", your CD-ROM image is not bootable, and you will have to use either a different installation method or a different Windows ME CD-ROM image.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You will first get a Startup menu, where you need to select "Boot from CD-ROM".
+After which you will get the "Microsoft Windows Millennium Startup Menu" where you need to select "Start computer with CD-ROM support."</p>
+</div>
+<div class="paragraph">
+<p>After it finished loading the CD-ROM support, you will be at the DOS <code>A:\&gt;</code> prompt.
+Now type the following commands:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>D:
+SETUP.EXE /NM</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At this point it should format the harddisk and the installation process should start.</p>
+</div>
+<div class="paragraph">
+<p>When the Windows installer reboots, and your back at the DOSBox-X <code>Z:\&gt;</code> prompt.
+Close DOSBox-X and edit your winme.conf config file, and add the following lines in the [autoexec] section at the end of the file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img
+IMGMOUNT D WinME.iso
+BOOT C:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now start DOSBox-X as follows to continue the installation process:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf winme.conf</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_transfer_windows_me_install_files_to_your_hdd_image">Transfer Windows ME install files to your HDD image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is an optional step. It is to prevent Windows from asking for the CD-ROM whenever it needs additional files.</p>
+</div>
+<div class="paragraph">
+<p>Boot Windows ME with the CD-ROM image mounted. In Windows ME, copy the \WIN9X directory and its contents from the CD-ROM to your C: drive.
+You can copy it to any directory you want, but we assume here that you copied it to C:\WIN9X</p>
+</div>
+<div class="paragraph">
+<p>Once the files are copied, start REGEDIT and navigate to <code>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Setup</code> and change <code>SourcePath=</code> to the location where you copied the files. e.g. <code>SourcePath=C:\WIN9X</code></p>
+</div>
+<div class="paragraph">
+<p>In the case of Windows ME, copying the entire directory will require roughly 195MB of diskspace.
+The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB, bringing the total to roughly 153MB.</p>
+</div>
+</div>
+</div>
+<h1 id="_installation_method_2" class="sect0">Installation Method 2</h1>
+<div class="openblock partintro">
+<div class="content">
+This method will start the install from DOSBox-X, and does not require a bootable CD-ROM image.
+</div>
+</div>
+<div class="sect1">
+<h2 id="_requirements_2">Requirements</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>DOSBox-X 0.83.12 or later, these instructions will NOT work with other DOSBox forks.</p>
+</li>
+<li>
+<p>Windows ME CD-ROM image (named "WinME.iso" in the example below).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Getting this image file is outside the scope of this guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_starting_the_installation_2">Starting the installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This assumes you have already started DOSBox-X with the winme.conf config file and created your harddisk image.</p>
+</div>
+<div class="paragraph">
+<p>First mount the harddisk image you created earlier:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will also need to mount the Windows ME CD-ROM. There are a few ways of doing so, but this guide assumes you have a ISO image.</p>
+</div>
+<div class="paragraph">
+<p>If you have a copy of the Windows ME CD-ROM as an ISO (or a cue/bin pair), you can mount it as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT D WinME.iso</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+It is recommended to copy the installation files (contents of the WIN9X directory on the CD-ROM) to your HDD image, as it will prevent Windows ME from asking for the CD-ROM when it needs additional files later.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>XCOPY D:\WIN9X C:\WIN9X /I /E</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The files in the above example are copied to the C:\WIN9X directory.
+You may want to use <code>C:\WINDOWS\OPTIONS\CABS</code> instead, as that is the directory that OEM installs normally use.
+But if you do, be aware that the installer will attempt to install into <code>C:\WINDOWS.000</code> as <code>C:\WINDOWS</code> already exists.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_SETUP_02.png" alt="Windows ME SETUP.EXE Select Directory">
+</div>
+</div>
+<div class="paragraph">
+<p>If you get the above screen during SETUP, select "Other directory" to change it back to <code>C:\WINDOWS</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_setup_exe">Running SETUP.EXE</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can now run SETUP.EXE.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It is necessary to use the <code>/NM</code> option when running SETUP.EXE, as otherwise Windows ME will not install in DOSBox-X as it will claim that it needs at least a 150MHz CPU.
+</td>
+</tr>
+</table>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:
+CD \WIN9X
+SETUP /NM</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_SETUP_01.png" alt="Windows ME SETUP.EXE Welcome">
+</div>
+</div>
+<div class="paragraph">
+<p>Now run through the install process.
+The actual steps will not be covered in this guide, but are pretty self explanatory and detailed guides on the Windows ME install process can be found online such as youtube.</p>
+</div>
+<div class="paragraph">
+<p>When the installer reboots DOSBox-X, and your back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
+</div>
+<div class="paragraph">
+<p>Now edit your <code>winme.conf</code> config file.
+At the end of the file, in the [autoexec] section, add the following two lines:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img
+BOOT C:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
+This is also the command you use, after the installation is finished, to start Windows ME in DOSBox-X.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf winme.conf</pre>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_booting_windows_me_after_installation" class="sect0">Booting Windows ME after installation</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>After the installation is finished, you can start Windows ME from the command-prompt of your host PC, with the following command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf winme.conf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can optionally create a shortcut on your desktop to start Windows ME directly.</p>
+</div>
+</div>
+</div>
+<h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after Installation</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>Once Windows ME is installed, here is some additional software you may want to install or update:</p>
 </div>
 <div class="ulist">
 <ul>
+<li>
+<p>Install Microsoft .NET framework version 1.0, 1.1 and 2.0</p>
+</li>
+<li>
+<p>Install Visual C++ 2005 runtime</p>
+</li>
+<li>
+<p>Update to Internet Explorer 6.0 (rarely needed)</p>
+</li>
+<li>
+<p>Update to DirectX 9.0c</p>
+</li>
+<li>
+<p>Install Windows Installer 2.0</p>
+</li>
+<li>
+<p>Install WinG 1.0 (needed by just a few games, and those games typically include it)</p>
+</li>
+<li>
+<p>Install GDI+ redistributable</p>
+</li>
+<li>
+<p>Install/Update to Adobe Flash Player 9.0.47.0</p>
+</li>
+<li>
+<p>Install Apple Quicktime 6.5.2</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h1 id="_mounting_cd_or_diskette_images" class="sect0">Mounting CD or Diskette images</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to a OS booted in DOSBox-X.
+But only if the image files are specified before starting real DOS or Windows 9x.
+The option to load image files from the menu bar becomes unavailable the moment you boot DOS or Win9x in DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>This is a known limitation that hopefully will be resolved in the near future.</p>
+</div>
+<div class="paragraph">
+<p>For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT A disk1.img disk2.img disk3.img
+IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then swap between disk images with the swap option from the menu.</p>
+</div>
+</div>
+</div>
+<h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
+<div class="openblock partintro">
+<div class="content">
+To enable networking you first need to enable NE2000 adapter emulation in your winme.conf config file and select an appropriate back-end for the NE2000 emulation.
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is <code>backend=pcap</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_backendpcap">backend=pcap</h3>
+<div class="paragraph">
+<p>The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
+</div>
+<div class="paragraph">
+<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+</li>
+<li>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+</li>
+<li>
+<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the pcap back-end, add the following to your winme.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_backendslirp">backend=slirp</h3>
+<div class="paragraph">
+<p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+</div>
+<div class="paragraph">
+<p>But obviously, it has its own limitations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For now it only works on Linux</p>
+</li>
+<li>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+</li>
+<li>
+<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the slirp back-end, add the following to your winme.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_ne2000_networking_in_windows_me">Setting up NE2000 networking in Windows ME</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Windows ME does not detect the emulated NE2000 adapter during installation as it is not a ISA PnP or PCI adapter.
+As such you need to set it up manually afterwards, which is quite a bit more involved than in older Windows versions.</p>
+</div>
+<div class="paragraph">
+<p>On the Windows ME desktop, click the "Start" button followed by "Settings" and "Control Panel".
+In the "Control Panel" window, click on the "view all Control Panel options." link on the left side.
+You should now see more options displayed. Double click on the "Add New Hardware" icon.</p>
+</div>
+<div class="paragraph">
+<p>Now let the Hardware Wizard detect new hardware.
+If it presents a question if the "Advanced Power Management support" listed is what you want to configure, select "No, the device isn&#8217;t in the list", and click the "Next &gt;" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_01.png" alt="Windows ME Add Net Hardware">
+</div>
+</div>
+<div class="paragraph">
+<p>Now Windows ME will offer to search for the hardware.
+This search will not work, so select the option "No, I want to select the hardware from a list.", and click the "Next &gt;" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_02.png" alt="Windows ME Add Net Hardware">
+</div>
+</div>
+<div class="paragraph">
+<p>You will now be asked for the hardware type to install, highlight "Network adapters", and click the "Next &gt;" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_03.png" alt="Windows ME Add Net Hardware">
+</div>
+</div>
+<div class="paragraph">
+<p>You will be presented with a "Select Device" dialogue where you need to select "Novell/Anthem" for the manufacturer and "NE2000 Compatible" for the Model, and click the "OK" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_04.png" alt="Windows ME Select Device">
+</div>
+</div>
+<div class="paragraph">
+<p>Windows ME will now present you with a resource dialogue with completely invalid resources and no way to directly edit them. Click the "Next &gt;" button to continue.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_05.png" alt="Windows ME Select Device">
+</div>
+</div>
+<div class="paragraph">
+<p>Now click the "Finish button" to complete the process.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_06.png" alt="Windows ME Select Device">
+</div>
+</div>
+<div class="paragraph">
+<p>Windows ME will now want to shut down for the changes to take effect.
+However since the resources that it set for the emulated NE2000 adapter are invalid, we should fix that first.
+As such click the "No" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_07.png" alt="Windows ME Confirm shutdown">
+</div>
+</div>
+<div class="paragraph">
+<p>Now double-click on the "System" icon and you will now get the "System Properties" window.
+Select the "Device Manager" tab and highlight the "NE2000 Compatible" option and click on the "Properties" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_08.png" alt="Windows ME System Properties">
+</div>
+</div>
+<div class="paragraph">
+<p>You will now get a "NE2000 Compatible Properties" window where you need to select the "Resources" tab.</p>
+</div>
+<div class="paragraph">
+<p>Now highlight "Interrupt Request" and click on the "Change Settings" button.
+Change the value to 10 as set with <code>nicirq=</code> in your winme.conf file and click the "OK" button.</p>
+</div>
+<div class="paragraph">
+<p>Now highlight "Input/Output Range" and click on the "Change Settings button"
+Change the value to "0300-031F" and click the "OK" button.</p>
+</div>
+<div class="paragraph">
+<p>Now close the "NE2000 Compatible Properties" window by clicking the "OK" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_NE2000_09.png" alt="Windows ME System Properties">
+</div>
+</div>
+<div class="paragraph">
+<p>Windows ME will now ask you to shut down to apply the settings, click the "Yes" button to let it perform a shutdown.
+After the shutdown you will have to restart DOSBox-X.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+By default TCP/IP will try to get it&#8217;s network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
+Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you don&#8217;t want the Windows logon dialog on startup, and don&#8217;t care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you want to share files between Windows ME and Windows 10 on the network, have a look at this blog: <a href="http://kishy.ca/?p=1511">SMB File Sharing between Win10 and Win98</a>, but apparently this fails with the latest Win10 builds 2004 and 20H2.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If networking does not work, see <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a></p>
+</div>
+</div>
+</div>
+<h1 id="_emulated_video_adapter_and_video_mode" class="sect0">Emulated video adapter and video mode</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.
+In addition this video adapter is supported out-of-the-box in Windows ME, simplifying the installation process.</p>
+</div>
+<div class="paragraph">
+<p>The available video modes with the S3 Trio64 driver are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>4-bit colour (16): 640x480</p>
+</li>
+<li>
+<p>8-bit colour (256) : 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200</p>
+</li>
+<li>
+<p>16-bit colour (65536): 640x480, 800x600 and 1024x768</p>
+</li>
+<li>
+<p>32-bit colour (16.7M): 640x480 and 800x600</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A few enhancements have been made to the emulated S3 Trio64, compared to a real S3 Trio64:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>No real S3 Trio64 was ever produced with more than 4MB video memory, under DOSBox-X you can optionally configure 8MB.</p>
+</li>
+<li>
+<p>The real cards never supported wide-screen resolutions, wide-screen VESA modes can optionally be enabled in DOSBox-X.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>However, these enhancements cannot be used in Windows ME with the S3 video driver due to driver limitations.
+And no updated S3 Trio64 video driver is available for Windows ME.
+As such you will be limited to the above video modes with this driver.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_driver">VESA driver</h3>
+<div class="paragraph">
+<p>These restrictions can be overcome by switching to the <a href="https://bearwindows.zcm.com.au/vbe9x.htm">Universal VESA/VBE Video Display Driver (VBEMP)</a>.</p>
+</div>
+<div class="paragraph">
+<p>First add the following lines to your DOSBox-X config file in the [video] section:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>allow high definition vesa modes=true
+allow unusual vesa modes=true
+allow low resolution vesa modes=false</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Download and extract the latest VBEMP driver package and install the driver from the 032MB directory.</p>
+</div>
+<div class="paragraph">
+<p>With these settings modes up to 1920x1080 in 32bit colour, or 1920x1440 in 16bit colour are possible.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Using the VBEMP driver does have a negative graphics performance impact, which when measured in WinBench96 Graphics WinMark, can be a reduction of up to 59%.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<h1 id="_emulated_sound_card" class="sect0">Emulated sound card</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
+This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
+There is no other real advantage of using the emulated SB16 Vibra over the SB16.</p>
+</div>
+<div class="paragraph">
+<p>Windows ME includes WDM driver version 4.90.2471.1. No newer driver appears to exist.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
+However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_general_midi">Enabling General MIDI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows ME.</p>
+</div>
+<div class="paragraph">
+<p>Go to "Start", "Settings" and open "Control Panel".
+Now double-click on "Sounds and Multimedia". If you don&#8217;t see this option listed, click on the "view all Control Panel options" link on the left side.</p>
+</div>
+<div class="paragraph">
+<p>Now on the "Audio" tab, change the "MIDI Music Playback" option to "Creative MPU-401", and click OK to close the window.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_ME_MIDI.png" alt="Windows ME MIDI setup">
+</div>
+</div>
+<div class="paragraph">
+<p>For more information about setting up MIDI support, see <a href="Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X">Guide: Setting up MIDI in DOSBox-X</a></p>
+</div>
+</div>
+</div>
+<h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
+<div class="openblock partintro">
+<div class="content">
+To enable printing support in Windows ME, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
+</div>
+</div>
+<h1 id="_3dfx_voodoo" class="sect0">3dfx Voodoo</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The emulated 3dfx Voodoo PCI device is enabled by default in DOSBox-X, and Windows ME includes a driver and will automatically detect it.</p>
+</div>
+<div class="paragraph">
+<p>Windows ME includes a driver dated 4-23-1999. There is a <a href="https://www.philscomputerlab.com/drivers-for-voodoo.html">3.01.00 update</a> available.
+After the update it will show a date of 4-29-1999.</p>
+</div>
+<div class="paragraph">
+<p>If for some reason you do not want 3dfx Voodoo emulation, it can be disabled by adding the following lines to your DOSBox-X config:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[voodoo]
+voodoo_card=false</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_glide_pass_through">Glide pass-through</h3>
+<div class="paragraph">
+<p>DOSBox-X supports glide pass-through with Windows ME.
+There are however a few points you need to be aware of.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
+So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper</p>
+</li>
+<li>
+<p>The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue <a href="https://github.com/voyageur/openglide/issues/20">#20</a>).
+The work-around is to use the SDL1 DOSBox-X instead.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You need to set the following DOSBox-X config option:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[voodoo]
+glide=true</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will also need a specially patched <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a> which you can place in either the <code>C:\Windows\System</code> directory of Windows ME, or in the game directory.
+But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory.
+If so, you will have to remove this DLL file for glide pass-through to work.</p>
+</div>
+<div class="paragraph">
+<p>For more detail on 3dfx Voodoo emulation, see the <a href="Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X">Guide: Setting up 3dfx Voodoo in DOSBox-X</a></p>
+</div>
+</div>
+<h1 id="_hard_disk_read_ahead_optimization" class="sect0">Hard Disk Read-ahead optimization</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>In "System Properties", select the "Performance" tab, and click the "File System&#8230;&#8203;" button.
+A separate "File System Properties" window will open.
+On the "Hard Disk" tab you can specify the Read-ahead optimization.</p>
+</div>
+<div class="paragraph">
+<p>Based on benchmark results (WinBench 96), it seems that setting this to "None" gives the best performance in combination with DOSBox-X, although the difference is marginal.
+This is no doubt because the host system is better at caching then the Windows ME cache function.</p>
+</div>
+</div>
+</div>
+<h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>"System Properties" &#8594; "Performance" complains about</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Compatibility-mode paging reduces overall system performance.</p>
+</li>
+<li>
+<p>Drive A is using MS-DOS compatibility mode file system.</p>
+</li>
+<li>
+<p>Drive C is using MS-DOS compatibility mode file system.</p>
+</li>
+</ul>
+</div>
+</li>
 <li>
 <p>In device manager, a problem with APM support: "The VPOWER.XVD device driver(s) for this device could not load the device driver. (Code 2.)".</p>
-</li>
-<li>
-<p>Under Performance, it complains about "Compatibility-mode paging" and that both drive A and C are "using MS-DOS compatibility mode file system".</p>
-</li>
-<li>
-<p>SB16 <em>may</em> not be automatically detected, due to missing PnP support for the emulated SB16. Running the "Add hardware wizard" should take care of it.</p>
 </li>
 <li>
 <p>NE2000 adapter is not automatically detected, and even if you manually add it, it takes the wrong resources (which needs to be adjusted in device manager).</p>
 </li>
 <li>
-<p>As mentioned, Windows Protection errors. It seems that the likelihood of encountering Windows Protection Errors is significantly decreased by setting <code>cycles=60000</code> in the <code>[cpu]</code> section of your DOSBox-X config file.</p>
+<p><code>core=dynamic_x86</code> is not compatible at this time with Windows ME</p>
 </li>
 </ul>
 </div>
@@ -540,7 +1577,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

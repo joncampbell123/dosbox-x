@@ -178,5 +178,98 @@ sudo ldconfig
 ....
 
 ### macOS host: Installing libglide2x.dylib
+Just like on Linux, you will need to compile the library yourself.
+The necessary steps are detailed below.
 
-Work to fix modern macOS support in OpenGlide is ongoing. See link:https://github.com/joncampbell123/dosbox-x/issues/2314[issue 2314] for more information on the current state.
+WARNING: OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
+If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+
+#### Install the OpenGlide dependencies
+
+1. Install Xcode command-line tools:
+You need Xcode command-line tools from Apple in order to install Home Brew. You can install Xcode from the App Store or run the following Terminal command: +
+....
+xcode-select --install
+....
+Alternatively, when you run the Home Brew install script (see below), it will install the command-line tools for you. +
+[start=2]
+2. Install Home Brew:
+Home Brew is the package manager for macOS that makes it easy to install the required packages needed for OpenGlide to compile successfully. You can get it from https://brew.sh or run the following command from a Terminal shell:
+....
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+....
+[start=3]
+3. Install the required Homebrew packages needed by OpenGlide:
+Run the following Terminal command:
+....
+brew install SDL1
+....
+
+#### Build the OpenGlide libraries
+
+1. Download the source code from this fork of OpenGlide, which has been patched to work on macOS Mojave or higher:
+https://github.com/almeath/openglide
+
+2. Unzip the downloaded folder to your desktop and then navigate to the folder using Terminal:
+....
+cd $HOME/Desktop/openglide-master
+....
+[start=3]
+3. Run the following commands, in order:
+....
+./bootstrap
+./configure
+sudo make install
+....
+
+NOTE: If the make command fails with an error about a missing "features.h" file, you can create one in the correct location with the following command:
+....
+sudo touch /usr/local/include/features.h
+....
+
+Then run make again, and it should work.
+The features.h file is not needed directly by OpenGlide but sometimes the macOS command line tools require it for the build script to complete successfully.
+
+If the build is successful, the resulting libraries are installed to ``/usr/local/lib/``:
+....
+libglide.so.2
+libglide2x.0.dylib
+libglide2x.a
+libglide2x.dylib
+libglide2x.la
+....
+NOTE: libglide.so.2 is an alias (symlink) file that has no 'original'.
+It appears to be a remnant of the Linux based build, and can probably be deleted or otherwise ignored.
+The macOS dynamic (dlylib) and static (a/la) files are the key components.
+
+These files can remain in your library folder and will be automatically found by DOSBox-X.
+
+Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources) and they should be recognized in there first, before falling back to the system level files if required.
+
+#### Test for detection of the OpenGlide libraries
+
+A good way to test the functionality of your OpenGlide library is to download DOSBox-X and enable glide within the configuration/settings in accordance with the DOSBox-X Wiki.
+
+If the OpenGlide library is successfully detected, when you run DOSBox-X it will generate two output files called OpenGLid.ini and OpenGLid.log (the former providing options to adjust the OpenGlide settings).
+These should be located in the same place as your DOSBox-X application or executable binary.
+
+#### Optimize the OpenGLid.ini settings
+
+The following settings are recommended (with ``InitFullScreen=1`` to start in fullscreen mode)
+....
+[Options]
+WrapperPriority=2
+CreateWindow=0
+InitFullScreen=1
+Resolution=0.0
+EnableMipMaps=0
+IgnorePaletteChange=0
+Wrap565to5551=1
+EnablePrecisionFix=1
+EnableMultiTextureEXT=1
+EnablePaletteEXT=1
+EnableVertexArrayEXT=0
+TextureMemorySize=32
+FrameBufferMemorySize=16
+NoSplash=1
+....

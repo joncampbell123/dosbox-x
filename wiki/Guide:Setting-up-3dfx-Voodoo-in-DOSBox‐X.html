@@ -853,7 +853,187 @@ sudo ldconfig</pre>
 <div class="sect2">
 <h3 id="_macos_host_installing_libglide2x_dylib">macOS host: Installing libglide2x.dylib</h3>
 <div class="paragraph">
-<p>Work to fix modern macOS support in OpenGlide is ongoing. See <a href="https://github.com/joncampbell123/dosbox-x/issues/2314">issue 2314</a> for more information on the current state.</p>
+<p>Just like on Linux, you will need to compile the library yourself.
+The necessary steps are detailed below.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
+If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_install_the_openglide_dependencies">Install the OpenGlide dependencies</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install Xcode command-line tools:
+You need Xcode command-line tools from Apple in order to install Home Brew. You can install Xcode from the App Store or run the following Terminal command:<br></p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>xcode-select --install</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, when you run the Home Brew install script (see below), it will install the command-line tools for you.<br></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>Install Home Brew:
+Home Brew is the package manager for macOS that makes it easy to install the required packages needed for OpenGlide to compile successfully. You can get it from <a href="https://brew.sh" class="bare">https://brew.sh</a> or run the following command from a Terminal shell:</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Install the required Homebrew packages needed by OpenGlide:
+Run the following Terminal command:</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>brew install SDL1</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_build_the_openglide_libraries">Build the OpenGlide libraries</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Download the source code from this fork of OpenGlide, which has been patched to work on macOS Mojave or higher:
+<a href="https://github.com/almeath/openglide" class="bare">https://github.com/almeath/openglide</a></p>
+</li>
+<li>
+<p>Unzip the downloaded folder to your desktop and then navigate to the folder using Terminal:</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>cd $HOME/Desktop/openglide-master</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Run the following commands, in order:</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>./bootstrap
+./configure
+sudo make install</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the make command fails with an error about a missing "features.h" file, you can create one in the correct location with the following command:
+</td>
+</tr>
+</table>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sudo touch /usr/local/include/features.h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then run make again, and it should work.
+The features.h file is not needed directly by OpenGlide but sometimes the macOS command line tools require it for the build script to complete successfully.</p>
+</div>
+<div class="paragraph">
+<p>If the build is successful, the resulting libraries are installed to <code>/usr/local/lib/</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>libglide.so.2
+libglide2x.0.dylib
+libglide2x.a
+libglide2x.dylib
+libglide2x.la</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+libglide.so.2 is an alias (symlink) file that has no 'original'.
+It appears to be a remnant of the Linux based build, and can probably be deleted or otherwise ignored.
+The macOS dynamic (dlylib) and static (a/la) files are the key components.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>These files can remain in your library folder and will be automatically found by DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources) and they should be recognized in there first, before falling back to the system level files if required.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_test_for_detection_of_the_openglide_libraries">Test for detection of the OpenGlide libraries</h4>
+<div class="paragraph">
+<p>A good way to test the functionality of your OpenGlide library is to download DOSBox-X and enable glide within the configuration/settings in accordance with the DOSBox-X Wiki.</p>
+</div>
+<div class="paragraph">
+<p>If the OpenGlide library is successfully detected, when you run DOSBox-X it will generate two output files called OpenGLid.ini and OpenGLid.log (the former providing options to adjust the OpenGlide settings).
+These should be located in the same place as your DOSBox-X application or executable binary.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_optimize_the_openglid_ini_settings">Optimize the OpenGLid.ini settings</h4>
+<div class="paragraph">
+<p>The following settings are recommended (with <code>InitFullScreen=1</code> to start in fullscreen mode)</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[Options]
+WrapperPriority=2
+CreateWindow=0
+InitFullScreen=1
+Resolution=0.0
+EnableMipMaps=0
+IgnorePaletteChange=0
+Wrap565to5551=1
+EnablePrecisionFix=1
+EnableMultiTextureEXT=1
+EnablePaletteEXT=1
+EnableVertexArrayEXT=0
+TextureMemorySize=32
+FrameBufferMemorySize=16
+NoSplash=1</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -861,7 +1041,7 @@ sudo ldconfig</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

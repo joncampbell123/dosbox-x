@@ -566,7 +566,7 @@ midiconfig=localhost:8000
 ....
 
 Alternatively it is also possible to connect to TiMidity{plus}{plus} over ALSA as follows.
-First locate the ALSA MIDI device that got assigned to TiMidity{plus}{plus} using ``aconnect -i``. Then use the following config options:
+First locate the ALSA MIDI device that got assigned to TiMidity{plus}{plus} using ``aconnect -i`` (in the Linux terminal) or ``mixer /listmidi alsa`` (in the command line of DOSBox-X 0.83.12 or later). Then use the following config options:
 ....
 [midi]
 mididevice=alsa
@@ -578,7 +578,13 @@ ALSA is the low-level Linux sound system.
 You can use ALSA if you have a real MIDI sequencer, or a sound card with MIDI support.
 You can optionally also use ALSA with a separate software sequencer that creates a ALSA MIDI interface, such as TiMidity{plus}{plus} or Munt.
 
-Use ``aconnect -i`` to find which "device" is your MIDI output, and then add the device ID to the ``midiconfig=`` line.
+In DOSBox-X 0.83.12 or later you can use DOSBox-X’s built-in MIXER command to find which "device" is your MIDI output, e.g.
+
+``mixer /listmidi alsa``
+
+Alternatively, you can use the command ``aconnect -i`` in the Linux terminal to find which "device" is your MIDI output.
+
+Once you get the device ID (e.g. 128:0) you can then add it to the ``midiconfig=`` line.
 e.g.
 
 ....

@@ -11,7 +11,7 @@ toc::[]
 
 This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.
 
-Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.
+Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. While the graphical mode is required by most DOS gaming software, the text mode is active when you are in the DOS shell or running most non-gaming DOS software, and the text screen will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox and most forks only support the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS programs or games.
 
 ## Activating the TrueType font output
 You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:
@@ -38,7 +38,7 @@ By default, DOSBox-X uses the built-in TrueType font for the TTF output. However
 
 Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as ``OratorStd.otf``), the .FON fonts (such as ``vgasys.fon``), and the .TTC fonts (TrueType Collection, such as ``msgothic.ttc``). These can also be used for rendering texts in the TrueType output.
 
-For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:
+For example, assuming the file ``Nouveau_IBM.ttf`` is in the DOSBox-X working directory or in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:
 
 ``
 ttf.font=Nouveau_IBM
@@ -52,7 +52,7 @@ On the other hand, if you want to use a TTF font that is already included in the
 * Linux: ``/usr/share/fonts/truetype/``
 * macOS: ``/Library/Fonts/``
 
-So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:
+So for example if you use Windows 10, which includes font files such as ``Consola.ttf``, ``Lucon.ttf``, ``vgasys.fon``, and ``msgothic.ttc`` in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:
 
 ```
 ttf.font=Consola
@@ -72,7 +72,7 @@ CONFIG -set ttf.font=Consola
 CONFIG -set ttf.font=
 ```
 
-The above commands will change the TTF font to Consola.ttf and the built-in TrueType font respectively.
+The above commands will change the TTF font to ``Consola.ttf`` and the built-in TrueType font respectively.
 
 If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a ``CHCP`` command to view or change the current DOS code page for TTF output. For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font.
 
@@ -134,7 +134,9 @@ Then the regular text will be rendered using the Consola.ttf font, whereas the b
 
 If you set ``ttf.wp=WP`` which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting ``ttf.char512=false`` in the [render] section of the configuration.
 
-If you set ``ttf.wp=WS`` which sets WordStar as the word processor, then you probably want to ``high intensity blinking=false`` for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" => "Text-mode" => "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option ``BrightBG=Yes`` if you use the 4DOS shell.
+If you set ``ttf.wp=WS`` which sets WordStar as the word processor, then you probably want to set ``high intensity blinking`` to ``false`` for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" => "Text-mode" => "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option ``BrightBG=Yes`` if you use the 4DOS shell.
+
+There is additionally a ``ttf.wpbg`` option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option.
 
 ## Color scheme for the TrueType font output
 
@@ -182,3 +184,5 @@ SETCOLOR 1 -
 ``
 
 Entering ``SETCOLOR 1`` will display the current color value of Color #1.
+
+If you want to actually change the default console foreground and background colors, please use the ``COLOR`` command, which works the same way as the same-named command in the Windows Command Prompt. For example, the command ``COLOR 61`` produces red on blue by default, unless you have customized the color schemes using the ``SETCOLOR`` command above. For bright background colors you will need to set the option ``high intensity blinking`` to ``false`` (mentioned in the previous section), or else blinking foreground texts will be displayed instead of bright background colors. In such case you can for example enter the command ``COLOR fc`` to produce light red on bright white, unless you have customized the color schemes. The ``COLOR`` command without an argument restores the original color.

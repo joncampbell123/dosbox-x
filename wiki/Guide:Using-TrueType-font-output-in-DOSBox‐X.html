@@ -468,7 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>This guide explains how to configure and use the TrueType font (TTF) output in DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. Unlike DOS gaming software, most non-gaming DOS software are text-mode applications, which will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox for example only supports the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS software.</p>
+<p>Since DOSBox-X is designed to be a complete DOS emulator, it officially supports DOS applications and more, not just DOS games. While the graphical mode is required by most DOS gaming software, the text mode is active when you are in the DOS shell or running most non-gaming DOS software, and the text screen will look much better when rendered with scalable TrueType fonts rather than the standard bitmaps (original DOSBox and most forks only support the bitmap rendering). DOSBox-X supports the TrueType font (TTF) output which makes it suitable for running text-mode DOS applications, in addition to graphical-mode DOS programs or games.</p>
 </div>
 </div>
 </div>
@@ -515,7 +515,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>). These can also be used for rendering texts in the TrueType output.</p>
 </div>
 <div class="paragraph">
-<p>For example, assuming the file Nouveau_IBM.ttf is in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:</p>
+<p>For example, assuming the file <code>Nouveau_IBM.ttf</code> is in the DOSBox-X working directory or in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:</p>
 </div>
 <div class="paragraph">
 <p><code>
@@ -542,7 +542,7 @@ ttf.font=Nouveau_IBM
 </ul>
 </div>
 <div class="paragraph">
-<p>So for example if you use Windows 10, which includes font files such as Consola.ttf, Lucon.ttf, vgasys.fon, and msgothic.ttc in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:</p>
+<p>So for example if you use Windows 10, which includes font files such as <code>Consola.ttf</code>, <code>Lucon.ttf</code>, <code>vgasys.fon</code>, and <code>msgothic.ttc</code> in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -570,7 +570,7 @@ CONFIG -set ttf.font=</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The above commands will change the TTF font to Consola.ttf and the built-in TrueType font respectively.</p>
+<p>The above commands will change the TTF font to <code>Consola.ttf</code> and the built-in TrueType font respectively.</p>
 </div>
 <div class="paragraph">
 <p>If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a <code>CHCP</code> command to view or change the current DOS code page for TTF output. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font.</p>
@@ -659,7 +659,10 @@ ttf.fontboit=Consolaz</code></pre>
 <p>If you set <code>ttf.wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>ttf.char512=false</code> in the [render] section of the configuration.</p>
 </div>
 <div class="paragraph">
-<p>If you set <code>ttf.wp=WS</code> which sets WordStar as the word processor, then you probably want to <code>high intensity blinking=false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
+<p>If you set <code>ttf.wp=WS</code> which sets WordStar as the word processor, then you probably want to set <code>high intensity blinking</code> to <code>false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
+</div>
+<div class="paragraph">
+<p>There is additionally a <code>ttf.wpbg</code> option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option.</p>
 </div>
 </div>
 </div>
@@ -737,12 +740,15 @@ SETCOLOR 1 -
 <div class="paragraph">
 <p>Entering <code>SETCOLOR 1</code> will display the current color value of Color #1.</p>
 </div>
+<div class="paragraph">
+<p>If you want to actually change the default console foreground and background colors, please use the <code>COLOR</code> command, which works the same way as the same-named command in the Windows Command Prompt. For example, the command <code>COLOR 61</code> produces red on blue by default, unless you have customized the color schemes using the <code>SETCOLOR</code> command above. For bright background colors you will need to set the option <code>high intensity blinking</code> to <code>false</code> (mentioned in the previous section), or else blinking foreground texts will be displayed instead of bright background colors. In such case you can for example enter the command <code>COLOR fc</code> to produce light red on bright white, unless you have customized the color schemes. The <code>COLOR</code> command without an argument restores the original color.</p>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

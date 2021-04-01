@@ -452,7 +452,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="images/Windows:Windows_3.11_SPLASH.png" alt="Windows 1.01 splash screen">
+<img src="images/Windows:Windows_3.11_SPLASH.png" alt="Windows 3.11 splash screen">
 </div>
 </div>
 <div id="toc" class="toc">
@@ -484,10 +484,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_starting_windows_3_x_after_installation">Starting Windows 3.x after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after Installation</a></li>
 <li><a href="#_enabling_32_bit_file_and_disk_access">Enabling 32-bit File and Disk access</a></li>
-<li><a href="#_enabling_networking">Enabling networking</a></li>
+<li><a href="#_enabling_networking">Enabling networking</a>
+<ul class="sectlevel1">
+<li><a href="#_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</a>
+<ul class="sectlevel2">
+<li><a href="#_backendpcap">backend=pcap</a></li>
+<li><a href="#_backendslirp">backend=slirp</a></li>
+</ul>
+</li>
+<li><a href="#_setting_up_ne2000_networking_in_windows_for_workgroups">Setting up NE2000 networking in Windows for Workgroups</a></li>
+</ul>
+</li>
 <li><a href="#_enabling_sound">Enabling sound</a>
 <ul class="sectlevel1">
-<li><a href="#_enabling_external_midi">Enabling external MIDI</a></li>
+<li><a href="#_enabling_external_midi_in_windows_3_1x">Enabling external MIDI in Windows 3.1x</a></li>
+<li><a href="#_enabling_external_midi_in_windows_3_0a_with_mm_extensions">Enabling external MIDI in Windows 3.0a with MM Extensions</a></li>
 </ul>
 </li>
 <li><a href="#_enabling_printing">Enabling printing</a></li>
@@ -626,11 +637,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Windows for Workgroups 3.11a</strong></p>
 </li>
 <li>
-<p>WIndows 3.2</p>
+<p><strong>Windows 3.2</strong></p>
 <div class="ulist">
 <ul>
 <li>
-<p>Special Chinese edition</p>
+<p>Chinese language release of Windows 3.1</p>
 </li>
 </ul>
 </div>
@@ -865,9 +876,6 @@ aspect=false
 <p>Windows 3.0 supports up to 16MB RAM, but Windows 3.1 and 3.11 support up to 256MB, as such for these Windows versions <code>memsize=256</code> is the largest safe value.</p>
 </li>
 <li>
-<p>The [autoexec] section will need lines added later.</p>
-</li>
-<li>
 <p>If you want networking in <strong>Windows for Workgroups</strong>, you need to set <code>ne2000=true</code> and change the <code>realnic=</code> value to one suitable for your PC. See:
 <a href="Guide%3A-Setting-up-networking-in-DOSBox-X">Guide: Setting up networking</a> for more information.</p>
 </li>
@@ -875,7 +883,7 @@ aspect=false
 <p>There are Windows 3.0 and 3.1 drivers for the Tseng Lans ET3000 and ET4000 (<code>machine=svga_et3000</code> and <code>machine=svga_et4000</code> respectively), but for the default <code>machine=svga_s3</code> (S3 Trio64) there are apparently only Windows 3.1 drivers.</p>
 </li>
 <li>
-<p>The S3 video option will offer the broadest range of resolutions and colour depths, but do require you to install the correct drivers.</p>
+<p>The default S3 video option will offer the broadest range of resolutions and colour depths, but do require you to install the correct drivers.</p>
 </li>
 </ul>
 </div>
@@ -921,14 +929,17 @@ IMGMOUNT A -U</pre>
 <h2 id="_mounting_an_installation_cd_rom">Mounting an installation CD-ROM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you have a "Windows 3.0 Multimedia Edition" CD-ROM image, you can simply mount it in DOSBox-X.</p>
+<p>If you have a "Windows 3.0a Multimedia Edition" CD-ROM image, you can simply mount it in DOSBox-X, and run the SETUP program.</p>
 </div>
 <div class="paragraph">
 <p>e.g.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>IMGMOUNT D win30me.iso</pre>
+<pre>IMGMOUNT D win30me.iso
+D:
+CD MWIN
+SETUP.EXE</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1262,17 +1273,110 @@ Most 3rd party drivers only work in combination with specific hardware, but the 
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
 <div class="openblock partintro">
 <div class="content">
+To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is <code>backend=pcap</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_backendpcap">backend=pcap</h3>
+<div class="paragraph">
+<p>The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
+</div>
+<div class="paragraph">
+<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+</li>
+<li>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+</li>
+<li>
+<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the pcap back-end, add the following to your win3x.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_backendslirp">backend=slirp</h3>
+<div class="paragraph">
+<p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+</div>
+<div class="paragraph">
+<p>But obviously, it has its own limitations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For now it only works on Linux</p>
+</li>
+<li>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+</li>
+<li>
+<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the slirp back-end, add the following to your win3x.conf config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_ne2000_networking_in_windows_for_workgroups">Setting up NE2000 networking in Windows for Workgroups</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>This only applies to <strong>Windows for Workgroups</strong> (WfW). To enable networking functionality you will need to create a disk image with real DOS, and install WfW into that. You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default. For instance, if you install WfW inside DOSBox-X with networking support, your supposed to run <code>C:\WINDOWS\NET START</code> before starting Windows. This command will however return a <code>Error 73: (null)</code> if run from the DOSbox-X emulated DOS.</p>
 </div>
 <div class="paragraph">
-<p>Windows for Workgroups by default only supports SMB networking over NBF or IPX. There is no support by default for TCP/IP.</p>
+<p>Windows for Workgroups by default only supports SMB networking over NBF (NetBIOS Frames aka NetBEUI) or IPX.
+There is no support by default for TCP/IP.</p>
 </div>
 <div class="paragraph">
 <p>There were 3rd party WinSock solutions, but those were meant for dial-up internet access, and are not specific to WfW.</p>
 </div>
 <div class="paragraph">
-<p>You can however install <strong>Microsoft TCP/IP-32</strong> to add TCP/IP support to WfW.</p>
+<p>You can however install <strong>Microsoft TCP/IP-32</strong>, which was sold separately, to add TCP/IP support to WfW.</p>
 </div>
 </div>
 </div>
@@ -1292,7 +1396,7 @@ So unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ du
 </div>
 </div>
 <div class="sect1">
-<h2 id="_enabling_external_midi">Enabling external MIDI</h2>
+<h2 id="_enabling_external_midi_in_windows_3_1x">Enabling external MIDI in Windows 3.1x</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>By default the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
@@ -1300,22 +1404,53 @@ However DOSBox-X has built-in support for General MIDI emulation (which is enabl
 </div>
 <div class="paragraph">
 <p>To set it up, first ensure the SB16 drivers are installed.
-Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".
+Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".</p>
+</div>
+<div class="paragraph">
+<p>In Windows 3.1x go to "Control Panel", and open "MIDI Mapper.
+If there is no "MIDI Mapper" icon in "Control Panel", the Sound Blaster drivers were not installed.
 Select the "SB16 All MIDI" option from the drop-down menu, and press the "Close" button.</p>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.1_MIDI.png" alt="Windows 3.1x MIDI">
+</div>
+</div>
 <div class="paragraph">
-<p>The same can be accomplished with <strong>Windows 3.0a with Multimedia Extensions</strong>, but the "SB16 All MIDI" option will not be listed.
-Instead in the "MIDI Mapper" dialog box click on the "New&#8230;&#8203;" button.
+<p>You should now be able to open the Windows 3.1x Media Player and playback <code>C:\WINDOWS\CANYON.MID</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_external_midi_in_windows_3_0a_with_mm_extensions">Enabling external MIDI in Windows 3.0a with MM Extensions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The same can be accomplished with <strong>Windows 3.0a with Multimedia Extensions</strong>, but the "SB16 All MIDI" option will not be listed.</p>
+</div>
+<div class="paragraph">
+<p>Instead in the "MIDI Mapper" dialogue box click on the "New&#8230;&#8203;" button.
 You will be asked for a name and description.
-You can name it anything you like, for instance "SB16 External MIDI". You will then get a "MIDI Setup" window.
-The only thing you want to change here is the "Port Name". For each Source Channel ("Src Chan") line, change the "Port Name" to "SB MIDI Out". You may also notice that for each line the active checkbox gets checked, this is correct.
-Once finished click ok and confirm the save.</p>
+You can name it anything you like, for instance "SB16 Ext MIDI", and click the "OK" button.
+You do not have to enter anything for Description.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_MIDI_1.png" alt="Windows 3.0a MIDI">
+</div>
 </div>
 <div class="paragraph">
-<p>You should now be able to open the Windows 3.x Media Player and playback Canyon.mid.</p>
+<p>You will then get a "MIDI Setup" window.
+The only thing you want to change here is the "Port Name" to "SB MIDI Out" for all 16 lines.
+You may also notice that for each line the active checkbox gets checked, this is correct.
+Once finished click the "OK" button and confirm the save.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_MIDI_2.png" alt="Windows 3.0a MIDI" width="600">
+</div>
 </div>
 <div class="paragraph">
-<p>Note: For "Windows 3.0a with Multimedia Extensions" the media files are located by default in <code>C:\MWINDOWS\MMDATA</code>.</p>
+<p>You should now be able to open the Windows 3.0a Media Player and playback <code>C:\MWINDOWS\MMDATA\CANYON.MID</code>.</p>
 </div>
 </div>
 </div>
@@ -1394,7 +1529,7 @@ Office 4.3, Visual C++ and Visual Basic are examples of programs that should not
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>

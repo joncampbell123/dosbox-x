@@ -11,18 +11,18 @@ toc::[]
 # Overview
 This guide will give a general description of installing Windows 95 in DOSBox-X, in addition to addressing some common issues.
 
-## CD-ROM editions this applies to
+## Windows CD-ROM editions this guide applies to
 
-* Windows 95 (RTM; Original release)
-* Windows 95 OSR1 (aka 95A)
-* Windows 95 OSR2 (aka 95B)
-* Windows 95 OSR2.1 (aka 95B)
-* Windows 95 OSR2.5 (aka 95C)
+* Windows 95 (RTM; Original release) - Retail Full
+* Windows 95 (RTM; Original release) - OEM Full
+* Windows 95 OSR1 (aka 95A) - OEM Full
+* Windows 95 OSR2 (aka 95B) - OEM Full
+* Windows 95 OSR2.1 (aka 95B) - OEM Full
+* Windows 95 OSR2.5 (aka 95C) - OEM Full
 
-NOTE: This guide will not work with the Windows 95 diskette versions, as those use a special format (DMF) which is not supported by DOSBox-X.
+NOTE: This guide is not meant for the Windows 95 diskette edition, as that uses a special format (DMF) which is not supported by DOSBox-X.
 
-This guide also assumes a Full Retail or OEM version of Windows 95.
-Upgrade editions have additional requirements not covered by this guide.
+NOTE: Windows 95 **Upgrade** editions have additional requirements and are not covered by this guide.
 
 If you don't know which Windows 9x version to install, we recommend that you install **Windows 98SE**.
 If you want to stick with Windows 95, we recommend to use **Windows 95 OSR2** or later.
@@ -64,13 +64,6 @@ core=normal
 [sblaster]
 sbtype=sb16vibra
 
-[ne2000]
-# If you want networking in Windows, set ne2000=true.
-# This also requires that you set realnic= to a suitable value for your PC
-ne2000=false
-nicirq=10
-realnic=list
-
 [fdc, primary]
 int13fakev86io=true
 
@@ -91,14 +84,10 @@ scaler=none
 
 Copy the above config and save it as *win95.conf*
 
-*Notes*
+NOTE: If using Windows 95 OSR2 (or later) with FAT32 volumes, be sure to change the DOS version to 7.1 (``ver=7.1`` or from the DOSBox-X prompt: ``ver set 7.1``) or else you will get errors mounting the FAT32 volume.
 
-* If using Windows 95 OSR2 (or later) with FAT32 volumes, be sure to change the DOS version to 7.1 (``ver=7.1`` or from the DOSBox-X prompt: ``ver set 7.1``) or else you will get errors mounting the FAT32 volume.
-* You can increase the allocated RAM up to 480MB by setting ``memsize=480``. Larger values may be possible with tweaks, but are not covered here.
-* The ``[autoexec]`` section will need lines added later.
-* If you want networking in Windows, you need to set ``ne2000=true`` and change the ``realnic=`` value to one suitable for your PC. See:
- link:Guide%3A-Setting-up-networking-in-DOSBox-X[Guide: Setting up networking] for more information.
-** By default if Windows 95 detects a network adapter during installation, it will only setup Novell's IPX/SPX protocol with Windows Login, which is pretty useless nowadays. You will probably want to change this afterwards in the Network settings to TCP/IP, by adding the TCP/IP protocol.
+NOTE: You can increase the allocated RAM up to Windows 95 maximum of 480MB by setting ``memsize=480``.
+Larger values may be possible with tweaks, but are not covered here.
 
 # General installation Notes
 
@@ -201,9 +190,12 @@ XCOPY D:\WIN95 C:\WIN95 /I /E
 ....
 
 The files in the above example are copied to the C:\WIN95 directory.
-You may want to use "C:\WINDOWS\OPTIONS\CABS" instead, as that is the directory that OEM installs normally use.
-But if you do, be aware that the installer will attempt to install into C:\WINDOWS.000 as C:\WINDOWS already exists.
-You will want to change this back to "C:\WINDOWS".
+
+NOTE: You may want to use "C:\WINDOWS\OPTIONS\CABS" instead, as that is the directory that OEM installs normally use.
+But if you do, be aware that the installer will complain that C:\WINDOWS already exists.
+When you get the warning below, select "Other directory" and click "Next >" to continue. On the screen afterwards, change the directory to "C:\WINDOWS" and continue the installation.
+
+image::images/Windows:Windows_95_SETUP_01.png[Windows 95 SETUP.EXE Select Directory]
 
 ## Running SETUP.EXE
 You can now run SETUP.EXE.
@@ -246,7 +238,7 @@ Once Windows 95 is installed, here is some additional software you may want to i
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
 * Install/Update to DirectX 8.0a (this will also update your video and audio drivers)
 * Install/Update to Windows Media Player 6.4
-* Install/Update to Adobe Flash Player 7.0.73
+* Install/Update to Adobe Flash Player 8.0.24.0
 * Install Apple Quicktime 5.0.5
 * Install the link:https://www.philscomputerlab.com/drivers-for-voodoo.html[3dfx Voodoo 3.01.00 reference drivers]
 
@@ -267,22 +259,142 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso
 You can then swap between disk images with the swap option from the menu.
 
 # Enabling networking
-If you enabled NE2000 support in the DOSBox-X config file, and Windows 95 did not detect the adapter, go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
-It should find the emulated Novell NE2000 adapter, and install the drivers.
-You will probably also want to enable the TCP/IP protocol, as by default only support for Novel IPX/SPX will be enabled.
+To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
 
-In Windows 95, go to "Start", "Settings" and "Control Panel" and double-click on "Network".
-On the Configuration tab, you should see a "NE2000 Compatible" network adapter listed.
+## Enabling NE2000 in your DOSBox-X config file
 
-If this is not the case, close the Network settings, and in "Control Panel", double-click "Add New Hardware", and let the wizard detect hardware.
-It should find the NE2000 adapter and install the drivers.
-Once it is finished, open the "Network" settings again.
+Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is ``backend=pcap``.
 
-In the Network settings, you can optionally remove the "IPX/SPX-compatible Protocol" that was automatically installed, as your unlikely to need it nowadays.
-Now click the Add button, and select "Protocol" and click "Add...".
-In the "Select Network Protocol" window, select "Microsoft" as the Manufacturer and "TCP/IP" as the protocol, and click OK.
+### backend=pcap
+The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
 
-By default, it will try to get it's network configuration over DHCP, which should work in most cases. If you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.
+However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:
+
+- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
+- Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
+- Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
+
+To enable NE2000 emulation with the pcap back-end, add the following to your win95.conf config file:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list
+....
+
+The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X] for more information.
+
+### backend=slirp
+Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.
+
+But obviously, it has its own limitations.
+
+- For now it only works on Linux
+- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
+- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+
+To enable NE2000 emulation with the slirp back-end, add the following to your win95.conf config file:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp
+....
+
+## Setting up NE2000 networking in Windows 95
+
+### Detection during installation
+Windows 95 setup wizard will ask if you want to detect additional hardware during installation.
+The exact options presented may vary depending on the Windows 95 edition.
+You can tick the "Network adapter" checkbox, and it should continue and find the emulated NE2000 adapter.
+
+image::images/Windows:Windows_95_SETUP_NE2000.png[Windows 95 SETUP.EXE Network Adapter]
+
+It will however, not give you the possibility to set the resources at this point, and you will need to do so in device manager afterwards.
+
+image::images/Windows:Windows_95_SETUP_NE2000_2.png[Windows 95 SETUP.EXE Network Adapter Resources]
+
+Once the Windows 95 installation is finished, right click on "My Computer" on the desktop and select "Properties".
+Now in the "System Properties" dialogue, select the "Device Manager" tab.
+
+image::images/Windows:Windows_95_Device_Manager_NE2000.png[Windows 95 Device Manager - Select NE2000]
+
+Highlight the "NE2000 Compatible" entry, and click on the "Properties" tab and then click the "Set Configuration Manually" button.
+
+image::images/Windows:Windows_95_Device_Manager_NE2000_03.png[Windows 95 Device Manager - NE2000 Resources]
+
+Now you need to highlight the "Interrupt Request" entry, and click the "Change Setting..." button. You can now change the IRQ to 10 to match the ``nicirq=`` value in your DOSBox-X config file.
+
+Next, highlight the "Input/Output Range" entry, and again click the "Change Setting..." button. Now change the value to "0300 - 031F".
+
+Once your finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.
+
+NOTE: By default Windows 95 only enables Novell's IPX/SPX protocol.
+Most Windows 95 applications expect TCP/IP which you will need to manually enable in the Network settings.
+
+### Detection after installation
+
+If you enabled NE2000 support in your DOSBox-X config file after Windows 95 installation, go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware".
+
+image::images/Windows:Windows_95_NE2000_04.png[Windows 95 - Add New Hardware Wizard]
+
+In the "Add New Hardware Wizard" dialogue, click the "Next >" button to continue.
+
+image::images/Windows:Windows_95_NE2000_05.png[Windows 95 - Add New Hardware Wizard]
+
+Now select "Yes (Recommended)" and click the "Next >" button to continue.
+It will ask for another confirmation.
+Again, simply click the "Next >" button.
+
+If it detected new hardware, you should get this dialogue.
+You can click the "Details..." button to see what it found, after which you can click on "Finish"
+
+image::images/Windows:Windows_95_NE2000_06.png[Windows 95 - Add New Hardware Wizard]
+
+It will now want you to provide some details, click on "OK".
+
+image::images/Windows:Windows_95_NE2000_07.png[Windows 95 - Add New Hardware Wizard]
+
+You must at a minimum enter a value in the "Workgroup" field.
+If you don't know what to type, just type "WORKGROUP".
+
+You may also want to provide a more descriptive "Computer Name".
+
+Don't close the dialogue just yet though, click on "Configuration" tab instead.
+
+image::images/Windows:Windows_95_NE2000_08.png[Windows 95 - Network settings]
+
+Highlight the "NE2000 Compatible" entry, and click the "Properties" button.
+
+image::images/Windows:Windows_95_NE2000_09.png[Windows 95 - Network settings]
+
+On the "NE2000 Compatible Properties" dialogue, select the "Resources" tab, and adjust the IRQ to 10 to match the ``nicirq=`` value in your DOSBox-X config file.
+Then click "OK" to finish.
+
+image::images/Windows:Windows_95_NE2000_10.png[Windows 95 - Network settings]
+
+Lastly, while your in the Network settings dialogue, you may also want to add the TCP/IP protocol, which is not enabled by default on Windows 95.
+
+On the Configuration tab, click on "Add", then select "Protocol" and click again "Add..."
+
+You will now be presented with the "Select Network Protocol" dialogue.
+Select manufacturer: "Microsoft", and for Network Protocols: "TCP/IP", and click the "OK" button.
+
+NOTE: In the Network settings, you can optionally remove the "IPX/SPX-compatible Protocol" that was automatically installed, as few Windows programs need it.
+
+NOTE: By default, TCP/IP will try to get it's network configuration over DHCP, which should work in most cases.
+If you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.
 
 Once your finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
 Confirm, and Windows 95 will reboot.
@@ -333,9 +445,11 @@ An optional driver link:http://vogonsdrivers.com/getfile.php?fileid=50&menustate
 
 ## Enabling General MIDI
 If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows 95.
-Open the "Control Panel", and then double-click on "Multimedia Properties".
+Open the "Control Panel", and then double-click on "Multimedia".
 
-Now on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.
+Now in "Multimedia Properties" on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.
+
+image::images/Windows:Windows_95_MIDI.png[Windows 95 MIDI setup]
 
 For more information about setting up MIDI support, see link:Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X[Guide: Setting up MIDI in DOSBox-X]
 

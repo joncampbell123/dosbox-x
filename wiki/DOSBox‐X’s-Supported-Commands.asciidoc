@@ -363,9 +363,9 @@ Note: It uses the MEM command from FreeDOS.
 +
 Displays or changes the current sound mixer volumes.
 +
-Usage: MIXER [options]
+Usage: MIXER [/GUI|/NOSHOW] [/LISTMIDI [handler]] [MASTER volume] [RECORD volume]
 +
-Note: Simply enter MIXER without any parameters to display the current sound mixer volumes. You can also see the sound mixer volumes from the menu (under "Sound").
+Note: Simply enter MIXER without any parameters to display the current sound mixer volumes. Use the /GUI option for a popup that displays the sound mixer volumes.
 * **MODE** (external command)
 +
 Configures DOS system devices.

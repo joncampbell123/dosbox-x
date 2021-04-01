@@ -11,15 +11,16 @@ toc::[]
 # Overview
 This guide will give a general description of installing Windows 98 in DOSBox-X, in addition to addressing some common issues.
 
-## CD-ROM editions this applies to
+## Windows editions this guide applies to
 
-* Windows 98 (RTM; Original release)
-* Windows 98 Second Edition (98SE)
+* Windows 98 (RTM; Original release) - Retail Full
+* Windows 98 (RTM; Original release) - OEM Full
+* Windows 98 Second Edition (98SE) - Retail Full
+* Windows 98 Second Edition (98SE) - OEM Full
 
-This guide assumes a Full Retail or OEM version of Windows 98.
-Upgrade editions have additional requirements not covered by this guide.
+NOTE: Windows 98 or 98SE **Upgrade** editions have additional requirements and are not covered by this guide.
 
-If you don't know which Windows 98 version to install, we recommend that you install **Windows 98SE**.
+If you don't know which Windows 98 edition to install, we recommend that you install **Windows 98SE**.
 
 ## External links
 * link:http://vogonsdrivers.com/[VOGONS Vintage Driver Library]
@@ -35,7 +36,7 @@ autolock=true
 
 [dosbox]
 title=Windows 98
-memsize=64
+memsize=128
 
 [video]
 vmemsize=8
@@ -51,13 +52,6 @@ core=normal
 
 [sblaster]
 sbtype=sb16vibra
-
-[ne2000]
-# If you want networking in Windows, set ne2000=true.
-# This also requires that you set realnic= to a suitable value for your PC
-ne2000=false
-nicirq=10
-realnic=list
 
 [fdc, primary]
 int13fakev86io=true
@@ -79,12 +73,8 @@ scaler=none
 
 Copy the above config and save it as *win98.conf*
 
-*Notes*
-
-* You can increase the allocated RAM up to 512MB by setting ``memsize=512``. Larger values may be possible with tweaks, but are not covered here.
-* The ``[autoexec]`` section will need lines added later.
-* If you want networking in Windows, you need to set ``ne2000=true`` and change the ``realnic=`` value to one suitable for your PC. See:
- link:Guide%3A-Setting-up-networking-in-DOSBox-X[Guide: Setting up networking] for more information.
+NOTE: You can increase the allocated RAM up to the Windows 98 maximum of 512MB by setting ``memsize=512``.
+Larger values may be possible with tweaks, but are not covered here.
 
 # General installation Notes
 
@@ -286,8 +276,8 @@ Once Windows 98 is installed, here is some additional software you may want to i
 * Install Windows Installer 2.0
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
 * Install GDI+ redistributable
-* Install/Update to Adobe Flash Player 7.0.73
-* Install Apple Quicktime 5.0.5
+* Install/Update to Adobe Flash Player 9.0.47.0
+* Install Apple Quicktime 6.5.2
 
 This may also be of interest: link:https://msfn.org/board/topic/105936-last-versions-of-software-for-windows-98se/[Forum thread about: Last versions of software for Windows 98SE]
 
@@ -306,24 +296,78 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso
 You can then swap between disk images with the swap option from the menu.
 
 # Enabling networking
+To enable networking you first need to enable NE2000 adapter emulation in your win98.conf config file and select an appropriate back-end for the NE2000 emulation.
+
+## Enabling NE2000 in your DOSBox-X config file
+
+Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is ``backend=pcap``.
+
+### backend=pcap
+The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
+
+However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:
+
+- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
+- Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
+- Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
+
+To enable NE2000 emulation with the pcap back-end, add the following to your win98.conf config file:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list
+....
+
+The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X] for more information.
+
+### backend=slirp
+Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.
+
+But obviously, it has its own limitations.
+
+- For now it only works on Linux
+- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
+- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+
+To enable NE2000 emulation with the slirp back-end, add the following to your win98.conf config file:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp
+....
+
+## Setting up NE2000 networking in Windows 98
 If you enabled NE2000 support in the DOSBox-X config file, Windows 98 should detect it during installation and you should get a screen like the following.
 
 image::images/Windows:Windows_98_SETUP_03.png[Windows 98 SETUP.EXE NE2000 Properties]
 
-Change the Interrupt (IRQ) to 10 to match the value set in your ``win98.conf`` file.
+Change the Interrupt (IRQ) to 10 to match the ``nicirq=`` value set in your ``win98.conf`` file.
 
 If Windows 98 did not detect the adapter during installation, or you enabled NE2000 emulation after you did the installation.
 Go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware", and let the wizard detect hardware.
 It should find the emulated Novell NE2000 adapter, and install the drivers.
 
-By default TCP/IP will try to get it's network configuration over DHCP, if you need to manually specify the settings, in "Control Panel", double-click "Network".
+NOTE: By default TCP/IP will try to get it's network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
 Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
 
-In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
+NOTE: In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
 
-Additionally, if you don't want the Windows logon dialog on startup, and don't care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
+NOTE: If you don't want the Windows logon dialog on startup, and don't care for file and printer sharing, you can remove the "Client for Microsoft Networks" component from the Network configuration settings (although it will complain that "Your network is not complete", which you can ignore).
 
-If you want to share files between Windows 98 and Windows 10 on the network, have a look at this blog: link:http://kishy.ca/?p=1511[SMB File Sharing between Win10 and Win98], but apparently this fails with Win10 build 2004 and 20H2.
+NOTE: If you want to share files between Windows 98 and Windows 10 on the network, have a look at this blog: link:http://kishy.ca/?p=1511[SMB File Sharing between Win10 and Win98], but apparently this fails with the latest Win10 builds 2004 and 20H2.
 
 If networking does not work, see link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X]
 

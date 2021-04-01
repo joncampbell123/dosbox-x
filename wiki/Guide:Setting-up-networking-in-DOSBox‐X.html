@@ -457,22 +457,26 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
 <li><a href="#_ne2000_resource_usage">NE2000 resource usage</a></li>
-<li><a href="#_realnic_usage">realnic usage</a></li>
-<li><a href="#_host_network_adapters">Host network adapters</a></li>
+<li><a href="#_selecting_a_back_end_for_ne2000">Selecting a back-end for NE2000</a>
+<ul class="sectlevel2">
+<li><a href="#_backendpcap">backend=pcap</a></li>
+<li><a href="#_backendslirp">backend=slirp</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_setup_guide_for_linux_hosts">Setup guide for Linux hosts</a>
 <ul class="sectlevel2">
-<li><a href="#_install_libpcap">Install libpcap</a></li>
+<li><a href="#_install_libpcap_andor_libslirp">Install libpcap and/or libslirp</a></li>
 <li><a href="#_check_if_your_dosbox_x_binary_supports_networking">Check if your DOSBox-X binary supports networking</a></li>
-<li><a href="#_setup_permissions">Setup permissions</a></li>
-<li><a href="#_locate_host_network_interface">Locate host network interface</a></li>
+<li><a href="#_setup_permissions_for_pcap">Setup permissions for PCAP</a></li>
+<li><a href="#_locate_host_network_interface_for_pcap">Locate host network interface for PCAP</a></li>
 </ul>
 </li>
 <li><a href="#_setup_guide_for_windows_hosts">Setup guide for Windows hosts</a>
 <ul class="sectlevel1">
 <li><a href="#_install_pcap">Install PCAP</a></li>
-<li><a href="#_locate_host_network_interface_2">Locate host network interface</a></li>
+<li><a href="#_locate_host_network_interface">Locate host network interface</a></li>
 </ul>
 </li>
 <li><a href="#_mtcp_example">mTCP example</a>
@@ -501,26 +505,42 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1 id="_overview" class="sect0">Overview</h1>
 <div class="openblock partintro">
 <div class="content">
-DOSBox-X has support for emulating the Novell NE2000 network adapter, but setting it up can be a bit convoluted. This guide hopes to simplify the process.
+DOSBox-X has support for emulating the Novell NE2000 network adapter, but setting it up can be a bit convoluted.
+This guide hopes to simplify the process.
 </div>
 </div>
 <div class="sect1">
 <h2 id="_ne2000_resource_usage">NE2000 resource usage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default the emulated NE2000 will use IRQ3 and IO range 300-31F. This is typical of a real NE2000 adapter, and some NE2000 drivers will look there by default. DOSBox-X does not support PnP for the NE2000, meaning that Windows 95, 98 and ME may not autodetect it, and even if they do, they may assume the wrong resources.</p>
+<p>By default the emulated NE2000 will use IRQ 3 and IO range 300-31F.
+This is typical of a real NE2000 adapter, and some NE2000 drivers will look there by default.
+DOSBox-X does not support PnP for the NE2000, meaning that Windows 95, 98 and ME may not autodetect it, and even if they do, they may assume the wrong resources.</p>
 </div>
 <div class="paragraph">
-<p>The problem lies in the fact that, IRQ3 is also used for COM2, and therefore they conflict. Most software will work regardless of the conflict, as long as your not actually using COM2. But some software, notably Windows 95, 98 and ME may complain about a resource conflict.</p>
+<p>The problem lies in the fact that, IRQ 3 is also used for COM2, and therefore they conflict.
+Most software will work regardless of the conflict, as long as your not actually using COM2.
+But some software, notably Windows 95, 98 and ME may complain about a resource conflict.</p>
 </div>
 <div class="paragraph">
-<p>As such it is recommended to either move the emulated NE2000 to a different IRQ, or to disable COM2. In the below examples the emulated NE2000 is set to IRQ10 using the <code>nicirq=</code> setting, to resolve the conflict. But you need to ensure that any NE2000 device drivers that are loaded, are also set to the same resources.</p>
+<p>As such it is recommended to either move the emulated NE2000 to a different IRQ, or to disable COM2.
+In the below examples the emulated NE2000 is set to IRQ10 using the <code>nicirq=</code> setting, to resolve the conflict.
+But you need to ensure that any NE2000 device drivers that are loaded, are also set to look for it at the same resources.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Setting the NE2000 to IRQ 10 is not possible if your emulating a 8086 (machine=8086), as they only have IRQ 0-7 available. In that case it is probably better to disable COM2.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Note: Setting the NE2000 to IRQ10 is not possible if your emulating a 8086 (machine=8086), as they only have IRQ0-7 available. In that case it is probably better to disable COM2.</p>
-</div>
-<div class="paragraph">
-<p>If you want to instead disable COM2, add the following to you DOSBox-X config file.</p>
+<p>If you want to instead disable COM2, and leave the emulated NE2000 at its default resources, add the following to you DOSBox-X config file.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -528,11 +548,78 @@ DOSBox-X has support for emulating the Novell NE2000 network adapter, but settin
 serial2=disabled</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_realnic_usage">realnic usage</h2>
+<h2 id="_selecting_a_back_end_for_ne2000">Selecting a back-end for NE2000</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+The default is <code>backend=pcap</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_backendpcap">backend=pcap</h3>
+<div class="paragraph">
+<p>The PCAP back-end uses something called "Promiscuous mode".
+This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
+This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
+</div>
+<div class="paragraph">
+<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
+In some cases this is not possible, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+</li>
+<li>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+</li>
+<li>
+<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the pcap back-end, add the following to your DOSBox-X config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=pcap
+
+[ethernet, pcap]
+realnic=list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+See below for more information.</p>
+</div>
+<div class="sect3">
+<h4 id="_ethernet_pcap">[ethernet, pcap]</h4>
+<div class="paragraph">
+<p>Create this section in your DOSBox-X config file if you want to use PCAP.
+The only value that you normally need to set here is <code>realnic=</code>.</p>
+</div>
+<div class="sect4">
+<h5 id="_realnic">realnic</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: list</p>
+</li>
+<li>
+<p>Valid values: list, number or (partial) name of interface</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
 <p>In the below examples you will see the usage or <code>realnic=</code>. Once you have located the host network adapter to use, using <code>realnic=list</code>, you need to set it to that adapter.
 This can be done in one of two ways.
@@ -554,22 +641,122 @@ You can either specify the number of the adapter, or a part of the name of the a
 <p>It is recommended to use a name, as the order of the numbers can change due to various events on the host (e.g. adding or removing devices, or even launching other virtual machines)</p>
 </div>
 </div>
+<div class="sect4">
+<h5 id="_timeout">timeout</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: default</p>
+</li>
+<li>
+<p>Valid values:</p>
+</li>
+</ul>
 </div>
-<div class="sect1">
-<h2 id="_host_network_adapters">Host network adapters</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>By default DOSBox-X networking attempts to bridge to your chosen host network adapter. This may not work, depending on the network adapter chosen as it relies on the adapter and its driver supporting true promiscuous mode. In particular WIFI adapters are known to not work.
-Unfortunately there is no clear error message if you run into this problem, and typically all you will experience is that your not able to get a DHCP address.</p>
+<p>Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.</p>
 </div>
 <div class="paragraph">
-<p>A possible solution to this would be something similar to libvirt on Linux. This allows the creation of a virtual network switch which is then connected to a host network adapter (which could be a WIFI adapter) using NAT (Network Address Translation). And DOSBox-X could then attach to this virtual switch, which would allow at least outbound traffic. Inbound traffic could also be allowed using port-forwarding.</p>
+<p>The default for Windows hosts is -1 which to WinPCap appears to mean "non-blocking mode".
+For other platforms the default is 3000ms</p>
 </div>
 </div>
 </div>
-<h1 id="_setup_guide_for_linux_hosts" class="sect0">Setup guide for Linux hosts</h1>
-<div class="openblock partintro">
+</div>
+<div class="sect2">
+<h3 id="_backendslirp">backend=slirp</h3>
+<div class="paragraph">
+<p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
+As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+</div>
+<div class="paragraph">
+<p>But obviously, it has its own limitations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For now it only works on Linux</p>
+</li>
+<li>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+</li>
+<li>
+<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable NE2000 emulation with the slirp back-end, add the following to your DOSBox-X config file:</p>
+</div>
+<div class="literalblock">
 <div class="content">
+<pre>[ne2000]
+ne2000=true
+nicirq=10
+backend=slirp</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can optionally specify additional SLIRP options</p>
+</div>
+<div class="sect3">
+<h4 id="_ethernet_slirp">[ethernet, slirp]</h4>
+<div class="paragraph">
+<p>Create this optional section in your DOSBox-X config file.
+Generally these settings do not need to be modified from their default values.
+Just if you happen to be using the 10.0.2.0/24 network locally, will you need to modify the various IP settings.</p>
+</div>
+<div class="sect4">
+<h5 id="_restricted">restricted</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Disables access to the host from the guest.
+This effectively creates an isolated virtual network</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_disable_host_loopback">disable_host_loopback</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Disables guest access to the hosts&#8217;s loopback interfaces.
+This effectively prevents the guest from accessing the hosts 127.0.0.0/8 loopback network. E.g. 127.0.0.1</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_mtu">mtu</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 0</p>
+</li>
+<li>
+<p>Valid values: 576-?</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The maximum transmission unit for Ethernet packets transmitted from the guest.
+Specifying 0 will use libslirp&#8217;s default MTU size of 1500 bytes.
+MTU and MRU sizes should normally be identical.</p>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -577,41 +764,144 @@ Unfortunately there is no clear error message if you run into this problem, and 
 <div class="title">Note</div>
 </td>
 <td class="content">
-There is <strong>NO</strong> support for NE2000 networking in the Flatpak and Snap distributed versions of DOSBox-X.
-This is because both Flatpak and Snap run in a sandbox environment which do not support the low-level access required by the libpcap library needed for NE2000 support.
+If you want to use a larger MTU than default, your hosts network adapter and your network switch needs to support it, otherwise the packets will get truncated.
 </td>
 </tr>
 </table>
 </div>
 </div>
+<div class="sect4">
+<h5 id="_mru">mru</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 0</p>
+</li>
+<li>
+<p>Valid values: 576-?
+The maximum recieve unit for Ethernet packets transmitted to the guest.
+Specifying 0 will use libslirp&#8217;s default MRU size of 1500 bytes.
+MRU and MTU sizes should normally be identical.</p>
+</li>
+</ul>
 </div>
-<div class="sect2">
-<h3 id="_install_libpcap">Install libpcap</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you want to use a larger MRU than default, your hosts network adapter and your network switch needs to support it, otherwise the packets will get truncated.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ipv4_network">ipv4_network</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 10.0.2.0</p>
+</li>
+<li>
+<p>Valid values: Any valid IPv4 network address</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
-<p>This depends on your Linux distribution, but you need to have libpcap installed.</p>
+<p>The IPv4 network the guest and host services are on.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ipv4_netmask">ipv4_netmask</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 255.255.255.0</p>
+</li>
+<li>
+<p>Valid values: Any valid IPv4 netmask for the provided network address</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The netmask for the IPv4 network.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ipv4_host">ipv4_host</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 10.0.2.2</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The address of the host system on the IPv4 network, which will act as the gateway.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ipv4_nameserver">ipv4_nameserver</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 10.0.2.3</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The address of the nameserver service provided by the host on the IPv4 network.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ipv4_dhcp_start">ipv4_dhcp_start</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 10.0.2.15</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The start address used for DHCP by the host services on the IPv4 network.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_setup_guide_for_linux_hosts" class="sect0">Setup guide for Linux hosts</h1>
+<div class="sect2">
+<h3 id="_install_libpcap_andor_libslirp">Install libpcap and/or libslirp</h3>
+<div class="paragraph">
+<p>This depends on your Linux distribution, but you need to have the libpcap library installed for the pcap back-end.
+Or the libslirp library for the slirp back-end.</p>
 </div>
 <div class="sect3">
 <h4 id="_debian_based_e_g_ubuntu">Debian based (e.g. Ubuntu)</h4>
 <div class="paragraph">
-<p>If your running a recent Debian or Debian based distribution such as Ubuntu, you can install libpcap from the command-line as follows:</p>
+<p>If your running a recent Debian or Debian based distribution such as Ubuntu, you can install the libraries from the command-line as follows:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>apt-get install libpcap</pre>
+<pre>apt-get install libpcap libslirp</pre>
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_red_hat_suse_or_fedora">Red Hat, SUSE or Fedora</h4>
 <div class="paragraph">
-<p>If you used the provided RPM, libpcap is a dependency and will be automatically installed when using a package manager to install DOSBox-X.</p>
+<p>If you used the provided RPM, libpcap and libslirp are dependencies and will be automatically installed when using a package manager to install DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Otherwise if your running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install libpcap from the command-line as follows:</p>
+<p>Otherwise if your running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install the libraries from the command-line as follows:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>dnf install libpcap</pre>
+<pre>dnf install libpcap libslirp</pre>
 </div>
 </div>
 </div>
@@ -619,27 +909,29 @@ This is because both Flatpak and Snap run in a sandbox environment which do not 
 <div class="sect2">
 <h3 id="_check_if_your_dosbox_x_binary_supports_networking">Check if your DOSBox-X binary supports networking</h3>
 <div class="paragraph">
-<p>The provided RPMs have networking enabled, but if you compiled it yourself and the libpcap headers where not installed, the resulting DOSBox-X binary will lack libpcap support.
+<p>The provided RPMs have networking enabled, but if you compiled DOSBox-X yourself and the libpcap or libslirp headers where not installed, the resulting DOSBox-X binary will lack libpcap and/or libslirp support.
 To check if your binary has networking support, run the following command:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>ldd /usr/bin/dosbox-x | grep pcap
-      libpcap.so.1 =&gt; /lib64/libpcap.so.1 (0x00007f1e15c80000)</pre>
+<pre>ldd /usr/bin/dosbox-x |grep "pcap\|slirp"
+	libpcap.so.1 =&gt; /lib64/libpcap.so.1 (0x00007f7877a7a000)
+	libslirp.so.0 =&gt; /lib64/libslirp.so.0 (0x00007f7877a5c000)</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In the above example, the DOSBox-X binary has libpcap support, meaning it has networking. If the command returns nothing you do not have networking.
-If you binary has no networking, your options are to use the pre-compiled RPM package, or compile it yourself with libpcap support enabled.</p>
+<p>In the above example, the DOSBox-X binary has both libpcap and libslirp support, meaning it has networking. If the command returns nothing you do not have networking.
+If you binary has no networking, your options are to use the pre-compiled RPM package, or compile it yourself with libpcap or libslirp support enabled.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_setup_permissions">Setup permissions</h3>
+<h3 id="_setup_permissions_for_pcap">Setup permissions for PCAP</h3>
 <div class="paragraph">
-<p>The provided RPM packages automatically setup the necessary permission.</p>
+<p>The provided RPM packages automatically setup the necessary permission for libpcap to function.</p>
 </div>
 <div class="paragraph">
-<p>Otherwise, you need to ensure that the DOSBox-X binary has permission to listen to and generate low level network traffic. You can do this as follows:</p>
+<p>Otherwise, you need to ensure that the DOSBox-X binary has permission to listen to and generate low level network traffic (promiscuous mode).
+You can do this as follows:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -651,7 +943,7 @@ $</pre>
 </div>
 <div class="paragraph">
 <p>The first command returns the location of the dosbox-x binary (assuming it is in your path), the second command checks its capabilities.
-In this case getcap does not return anything, meaning it has no special capabilities, which you need to rectify if you want to be able to have networking in DOSBox-X.
+In this case getcap does not return anything, meaning it has no special capabilities, which you need to rectify if you want to be able to have PCAP networking in DOSBox-X.
 Run the following command:</p>
 </div>
 <div class="literalblock">
@@ -660,7 +952,7 @@ Run the following command:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This command will allow the dosbox-x binary to access the network interface in raw mode, meaning it can see all the traffic on all the network interfaces.</p>
+<p>This command will allow the dosbox-x binary to access the network interface in raw mode (pcap), meaning it can see all the traffic on all the network interfaces.</p>
 </div>
 <div class="paragraph">
 <p>To validate that now the DOSBox-X binary indeed has the cap_net_raw capability, run:</p>
@@ -672,16 +964,17 @@ Run the following command:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Warning: If your not using the RPM packages, each time you upgrade DOSBox-X, you will again need to give it the cap_net_raw capability.</p>
+<p>Warning: If you manually install the dosbox-x binary, you will have to take this step each time you do an upgrade.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_locate_host_network_interface">Locate host network interface</h3>
+<h3 id="_locate_host_network_interface_for_pcap">Locate host network interface for PCAP</h3>
 <div class="paragraph">
-<p>You now need to find which host network interface you want to use for bridging.</p>
+<p>You now need to find which host network interface you want to use for bridging with PCAP.</p>
 </div>
 <div class="paragraph">
-<p>For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging. It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work.</p>
+<p>For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging.
+It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work with PCAP.</p>
 </div>
 <div class="paragraph">
 <p>Create a simple ne2000.conf config file as follows:</p>
@@ -691,6 +984,9 @@ Run the following command:</p>
 <pre>[ne2000]
 ne2000=true
 nicirq=10
+backend=pcap
+
+[ethernet, pcap]
 realnic=list</pre>
 </div>
 </div>
@@ -731,6 +1027,9 @@ In the above example, 1, or eno1 is the integrated Ethernet of my PC, which we w
 <pre>[ne2000]
 ne2000=true
 nicirq=10
+backend=pcap
+
+[ethernet, pcap]
 realnic=eno1</pre>
 </div>
 </div>
@@ -746,10 +1045,22 @@ realnic=eno1</pre>
 <p>First you need to install PCAP support. As WinPcap is no longer maintained, Npcap seems the best candidate these days:
 <a href="https://nmap.org/npcap/" class="bare">https://nmap.org/npcap/</a></p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+At this point SLIRP support is limited to Linux, however this may change in the future.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_locate_host_network_interface_2">Locate host network interface</h2>
+<h2 id="_locate_host_network_interface">Locate host network interface</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You now need to find which host network interface you want to use for bridging.</p>
@@ -765,6 +1076,8 @@ realnic=eno1</pre>
 <pre>[ne2000]
 ne2000=true
 nicirq=10
+
+[ethernet, pcap]
 realnic=list</pre>
 </div>
 </div>
@@ -809,7 +1122,8 @@ LOG: 11. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
 </div>
 </div>
 <div class="paragraph">
-<p>That is an example of the network interfaces that were detected for my Windows 10 PC (with the UUIDs masked). Now look at your own list, and locate an appropriate adapter to use.
+<p>That is an example of the network interfaces that were detected for my Windows 10 PC (with the UUIDs masked).
+Now look at your own list, and locate an appropriate adapter to use.
 In the above example, 9 is the USB Ethernet adapter I want to use. It may take you a few tries to find the correct adapter.</p>
 </div>
 <div class="paragraph">
@@ -820,6 +1134,9 @@ In the above example, 9 is the USB Ethernet adapter I want to use. It may take y
 <pre>[ne2000]
 ne2000=true
 nicirq=10
+backend=pcap
+
+[ethernet, pcap]
 realnic="Realtek USB NIC"</pre>
 </div>
 </div>
@@ -909,10 +1226,10 @@ My Ethernet address is FF:FF:FF:FF:FF:FF</pre>
 <p>Your DOSBox-X binary lacks networking support</p>
 </li>
 <li>
-<p>(Linux) Your DOSBox-X binary does not have the right permissions to access networking</p>
+<p>(Linux) Your DOSBox-X binary does not have the right PCAP permissions to access networking</p>
 </li>
 <li>
-<p>You do not have PCAP installed (libpcap on Linux, Npcap on Windows)</p>
+<p>You do not have PCAP installed (libpcap on Linux, Npcap on Windows), or SLIRP</p>
 </li>
 <li>
 <p>When loading the NE2000 driver you gave the wrong IRQ or IO port.</p>
@@ -958,7 +1275,7 @@ Check your cabling and packet driver settings, including the hardware IRQ.</pre>
 <p>Check if you got a valid MAC address when loading the NE2000 packet driver.</p>
 </li>
 <li>
-<p>Try to set REALNIC= in your ne2000.conf config file to a different network interface. In particular WIFI interfaces are unlikely to work, so try wired Ethernet instead. The order in which the interfaces are listed can also change due to plugging or unplugging devices, or launching certain type of programs like Virtual Machines.</p>
+<p>When using PCAP, try to set REALNIC= in your ne2000.conf config file to a different network interface. In particular WIFI interfaces are unlikely to work, so try wired Ethernet instead. The order in which the interfaces are listed can also change due to plugging or unplugging devices, or launching certain type of programs like Virtual Machines.</p>
 </li>
 <li>
 <p>Perhaps you don&#8217;t have a DHCP server on your network, or it is configured to only listen to known MAC addresses. Try to set manual IP settings, suitable for your network, at the bottom of SAMPLES/SAMPLE.CFG and try if you can ping.</p>
@@ -989,9 +1306,11 @@ The AC:DE:48 range is a reserved range for private use, so just modify the last 
 <div class="content">
 <pre>[ne2000]
 ne2000=true
-realnic=1
 nicirq=10
-macaddr=AC:DE:48:88:99:AB</pre>
+macaddr=AC:DE:48:88:99:AB
+
+[ethernet, pcap]
+realnic=1</pre>
 </div>
 </div>
 </div>
@@ -1019,7 +1338,9 @@ To test this, first <code>ping</code> the remote systems to ensure connectivity.
 <h2 id="_using_the_netware_dos_client">Using the NetWare DOS Client</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This example uses Novell&#8217;s IPX. A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network. An advantage is that it can communicate with a real retro DOS PC on your local network.</p>
+<p>This example uses Novell&#8217;s IPX, and only works with the PCAP back-end.
+A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network.
+An advantage is that it can communicate with a real retro DOS PC on your local network.</p>
 </div>
 <div class="paragraph">
 <p>This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare DOS Client.
@@ -1158,7 +1479,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-03-01 11:34:16 -0500
+Last updated 2021-04-01 16:47:54 -0400
 </div>
 </div>
 </body>
