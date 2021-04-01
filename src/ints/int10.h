@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -95,7 +95,8 @@ extern uint32_t S3_LFB_BASE;
 
 /* FIXME: Wait, what?? What the hell kind of preprocessor macro is this??? Kill these macros! --J.C. */
 #define BIOS_NCOLS uint16_t ncols=IS_PC98_ARCH ? 80 : real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-#define BIOS_NROWS uint16_t nrows=IS_PC98_ARCH ? (uint16_t)(real_readb(0x60,0x112)+1u) : (uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1u;
+#define BIOS_NROWS uint16_t nrows=IS_PC98_ARCH ? (uint16_t)(real_readb(0x60,0x112)+1u) : IS_EGAVGA_ARCH?((uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1):25;
+#define BIOS_CHEIGHT uint8_t cheight=IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT):8;
 
 extern uint8_t int10_font_08[256 * 8];
 extern uint8_t int10_font_14[256 * 14];

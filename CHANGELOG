@@ -1,10 +1,112 @@
 0.83.12
+  - Tandy graphics emulation fixed to accept 8 bits
+    for vertical total and vertical display CRTC
+    registers, which is needed for the tweaked
+    graphics mode used by Math Rabbit to display
+    correctly.
+  - INT 10h will no longer fill in three fields in
+    the BIOS data area (video CTL, char height, and
+    video switches) unless the machine type is
+    EGA or VGA. Those fields do not exist otherwise.
+    Certain games like Mindscape's "Road Runner" game
+    require those fields to be zero as part of it's
+    Tandy detection routine.
+  - PCjr mode will omit the reserved graphics RAM
+    MCB block, and will subtract 16KB from the top
+    at the BIOS level, if emulating 128KB system
+    memory or less.
+  - You can now run PCjr mode with as little as
+    128KB of RAM. Removed 256KB minimum check from
+    DOS kernel. Certain games (Mickey's Space
+    Adventure) require memsizekb=128 and memsize=0
+    in PCjr mode or else it will not work correctly
+    due to how the game locates video system memory.
+  - Fixed Tandy mode to place video memory at the
+    top of conventional memory and allow running
+    Tandy mode with a memsizekb setting as low as
+    64KB, though 256KB or higher is recommended.
+  - Added Tandy "real memory size" field in the
+    BIOS data area.
+  - Tandy emulation updated to subtract 16KB from
+    top of conventional memory, which fixes some
+    games and follows DOSBox SVN behavior and real
+    hardware according to others on the Vogons forums.
+  - Fixed bug that limited Tandy mode to 624KB of
+    conventional memory. 32KB of video RAM is taken
+    from top of memory, losing half of the 32KB
+    breaks games that write to the system RAM instead
+    of B800:0000 segment and causes half the graphics
+    to not render.
+  - CD-ROM image emulation now supports ISO images
+    that are 2GB or larger, 32-bit integer size limit
+    has been lifted.
+  - Increased upper limit of "prebuffer" config option
+    (in [mixer] section) from 100 to 250. It is still
+    recommended to set a value less than 100. (Wengier)
+  - Added scrollbar buttons to the Configuration Tool,
+    so that the scrollbars better resemble the style of
+    the Windows 3.1 scrollbars.
+  - The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
+  - Updated the MMX patch code by kekko. (Wengier)
+  - MIXER command now supports the /GUI option to show
+    a popup window to display the mixer information.
+    Also improved its /LISTMIDI option which will show
+    the name of the current MIDI handler and you can
+    optionally specify a MIDI handler name (win32/alsa)
+    to show the information for this handler. (Wengier)
+  - Improved the compatibility of AUTOTYPE command with
+    games like Asterix & Obelix. (Wengier)
+  - The config options ttf.wpbg, ttf.bold, ttf.italic,
+    ttf.underline, ttf.strikeout, and ttf.char512 can
+    now be modified dynamically with CONFIG -SET ...
+    commands, e.g. CONFIG -SET ttf.wpbg=2. (Wengier)
+  - The minimal value for the ttf.ptsize config option
+    has been decreased from 10 to 9. (Wengier)
+  - Added menu item "Save logging as..." (under "Help"
+    -> "Debugging options") to save the current logging
+    content to the specified file. (Wengier)
+  - Added slirp backend support for the NE2000 network
+    feature (in addition to the existing pcap backend).
+    There are config sections named [ethernet, slirp]
+    and [ethernet, pcap] now to set the options for the
+    slirp and pcap backends respectively. Please refer
+    to the networking guide in the DOSBox-X Wiki for
+    more information about the backends. (Jookia)
   - FAT driver can now support PC-98 HDI images with
     partitions that start at any physical sector even
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
+  - Control character 7 (BEEP) is now allowed while
+    executing batch files without warnings. (Wengier)
+  - With the setting "core=auto" DOSBox-X now updates
+    the menu in the "CPU core" menu group automatically
+    between "Normal core" and "Dynamic core" to reflect
+    the CPU core which is currently in use. (Wengier)
+  - Fixed Windows 95/98 installation failures caused by
+    FAT driver and DOS API changes in previous version.
+  - Fixed well-intended but erroneous fall through case
+    in the INT15 handler that prevented 3rd party mouse
+    drivers from detecting the PS/2 mouse.
+  - Fixed the color issue with the Configuration Tool
+    in the macOS SDL1 build. (ant_222)
+  - Fixed switching ttf.cols, ttf.lins, and ttf.font
+    options dynamically in full-screen mode. (Wengier)
+  - Fixed menu options "Increase TTF font size" and
+    "Decrease TTF font size" (both under "Video" =>
+    "TTF options") not working (but keyboard shortcuts
+    and those in the system menu work). (Wengier)
+  - Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
+    not working (but "ttf.wp=xy" did work). (Wengier)
+  - Fixed preview function in WordStar not working for
+    TrueType font output in previous version. (Wengier)
+  - Fixed the issue that caused Windows 3.x group file
+    corruption on hard disk image files. (SnikoLoft)
   - Integrated SVN commits (Allofich)
+    - r4416: Added ability to start and stop avi
+    recording, and to start keymapper, from config.
     - r4405: Smarter clearing of the dynrec cache.
 0.83.11
   - Added support for the clipboard device (CLIP$) and

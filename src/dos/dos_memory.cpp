@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -557,38 +557,40 @@ void DOS_SetupMemory(void) {
 	mcb.SetPSPSeg(MCB_FREE);						//Free
 	mcb.SetType(0x5a);								//Last Block
 	if (machine==MCH_TANDY) {
-		if (seg_limit < ((384*1024)/16))
-			E_Exit("Tandy requires at least 384K");
-		/* memory up to 608k available, the rest (to 640k) is used by
-			the tandy graphics system's variable mapping of 0xb800 */
-/*
-		mcb.SetSize(0x9BFF - DOS_MEM_START - mcb_sizes);
-*/		mcb.SetSize(/*0x9BFF*/(seg_limit-0x801) - DOS_MEM_START - mcb_sizes);
+		/* map memory as normal, the BIOS initialization is the code responsible
+		 * for subtracting 32KB from top of system memory for video memory. */
+		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
 	} else if (machine==MCH_PCJR) {
-		DOS_MCB mcb_devicedummy((uint16_t)0x2000);
+		/* If there is more than 128KB of RAM, then the MCB chain must be constructed
+		 * to exclude video memory. In that case, the BIOS values in the BDA will report
+		 * actual memory size. I think this is what those DOS drivers for PCjr do that
+		 * enable the use of additional RAM provided by a sidecar.
+		 *
+		 * If there is 128KB or less, then construct a normal MCB. The BIOS will subtract
+		 * 16KB from top of memory. */
+		if (seg_limit > ((128*1024)/16)) {
+			DOS_MCB mcb_devicedummy((uint16_t)0x2000);
 
-        /* FIXME: The PCjr can have built-in either 64KB or 128KB of RAM.
-         *        RAM beyond 128KB is made possible with expansion sidecars.
-         *        DOSBox-X needs to support memsizekb=64 or memsizekb=128,
-         *        and adjust video ram location appropriately. */
+			/* memory from 128k to 640k is available */
+			mcb_devicedummy.SetPt((uint16_t)0x2000);
+			mcb_devicedummy.SetPSPSeg(MCB_FREE);
+			mcb_devicedummy.SetSize(/*0x9FFF*/(seg_limit-1) - 0x2000);
+			mcb_devicedummy.SetType(0x5a);
 
-		if (seg_limit < ((256*1024)/16))
-			E_Exit("PCjr requires at least 256K");
-		/* memory from 128k to 640k is available */
-		mcb_devicedummy.SetPt((uint16_t)0x2000);
-		mcb_devicedummy.SetPSPSeg(MCB_FREE);
-		mcb_devicedummy.SetSize(/*0x9FFF*/(seg_limit-1) - 0x2000);
-		mcb_devicedummy.SetType(0x5a);
+			/* exclude PCJr graphics region */
+			mcb_devicedummy.SetPt((uint16_t)0x17ff);
+			mcb_devicedummy.SetPSPSeg(MCB_DOS);
+			mcb_devicedummy.SetSize(0x800);
+			mcb_devicedummy.SetType(0x4d);
 
-		/* exclude PCJr graphics region */
-		mcb_devicedummy.SetPt((uint16_t)0x17ff);
-		mcb_devicedummy.SetPSPSeg(MCB_DOS);
-		mcb_devicedummy.SetSize(0x800);
-		mcb_devicedummy.SetType(0x4d);
-
-		/* memory below 96k */
-		mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
-		mcb.SetType(0x4d);
+			/* memory below 96k */
+			mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
+			mcb.SetType(0x4d);
+		}
+		else {
+			/* Normal MCB chain, nothing special */
+			mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+		}
 	} else {
 #ifndef DEBUG_ALLOC
 		/* NTS: Testing suggests we can push as low as 4KB. However, Wikipedia and

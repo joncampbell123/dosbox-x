@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1204,8 +1204,8 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 		for (i=0;i<8;i++) {
 			tempname[i]=(rand()%26)+'A';
 		}
-		tempname[8]=0;
-		if (DOS_FileExists(name)) {cont=true;continue;}
+		tempname[8]='.';tempname[9]='T';tempname[10]='M';tempname[11]='P';tempname[12]=0;
+		//if (DOS_FileExists(name)) {cont=true;continue;} // FIXME: Check name uniqueness
 	} while (cont || (!DOS_CreateFile(name,0,entry) && dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
 	if (dos.errorcode) return false;
 	return true;

@@ -657,12 +657,12 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 	if (BPoints.empty()) return false;
 
 	// Search matching breakpoint
-	std::list<CBreakpoint*>::iterator i;
-	CBreakpoint* bp;
-	for(i=BPoints.begin(); i != BPoints.end(); ++i) {
-		bp = (*i);
-		if ((bp->GetType()==BKPNT_PHYSICAL) && bp->IsActive() && (bp->GetSegment()==seg) && (bp->GetOffset()==off)) {
-			// Found, 
+	for (auto i = BPoints.begin(); i != BPoints.end(); ++i) {
+		CBreakpoint *bp = (*i);
+
+		if ((bp->GetType() == BKPNT_PHYSICAL) && bp->IsActive() &&
+		    (bp->GetLocation() == GetAddress(seg, off))) {
+			// Found
 			if (bp->GetOnce()) {
 				// delete it, if it should only be used once
 				(BPoints.erase)(i);
@@ -678,7 +678,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 				}
 			}
 			return true;
-		} 
+		}
 #if C_HEAVY_DEBUG
 		// Memory breakpoint support
 		else if (bp->IsActive()) {

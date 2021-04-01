@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -585,8 +585,12 @@ irq1_end:
         const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
         const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
         const auto ssl = static_cast<uint8_t>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
-        if (CurMode->type == M_TEXT)
-            INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
+        if (CurMode->type == M_TEXT) {
+            if (machine==MCH_MDA||machine==MCH_HERC)
+                INT10_SetCursorShape((ssl + 6) | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END + 6); /* 14 - 8 = 6 */
+            else
+                INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
+        }
     }
 					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */

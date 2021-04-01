@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1840,7 +1840,7 @@ static Bitu DOS_21Handler(void) {
                 if (DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
                     strcpy(appname, name1);
                     strncpy(appargs, ctail.buffer, ctail.count);
-                    appargs[ctail.count]=0;
+                    *(appargs+ctail.count)=0;
                 } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
@@ -4011,7 +4011,30 @@ void DOS_Int21_716c(char *name1, const char *name2) {
 }
 
 void DOS_Int21_71a0(char *name1, char *name2) {
+		/* NTS:  Windows Millenium Edition's SETUP program will make this LFN call to
+		 *		 canonicalize "C:", except the protected mode kernel does not translate
+		 *		 DS:DX and ES:DI from protected mode. So DS:DX correctly points to
+		 *		 ASCII-Z string "C:" but when the jump is made back to real mode and
+		 *		 our INT 21h is actually called, DS:DX points to unrelated memory and
+		 *		 the string we read is gibberish, and ES:DI likewise point to unrelated
+		 *		 memory.
+		 *
+		 *		 If we write to ES:DI, we corrupt memory in a way that quickly causes
+		 *		 the setup program to fault and crash (often, a Segment Not Present
+		 *		 exception but sometimes worse).
+		 *
+		 *		 The reason nobody ever encounters this error when installing Windows
+		 *		 ME normally from a boot disk is because in pure DOS mode where SETUP
+		 *		 is normally run, LFN functions do not exist. This call, INT 21h AX=71A0h,
+		 *		 will normally return an error (CF=1) without reading or writing any
+		 *		 memory, and SETUP carries on without crashing.
+		 *
+		 *		 Therefore, if you want to install Windows ME from the DOSBox-X DOS
+		 *		 environment, you need to disable Long Filename emulation first before
+		 *		 running SETUP.EXE to avoid crashes and instability during the install
+		 *		 process. --J.C. */
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+
 		if (DOS_Canonicalize(name1,name2)) {
 				if (reg_cx > 3)
 						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
@@ -4150,24 +4173,33 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0,o=0;
             char c[13];
-            const char* s = strrchr(name1, '.');
-			for (i=0;i<8;j++) {
-					if (name1[j] == 0 || s-name1 <= j) break;
-					if (name1[j] == '.') continue;
-					c[o++] = toupper(name1[j]);
-					i++;
-			}
-			if (s != NULL) {
-					s++;
-					if (s != 0 && reg_dh == 1) c[o++] = '.';
-					for (i=0;i<3;i++) {
-							if (*(s+i) == 0) break;
-							c[o++] = toupper(*(s+i));
-					}
-			}
-			assert(o <= 12);
-			c[o] = 0;
-			MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+            if (reg_dh == 0) memset(c, 0, sizeof(c));
+            if (strcmp(name1, ".") && strcmp(name1, "..")) {
+                const char* s = strrchr(name1, '.');
+                for (i=0;i<8;j++) {
+                        if (name1[j] == 0 || (s==NULL?8:s-name1) <= j) {
+                            if (reg_dh == 0 && s != NULL) for (int j=0; j<8-i; j++) c[o++] = ' ';
+                            break;
+                        }
+                        while (name1[j]&&name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*') j++;
+                        c[o++] = toupper(name1[j]);
+                        i++;
+                }
+                if (s != NULL) {
+                        s++;
+                        if (s != 0 && reg_dh == 1) c[o++] = '.';
+                        j=0;
+                        for (i=0;i<3;i++) {
+                                if (*(s+i+j) == 0) break;
+                                while (*(s+i+j)&&*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*') j++;
+                                c[o++] = toupper(*(s+i+j));
+                        }
+                }
+                assert(o <= 12);
+                c[o] = 0;
+            } else
+                strcpy(c, name1);
+			MEM_BlockWrite(SegPhys(es)+reg_di,c,reg_dh==1?strlen(c)+1:11);
 			reg_ax=0;
 			CALLBACK_SCF(false);
 	} else {

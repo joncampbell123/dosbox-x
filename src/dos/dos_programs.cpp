@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -6157,9 +6157,9 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Generates artificial keypresses.\n\nADDKEY [key]\n\n"
-            "For example, the command below will type \"dir\" followed by ENTER.\n\nADDKEY d i r enter\n\n"
-            "Instead of using this command, you can also try AUTOTYPE command.  AUTOTYPE can\nperform scripted keyboard entry into a running DOS program.\n";
+            "Generates artificial keypresses.\n\nADDKEY [pmsec] [key]\n\n"
+            "For example, the command below types \"dir\" followed by ENTER after 1 second:\n\nADDKEY p1000 d i r enter\n\n"
+            "You could also try AUTOTYPE command instead of this command to perform\nscripted keyboard entry into a running DOS program.\n";
         WriteOut(msg);
 	}
 };

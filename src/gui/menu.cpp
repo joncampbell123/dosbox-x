@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -354,8 +354,8 @@ static const char *def_menu_video_textmode[] =
 /* video TTF menu ("VideoTTFMenu") */
 static const char *def_menu_video_ttf[] =
 {
-    "mapper_ttf_incsize",
-    "mapper_ttf_decsize",
+    "mapper_incsize",
+    "mapper_decsize",
     "--",
     "ttf_showbold",
     "ttf_showital",
@@ -715,14 +715,15 @@ static const char *def_menu_help_debug[] =
 #endif
 #if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
-    "wait_on_error",
 #endif
 #if C_DEBUG
+    "save_logas",
     "--",
     "debug_blankrefreshtest",
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+    "wait_on_error",
     "debug_logint21",
     "debug_logfileio",
 #endif
@@ -741,7 +742,7 @@ static const char *def_menu_help[] =
     "help_issue",
 #endif
     "--",
-#if C_NE2000
+#if C_PCAP
     "help_nic",
 #endif
 #if C_PRINTER && defined(WIN32)
@@ -750,7 +751,7 @@ static const char *def_menu_help[] =
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
-#if C_NE2000 || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if C_PCAP || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
 #endif
     "help_about",
@@ -1891,7 +1892,7 @@ void DOSBox_SetSysMenu(void) {
     bool TTF_using(void);
     {
         strcpy(msg, "Increase TTF font size");
-        key=get_mapper_shortcut("ttf_incsize");
+        key=get_mapper_shortcut("incsize");
         if (key.size()) {
             strcat(msg, "\t");
             strcat(msg, key.c_str());
@@ -1909,7 +1910,7 @@ void DOSBox_SetSysMenu(void) {
 
     {
         strcpy(msg, "Decrease TTF font size");
-        key=get_mapper_shortcut("ttf_decsize");
+        key=get_mapper_shortcut("decsize");
         if (key.size()) {
             strcat(msg, "\t");
             strcat(msg, key.c_str());

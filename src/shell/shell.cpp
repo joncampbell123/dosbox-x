@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1184,7 +1184,7 @@ void SHELL_Init() {
                 "\033[44;1m\xBA \033[36mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction. \xBA\033[0m"
-                "\033[44;1m\xBA You may also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
+                "\033[44;1m\xBA You can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_BEGIN2",
                 IS_VGA_ARCH?"\033[44;1m\xBA \033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option. \xBA\033[0m":"");

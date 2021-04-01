@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 #include "cross.h"
 #include "control.h"
 #include "shell.h"
+#include "hardware.h"
+#include "mapper.h"
 #include "menu.h"
 #include "render.h"
 #include "../ints/int10.h"
@@ -46,8 +48,8 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, lastset;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, lastset;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -566,7 +568,10 @@ bool set_ver(char *s), GFX_IsFullscreen(void);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
-		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
+		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype",
+		"-avistart","-avistop",
+		"-startmapper",
+		"-get", "-set",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
@@ -576,6 +581,8 @@ void CONFIG::Run(void) {
 		P_BOOTCONF, P_BOOTCONF2, P_LISTCONF, P_KILLCONF,
 		P_HELP, P_HELP2, P_HELP3,
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
+		P_REC_AVI_START, P_REC_AVI_STOP,
+		P_START_MAPPER,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
@@ -851,6 +858,16 @@ void CONFIG::Run(void) {
 			WriteOut("\n%s",sec->data.c_str());
 			break;
 		}
+		case P_REC_AVI_START:
+			CAPTURE_VideoStart();
+			break;
+		case P_REC_AVI_STOP:
+			CAPTURE_VideoStop();
+			break;
+		case P_START_MAPPER:
+			if (securemode_check()) return;
+			MAPPER_Run(false);
+			break;
 		case P_GETPROP: {
 			// "section property"
 			// "property"
@@ -1391,6 +1408,36 @@ void CONFIG::Run(void) {
                                 mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
                                 resetFontSize();
 #endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
+#if defined(USE_TTF)
+                                wpBG = section->Get_int("ttf.wpbg");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.bold=")) {
+#if defined(USE_TTF)
+                                showbold = section->Get_bool("ttf.bold");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.italic=")) {
+#if defined(USE_TTF)
+                                showital = section->Get_bool("ttf.italic");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.underline=")) {
+#if defined(USE_TTF)
+                                showline = section->Get_bool("ttf.underline");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.strikeout=")) {
+#if defined(USE_TTF)
+                                showsout = section->Get_bool("ttf.strikeout");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "ttf.char512=")) {
+#if defined(USE_TTF)
+                                char512 = section->Get_bool("ttf.char512");
+                                resetFontSize();
+#endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
 #if defined(USE_TTF)
                                 SetBlinkRate(section);
@@ -1491,6 +1538,9 @@ void PROGRAMS_Init() {
 		"-axtype Prints the content of the [autoexec] section.\n"\
 		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
 		" disabled as well as the ability to create config and language files.\n"\
+		"-avistart starts AVI recording.\n"\
+		"-avistop stops AVI recording.\n"\
+		"-startmapper starts the keymapper.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");

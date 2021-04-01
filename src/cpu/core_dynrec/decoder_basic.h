@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1174,28 +1174,6 @@ skip_extend_word:
 		}
 	}
 }
-
-
-
-// add code that checks if port access is allowed
-// the port is given in a register
-static void dyn_add_iocheck(HostReg reg_port,Bitu access_size) {
-	if (cpu.pmode) {
-		gen_call_function_RI(CPU_IO_Exception,reg_port,access_size);
-		dyn_check_exception(FC_RETOP);
-	}
-}
-
-// add code that checks if port access is allowed
-// the port is a constant
-static void dyn_add_iocheck_var(uint8_t accessed_port,Bitu access_size) {
-	if (cpu.pmode) {
-		gen_call_function_II(CPU_IO_Exception,accessed_port,access_size);
-		dyn_check_exception(FC_RETOP);
-	}
-}
-
-
 
 // save back the address register
 static void gen_protect_addr_reg(void) {

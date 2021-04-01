@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -705,6 +705,26 @@ extern uint32_t GFX_palette32bpp[256];
 #endif
 
 unsigned int GFX_GetBShift();
+
+void CAPTURE_VideoStart() {
+#if (C_SSHOT)
+	if (CaptureState & CAPTURE_VIDEO) {
+		LOG_MSG("Already capturing video.");
+	} else {
+		CAPTURE_VideoEvent(true);
+	}
+#endif
+}
+
+void CAPTURE_VideoStop() {
+#if (C_SSHOT)
+	if (CaptureState & CAPTURE_VIDEO) {
+		CAPTURE_VideoEvent(true);
+	} else {
+		LOG_MSG("Not capturing video.");
+	}
+#endif
+}
 
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal) {
 #if (C_SSHOT)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -416,13 +416,20 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			}
 			if (!loadedSector) {
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
-				if(currentSector == 0) loadedSector = false;
-				else {
-					curSectOff = 0;
+				if(currentSector == 0) {
+					/* EOC reached before EOF - try to increase file allocation */
+					myDrive->appendCluster(firstCluster);
+					/* Try getting sector again */
+					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+					if(currentSector == 0) {
+						/* No can do. lets give up and go home.  We must be out of room */
+						goto finalizeWrite;
+					}
+				}
+				curSectOff = seekpos % myDrive->getSectorSize();
 					myDrive->readSector(currentSector, sectorBuffer);
 					loadedSector = true;
 				}
-			}
 			filelength = seekpos+1;
 		}
 		--sizedec;
@@ -433,10 +440,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if(loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 			loadedSector = false;
 
-			if (sizedec == 0) { curSectOff = 0; goto finalizeWrite; }
-
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
 			if(currentSector == 0) {
+			    if (sizedec == 0) goto finalizeWrite;
 				/* EOC reached before EOF - try to increase file allocation */
 				myDrive->appendCluster(firstCluster);
 				/* Try getting sector again */
@@ -1659,6 +1665,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
         bootbuffer.bpb.v.BPB_NumHeads = var_read(&bootbuffer.bpb.v.BPB_NumHeads);
         bootbuffer.bpb.v.BPB_HiddSec = var_read(&bootbuffer.bpb.v.BPB_HiddSec);
         bootbuffer.bpb.v.BPB_TotSec32 = var_read(&bootbuffer.bpb.v.BPB_TotSec32);
+        bootbuffer.bpb.v.BPB_VolID = var_read(&bootbuffer.bpb.v.BPB_VolID);
 
         if (!is_hdd) {
             /* Identify floppy format */

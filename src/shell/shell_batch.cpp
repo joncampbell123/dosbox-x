@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ emptyline:
 			 * Exclusion list: tab for batch files 
 			 * escape for ansi
 			 * backspace for alien odyssey */
-			if (c>31 || c==0x1b || c=='\t' || c==8) {
+			if (c>31 || c==0x1b || c=='\t' || c==7 || c==8) {
 				//Only add it if room for it (and trailing zero) in the buffer, but do the check here instead at the end
 				//So we continue reading till EOL/EOF
 				if (((cmd_write - temp) + 1) < (CMD_MAXLINE - 1))
@@ -201,7 +201,7 @@ again:
 			if (c>31) {
 				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
-			} else if (c!=0x1a && c!=0x1b && c!='\t' && c!=8) {
+			} else if (c!=0x1a && c!=0x1b && c!='\t' && c!=7 && c!=8) {
                                 if (c != '\n' && c != '\r')
 					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
                         }

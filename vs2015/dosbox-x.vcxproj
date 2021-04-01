@@ -1295,7 +1295,10 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
     <ClCompile Include="..\src\libs\porttalk\porttalk.cpp" />
     <ClCompile Include="..\src\misc\cross.cpp" />
+    <ClCompile Include="..\src\misc\ethernet.cpp" />
     <ClCompile Include="..\src\misc\messages.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp" />
     <ClCompile Include="..\src\misc\programs.cpp" />
     <ClCompile Include="..\src\ints\qcow2_disk.cpp" />
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
@@ -1401,6 +1404,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\include\dosbox.h" />
     <ClInclude Include="..\include\dos_inc.h" />
     <ClInclude Include="..\include\dos_system.h" />
+    <ClInclude Include="..\include\ethernet.h" />
     <ClInclude Include="..\include\fpu.h" />
     <ClInclude Include="..\include\hardware.h" />
     <ClInclude Include="..\include\ide.h" />
@@ -1485,8 +1489,8 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h" />
-    <ClInclude Include="..\src\cpu\core_dyn_x86\mmx_gen.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h" />
     <ClInclude Include="..\src\cpu\core_dyn_x86\string.h" />
@@ -1636,6 +1640,8 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\libs\mt32\TVA.h" />
     <ClInclude Include="..\src\libs\mt32\TVF.h" />
     <ClInclude Include="..\src\libs\mt32\TVP.h" />
+    <ClInclude Include="..\src\misc\ethernet_pcap.h" />
+    <ClInclude Include="..\src\misc\ethernet_slirp.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
     <ClInclude Include="..\src\output\direct3d\direct3d.h" />
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
