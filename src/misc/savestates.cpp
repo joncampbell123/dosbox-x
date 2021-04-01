@@ -184,6 +184,7 @@ void LoadGameState(bool pressed) {
 //        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
 //        return;
 //    }
+    GFX_LosingFocus();
     try
     {
         LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
