@@ -79,6 +79,8 @@
     if the start is not a multiple of the ratio of
     logical to physical sector size. This allows the
     HDI image of Dragon Knight 4 to mount.
+  - Control character 7 (BEEP) is now allowed while
+    executing batch files without warnings. (Wengier)
   - With the setting "core=auto" DOSBox-X now updates
     the menu in the "CPU core" menu group automatically
     between "Normal core" and "Dynamic core" to reflect
