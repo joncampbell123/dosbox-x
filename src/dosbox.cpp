@@ -835,8 +835,8 @@ void Init_VGABIOS() {
         VGA_BIOS_use_rom = false;
     }
 
-    VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
-    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
+    int size_override = video_section->Get_int("vga bios size override");
+    if (size_override > 0) VGA_BIOS_Size_override = ((Bitu)size_override+0x7FFU)&(~0xFFFU);
 
     VGA_BIOS_dont_duplicate_CGA_first_half = video_section->Get_bool("video bios dont duplicate cga first half rom font");
     VIDEO_BIOS_always_carry_14_high_font = video_section->Get_bool("video bios always offer 14-pixel high rom font");
@@ -850,7 +850,9 @@ void Init_VGABIOS() {
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
         VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
-    if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
+    if (size_override <= -512 && size_override >= -65536) // Force size override by a leading minus sign (-)
+        VGA_BIOS_Size = -size_override;
+    else if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (rom_sz != 0) {
         VGA_BIOS_Size = rom_sz;
@@ -1710,7 +1712,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(512,65536);
+    Pint->SetMinMax(-65536,65536);
     Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
     Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
