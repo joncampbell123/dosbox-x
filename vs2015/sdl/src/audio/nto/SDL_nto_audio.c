@@ -84,7 +84,7 @@ static int NTO_CheckBuggyCards(_THIS, unsigned long checkfor)
     char scardname[33];
     int it;
     
-    if (snd_card_get_name(cardno, scardname, 32)<0)
+    if (snd_card_get_name(cardno, scardname)<0)
     {
         return 0;
     }
