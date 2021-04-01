@@ -3466,7 +3466,9 @@ public:
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
             mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
             mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
 #if (C_DYNAMIC_X86)
 		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;

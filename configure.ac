@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.12,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.13,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -867,7 +867,7 @@ AC_MSG_CHECKING(whether recompiling cpu core will be enabled)
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
 # test for MIPS32 is missing from this Dynamic Recompiler whitelist
-elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = arm; then
+elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
 else
