@@ -1,0 +1,203 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.12 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">April 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    Tandy graphics emulation fixed to accept 8 bits
+    for vertical total and vertical display CRTC
+    registers, which is needed for the tweaked
+    graphics mode used by Math Rabbit to display
+    correctly.
+</li><li>
+    INT 10h will no longer fill in three fields in
+    the BIOS data area (video CTL, char height, and
+    video switches) unless the machine type is
+    EGA or VGA. Those fields do not exist otherwise.
+    Certain games like Mindscape's "Road Runner" game
+    require those fields to be zero as part of it's
+    Tandy detection routine.
+</li><li>
+    PCjr mode will omit the reserved graphics RAM
+    MCB block, and will subtract 16KB from the top
+    at the BIOS level, if emulating 128KB system
+    memory or less.
+</li><li>
+    You can now run PCjr mode with as little as
+    128KB of RAM. Removed 256KB minimum check from
+    DOS kernel. Certain games (Mickey's Space
+    Adventure) require memsizekb=128 and memsize=0
+    in PCjr mode or else it will not work correctly
+    due to how the game locates video system memory.
+</li><li>
+    Fixed Tandy mode to place video memory at the
+    top of conventional memory and allow running
+    Tandy mode with a memsizekb setting as low as
+    64KB, though 256KB or higher is recommended.
+</li><li>
+    Added Tandy "real memory size" field in the
+    BIOS data area.
+</li><li>
+    Tandy emulation updated to subtract 16KB from
+    top of conventional memory, which fixes some
+    games and follows DOSBox SVN behavior and real
+    hardware according to others on the Vogons forums.
+</li><li>
+    Fixed bug that limited Tandy mode to 624KB of
+    conventional memory. 32KB of video RAM is taken
+    from top of memory, losing half of the 32KB
+    breaks games that write to the system RAM instead
+    of B800:0000 segment and causes half the graphics
+    to not render.
+</li><li>
+    CD-ROM image emulation now supports ISO images
+    that are 2GB or larger, 32-bit integer size limit
+    has been lifted.
+</li><li>
+    Increased upper limit of "prebuffer" config option
+    (in [mixer] section) from 100 to 250. It is still
+    recommended to set a value less than 100. (Wengier)
+</li><li>
+    Added scrollbar buttons to the Configuration Tool,
+    so that the scrollbars better resemble the style of
+    the Windows 3.1 scrollbars.
+</li><li>
+    The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
+</li><li>
+    Updated the MMX patch code by kekko. (Wengier)
+</li><li>
+    MIXER command now supports the /GUI option to show
+    a popup window to display the mixer information.
+    Also improved its /LISTMIDI option which will show
+    the name of the current MIDI handler and you can
+    optionally specify a MIDI handler name (win32/alsa)
+    to show the information for this handler. (Wengier)
+</li><li>
+    Improved the compatibility of AUTOTYPE command with
+    games like Asterix & Obelix. (Wengier)
+</li><li>
+    The config options ttf.wpbg, ttf.bold, ttf.italic,
+    ttf.underline, ttf.strikeout, and ttf.char512 can
+    now be modified dynamically with CONFIG -SET ...
+    commands, e.g. CONFIG -SET ttf.wpbg=2. (Wengier)
+</li><li>
+    The minimal value for the ttf.ptsize config option
+    has been decreased from 10 to 9. (Wengier)
+</li><li>
+    Added menu item "Save logging as..." (under "Help"
+    -> "Debugging options") to save the current logging
+    content to the specified file. (Wengier)
+</li><li>
+    Added slirp backend support for the NE2000 network
+    feature (in addition to the existing pcap backend).
+    There are config sections named [ethernet, slirp]
+    and [ethernet, pcap] now to set the options for the
+    slirp and pcap backends respectively. Please refer
+    to the networking guide in the DOSBox-X Wiki for
+    more information about the backends. (Jookia)
+</li><li>
+    FAT driver can now support PC-98 HDI images with
+    partitions that start at any physical sector even
+    if the start is not a multiple of the ratio of
+    logical to physical sector size. This allows the
+    HDI image of Dragon Knight 4 to mount.
+</li><li>
+    Control character 7 (BEEP) is now allowed while
+    executing batch files without warnings. (Wengier)
+</li><li>
+    With the setting "core=auto" DOSBox-X now updates
+    the menu in the "CPU core" menu group automatically
+    between "Normal core" and "Dynamic core" to reflect
+    the CPU core which is currently in use. (Wengier)
+</li><li>
+    Fixed Windows 95/98 installation failures caused by
+    FAT driver and DOS API changes in previous version.
+</li><li>
+    Fixed well-intended but erroneous fall through case
+    in the INT15 handler that prevented 3rd party mouse
+    drivers from detecting the PS/2 mouse.
+</li><li>
+    Fixed the color issue with the Configuration Tool
+    in the macOS SDL1 build. (ant_222)
+</li><li>
+    Fixed switching ttf.cols, ttf.lins, and ttf.font
+    options dynamically in full-screen mode. (Wengier)
+</li><li>
+    Fixed menu options "Increase TTF font size" and
+    "Decrease TTF font size" (both under "Video" =>
+    "TTF options") not working (but keyboard shortcuts
+    and those in the system menu work). (Wengier)
+</li><li>
+    Fixed setting option "ttf.wp=xy3" or "ttf.wp=xy4"
+    not working (but "ttf.wp=xy" did work). (Wengier)
+</li><li>
+    Fixed preview function in WordStar not working for
+    TrueType font output in previous version. (Wengier)
+</li><li>
+    Fixed the issue that caused Windows 3.x group file
+    corruption on hard disk image files. (SnikoLoft)
+</li><li>
+    Integrated SVN commits (Allofich)
+<br />
+    - r4416: Added ability to start and stop avi
+    recording, and to start keymapper, from config.
+<br />
+    - r4405: Smarter clearing of the dynrec cache.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.11 (<a href="release-0.83.11.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
