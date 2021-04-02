@@ -6047,7 +6047,7 @@ static Bitu INT15_Handler(void) {
                 case 0x02: {        // set sampling rate
                     static const unsigned char tbl[7] = {10,20,40,60,80,100,200};
                     KEYBOARD_AUX_Write(0xF3);
-                    if (reg_bl > 6) reg_bl = 6;
+                    if (reg_bh > 6) reg_bh = 6;
                     KEYBOARD_AUX_Write(tbl[reg_bh]);
                     KEYBOARD_ClrBuffer();
                     CALLBACK_SCF(false);
