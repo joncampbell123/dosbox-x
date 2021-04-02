@@ -593,6 +593,11 @@ static inline bool GFX_IsFullscreen(void) {
 }
 #endif
 
+void KEYBOARD_AUX_LowerIRQ() {
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,false);
+}
+
 extern int  user_cursor_x,  user_cursor_y;
 extern int  user_cursor_sw, user_cursor_sh;
 extern bool user_cursor_locked;
