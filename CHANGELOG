@@ -1,6 +1,6 @@
 0.83.13
   - LOADFIX -D -XMS will free all XMS blocks
-    allocated by LOADFIX -XMS.
+    allocated by LOADFIX -XMS. (joncampbell123)
   - LOADFIX -A will not allocate memory unless there
     is memory below 64KB to fill. (joncampbell123)
   - INT 15h PS/2 mouse functions now clear pending
