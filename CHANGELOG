@@ -1,4 +1,8 @@
 0.83.13
+  - Debugger "DOS XMS" command will only list handles
+    that are allocated, or with nonzero address or
+    nonzero size, to avoid showing irrelevant
+    information. (joncampbell123)
   - Added LOADFIX -EMS option to allocate/free
     EMS (expanded memory). (joncampbell123)
   - LOADFIX -D -XMS will free all XMS blocks
