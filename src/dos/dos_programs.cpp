@@ -3637,10 +3637,17 @@ void LOADFIX::Run(void)
         uint16_t blocks = (uint16_t)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
             DOS_MCB mcb((uint16_t)(segment-1));
-            if (opta && segment < 0x1000) {
-                uint16_t needed = 0x1000 - segment;
-                if (DOS_ResizeMemory(segment,&needed))
-                    kb=needed*16/1024;
+            if (opta) {
+                if (segment < 0x1000) {
+                    uint16_t needed = 0x1000 - segment;
+                    if (DOS_ResizeMemory(segment,&needed))
+                        kb=needed*16/1024;
+                }
+                else {
+                    DOS_FreeMemory(segment);
+                    WriteOut("Lowest MCB is above 64KB, nothing allocated\n");
+                    return;
+                }
             }
             mcb.SetPSPSeg(0x40);            // use fake segment
             WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
