@@ -1,4 +1,6 @@
 0.83.13
+  - Added LOADFIX -EMS option to allocate/free
+    EMS (expanded memory). (joncampbell123)
   - LOADFIX -D -XMS will free all XMS blocks
     allocated by LOADFIX -XMS. (joncampbell123)
   - LOADFIX -A will not allocate memory unless there
