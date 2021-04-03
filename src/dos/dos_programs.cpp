@@ -3571,6 +3571,11 @@ public:
 
 bool XMS_Active(void);
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
+Bitu XMS_FreeMemory(Bitu handle);
+
+/* HIMEM.SYS does not store who owns what block, so for -D or -F to work,
+ * we need to keep track of handles ourself */
+std::vector<uint16_t>       LOADFIX_xms_handles;
 
 void LOADFIX::Run(void) 
 {
@@ -3598,7 +3603,12 @@ void LOADFIX::Run(void)
             if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
                 // Deallocate all
                 if (xms) {
-                    WriteOut("XMS deallocation not yet implemented\n");
+                    for (auto i=LOADFIX_xms_handles.begin();i!=LOADFIX_xms_handles.end();i++) {
+                        if (XMS_FreeMemory(*i))
+                            WriteOut("XMS handle %u: unable to free",*i);
+                    }
+                    LOADFIX_xms_handles.clear();
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
                 }
                 else {
                     DOS_FreeProcessMemory(0x40);
@@ -3623,6 +3633,7 @@ void LOADFIX::Run(void)
             err = XMS_AllocateMemory(kb,/*&*/handle);
             if (err == 0) {
                 WriteOut("XMS block allocated (%uKB)\n",kb);
+                LOADFIX_xms_handles.push_back(handle);
             }
             else {
                 WriteOut("Unable to allocate XMS block\n");
