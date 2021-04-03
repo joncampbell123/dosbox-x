@@ -3567,8 +3567,10 @@ void DOS_ShutDown(Section* /*sec*/) {
 }
 
 void DOS_GetMemory_reinit();
+void LOADFIX_OnDOSShutdown();
 
 void DOS_OnReset(Section* /*sec*/) {
+	LOADFIX_OnDOSShutdown();
 	DOS_DoShutDown();
     DOS_GetMemory_reinit();
 }

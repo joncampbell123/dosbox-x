@@ -3577,6 +3577,10 @@ Bitu XMS_FreeMemory(Bitu handle);
  * we need to keep track of handles ourself */
 std::vector<uint16_t>       LOADFIX_xms_handles;
 
+void LOADFIX_OnDOSShutdown(void) {
+    LOADFIX_xms_handles.clear();
+}
+
 void LOADFIX::Run(void) 
 {
     uint16_t commandNr  = 1;
