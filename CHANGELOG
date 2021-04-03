@@ -1,8 +1,10 @@
 0.83.13
+  - LOADFIX -A will not allocate memory unless there
+    is memory below 64KB to fill. (joncampbell123)
   - INT 15h PS/2 mouse functions now clear pending
     PS/2 mouse interrupt as part of the BIOS call.
     This should resolve unresponsive mouse issues
-    with Windows 3.1.
+    with Windows 3.1. (joncampbell123)
 0.83.12
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
