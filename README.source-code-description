@@ -201,6 +201,17 @@ FluidSynth (optional)
     For soundfont support.
     It is available from https://www.fluidsynth.org/download/
     License: LGPLv2+
+    
+libpcap (optional)
+    For pcap backend of NE2000 networking support.
+    Get it from https://www.tcpdump.org/index.html#latest-releases
+    For win32 get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
+    License: 3-clause BSD license
+
+libslirp (optional)
+    For slirp backend of NE2000 networking support.
+    Get it from https://gitlab.freedesktop.org/slirp/libslirp
+    License: Modified 4-clause BSD license
 
 SDL_Net (optional)
     For modem/ipx support.
