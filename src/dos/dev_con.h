@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ private:
         col=CURSOR_POS_COL(page) ;
         row=CURSOR_POS_ROW(page) ;
         if (!IS_PC98_ARCH)
-            ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
         tempdata = (ansi.data[0]? ansi.data[0] : 1);
         if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
         { row = ansi.nrows - 1;}
@@ -184,7 +184,7 @@ private:
 
         if (!IS_PC98_ARCH) {
             ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-            ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
         }
         /* Turn them into positions that are on the screen */
         if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (uint8_t)ansi.nrows - 1;
@@ -1021,7 +1021,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                     }
                     if (!IS_PC98_ARCH) {
                         ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                        ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+                        ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
                     }
                     /* Turn them into positions that are on the screen */
                     if(ansi.data[0] == 0) ansi.data[0] = 1;
@@ -1083,7 +1083,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                     row = CURSOR_POS_ROW(page);
                     if (!IS_PC98_ARCH) {
                         ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                        ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+                        ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
                     }
 					INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
                     ClearAnsi();
@@ -1113,7 +1113,6 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 }
 
 bool device_CON::Seek(uint32_t * pos,uint32_t type) {
-    (void)pos; // UNUSED
     (void)type; // UNUSED
 	// seek is valid
 	*pos = 0;

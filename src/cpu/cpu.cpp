@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -2397,12 +2397,16 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 #if (C_DYNREC)
 				if (GetDynamicType()==2 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dynrec_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dynrec_Run;
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
@@ -3461,6 +3465,10 @@ public:
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
+            mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+            mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
 #if (C_DYNAMIC_X86)
 		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;

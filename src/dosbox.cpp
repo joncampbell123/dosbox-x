@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -835,8 +835,8 @@ void Init_VGABIOS() {
         VGA_BIOS_use_rom = false;
     }
 
-    VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
-    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
+    int size_override = video_section->Get_int("vga bios size override");
+    if (size_override > 0) VGA_BIOS_Size_override = ((Bitu)size_override+0x7FFU)&(~0xFFFU);
 
     VGA_BIOS_dont_duplicate_CGA_first_half = video_section->Get_bool("video bios dont duplicate cga first half rom font");
     VIDEO_BIOS_always_carry_14_high_font = video_section->Get_bool("video bios always offer 14-pixel high rom font");
@@ -850,7 +850,9 @@ void Init_VGABIOS() {
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
         VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
-    if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
+    if (size_override <= -512 && size_override >= -65536) // Force size override by a leading minus sign (-)
+        VGA_BIOS_Size = -size_override;
+    else if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (rom_sz != 0) {
         VGA_BIOS_Size = rom_sz;
@@ -1230,6 +1232,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X will skip the BIOS screen by activating fast BIOS logo mode (without 1-second pause).");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("disable graphical splash",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will always display text-mode BIOS splash screen instead of the graphical one.\n"
+                    "The text-mode BIOS screen will automatically be used if the TrueType font (TTF) output is enabled.");
+
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
     Pbool->SetBasic(true);
@@ -1491,7 +1497,7 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 #endif
-    Pint->SetMinMax(1,3584); // 3.5GB
+    Pint->SetMinMax(0,3584); // 3.5GB
     Pint->Set_help(
         "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
@@ -1507,7 +1513,9 @@ void DOSBOX_SetupConfigSections(void) {
         "If nonzero, it is added to the memsize parameter.\n"
         "Finer grained control of total memory may be useful in\n"
         "emulating ancient DOS machines with less than 640KB of\n"
-        "RAM or early 386 systems with odd extended memory sizes.");
+        "RAM or early 386 systems with odd extended memory sizes.\n"
+        "For Tandy and PCjr emulation, it is strongly recommended.\n"
+        "to specify a size that is a multiple of 32 (kb).\n");
 
     Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1023);
@@ -1704,7 +1712,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(512,65536);
+    Pint->SetMinMax(-65536,65536);
     Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
     Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
@@ -2250,7 +2258,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 10), it will override the ttf.winperc setting.");
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the ttf.winperc setting.");
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
@@ -2268,7 +2276,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
-    Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.");
+    Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
 
 	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
@@ -2532,7 +2541,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
-    Pint->SetMinMax(0,100);
+    Pint->SetMinMax(0,250);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
     secprop=control->AddSection_prop("midi",&Null_Init,true);//done
@@ -2705,7 +2714,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.soundfont",Property::Changeable::WhenIdle,"");
-	Pstring->Set_help("Soundfont to use with Fluidsynth. One must be specified.");
+	Pstring->Set_help("Soundfont (.SF2 or .SF3) to use with Fluidsynth. One must be specified (e.g. GeneralUser_GS.sf2).");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.samplerate",Property::Changeable::WhenIdle,"48000");
@@ -3897,20 +3906,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
-    MSG_Add("NE2000_CONFIGFILE_HELP",
-        "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBox-Xes running on your network,\n"
-        "           this has to be changed. Modify the last three number blocks.\n"
-        "           I.e. AC:DE:48:88:99:AB.\n"
-        "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices from the Help\n"
-        "           menu (\'List network interfaces\') or from the Status Window.\n"
-        "           Then make your choice and put either the interface number\n"
-        "           (e.g. 2) or a part of your adapters name (e.g. VIA here)."
-    );
-
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Enable Ethernet passthrough. Requires [Win]Pcap.");
+    Pbool->Set_help("Enable NE2000 Ethernet emulation.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);
@@ -3922,26 +3919,65 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"AC:DE:48:88:99:AA");
-    Pstring->Set_help("The physical address the emulator will use on your network.\n"
-        "If you have multiple DOSBox-Xes running on your network,\n"
+    Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
+        "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
 
-    /* TODO: Change default to "nat" and then begin implementing support for emulating
-     *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
-     *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
-     *       can then compile NE2000 support with and without libpcap/winpcap support. */
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
+    Pstring->Set_help("The backend (pcap or slirp) used for Ethernet emulation.");
+    Pstring->SetBasic(true);
+
+    secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
+
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
-    Pstring->Set_help("Specifies which of your network interfaces is used.\n"
+    Pstring->Set_help("Specifies which of your host network interfaces is used for pcap.\n"
         "Write \'list\' here to see the list of devices from the Help\n"
         "menu (\'List network interfaces\') or from the Status Window.\n"
         "Then make your choice and put either the interface number\n"
         "(e.g. 2) or a part of your adapters name (e.g. VIA here).");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("pcaptimeout", Property::Changeable::WhenIdle,"default");
+    Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
+
+    secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
+
+    Pbool = secprop->Add_bool("restricted", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables access to the host from the guest.\n"
+        "Services such as libslirp's DHCP server will no longer work.");
+
+    Pbool = secprop->Add_bool("disable_host_loopback", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Disables guest access to the host's loopback interfaces.");
+
+    Pint = secprop->Add_int("mtu", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum transmission unit for Ethernet packets transmitted from the guest.\n"
+        "Specifying 0 will use libslirp's default MTU.");
+
+    Pint = secprop->Add_int("mru", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("The maximum recieve unit for Ethernet packets transmitted to the guest.\n"
+        "Specifying 0 will use libslirp's default MRU.");
+
+    Pstring = secprop->Add_string("ipv4_network", Property::Changeable::WhenIdle, "10.0.2.0");
+    Pstring->Set_help("The IPv4 network the guest and host services are on.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_netmask", Property::Changeable::WhenIdle, "255.255.255.0");
+    Pstring->Set_help("The netmask for the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_host", Property::Changeable::WhenIdle, "10.0.2.2");
+    Pstring->Set_help("The address of the guest on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_nameserver", Property::Changeable::WhenIdle, "10.0.2.3");
+    Pstring->Set_help("The address of the nameserver service provided by the host on the IPv4 network.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ipv4_dhcp_start", Property::Changeable::WhenIdle, "10.0.2.15");
+    Pstring->Set_help("The start address used for DHCP by the host services on the IPv4 network.");
+    Pstring->SetBasic(true);
 
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
@@ -4132,7 +4168,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("Sets the country code for country-specific date & time formats.");
+    Pstring->Set_help("The country code for date/time formats and optionally the code page for TTF output.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");

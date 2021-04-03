@@ -98,7 +98,7 @@ XCode (on macOS, from the Terminal) to target macOS
 
 First install the development tools, headers and libraries needed
 
-sudo apt install automake gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-dev libavcodec-dev libavcodec-extra libavcodec-extra58 libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev
+sudo apt install automake gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-dev libavcodec-dev libavcodec-extra libavcodec-extra58 libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev
 
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
 
@@ -112,7 +112,7 @@ Alternatively you can also compile the SDL2 version by running the ./build-debug
 First install the development tools, headers and libraries needed
 
  sudo dnf group install "C Development Tools and Libraries"
- sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libpng-devel fluidsynth-devel freetype-devel nasm
+ sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libslirp-devel libpng-devel fluidsynth-devel freetype-devel nasm
 
 If you want to be able to record video, you will also need to install ffmpeg-devel which you can get from the optional rpmfusion-free repository.
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
@@ -187,10 +187,31 @@ Libpng (optional)
     License: zlib/libpng
 
 Zlib
-    Needed by libpng, save state and CHD support.
+    Needed by libpng, and for saving state and CHD support.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See https://www.zlib.net/ for more details.
     License: zlib
+
+FreeType (optional)
+    Needed for TrueType font (TTF) output and printing support.
+    It is available from https://www.freetype.org/download.html
+    License: FTL or GPLv2+
+
+FluidSynth (optional)
+    For soundfont support.
+    It is available from https://www.fluidsynth.org/download/
+    License: LGPLv2+
+    
+libpcap (optional)
+    For pcap backend of NE2000 networking support.
+    Get it from https://www.tcpdump.org/index.html#latest-releases
+    For win32 get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
+    License: 3-clause BSD license
+
+libslirp (optional)
+    For slirp backend of NE2000 networking support.
+    Get it from https://gitlab.freedesktop.org/slirp/libslirp
+    License: Modified 4-clause BSD license
 
 SDL_Net (optional)
     For modem/ipx support.

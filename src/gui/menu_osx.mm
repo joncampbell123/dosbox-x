@@ -31,6 +31,13 @@ void GetClipboard(std::string* result) {
 	*result = std::string([text UTF8String]);
 }
 
+bool SetClipboard(std::string value) {
+	NSPasteboard* pb = [NSPasteboard generalPasteboard];
+	NSString* text = [NSString stringWithUTF8String:value.c_str()];
+	[pb clearContents];
+	return [pb setString:text forType:NSStringPboardType];
+}
+
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
 	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
 	return (ns_item != nil) ? ns_item : NULL;

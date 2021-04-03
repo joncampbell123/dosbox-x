@@ -1,7 +1,7 @@
 :NE2000_CONFIGFILE_HELP
 macaddr -- La direcci¢n fisica que usar  el emulador dentro de tu red.
            Si tienes varios Dosbox abiertos en tu propia red, tienes
-           que cambiarla. Modifica los tres ultimos bloques de digitos.
+           que cambiarla. Modifica los tres £ltimos bloques de digitos.
            E.j. AC:DE:48:88:99:AB.
 realnic -- Especifica el interfaz de red real a utilizar.
            Escribe 'list' aqui para ver la lista de adaptadores en la
@@ -16,7 +16,7 @@ Puedes poner tus l¡neas MOUNT aqui.
 
 .
 :CONFIGFILE_INTRO
-# Este es el archivo de configuraci¢n de DOSBox-X %s. (Usa la £ltima version si puedes)
+# Este es el archivo de configuraci¢n de DOSBox-X %s. (Usa la £ltima versi¢n si puedes)
 # Las l¡neas que empiezan por # son l¡neas de comentarios y son ignoradas por DOSBox-X.
 # Estas l¡neas se usan para documentar (brevemente) el efecto de cada opcion.
 # Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.
@@ -24,6 +24,9 @@ Puedes poner tus l¡neas MOUNT aqui.
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
+.
+:EMPTY_SLOT
+Slot vac¡o
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 No existe tal secci¢n o propiedad.
@@ -181,7 +184,7 @@ Controlador no instalado.
 
 .
 :PROGRAM_MOUSE_HELP
-Enciende/apaga el raton.
+Enciende/apaga el rat¢n.
 
 MOUSE [/?] [/U] [/V]
   /U: Desinstala de la memoria
@@ -318,11 +321,11 @@ Las unidades virtuales no pueden ser desmontadas (unMOUNTed).
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-[31;1mMontar C:\ NO esta recomendado. Monta un subdirectorio la proxima vez.[0m
+Aviso: Montar C:\ NO est  recomendado.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-[31;1mMontar / no esta recomendado. Monta un subdirectorio la proxima vez.[0m
+Aviso: Montar / no est  recomendado.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
@@ -492,13 +495,13 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	como unidad C: y ejecutara nombre.
 
 [33;1m  -exit[0m
-	DOSBox-X se cerrar  por si mismo cuando la aplicacion DOS termine.
+	DOSBox-X se cerrar  por si mismo cuando la aplicaci¢n DOS termine.
 
 [33;1m  -version[0m
-	Muestra la informaci¢n de version y se sale. Util para los frontends.
+	Muestra la informaci¢n de versi¢n y se sale. Util para los frontends.
 
 [33;1m  -fastlaunch[0m
-	Habilita el modo de ejecucion rapida (salta BIOS/LOGO/BIENVENIDA).
+	Habilita el modo de ejecucion r pida (salta BIOS/LOGO/BIENVENIDA).
 
 [33;1m  -fullscreen[0m
 	Inicia DOSBox-X a pantalla completa.
@@ -517,10 +520,10 @@ dosbox-x [nombre] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	El resultado se redirige a stdout.txt ystderr.txt
 
 [33;1m  -machine[0m machinetype
-	Configura DOSBox-X para emular un tipo de maquina. Opciones validas:
+	Configura DOSBox-X para emular un tipo de m quina. Opciones v lidas:
 	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
 	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (por defecto).
-	El tipo de maquina afecta a las tarjetas de sonido y de gr ficos.
+	El tipo de m quina afecta a las tarjetas de sonido y de gr ficos.
 
 .
 :PROGRAM_INTRO_USAGE_3
@@ -549,7 +552,7 @@ Para informaci¢n del soporte CD-ROM, teclee [34;1mintro cdrom[0m
 Para informaci¢n de teclas especiales, teclee [34;1mintro special[0m
 Para informaci¢n de uso, teclee [34;1mintro usage[0m
 
-Para la £ltima version de DOSBox-X, visita el sitio de Github:[34;1m
+Para la £ltima versi¢n de DOSBox-X, visita el sitio de Github:[34;1m
 
 [34;1mhttps://github.com/joncampbell123/dosbox-x[0m
 
@@ -640,7 +643,7 @@ Archivo de imagen esta en modo solo-lectura! Arranca en modo protegido.
 Este comando arranca DOSBox-X desde una imagen de disquete o de disco duro.
 
 Para este comando, puedes especificar una sucesion de disquetes intercambiables
-por el comando de menu, y drive: indica la unidad montada de la que arrancar.
+por el comando de men£, y drive: indica la unidad montada de la que arrancar.
 Si no se indica, por defecto se arranca de la unidad A.
 Las unicas letras de unidad soportadas son A, C, y D. Para iniciar de un disco duro
 (C o D), asegurate de que la imagen ya este montada antes con la orden [34;1mIMGMOUNT[0m.
@@ -675,7 +678,7 @@ No puedo abrir %s
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-Cartucho de PCjr encontrado, pero la maquina no es un PCjr
+Cartucho de PCjr encontrado, pero la m quina no es un PCjr
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
 Comandos de cartucho PCjr disponibles:%s
@@ -702,7 +705,7 @@ Archivo ROM demasiado grande.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Video BIOS no soportada por este tipo de maquina.
+Video BIOS no soportada por este tipo de m quina.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
@@ -763,7 +766,7 @@ Debes especificar el n£mero de unidad (0 a %d) para montar la imagen en (0,1=fda
 Para imagenes [33mCD-ROM[0m:   [34;1mIMGMOUNT letra-unidad ubicacion-imagen -t iso [0m
 
 Para imagenes de [33mdisco duro[0m: Debes especificar la geometria de la imagen para los discos duros:
-bytes_por_sector, sectores_por_cilindro, cabezas_por_cilindro, numero_cilindros.
+bytes_por_sector, sectores_por_cilindro, cabezas_por_cilindro, n£mero_cilindros.
 [34;1mIMGMOUNT letra-unidad ubicacion-imagen -size bps,spc,hpc,cyl[0m
 
 .
@@ -773,7 +776,7 @@ Verifica que la ruta sea correcta y la imagen sea accesible.
 
 .
 :PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Archivos VHD dinamicos no soportados.
+Archivos VHD din micos no soportados.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -1008,6 +1011,14 @@ Configura dispositivos de sistema.
 Par metro(s) no v lido(s).
 
 .
+:SHELL_CMD_TREE_ERROR
+No existen subdirectorios
+
+.
+:SHELL_CMD_VOL_TREE
+Listado de directorios del volumen %s
+
+.
 :SHELL_CMD_VOL_DRIVE
 
  Volumen en disco %c 
@@ -1064,7 +1075,7 @@ Par metro requerido no encontrado.
 
 .
 :SHELL_CMD_CHDIR_ERROR
-Incapaz de cambiar a: %s.
+Directorio inv lido - %s.
 
 .
 :SHELL_CMD_CHDIR_HINT
@@ -1130,15 +1141,15 @@ TIME [[/T] [/H] | time]
 
 .
 :SHELL_CMD_MKDIR_ERROR
-Incapaz de crear: %s.
+Incapaz de crear directorio - %s
 
 .
 :SHELL_CMD_RMDIR_ERROR
-Incapaz de eliminar: %s.
+Ruta no v lida, no es un directorio o no est  vac¡o - %s
 
 .
 :SHELL_CMD_RENAME_ERROR
-Incapaz de renombrar: %s.
+Incapaz de renombrar - %s
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
@@ -1150,7 +1161,7 @@ Incapaz de establecer atributos: %s
 
 .
 :SHELL_CMD_DEL_ERROR
-Incapaz de borrar: %s.
+Incapaz de borrar - %s
 
 .
 :SHELL_CMD_DEL_SURE
@@ -1238,10 +1249,6 @@ en tu disco duro real %c [Y/N]?
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
 ¨Quieres dar a DOSBox-X acceso a tu disco duro real %c [Y/N]?
 .
-:SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN
-Montar C:\ NO esta recomendado.
-
-.
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Comando o nombre de archivo incorrecto - "%s"
 
@@ -1259,7 +1266,7 @@ PAUSE
 
 .
 :SHELL_CMD_COPY_FAILURE
-Fallo de copia : %s.
+Fallo de copia - %s
 
 .
 :SHELL_CMD_COPY_SUCCESS
@@ -1335,8 +1342,8 @@ SUBST: Hay un error en tu l¡nea de comando.
 
 .
 :SHELL_STARTUP_HERC
- [44;1mºUsa F11 para pasar de color monocromo blanco,  mbar, y f¢sforo verde.        º
-[44;1mºUsa Alt+F11 para activar mezclado horizontal (s¢lo en modo gr fico).         º
+ [44;1mºUsa CTRL+F7 para cambiar de color monocromo blanco,  mbar, y f¢sforo verde.  º
+[44;1mºUsa CTRL+F8 para activar mezclado horizontal (s¢lo en modo gr fico).         º
 [44;1mº                                                                             º
 .
 :SHELL_STARTUP_DEBUG
@@ -1349,7 +1356,7 @@ SUBST: Hay un error en tu l¡nea de comando.
 
 [44;1mº[36mProyecto DOSBox-X en internet:[37m                                               º
 [44;1mº                                                                             º
-[44;1mº[32mPagina principal:  [37m [33mhttps://dosbox-x.com/           [36mEmulaci¢n DOS completa  [37m º
+[44;1mº[32mp gina principal:  [37m [33mhttps://dosbox-x.com/           [36mEmulaci¢n DOS completa  [37m º
 [44;1mº[32mWiki para usuarios:[37m [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x y 9x[37m    º
 [44;1mº[32mErrores e ideas:   [37m [33mhttps://github.com/joncampbell123/dosbox-x/issues    [37m    º
 [44;1mÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼[0m[1m[32m
@@ -1608,23 +1615,8 @@ ERASE [/P] [/F] [/Q] nombres
   /Q            Modo silencioso, no pide confirmaci¢n con comodines
 
 .
-:SHELL_CMD_DELTREE_HELP
-Borra un directorio, sus subdirectorios y los archivos.
-
-.
-:SHELL_CMD_DELTREE_HELP_LONG
-Para borrar uno o m s archivos y directorios;
-DELTREE [/Y] [unidad:]ruta [[unidad:]ruta[...]]
-
-  /Y              Suprime confirmaciones de borrado de subdirectorios.
-  [drive:]path    Indica el nombre del directorio que quieres borrar.
-
-Nota: Usa DELTREE con cuidado, ya que todo archivo y subdirectorio del
-interior de dicho directorio ser  borrado.
-
-.
 :SHELL_CMD_COPY_HELP
-Opia uno o m s archivos.
+Copia uno o m s archivos.
 
 .
 :SHELL_CMD_COPY_HELP_LONG
@@ -1720,6 +1712,27 @@ Teclea PATH ; para limpiar todas las configuraci¢nes de ruta de b£squeda.
 Teclea PATH sin par metros para mostrar la ruta actual.
 
 .
+:SHELL_CMD_PUSHD_HELP
+Almacena el directorio actual para uso con la orden POPD y 
+cambia al directorio especificado.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [path]
+
+path        Especifica el directorio para hacer de directorio actual.
+
+Teclea PUSHD sin par metros para listar los directorios actualmente guardados.
+
+.
+:SHELL_CMD_POPD_HELP
+Cambia al directorio almacenado por el comando PUSHD.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
 :SHELL_CMD_VERIFY_HELP
 Verifica o no la correcta escritura de los archivos en disco.
 
@@ -1738,7 +1751,7 @@ Muestra o establece la versi¢n de DOS informada por DOSBox-X.
 VER [/R]
 VER [SET] n£mero o VER SET [mayor menor]
 
-  /R                 Muestra version GIT, commit y build de DOSBox-X.
+  /R                 Muestra versi¢n GIT, commit y build de DOSBox-X.
   [SET] n£mero       Establece la versi¢n informada de DOS.
   SET [mayor menor]  Establece la versi¢n de DOS en formato mayor o menor.
 
@@ -1749,7 +1762,7 @@ Teclea VER sin par metros para mostrar versi¢n de DOSBox-X y del DOS emulada.
 
 .
 :SHELL_CMD_VER_VER
-DOSBox-X version %s (%s). Version DOS informada %d.%02d.
+DOSBox-X versi¢n %s (%s). Version DOS informada %d.%02d.
 
 .
 :SHELL_CMD_VER_INVALID
@@ -1799,8 +1812,29 @@ Define o muestra alias.
 :SHELL_CMD_ALIAS_HELP_LONG
 ALIAS [nombre[=valor] ... ]
 
-Type ALIAS without parameters to display the list of aliases in the form:
+Teclea ALIAS sin parametros para listar alias acutales en el formato:      
 `ALIAS NOMBRE = VALOR'
+
+.
+:SHELL_CMD_CHCP_HELP
+Muestra o cambia el c¢digo de p gina DOS en uso.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn]
+
+  nnn   Especifica un n£mero de c¢digo de p gina.
+
+C¢digo de p gina compatibles para cambiar la salida de fuente TrueType:
+437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+C¢digo de p gina activa: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+N£mero de c¢digo de p gina no v lido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
@@ -1874,13 +1908,13 @@ Se aceptan las siguientes opciones:
 
 .
 :MENU:mapper_reset
-Reinicia maquina virtual
+Reiniciar maquina virtual
 .
 :MENU:mapper_reboot
-Reinicia sistema invitado
+Reiniciar sistema invitado
 .
 :MENU:mapper_loadmap
-Carga archivo de mapeado...
+Cargar archivo de mapeado...
 .
 :MENU:mapper_quickrun
 Inicio rapido de programa...
@@ -1943,61 +1977,61 @@ CPU
 Nucleo de CPU (core)
 .
 :MENU:CpuTypeMenu
-Tipo de CPU
+Tipo de CPU emulada
 .
 :MENU:CpuSpeedMenu
 Velocidad de la CPU emulada
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz (~240 ciclos)
+8088 XT 4.77MHz    (~240 ciclos)
 .
 :MENU:cpu286-8
-286 8MHz (~750 ciclos)
+286 8MHz           (~750 ciclos)
 .
 :MENU:cpu286-12
-286 12MHz (~1510 ciclos)
+286 12MHz          (~1510 ciclos)
 .
 :MENU:cpu286-25
-286 25MHz (~3300 ciclos)
+286 25MHz          (~3300 ciclos)
 .
 :MENU:cpu386-25
-386DX 25MHz (~4595 ciclos)
+386DX 25MHz        (~4595 ciclos)
 .
 :MENU:cpu386-33
-386DX 33MHz (~6075 ciclos)
+386DX 33MHz        (~6075 ciclos)
 .
 :MENU:cpu486-33
-486DX 33MHz (~12010 ciclos)
+486DX 33MHz        (~12010 ciclos)
 .
 :MENU:cpu486-66
-486DX2 66MHz (~23880 ciclos)
+486DX2 66MHz       (~23880 ciclos)
 .
 :MENU:cpu486-100
-486DX4 100MHz (~33445 ciclos)
+486DX4 100MHz      (~33445 ciclos)
 .
 :MENU:cpu486-133
-486DX5 133MHz (~47810 ciclos)
+486DX5 133MHz      (~47810 ciclos)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 ciclos)
+Pentium 60MHz      (~31545 ciclos)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 ciclos)
+Pentium 66MHz      (~35620 ciclos)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 ciclos)
+Pentium 75MHz      (~43500 ciclos)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 ciclos)
+Pentium 90MHz      (~52000 ciclos)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 ciclos)
+Pentium 100MHz     (~60000 ciclos)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 ciclos)
+Pentium 120MHz     (~74000 ciclos)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 ciclos)
+Pentium 133MHz     (~80000 ciclos)
 .
 :MENU:cpu586-166
 Pentium 166MHz MMX (~97240 ciclos)
@@ -2165,7 +2199,7 @@ Activado
 Forzar
 .
 :MENU:vsync_host
-Anfitrion
+anfitrion
 .
 :MENU:vsync_off
 Desactivado
@@ -2282,7 +2316,7 @@ Opciones de PC-98
 Reloj GDC de 5 MHz
 .
 :MENU:pc98_allow_200scanline
-Permitir efecto de l¡nea de escaneo (200 l¡neas)
+Permitir efecto de linea de escaneo (200 lineas)
 .
 :MENU:pc98_allow_4partitions
 Permitir 4 particiones de visualizacion en capa grafica
@@ -2321,7 +2355,7 @@ Seleccionar sombreador fuente TrueType (TTF)...
 Sonido
 .
 :MENU:mixer_swapstereo
-Invertir estereo
+Invertir est‚reo
 .
 :MENU:mixer_mute
 Silenciar
@@ -2396,10 +2430,10 @@ Memoria expandida (EMS)
 Habilitar emulacion de EMS
 .
 :MENU:dos_ems_board
-Emulacion placa EMS
+Emulacion de placa EMS
 .
 :MENU:dos_ems_emm386
-Emulacion EMM386
+Emulacion de EMM386
 .
 :MENU:dos_ems_false
 Desactivar emulacion de EMS
@@ -2408,7 +2442,7 @@ Desactivar emulacion de EMS
 Aplicaciones anfitrion de Windows
 .
 :MENU:dos_win_autorun
-Iniciar para ejecutar en afitrion Windows
+Iniciar para ejecutar en anfitrion Windows
 .
 :MENU:dos_win_wait
 Esperar a la aplicacion si es posible
@@ -2432,7 +2466,10 @@ MPEG-TS + H.264
 Opciones de Carga / Guardado
 .
 :MENU:saveslotmenu
-Escoge slot de guardado
+Seleccionar slot de guardado
+.
+:MENU:enable_autosave
+Habilita auto-guardar estado
 .
 :MENU:noremark_savestate
 Sin indicaciones al guardar estado
@@ -2446,8 +2483,14 @@ Eliminar estado del slot seleccionado
 :MENU:refreshslot
 Actualizar estado de pantalla
 .
+:MENU:lastautosaveslot
+Selecciona el ultimo slot autoguardado
+.
 :MENU:usesavefile
-Guardar estado en un archivo en lugar de un slot
+Guardar estado en un archivo no en slot
+.
+:MENU:autosavecfg
+Auto-salvar ajustes...
 .
 :MENU:browsesavefile
 Examinar archivo guardado...
@@ -2466,36 +2509,6 @@ Ir a primera pagina de slots
 .
 :MENU:last_page
 Ir a ultima pagina de slots
-.
-:MENU:slot0
-Slot 1 [Slot vacio]
-.
-:MENU:slot1
-Slot 2 [Slot vacio]
-.
-:MENU:slot2
-Slot 3 [Slot vacio]
-.
-:MENU:slot3
-Slot 4 [Slot vacio]
-.
-:MENU:slot4
-Slot 5 [Slot vacio]
-.
-:MENU:slot5
-Slot 6 [Slot vacio]
-.
-:MENU:slot6
-Slot 7 [Slot vacio]
-.
-:MENU:slot7
-Slot 8 [Slot vacio]
-.
-:MENU:slot8
-Slot 9 [Slot vacio]
-.
-:MENU:slot9
-Slot 10 [Slot vacio]
 .
 :MENU:DriveMenu
 Unidad
@@ -3617,7 +3630,7 @@ Ayuda
 Introduccion
 .
 :MENU:help_homepage
-Pagina de DOSBox-X
+pagina de DOSBox-X
 .
 :MENU:help_wiki
 Guia Wiki de DOSBox-X
@@ -3703,14 +3716,14 @@ CALL
 :MENU:command_CHOICE
 CHOICE
 .
+:MENU:command_CHCP
+CHCP
+.
 :MENU:command_COUNTRY
 COUNTRY
 .
 :MENU:command_CTTY
 CTTY
-.
-:MENU:command_DELTREE
-DELTREE
 .
 :MENU:command_FOR
 FOR
@@ -3754,6 +3767,12 @@ SUBST
 :MENU:command_VERIFY
 VERIFY
 .
+:MENU:command_PUSHD
+PUSHD
+.
+:MENU:command_POPD
+POPD
+.
 :MENU:command_TRUENAME
 TRUENAME
 .
@@ -3776,7 +3795,7 @@ Editor de mapeador
 Activar bloqueo de velocidad
 .
 :MENU:mapper_speedlock2
-Turbo (Avance rapido)
+Modo Turbo   (Avance rapido)
 .
 :MENU:mapper_speednorm
 Normal
@@ -3785,10 +3804,10 @@ Normal
 Acelerar
 .
 :MENU:mapper_slowdown
-Desacelerar
+Ralentizar
 .
 :MENU:mapper_editcycles
-Editar ciclos
+Ajustar ciclos de CPU
 .
 :MENU:mapper_savestate
 Guardar estado
@@ -3797,7 +3816,7 @@ Guardar estado
 Cargar estado
 .
 :MENU:mapper_showstate
-Mostrar informacion de estado del slot actual
+Mostrar informacion del slot actual
 .
 :MENU:mapper_prevslot
 Seleccionar slot de guardado anterior
@@ -3809,7 +3828,7 @@ Seleccionar slot de guardado posterior
 Mostrar / Ocultar barra de menu
 .
 :MENU:mapper_pauseints
-Pausa con interrupciones habilitadas
+Pausar con interrupciones habilitadas
 .
 :MENU:mapper_decfskip
 Disminuir salto de fotogramas
@@ -3970,6 +3989,9 @@ Habilitar acceso al dispositivo del portapapeles DOS: CLIP$
 :MENU:clipboard_dosapi
 Habilitar la API del portapapeles DOS para aplicaciones
 .
+:MENU:clipboard_biospaste
+Usar funcion de BIOS para pegar del portapapeles
+.
 :MENU:sendkey_winlogo
 Enviar tecla de logo
 .
@@ -4022,13 +4044,13 @@ Convertir a cursores arriba / abajo
 Convertir a cursores izquierda / derecha
 .
 :MENU:wheel_pageupdown
-Convertir a RePag / AvPag keys
+Convertir a teclas RePag / AvPag
 .
 :MENU:wheel_none
 No convertir a cursores
 .
 :MENU:wheel_guest
-Habilitar tambien para sistemas invitados
+Habilitar tambi‚n para sistemas invitados
 .
 :MENU:doublebuf
 Bufer doble a pantalla completa
@@ -4043,7 +4065,7 @@ Habilitar High DPI
 Sincronizar fecha y hora con anfitrion
 .
 :MENU:shell_config_commands
-Opciones de config como comandos
+Opciones de configuracion como comandos
 .
 :MENU:quick_reboot
 Habilitar reinicio rapido
@@ -4052,10 +4074,10 @@ Habilitar reinicio rapido
 Crear imagen de disco en blanco...
 .
 :MENU:list_drivenum
-Mostrar numeros de unidades montadas
+Mostrar numero de las unidades montadas
 .
 :MENU:list_ideinfo
-Mostrar estado de disco IDE disk o CD
+Mostrar estado de disco IDE o CD
 .
 :MENU:pc98_use_uskb
 Usar distribucion de teclado US

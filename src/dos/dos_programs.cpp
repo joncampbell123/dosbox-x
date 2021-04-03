@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,6 +77,7 @@ bool startwait = true;
 bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
+bool nowarn = false;
 extern bool mountfro[26], mountiro[26];
 
 void DOS_EnableDriveMenu(char drv);
@@ -1188,7 +1189,7 @@ public:
                 }
             } else {
                 /* Give a warning when mount c:\ or the / */
-                if (mountwarning && !quiet) {
+                if (mountwarning && !quiet && !nowarn) {
 #if defined (WIN32) || defined(OS2)
                     if( (temp_line == "c:\\") || (temp_line == "C:\\") ||
                         (temp_line == "c:/") || (temp_line == "C:/")    )
@@ -3570,16 +3571,36 @@ public:
 
 bool XMS_Active(void);
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
+Bitu XMS_FreeMemory(Bitu handle);
+uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages);
+uint8_t EMM_ReleaseMemory(uint16_t handle);
+bool EMS_Active(void);
+
+/* HIMEM.SYS does not store who owns what block, so for -D or -F to work,
+ * we need to keep track of handles ourself */
+std::vector<uint16_t>       LOADFIX_xms_handles;
+std::vector<uint16_t>       LOADFIX_ems_handles;
+
+void LOADFIX_OnDOSShutdown(void) {
+    LOADFIX_xms_handles.clear();
+    LOADFIX_ems_handles.clear();
+}
 
 void LOADFIX::Run(void) 
 {
     uint16_t commandNr  = 1;
     Bitu kb             = 64;
     bool xms            = false;
+    bool ems            = false;
     bool opta           = false;
 
     if (cmd->FindExist("-xms",true) || cmd->FindExist("/xms",true)) {
         xms = true;
+        kb = 1024;
+    }
+
+    if (cmd->FindExist("-ems",true) || cmd->FindExist("/ems",true)) {
+        ems = true;
         kb = 1024;
     }
 
@@ -3596,8 +3617,21 @@ void LOADFIX::Run(void)
             char ch = temp_line[1];
             if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
                 // Deallocate all
-                if (xms) {
-                    WriteOut("XMS deallocation not yet implemented\n");
+                if (ems) {
+                    for (auto i=LOADFIX_ems_handles.begin();i!=LOADFIX_ems_handles.end();i++) {
+                        if (EMM_ReleaseMemory(*i))
+                            WriteOut("XMS handle %u: unable to free",*i);
+                    }
+                    LOADFIX_ems_handles.clear();
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
+                }
+                else if (xms) {
+                    for (auto i=LOADFIX_xms_handles.begin();i!=LOADFIX_xms_handles.end();i++) {
+                        if (XMS_FreeMemory(*i))
+                            WriteOut("XMS handle %u: unable to free",*i);
+                    }
+                    LOADFIX_xms_handles.clear();
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
                 }
                 else {
                     DOS_FreeProcessMemory(0x40);
@@ -3614,7 +3648,28 @@ void LOADFIX::Run(void)
     }
 
     // Allocate Memory
-    if (xms) {
+    if (ems) {
+        if (EMS_Active()) {
+            uint16_t handle;
+            Bitu err;
+
+            /* EMS allocates in 16kb increments */
+            kb = (kb + 15u) & (~15u);
+
+            err = EMM_AllocateMemory(kb/16u/*16KB pages*/,/*&*/handle,false);
+            if (err == 0) {
+                WriteOut("EMS block allocated (%uKB)\n",kb);
+                LOADFIX_ems_handles.push_back(handle);
+            }
+            else {
+                WriteOut("Unable to allocate EMS block\n");
+            }
+        }
+        else {
+            WriteOut("EMS not active\n");
+        }
+    }
+    else if (xms) {
         if (XMS_Active()) {
             uint16_t handle;
             Bitu err;
@@ -3622,6 +3677,7 @@ void LOADFIX::Run(void)
             err = XMS_AllocateMemory(kb,/*&*/handle);
             if (err == 0) {
                 WriteOut("XMS block allocated (%uKB)\n",kb);
+                LOADFIX_xms_handles.push_back(handle);
             }
             else {
                 WriteOut("Unable to allocate XMS block\n");
@@ -3636,10 +3692,17 @@ void LOADFIX::Run(void)
         uint16_t blocks = (uint16_t)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
             DOS_MCB mcb((uint16_t)(segment-1));
-            if (opta && segment < 0x1000) {
-                uint16_t needed = 0x1000 - segment;
-                if (DOS_ResizeMemory(segment,&needed))
-                    kb=needed*16/1024;
+            if (opta) {
+                if (segment < 0x1000) {
+                    uint16_t needed = 0x1000 - segment;
+                    if (DOS_ResizeMemory(segment,&needed))
+                        kb=needed*16/1024;
+                }
+                else {
+                    DOS_FreeMemory(segment);
+                    WriteOut("Lowest MCB is above 64KB, nothing allocated\n");
+                    return;
+                }
             }
             mcb.SetPSPSeg(0x40);            // use fake segment
             WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
@@ -6156,9 +6219,9 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Generates artificial keypresses.\n\nADDKEY [key]\n\n"
-            "For example, the command below will type \"dir\" followed by ENTER.\n\nADDKEY d i r enter\n\n"
-            "Instead of using this command, you can also try AUTOTYPE command.  AUTOTYPE can\nperform scripted keyboard entry into a running DOS program.\n";
+            "Generates artificial keypresses.\n\nADDKEY [pmsec] [key]\n\n"
+            "For example, the command below types \"dir\" followed by ENTER after 1 second:\n\nADDKEY p1000 d i r enter\n\n"
+            "You could also try AUTOTYPE command instead of this command to perform\nscripted keyboard entry into a running DOS program.\n";
         WriteOut(msg);
 	}
 };
@@ -6994,8 +7057,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting C:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
-    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_WIN","Warning: Mounting C:\\ is not recommended.\n");
+    MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","Warning: Mounting / is not recommended.\n");
 	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
@@ -7010,9 +7073,10 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Reduces the amount of available conventional or XMS memory.\n\n"
-        "LOADFIX [-xms] [-{ram}] [{program}] [{options}]\n"
-        "LOADFIX -f [-xms]\n\n"
+        "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
+        "LOADFIX -f [-xms] [-ems]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
+        "  -ems        Allocates memory from EMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
         "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"

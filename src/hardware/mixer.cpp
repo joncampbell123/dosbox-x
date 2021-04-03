@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1006,9 +1006,14 @@ public:
 
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Displays or changes the current sound mixer volumes.\n\nMIXER [option]\n");
+			WriteOut("Displays or changes the current sound mixer volumes.\n\nMIXER [/GUI|/NOSHOW] [/LISTMIDI [handler]] [MASTER volume] [RECORD volume]\n");
             return;
 		}
+        if(cmd->FindString("/LISTMIDI",temp_line,true)) {
+            void MIDI_ListHandler(Program *caller, const char *name);
+            MIDI_ListHandler(this, temp_line.c_str());
+            return;
+        }
         if(cmd->FindExist("/LISTMIDI")) {
             ListMidi();
             return;
@@ -1027,12 +1032,24 @@ public:
             chan->UpdateVolume();
             chan=chan->next;
         }
-        if (cmd->FindExist("/NOSHOW")) return;
-        WriteOut(mixerinfo().c_str());
+        if (cmd->FindExist("/NOSHOW"))
+            return;
+        else if (cmd->FindExist("/GUI")) {
+            void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+            GUI_Shortcut(20);
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+        } else
+            WriteOut(mixerinfo().c_str());
     }
 private:
     void ListMidi(){
-        if(midi.handler) midi.handler->ListAll(this);
+        if(midi.handler) {
+            WriteOut("MIDI handler: %s\n", midi.handler->GetName());
+            midi.handler->ListAll(this);
+        }
     };
 };
 

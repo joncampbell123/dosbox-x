@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -593,6 +593,11 @@ static inline bool GFX_IsFullscreen(void) {
 }
 #endif
 
+void KEYBOARD_AUX_LowerIRQ() {
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,false);
+}
+
 extern int  user_cursor_x,  user_cursor_y;
 extern int  user_cursor_sw, user_cursor_sh;
 extern bool user_cursor_locked;
@@ -637,7 +642,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     } else if (CurMode != NULL) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8;
-            mouse.y = y*(real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1)*8;
+            mouse.y = y*(IS_EGAVGA_ARCH?(real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1):25)*8;
         /* NTS: DeluxePaint II enhanced sets a large range (5112x3832) for VGA mode 0x12 640x480 16-color */
         } else {
             if ((mouse.max_x > 0) && (mouse.max_y > 0)) {
@@ -709,7 +714,7 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 #include "render.h"
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
@@ -1044,7 +1049,7 @@ void Mouse_AfterNewVideoMode(bool setmode) {
             mouse.max_y = 400 - 1;
         }
         else {
-            Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
+            Bitu rows = IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24;
             if ((rows == 0) || (rows > 250)) rows = 25 - 1;
             mouse.max_y = 8*(rows+1) - 1;
         }

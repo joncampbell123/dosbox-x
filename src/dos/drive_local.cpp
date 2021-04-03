@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1923,6 +1923,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	return bRet;
 }
 
+extern const char* RunningProgram;
 bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
@@ -1937,11 +1938,12 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
         int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
-        if (dwPtr != INVALID_SET_FILE_POINTER)											// If success
-            {
+        if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
+            dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
+        if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success
             *pos = (uint32_t)dwPtr;
             return true;
-            }
+        }
         DOS_SetError((uint16_t)GetLastError());
         return false;
     }

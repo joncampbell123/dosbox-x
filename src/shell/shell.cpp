@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "support.h"
 #include "builtin.h"
 #include "mapper.h"
+#include "render.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include <unistd.h>
@@ -113,7 +114,7 @@ void MountAllDrives(Program * program) {
                 strcat(mountstring," -Q");
                 runMount(mountstring);
                 if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
-                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
             }
         }
     }
@@ -589,7 +590,23 @@ void DOS_Shell::Run(void) {
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
-			int country = atoi(section->Get_string("country"));
+			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+			int country = 0;
+			if (r==NULL || !*(r+1))
+				country = atoi(trim(countrystr));
+			else {
+				*r=0;
+				country = atoi(trim(countrystr));
+				int newCP = atoi(trim(r+1));
+				*r=',';
+#if defined(USE_TTF)
+                if (ttf.inUse && !IS_PC98_ARCH) {
+                    void toSetCodePage(DOS_Shell *shell, int newCP);
+                    if (newCP) toSetCodePage(this, newCP);
+                    else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                }
+#endif
+            }
 			if (country>0) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
@@ -1061,7 +1078,6 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK","Do you want to give DOSBox-X access to your real network drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS","Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Bad command or filename - \"%s\"\n");
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");
@@ -1120,7 +1136,8 @@ void SHELL_Init() {
                 "\x86\x46 \033[36mGetting Started with DOSBox-X:\033[37m                                     \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction.  \x86\x46\n"
-                "\x86\x46 You can also complete various tasks through the \033[33mdrop-down menus\033[37m.   \x86\x46\n"
+                "\x86\x46 You could also complete various tasks through the \033[33mdrop-down menus\033[37m. \x86\x46\n"
+                "\x86\x46 \033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n");
         MSG_Add("SHELL_STARTUP_BEGIN2",
                     (std::string("\x86\x46 To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string(" \x86\x46\n")).c_str()
@@ -1168,22 +1185,20 @@ void SHELL_Init() {
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction. \xBA\033[0m"
                 "\033[44;1m\xBA You can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_BEGIN2",
-                (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
+                IS_VGA_ARCH?"\033[44;1m\xBA \033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option. \xBA\033[0m":"");
+        MSG_Add("SHELL_STARTUP_BEGIN3",
+                (std::string("\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
                 (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
-        MSG_Add("SHELL_STARTUP_BEGIN3",
-                ""
-               );
         if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                                        \xBA\033[0m"
-                    "\033[44;1m\xBA Use \033[31mCtrl+F8\033[37m to set composite output ON, OFF, or AUTO (default).              \xBA\033[0m"
-                    "\033[44;1m\xBA \033[31mCtrl+Shift+[F7/F8]\033[37m changes hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.        \xBA\033[0m"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF. \xBA\033[0m"
+                    "\033[44;1m\xBA Use \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.  \xBA\033[0m"
                     "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         } else {
@@ -1415,6 +1430,8 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n");
+	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
+	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
