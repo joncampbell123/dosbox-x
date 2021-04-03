@@ -7073,9 +7073,10 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Reduces the amount of available conventional or XMS memory.\n\n"
-        "LOADFIX [-xms] [-{ram}] [{program}] [{options}]\n"
-        "LOADFIX -f [-xms]\n\n"
+        "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
+        "LOADFIX -f [-xms] [-ems]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
+        "  -ems        Allocates memory from EMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
         "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
