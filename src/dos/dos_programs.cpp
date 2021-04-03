@@ -3572,13 +3572,18 @@ public:
 bool XMS_Active(void);
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
 Bitu XMS_FreeMemory(Bitu handle);
+uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages);
+uint8_t EMM_ReleaseMemory(uint16_t handle);
+bool EMS_Active(void);
 
 /* HIMEM.SYS does not store who owns what block, so for -D or -F to work,
  * we need to keep track of handles ourself */
 std::vector<uint16_t>       LOADFIX_xms_handles;
+std::vector<uint16_t>       LOADFIX_ems_handles;
 
 void LOADFIX_OnDOSShutdown(void) {
     LOADFIX_xms_handles.clear();
+    LOADFIX_ems_handles.clear();
 }
 
 void LOADFIX::Run(void) 
@@ -3586,10 +3591,16 @@ void LOADFIX::Run(void)
     uint16_t commandNr  = 1;
     Bitu kb             = 64;
     bool xms            = false;
+    bool ems            = false;
     bool opta           = false;
 
     if (cmd->FindExist("-xms",true) || cmd->FindExist("/xms",true)) {
         xms = true;
+        kb = 1024;
+    }
+
+    if (cmd->FindExist("-ems",true) || cmd->FindExist("/ems",true)) {
+        ems = true;
         kb = 1024;
     }
 
@@ -3606,7 +3617,15 @@ void LOADFIX::Run(void)
             char ch = temp_line[1];
             if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
                 // Deallocate all
-                if (xms) {
+                if (ems) {
+                    for (auto i=LOADFIX_ems_handles.begin();i!=LOADFIX_ems_handles.end();i++) {
+                        if (EMM_ReleaseMemory(*i))
+                            WriteOut("XMS handle %u: unable to free",*i);
+                    }
+                    LOADFIX_ems_handles.clear();
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
+                }
+                else if (xms) {
                     for (auto i=LOADFIX_xms_handles.begin();i!=LOADFIX_xms_handles.end();i++) {
                         if (XMS_FreeMemory(*i))
                             WriteOut("XMS handle %u: unable to free",*i);
@@ -3629,7 +3648,28 @@ void LOADFIX::Run(void)
     }
 
     // Allocate Memory
-    if (xms) {
+    if (ems) {
+        if (EMS_Active()) {
+            uint16_t handle;
+            Bitu err;
+
+            /* EMS allocates in 16kb increments */
+            kb = (kb + 15u) & (~15u);
+
+            err = EMM_AllocateMemory(kb/16u/*16KB pages*/,/*&*/handle,false);
+            if (err == 0) {
+                WriteOut("EMS block allocated (%uKB)\n",kb);
+                LOADFIX_ems_handles.push_back(handle);
+            }
+            else {
+                WriteOut("Unable to allocate EMS block\n");
+            }
+        }
+        else {
+            WriteOut("EMS not active\n");
+        }
+    }
+    else if (xms) {
         if (XMS_Active()) {
             uint16_t handle;
             Bitu err;
