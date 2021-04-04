@@ -460,6 +460,24 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 }
 #endif
 
+std::string newstr="";
+std::string GetNewStr(const char *str) {
+    newstr = str?std::string(str):"";
+#if defined(WIN32)
+    if (str&&dos.loaded_codepage!=437) {
+        char *temp = NULL;
+        wchar_t* wstr = NULL;
+        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, NULL, 0);
+        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, wstr, reqsize)==reqsize) {
+            reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
+            if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
+                newstr = std::string(temp);
+        }
+    }
+#endif
+    return newstr;
+}
+
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string str(1, drive);
 	std::string drive_warn;
@@ -483,38 +501,41 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
     char const * lTheOpenFileName;
-    std::string files="";
+    std::string files="", fname="";
     if (arc) {
         const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
         const char *lFilterDescription = "Archive files (*.zip, *.7z)";
         lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"",4,lFilterPatterns,lFilterDescription,0);
+        if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
     } else {
         const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS"};
         const char *lFilterDescription = "Disk/CD image files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins)";
         lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",22,lFilterPatterns,lFilterDescription,multiple?1:0);
-        if (multiple&&lTheOpenFileName) {
+        if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
+        if (multiple&&fname.size()) {
             files += "\"";
-            for (int i=0; i<strlen(lTheOpenFileName); i++)
-                files += lTheOpenFileName[i]=='|'?"\" \"":std::string(1,lTheOpenFileName[i]);
+            for (int i=0; i<fname.size(); i++)
+                files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
             files += "\" ";
         }
         while (multiple&&lTheOpenFileName&&tinyfd_messageBox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
             lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
             if (lTheOpenFileName) {
+                fname = GetNewStr(lTheOpenFileName);
                 files += "\"";
-                for (int i=0; i<strlen(lTheOpenFileName); i++)
-                    files += lTheOpenFileName[i]=='|'?"\" \"":std::string(1,lTheOpenFileName[i]);
+                for (int i=0; i<fname.size(); i++)
+                    files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
                 files += "\" ";
             }
         }
     }
 
-	if (lTheOpenFileName||files.size()) {
+    if (fname.size()||files.size()) {
         char type[15];
         if (!arc&&!files.size()) {
             char ext[5] = "";
-            if (strlen(lTheOpenFileName)>4)
-                strcpy(ext, lTheOpenFileName+strlen(lTheOpenFileName)-4);
+            if (fname.size()>4)
+                strcpy(ext, fname.substr(fname.size()-4).c_str());
             if(!strcasecmp(ext,".ima"))
                 strcpy(type,"-t floppy ");
             else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")))
@@ -530,7 +551,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		temp_str[1]=' ';
 		strcat(mountstring,temp_str);
 		if (!multiple) strcat(mountstring,"\"");
-		strcat(mountstring,files.size()?files.c_str():lTheOpenFileName);
+		strcat(mountstring,files.size()?files.c_str():fname.c_str());
 		if (!multiple) strcat(mountstring,"\"");
 		if (mountiro[drive-'A']) strcat(mountstring," -ro");
 		if (boot) strcat(mountstring," -u");
@@ -554,8 +575,8 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 			tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
 		} else if (multiple) {
-			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+":\n"+files+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
-		} else {
+			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
+		} else if (lTheOpenFileName) {
 			tinyfd_messageBox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		}
 	}
@@ -587,7 +608,7 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
     else if(drive_type=="LOCAL")
         title += " as Local";
     char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
-    if (lTheSelectFolderName) MountHelper(drive,lTheSelectFolderName,drive_type);
+    if (lTheSelectFolderName) MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
 #endif
 }
 
