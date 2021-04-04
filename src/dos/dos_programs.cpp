@@ -1075,7 +1075,11 @@ public:
 #endif
 
             bool useh = false;
+#if defined (WIN32)
             ht_stat_t htest;
+#else
+            struct stat htest;
+#endif
 #if defined (WIN32) || defined(OS2)
             /* Removing trailing backslash if not root dir so stat will succeed */
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
