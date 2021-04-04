@@ -142,13 +142,13 @@ uint32_t clipSize = 0, cPointer = 0, fPointer;
 
 #if defined(WIN32)
 void Unicode2Ascii(const uint16_t* unicode) {
-	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
+	int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
 		return;
 	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
 		return;
 	// Untranslated characters will be set to 0x07 (BEL), and later stripped
-	if (WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
+	if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
 		{																			// Can't actually happen of course
 		free(clipAscii);
 		clipAscii = NULL;
