@@ -1,4 +1,6 @@
 0.83.13
+  - DOSBox-X will now show the folder mounted after
+    mounting to a drive from the menu. (Wengier)
   - Fixed MOUNT and IMGMOUNT commands unable to mount
     directories or image files that contain non-ASCII
     characters in the code page on Windows. (Wengier)

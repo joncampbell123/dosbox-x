@@ -608,7 +608,10 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
     else if(drive_type=="LOCAL")
         title += " as Local";
     char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
-    if (lTheSelectFolderName) MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
+    if (lTheSelectFolderName) {
+        MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
+        if (Drives[drive-'A']) tinyfd_messageBox("Information",("Drive "+std::string(1,drive)+" is now mounted to:\n"+std::string(lTheSelectFolderName)).c_str(),"ok","info", 1);
+    }
 #endif
 }
 
