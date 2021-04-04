@@ -4713,12 +4713,15 @@ private:
 			char fullname[CROSS_LEN];
 			char tmp[CROSS_LEN];
 			safe_strncpy(tmp, wpcolon&&commandLine.length()>1&&commandLine[0]==':'?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
-#if defined(WIN32)
-            ht_stat_t test;
-            const host_cnv_char_t* host_name = CodePageGuestToHost(tmp);
-            if (pref_stat(tmp, &test) && (host_name == NULL || ht_stat(host_name, &test))) {
-#else
+            bool useh = false;
             pref_struct_stat test;
+#if defined(WIN32)
+            ht_stat_t htest;
+            const host_cnv_char_t* host_name = CodePageGuestToHost(tmp);
+            if (pref_stat(tmp, &test) && (host_name == NULL || ht_stat(host_name, &htest))) {
+                if (pref_stat(tmp, &test) && host_name != NULL) useh = true;
+#else
+            pref_struct_stat htest;
             if (pref_stat(tmp, &test)) {
 #endif
                 //See if it works if the ~ are written out
@@ -4751,7 +4754,7 @@ private:
                     }
                 }
             }
-            if (S_ISDIR(test.st_mode)&&!usedef) {
+            if (S_ISDIR(useh?htest.st_mode:test.st_mode)&&!usedef) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
                 return false;
             }
