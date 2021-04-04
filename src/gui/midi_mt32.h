@@ -8,6 +8,7 @@
 #define MT32EMU_EXPORTS_TYPE 1
 #include <mt32emu.h>
 
+std::string mt32info = "";
 static const Bitu MILLIS_PER_SECOND = 1000;
 
 class RingBuffer {
@@ -100,6 +101,7 @@ private:
 		} else {
 			roms += "CM32L_PCM.ROM";
 		}
+		mt32info="ROM directory: "+romDir+"\n  ROM pair: "+roms;
 		LOG_MSG("MT32: Found ROM pair in %s: %s", romDir.c_str(), roms.c_str());
 		return true;
 	}
@@ -371,6 +373,10 @@ public:
         } else {
             service->playSysex(sysex, (MT32Emu::uint32_t)len);
         }
+	}
+
+	void ListAll(Program* base) {
+		base->WriteOut("  %s\n",mt32info.c_str());
 	}
 };
 
