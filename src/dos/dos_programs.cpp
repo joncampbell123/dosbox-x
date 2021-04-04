@@ -58,6 +58,15 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
+# if defined(__MINGW32__)
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64
+#  define ht_stat(x,y) _wstat64(x,y)
+# endif
+typedef wchar_t host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
 #if !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
@@ -1065,6 +1074,8 @@ public:
             }
 #endif
 
+            bool useh = false;
+            ht_stat_t htest;
 #if defined (WIN32) || defined(OS2)
             /* Removing trailing backslash if not root dir so stat will succeed */
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
@@ -1072,7 +1083,10 @@ public:
             if (!is_physfs && stat(temp_line.c_str(),&test)) {
 #endif
 #if defined(WIN32)
-// Nothing to do here.
+                const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
+                if (host_name != NULL && !ht_stat(host_name, &htest)) failed = false;
+                useh = true;
+            }
 #elif defined (OS2)
                 if (temp_line.size() <= 2) // Seems to be a drive.
                 {
@@ -1091,7 +1105,6 @@ public:
                     }
                 }
             }
-            if (failed) {
 #else
             if (!is_physfs && stat(temp_line.c_str(),&test)) {
                 failed = true;
@@ -1099,13 +1112,13 @@ public:
                 //Try again after resolving ~
                 if(!stat(temp_line.c_str(),&test)) failed = false;
             }
-            if(failed) {
 #endif
+            if(failed) {
                 if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_1"),temp_line.c_str());
                 return;
             }
             /* Not a switch so a normal directory/file */
-            if (!is_physfs && !S_ISDIR(test.st_mode)) {
+            if (!is_physfs && !S_ISDIR(useh?htest.st_mode:test.st_mode)) {
 #ifdef OS2
                 HFILE cdrom_fd = 0;
                 ULONG ulAction = 0;
@@ -1440,6 +1453,10 @@ FILE * fopen_lock(const char * fname, const char * mode) {
     if (lockmount && strlen(mode)>1&&mode[strlen(mode)-1]=='+') {
 #if defined(WIN32)
         HANDLE hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            const host_cnv_char_t* host_name = CodePageGuestToHost(fname);
+            if (host_name != NULL) hFile = CreateFileW(host_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        }
         if (hFile == INVALID_HANDLE_VALUE) return NULL;
         int nHandle = _open_osfhandle((intptr_t)hFile, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(hFile);return NULL;}
@@ -1455,8 +1472,20 @@ FILE * fopen_lock(const char * fname, const char * mode) {
             return NULL;
         }
 #endif
-    } else
+    } else {
         retfile = fopen64(fname, mode);
+#if defined(WIN32)
+        if (retfile == NULL) {
+            const host_cnv_char_t* host_name = CodePageGuestToHost(fname);
+            if (host_name != NULL) {
+                const size_t size = strlen(mode)+1;
+                wchar_t* wmode = new wchar_t[size];
+                mbstowcs (wmode, mode, size);
+                retfile = _wfopen(host_name, wmode);
+            }
+        }
+#endif
+    }
     return retfile;
 }
 
@@ -4653,11 +4682,17 @@ private:
 				return exist && drive - 'A' != DOS_GetDefaultDrive();
 			}
 
-            pref_struct_stat test;
 			char fullname[CROSS_LEN];
 			char tmp[CROSS_LEN];
 			safe_strncpy(tmp, wpcolon&&commandLine.length()>1&&commandLine[0]==':'?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
+#if defined(WIN32)
+            ht_stat_t test;
+            const host_cnv_char_t* host_name = CodePageGuestToHost(tmp);
+            if (pref_stat(tmp, &test) && (host_name == NULL || ht_stat(host_name, &test))) {
+#else
+            pref_struct_stat test;
             if (pref_stat(tmp, &test)) {
+#endif
                 //See if it works if the ~ are written out
                 std::string homedir(commandLine);
                 Cross::ResolveHomedir(homedir);
@@ -5227,6 +5262,12 @@ private:
     bool DetectGeometry(FILE * file, const char* fileName, Bitu sizes[]) {
         bool yet_detected = false, readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
         FILE * diskfile = file==NULL?fopen64(readonly?fileName+1:fileName, "rb"):file;
+#if defined(WIN32)
+        if (!diskfile && file==NULL) {
+            const host_cnv_char_t* host_name = CodePageGuestToHost(readonly?fileName+1:fileName);
+            if (host_name != NULL) diskfile = _wfopen(host_name, L"rb");
+        }
+#endif
         if (!diskfile) {
             if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
             return false;
@@ -6996,7 +7037,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
-    MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
+    MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s does not exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_IMGMOUNT","To mount image files, use the \033[34;1mIMGMOUNT\033[0m command, not the \033[34;1mMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");

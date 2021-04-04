@@ -1,4 +1,7 @@
 0.83.13
+  - Fixed MOUNT and IMGMOUNT commands unable to mount
+    directories or image files that contain non-ASCII
+    characters in the code page on Windows. (Wengier)
   - Debugger "DOS XMS" command will only list handles
     that are allocated, or with nonzero address or
     nonzero size, to avoid showing irrelevant

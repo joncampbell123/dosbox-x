@@ -222,8 +222,23 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 	}
 	
 	// Detect ISO
-	struct pref_stat file_stat;
+#if defined(WIN32)
+# if defined(__MINGW32__)
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64
+#  define ht_stat(x,y) _wstat64(x,y)
+# endif
+    ht_stat_t file_stat;
+    typedef wchar_t host_cnv_char_t;
+    host_cnv_char_t *CodePageGuestToHost(const char *s);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(path);
+    if (((pref_stat(path, &file_stat) == 0) || (host_name != NULL && ht_stat(host_name, &file_stat)) == 0) && (file_stat.st_mode & S_IFREG)) return 1;
+#else
+    struct pref_stat file_stat;
 	if ((pref_stat(path, &file_stat) == 0) && (file_stat.st_mode & S_IFREG)) return 1;
+#endif
 	return 2;
 }
 
