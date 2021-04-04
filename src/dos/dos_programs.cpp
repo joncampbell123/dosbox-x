@@ -469,8 +469,8 @@ std::string GetNewStr(const char *str) {
         wchar_t* wstr = NULL;
         int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, NULL, 0);
         if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, wstr, reqsize)==reqsize) {
-            reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
-            if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
+            reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
+            if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
                 newstr = std::string(temp);
         }
     }
