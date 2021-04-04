@@ -29,6 +29,7 @@ BuildRequires: SDL2_net-devel
 BuildRequires: zlib-devel
 
 Requires:      fluid-soundfont-gm
+Requires:      hicolor-icon-theme
 
 %description
 DOSBox-X is an open-source DOS emulator for running DOS games and applications.

@@ -57,9 +57,9 @@ Compared to DOSBox, DOSBox-X is much more flexible and provides more features.
 DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
 </p>
 	<ul>
-		<li>Emulate several PC variants: IBM PC, IBM PCjr, Tandy 1000 and NEC PC-98</li>
+		<li>Emulate several PC variants: IBM PC, IBM PCjr, Tandy 1000, Amstrad and NEC PC-98</li>
 		<li>CPUs: 8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro</li>
-		<li>Graphics chipsets: MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA</li>
+		<li>Graphics chipsets: MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA (S3 Trio64, ET3000, ET4000, Paradise)</li>
 		<li>Sound options: Sound Blaster series, Gravis Ultrasound, Disney Sound source and more audio options</li>
 		<li>MIDI: FluidSynth, Roland MT-32 and General MIDI options</li>
 		<li>Serial, Parallel and Game port support</li>
