@@ -16,6 +16,8 @@
     PS/2 mouse interrupt as part of the BIOS call.
     This should resolve unresponsive mouse issues
     with Windows 3.1. (joncampbell123)
+  - Updated FLAC decoder library to the latest version
+    (0.12.29 by David Reid). (Wengier)
 0.83.12
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
