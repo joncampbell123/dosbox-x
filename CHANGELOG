@@ -6,6 +6,9 @@
     characters in the code page on Windows. (Wengier)
   - Fixed that some games using the DOS4GW Extender
     may not work due to swap file issue. (Wengier)
+  - Fixed that the clipboard copy and paste may not
+    work when the current code page is 808 or 872
+    and you are using Windows. (Wengier)
   - The command "MIXER /LISTMIDI" now lists the ROM
     directory/files and sound fonts for MT32, Synth
     and FluidSynth MIDI device when active. (Wengier)
