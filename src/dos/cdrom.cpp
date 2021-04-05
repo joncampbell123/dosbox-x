@@ -235,7 +235,8 @@ int CDROM_GetMountType(const char* path, int forceCD) {
     typedef wchar_t host_cnv_char_t;
     host_cnv_char_t *CodePageGuestToHost(const char *s);
     const host_cnv_char_t* host_name = CodePageGuestToHost(path);
-    if (((pref_stat(path, &file_stat) == 0 && (file_stat.st_mode & S_IFREG)) || (host_name != NULL && ht_stat(host_name, &hfile_stat)) == 0) && (hfile_stat.st_mode & S_IFREG)) return 1;
+    int pstat = pref_stat(path, &file_stat), hstat = host_name == NULL ? 1 : ht_stat(host_name, &hfile_stat);
+    if ((!pstat && (file_stat.st_mode & S_IFREG)) || (pstat && !hstat && (hfile_stat.st_mode & S_IFREG))) return 1;
 #else
 	if ((pref_stat(path, &file_stat) == 0) && (file_stat.st_mode & S_IFREG)) return 1;
 #endif
