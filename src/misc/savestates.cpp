@@ -10,6 +10,7 @@
 #include "shell.h"
 #include "cross.h"
 #include "mapper.h"
+#include "control.h"
 #include "logging.h"
 #include "build_timestamp.h"
 #ifdef WIN32
@@ -1112,6 +1113,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
+    bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
     const char *save_remark = "";
 #if !defined(HX_DOS)
     if (auto_save_state)
@@ -1179,6 +1181,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 				std::string tempname = temp+"DOSBox-X_Version";
 				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
 				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
+				if (!compresssaveparts) emulatorversion << std::endl << "No compression";
 				create_version=true;
 				emulatorversion.close();
 			}
@@ -1226,7 +1229,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
-			outfile << (Util::compress(ss.str()));
+			outfile << (compresssaveparts?Util::compress(ss.str()):ss.str());
 			//compress all other saved states except position "slot"
 			//const std::vector<RawBytes>& rb = i->second.rawBytes;
 			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
@@ -1322,6 +1325,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	bool read_title=false;
 	bool read_memorysize=false;
 	bool read_machinetype=false;
+	bool decompressparts=true;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -1382,7 +1386,13 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_version.read (buffer, length);
 			check_version.close();
 			buffer[length]='\0';
-			char *p=strrchr(buffer, '\n');
+            char *p;
+			if (strstr(buffer, "\nNo compression") != NULL) {
+				decompressparts = false;
+				p=strrchr(buffer, '\n');
+                if (p!=NULL) *p=0;
+			}
+			p=strrchr(buffer, '\n');
 			if (p!=NULL) *p=0;
 			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform(true);
 			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
@@ -1514,7 +1524,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
 		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
 		std::stringstream mystream;
-		mystream << (Util::decompress(str));
+		mystream << (decompressparts?Util::decompress(str):str);
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
 			savestatecorrupt(i->first.c_str());
