@@ -994,6 +994,13 @@ esac
 
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp_h = xyes; then
+         have_slirp_lib=yes
+       fi
+    ;;
+esac
 if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
@@ -1116,12 +1123,6 @@ AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
 dnl FEATURE: Direct3D9 shaders
 AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
 AC_ARG_ENABLE(d3d-shaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
-
-# HACK: Don't enable Direct 3D 9 on SDL2
-if test -n "$SDL2_LIBS"; then
-    enable_d3d9=no
-    enable_d3d_shaders=no
-fi
 
 if test x$enable_d3d9 = xyes; then
     case "$host" in
