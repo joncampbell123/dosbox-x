@@ -1,4 +1,7 @@
 0.83.13
+  - Added "compresssaveparts" config option (in the
+    [dosbox] section) which when set to false will not
+    compress the components in saved states. (Wengier)
   - When the current reported DOS version is less than
     7.x and the user tries to mount a LBA or FAT32 disk
     image, DOSBox-X will now show a message to ask if
