@@ -618,6 +618,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
             CPU_CycleAutoAdjust = false;
             CPU_CycleMax /= 3;
             if (CPU_CycleMax<1000) CPU_CycleMax=1000;
+            GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
         }
     } else {
         LOG_MSG("Fast Forward OFF");
@@ -625,6 +626,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
         if (autoadjust) {
             autoadjust = false;
             CPU_CycleAutoAdjust = true;
+            GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
         }
     }
     GFX_SetTitle(-1,-1,-1,false);

@@ -12,6 +12,8 @@
   - Fixed MOUNT and IMGMOUNT commands unable to mount
     directories or image files that contain non-ASCII
     characters in the code page on Windows. (Wengier)
+  - Fixed the cycle information on the title bar when
+    the Turbo mode is enabled. (Wengier)
   - Fixed that some games using the DOS4GW Extender
     may not work due to swap file issue. (Wengier)
   - Fixed that the clipboard copy and paste may not
