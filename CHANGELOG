@@ -1,4 +1,9 @@
 0.83.13
+  - When the current reported DOS version is less than
+    7.x and the user tries to mount a LBA or FAT32 disk
+    image, DOSBox-X will now show a message to ask if
+    the user wants it to set the required DOS version
+    automatically and proceed. (Wengier)
   - DOSBox-X will now show the folder mounted after
     mounting to a drive from the menu. (Wengier)
   - Fixed MOUNT and IMGMOUNT commands unable to mount

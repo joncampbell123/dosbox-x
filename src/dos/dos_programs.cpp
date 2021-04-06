@@ -5154,7 +5154,7 @@ private:
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 					if (fdrive->req_ver_major>0) {
 						static char ver_msg[150];
-						sprintf(ver_msg, "Please set the reported DOS version to %u.%u or higher to mount this drive.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
+						sprintf(ver_msg, "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
                 } else {
