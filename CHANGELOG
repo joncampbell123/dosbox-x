@@ -1,4 +1,7 @@
 0.83.13
+  - ANSI.SYS emulaion now supports the "Device Status
+    Report" escape when asked through code 6 (report
+    cursor position)
   - Fixed RAM mapping bugs related to MDA/CGA/Hercules
     emulation and the "allow more than 640kb" option,
     that failed to map RAM as expected, and because of
