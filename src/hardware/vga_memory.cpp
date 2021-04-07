@@ -2212,7 +2212,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 	case MCH_MDA:
 	case MCH_HERC:
-		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+//		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );        // already done by VGA setup memory function, also interferes with "allow more than 640KB" option
 		vgapages.base=VGA_PAGE_B0;
 		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
 		if (vga.herc.enable_bits & 0x2) { /* bit 1: page in upper 32KB */
@@ -2456,7 +2456,18 @@ void VGA_StartUpdateLFB(void) {
 static bool VGA_Memory_ShutDown_init = false;
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
-	MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+	if (machine == MCH_CGA)
+		MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
+	else if (machine == MCH_HERC || machine == MCH_MDA)
+		MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.empty);
+	else
+		MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+
+#if C_DEBUG
+	if (control->opt_display2)
+		MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.empty);
+#endif
+
 	PAGING_ClearTLB();
 
 	if (vga.mem.linear_orgptr != NULL) {
