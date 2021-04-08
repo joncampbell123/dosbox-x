@@ -832,6 +832,10 @@ void XGA_BlitRect(Bitu val) {
 
 			bool doit = true;
 
+			/* For more information, see the "S3 Vision864 Graphics Accelerator" datasheet
+			 * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20(1994-10).pdf]
+			 * Page 203 for "Multifunction Control Miscellaneous Register (MULT_MISC)" which this code holds as xga.control1, and
+			 * Page 198 for "Color Compare Register (COLOR_CMP)" which this code holds as xga.color_compare. */
 			if (xga.control1 & 0x100) { /* COLOR_CMP enabled. control1 corresponds to XGA register BEE8h */
 				/* control1 bit 7 is SRC_NE.
 				 * If clear, don't update if source value == COLOR_CMP.
