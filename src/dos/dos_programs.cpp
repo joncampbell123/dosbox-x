@@ -1112,7 +1112,7 @@ public:
 #endif
 #if defined(WIN32)
                 const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
-                if (host_name != NULL && !ht_stat(host_name, &htest)) failed = false;
+                if (host_name == NULL || ht_stat(host_name, &htest)) failed = true;
                 useh = true;
             }
 #elif defined (OS2)
