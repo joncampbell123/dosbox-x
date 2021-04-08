@@ -44,6 +44,10 @@
     PS/2 mouse interrupt as part of the BIOS call.
     This should resolve unresponsive mouse issues
     with Windows 3.1. (joncampbell123)
+  - Add config option "mt32.model" in the [midi]
+    section to force a MT-32 model to use. (Wengier)
+  - Updated the MUNT MT-32 library to the latest
+    version 2.5.0. (Wengier)
   - Updated FLAC decoder library to the latest version
     (0.12.29 by David Reid). (Wengier)
 0.83.12
