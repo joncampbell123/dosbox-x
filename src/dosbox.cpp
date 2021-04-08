@@ -1102,6 +1102,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
+    const char *mt32models[] = {"cm32l", "mt32", "auto",0};
     const char *mt32partials[] = {"8", "9", "32", "255", "256",0};
     const char *mt32DACModes[] = {"0", "1", "2", "3",0};
     const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
@@ -2596,6 +2597,10 @@ void DOSBOX_SetupConfigSections(void) {
         "    MT32_CONTROL.ROM or CM32L_CONTROL.ROM - control ROM file.\n"
         "    MT32_PCM.ROM or CM32L_PCM.ROM - PCM ROM file.");
     Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("mt32.model",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_help("Model of the MT-32 synthesizer to use.");
+    Pstring->Set_values(mt32models);
 
     Pbool = secprop->Add_bool("mt32.reverse.stereo",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Reverse stereo channels for MT-32 output");

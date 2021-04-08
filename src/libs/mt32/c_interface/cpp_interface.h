@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,10 +41,17 @@ mt32emu_service_i mt32emu_get_service_i();
 #define mt32emu_get_library_version_string i.v0->getLibraryVersionString
 #define mt32emu_get_stereo_output_samplerate i.v0->getStereoOutputSamplerate
 #define mt32emu_get_best_analog_output_mode iV1()->getBestAnalogOutputMode
+#define mt32emu_get_machine_ids iV4()->getMachineIDs
+#define mt32emu_get_rom_ids iV4()->getROMIDs
+#define mt32emu_identify_rom_data iV4()->identifyROMData
+#define mt32emu_identify_rom_file iV4()->identifyROMFile
 #define mt32emu_create_context i.v0->createContext
 #define mt32emu_free_context i.v0->freeContext
 #define mt32emu_add_rom_data i.v0->addROMData
 #define mt32emu_add_rom_file i.v0->addROMFile
+#define mt32emu_merge_and_add_rom_data iV4()->mergeAndAddROMData
+#define mt32emu_merge_and_add_rom_files iV4()->mergeAndAddROMFiles
+#define mt32emu_add_machine_rom_file iV4()->addMachineROMFile
 #define mt32emu_get_rom_info i.v0->getROMInfo
 #define mt32emu_set_partial_count i.v0->setPartialCount
 #define mt32emu_set_analog_output_mode i.v0->setAnalogOutputMode
@@ -99,9 +106,9 @@ mt32emu_service_i mt32emu_get_service_i();
 #define mt32emu_is_nice_panning_enabled iV3()->isNicePanningEnabled
 #define mt32emu_set_nice_partial_mixing_enabled iV3()->setNicePartialMixingEnabled
 #define mt32emu_is_nice_partial_mixing_enabled iV3()->isNicePartialMixingEnabled
-#define mt32emu_render_bit16s i.v0->renderint16_t
+#define mt32emu_render_int16_t i.v0->renderint16_t
 #define mt32emu_render_float i.v0->renderFloat
-#define mt32emu_render_bit16s_streams i.v0->renderint16_tStreams
+#define mt32emu_render_int16_t_streams i.v0->renderint16_tStreams
 #define mt32emu_render_float_streams i.v0->renderFloatStreams
 #define mt32emu_has_active_partials i.v0->hasActivePartials
 #define mt32emu_is_active i.v0->isActive
@@ -196,6 +203,11 @@ public:
 	uint32_t getStereoOutputSamplerate(const AnalogOutputMode analog_output_mode) { return mt32emu_get_stereo_output_samplerate(static_cast<mt32emu_analog_output_mode>(analog_output_mode)); }
 	AnalogOutputMode getBestAnalogOutputMode(const double target_samplerate) { return static_cast<AnalogOutputMode>(mt32emu_get_best_analog_output_mode(target_samplerate)); }
 
+	size_t getMachineIDs(const char **machine_ids, size_t machine_ids_size) { return mt32emu_get_machine_ids(machine_ids, machine_ids_size); }
+	size_t getROMIDs(const char **rom_ids, size_t rom_ids_size, const char *machine_id) { return mt32emu_get_rom_ids(rom_ids, rom_ids_size, machine_id); }
+	mt32emu_return_code identifyROMData(mt32emu_rom_info *rom_info, const uint8_t *data, size_t data_size, const char *machine_id) { return mt32emu_identify_rom_data(rom_info, data, data_size, machine_id); }
+	mt32emu_return_code identifyROMFile(mt32emu_rom_info *rom_info, const char *filename, const char *machine_id) { return mt32emu_identify_rom_file(rom_info, filename, machine_id); }
+
 	// Context-dependent methods
 
 	mt32emu_context getContext() { return c; }
@@ -204,6 +216,10 @@ public:
 	void freeContext() { if (c != NULL) { mt32emu_free_context(c); c = NULL; } }
 	mt32emu_return_code addROMData(const uint8_t *data, size_t data_size, const mt32emu_sha1_digest *sha1_digest = NULL) { return mt32emu_add_rom_data(c, data, data_size, sha1_digest); }
 	mt32emu_return_code addROMFile(const char *filename) { return mt32emu_add_rom_file(c, filename); }
+	mt32emu_return_code mergeAndAddROMData(const uint8_t *part1_data, size_t part1_data_size, const uint8_t *part2_data, size_t part2_data_size) { return mt32emu_merge_and_add_rom_data(c, part1_data, part1_data_size, NULL, part2_data, part2_data_size, NULL); }
+	mt32emu_return_code mergeAndAddROMData(const uint8_t *part1_data, size_t part1_data_size, const mt32emu_sha1_digest *part1_sha1_digest, const uint8_t *part2_data, size_t part2_data_size, const mt32emu_sha1_digest *part2_sha1_digest) { return mt32emu_merge_and_add_rom_data(c, part1_data, part1_data_size, part1_sha1_digest, part2_data, part2_data_size, part2_sha1_digest); }
+	mt32emu_return_code mergeAndAddROMFiles(const char *part1_filename, const char *part2_filename) { return mt32emu_merge_and_add_rom_files(c, part1_filename, part2_filename); }
+	mt32emu_return_code addMachineROMFile(const char *machine_id, const char *filename) { return mt32emu_add_machine_rom_file(c, machine_id, filename); }
 	void getROMInfo(mt32emu_rom_info *rom_info) { mt32emu_get_rom_info(c, rom_info); }
 	void setPartialCount(const uint32_t partial_count) { mt32emu_set_partial_count(c, partial_count); }
 	void setAnalogOutputMode(const AnalogOutputMode analog_output_mode) { mt32emu_set_analog_output_mode(c, static_cast<mt32emu_analog_output_mode>(analog_output_mode)); }
@@ -270,9 +286,9 @@ public:
 	void setNicePartialMixingEnabled(const bool enabled) { mt32emu_set_nice_partial_mixing_enabled(c, enabled ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE); }
 	bool isNicePartialMixingEnabled() { return mt32emu_is_nice_partial_mixing_enabled(c) != MT32EMU_BOOL_FALSE; }
 
-	void renderint16_t(int16_t *stream, uint32_t len) { mt32emu_render_bit16s(c, stream, len); }
+	void renderint16_t(int16_t *stream, uint32_t len) { mt32emu_render_int16_t(c, stream, len); }
 	void renderFloat(float *stream, uint32_t len) { mt32emu_render_float(c, stream, len); }
-	void renderint16_tStreams(const mt32emu_dac_output_bit16s_streams *streams, uint32_t len) { mt32emu_render_bit16s_streams(c, streams, len); }
+	void renderint16_tStreams(const mt32emu_dac_output_int16_t_streams *streams, uint32_t len) { mt32emu_render_int16_t_streams(c, streams, len); }
 	void renderFloatStreams(const mt32emu_dac_output_float_streams *streams, uint32_t len) { mt32emu_render_float_streams(c, streams, len); }
 
 	bool hasActivePartials() { return mt32emu_has_active_partials(c) != MT32EMU_BOOL_FALSE; }
@@ -294,7 +310,11 @@ private:
 	const mt32emu_service_i_v1 *iV1() { return (getVersionID() < MT32EMU_SERVICE_VERSION_1) ? NULL : i.v1; }
 	const mt32emu_service_i_v2 *iV2() { return (getVersionID() < MT32EMU_SERVICE_VERSION_2) ? NULL : i.v2; }
 	const mt32emu_service_i_v3 *iV3() { return (getVersionID() < MT32EMU_SERVICE_VERSION_3) ? NULL : i.v3; }
+	const mt32emu_service_i_v4 *iV4() { return (getVersionID() < MT32EMU_SERVICE_VERSION_4) ? NULL : i.v4; }
 #endif
+
+	Service(const Service &);            // prevent copy-construction
+	Service& operator=(const Service &); // prevent assignment
 };
 
 namespace CppInterfaceImpl {
@@ -327,7 +347,7 @@ static mt32emu_boolean onMIDIQueueOverflow(void *instance_data) {
 	return static_cast<IReportHandler *>(instance_data)->onMIDIQueueOverflow() ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE;
 }
 
-static void onMIDISystemRealtime(void *instance_data, mt32emu_bit8u system_realtime) {
+static void onMIDISystemRealtime(void *instance_data, mt32emu_uint8_t system_realtime) {
 	static_cast<IReportHandler *>(instance_data)->onMIDISystemRealtime(system_realtime);
 }
 
@@ -339,23 +359,23 @@ static void onDeviceReconfig(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onDeviceReconfig();
 }
 
-static void onNewReverbMode(void *instance_data, mt32emu_bit8u mode) {
+static void onNewReverbMode(void *instance_data, mt32emu_uint8_t mode) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbMode(mode);
 }
 
-static void onNewReverbTime(void *instance_data, mt32emu_bit8u time) {
+static void onNewReverbTime(void *instance_data, mt32emu_uint8_t time) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbTime(time);
 }
 
-static void onNewReverbLevel(void *instance_data, mt32emu_bit8u level) {
+static void onNewReverbLevel(void *instance_data, mt32emu_uint8_t level) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbLevel(level);
 }
 
-static void onPolyStateChanged(void *instance_data, mt32emu_bit8u part_num) {
+static void onPolyStateChanged(void *instance_data, mt32emu_uint8_t part_num) {
 	static_cast<IReportHandler *>(instance_data)->onPolyStateChanged(part_num);
 }
 
-static void onProgramChanged(void *instance_data, mt32emu_bit8u part_num, const char *sound_group_name, const char *patch_name) {
+static void onProgramChanged(void *instance_data, mt32emu_uint8_t part_num, const char *sound_group_name, const char *patch_name) {
 	static_cast<IReportHandler *>(instance_data)->onProgramChanged(part_num, sound_group_name, patch_name);
 }
 
@@ -387,15 +407,15 @@ static mt32emu_midi_receiver_version getMidiReceiverVersionID(mt32emu_midi_recei
 	return MT32EMU_MIDI_RECEIVER_VERSION_CURRENT;
 }
 
-static void handleShortMessage(void *instance_data, const mt32emu_bit32u message) {
+static void handleShortMessage(void *instance_data, const mt32emu_uint32_t message) {
 	static_cast<IMidiReceiver *>(instance_data)->handleShortMessage(message);
 }
 
-static void handleSysex(void *instance_data, const mt32emu_bit8u stream[], const mt32emu_bit32u length) {
+static void handleSysex(void *instance_data, const mt32emu_uint8_t stream[], const mt32emu_uint32_t length) {
 	static_cast<IMidiReceiver *>(instance_data)->handleSysex(stream, length);
 }
 
-static void handleSystemRealtimeMessage(void *instance_data, const mt32emu_bit8u realtime) {
+static void handleSystemRealtimeMessage(void *instance_data, const mt32emu_uint8_t realtime) {
 	static_cast<IMidiReceiver *>(instance_data)->handleSystemRealtimeMessage(realtime);
 }
 
@@ -424,10 +444,17 @@ static mt32emu_midi_receiver_i getMidiReceiverThunk() {
 #undef mt32emu_get_library_version_string
 #undef mt32emu_get_stereo_output_samplerate
 #undef mt32emu_get_best_analog_output_mode
+#undef mt32emu_get_machine_ids
+#undef mt32emu_get_rom_ids
+#undef mt32emu_identify_rom_data
+#undef mt32emu_identify_rom_file
 #undef mt32emu_create_context
 #undef mt32emu_free_context
 #undef mt32emu_add_rom_data
 #undef mt32emu_add_rom_file
+#undef mt32emu_merge_and_add_rom_data
+#undef mt32emu_merge_and_add_rom_files
+#undef mt32emu_add_machine_rom_file
 #undef mt32emu_get_rom_info
 #undef mt32emu_set_partial_count
 #undef mt32emu_set_analog_output_mode
@@ -482,9 +509,9 @@ static mt32emu_midi_receiver_i getMidiReceiverThunk() {
 #undef mt32emu_is_nice_panning_enabled
 #undef mt32emu_set_nice_partial_mixing_enabled
 #undef mt32emu_is_nice_partial_mixing_enabled
-#undef mt32emu_render_bit16s
+#undef mt32emu_render_int16_t
 #undef mt32emu_render_float
-#undef mt32emu_render_bit16s_streams
+#undef mt32emu_render_int16_t_streams
 #undef mt32emu_render_float_streams
 #undef mt32emu_has_active_partials
 #undef mt32emu_is_active
