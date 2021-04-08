@@ -42,6 +42,8 @@ struct XGAStatus {
 	uint32_t forecolor;
 	uint32_t backcolor;
 
+	uint32_t color_compare;
+
 	Bitu curcommand;
 
 	uint16_t foremix;
@@ -1150,7 +1152,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			xga.destx = val&0x3fff;
 			break;
 		case 0xb2e8:
-			//LOG_MSG("COLOR_CMP not implemented");
+			XGA_SetDualReg(xga.color_compare, val);
 			break;
 		case 0xb6e8:
 			xga.backmix = (uint16_t)val;
@@ -1217,6 +1219,8 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			else return 0x0;
 		case 0xbee8:
 			return XGA_Read_Multifunc();
+		case 0xb2e8:
+			return XGA_GetDualReg(xga.color_compare);
 		case 0xa2e8:
 			return XGA_GetDualReg(xga.backcolor);
 		case 0xa6e8:
