@@ -2471,7 +2471,7 @@ static void dyn_larlsl(bool islar) {
 
 #ifdef X86_DYNREC_MMX_ENABLED
 #include "dyn_mmx.h"
-//#define dyn_mmx_check() if ((dyn_dh_fpu.dh_fpu_enabled) && (!fpu_used)) {dh_fpu_startup();}
+#define dyn_mmx_check() if ((dyn_dh_fpu.dh_fpu_enabled) && (!fpu_used)) {dh_fpu_startup();}
 #endif
 
 static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bitu max_opcodes) {
@@ -2620,23 +2620,26 @@ restart_prefix:
 			case 0xd9:case 0xdb:case 0xdc:case 0xdd:case 0xdf:case 0xe1:
 			case 0xe2:case 0xe5:case 0xe8:case 0xe9:case 0xeb:case 0xec:
 			case 0xed:case 0xef:case 0xf1:case 0xf2:case 0xf3:case 0xf5:
-			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:
+			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
 			/* SHIFT mm, imm8*/
-			case 0x71:case 0x72:case 0x73:
+			case 0x71:case 0x72:case 0x73:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				dyn_mmx_check(); dyn_mmx_shift_imm8(dual_code); break;
 			/* MOVD mm, r/m32 */
-			case 0x6e:
+			case 0x6e:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				dyn_mmx_check(); dyn_mmx_movd_pqed(); break;
 			/* MOVQ mm, mm/m64 */
-			case 0x6f:
+			case 0x6f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				dyn_mmx_check(); dyn_mmx_movq_pqqq(); break;
 			/* MOVD r/m32, mm */
-			case 0x7e:
+			case 0x7e:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				dyn_mmx_check(); dyn_mmx_movd_edpq(); break;
 			/* MOVQ mm/m64, mm */
 			case 0x7f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
-				//dyn_mmx_check();
-				dyn_mmx_op(dual_code); break;
+				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
 			/* EMMS */
 			case 0x77:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
-				//dyn_mmx_check();
-				dyn_mmx_emms(); break;
+				dyn_mmx_check(); dyn_mmx_emms(); break;
 #endif
 
 			default:
