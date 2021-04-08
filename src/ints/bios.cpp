@@ -9158,7 +9158,7 @@ startfunction:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
-			if (bootguest) MOUSE_Startup(NULL);
+			MOUSE_Startup(NULL);
 			char drive[] = "-QQ A:";
 			drive[4]='A'+bootdrive;
 			runBoot(drive);
