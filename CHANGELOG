@@ -1,4 +1,8 @@
 0.83.13
+  - S3 SVGA XGA emulation BlitRect now supports
+    COLOR_CMP. DirectX-based Windows 95 games are now
+    able to blit in 256-color mode with a transparent
+    color key value.
   - ANSI.SYS emulaion now supports the "Device Status
     Report" escape when asked through code 6 (report
     cursor position)
