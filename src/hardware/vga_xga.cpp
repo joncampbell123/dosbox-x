@@ -166,6 +166,21 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 
 }
 
+Bitu XGA_PointMask() {
+	switch(XGA_COLOR_MODE) {
+		case M_LIN8:
+			return 0xFFul;
+		case M_LIN15:
+		case M_LIN16:
+			return 0xFFFFul;
+		case M_LIN32:
+			return 0xFFFFFFFFul;
+		default:
+			break;
+	}
+	return 0;
+}
+
 Bitu XGA_GetPoint(Bitu x, Bitu y) {
 	uint32_t memaddr = (uint32_t)((y * XGA_SCREEN_WIDTH) + x);
 
@@ -735,6 +750,7 @@ void XGA_BlitRect(Bitu val) {
 	uint32_t xat, yat;
 	Bitu srcdata;
 	Bitu dstdata;
+	Bitu colorcmpdata;
 
 	Bitu srcval;
 	Bitu destval;
@@ -746,6 +762,8 @@ void XGA_BlitRect(Bitu val) {
 
 	if(((val >> 5) & 0x01) != 0) dx = 1;
 	if(((val >> 7) & 0x01) != 0) dy = 1;
+
+	colorcmpdata = xga.color_compare & XGA_PointMask();
 
 	srcx = xga.curx;
 	srcy = xga.cury;
@@ -812,10 +830,21 @@ void XGA_BlitRect(Bitu val) {
 					break;
 			}
 
-			destval = XGA_GetMixResult(mixmode, srcval, dstdata);
-			//LOG_MSG("XGA: DrawPattern: Mixmode: %x Mixselect: %x", mixmode, mixselect);
+			bool doit = true;
 
-			XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
+			if (xga.control1 & 0x100) { /* COLOR_CMP enabled. control1 corresponds to XGA register BEE8h */
+				/* control1 bit 7 is SRC_NE.
+				 * If clear, don't update if source value == COLOR_CMP.
+				 * If set, don't update if source value != COLOR_CMP */
+				doit = !!(((srcval == colorcmpdata)?0:1)^((xga.control1>>7u)&1u));
+			}
+
+			if (doit) {
+				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
+				//LOG_MSG("XGA: DrawPattern: Mixmode: %x Mixselect: %x", mixmode, mixselect);
+
+				XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
+			}
 
 			srcx += dx;
 			tarx += dx;
