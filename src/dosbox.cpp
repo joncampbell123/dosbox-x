@@ -176,6 +176,7 @@ Config*             control;
 MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
+S3Card              s3Card;
 bool                SDLNetInited;
 int32_t              ticksDone;
 uint32_t              ticksScheduled;
@@ -966,6 +967,8 @@ void DOSBOX_RealInit() {
         section->HandleInputline(std::string("machine=") + cmd_machine);
     }
 
+    // NTS: svga_s3 means S3 Trio64 emulation to match general DOSBox SVN emulation behavior.
+
     // TODO: should be parsed by...? perhaps at some point we support machine= for backwards compat
     //       but translate it into two separate params that specify what machine vs what video hardware.
     //       or better yet as envisioned, a possible dosbox-x.conf schema that allows a machine with no
@@ -973,6 +976,7 @@ void DOSBOX_RealInit() {
     //       provides video.
     std::string mtype(section->Get_string("machine"));
     svgaCard = SVGA_None;
+    s3Card = S3_Generic;
     machine = MCH_VGA;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
@@ -987,9 +991,14 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
-    else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; }
-    else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; int10.vesa_nolfb = true;}
-    else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; int10.vesa_oldvbe = true;}
+    else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; } /* DOSBox SVN behavior */
+    else if (mtype == "svga_s3vision864"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision864; }
+    else if (mtype == "svga_s3vision868"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision868; }
+    else if (mtype == "svga_s3trio32") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; }
+    else if (mtype == "svga_s3trio64") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; }
+    else if (mtype == "svga_s3trio64v+"){svgaCard = SVGA_S3Trio; s3Card = S3_Trio64V; }
+    else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
+    else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
     else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
@@ -1165,7 +1174,7 @@ void DOSBOX_SetupConfigSections(void) {
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
-        "vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
+        "vgaonly", "svga_s3", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
