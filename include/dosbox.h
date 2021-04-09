@@ -119,10 +119,20 @@ enum SVGACards {
 	SVGA_ParadisePVGA1A
 };
 
+enum S3Card {
+    S3_Generic,                      // Generic emulation, minimal set
+    S3_Vision864,                    // Vision864 [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
+    S3_Vision868,                    // Vision868 [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision868%20Multimedia%20Accelerator%20%281995%2d04%29%2epdf]
+    S3_Trio32,                       // Trio32 [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+    S3_Trio64,                       // Trio64 [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+    S3_Trio64V                       // Trio64V+ [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio64V%2b%20Integrated%20Graphics%20and%20Video%20Accelerator%20%281995%2d07%29%2epdf]
+};
+
 typedef Bitu				(LoopHandler)(void);
 
 extern Config*				control;
 extern SVGACards			svgaCard;
+extern S3Card				s3Card;
 extern MachineType			machine;
 extern bool             SDLNetInited, uselfn;
 extern bool				mono_cga;
