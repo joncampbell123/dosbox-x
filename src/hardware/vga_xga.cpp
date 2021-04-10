@@ -1231,6 +1231,16 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			return 0x400; // nothing busy
 		case 0x81ec: // S3 video data processor
 			return 0x00007000;
+		case 0x8504: // S3 ViRGE Subsystem Status Register
+			if (s3Card >= S3_ViRGE) /* HACK: Always say S3D ENGINE is IDLE, or else Windows 98 will hang at startup */
+				return (16 << 8)/*S3D FIFO SLOTS FREE*/ | 0x2000/*S3D ENGINE IDLE*/;
+			else
+				return 0xffffffff;
+		case 0x850c: // S3 ViRGE Advanced Function Control Register
+			if (s3Card >= S3_ViRGE) /* HACK: Always say not busy, or Windows 98 will hang at startup */
+				return (8 << 6)/*COMMAND FIFO STATUS*/ | 1/*Enable SVGA*/ | 0x10/*Linear address enable*/;
+			else
+				return 0xffffffff;
 		case 0x83da:
 			{
 				Bits delaycyc = CPU_CycleMax/5000;

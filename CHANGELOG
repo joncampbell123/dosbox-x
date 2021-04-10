@@ -1,4 +1,10 @@
 0.83.13
+  - Added machine types for 5 different variations of
+    S3 chipset: Vision864, Vision868, Trio32, Trio64,
+    and (experimental) Trio64V+ and ViRGE.
+  - Removed second PCI BAR for S3 MMIO register space.
+    S3 datasheets do not show a second BAR. Windows 95
+    is perfectly happy without it.
   - S3 SVGA XGA emulation BlitRect now supports
     COLOR_CMP. DirectX-based Windows 95 games are now
     able to blit in 256-color mode with a transparent
