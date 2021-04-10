@@ -543,9 +543,9 @@ PageHandler* lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
     (void)co;//UNUSED
     if (memory.lfb.start_page == 0 || memory.lfb.pages == 0)
         return NULL;
-    if (phys_page >= memory.lfb.start_page || phys_page < memory.lfb.end_page)
+    if (phys_page >= memory.lfb.start_page && phys_page < memory.lfb.end_page)
         return memory.lfb.handler;
-    if (phys_page >= memory.lfb_mmio.start_page || phys_page < memory.lfb_mmio.end_page)
+    if (phys_page >= memory.lfb_mmio.start_page && phys_page < memory.lfb_mmio.end_page)
         return memory.lfb_mmio.handler;
 
     return NULL;
