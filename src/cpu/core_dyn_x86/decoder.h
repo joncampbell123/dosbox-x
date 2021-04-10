@@ -2636,7 +2636,7 @@ restart_prefix:
 				dyn_mmx_check(); dyn_mmx_movd_edpq(); break;
 			/* MOVQ mm/m64, mm */
 			case 0x7f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
-				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
+				dyn_mmx_check(); dyn_mmx_movq_qqpq(); break;
 			/* EMMS */
 			case 0x77:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_emms(); break;
