@@ -141,6 +141,10 @@ public:
 			case S3_Trio64:
 			case S3_Trio64V:
 				return 0x8811; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
+			case S3_ViRGE:
+				return 0x5631;
+			default:
+				break;
 		};
 
 		return 0x8811; // Trio64 DOSBox SVN default even though SVN is closer to Vision864 functionally
@@ -179,6 +183,7 @@ public:
 				break;
 			case S3_Vision868:
 			case S3_Trio64V:
+			case S3_ViRGE:
 				host_writed(config_writemask+0x10,0xFC000000);	/* BAR0: memory resource 64MB aligned [25:0 reserved] */
 				break;
 			default:

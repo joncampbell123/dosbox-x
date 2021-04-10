@@ -997,6 +997,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "svga_s3trio32") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; }
     else if (mtype == "svga_s3trio64") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; }
     else if (mtype == "svga_s3trio64v+"){svgaCard = SVGA_S3Trio; s3Card = S3_Trio64V; }
+    else if (mtype == "svga_s3virge")  { svgaCard = SVGA_S3Trio; s3Card = S3_ViRGE; }
     else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
     else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
@@ -1174,7 +1175,7 @@ void DOSBOX_SetupConfigSections(void) {
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
-        "vgaonly", "svga_s3", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_et3000", "svga_et4000",
+        "vgaonly", "svga_s3", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
