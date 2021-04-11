@@ -17,6 +17,9 @@
     that failed to map RAM as expected, and because of
     that, easily triggered a "corrupt MCB chain" error
     message.
+  - Restored Pentium MMX emulation code for the dynamic
+    x86 core to that of version 0.83.11 for better
+    compatibility with some Windows 9x games. (Wengier)
   - Added "compresssaveparts" config option (in the
     [dosbox] section) which when set to false will not
     compress the components in saved states. (Wengier)
