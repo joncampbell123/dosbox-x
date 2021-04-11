@@ -4693,7 +4693,8 @@ private:
 				else break;
 			}
 #if defined (WIN32) || defined(OS2)
-            /* nothing */
+            if (commandLine.size()>4 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\') && commandLine.back()=='\'')
+                commandLine = commandLine.substr(1, commandLine.size()-2);
 #else
             // Linux: Convert backslash to forward slash
             if (commandLine.size() > 0) {

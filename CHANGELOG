@@ -17,6 +17,10 @@
     that failed to map RAM as expected, and because of
     that, easily triggered a "corrupt MCB chain" error
     message.
+  - Worked around the mounting issue for disk or CD
+    image files with LaunchBox, by allowing a mounting
+    command-line with single quotes like IMGMOUNT D
+    'X:\FILES\DOS.IMG' on Windows systems. (Wengier)
   - Restored Pentium MMX emulation code for the dynamic
     x86 core to that of version 0.83.11 for better
     compatibility with some Windows 9x games. (Wengier)
