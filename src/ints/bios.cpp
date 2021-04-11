@@ -8782,6 +8782,7 @@ startfunction:
                             case S3_Trio64:     card = "S3 Trio64 SVGA"; break;
                             case S3_Trio64V:    card = "S3 Trio64V+ SVGA"; break;
                             case S3_ViRGE:      card = "S3 ViRGE SVGA"; break;
+                            case S3_ViRGEVX:    card = "S3 ViRGE VX SVGA"; break;
                         }
                         break;
                     default:
