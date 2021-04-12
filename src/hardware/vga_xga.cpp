@@ -1168,6 +1168,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				vga.s3.streams.ckctl_g_lb = (val >> 8u) & 0xFFu;
 				vga.s3.streams.ckctl_r_lb = (val >> 16u) & 0xFFu;
 				vga.s3.streams.ckctl_rgb_cc = (val >> 24u) & 7u;
+				vga.s3.streams.ckctl_kc = (val >> 28u) & 1u;
 			}
 			break;
 		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
