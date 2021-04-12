@@ -379,6 +379,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
          * "After unlocking, an ViRGENX chip can be identified via CR2E."
          * (ASM code reading via 3D4h index 2Eh, comparing to 3Dh)
          * Ref: [http://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf] */
+        /* NTS: As the low byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
         switch (s3Card) {
             case S3_Vision864:
                 return 0xC0; // Vision864, 0x88C0 or 0x88C1
