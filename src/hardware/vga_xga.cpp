@@ -1158,90 +1158,145 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 
 		case 0x8180: // S3 Trio64V+ streams processor, Primary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.psctl_psidf = (val >> 24u) & 7u;
+				vga.s3.streams.psctl_psfc = (val >> 28u) & 7u;
 			}
 			break;
 		case 0x8184: // S3 Trio64V+ streams processor, Color/Chroma Key Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ckctl_b_lb = val & 0xFFu;
+				vga.s3.streams.ckctl_g_lb = (val >> 8u) & 0xFFu;
+				vga.s3.streams.ckctl_r_lb = (val >> 16u) & 0xFFu;
+				vga.s3.streams.ckctl_rgb_cc = (val >> 24u) & 7u;
 			}
 			break;
 		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ssctl_dda_haccum = val & 0xFFFu;
+				vga.s3.streams.ssctl_sdif = (val >> 24u) & 7u;
+				vga.s3.streams.ssctl_sfc = (val >> 28u) & 7u;
 			}
 			break;
 		case 0x8194: // S3 Trio64V+ streams processor, Chroma Key Upper Bound (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ckctl_b_ub = val & 0xFFu;
+				vga.s3.streams.ckctl_g_ub = (val >> 8u) & 0xFFu;
+				vga.s3.streams.ckctl_r_ub = (val >> 16u) & 0xFFu;
 			}
 			break;
 		case 0x8198: // S3 Trio64V+ streams processor, Secondary Stream Stretch/Filter Constants (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ssctl_k1_hscale = (val >> 16u) & 0x1FFFu;
+				vga.s3.streams.ssctl_k2_hscale = val & 0x1FFFu;
 			}
 			break;
 		case 0x81A0: // S3 Trio64V+ streams processor, Blend Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.blendctl_ks = (val >> 2u) & 7u;
+				vga.s3.streams.blendctl_kp = (val >> 10u) & 7u;
+				vga.s3.streams.blendctl_composemode = (val >> 24u) & 7u;
 			}
 			break;
 		case 0x81C0: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 0 (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_fba[0] = val & 0x3FFFFFu;
 			}
 			break;
 		case 0x81C4: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 1 (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_fba[1] = val & 0x3FFFFFu;
 			}
 			break;
 		case 0x81C8: // S3 Trio64V+ streams processor, Primary Stream Stride (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_stride = val & 0x1FFFu;
 			}
 			break;
 		case 0x81CC: // S3 Trio64V+ streams processor, Double Buffer/LPB Support (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_bufsel = val & 1u;
+				vga.s3.streams.ss_bufsel = (val >> 1u) & 3u;
+				vga.s3.streams.lpb_in_bufsel = (val >> 4u) & 1u;
+				vga.s3.streams.lpb_in_bufselloading = (val >> 5u) & 1u;
+				vga.s3.streams.lpb_in_bufseltoggle = (val >> 6u) & 1u;
 			}
 			break;
 		case 0x81D0: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 0 (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_fba[0] = val & 0x3FFFFFu;
 			}
 			break;
 		case 0x81D4: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 1 (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_fba[1] = val & 0x3FFFFFu;
 			}
 			break;
 		case 0x81D8: // S3 Trio64V+ streams processor, Secondary Stream Stride (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_stride = val & 0x1FFFu;
 			}
 			break;
 		case 0x81DC: // S3 Trio64V+ streams processor, Opaque Overlay Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ooc_pixfetch_stop = val & 0xFFFu;
+				vga.s3.streams.ooc_pixfetch_resume = (val >> 16u) & 0xFFFu;
+				vga.s3.streams.ooc_tss = (val >> 30u) & 1u;
+				vga.s3.streams.ooc_ooc_enable = (val >> 31u) & 1u;
 			}
 			break;
 		case 0x81E0: // S3 Trio64V+ streams processor, K1 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.k1_vscale_factor = val & 0x3FFu;
 			}
 			break;
 		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.k2_vscale_factor = val & 0x3FFu;
 			}
 			break;
 		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.dda_vaccum_iv = val & 0xFFFu;
 			}
 			break;
 		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				/* bits [4:0] should be a value from 0 to 24 to shift priority between primary and secondary.
+				 * The larger the value, the more slots alloted to secondary layer.
+				 * Allocation is out of 24 slots, therefore values larger than 24 are invalid. */
+				uint8_t thr = val & 0x1Fu;
+				if (thr > 24u) thr -= 16u; // assume some kind of odd malfunction happens on real hardware, check later
+				vga.s3.streams.fifo_alloc_ps = 24 - thr;
+				vga.s3.streams.fifo_alloc_ss = thr;
+				vga.s3.streams.fifo_ss_threshhold = (val >> 5u) & 0x1Fu;
+				vga.s3.streams.fifo_ps_threshhold = (val >> 10u) & 0x1Fu;
+				vga.s3.streams.ras_rl = (val >> 15u) & 1u;
+				vga.s3.streams.ras_rp = (val >> 16u) & 1u;
+				vga.s3.streams.edo_wsctl = (val >> 18u) & 1u;
 			}
 			break;
 		case 0x81F0: // S3 Trio64V+ streams processor, Primary Stream Window Start Coordinates (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.pswnd_start_y = val & 0x3FFu;
+				vga.s3.streams.pswnd_start_x = (val >> 16u) & 0x3FFu;
 			}
 			break;
 		case 0x81F4: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.pswnd_height = val & 0x3FFu;
+				vga.s3.streams.pswnd_width = (val >> 16u) & 0x3FFu;
 			}
 			break;
 		case 0x81F8: // S3 Trio64V+ streams processor, Secondary Stream Window Start Coordinates (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.sswnd_start_y = val & 0x3FFu;
+				vga.s3.streams.sswnd_start_x = (val >> 16u) & 0x3FFu;
 			}
 			break;
 		case 0x81FC: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.sswnd_height = val & 0x3FFu;
+				vga.s3.streams.sswnd_width = (val >> 16u) & 0x3FFu;
 			}
 			break;
 

@@ -639,9 +639,9 @@ typedef struct {
 											// 1=address 1
 											// 2=address (LPB input buffer select ^ 0) and opposite is for LPB
 											// 3=address (LPB input buffer select ^ 1) and opposite is for LPB
-		uint8_t         lpb_in_bufsel;      // LIS LPB Input Buffer Select
-		uint8_t         lpb_in_bufselloading;//LSL LPB Input Buffer Select Loading
-		uint8_t         lpb_in_bufseltoggle;// LST LPB Input Buffer Select Toggle
+		uint8_t         lpb_in_bufsel;      // [ 4: 4] LIS LPB Input Buffer Select
+		uint8_t         lpb_in_bufselloading;//[ 5: 5] LSL LPB Input Buffer Select Loading
+		uint8_t         lpb_in_bufseltoggle;// [ 6: 6] LST LPB Input Buffer Select Toggle
 
 		// (MM81D0 Secondary Stream Frame Buffer Address 0)
 		// (MM81D4 Secondary Stream Frame Buffer Address 1)
