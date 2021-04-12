@@ -1274,6 +1274,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				vga.s3.streams.dda_vaccum_iv = val & 0x1FFFu;
 				if (vga.s3.streams.dda_vaccum_iv & 0x1000u)
 					vga.s3.streams.dda_vaccum_iv -= 0x2000u;
+				vga.s3.streams.evf = (val >> 15u) & 1u;
 			}
 			break;
 		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)

@@ -671,6 +671,7 @@ typedef struct {
 		// (MM81E8 DDA Vertical Accumulator Initial Value)
 		int16_t			dda_vaccum_iv;		// [12: 0] DDA Vertical Accumulator
 											// Set to: -((height in lines after scaling) - 1)
+		uint8_t			evf;				// [15:15] EVF Enable Vertical Filtering
 
 		// (MM81EC Stream FIFO and RAS Controls)
 		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots alloted to secondary stream.
