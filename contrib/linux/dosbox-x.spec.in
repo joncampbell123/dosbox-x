@@ -72,6 +72,9 @@ appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
 %{_datadir}/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
 %{_mandir}/man1/dosbox-x.1.gz
+%doc CHANGELOG
+%doc dosbox-x.reference.conf
+%doc dosbox-x.reference.full.conf
 
 # Required for NE2000 pcap networking support (promiscuous mode)
 %post
