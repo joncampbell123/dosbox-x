@@ -400,6 +400,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
 
         return 0x11; // Trio64 DOSBox SVN default even though SVN is closer to Vision864 functionally
     case 0x2f:  /* Revision */
+        /* NTS: As the low byte of the PCI ID, this should match the revision in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
         // revision ID
         if (s3Card == S3_Trio64V)
             return 0x40; // Trio64V+ datasheet, page 280, PCI "class code". "Hardwired to 0300004xh" (revision is 40h or more)
