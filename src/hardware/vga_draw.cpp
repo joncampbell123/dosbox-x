@@ -919,56 +919,55 @@ static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) 
 } */
 
 static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
-    if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
-        // HW Mouse not enabled, use the tried and true call
-        return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
+    uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
 
-    Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
-    if ((vga.s3.hgc.posx >= vga.draw.width) ||
-        (lineat < vga.s3.hgc.originy) ||
-        (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
-        // the mouse cursor *pattern* is not on this line
-        return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
-    } else {
-        // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
-        // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
-        // This is used when the mouse cursor partially leaves the screen.
-        // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
-        // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
-        uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
-        //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
+    if (svga.hardware_cursor_active != NULL && svga.hardware_cursor_active()) {
+        Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
+        if ((vga.s3.hgc.posx >= vga.draw.width) ||
+            (lineat < vga.s3.hgc.originy) ||
+            (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
+            // the mouse cursor *pattern* is not on this line, do nothing
+        } else {
+            // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
+            // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
+            // This is used when the mouse cursor partially leaves the screen.
+            // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
+            // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
+            //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
 
-        // the index of the bit inside the cursor bitmap we start at:
-        Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx;
-        // convert to video memory addr and bit index
-        // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
-        // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
-        Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
-        Bitu cursorStartBit = sourceStartBit & 0x7u;
-        // stay at the right position in the pattern
-        if (cursorMemStart & 0x2) cursorMemStart--;
-        Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
-        for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
-            // for each byte of cursor data
-            uint8_t bitsA = vga.mem.linear[m];
-            uint8_t bitsB = vga.mem.linear[m+2];
-            for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
-                // for each bit
-                cursorStartBit=0; // only the first byte has some bits cut off
-                if (bitsA&bit) {
-                    if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    *xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
-                } else {
-                    *xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
+            // the index of the bit inside the cursor bitmap we start at:
+            Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx;
+            // convert to video memory addr and bit index
+            // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
+            // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
+            Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
+            Bitu cursorStartBit = sourceStartBit & 0x7u;
+            // stay at the right position in the pattern
+            if (cursorMemStart & 0x2) cursorMemStart--;
+            Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
+            uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+            for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
+                // for each byte of cursor data
+                uint8_t bitsA = vga.mem.linear[m];
+                uint8_t bitsB = vga.mem.linear[m+2];
+                for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
+                    // for each bit
+                    cursorStartBit=0; // only the first byte has some bits cut off
+                    if (bitsA&bit) {
+                        if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        *xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
+                    } else {
+                        *xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
+                    }
+                    xat++;
                 }
-                xat++;
             }
         }
-        return (uint8_t*)temp2;
     }
+
+    return (uint8_t*)temp2;
 }
 
 static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
