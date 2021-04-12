@@ -590,7 +590,7 @@ typedef struct {
 											// 1=Enable color or chroma keying for all modes other than KRGB-16
 
 		// (MM8190 Secondary Stream Control)
-		uint16_t		ssctl_dda_haccum;	// [11: 0] DDA Horizontal Accumulator
+		int16_t			ssctl_dda_haccum;	// [12: 0] DDA Horizontal Accumulator (signed 2's complement)
 											// Set to: 2*(W0-1) - (W1-1) [FIXME: Am I reading that right? Datasheet says 2 (W0-1) - (W1-1)
 											// W0 = line length in pixels before scaling
 											// W1 = line length in pixels after scaling
@@ -611,9 +611,9 @@ typedef struct {
 		uint8_t			ckctl_r_ub;			// [23:16] R/Y KEY (UPPER)
 
 		// (MM8198 Secondary Stream Stretch/Filter Constants)
-		uint16_t		ssctl_k1_hscale;	// [26:16] K1 horizontal scale factor
+		uint16_t		ssctl_k1_hscale;	// [11: 0] K1 horizontal scale factor
 											// Set to: W0-1, where W0 is width of pixels of the initial output window before scaling
-		uint16_t		ssctl_k2_hscale;	// [10: 0] K2 horizontal scale factor
+		int16_t			ssctl_k2_hscale;	// [27:16] K2 horizontal scale factor
 											// Set to: W0-W1, where W1 is the width of pixels of the final scaled output window.
 											// "This value is signed and will always be negative" (FIXME: Does that imply the card cannot *downscale* YUV overlays?)
 
@@ -660,15 +660,15 @@ typedef struct {
 		uint8_t			ooc_ooc_enable;		// [31:31] Opaque Overlay Control Enable  0=disabled  1=enabled
 
 		// (MM81E0 K1 Vertical Scale Factor)
-		uint16_t		k1_vscale_factor;	// [10: 0] K1 Vertical Scale Factor
+		uint16_t		k1_vscale_factor;	// [11: 0] K1 Vertical Scale Factor
 											// Set to: [height in lines of initial output window before scaling] - 1
 
 		// (MM81E4 K2 Vertical Scale Factor)
-		uint16_t		k2_vscale_factor;	// [10: 0] K2 Vertical Scale Factor
+		int16_t			k2_vscale_factor;	// [12: 0] K2 Vertical Scale Factor
 											// Set to: -((height in lines before scale) - (height in lines of final window after scaling)) (2's complement)
 
 		// (MM81E8 DDA Vertical Accumulator Initial Value)
-		uint16_t		dda_vaccum_iv;		// [11: 0] DDA Vertical Accumulator
+		int16_t			dda_vaccum_iv;		// [12: 0] DDA Vertical Accumulator
 											// Set to: -((height in lines after scaling) - 1)
 
 		// (MM81EC Stream FIFO and RAS Controls)

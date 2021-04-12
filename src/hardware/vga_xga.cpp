@@ -1173,7 +1173,9 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.ssctl_dda_haccum = val & 0xFFFu;
+				vga.s3.streams.ssctl_dda_haccum = val & 0x1FFFu; // signed 13-bit value
+				if (vga.s3.streams.ssctl_dda_haccum &  0x1000u)
+					vga.s3.streams.ssctl_dda_haccum -= 0x2000u;
 				vga.s3.streams.ssctl_sdif = (val >> 24u) & 7u;
 				vga.s3.streams.ssctl_sfc = (val >> 28u) & 7u;
 			}
@@ -1187,8 +1189,18 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x8198: // S3 Trio64V+ streams processor, Secondary Stream Stretch/Filter Constants (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.ssctl_k1_hscale = (val >> 16u) & 0x1FFFu;
-				vga.s3.streams.ssctl_k2_hscale = val & 0x1FFFu;
+				/* Whoah, wait a minute! The S3 ViRGE and S3 Trio64V+ datasheets have a rather irritating error!
+				 * They say K1 is bits 11-0 and K2 bits 27-16, but the visual diagram says K2 is bits 11-0 and
+				 * K1 is bits 27-16!
+				 *
+				 * Based on what the S3 driver DCI driver writes for a 320x240 YUV overlay, it appears that K1
+				 * (initial output window before scaling - 1) is the lower 16 bits.
+				 *
+				 * K2 is signed 2's complement */
+				vga.s3.streams.ssctl_k1_hscale = val & 0xFFFu;
+				vga.s3.streams.ssctl_k2_hscale = (val >> 16u) & 0xFFFu;
+				if (vga.s3.streams.ssctl_k2_hscale &  0x0800)
+					vga.s3.streams.ssctl_k2_hscale -= 0x1000;
 			}
 			break;
 		case 0x81A0: // S3 Trio64V+ streams processor, Blend Control (MMIO only)
@@ -1247,17 +1259,21 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x81E0: // S3 Trio64V+ streams processor, K1 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.k1_vscale_factor = val & 0x3FFu;
+				vga.s3.streams.k1_vscale_factor = val & 0xFFFu;
 			}
 			break;
 		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.k2_vscale_factor = val & 0x3FFu;
+				vga.s3.streams.k2_vscale_factor = val & 0x1FFFu;
+				if (vga.s3.streams.k2_vscale_factor & 0x1000u)
+					vga.s3.streams.k2_vscale_factor -= 0x2000u;
 			}
 			break;
 		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.dda_vaccum_iv = val & 0xFFFu;
+				vga.s3.streams.dda_vaccum_iv = val & 0x1FFFu;
+				if (vga.s3.streams.dda_vaccum_iv & 0x1000u)
+					vga.s3.streams.dda_vaccum_iv -= 0x2000u;
 			}
 			break;
 		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
