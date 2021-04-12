@@ -375,10 +375,36 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x2d:  /* Extended Chip ID (high byte of PCI device ID) */
         return 0x88;
     case 0x2e:  /* New Chip ID  (low byte of PCI device ID) */
-        return 0x11;    // Trio64
+        /* "TESTING FOR THE PRESENCE OF A ViRGE/VX CHIP" section 13.3 PDF page 98 of 394
+         * "After unlocking, an ViRGENX chip can be identified via CR2E."
+         * (ASM code reading via 3D4h index 2Eh, comparing to 3Dh)
+         * Ref: [http://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf] */
+        switch (s3Card) {
+            case S3_Vision864:
+                return 0xC0; // Vision864, 0x88C0 or 0x88C1
+            case S3_Vision868:
+                return 0x80; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
+            case S3_Trio32:
+                return 0x10; // Trio32. 0x8810 or 0x8811
+            case S3_Trio64:
+            case S3_Trio64V:
+                return 0x11; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
+            case S3_ViRGE:
+                return 0x31;
+            case S3_ViRGEVX:
+                return 0x3D;
+            default:
+                break;
+        };
+
+        return 0x11; // Trio64 DOSBox SVN default even though SVN is closer to Vision864 functionally
     case 0x2f:  /* Revision */
-        return 0x00;    // Trio64 (exact value?)
-//      return 0x44;    // Trio64 V+
+        // revision ID
+        if (s3Card == S3_Trio64V)
+            return 0x40; // Trio64V+ datasheet, page 280, PCI "class code". "Hardwired to 0300004xh" (revision is 40h or more)
+        else
+            return 0x00; // Trio32/Trio64 datasheet, page 242, PCI "class code". "Hardwired to 03000000h"
+        //      return 0x44;    // Trio64 V+
     case 0x30:  /* CR30 Chip ID/REV register */
         return 0xe1;    // Trio+ dual byte
     case 0x31:  /* CR31 Memory Configuration */
