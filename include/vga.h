@@ -547,6 +547,7 @@ typedef struct {
 	uint8_t reg_52;
 	uint8_t reg_55;
 	uint8_t reg_58;
+	uint8_t reg_63; // Extended control register
 	uint8_t reg_6b; // LFB BIOS scratchpad
 	uint8_t ex_hor_overflow;
 	uint8_t ex_ver_overflow;

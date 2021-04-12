@@ -326,6 +326,43 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 (3d4h index 18h). Bit 8 is in 3d4h index 7 bit 4 and bit 9 in 3d4h
                 index 9 bit 6.
         */
+    case 0x63:  /* Extended Control Register CR63 */
+        if (s3Card == S3_Vision864 || s3Card == S3_Vision868) return; /* not mentioned in datasheet, does not exist */
+        vga.s3.reg_63 = (uint8_t)val;
+        break;
+        /* S3 Vision864 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
+         *
+         *      Datasheet does not mention this register, so it probably does not exist.
+         */
+        /* S3 Trio32/Trio64 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+         *
+         * 3-0  HSYNC-RESET-ADJST - HSYNC Reset Adjust
+         *      This value specifies the number of character clocks the HSYNC reset in the slave is de-
+         *      layed from the falling edge of the VSYNC input from the master during genlocking.
+         *      Remote mode (bit 0 of CRS6 set to 1) must be enabled for this field to take effect.
+         * 7-4  CHAR-CLK-RST-DELAY - Character clock reset delay
+         *      This specifies the number of DCLKs to delay the resetting of the character clock at the
+         *      end of the scan line. This is  used to sync the master and slave character clocks during
+         *      genlocking. Remote mode (bit 0 of CR56 set to 1) must be enabled for this field to
+         *      take effect.
+         */
+        /* S3 ViRGE/VX [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf]
+         *
+         *  0   ENBL ENH - Enable Enhanced Functions
+         *      0 = Enable VGA and VESA planar (4 bits/pixel) modes
+         *      1 = Enable all other modes (Enhanced and VESA non-planar)
+         *  1   RST - Reset
+         *      0 = No operation
+         *      1 = Software reset of the S3D Engine and memory controller
+         *  2   Reserved
+         *  3   PCI DISC - PCI Disconnects
+         *      0 = No effect
+         *      1 = An attempt to write data with the Command FIFO or LPB Output FIFO full or to
+         *          read data with the Command FIFO not empty generates a PCI bus disconnect
+         *          cycle
+         * 7-4  DELAY HSYNC/VSYNC
+         *      value = number of DCLKs the HSYNC and VSYNC active pulses are delayed
+         */
     case 0x67:  /* Extended Miscellaneous Control 2 */
         /*
             0   VCLK PHS. VCLK Phase With Respect to DCLK. If clear VLKC is inverted
@@ -471,6 +508,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
         return vga.s3.ex_hor_overflow;
     case 0x5e:  /* Extended Vertical Overflow */
         return vga.s3.ex_ver_overflow;
+    case 0x63:  /* Extended Control Register CR63 */
+        if (s3Card == S3_Vision864 || s3Card == S3_Vision868) return 0x00; /* not mentioned in datasheet, does not exist */
+        return vga.s3.reg_63;
     case 0x67:  /* Extended Miscellaneous Control 2 */
         return vga.s3.misc_control_2;
     case 0x69:  /* Extended System Control 3 */
