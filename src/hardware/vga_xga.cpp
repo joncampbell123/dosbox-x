@@ -1131,25 +1131,120 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x813e:
 			xga.scissors.x2 = val&0x0fff;
 			break;
-
 		case 0x8140:// DWORD data manipulation control (low word) and
-					// miscellaneous 2 (high word) (see PORT BEE8h,#P1047)
+			// miscellaneous 2 (high word) (see PORT BEE8h,#P1047)
 			xga.pix_cntl=val&0xFFFF;
 			if(len==4) xga.control2=(val>>16)&0x0fff;
 			break;
 		case 0x8144:// DWORD miscellaneous (low word) and read register select
-					// (high word)(see PORT BEE8h,#P1047)
+			// (high word)(see PORT BEE8h,#P1047)
 			xga.control1=val&0xffff;
 			if(len==4)xga.read_sel=(val>>16)&0x7;
 			break; 
 		case 0x8148:// DWORD minor axis pixel count (low word) and major axis
-					// pixel count (high word) (see PORT BEE8h,#P1047,PORT 96E8h)
+			// pixel count (high word) (see PORT BEE8h,#P1047,PORT 96E8h)
 			xga.MIPcount = val&0x0fff;
 			if(len==4) xga.MAPcount = (val>>16)&0x0fff;
 			break;
 		case 0x814a:
 			xga.MAPcount = val&0x0fff;
 			break;
+
+		// Streams processing a.k.a overlays (0x8180-0x81FF)
+		// Commonly used in Windows 3.1 through ME for the hardware YUV overlay,
+		// such as playing MPEG files in ActiveMovie or XingMPEG.
+		// S3 Trio64V+ and ViRGE cards have this.
+		// Vision868 cards have a different register set for the same.
+
+		case 0x8180: // S3 Trio64V+ streams processor, Primary Stream Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x8184: // S3 Trio64V+ streams processor, Color/Chroma Key Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x8194: // S3 Trio64V+ streams processor, Chroma Key Upper Bound (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x8198: // S3 Trio64V+ streams processor, Secondary Stream Stretch/Filter Constants (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81A0: // S3 Trio64V+ streams processor, Blend Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81C0: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 0 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81C4: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 1 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81C8: // S3 Trio64V+ streams processor, Primary Stream Stride (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81CC: // S3 Trio64V+ streams processor, Double Buffer/LPB Support (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81D0: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 0 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81D4: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 1 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81D8: // S3 Trio64V+ streams processor, Secondary Stream Stride (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81DC: // S3 Trio64V+ streams processor, Opaque Overlay Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81E0: // S3 Trio64V+ streams processor, K1 Vertical Scale Factor (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81F0: // S3 Trio64V+ streams processor, Primary Stream Window Start Coordinates (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81F4: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81F8: // S3 Trio64V+ streams processor, Secondary Stream Window Start Coordinates (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+		case 0x81FC: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+			}
+			break;
+
 		case 0x92e8:
 			xga.ErrTerm = val&0x3FFF;
 			break;
