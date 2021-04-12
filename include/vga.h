@@ -592,6 +592,7 @@ typedef struct {
 		// (MM8190 Secondary Stream Control)
 		int16_t			ssctl_dda_haccum;	// [12: 0] DDA Horizontal Accumulator (signed 2's complement)
 											// Set to: 2*(W0-1) - (W1-1) [FIXME: Am I reading that right? Datasheet says 2 (W0-1) - (W1-1)
+											// Windows 3.1 DCI seems to compute instead: ((2*(W0-1) - (W1-1)) / 2)
 											// W0 = line length in pixels before scaling
 											// W1 = line length in pixels after scaling
 		uint8_t			ssctl_sdif;			// [26:24] SDIF Secondary Stream Input Data Format
