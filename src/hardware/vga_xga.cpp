@@ -1398,3 +1398,9 @@ void POD_Load_VGA_XGA( std::istream& stream )
 	// - pure struct data
 	READ_POD( &xga, xga );
 }
+
+void SD3_Reset(bool enable) {
+	// STUB
+	LOG(LOG_VGA,LOG_DEBUG)("S3D reset %s",enable?"begin":"end");
+}
+

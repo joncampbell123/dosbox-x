@@ -23,6 +23,8 @@
 #include "mem.h"
 #include "pci_bus.h"
 
+void SD3_Reset(bool enable);
+
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch (reg) {
@@ -328,6 +330,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         */
     case 0x63:  /* Extended Control Register CR63 */
         if (s3Card == S3_Vision864 || s3Card == S3_Vision868) return; /* not mentioned in datasheet, does not exist */
+        if (s3Card >= S3_ViRGE && ((val ^ vga.s3.reg_63) & 2u/*RST*/)) SD3_Reset(!!(val & 2u));
         vga.s3.reg_63 = (uint8_t)val;
         break;
         /* S3 Vision864 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
@@ -410,8 +413,25 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x26:
         return ((vga.attr.disabled & 1u)?0x00u:0x20u) | (vga.attr.index & 0x1fu);
     case 0x2d:  /* Extended Chip ID (high byte of PCI device ID) */
+        /* NTS: As the high byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
+        /* NTS: Windows 98 S3 drivers will refuse to talk to the card if these registers (0x2D-0x2F) do not match the PCI ID or specific values */
+        switch (s3Card) {
+            case S3_Vision864:
+            case S3_Vision868:
+            case S3_Trio32:
+            case S3_Trio64:
+            case S3_Trio64V:
+            case S3_ViRGEVX:
+                return 0x88;
+            case S3_ViRGE:
+                return 0x56;
+            default:
+                break;
+        };
+
         return 0x88;
     case 0x2e:  /* New Chip ID  (low byte of PCI device ID) */
+        /* NTS: Windows 98 S3 drivers will refuse to talk to the card if these registers (0x2D-0x2F) do not match the PCI ID or specific values */
         /* "TESTING FOR THE PRESENCE OF A ViRGE/VX CHIP" section 13.3 PDF page 98 of 394
          * "After unlocking, an ViRGENX chip can be identified via CR2E."
          * (ASM code reading via 3D4h index 2Eh, comparing to 3Dh)
