@@ -982,6 +982,35 @@ static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t ke
 
 extern bool vga_8bit_dac;
 
+static inline uint8_t S3EVF8int(const uint8_t p,const uint8_t c,int a) {
+    return (uint8_t)(((p * (256-a)) + (c * a) + 128) >> 8);
+}
+
+void S3_XGA_RenderYUY2MPEGcolorkeyEVF(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *psrcyuv3,unsigned char *srcyuv3,int count,int a) {
+    uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
+
+    // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
+    //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
+    //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
+    if (!vga_8bit_dac) mask &= 0xFCFCFC;
+
+    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16)) & mask;
+    int o = 0;
+
+    while (count-- > 0) {
+        if (S3_XGA_OverlayKeyMatch(temp2[o] & mask,key)) {
+            temp2[o] = YUVMPEG2RGB32(
+                S3EVF8int(psrcyuv3[0],srcyuv3[0],a),
+                S3EVF8int(psrcyuv3[1],srcyuv3[1],a),
+                S3EVF8int(psrcyuv3[2],srcyuv3[2],a));
+        }
+
+        psrcyuv3 += 3;
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
 void S3_XGA_RenderYUY2MPEGcolorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
     uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
 
@@ -997,6 +1026,20 @@ void S3_XGA_RenderYUY2MPEGcolorkey(uint32_t* temp2/*already adjusted to X coordi
         if (S3_XGA_OverlayKeyMatch(temp2[o] & mask,key))
             temp2[o] = YUVMPEG2RGB32(srcyuv3[0],srcyuv3[1],srcyuv3[2]);
 
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
+void S3_XGA_RenderYUY2MPEGEVF(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *psrcyuv3,unsigned char *srcyuv3,int count,int a) {
+    int o = 0;
+
+    while (count-- > 0) {
+        temp2[o] = YUVMPEG2RGB32(
+            S3EVF8int(psrcyuv3[0],srcyuv3[0],a),
+            S3EVF8int(psrcyuv3[1],srcyuv3[1],a),
+            S3EVF8int(psrcyuv3[2],srcyuv3[2],a));
+        psrcyuv3 += 3;
         srcyuv3 += 3;
         o++;
     }
@@ -1108,10 +1151,27 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
             if (S3SSdraw.cscan_load)
                 S3_XGA_YUY2HProc(S3SSdraw.cscan->yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
 
-            if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
-                S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
-            else
-                S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
+            if (vga.s3.streams.evf) { /* vertical interpolation (S3 ViRGE and higher only) */
+                int a = 0;
+                int adiv;
+
+                adiv = vga.s3.streams.k1_vscale_factor - vga.s3.streams.k2_vscale_factor;
+                if (adiv == 0) adiv = 1;
+                a = 256 + ((S3SSdraw.vaccum * 0x100) / adiv);
+                if (a < 0) a = 0;
+                if (a > 255) a = 255;
+
+                if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
+                    S3_XGA_RenderYUY2MPEGcolorkeyEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
+                else
+                    S3_XGA_RenderYUY2MPEGEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
+            }
+            else {
+                if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
+                    S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
+                else
+                    S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
+            }
 
             /* it's not clear from the datasheet, but I think what the card is doing is a
              * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract
