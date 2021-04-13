@@ -1067,7 +1067,7 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
             S3SSdraw.vaccum += vga.s3.streams.k1_vscale_factor;
             if (S3SSdraw.vaccum >= 0) {
                 S3SSdraw.vaccum -= vga.s3.streams.k1_vscale_factor;
-                S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor;
+                S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor; /* usually negative value */
                 S3SSdraw.vmem_addr += S3SSdraw.stride;
             }
         }
