@@ -1280,6 +1280,8 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				vga.s3.streams.dda_vaccum_iv = val & 0xFFFu;
 				if (vga.s3.streams.dda_vaccum_iv & 0x0800u)
 					vga.s3.streams.dda_vaccum_iv -= 0x1000u;
+			}
+			if (s3Card >= S3_ViRGE) {
 				vga.s3.streams.evf = (val >> 15u) & 1u;
 			}
 			break;
