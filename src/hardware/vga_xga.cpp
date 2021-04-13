@@ -1265,21 +1265,19 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x81E0: // S3 Trio64V+ streams processor, K1 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.k1_vscale_factor = val & 0xFFFu;
+				vga.s3.streams.k1_vscale_factor = val & 0x7FFu;
 			}
 			break;
 		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.k2_vscale_factor = val & 0x1FFFu;
-				if (vga.s3.streams.k2_vscale_factor & 0x1000u)
-					vga.s3.streams.k2_vscale_factor -= 0x2000u;
+				vga.s3.streams.k2_vscale_factor = val & 0x7FFu;
 			}
 			break;
 		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.dda_vaccum_iv = val & 0x1FFFu;
-				if (vga.s3.streams.dda_vaccum_iv & 0x1000u)
-					vga.s3.streams.dda_vaccum_iv -= 0x2000u;
+				vga.s3.streams.dda_vaccum_iv = val & 0xFFFu;
+				if (vga.s3.streams.dda_vaccum_iv & 0x0800u)
+					vga.s3.streams.dda_vaccum_iv -= 0x1000u;
 				vga.s3.streams.evf = (val >> 15u) & 1u;
 			}
 			break;

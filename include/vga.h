@@ -661,15 +661,15 @@ typedef struct {
 		uint8_t			ooc_ooc_enable;		// [31:31] Opaque Overlay Control Enable  0=disabled  1=enabled
 
 		// (MM81E0 K1 Vertical Scale Factor)
-		uint16_t		k1_vscale_factor;	// [11: 0] K1 Vertical Scale Factor
+		uint16_t		k1_vscale_factor;	// [10: 0] K1 Vertical Scale Factor
 											// Set to: [height in lines of initial output window before scaling] - 1
 
 		// (MM81E4 K2 Vertical Scale Factor)
-		int16_t			k2_vscale_factor;	// [12: 0] K2 Vertical Scale Factor
-											// Set to: -((height in lines before scale) - (height in lines of final window after scaling)) (2's complement)
+		uint16_t		k2_vscale_factor;	// [10: 0] K2 Vertical Scale Factor
+											// Set to: (height in lines before scale) - (height in lines of final window after scaling)
 
 		// (MM81E8 DDA Vertical Accumulator Initial Value)
-		int16_t			dda_vaccum_iv;		// [12: 0] DDA Vertical Accumulator
+		int16_t			dda_vaccum_iv;		// [11: 0] DDA Vertical Accumulator
 											// Set to: -((height in lines after scaling) - 1)
 		uint8_t			evf;				// [15:15] EVF Enable Vertical Filtering
 

@@ -56,6 +56,7 @@ struct s3drawstream {
     bool                draw;
     bool                evf;
 
+    int32_t             vaccum;
     unsigned int        currentline;
 };
 
@@ -1048,7 +1049,30 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
             else
                 S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
 
-            S3SSdraw.vmem_addr += S3SSdraw.stride;
+            /* it's not clear from the datasheet, but I think what the card is doing is a
+             * DDA to vertically scale the image.
+             *
+             * FIXME: This works, but what is the K2 vertical scale factor for?
+             *        What use could (height in lines of original - height in lines of final)
+             *        be to the card? Filtering and interpolation?
+             *
+             *        It's documented as the "initial accumulator" of the vertical scale
+             *        DDA, but use of the value during scaling hardly counts as just the
+             *        "initial accumulator".
+             *
+             *        Furthermore, S3 Trio64V+ documents it as "2's complement of..." while
+             *        ViRGE documents it as just the subtraction in question.
+             *
+             *        Also note: Windows 3.1 DCI drivers will set the vscale factors and accumulator
+             *                   all to zero if the vertical scale is 1:1, which also suggests
+             *                   vertical scaling is DDA behavior.
+             *
+             *        This has been tested so far with Windows 3.1 and Windows 98. */
+            S3SSdraw.vaccum += vga.s3.streams.k1_vscale_factor;
+            if (S3SSdraw.vaccum >= 0) {
+                S3SSdraw.vaccum += vga.s3.streams.dda_vaccum_iv;
+                S3SSdraw.vmem_addr += S3SSdraw.stride;
+            }
         }
 
         S3SSdraw.currentline++;
@@ -3169,6 +3193,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 S3SSdraw.pixfmt = vga.s3.streams.ssctl_sdif;
                 S3SSdraw.filter = vga.s3.streams.ssctl_sfc;
                 S3SSdraw.evf = vga.s3.streams.evf != 0u;
+                S3SSdraw.vaccum = vga.s3.streams.dda_vaccum_iv;
                 S3SSdraw.currentline = 0;
                 S3SSdraw.draw = true;
             }
