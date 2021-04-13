@@ -1011,20 +1011,88 @@ void S3_XGA_RenderYUY2MPEG(uint32_t* temp2/*already adjusted to X coordinate in 
 
 void S3_XGA_YUY2HProc(unsigned char *dst3yuv,uint32_t vram,int count) {
     /* nearest neighbor */
-    {
+    if (vga.s3.streams.ssctl_sfc == 0) {
         int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+        int o = 0;
 
+        /* To explain the reads below, data in VRAM is 8-bit Y U Y V.
+         * This is a way to nearest neighbor read while stepping across
+         * Y U Y V properly. */
         while (count-- > 0) {
-            dst3yuv[0] = S3StreamVRAMRead8(vram+0);             // Y
-            dst3yuv[1] = S3StreamVRAMRead8((vram&(~3u))+1);     // U
-            dst3yuv[2] = S3StreamVRAMRead8((vram&(~3u))+3);     // V
-            dst3yuv += 3;
+            dst3yuv[o+0] = S3StreamVRAMRead8(vram+0);             // Y
+            dst3yuv[o+1] = S3StreamVRAMRead8((vram&(~3u))+1);     // U
+            dst3yuv[o+2] = S3StreamVRAMRead8((vram&(~3u))+3);     // V
+            o += 3;
 
             haccum += vga.s3.streams.ssctl_k1_hscale;
             if (haccum >= 0) {
                 haccum -= vga.s3.streams.ssctl_k1_hscale;
                 haccum += vga.s3.streams.ssctl_k2_hscale;
                 vram += 2;
+            }
+        }
+    }
+    else {
+        /* linear interpolation */
+
+        /* Y */
+        {
+            int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+            uint32_t lv = vram;
+            int lc = count;
+            int o = 0;
+            int a = 0;
+            int adiv;
+
+            adiv = vga.s3.streams.ssctl_k1_hscale - vga.s3.streams.ssctl_k2_hscale;
+            if (adiv == 0) adiv = 1;
+
+            while (lc-- > 0) {
+                if (adiv != 0) {
+                    a = 256 + ((haccum * 0x100) / adiv);
+                    if (a < 0) a = 0;
+                    if (a > 255) a = 255;
+                }
+
+                dst3yuv[o+0] = ((S3StreamVRAMRead8(lv+0) * (256-a)) + (S3StreamVRAMRead8(lv+2) * a) + 128) >> 8;                // Y
+                o += 3;
+
+                haccum += vga.s3.streams.ssctl_k1_hscale;
+                if (haccum >= 0) {
+                    haccum -= vga.s3.streams.ssctl_k1_hscale;
+                    haccum += vga.s3.streams.ssctl_k2_hscale;
+                    lv += 2;
+                }
+            }
+        }
+
+        /* U and V */
+        {
+            int32_t haccum = vga.s3.streams.ssctl_dda_haccum * 2; /* U and V have half resolution, modify DDA appropriately */
+            int o = 0;
+            int a = 0;
+            int adiv;
+
+            adiv = (vga.s3.streams.ssctl_k1_hscale - vga.s3.streams.ssctl_k2_hscale) * 2;
+            if (adiv == 0) adiv = 1;
+
+            while (count-- > 0) {
+                if (adiv != 0) {
+                    a = 256 + ((haccum * 0x100) / adiv);
+                    if (a < 0) a = 0;
+                    if (a > 255) a = 255;
+                }
+
+                dst3yuv[o+1] = ((S3StreamVRAMRead8(vram+1) * (256-a)) + (S3StreamVRAMRead8(vram+5) * a)) >> 8;                  // U
+                dst3yuv[o+2] = ((S3StreamVRAMRead8(vram+3) * (256-a)) + (S3StreamVRAMRead8(vram+7) * a)) >> 8;                  // V
+                o += 3;
+
+                haccum += vga.s3.streams.ssctl_k1_hscale;
+                if (haccum >= 0) {
+                    haccum -= vga.s3.streams.ssctl_k1_hscale * 2;
+                    haccum += vga.s3.streams.ssctl_k2_hscale * 2;
+                    vram += 4;
+                }
             }
         }
     }
