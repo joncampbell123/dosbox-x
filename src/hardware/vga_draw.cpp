@@ -935,13 +935,71 @@ static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) 
     return TempLine;
 } */
 
-void S3_XGA_SecondaryStreamRender(Bitu vidstart,uint32_t* temp2) {
+static inline uint8_t S3StreamVRAMRead8(const uint32_t a) {
+    return vga.mem.linear[a & vga.mem.memmask];
+}
+
+static inline uint8_t clampu8(int x) {
+    if (x > 255)
+        return 255;
+    else if (x < 0)
+        return 0;
+    else
+        return x;
+}
+
+#define MPEGFP8(x) ((int)((x) * 0x100))
+
+uint32_t YUVMPEG2RGB32(const uint8_t Y,const uint8_t U,const uint8_t V) {
+    /*
+        B = 1.164(Y - 16)                  + 2.018(U - 128)
+        G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
+        R = 1.164(Y - 16) + 1.596(V - 128)
+     */
+
+    /* WARNING: >> 8 must be signed arithmetic shift */
+    uint8_t R = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) + (MPEGFP8(1.596) * (V - 128)))>>8);
+    uint8_t G = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) - (MPEGFP8(0.813) * (V - 128)) - (MPEGFP8(0.391) * (U - 128)))>>8);
+    uint8_t B = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) + (MPEGFP8(2.018) * (U - 128)))>>8);
+
+    return (R << 16) | (G << 8) | B;
+}
+
+void S3_XGA_RenderYUY2(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
+    int count = S3SSdraw.endx - S3SSdraw.startx;
+    uint32_t scan = S3SSdraw.vmem_addr;
+    uint8_t Y,U,V;
+
+    /* vmem_addr points at YUY2, interleaved Y U V samples as a series of [Y U Y V] blocks, 2 Ys, 1 U, 1 V */
+    while (count >= 2) {
+        Y = S3StreamVRAMRead8(scan+0);
+        U = S3StreamVRAMRead8(scan+1);
+        V = S3StreamVRAMRead8(scan+3);
+        temp2[0] = YUVMPEG2RGB32(Y,U,V);
+
+        Y = S3StreamVRAMRead8(scan+2);
+        temp2[1] = YUVMPEG2RGB32(Y,U,V);
+
+        temp2 += 2;
+        count -= 2;
+        scan += 4;
+    }
+
+    if (count > 0) {
+        Y = S3StreamVRAMRead8(scan+0);
+        U = S3StreamVRAMRead8(scan+1);
+        V = S3StreamVRAMRead8(scan+3);
+        temp2[0] = YUVMPEG2RGB32(Y,U,V);
+    }
+}
+
+void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
-            // FIXME: Test pattern to show overlay is working
-            for (int x=S3SSdraw.startx;x < S3SSdraw.endx;x++) {
-                temp2[x] = (x^S3SSdraw.currentline);
-            }
+            // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
+            S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
+
+            S3SSdraw.vmem_addr += S3SSdraw.stride;
         }
 
         S3SSdraw.currentline++;
@@ -954,7 +1012,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
     /* streams processor overlay: secondary stream (commonly, YUV overlay for MPEG playback) */
     /* NTS: Ignore the "primary stream" first, because I'm not sure whether that's another overlay
      * or just the main display. */
-    S3_XGA_SecondaryStreamRender(vidstart,temp2);
+    S3_XGA_SecondaryStreamRender(temp2);
 
     /* hardware cursor */
     if (svga.hardware_cursor_active != NULL && svga.hardware_cursor_active()) {
