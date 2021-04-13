@@ -969,13 +969,15 @@ static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t ke
     return (match == key);
 }
 
+extern bool vga_8bit_dac;
+
 void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
     uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
 
     // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
     //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
     //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
-    mask &= 0xFCFCFC;
+    if (!vga_8bit_dac) mask &= 0xFCFCFC;
 
     const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16u)) & mask;
     int count = S3SSdraw.endx - S3SSdraw.startx;
