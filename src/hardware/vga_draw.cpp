@@ -918,9 +918,38 @@ static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) 
     return TempLine;
 } */
 
+void S3_XGA_SecondaryStreamRender(Bitu vidstart,uint32_t* temp2) {
+    /* NTS: The Windows 3.1 S3 Trio64V+ driver appears to "shut down" the overlay by
+     *      putting it in the upper left corner of the screen as a 7x8 window, and
+     *      then setting the FIFO allocation so that all FIFO slots go to the
+     *      primary stream, or to put it another way, by starving the secondary
+     *      stream of any FIFO slots. If we don't check FIFO allocation, then
+     *      the overlay will be "stuck" in the upper left hand corner when you close
+     *      XingMPEG. */
+    if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
+        Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
+
+        if ((lineat+1) >= vga.s3.streams.sswnd_start_y/*Y+1*/ && (lineat+1) < (vga.s3.streams.sswnd_start_y+vga.s3.streams.sswnd_height)/*height,Y+1*/) {
+            int sx = vga.s3.streams.sswnd_start_x - 1;
+            int ex = vga.s3.streams.sswnd_start_x + vga.s3.streams.sswnd_width;
+
+            // FIXME: Test pattern to show overlay is working
+            for (int x=sx;x < ex;x++) {
+                temp2[x] = (x^lineat);
+            }
+        }
+    }
+}
+
 static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
     uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
 
+    /* streams processor overlay: secondary stream (commonly, YUV overlay for MPEG playback) */
+    /* NTS: Ignore the "primary stream" first, because I'm not sure whether that's another overlay
+     * or just the main display. */
+    S3_XGA_SecondaryStreamRender(vidstart,temp2);
+
+    /* hardware cursor */
     if (svga.hardware_cursor_active != NULL && svga.hardware_cursor_active()) {
         Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
         if ((vga.s3.hgc.posx >= vga.draw.width) ||

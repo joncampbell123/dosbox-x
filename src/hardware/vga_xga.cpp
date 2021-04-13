@@ -1072,6 +1072,12 @@ extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
 //	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
 
+#if 0
+	// streams procesing debug
+	if (port >= 0x8180 && port <= 0x81FF)
+		LOG_MSG("XGA streams processing: Write to port %x, val %8x, len %x",(unsigned int)port,(unsigned int)val,(unsigned int)len);
+#endif
+
 	switch(port) {
 		case 0x8100:// drawing control: row (low word), column (high word)
 					// "CUR_X" and "CUR_Y" (see PORT 82E8h,PORT 86E8h)
