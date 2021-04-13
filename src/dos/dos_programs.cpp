@@ -4683,7 +4683,8 @@ private:
     }
     bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
-        while (cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
+        bool nocont=false;
+        while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
 			bool usedef=false;
 			if (!cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) || !commandLine.size()) {
 				if (!nodef && !paths.size()) {
@@ -4693,8 +4694,21 @@ private:
 				else break;
 			}
 #if defined (WIN32) || defined(OS2)
+            // Windows: Workaround for LaunchBox
             if (commandLine.size()>4 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\') && commandLine.back()=='\'')
                 commandLine = commandLine.substr(1, commandLine.size()-2);
+            else if (!paths.size() && commandLine.size()>3 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\')) {
+                std::string line=trim((char *)cmd->GetRawCmdline().c_str());
+                std::size_t space=line.find(' ');
+                if (space!=std::string::npos) {
+                    line=trim((char *)line.substr(space).c_str());
+                    std::size_t found=line.back()=='\''?line.find_last_of('\''):line.rfind("' ");
+                    if (found!=std::string::npos&&found>2) {
+                        commandLine=line.substr(1, found-1);
+                        nocont=true;
+                    }
+                }
+            }
 #else
             // Linux: Convert backslash to forward slash
             if (commandLine.size() > 0) {
