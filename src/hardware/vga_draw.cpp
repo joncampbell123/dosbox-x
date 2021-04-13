@@ -925,7 +925,14 @@ void S3_XGA_SecondaryStreamRender(Bitu vidstart,uint32_t* temp2) {
      *      primary stream, or to put it another way, by starving the secondary
      *      stream of any FIFO slots. If we don't check FIFO allocation, then
      *      the overlay will be "stuck" in the upper left hand corner when you close
-     *      XingMPEG. */
+     *      XingMPEG.
+     *
+     *      Of course other oddities happen in Windows 3.1, such as the hardware cursor
+     *      turning blue when the overlay is loaded, and if you directly close the
+     *      playback window without selecting "Close" from the file menu, the overlay
+     *      remains on the desktop (XingMPEG devs probably missed that because they're
+     *      using the color key feature to key against bright magenta, and the Windows
+     *      desktop usually doesn't have that color). */
     if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
         Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
 
