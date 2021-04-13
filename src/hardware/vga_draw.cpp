@@ -58,6 +58,13 @@ struct s3drawstream {
 
     int32_t             vaccum;
     unsigned int        currentline;
+
+    /* temporary line to process and filter a scanline.
+     * maximum scanline of an overlay is 1024. */
+    union tmpscanline {
+        uint8_t         yuv[1024*3];        // Y U V packed (good for the CPU cache)
+    };
+    union tmpscanline   tmpscan1;           // rendering version (NTS: tmpscan2 is planned for vertical interpolation)
 };
 
 struct s3drawstream S3SSdraw = {0};
@@ -972,7 +979,7 @@ static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t ke
 
 extern bool vga_8bit_dac;
 
-void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
+void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
     uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
 
     // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
@@ -980,63 +987,46 @@ void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate
     //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
     if (!vga_8bit_dac) mask &= 0xFCFCFC;
 
-    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16u)) & mask;
-    int count = S3SSdraw.endx - S3SSdraw.startx;
-    uint32_t scan = S3SSdraw.vmem_addr;
-    uint8_t Y,U,V;
+    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16)) & mask;
+    int o = 0;
 
-    /* vmem_addr points at YUY2, interleaved Y U V samples as a series of [Y U Y V] blocks, 2 Ys, 1 U, 1 V */
-    while (count >= 2) {
-        U = S3StreamVRAMRead8(scan+1);
-        V = S3StreamVRAMRead8(scan+3);
-        if (S3_XGA_OverlayKeyMatch(temp2[0] & mask,key)) {
-            Y = S3StreamVRAMRead8(scan+0);
-            temp2[0] = YUVMPEG2RGB32(Y,U,V);
-        }
+    while (count-- > 0) {
+        if (S3_XGA_OverlayKeyMatch(temp2[o] & mask,key))
+            temp2[o] = YUVMPEG2RGB32(srcyuv3[0],srcyuv3[1],srcyuv3[2]);
 
-        if (S3_XGA_OverlayKeyMatch(temp2[1] & mask,key)) {
-            Y = S3StreamVRAMRead8(scan+2);
-            temp2[1] = YUVMPEG2RGB32(Y,U,V);
-        }
-
-        temp2 += 2;
-        count -= 2;
-        scan += 4;
-    }
-
-    if (count > 0 && S3_XGA_OverlayKeyMatch(temp2[0] & mask,key)) {
-        Y = S3StreamVRAMRead8(scan+0);
-        U = S3StreamVRAMRead8(scan+1);
-        V = S3StreamVRAMRead8(scan+3);
-        temp2[0] = YUVMPEG2RGB32(Y,U,V);
+        srcyuv3 += 3;
+        o++;
     }
 }
 
-void S3_XGA_RenderYUY2(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
-    int count = S3SSdraw.endx - S3SSdraw.startx;
-    uint32_t scan = S3SSdraw.vmem_addr;
-    uint8_t Y,U,V;
+void S3_XGA_RenderYUY2(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
+    int o = 0;
 
-    /* vmem_addr points at YUY2, interleaved Y U V samples as a series of [Y U Y V] blocks, 2 Ys, 1 U, 1 V */
-    while (count >= 2) {
-        Y = S3StreamVRAMRead8(scan+0);
-        U = S3StreamVRAMRead8(scan+1);
-        V = S3StreamVRAMRead8(scan+3);
-        temp2[0] = YUVMPEG2RGB32(Y,U,V);
-
-        Y = S3StreamVRAMRead8(scan+2);
-        temp2[1] = YUVMPEG2RGB32(Y,U,V);
-
-        temp2 += 2;
-        count -= 2;
-        scan += 4;
+    while (count-- > 0) {
+        temp2[o] = YUVMPEG2RGB32(srcyuv3[0],srcyuv3[1],srcyuv3[2]);
+        srcyuv3 += 3;
+        o++;
     }
+}
 
-    if (count > 0) {
-        Y = S3StreamVRAMRead8(scan+0);
-        U = S3StreamVRAMRead8(scan+1);
-        V = S3StreamVRAMRead8(scan+3);
-        temp2[0] = YUVMPEG2RGB32(Y,U,V);
+void S3_XGA_YUY2HProc(unsigned char *dst3yuv,uint32_t vram,int count) {
+    /* nearest neighbor */
+    {
+        int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+
+        while (count-- > 0) {
+            dst3yuv[0] = S3StreamVRAMRead8(vram+0);             // Y
+            dst3yuv[1] = S3StreamVRAMRead8((vram&(~3u))+1);     // U
+            dst3yuv[2] = S3StreamVRAMRead8((vram&(~3u))+3);     // V
+            dst3yuv += 3;
+
+            haccum += vga.s3.streams.ssctl_k1_hscale;
+            if (haccum >= 0) {
+                haccum -= vga.s3.streams.ssctl_k1_hscale;
+                haccum += vga.s3.streams.ssctl_k2_hscale;
+                vram += 2;
+            }
+        }
     }
 }
 
@@ -1044,10 +1034,12 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
+            S3_XGA_YUY2HProc(S3SSdraw.tmpscan1.yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
+
             if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
-                S3_XGA_RenderYUY2colorkey(temp2+S3SSdraw.startx);
+                S3_XGA_RenderYUY2colorkey(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
             else
-                S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
+                S3_XGA_RenderYUY2(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
 
             /* it's not clear from the datasheet, but I think what the card is doing is a
              * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract

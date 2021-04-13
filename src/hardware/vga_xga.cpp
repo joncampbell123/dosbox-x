@@ -1179,9 +1179,9 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
-				vga.s3.streams.ssctl_dda_haccum = val & 0x1FFFu; // signed 13-bit value
-				if (vga.s3.streams.ssctl_dda_haccum &  0x1000u)
-					vga.s3.streams.ssctl_dda_haccum -= 0x2000u;
+				vga.s3.streams.ssctl_dda_haccum = val & 0xFFFu; // signed 12-bit value
+				if (vga.s3.streams.ssctl_dda_haccum &  0x0800u)
+					vga.s3.streams.ssctl_dda_haccum -= 0x1000u;
 				vga.s3.streams.ssctl_sdif = (val >> 24u) & 7u;
 				vga.s3.streams.ssctl_sfc = (val >> 28u) & 7u;
 			}
