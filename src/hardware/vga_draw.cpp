@@ -44,6 +44,23 @@
 
 bool mcga_double_scan = false;
 
+/* S3 streams processor state.
+ * Registers are only loaded into hardware on vertical sync anyway. */
+struct s3drawstream {
+    unsigned int        starty,endy; /* scanlines to draw, starty <= y < endy */
+    unsigned int        startx,endx; /* pixels to draw, startx <= x < endx */
+    uint32_t            vmem_addr;
+    uint32_t            stride;
+    uint8_t             pixfmt;
+    uint8_t             filter;
+    bool                draw;
+    bool                evf;
+
+    unsigned int        currentline;
+};
+
+struct s3drawstream S3SSdraw = {0};
+
 const char* const mode_texts[M_MAX] = {
     "M_CGA2",           // 0
     "M_CGA4",
@@ -919,32 +936,15 @@ static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) 
 } */
 
 void S3_XGA_SecondaryStreamRender(Bitu vidstart,uint32_t* temp2) {
-    /* NTS: The Windows 3.1 S3 Trio64V+ driver appears to "shut down" the overlay by
-     *      putting it in the upper left corner of the screen as a 7x8 window, and
-     *      then setting the FIFO allocation so that all FIFO slots go to the
-     *      primary stream, or to put it another way, by starving the secondary
-     *      stream of any FIFO slots. If we don't check FIFO allocation, then
-     *      the overlay will be "stuck" in the upper left hand corner when you close
-     *      XingMPEG.
-     *
-     *      Of course other oddities happen in Windows 3.1, such as the hardware cursor
-     *      turning blue when the overlay is loaded, and if you directly close the
-     *      playback window without selecting "Close" from the file menu, the overlay
-     *      remains on the desktop (XingMPEG devs probably missed that because they're
-     *      using the color key feature to key against bright magenta, and the Windows
-     *      desktop usually doesn't have that color). */
-    if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
-        Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
-
-        if ((lineat+1) >= vga.s3.streams.sswnd_start_y/*Y+1*/ && (lineat+1) < (vga.s3.streams.sswnd_start_y+vga.s3.streams.sswnd_height)/*height,Y+1*/) {
-            int sx = vga.s3.streams.sswnd_start_x - 1;
-            int ex = vga.s3.streams.sswnd_start_x + vga.s3.streams.sswnd_width;
-
+    if (S3SSdraw.draw) {
+        if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: Test pattern to show overlay is working
-            for (int x=sx;x < ex;x++) {
-                temp2[x] = (x^lineat);
+            for (int x=S3SSdraw.startx;x < S3SSdraw.endx;x++) {
+                temp2[x] = (x^S3SSdraw.currentline);
             }
         }
+
+        S3SSdraw.currentline++;
     }
 }
 
@@ -3035,6 +3035,41 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
+
+    if (svgaCard == SVGA_S3Trio) {
+        if (s3Card >= S3_ViRGE || s3Card == S3_Trio64V) {
+            /* NTS: The Windows 3.1 S3 Trio64V+ driver appears to "shut down" the overlay by
+             *      putting it in the upper left corner of the screen as a 7x8 window, and
+             *      then setting the FIFO allocation so that all FIFO slots go to the
+             *      primary stream, or to put it another way, by starving the secondary
+             *      stream of any FIFO slots. If we don't check FIFO allocation, then
+             *      the overlay will be "stuck" in the upper left hand corner when you close
+             *      XingMPEG.
+             *
+             *      Of course other oddities happen in Windows 3.1, such as the hardware cursor
+             *      turning blue when the overlay is loaded, and if you directly close the
+             *      playback window without selecting "Close" from the file menu, the overlay
+             *      remains on the desktop (XingMPEG devs probably missed that because they're
+             *      using the color key feature to key against bright magenta, and the Windows
+             *      desktop usually doesn't have that color). */
+            if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_x != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
+                S3SSdraw.startx = vga.s3.streams.sswnd_start_x-1; /* X coordinate written is X + 1 */
+                S3SSdraw.starty = vga.s3.streams.sswnd_start_y-1; /* Y coordinate written is Y + 1 */
+                S3SSdraw.endx = (vga.s3.streams.sswnd_start_x-1)+vga.s3.streams.sswnd_width+1; /* register is width - 1 */
+                S3SSdraw.endy = (vga.s3.streams.sswnd_start_y-1)+vga.s3.streams.sswnd_height; /* height is written as-is */
+                S3SSdraw.vmem_addr = vga.s3.streams.ss_fba[0] & ~7u; /* "must be quadword aligned" */
+                S3SSdraw.stride = vga.s3.streams.ss_stride; /* datasheet doesn't say anything about alignment requirements here */
+                S3SSdraw.pixfmt = vga.s3.streams.ssctl_sdif;
+                S3SSdraw.filter = vga.s3.streams.ssctl_sfc;
+                S3SSdraw.evf = vga.s3.streams.evf != 0u;
+                S3SSdraw.currentline = 0;
+                S3SSdraw.draw = true;
+            }
+            else {
+                S3SSdraw.draw = false;
+            }
+        }
+    }
 
     vga.draw.address_line = vga.config.hlines_skip;
     if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();
