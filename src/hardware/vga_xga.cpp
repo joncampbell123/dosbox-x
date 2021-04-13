@@ -1195,6 +1195,13 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x8198: // S3 Trio64V+ streams processor, Secondary Stream Stretch/Filter Constants (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				uint32_t regmask;
+
+				if (s3Card >= S3_ViRGEVX) /* ViRGE/VX datasheet says the register is 12 bits large */
+					regmask = 0xFFFu;
+				else /* earlier cards say the register is 11 bits large */
+					regmask = 0x7FFu;
+
 				/* Whoah, wait a minute! The S3 ViRGE and S3 Trio64V+ datasheets have a rather irritating error!
 				 * They say K1 is bits 10-0 and K2 bits 26-16, but the visual diagram says K2 is bits 10-0 and
 				 * K1 is bits 26-16!
@@ -1203,10 +1210,10 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				 * (initial output window before scaling - 1) is the lower 16 bits.
 				 *
 				 * K2 is signed 2's complement */
-				vga.s3.streams.ssctl_k1_hscale = val & 0x7FFu;
-				vga.s3.streams.ssctl_k2_hscale = (val >> 16u) & 0x7FFu;
-				if (vga.s3.streams.ssctl_k2_hscale &  0x400)
-					vga.s3.streams.ssctl_k2_hscale -= 0x800;
+				vga.s3.streams.ssctl_k1_hscale = val & regmask;
+				vga.s3.streams.ssctl_k2_hscale = (val >> 16u) & regmask;
+				if (vga.s3.streams.ssctl_k2_hscale &  ((regmask+1u)>>1u))   /* (0x7FF+1)>>1 = 0x400 */
+					vga.s3.streams.ssctl_k2_hscale -= (regmask+1u);         /* (0x7FF+1)    = 0x800 */
 			}
 			break;
 		case 0x81A0: // S3 Trio64V+ streams processor, Blend Control (MMIO only)
