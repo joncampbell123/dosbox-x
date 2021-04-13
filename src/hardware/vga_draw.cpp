@@ -965,6 +965,50 @@ uint32_t YUVMPEG2RGB32(const uint8_t Y,const uint8_t U,const uint8_t V) {
     return (R << 16) | (G << 8) | B;
 }
 
+static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t key) {
+    return (match == key);
+}
+
+void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
+    uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
+
+    // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
+    //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
+    //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
+    mask &= 0xFCFCFC;
+
+    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16u)) & mask;
+    int count = S3SSdraw.endx - S3SSdraw.startx;
+    uint32_t scan = S3SSdraw.vmem_addr;
+    uint8_t Y,U,V;
+
+    /* vmem_addr points at YUY2, interleaved Y U V samples as a series of [Y U Y V] blocks, 2 Ys, 1 U, 1 V */
+    while (count >= 2) {
+        U = S3StreamVRAMRead8(scan+1);
+        V = S3StreamVRAMRead8(scan+3);
+        if (S3_XGA_OverlayKeyMatch(temp2[0] & mask,key)) {
+            Y = S3StreamVRAMRead8(scan+0);
+            temp2[0] = YUVMPEG2RGB32(Y,U,V);
+        }
+
+        if (S3_XGA_OverlayKeyMatch(temp2[1] & mask,key)) {
+            Y = S3StreamVRAMRead8(scan+2);
+            temp2[1] = YUVMPEG2RGB32(Y,U,V);
+        }
+
+        temp2 += 2;
+        count -= 2;
+        scan += 4;
+    }
+
+    if (count > 0 && S3_XGA_OverlayKeyMatch(temp2[0] & mask,key)) {
+        Y = S3StreamVRAMRead8(scan+0);
+        U = S3StreamVRAMRead8(scan+1);
+        V = S3StreamVRAMRead8(scan+3);
+        temp2[0] = YUVMPEG2RGB32(Y,U,V);
+    }
+}
+
 void S3_XGA_RenderYUY2(uint32_t* temp2/*already adjusted to X coordinate in row*/) {
     int count = S3SSdraw.endx - S3SSdraw.startx;
     uint32_t scan = S3SSdraw.vmem_addr;
@@ -997,7 +1041,10 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
-            S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
+            if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
+                S3_XGA_RenderYUY2colorkey(temp2+S3SSdraw.startx);
+            else
+                S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
 
             S3SSdraw.vmem_addr += S3SSdraw.stride;
         }
