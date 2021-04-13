@@ -67,6 +67,7 @@ struct s3drawstream {
     union tmpscanline   tmpscan1;           // rendering version
     union tmpscanline   tmpscan2;           // rendering version 2 for vertical interpolation
     union tmpscanline   *pscan,*cscan;
+    bool                cscan_load;
 };
 
 struct s3drawstream S3SSdraw = {0};
@@ -1104,7 +1105,8 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
-            S3_XGA_YUY2HProc(S3SSdraw.cscan->yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
+            if (S3SSdraw.cscan_load)
+                S3_XGA_YUY2HProc(S3SSdraw.cscan->yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
 
             if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
                 S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
@@ -1131,6 +1133,9 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
                 S3SSdraw.vaccum -= vga.s3.streams.k1_vscale_factor;
                 S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor; /* usually negative value */
                 S3SSdraw.vmem_addr += S3SSdraw.stride;
+
+                std::swap(S3SSdraw.cscan,S3SSdraw.pscan);
+                S3SSdraw.cscan_load = true;
             }
         }
 
@@ -3255,6 +3260,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 S3SSdraw.vaccum = vga.s3.streams.dda_vaccum_iv;
                 S3SSdraw.pscan = &S3SSdraw.tmpscan2;
                 S3SSdraw.cscan = &S3SSdraw.tmpscan1;
+                S3SSdraw.cscan_load = true;
                 S3SSdraw.currentline = 0;
                 S3SSdraw.draw = true;
             }
