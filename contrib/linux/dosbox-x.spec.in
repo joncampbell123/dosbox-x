@@ -66,7 +66,7 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/com.dosbox_x.DOSBox-
 appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 %files
-%caps(cap_net_raw=ep cap_net_admin=ep) %{_bindir}/%{name}
+%caps(cap_net_raw=ep) %{_bindir}/%{name}
 %{_datadir}/%{name}
 %{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
 %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
