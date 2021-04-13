@@ -1,4 +1,7 @@
 0.83.13
+  - Added YUV (YUY2) overlay to S3 Trio64V+ card
+    emulation. Tested with XingMPEG under Windows 3.1
+    and ActiveMovie under Windows 98.
   - Added machine types for 5 different variations of
     S3 chipset: Vision864, Vision868, Trio32, Trio64,
     and (experimental) Trio64V+, ViRGE and ViRGE/VX.
