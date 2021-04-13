@@ -665,7 +665,7 @@ typedef struct {
 											// Set to: [height in lines of initial output window before scaling] - 1
 
 		// (MM81E4 K2 Vertical Scale Factor)
-		uint16_t		k2_vscale_factor;	// [10: 0] K2 Vertical Scale Factor
+		int16_t			k2_vscale_factor;	// [10: 0] K2 Vertical Scale Factor
 											// Set to: (height in lines before scale) - (height in lines of final window after scaling)
 
 		// (MM81E8 DDA Vertical Accumulator Initial Value)

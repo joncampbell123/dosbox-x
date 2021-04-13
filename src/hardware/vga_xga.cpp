@@ -1271,6 +1271,8 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
 				vga.s3.streams.k2_vscale_factor = val & 0x7FFu;
+				if (vga.s3.streams.k2_vscale_factor & 0x400u)
+					vga.s3.streams.k2_vscale_factor -= 0x800u;
 			}
 			break;
 		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)

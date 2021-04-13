@@ -1050,27 +1050,21 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
                 S3_XGA_RenderYUY2(temp2+S3SSdraw.startx);
 
             /* it's not clear from the datasheet, but I think what the card is doing is a
-             * DDA to vertically scale the image.
+             * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract
+             * to vertically scale.
              *
-             * FIXME: This works, but what is the K2 vertical scale factor for?
-             *        What use could (height in lines of original - height in lines of final)
-             *        be to the card? Filtering and interpolation?
+             * The code below seems to work well enough with Windows 3.1 and Windows 98.
+             * Note of course this algorithm doesn't allow scaling DOWN YUV playback.
              *
-             *        It's documented as the "initial accumulator" of the vertical scale
-             *        DDA, but use of the value during scaling hardly counts as just the
-             *        "initial accumulator".
+             * Note that K1 = original height - 1
+             *           K2 = (original height) - (final height)
              *
-             *        Furthermore, S3 Trio64V+ documents it as "2's complement of..." while
-             *        ViRGE documents it as just the subtraction in question.
-             *
-             *        Also note: Windows 3.1 DCI drivers will set the vscale factors and accumulator
-             *                   all to zero if the vertical scale is 1:1, which also suggests
-             *                   vertical scaling is DDA behavior.
-             *
-             *        This has been tested so far with Windows 3.1 and Windows 98. */
+             * NTS: Windows 3.1 DCI and Windows 98 DirectX drivers will set initial accumulator
+             *      and both K1/K2 scale factors to zero if the vertical scale is 1:1. */
             S3SSdraw.vaccum += vga.s3.streams.k1_vscale_factor;
             if (S3SSdraw.vaccum >= 0) {
-                S3SSdraw.vaccum += vga.s3.streams.dda_vaccum_iv;
+                S3SSdraw.vaccum -= vga.s3.streams.k1_vscale_factor;
+                S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor;
                 S3SSdraw.vmem_addr += S3SSdraw.stride;
             }
         }
