@@ -64,7 +64,9 @@ struct s3drawstream {
     union tmpscanline {
         uint8_t         yuv[1024*3];        // Y U V packed (good for the CPU cache)
     };
-    union tmpscanline   tmpscan1;           // rendering version (NTS: tmpscan2 is planned for vertical interpolation)
+    union tmpscanline   tmpscan1;           // rendering version
+    union tmpscanline   tmpscan2;           // rendering version 2 for vertical interpolation
+    union tmpscanline   *pscan,*cscan;
 };
 
 struct s3drawstream S3SSdraw = {0};
@@ -1102,12 +1104,12 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
-            S3_XGA_YUY2HProc(S3SSdraw.tmpscan1.yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
+            S3_XGA_YUY2HProc(S3SSdraw.cscan->yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
 
             if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
-                S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
+                S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
             else
-                S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
+                S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
 
             /* it's not clear from the datasheet, but I think what the card is doing is a
              * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract
@@ -3251,6 +3253,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 S3SSdraw.filter = vga.s3.streams.ssctl_sfc;
                 S3SSdraw.evf = vga.s3.streams.evf != 0u;
                 S3SSdraw.vaccum = vga.s3.streams.dda_vaccum_iv;
+                S3SSdraw.pscan = &S3SSdraw.tmpscan2;
+                S3SSdraw.cscan = &S3SSdraw.tmpscan1;
                 S3SSdraw.currentline = 0;
                 S3SSdraw.draw = true;
             }
