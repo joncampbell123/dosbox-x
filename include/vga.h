@@ -612,9 +612,9 @@ typedef struct {
 		uint8_t			ckctl_r_ub;			// [23:16] R/Y KEY (UPPER)
 
 		// (MM8198 Secondary Stream Stretch/Filter Constants)
-		uint16_t		ssctl_k1_hscale;	// [11: 0] K1 horizontal scale factor
+		uint16_t		ssctl_k1_hscale;	// [10: 0] K1 horizontal scale factor
 											// Set to: W0-1, where W0 is width of pixels of the initial output window before scaling
-		int16_t			ssctl_k2_hscale;	// [27:16] K2 horizontal scale factor
+		int16_t			ssctl_k2_hscale;	// [26:16] K2 horizontal scale factor
 											// Set to: W0-W1, where W1 is the width of pixels of the final scaled output window.
 											// "This value is signed and will always be negative" (FIXME: Does that imply the card cannot *downscale* YUV overlays?)
 
