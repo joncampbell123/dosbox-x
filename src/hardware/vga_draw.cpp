@@ -1054,7 +1054,10 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
              * to vertically scale.
              *
              * The code below seems to work well enough with Windows 3.1 and Windows 98.
-             * Note of course this algorithm doesn't allow scaling DOWN YUV playback.
+             * Note of course this algorithm doesn't allow scaling DOWN YUV playback, a
+             * hardware limitation acknowledged by both Windows 3.1 and Windows 98
+             * S3 Trio64V+ drivers. ActiveMovie for Windows 98 will disable the YUV overlay
+             * if you scale down below 100% in any dimension.
              *
              * Note that K1 = original height - 1
              *           K2 = (original height) - (final height)
