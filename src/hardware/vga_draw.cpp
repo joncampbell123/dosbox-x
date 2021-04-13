@@ -979,7 +979,7 @@ static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t ke
 
 extern bool vga_8bit_dac;
 
-void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
+void S3_XGA_RenderYUY2MPEGcolorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
     uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
 
     // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
@@ -999,7 +999,7 @@ void S3_XGA_RenderYUY2colorkey(uint32_t* temp2/*already adjusted to X coordinate
     }
 }
 
-void S3_XGA_RenderYUY2(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
+void S3_XGA_RenderYUY2MPEG(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
     int o = 0;
 
     while (count-- > 0) {
@@ -1037,9 +1037,9 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
             S3_XGA_YUY2HProc(S3SSdraw.tmpscan1.yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
 
             if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
-                S3_XGA_RenderYUY2colorkey(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
+                S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
             else
-                S3_XGA_RenderYUY2(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
+                S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.tmpscan1.yuv,S3SSdraw.endx - S3SSdraw.startx);
 
             /* it's not clear from the datasheet, but I think what the card is doing is a
              * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract
