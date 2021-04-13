@@ -3308,11 +3308,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
              *      using the color key feature to key against bright magenta, and the Windows
              *      desktop usually doesn't have that color). */
             if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_x != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
+                unsigned int ssbuf = (vga.s3.streams.ss_bufsel == 1) ? 1 : 0;
                 S3SSdraw.startx = vga.s3.streams.sswnd_start_x-1; /* X coordinate written is X + 1 */
                 S3SSdraw.starty = vga.s3.streams.sswnd_start_y-1; /* Y coordinate written is Y + 1 */
                 S3SSdraw.endx = (vga.s3.streams.sswnd_start_x-1)+vga.s3.streams.sswnd_width+1; /* register is width - 1 */
                 S3SSdraw.endy = (vga.s3.streams.sswnd_start_y-1)+vga.s3.streams.sswnd_height; /* height is written as-is */
-                S3SSdraw.vmem_addr = vga.s3.streams.ss_fba[0] & ~7u; /* "must be quadword aligned" */
+                S3SSdraw.vmem_addr = vga.s3.streams.ss_fba[ssbuf] & ~7u; /* "must be quadword aligned" */
                 S3SSdraw.stride = vga.s3.streams.ss_stride; /* datasheet doesn't say anything about alignment requirements here */
                 S3SSdraw.pixfmt = vga.s3.streams.ssctl_sdif;
                 S3SSdraw.filter = vga.s3.streams.ssctl_sfc;
