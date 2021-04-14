@@ -465,7 +465,12 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
             return 0x00; // Trio32/Trio64 datasheet, page 242, PCI "class code". "Hardwired to 03000000h"
         //      return 0x44;    // Trio64 V+
     case 0x30:  /* CR30 Chip ID/REV register */
-        return 0xe1;    // Trio+ dual byte
+        if (s3Card >= S3_Trio32)
+            return 0xe1;    // Trio+ dual byte, ViRGE cards also report this
+        else if (s3Card >= S3_Vision864)
+            return 0xc0;    // Vision864 (Vision868 not mentioned but assume the same)
+        else
+            return 0x90;    // 86C928
     case 0x31:  /* CR31 Memory Configuration */
 //TODO mix in bits from baseaddress;
         return  vga.s3.reg_31;
