@@ -1,4 +1,7 @@
 0.83.13
+  - Added S3 XGA "byte swap" emulation, needed for
+    correct menu/titlebar display in Windows 3.1 when
+    using the S3 86C928 driver.
   - Added YUV (YUY2) overlay to S3 Trio64V+ card
     emulation. Tested with XingMPEG under Windows 3.1
     and ActiveMovie under Windows 98.
