@@ -78,6 +78,7 @@ struct XGAStatus {
 		uint32_t data; /* transient data passed by multiple calls */
 		Bitu datasize;
 		Bitu buswidth;
+		bool bswap16; /* bit 12 of the CMD register (S3 86C928, Trio32/Trio64/Trio64V+): For any 16-bit word, swap hi/lo bytes (including both 16-bit words in 32-bit transfer) */
 	} waitcmd;
 
 } xga;
@@ -610,6 +611,11 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 	if(!xga.waitcmd.wait) return;
 	Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 	Bitu srcval;
+
+	// 86C928/Trio32/Trio64/Trio64V+ byte swap option
+	if (xga.waitcmd.bswap16 && len >= 2)
+		val = ((val & 0xFF00FF00u) >> 8u) | ((val & 0x00FF00FFu) << 8u);
+
 	switch(xga.waitcmd.cmd) {
 		case 2: /* Rectangle */
 			switch(mixmode) {
@@ -1002,6 +1008,11 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
 				xga.waitcmd.data = 0;
 				xga.waitcmd.datasize = 0;
+
+				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? */
+					xga.waitcmd.bswap16 = !(val&0x1000u); // BYTE SWP:  0=High byte first (big endian)  1=Low byte first (little endian)
+				else
+					xga.waitcmd.bswap16 = true; // we're little endian, dammit!
 
 #if XGA_SHOW_COMMAND_TRACE == 1
 				LOG_MSG("XGA: Draw wait rect, w/h(%3d/%3d), x/y1(%3d/%3d), x/y2(%3d/%3d), %4x",
