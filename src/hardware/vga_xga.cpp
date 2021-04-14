@@ -1043,12 +1043,18 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				 *      the polygon has been rasterized. We can weed those out here by ignoring
 				 *      any command where the cur/dest Y coordinates would result in no movement.
 				 *
+				 *      The Windows 3.1 driver also seems to use cur/dest X/Y for the RIGHT side,
+				 *      and cur2/dest2 X/Y for the LEFT side, which is completely opposite from
+				 *      the example given in the datasheet. This also implies that whatever order
+				 *      the vertices end up, they draw a span when rasterizing, and the sides can
+				 *      cross one another if necessary.
+				 *
 				 * NTS: You can test this code by bringing up Paintbrush, and drawing with the
 				 *      brush tool. Despite drawing a rectangle, the S3 Trio64 driver uses the
 				 *      Polygon fill command to draw it.
 				 *
 				 *      More testing is possible in Microsoft Word 2.0 using the shapes/graphics
-				 *		editor, adding solid rectangles or rounded rectangles (but not circles).
+				 *      editor, adding solid rectangles or rounded rectangles (but not circles).
 				 *
 				 * Vertex at (*)
 				 *
@@ -1064,6 +1070,26 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				 *                    \ /           \           |
 				 *                     +             \__________|
 				 *                     *             *          *
+				 *
+				 * Windows 3.1 driver behavior suggests this is also possible?
+				 *
+				 *                   *
+				 *                  / \
+				 *                 /   \
+				 *                /     \
+				 *             * /_______\
+				 *               \________\ *
+				 *                \       /
+				 *                 \     /
+				 *                  \   /
+				 *                   \ /
+				 *                    X      <- crossover point
+				 *                   / \
+				 *                  /   \
+				 *               * /_____\
+				 *                 \      \
+				 *                  \______\
+				 *                  *       *
 				 */
 
 				if (xga.cury < xga.desty && xga.cury2 < xga.desty2) {
