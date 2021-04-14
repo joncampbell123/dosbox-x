@@ -325,6 +325,9 @@ void DoString(STRING_OP type) {
 						 *      switching window. In a way it's similar to the page fault based way Windows 95 treats
 						 *      bank switched ISA cards like a linear framebuffer.
 						 *
+						 *      This technique is also used by the Windows 3.1 S3 86C928 display driver, without which
+						 *      Windows 3.1 will draw incorrectly, and BitBlt will contain garbage.
+						 *
 						 *      In order for these demos to correctly use VESA BIOS modes, this code MUST check segment
 						 *      limits and throw a GP fault if exceeded, so that the demo code changes the active bank
 						 *      to resolve the fault. Without this check, the demo will only draw on the top 64KB of
