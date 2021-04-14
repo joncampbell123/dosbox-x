@@ -1,4 +1,9 @@
 0.83.13
+  - Added segment limit checks in Normal core for
+    MOVSB/MOVSW/MOVSD and STOSB/STOSW/STOSD, which is
+    needed for DOSBox-X to work with the Windows 3.1
+    S3 86C928 display drivers that use segment limit
+    exceptions to fake a linear framebuffer.
   - Added S3 XGA "byte swap" emulation, needed for
     correct menu/titlebar display in Windows 3.1 when
     using the S3 86C928 driver.
