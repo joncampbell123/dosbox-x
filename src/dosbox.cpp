@@ -401,18 +401,27 @@ static Bitu Normal_Loop(void) {
         dosbox_allow_nonrecursive_page_fault = false;
         CPU_Exception(EXCEPTION_PF, pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
-    }
-    catch (int x) {
-        dosbox_allow_nonrecursive_page_fault = saved_allow;
-        if (x == 4/*CMOS shutdown*/) {
-            ret = 0;
+	}
+	catch (const GuestGenFaultException& gpf) {
+		Bitu FillFlags(void);
+
+		ret = 0;
+		FillFlags();
+		dosbox_allow_nonrecursive_page_fault = false;
+		CPU_Exception(EXCEPTION_GP, 0);
+		dosbox_allow_nonrecursive_page_fault = saved_allow;
+	}
+	catch (int x) {
+		dosbox_allow_nonrecursive_page_fault = saved_allow;
+		if (x == 4/*CMOS shutdown*/) {
+			ret = 0;
 //          LOG_MSG("CMOS shutdown reset acknowledged");
-        }
-        else {
-            throw;
-        }
-    }
-    return 0;
+		}
+		else {
+			throw;
+		}
+	}
+	return 0;
 }
 
 void increaseticks() { //Make it return ticksRemain and set it in the function above to remove the global variable.

@@ -178,6 +178,88 @@ void DoString(STRING_OP type) {
 
 				case R_MOVSB:
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+1U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)1U,
+											(unsigned int)(si_index+1U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+1U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
+											(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMb(di_base+di_index,LoadMb(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;
@@ -188,6 +270,88 @@ void DoString(STRING_OP type) {
 				case R_MOVSW:
 					add_index<<=1;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+2U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)2U,
+											(unsigned int)(si_index+2U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+2U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
+											(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMw(di_base+di_index,LoadMw(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;
@@ -209,21 +373,83 @@ void DoString(STRING_OP type) {
 						 *      the screen and (depending on the implementation) may go as far as scribbling on the
 						 *      VGA BIOS at C0000h and into the UMB and DOSBox private data area! */
 						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+4U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)4U,
+											(unsigned int)(si_index+4U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
+								}
+							}
+
 							if (Segs.expanddown[es]) {
 								if (di_index <= SegLimit(es)) {
-									LOG_MSG("Limit check %x <= %x (E)",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
 									LOG_MSG("Segment limit violation");
-									CPU_Exception(EXCEPTION_GP,0);
-									break;
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
 								}
 							}
 							else {
 								if ((di_index+4U-1UL) > SegLimit(es)) {
-									LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)di_index,(unsigned int)4U,
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
 											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
 									LOG_MSG("Segment limit violation");
-									CPU_Exception(EXCEPTION_GP,0);
-									break;
+
+									/* Clean up after certain amount of instructions */
+									reg_esi&=(~add_mask);
+									reg_esi|=(si_index & add_mask);
+									reg_edi&=(~add_mask);
+									reg_edi|=(di_index & add_mask);
+									if (TEST_PREFIX_REP) {
+										count+=count_left;
+										reg_ecx&=(~add_mask);
+										reg_ecx|=(count & add_mask);
+									}
+
+									throw GuestGenFaultException();
 								}
 							}
 						}
