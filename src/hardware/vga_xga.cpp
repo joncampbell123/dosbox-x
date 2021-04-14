@@ -1012,7 +1012,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? */
 					xga.waitcmd.bswap16 = !(val&0x1000u); // BYTE SWP:  0=High byte first (big endian)  1=Low byte first (little endian)
 				else
-					xga.waitcmd.bswap16 = true; // we're little endian, dammit!
+					xga.waitcmd.bswap16 = false; // we're little endian, dammit!
 
 #if XGA_SHOW_COMMAND_TRACE == 1
 				LOG_MSG("XGA: Draw wait rect, w/h(%3d/%3d), x/y1(%3d/%3d), x/y2(%3d/%3d), %4x",
