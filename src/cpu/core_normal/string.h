@@ -151,6 +151,24 @@ void DoString(STRING_OP type) {
 
 				case R_STOSB:
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+1U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
+											(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMb(di_base+di_index,reg_al);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
@@ -160,6 +178,24 @@ void DoString(STRING_OP type) {
 				case R_STOSW:
 					add_index<<=1;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+2U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
+											(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMw(di_base+di_index,reg_ax);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
@@ -169,6 +205,24 @@ void DoString(STRING_OP type) {
 				case R_STOSD:
 					add_index<<=2;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+4U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
+											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMd(di_base+di_index,reg_eax);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
