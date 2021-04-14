@@ -121,6 +121,7 @@ enum SVGACards {
 
 enum S3Card {
     S3_Generic,                      // Generic emulation, minimal set
+    S3_86C928,                       // 86C928 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf]
     S3_Vision864,                    // Vision864 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
     S3_Vision868,                    // Vision868 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision868%20Multimedia%20Accelerator%20%281995%2d04%29%2epdf]
     S3_Trio32,                       // Trio32 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]

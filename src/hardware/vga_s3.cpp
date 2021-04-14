@@ -329,7 +329,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 index 9 bit 6.
         */
     case 0x63:  /* Extended Control Register CR63 */
-        if (s3Card == S3_Vision864 || s3Card == S3_Vision868) return; /* not mentioned in datasheet, does not exist */
+        if (s3Card == S3_86C928 || s3Card == S3_Vision864 || s3Card == S3_Vision868) return; /* not mentioned in datasheet, does not exist */
         if (s3Card >= S3_ViRGE && ((val ^ vga.s3.reg_63) & 2u/*RST*/)) SD3_Reset(!!(val & 2u));
         vga.s3.reg_63 = (uint8_t)val;
         break;
@@ -416,6 +416,8 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
         /* NTS: As the high byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
         /* NTS: Windows 98 S3 drivers will refuse to talk to the card if these registers (0x2D-0x2F) do not match the PCI ID or specific values */
         switch (s3Card) {
+            case S3_86C928:
+                return 0x00; // not mentioned in datasheet, does not exist
             case S3_Vision864:
             case S3_Vision868:
             case S3_Trio32:
@@ -438,6 +440,8 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
          * Ref: [http://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf] */
         /* NTS: As the low byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
         switch (s3Card) {
+            case S3_86C928:
+                return 0x00; // not mentioned in datasheet, does not exist
             case S3_Vision864:
                 return 0xC0; // Vision864, 0x88C0 or 0x88C1
             case S3_Vision868:
@@ -459,7 +463,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x2f:  /* Revision */
         /* NTS: As the low byte of the PCI ID, this should match the revision in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
         // revision ID
-        if (s3Card == S3_Trio64V)
+        if (s3Card == S3_86C928)
+            return 0x0;  // not mentioned in datasheet, does not exist
+        else if (s3Card == S3_Trio64V)
             return 0x40; // Trio64V+ datasheet, page 280, PCI "class code". "Hardwired to 0300004xh" (revision is 40h or more)
         else
             return 0x00; // Trio32/Trio64 datasheet, page 242, PCI "class code". "Hardwired to 03000000h"
@@ -469,8 +475,10 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
             return 0xe1;    // Trio+ dual byte, ViRGE cards also report this
         else if (s3Card >= S3_Vision864)
             return 0xc0;    // Vision864 (Vision868 not mentioned but assume the same)
-        else
+        else if (s3Card == S3_86C928)
             return 0x90;    // 86C928
+        else
+            return 0x00;
     case 0x31:  /* CR31 Memory Configuration */
 //TODO mix in bits from baseaddress;
         return  vga.s3.reg_31;
@@ -534,7 +542,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x5e:  /* Extended Vertical Overflow */
         return vga.s3.ex_ver_overflow;
     case 0x63:  /* Extended Control Register CR63 */
-        if (s3Card == S3_Vision864 || s3Card == S3_Vision868) return 0x00; /* not mentioned in datasheet, does not exist */
+        if (s3Card == S3_86C928 || s3Card == S3_Vision864 || s3Card == S3_Vision868) return 0x00; /* not mentioned in datasheet, does not exist */
         return vga.s3.reg_63;
     case 0x67:  /* Extended Miscellaneous Control 2 */
         return vga.s3.misc_control_2;

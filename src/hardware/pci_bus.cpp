@@ -132,6 +132,8 @@ private:
 public:
 	static uint16_t GetDevice(void) {
 		switch (s3Card) {
+			case S3_86C928:
+				return 0x88C0; // FIXME: Datasheet does not report any PCI ID, probably because there were only ISA or VLB versions made.
 			case S3_Vision864:
 				return 0x88C0; // Vision864, 0x88C0 or 0x88C1
 			case S3_Vision868:
@@ -178,6 +180,7 @@ public:
 		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
 
 		switch (s3Card) {
+			case S3_86C928:
 			case S3_Vision864:
 			case S3_Trio32:
 			case S3_Trio64:

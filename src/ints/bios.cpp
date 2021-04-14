@@ -8776,6 +8776,7 @@ startfunction:
                     case SVGA_S3Trio:
                         card = "S3 Trio SVGA";
                         switch (s3Card) {
+                            case S3_86C928:     card = "S3 86C928"; break;
                             case S3_Vision864:  card = "S3 Vision864 SVGA"; break;
                             case S3_Vision868:  card = "S3 Vision868 SVGA"; break;
                             case S3_Trio32:     card = "S3 Trio32 SVGA"; break;
