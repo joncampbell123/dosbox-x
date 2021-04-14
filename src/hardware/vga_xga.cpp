@@ -26,6 +26,12 @@
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+#endif
+
 #define XGA_SCREEN_WIDTH	vga.s3.xga_screen_width
 #define XGA_COLOR_MODE		vga.s3.xga_color_mode
 
@@ -50,7 +56,9 @@ struct XGAStatus {
 	uint16_t backmix;
 
 	uint16_t curx, cury;
+	uint16_t curx2, cury2;
 	uint16_t destx, desty;
+	uint16_t destx2, desty2;
 
 	uint16_t ErrTerm;
 	uint16_t MIPcount;
@@ -1004,6 +1012,82 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 			
 			}
 			break;
+		case 3: /* Polygon fill (Trio64) */
+			if (s3Card == S3_Trio64) {
+#if XGA_SHOW_COMMAND_TRACE == 1
+				LOG_MSG("XGA: Polygon fill (Trio64)");
+#endif
+				/* From the datasheet [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+				 * Section 13.3.3.12 Polygon Fill Solid (Trio64 only)
+				 *
+				 * The idea is that there are two current/dest X/Y pairs and this command
+				 * is used to draw the polygon top to bottom as a series of trapezoids,
+				 * sending new x/y coordinates for each left or right edge as the polygon
+				 * continues. The acceleration function is described as rendering to the
+				 * minimum of the two Y coordinates, and stopping. One side or the other
+				 * is updated, and the command starts the new edge and continues the other
+				 * edge.
+				 *
+				 * The card requires that the first and last segments have equal Y values,
+				 * though not X values in order to allow polygons with flat top and/or
+				 * bottom.
+				 *
+				 * That would imply that there's some persistent error term here, and it
+				 * would also imply that the card updates current Y position to the minimum
+				 * of either side so the new coordinates continue properly.
+				 *
+				 * NTS: The Windows 3.1 Trio64 driver likes to send this command every single
+				 *      time it updates any coordinate, contrary to the Trio64 datasheet that
+				 *      suggests setting cur/dest X/Y and cur2/dest2 X/Y THEN sending this
+				 *      command, then setting either dest X/Y and sending the command until
+				 *      the polygon has been rasterized. We can weed those out here by ignoring
+				 *      any command where the cur/dest Y coordinates would result in no movement.
+				 *
+				 * NTS: You can test this code by bringing up Paintbrush, and drawing with the
+				 *      brush tool. Despite drawing a rectangle, the S3 Trio64 driver uses the
+				 *      Polygon fill command to draw it.
+				 *
+				 *      More testing is possible in Microsoft Word 2.0 using the shapes/graphics
+				 *		editor, adding solid rectangles or rounded rectangles (but not circles).
+				 *
+				 * Vertex at (*)
+				 *
+				 *                       *             *     *
+				 *                       +             +-----+
+				 *                      / \           /       \
+				 *                     /   \         /         \
+				 *                    /_____\ *     /___________\ *
+				 *                   /      /      /            |
+				 *                * /______/    * /_____________|
+				 *                  \     /       \             |
+				 *                   \   /         \            |
+				 *                    \ /           \           |
+				 *                     +             \__________|
+				 *                     *             *          *
+				 */
+
+				if (xga.cury < xga.desty && xga.cury2 < xga.desty2) {
+					LOG(LOG_MISC,LOG_DEBUG)("Trio64 Polygon fill: leftside=(%d,%d)-(%d,%d) rightside=(%d,%d)-(%d,%d)",
+						xga.curx, xga.cury, xga.destx, xga.desty,
+						xga.curx2,xga.cury2,xga.destx2,xga.desty2);
+
+					// Not quite accurate, good enough for now.
+					xga.curx = xga.destx;
+					xga.cury = xga.desty;
+					xga.curx2 = xga.destx2;
+					xga.cury2 = xga.desty2;
+				}
+				else {
+					LOG(LOG_MISC,LOG_DEBUG)("Trio64 Polygon fill (nothing done)");
+
+					// Windows 3.1 Trio64 driver behavior suggests that if Y doesn't move,
+					// the X coordinate may change if cur Y == dest Y, else the result
+					// when actual rendering doesn't make sense.
+					if (xga.cury == xga.desty) xga.curx = xga.destx;
+					if (xga.cury2 == xga.desty2) xga.curx2 = xga.destx2;
+				}
+			}
+			break;
 		case 6: /* BitBLT */
 #if XGA_SHOW_COMMAND_TRACE == 1
 			LOG_MSG("XGA: Blit Rect");
@@ -1087,7 +1171,18 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x8102:
 			xga.curx = (uint16_t)(val& 0x0fff);
 			break;
-
+		case 0x8104:// drawing control: row (low word), column (high word)
+					// "CUR_X2" and "CUR_Y2" (see PORT 82EAh,PORT 86EAh)
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.cury2 = (uint16_t)(val & 0x0fff);
+				if(len==4) xga.curx2 = (uint16_t)((val>>16)&0x0fff);
+			}
+			break;
+		case 0x8106:
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.curx2 = (uint16_t)(val& 0x0fff);
+			}
+			break;
 		case 0x8108:// DWORD drawing control: destination Y and axial step
 					// constant (low word), destination X and axial step
 					// constant (high word) (see PORT 8AE8h,PORT 8EE8h)
@@ -1096,6 +1191,19 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x810a:
 			xga.destx = (uint16_t)(val&0x3fff);
+			break;
+		case 0x810c:// DWORD drawing control: destination Y and axial step
+					// constant (low word), destination X and axial step
+					// constant (high word) (see PORT 8AEAh,PORT 8EEAh)
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.desty2 = (uint16_t)(val&0x3FFF);
+				if(len==4) xga.destx2 = (uint16_t)((val>>16)&0x3fff);
+			}
+			break;
+		case 0x810e:
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.destx2 = (uint16_t)(val&0x3fff);
+			}
 			break;
 		case 0x8110: // WORD error term (see PORT 92E8h)
 			xga.ErrTerm = (uint16_t)(val&0x3FFF);
