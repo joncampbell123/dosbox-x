@@ -111,7 +111,7 @@ CDROM_Interface_Image::BinaryFile::BinaryFile(const char *filename, bool &error)
 	file = new ifstream(filename, ios::in | ios::binary);
 	// If new fails, an exception is generated and scope leaves this constructor
 	error = file->fail();
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__MINGW32__) // Wengier: disable for MinGW for now but it appears to work on my MinGW version
     if (error) {
         typedef wchar_t host_cnv_char_t;
         host_cnv_char_t *CodePageGuestToHost(const char *s);
