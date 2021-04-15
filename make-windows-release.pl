@@ -46,24 +46,21 @@ foreach $platform (@platforms) {
 	$plat = 'arm32' if $plat eq 'ARM';
 	$plat = 'arm64' if $plat eq 'ARM64';
 	$zipname = "dosbox-x-$suffix-$plat-$datestr.zip";
+
+	next if -f $zipname;
+
+	my @filelist = ();
+
 	foreach $build (@builds) {
-		my @filelist = ();
-
-		# no spaces in filenames
-		my $p_build = $build;
-		$p_build =~ s/ /-/g;
-
-		next if -f $zipname;
-
 		foreach $file (@files) {
 			$addfile = "bin/$platform/$build/$file";
 			die "Missing file $addfile" unless -e $addfile;
 
 			push(@filelist, $addfile);
 		}
-
-		# do it
-		$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
-		exit 1 unless $r == 0;
 	}
+
+	# do it
+	$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
+	exit 1 unless $r == 0;
 }
