@@ -40,6 +40,12 @@ my @builds = ('Release', 'Release SDL2');
 my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
 
 foreach $platform (@platforms) {
+	$plat = $platform;
+	$plat = 'win32' if $plat eq 'Win32';
+	$plat = 'win64' if $plat eq 'x64';
+	$plat = 'arm32' if $plat eq 'ARM';
+	$plat = 'arm64' if $plat eq 'ARM64';
+	$zipname = "dosbox-x-$suffix-$plat-$datestr.zip";
 	foreach $build (@builds) {
 		my @filelist = ();
 
@@ -47,7 +53,6 @@ foreach $platform (@platforms) {
 		my $p_build = $build;
 		$p_build =~ s/ /-/g;
 
-		my $zipname = "dosbox-x-$suffix-win-$platform-$p_build-$datestr.zip";
 		next if -f $zipname;
 
 		foreach $file (@files) {
