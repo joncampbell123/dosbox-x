@@ -1,4 +1,6 @@
 0.83.13
+  - Fixed Tseng ET4000 640x480 256-color SVGA mode
+    when using the ET4000.BIN VGA BIOS, or Windows 98.
   - Added segment limit checks in Normal core for
     MOVSB/MOVSW/MOVSD and STOSB/STOSW/STOSD, which is
     needed for DOSBox-X to work with the Windows 3.1

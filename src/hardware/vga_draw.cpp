@@ -3435,6 +3435,17 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
         /* fall through */
     case M_LIN8:
+        if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
+            // HACK: Disable 256KB VGA masking if we detect the SVGA modes.
+            if (vga.attr.mode_control & 1) {
+                if (vga.gfx.mode & 0x40) {
+                    if (!(vga.attr.mode_control & 0x40)) {
+                        vga.draw.linear_mask = vga.mem.memmask; // SVGA text mode
+                    }
+                }
+            }
+        }
+        /* fall through */
     case M_LIN15:
     case M_LIN16:
     case M_LIN24:

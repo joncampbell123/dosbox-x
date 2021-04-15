@@ -1876,6 +1876,13 @@ att_text16:
     case M_PACKED4:
 		for (uint8_t ct=0;ct<16;ct++) att_data[ct]=ct;
 		att_data[0x10]=0x41;		//Color Graphics 8-bit
+
+		// Tseng ET3000/ET4000 256-color mode sets 256-color mode in the graphics controller
+		// but turns off the 8BIT bit in the attribute controller. Furthermore to work with
+		// Windows 98 I/O virtualization the setting must be applied through CPU I/O.
+		if (CurMode->type == M_LIN8 && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K))
+			att_data[0x10]&=~0x40;	// turn off 8BIT
+
 		break;
 	default:
 		break;
