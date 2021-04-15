@@ -133,7 +133,7 @@ public:
 	static uint16_t GetDevice(void) {
 		switch (s3Card) {
 			case S3_86C928:
-				return 0x88C0; // FIXME: Datasheet does not report any PCI ID, probably because there were only ISA or VLB versions made.
+				return 0x88B0; // FIXME: Datasheet does not list PCI info at all. @TC1995 suggests the PCI version return 0xb0 for CR30, so this is probably the same here.
 			case S3_Vision864:
 				return 0x88C0; // Vision864, 0x88C0 or 0x88C1
 			case S3_Vision868:

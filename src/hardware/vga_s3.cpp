@@ -24,6 +24,9 @@
 #include "pci_bus.h"
 
 void SD3_Reset(bool enable);
+bool has_pcibus_enable(void);
+
+extern bool enable_pci_vga;
 
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
@@ -475,8 +478,8 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
             return 0xe1;    // Trio+ dual byte, ViRGE cards also report this
         else if (s3Card >= S3_Vision864)
             return 0xc0;    // Vision864 (Vision868 not mentioned but assume the same)
-        else if (s3Card == S3_86C928)
-            return 0x90;    // 86C928
+        else if (s3Card == S3_86C928) /* PCI and ISA versions differ here according to @TC1995 */
+            return (enable_pci_vga && has_pcibus_enable()) ? 0xb0/*PCI*/ : 0x90/*ISA/EISA*/;
         else
             return 0x00;
     case 0x31:  /* CR31 Memory Configuration */
