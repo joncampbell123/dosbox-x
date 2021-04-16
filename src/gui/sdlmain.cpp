@@ -12013,6 +12013,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                that we were started by the Finder */
             /* FIXME: Is there a better way to detect whether we were started by the Finder
                       or any other part of the macOS desktop? */
+            /* Wengier: This function has been extended to other platforms (Windows/Linux). */
 #if defined(WIN32)
             if (workdiropt == "prompt")
 #else
@@ -12069,9 +12070,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         } else
 #endif
-        if (((workdiropt == "custom" && !usecustomdir) || workdiropt == "force") && workdirdef.size()) {
+        if (((workdiropt == "custom" && !usecustomdir && !usecfgdir) || workdiropt == "force") && workdirdef.size()) {
             chdir(workdirdef.c_str());
             usecustomdir = true;
+            usecfgdir = false;
         } else if (workdiropt == "program") {
             std::string exepath=GetDOSBoxXPath();
             if (exepath.size()) chdir(exepath.c_str());
