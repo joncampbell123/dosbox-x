@@ -29,6 +29,7 @@ BuildRequires: SDL2_net-devel
 BuildRequires: zlib-devel
 
 Requires:      fluid-soundfont-gm
+Requires:      hicolor-icon-theme
 
 %description
 DOSBox-X is an open-source DOS emulator for running DOS games and applications.
@@ -65,16 +66,13 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/com.dosbox_x.DOSBox-
 appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 %files
-%{_bindir}/%{name}
+%caps(cap_net_raw=ep) %{_bindir}/%{name}
 %{_datadir}/%{name}
 %{_datadir}/applications/com.dosbox_x.DOSBox-X.desktop
 %{_datadir}/icons/hicolor/scalable/apps/dosbox-x.svg
 %{_datadir}/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml
 %{_mandir}/man1/dosbox-x.1.gz
-
-# Required for NE2000 pcap networking support (promiscuous mode)
-%post
-if [ -x %{_sbindir}/setcap ]; then
-    setcap cap_net_raw+ep %{_bindir}/%{name}
-fi
+%doc CHANGELOG
+%doc dosbox-x.reference.conf
+%doc dosbox-x.reference.full.conf
 

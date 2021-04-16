@@ -495,16 +495,14 @@ Bitu OUTPUT_OPENGL_SetSize()
     sdl_opengl.framebuf = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#if !defined(C_SDL2)
-# if SDL_VERSION_ATLEAST(1, 2, 11)
-    {
-        Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
-
-        if (sec)
-            SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
-    }
-# endif
+    Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
+    if (sec) {
+#if defined(C_SDL2)
+        SDL_GL_SetSwapInterval((!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
+#elif SDL_VERSION_ATLEAST(1, 2, 11)
+        SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
 #endif
+    }
 
     // try 32 bits first then 16
 #if defined(C_SDL2)

@@ -557,4 +557,41 @@ void qz_set_match_monitor_cb(void) {
 #endif
 }
 
+// WARNING! You must initialize the SDL Video subsystem *FIRST*
+// before calling this function, or else strange errors and
+// malfunctions occur in the Cocoa framework (at least in Big Sur).
+// You can quit the SDL Video subsystem and reinitialize later
+// after this function is done.
+std::string osx_prompt_folder(void) {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    NSModalResponse r;
+    std::string res;
+
+    [panel setPrompt:@"Choose"];
+    [panel setCanChooseFiles:false];
+    [panel setCanChooseDirectories:true];
+    [panel setAllowsMultipleSelection:false];
+    [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
+    [panel setCanCreateDirectories:true]; /* sure, why not? */
+
+    r = [panel runModal];
+    if (r == NSFileHandlingPanelOKButton) {
+        NSArray *urls = [panel URLs];
+        if ([urls count] > 0) {
+            NSURL *url = urls[0];
+            if ([[url scheme] isEqual: @"file"]) {
+                /* NTS: /path/to/file is returned as file:///path/to/file */
+                res = [[url relativePath] UTF8String];
+            }
+            else {
+                fprintf(stderr,"WARNING: Rejecting returned protocol '%s', no selection accepted\n",
+                    [[url scheme] UTF8String]);
+            }
+        }
+    }
+
+    [panel release];
+
+    return res;
+}
 

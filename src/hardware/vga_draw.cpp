@@ -44,6 +44,34 @@
 
 bool mcga_double_scan = false;
 
+/* S3 streams processor state.
+ * Registers are only loaded into hardware on vertical sync anyway. */
+struct s3drawstream {
+    unsigned int        starty,endy; /* scanlines to draw, starty <= y < endy */
+    unsigned int        startx,endx; /* pixels to draw, startx <= x < endx */
+    uint32_t            vmem_addr;
+    uint32_t            stride;
+    uint8_t             pixfmt;
+    uint8_t             filter;
+    bool                draw;
+    bool                evf;
+
+    int32_t             vaccum;
+    unsigned int        currentline;
+
+    /* temporary line to process and filter a scanline.
+     * maximum scanline of an overlay is 1024. */
+    union tmpscanline {
+        uint8_t         yuv[1024*3];        // Y U V packed (good for the CPU cache)
+    };
+    union tmpscanline   tmpscan1;           // rendering version
+    union tmpscanline   tmpscan2;           // rendering version 2 for vertical interpolation
+    union tmpscanline   *pscan,*cscan;
+    bool                cscan_load;
+};
+
+struct s3drawstream S3SSdraw = {0};
+
 const char* const mode_texts[M_MAX] = {
     "M_CGA2",           // 0
     "M_CGA4",
@@ -918,57 +946,319 @@ static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) 
     return TempLine;
 } */
 
-static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
-    if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
-        // HW Mouse not enabled, use the tried and true call
-        return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
+static inline uint8_t S3StreamVRAMRead8(const uint32_t a) {
+    return vga.mem.linear[a & vga.mem.memmask];
+}
 
-    Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
-    if ((vga.s3.hgc.posx >= vga.draw.width) ||
-        (lineat < vga.s3.hgc.originy) ||
-        (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
-        // the mouse cursor *pattern* is not on this line
-        return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
-    } else {
-        // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
-        // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
-        // This is used when the mouse cursor partially leaves the screen.
-        // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
-        // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
-        uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
-        //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
+static inline uint8_t clampu8(int x) {
+    if (x > 255)
+        return 255;
+    else if (x < 0)
+        return 0;
+    else
+        return x;
+}
 
-        // the index of the bit inside the cursor bitmap we start at:
-        Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx;
-        // convert to video memory addr and bit index
-        // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
-        // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
-        Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
-        Bitu cursorStartBit = sourceStartBit & 0x7u;
-        // stay at the right position in the pattern
-        if (cursorMemStart & 0x2) cursorMemStart--;
-        Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
-        for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
-            // for each byte of cursor data
-            uint8_t bitsA = vga.mem.linear[m];
-            uint8_t bitsB = vga.mem.linear[m+2];
-            for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
-                // for each bit
-                cursorStartBit=0; // only the first byte has some bits cut off
-                if (bitsA&bit) {
-                    if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    *xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
-                } else {
-                    *xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
-                }
-                xat++;
+#define MPEGFP8(x) ((int)((x) * 0x100))
+
+uint32_t YUVMPEG2RGB32(const uint8_t Y,const uint8_t U,const uint8_t V) {
+    /*
+        B = 1.164(Y - 16)                  + 2.018(U - 128)
+        G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
+        R = 1.164(Y - 16) + 1.596(V - 128)
+     */
+
+    /* WARNING: >> 8 must be signed arithmetic shift */
+    uint8_t R = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) + (MPEGFP8(1.596) * (V - 128)))>>8);
+    uint8_t G = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) - (MPEGFP8(0.813) * (V - 128)) - (MPEGFP8(0.391) * (U - 128)))>>8);
+    uint8_t B = clampu8(((MPEGFP8(1.164) * ((int)Y - 16)) + (MPEGFP8(2.018) * (U - 128)))>>8);
+
+    return (R << 16) | (G << 8) | B;
+}
+
+static inline bool S3_XGA_OverlayKeyMatch(const uint32_t match,const uint32_t key) {
+    return (match == key);
+}
+
+extern bool vga_8bit_dac;
+
+static inline uint8_t S3EVF8int(const uint8_t p,const uint8_t c,int a) {
+    return (uint8_t)(((p * (256-a)) + (c * a) + 128) >> 8);
+}
+
+void S3_XGA_RenderYUY2MPEGcolorkeyEVF(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *psrcyuv3,unsigned char *srcyuv3,int count,int a) {
+    uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
+
+    // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
+    //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
+    //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
+    if (!vga_8bit_dac) mask &= 0xFCFCFC;
+
+    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16)) & mask;
+    int o = 0;
+
+    while (count-- > 0) {
+        if (S3_XGA_OverlayKeyMatch(temp2[o] & mask,key)) {
+            temp2[o] = YUVMPEG2RGB32(
+                S3EVF8int(psrcyuv3[0],srcyuv3[0],a),
+                S3EVF8int(psrcyuv3[1],srcyuv3[1],a),
+                S3EVF8int(psrcyuv3[2],srcyuv3[2],a));
+        }
+
+        psrcyuv3 += 3;
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
+void S3_XGA_RenderYUY2MPEGcolorkey(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
+    uint32_t mask = (0xFFu << (7u - vga.s3.streams.ckctl_rgb_cc)) * 0x010101u;
+
+    // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
+    //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
+    //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
+    if (!vga_8bit_dac) mask &= 0xFCFCFC;
+
+    const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16)) & mask;
+    int o = 0;
+
+    while (count-- > 0) {
+        if (S3_XGA_OverlayKeyMatch(temp2[o] & mask,key))
+            temp2[o] = YUVMPEG2RGB32(srcyuv3[0],srcyuv3[1],srcyuv3[2]);
+
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
+void S3_XGA_RenderYUY2MPEGEVF(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *psrcyuv3,unsigned char *srcyuv3,int count,int a) {
+    int o = 0;
+
+    while (count-- > 0) {
+        temp2[o] = YUVMPEG2RGB32(
+            S3EVF8int(psrcyuv3[0],srcyuv3[0],a),
+            S3EVF8int(psrcyuv3[1],srcyuv3[1],a),
+            S3EVF8int(psrcyuv3[2],srcyuv3[2],a));
+        psrcyuv3 += 3;
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
+void S3_XGA_RenderYUY2MPEG(uint32_t* temp2/*already adjusted to X coordinate in row*/,unsigned char *srcyuv3,int count) {
+    int o = 0;
+
+    while (count-- > 0) {
+        temp2[o] = YUVMPEG2RGB32(srcyuv3[0],srcyuv3[1],srcyuv3[2]);
+        srcyuv3 += 3;
+        o++;
+    }
+}
+
+void S3_XGA_YUY2HProc(unsigned char *dst3yuv,uint32_t vram,int count) {
+    /* nearest neighbor */
+    if (vga.s3.streams.ssctl_sfc == 0) {
+        int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+        int o = 0;
+
+        /* To explain the reads below, data in VRAM is 8-bit Y U Y V.
+         * This is a way to nearest neighbor read while stepping across
+         * Y U Y V properly. */
+        while (count-- > 0) {
+            dst3yuv[o+0] = S3StreamVRAMRead8(vram+0);             // Y
+            dst3yuv[o+1] = S3StreamVRAMRead8((vram&(~3u))+1);     // U
+            dst3yuv[o+2] = S3StreamVRAMRead8((vram&(~3u))+3);     // V
+            o += 3;
+
+            haccum += vga.s3.streams.ssctl_k1_hscale;
+            if (haccum >= 0) {
+                haccum -= vga.s3.streams.ssctl_k1_hscale;
+                haccum += vga.s3.streams.ssctl_k2_hscale;
+                vram += 2;
             }
         }
-        return (uint8_t*)temp2;
     }
+    else {
+        /* linear interpolation */
+
+        /* Y */
+        {
+            int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+            uint32_t lv = vram;
+            int lc = count;
+            int o = 0;
+            int a = 0;
+            int adiv;
+
+            adiv = vga.s3.streams.ssctl_k1_hscale - vga.s3.streams.ssctl_k2_hscale;
+            if (adiv == 0) adiv = 1;
+
+            while (lc-- > 0) {
+                if (adiv != 0) {
+                    a = 256 + ((haccum * 0x100) / adiv);
+                    if (a < 0) a = 0;
+                    if (a > 255) a = 255;
+                }
+
+                dst3yuv[o+0] = ((S3StreamVRAMRead8(lv+0) * (256-a)) + (S3StreamVRAMRead8(lv+2) * a) + 128) >> 8;                // Y
+                o += 3;
+
+                haccum += vga.s3.streams.ssctl_k1_hscale;
+                if (haccum >= 0) {
+                    haccum -= vga.s3.streams.ssctl_k1_hscale;
+                    haccum += vga.s3.streams.ssctl_k2_hscale;
+                    lv += 2;
+                }
+            }
+        }
+
+        /* U and V */
+        {
+            int32_t haccum = vga.s3.streams.ssctl_dda_haccum * 2; /* U and V have half resolution, modify DDA appropriately */
+            int o = 0;
+            int a = 0;
+            int adiv;
+
+            adiv = (vga.s3.streams.ssctl_k1_hscale - vga.s3.streams.ssctl_k2_hscale) * 2;
+            if (adiv == 0) adiv = 1;
+
+            while (count-- > 0) {
+                if (adiv != 0) {
+                    a = 256 + ((haccum * 0x100) / adiv);
+                    if (a < 0) a = 0;
+                    if (a > 255) a = 255;
+                }
+
+                dst3yuv[o+1] = ((S3StreamVRAMRead8(vram+1) * (256-a)) + (S3StreamVRAMRead8(vram+5) * a)) >> 8;                  // U
+                dst3yuv[o+2] = ((S3StreamVRAMRead8(vram+3) * (256-a)) + (S3StreamVRAMRead8(vram+7) * a)) >> 8;                  // V
+                o += 3;
+
+                haccum += vga.s3.streams.ssctl_k1_hscale;
+                if (haccum >= 0) {
+                    haccum -= vga.s3.streams.ssctl_k1_hscale * 2;
+                    haccum += vga.s3.streams.ssctl_k2_hscale * 2;
+                    vram += 4;
+                }
+            }
+        }
+    }
+}
+
+void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
+    if (S3SSdraw.draw) {
+        if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
+            // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
+            if (S3SSdraw.cscan_load)
+                S3_XGA_YUY2HProc(S3SSdraw.cscan->yuv,S3SSdraw.vmem_addr,S3SSdraw.endx - S3SSdraw.startx);
+
+            if (vga.s3.streams.evf) { /* vertical interpolation (S3 ViRGE and higher only) */
+                int a = 0;
+                int adiv;
+
+                adiv = vga.s3.streams.k1_vscale_factor - vga.s3.streams.k2_vscale_factor;
+                if (adiv == 0) adiv = 1;
+                a = 256 + ((S3SSdraw.vaccum * 0x100) / adiv);
+                if (a < 0) a = 0;
+                if (a > 255) a = 255;
+
+                if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
+                    S3_XGA_RenderYUY2MPEGcolorkeyEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
+                else
+                    S3_XGA_RenderYUY2MPEGEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
+            }
+            else {
+                if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
+                    S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
+                else
+                    S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
+            }
+
+            /* it's not clear from the datasheet, but I think what the card is doing is a
+             * DDA to vertically scale the image, and K1/K2 are just terms to add/subtract
+             * to vertically scale.
+             *
+             * The code below seems to work well enough with Windows 3.1 and Windows 98.
+             * Note of course this algorithm doesn't allow scaling DOWN YUV playback, a
+             * hardware limitation acknowledged by both Windows 3.1 and Windows 98
+             * S3 Trio64V+ drivers. ActiveMovie for Windows 98 will disable the YUV overlay
+             * if you scale down below 100% in any dimension.
+             *
+             * Note that K1 = original height - 1
+             *           K2 = (original height) - (final height)
+             *
+             * NTS: Windows 3.1 DCI and Windows 98 DirectX drivers will set initial accumulator
+             *      and both K1/K2 scale factors to zero if the vertical scale is 1:1. */
+            S3SSdraw.vaccum += vga.s3.streams.k1_vscale_factor;
+            if (S3SSdraw.vaccum >= 0) {
+                S3SSdraw.vaccum -= vga.s3.streams.k1_vscale_factor;
+                S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor; /* usually negative value */
+                S3SSdraw.vmem_addr += S3SSdraw.stride;
+
+                std::swap(S3SSdraw.cscan,S3SSdraw.pscan);
+                S3SSdraw.cscan_load = true;
+            }
+        }
+
+        S3SSdraw.currentline++;
+    }
+}
+
+static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
+    uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
+
+    /* streams processor overlay: secondary stream (commonly, YUV overlay for MPEG playback) */
+    /* NTS: Ignore the "primary stream" first, because I'm not sure whether that's another overlay
+     * or just the main display. */
+    S3_XGA_SecondaryStreamRender(temp2);
+
+    /* hardware cursor */
+    if (svga.hardware_cursor_active != NULL && svga.hardware_cursor_active()) {
+        Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
+        if ((vga.s3.hgc.posx >= vga.draw.width) ||
+            (lineat < vga.s3.hgc.originy) ||
+            (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
+            // the mouse cursor *pattern* is not on this line, do nothing
+        } else {
+            // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
+            // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
+            // This is used when the mouse cursor partially leaves the screen.
+            // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
+            // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
+            //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
+
+            // the index of the bit inside the cursor bitmap we start at:
+            Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx;
+            // convert to video memory addr and bit index
+            // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
+            // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
+            Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
+            Bitu cursorStartBit = sourceStartBit & 0x7u;
+            // stay at the right position in the pattern
+            if (cursorMemStart & 0x2) cursorMemStart--;
+            Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
+            uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+            for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
+                // for each byte of cursor data
+                uint8_t bitsA = vga.mem.linear[m];
+                uint8_t bitsB = vga.mem.linear[m+2];
+                for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
+                    // for each bit
+                    cursorStartBit=0; // only the first byte has some bits cut off
+                    if (bitsA&bit) {
+                        if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        *xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
+                    } else {
+                        *xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
+                    }
+                    xat++;
+                }
+            }
+        }
+    }
+
+    return (uint8_t*)temp2;
 }
 
 static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
@@ -3001,6 +3291,46 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
+    if (svgaCard == SVGA_S3Trio) {
+        if (s3Card >= S3_ViRGE || s3Card == S3_Trio64V) {
+            /* NTS: The Windows 3.1 S3 Trio64V+ driver appears to "shut down" the overlay by
+             *      putting it in the upper left corner of the screen as a 7x8 window, and
+             *      then setting the FIFO allocation so that all FIFO slots go to the
+             *      primary stream, or to put it another way, by starving the secondary
+             *      stream of any FIFO slots. If we don't check FIFO allocation, then
+             *      the overlay will be "stuck" in the upper left hand corner when you close
+             *      XingMPEG.
+             *
+             *      Of course other oddities happen in Windows 3.1, such as the hardware cursor
+             *      turning blue when the overlay is loaded, and if you directly close the
+             *      playback window without selecting "Close" from the file menu, the overlay
+             *      remains on the desktop (XingMPEG devs probably missed that because they're
+             *      using the color key feature to key against bright magenta, and the Windows
+             *      desktop usually doesn't have that color). */
+            if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_x != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
+                unsigned int ssbuf = (vga.s3.streams.ss_bufsel == 1) ? 1 : 0;
+                S3SSdraw.startx = vga.s3.streams.sswnd_start_x-1; /* X coordinate written is X + 1 */
+                S3SSdraw.starty = vga.s3.streams.sswnd_start_y-1; /* Y coordinate written is Y + 1 */
+                S3SSdraw.endx = (vga.s3.streams.sswnd_start_x-1)+vga.s3.streams.sswnd_width+1; /* register is width - 1 */
+                S3SSdraw.endy = (vga.s3.streams.sswnd_start_y-1)+vga.s3.streams.sswnd_height; /* height is written as-is */
+                S3SSdraw.vmem_addr = vga.s3.streams.ss_fba[ssbuf] & ~7u; /* "must be quadword aligned" */
+                S3SSdraw.stride = vga.s3.streams.ss_stride; /* datasheet doesn't say anything about alignment requirements here */
+                S3SSdraw.pixfmt = vga.s3.streams.ssctl_sdif;
+                S3SSdraw.filter = vga.s3.streams.ssctl_sfc;
+                S3SSdraw.evf = vga.s3.streams.evf != 0u;
+                S3SSdraw.vaccum = vga.s3.streams.dda_vaccum_iv;
+                S3SSdraw.pscan = &S3SSdraw.tmpscan2;
+                S3SSdraw.cscan = &S3SSdraw.tmpscan1;
+                S3SSdraw.cscan_load = true;
+                S3SSdraw.currentline = 0;
+                S3SSdraw.draw = true;
+            }
+            else {
+                S3SSdraw.draw = false;
+            }
+        }
+    }
+
     vga.draw.address_line = vga.config.hlines_skip;
     if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();
     vga.draw.address = vga.config.real_start;
@@ -3105,6 +3435,17 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
         /* fall through */
     case M_LIN8:
+        if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
+            // HACK: Disable 256KB VGA masking if we detect the SVGA modes.
+            if (vga.attr.mode_control & 1) {
+                if (vga.gfx.mode & 0x40) {
+                    if (!(vga.attr.mode_control & 0x40)) {
+                        vga.draw.linear_mask = vga.mem.memmask; // SVGA text mode
+                    }
+                }
+            }
+        }
+        /* fall through */
     case M_LIN15:
     case M_LIN16:
     case M_LIN24:

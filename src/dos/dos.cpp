@@ -3562,15 +3562,18 @@ void DOS_DoShutDown() {
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
+void DOS_GetMemory_reinit();
+void LOADFIX_OnDOSShutdown();
+
 void DOS_ShutDown(Section* /*sec*/) {
+	LOADFIX_OnDOSShutdown();
 	DOS_DoShutDown();
 }
 
-void DOS_GetMemory_reinit();
-
 void DOS_OnReset(Section* /*sec*/) {
+	LOADFIX_OnDOSShutdown();
 	DOS_DoShutDown();
-    DOS_GetMemory_reinit();
+	DOS_GetMemory_reinit();
 }
 
 void DOS_Startup(Section* sec) {

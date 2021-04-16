@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,29 +35,24 @@
  *    the C functions but they are invoked directly. This enables the compiler to generate better
  *    code for the library when linked statically yet being consistent with the plugin-like API.
  */
- 
-#ifdef MT32EMU_API_TYPE
-#if MT32EMU_API_TYPE == 0 && (MT32EMU_EXPORTS_TYPE == 1 || MT32EMU_EXPORTS_TYPE == 2)
-#error Incompatible setting MT32EMU_API_TYPE=0
-#elif MT32EMU_API_TYPE == 1 && (MT32EMU_EXPORTS_TYPE == 0 || MT32EMU_EXPORTS_TYPE == 2)
-#error Incompatible setting MT32EMU_API_TYPE=1
-#elif MT32EMU_API_TYPE == 2 && (MT32EMU_EXPORTS_TYPE == 0)
-#error Incompatible setting MT32EMU_API_TYPE=2
-#elif MT32EMU_API_TYPE == 3 && (MT32EMU_EXPORTS_TYPE == 0 || MT32EMU_EXPORTS_TYPE == 2)
-#error Incompatible setting MT32EMU_API_TYPE=3
-#endif
-#else /* #ifdef MT32EMU_API_TYPE */
-#if 0 < MT32EMU_EXPORTS_TYPE && MT32EMU_EXPORTS_TYPE < 3
-#define MT32EMU_API_TYPE MT32EMU_EXPORTS_TYPE
-#else
-#define MT32EMU_API_TYPE 0
-#endif
-#endif /* #ifdef MT32EMU_API_TYPE */
 
-/* MT32EMU_SHARED should be defined when building shared library, especially for Windows platforms. */
-/*
-#define MT32EMU_SHARED
-*/
+#ifdef MT32EMU_API_TYPE
+#  if MT32EMU_API_TYPE == 0 && (MT32EMU_EXPORTS_TYPE == 1 || MT32EMU_EXPORTS_TYPE == 2)
+#    error Incompatible setting MT32EMU_API_TYPE=0
+#  elif MT32EMU_API_TYPE == 1 && (MT32EMU_EXPORTS_TYPE == 0 || MT32EMU_EXPORTS_TYPE == 2)
+#    error Incompatible setting MT32EMU_API_TYPE=1
+#  elif MT32EMU_API_TYPE == 2 && (MT32EMU_EXPORTS_TYPE == 0)
+#    error Incompatible setting MT32EMU_API_TYPE=2
+#  elif MT32EMU_API_TYPE == 3 && (MT32EMU_EXPORTS_TYPE == 0 || MT32EMU_EXPORTS_TYPE == 2)
+#    error Incompatible setting MT32EMU_API_TYPE=3
+#  endif
+#else /* #ifdef MT32EMU_API_TYPE */
+#  if 0 < MT32EMU_EXPORTS_TYPE && MT32EMU_EXPORTS_TYPE < 3
+#    define MT32EMU_API_TYPE MT32EMU_EXPORTS_TYPE
+#  else
+#    define MT32EMU_API_TYPE 0
+#  endif
+#endif /* #ifdef MT32EMU_API_TYPE */
 
 #include "globals.h"
 
@@ -79,6 +74,14 @@
 #include "MidiStreamParser.h"
 #include "SampleRateConverter.h"
 
+#if MT32EMU_RUNTIME_VERSION_CHECK == 1
+#include "VersionTagging.h"
+#endif
+
 #endif /* #if !defined(__cplusplus) || MT32EMU_API_TYPE == 1 */
+
+#if MT32EMU_RUNTIME_VERSION_CHECK == 2
+#include "VersionTagging.h"
+#endif
 
 #endif /* #ifndef MT32EMU_MT32EMU_H */

@@ -418,7 +418,21 @@ void DetermineMode_ET4K() {
     // until I figure a way to either distinguish M_VGA and M_LIN8 or
     // merge them.
     if (vga.attr.mode_control & 1) {
-        if (vga.gfx.mode & 0x40) VGA_SetMode((et4k.biosMode<=0x13)?M_VGA:M_LIN8); // Ugly...
+        if (vga.gfx.mode & 0x40) {
+            // NTS: According to a register dump of a real Tseng ET4000, and
+            //      the datasheet, mode 0x2E (640x480 256-color) can be differentiated
+            //      from 320x200 256-color mode by whether the 8BIT bit is set
+            //      in the "mode control" register of the Attribute Controller.
+            //      If it is set, we're in standard VGA mode. If not set, but the
+            //      256-color bit is set in the Graphics Controller, then we're in
+            //      the SVGA modes.
+            if (vga.attr.mode_control & 0x40) {
+                VGA_SetMode((et4k.biosMode<=0x13)?M_VGA:M_LIN8); // Ugly...
+            }
+            else {
+                VGA_SetMode(M_LIN8);
+            }
+        }
         else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
         else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
         else VGA_SetMode((et4k.biosMode<=0x13)?M_EGA:M_LIN4);

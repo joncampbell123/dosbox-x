@@ -10,7 +10,7 @@
     <category>Emulation</category>
   </categories>
   <releases>
-          <release version="@PACKAGE_VERSION@" date="2021-4-1"/>
+          <release version="@PACKAGE_VERSION@" date="2021-4-14"/>
   </releases>
   <screenshots>
 	  <screenshot type="default">
@@ -57,26 +57,26 @@ Compared to DOSBox, DOSBox-X is much more flexible and provides more features.
 DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
 </p>
 	<ul>
-		<li>Emulate several PC variants: IBM PC, IBM PCjr, Tandy 1000 and NEC PC-98</li>
+		<li>Emulate several PC variants: IBM PC, IBM PCjr, Tandy 1000, Amstrad and NEC PC-98</li>
 		<li>CPUs: 8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro</li>
-		<li>Graphics chipsets: MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA</li>
+		<li>Graphics chipsets: MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA (S3 Trio64, ET3000, ET4000, Paradise)</li>
 		<li>Sound options: Sound Blaster series, Gravis Ultrasound, Disney Sound source and more audio options</li>
-		<li>MIDI: Roland MT-32 and General MIDI options</li>
+		<li>MIDI: FluidSynth, Roland MT-32 and General MIDI options</li>
 		<li>Serial, Parallel and Game port support</li>
 		<li>Printer support and emulation options</li>
 		<li>3dfx Voodoo emulation with Glide wrapper support</li>
 		<li>Network emulation: IPX over UDP, and serial modem</li>
-		<li>Network adapter emulation: NE2000 (not for Flatpak or Snap installs)</li>
+		<li>Network adapter emulation: NE2000 (pcap or slirp backend)</li>
 		<li>Mounting a host directory as a harddisk, floppy or CD-ROM</li>
 		<li>Mounting harddisk images, floppy disk images and CD-ROM images</li>
 		<li>ISO9660, FAT12, FAT16 and FAT32 filesystem support, including long filenames</li>
 		<li>Support for running real DOS systems (MS-DOS, IBM PC DOS, FreeDOS)</li>
-		<li>Support for running Windows 1.0 to Windows 3.11, Windows 95 and Windows 98</li>
+		<li>Support for running Windows 1.0 to Windows 3.11, Windows 9x and Windows ME</li>
 		<li>GUI drop-down menu for easier usage</li>
 		<li>Built-in graphical configuration tool</li>
 		<li>Save and load state with support for save files and up to 100 save slots</li>
 		<li>More DOS commands, and ability to add your own programs to the virtual Z: drive</li>
-		<li>Copy and Paste support and support for TrueType fonts</li>
+		<li>Support for clipboard copy & paste and scalable TrueType fonts (TTF)</li>
 		<li>Various output options, including output scaling and OpenGL shaders</li>
 	</ul>
 	With the help of DOSBox-X, you can run plenty of the old classics that don't run on your new computer!
