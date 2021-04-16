@@ -1,4 +1,11 @@
 0.83.13
+  - Added config options "working directory option" and
+    "working directory default" in [dosbox] section of
+    the config file to provide various options for the
+    users to control DOSBox-X's working directory. For
+    example, DOSBox-X can use the primary config file
+    directory or the DOSBox-X program directory as its
+    working directory. (Wengier)
   - Mac OS X builds will prompt the user to select a
     folder at startup if run from the Finder (or from
     the root directory). The folder selected will then

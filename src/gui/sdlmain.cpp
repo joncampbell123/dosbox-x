@@ -1351,7 +1351,7 @@ void GFX_SetIcon(void)
 {
 #if !defined(MACOSX)
     /* Set Icon (must be done before any sdl_setvideomode call) */
-    /* But don't set it on OS X, as we use a nicer external icon there. */
+    /* But don't set it on macOS, as we use a nicer external icon there. */
     /* Made into a separate call, so it can be called again when we restart the graphics output on win32 */
     if (menu_compatible) { DOSBox_SetOriginalIcon(); return; }
 #endif
@@ -4021,7 +4021,7 @@ void GFX_SwitchFullScreen(void)
                     }
 
                     if (maxwidth != 0 && maxheight != 0) {
-                        LOG_MSG("OS X: Actual maximum screen resolution is %d x %d\n",maxwidth,maxheight);
+                        LOG_MSG("macOS: Actual maximum screen resolution is %d x %d\n",maxwidth,maxheight);
 
                         if (sdl.desktop.full.width_auto) {
                             if (sdl.desktop.full.width > maxwidth)
@@ -5030,7 +5030,7 @@ std::string GetDefaultOutput() {
 
             So for the best experience, default to OpenGL.
 
-            Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
+            Note that "surface" yields good performance with SDL2 and macOS because SDL2 doesn't
             use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
     output = "opengl";
 #else
@@ -8798,7 +8798,7 @@ void DOSBox_ConsolePauseWait() {
     } while (!(c == 13 || c == 10)); /* wait for Enter key */
 }
 
-bool usecfgdir = false;
+bool usecfgdir = false, usecustomdir = false;
 bool DOSBOX_parse_argv() {
     std::string optname,tmp;
     uint8_t disp2_color=0;
@@ -8991,9 +8991,12 @@ bool DOSBOX_parse_argv() {
         else if (optname == "defaultdir") {
             if (control->cmdline->NextOptArgv(tmp)) {
                 struct stat st;
-                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
+                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR) {
                     if (chdir(tmp.c_str()) < 0)
                         return false;
+                    else
+                        usecustomdir = true;
+                }
             } else
                 usecfgdir = true;
         }
@@ -11646,67 +11649,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
     }
-
-    {
-        char cwd[512] = {0};
-        getcwd(cwd,sizeof(cwd)-1);
-
-        /* When we're run from the Finder, the current working directory is often / (the
-           root filesystem) and there is no terminal. What to run, what directory to run
-           it from, and the dosbox-x.conf to read, is not obvious. If run from the Finder,
-           prompt the user where to run from, and then set it as the current working
-           directory and continue. If they cancel, then exit. */
-        /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
-           that we were started by the Finder */
-        /* FIXME: Is there a better way to detect whether we were started by the Finder
-                  or any other part of the OS X desktop? */
-        if (!isatty(0) || !strcmp(cwd,"/")) {
-            /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
-               first initializing the SDL video subsystem. SDL1 must initialize
-               the Cocoa NS objects first, or else strange things happen, like
-               DOSBox-X as an NSWindow with no apparent icon in the task manager,
-               inability to change or maintain the menu at the top, etc. */
-            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-                E_Exit("Can't init SDL %s",SDL_GetError());
-
-            std::string path = osx_prompt_folder();
-            if (path.empty()) {
-#if 1
-                if (false) // Exit if the user cancels
-#else
-                if (!strcmp(cwd,"/"))
-#endif
-                {
-                    path=cwd;
-                    fprintf(stderr,"Warning: No path returned, force to use root directory\n");
-                } else {
-                    fprintf(stderr,"No path returned, exiting\n");
-                    return 1;
-                }
-            }
-
-            /* Thank you, no longer needed */
-            SDL_QuitSubSystem(SDL_INIT_VIDEO);
-
-            {
-                struct stat st;
-                if (stat(path.c_str(),&st)) {
-                    fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
-                    return 1;
-                }
-                if (!S_ISDIR(st.st_mode)) {
-                    fprintf(stderr,"Path '%s' is not S_ISDIR\n",path.c_str());
-                    return 1;
-                }
-                if (chdir(path.c_str())) {
-                    fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
-                    return 1;
-                }
-            }
-
-            fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
-        }
-    }
 #endif
 
     {
@@ -11796,7 +11738,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 // try to load it from the user directory
                 control->ParseConfigFile((config_path + cfg).c_str());
                 if (!control->ParseConfigFile((config_path + cfg).c_str())) {
-                LOG_MSG("CONFIG: Can't open specified config file: %s",cfg.c_str());
+                    LOG_MSG("CONFIG: Can't open specified config file: %s",cfg.c_str());
                 }
             }
         }
@@ -11818,12 +11760,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             tmp.clear();
             Cross::GetPlatformConfigName(tmp);
             control->ParseConfigFile((config_path + tmp).c_str());
-        }
-
-        if (control->configfiles.size()&&usecfgdir) {
-            std::string configpath=control->configfiles.front();
-            size_t found=configpath.find_last_of("/\\");
-            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
         }
 
 		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
@@ -12056,6 +11992,104 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (!change_success&&!value.empty()) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
 		}
+
+    {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        std::string workdiropt = section->Get_string("working directory option");
+        std::string workdirdef = section->Get_path("working directory default")->realpath;
+        void ResolvePath(std::string& in);
+        ResolvePath(workdirdef);
+#if !defined(HX_DOS)
+        if (workdiropt == "prompt" || workdiropt == "promptifroot") {
+            char cwd[512] = {0};
+            getcwd(cwd,sizeof(cwd)-1);
+
+            /* When we're run from the Finder, the current working directory is often / (the
+               root filesystem) and there is no terminal. What to run, what directory to run
+               it from, and the dosbox-x.conf to read, is not obvious. If run from the Finder,
+               prompt the user where to run from, and then set it as the current working
+               directory and continue. If they cancel, then exit. */
+            /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
+               that we were started by the Finder */
+            /* FIXME: Is there a better way to detect whether we were started by the Finder
+                      or any other part of the macOS desktop? */
+#if defined(WIN32)
+            if (workdiropt == "prompt")
+#else
+            if (!isatty(0) || workdiropt == "prompt" || !strcmp(cwd,"/"))
+#endif
+            {
+                /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
+                   first initializing the SDL video subsystem. SDL1 must initialize
+                   the Cocoa NS objects first, or else strange things happen, like
+                   DOSBox-X as an NSWindow with no apparent icon in the task manager,
+                   inability to change or maintain the menu at the top, etc. */
+                if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+                    E_Exit("Can't init SDL %s",SDL_GetError());
+
+                // std::string path = osx_prompt_folder();
+                char const * lTheSelectFolderName = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:", workdirdef.empty()?NULL:workdirdef.c_str()); // Make it cross-platform
+                std::string path = "";
+                if (lTheSelectFolderName == NULL) {
+#if 1
+                    if (false) // Exit if the user cancels
+#else
+                    if (!strcmp(cwd,"/"))
+#endif
+                    {
+                        path=cwd;
+                        fprintf(stderr,"Warning: No path returned, force to use root directory\n");
+                    } else {
+                        fprintf(stderr,"No path returned, exiting\n");
+                        return 1;
+                    }
+                } else
+                    path = lTheSelectFolderName;
+
+                /* Thank you, no longer needed */
+                SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+                {
+                    struct stat st;
+                    if (stat(path.c_str(),&st)) {
+                        fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
+                        return 1;
+                    }
+                    if (!(st.st_mode & S_IFDIR)) {
+                        fprintf(stderr,"Path '%s' is not a directory\n",path.c_str());
+                        return 1;
+                    }
+                    if (chdir(path.c_str())) {
+                        fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
+                        return 1;
+                    }
+                }
+
+                fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
+            }
+        } else
+#endif
+        if (((workdiropt == "custom" && !usecustomdir) || workdiropt == "force") && workdirdef.size()) {
+            chdir(workdirdef.c_str());
+            usecustomdir = true;
+        } else if (workdiropt == "program") {
+            std::string exepath=GetDOSBoxXPath();
+            if (exepath.size()) chdir(exepath.c_str());
+        } else if (workdiropt == "config")
+            usecfgdir = true;
+    }
+
+    if (control->configfiles.size()&&usecfgdir) {
+        std::string configpath=control->configfiles.front();
+        size_t found=configpath.find_last_of("/\\");
+        if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
+    }
+
+    {
+        char cwd[512] = {0};
+        getcwd(cwd,sizeof(cwd)-1);
+        LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
+    }
 
 #if (ENVIRON_LINKED)
         /* -- parse environment block (why?) */
