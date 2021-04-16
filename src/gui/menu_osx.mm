@@ -571,7 +571,7 @@ std::string osx_prompt_folder(void) {
     [panel setCanChooseFiles:false];
     [panel setCanChooseDirectories:true];
     [panel setAllowsMultipleSelection:false];
-    [panel setMessage:@"Select folder in which to run emulation"];
+    [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
     [panel setCanCreateDirectories:true]; /* sure, why not? */
 
     r = [panel runModal];

@@ -1,11 +1,11 @@
 0.83.13
   - Mac OS X builds will prompt the user to select a
-    folder at startup if run from the Finder. The
-    folder selected will then become the current
-    working directory of DOSBox-X. This makes it
-    possible to start DOSBox-X with a dosbox.conf of
-    your choice and to control where the capture,
-    save states and other files go.
+    folder at startup if run from the Finder (or from
+    the root directory). The folder selected will then
+    become the current working directory of DOSBox-X.
+    This makes it possible to start DOSBox-X with a
+    config file of your choice and to control where
+    the capture, save states and other files go.
   - Fixed Tseng ET4000 640x480 256-color SVGA mode
     when using the ET4000.BIN VGA BIOS, or Windows 98.
   - Added segment limit checks in Normal core for

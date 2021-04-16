@@ -11653,9 +11653,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* When we're run from the Finder, the current working directory is often / (the
            root filesystem) and there is no terminal. What to run, what directory to run
-           it from, and the dosbox.conf to read, is not obvious. If run from the Finder,
+           it from, and the dosbox-x.conf to read, is not obvious. If run from the Finder,
            prompt the user where to run from, and then set it as the current working
-           directory and continue. If they cancel, then exit. */
+           directory and continue. If they cancel, then the root directory is forced. */
         /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
            that we were started by the Finder */
         /* FIXME: Is there a better way to detect whether we were started by the Finder
@@ -11671,8 +11671,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             std::string path = osx_prompt_folder();
             if (path.empty()) {
-                fprintf(stderr,"No path returned, exiting\n");
-                return 1;
+                if (!strcmp(cwd,"/")) {
+                    path=cwd;
+                    fprintf(stderr,"Warning: No path returned, force to use root directory\n");
+                } else {
+                    fprintf(stderr,"No path returned, exiting\n");
+                    return 1;
+                }
             }
 
             /* Thank you, no longer needed */
