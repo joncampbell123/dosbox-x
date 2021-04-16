@@ -11694,7 +11694,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
 
-            fprintf(stderr,"User selected folder '%s', making that the current working directory.\n");
+            fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
         }
     }
 #endif

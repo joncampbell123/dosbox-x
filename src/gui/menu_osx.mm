@@ -567,8 +567,12 @@ std::string osx_prompt_folder(void) {
     NSModalResponse r;
     std::string res;
 
+    [panel setPrompt:@"Choose"];
     [panel setCanChooseFiles:false];
     [panel setCanChooseDirectories:true];
+    [panel setAllowsMultipleSelection:false];
+    [panel setMessage:@"Select folder in which to run emulation"];
+    [panel setCanCreateDirectories:true]; /* sure, why not? */
 
     r = [panel runModal];
     if (r == NSFileHandlingPanelOKButton) {
