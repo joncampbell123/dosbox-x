@@ -8,6 +8,7 @@
 #define MT32EMU_EXPORTS_TYPE 1
 #include <mt32emu.h>
 
+std::string mt32info = "";
 static const Bitu MILLIS_PER_SECOND = 1000;
 
 class RingBuffer {
@@ -68,7 +69,7 @@ private:
         MidiHandler_mt32::GetInstance().renderingLoop();
         return 0;
     }
-	bool load_rom_set(std::string romDir) {
+	bool load_rom_set(std::string romDir, int model) {
 		if (romDir.back() != '/' && romDir.back() != '\\') {
 			romDir.append("/");
 		}
@@ -76,10 +77,10 @@ private:
 		std::string roms = "";
 		strcpy(pathName, romDir.c_str());
 		strcat(pathName, "CM32L_CONTROL.ROM");
-		if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
+		if (model==2 || MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
 			strcpy(pathName, romDir.c_str());
 			strcat(pathName, "MT32_CONTROL.ROM");
-			if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
+			if (model==1 || MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
 				return false;
 			} else {
 				roms = "MT32_CONTROL.ROM and ";
@@ -89,10 +90,10 @@ private:
 		}
 		strcpy(pathName, romDir.c_str());
 		strcat(pathName, "CM32L_PCM.ROM");
-		if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
+		if (model==2 || MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
 			strcpy(pathName, romDir.c_str());
 			strcat(pathName, "MT32_PCM.ROM");
-			if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
+			if (model==1 || MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
 				return false;
 			} else {
 				roms += "MT32_PCM.ROM";
@@ -100,6 +101,7 @@ private:
 		} else {
 			roms += "CM32L_PCM.ROM";
 		}
+		mt32info="ROM directory: "+romDir+"\n  ROM pair: "+roms;
 		LOG_MSG("MT32: Found ROM pair in %s: %s", romDir.c_str(), roms.c_str());
 		return true;
 	}
@@ -239,6 +241,8 @@ public:
 
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
         std::string romDir = section->Get_string("mt32.romdir");
+        std::string modelstr = section->Get_string("mt32.model");
+        int model = modelstr=="cm32l"?1:(modelstr=="mt32"?2:0);
 
         void ResolvePath(std::string& in);
 		ResolvePath(romDir);
@@ -249,11 +253,11 @@ public:
             romDir = "./";
         }
 
-		if (!load_rom_set(romDir)) {
+		if (!load_rom_set(romDir, model)) {
 			Cross::GetPlatformResDir(romDir);
-			if (!load_rom_set(romDir)) {
+			if (!load_rom_set(romDir, model)) {
 					Cross::GetPlatformConfigDir(romDir);
-					if (!load_rom_set(romDir)) {
+					if (!load_rom_set(romDir, model)) {
 							delete service;
 							service = NULL;
 							LOG_MSG("MT32: failed to locate ROMs.");
@@ -371,6 +375,10 @@ public:
         } else {
             service->playSysex(sysex, (MT32Emu::uint32_t)len);
         }
+	}
+
+	void ListAll(Program* base) {
+		base->WriteOut("  %s\n",mt32info.c_str());
 	}
 };
 

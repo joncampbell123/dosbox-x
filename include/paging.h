@@ -519,4 +519,13 @@ public:
 	Bitu faultcode;
 };
 
+class GuestGenFaultException : public std::exception {
+public:
+	virtual const char *what() const throw() {
+		return "Guest general protection fault exception";
+	}
+	GuestGenFaultException() {
+	}
+};
+
 #endif

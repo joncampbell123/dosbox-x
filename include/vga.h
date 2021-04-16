@@ -547,6 +547,7 @@ typedef struct {
 	uint8_t reg_52;
 	uint8_t reg_55;
 	uint8_t reg_58;
+	uint8_t reg_63; // Extended control register
 	uint8_t reg_6b; // LFB BIOS scratchpad
 	uint8_t ex_hor_overflow;
 	uint8_t ex_ver_overflow;
@@ -565,6 +566,147 @@ typedef struct {
 		uint8_t cmd;
 	} pll;
 	VGA_HWCURSOR hgc;
+	struct {
+		// (MM8180 Primary Stream Control)
+		uint8_t			psctl_psfc;			// [30:28] PSFC Primary Stream Filter Characteristics
+											// 0=RGB-8 CLUT or XRGB-32 (X.8.8.8)  3=KRGB-16 (1.5.5.5)  5=RGB-16 (5.6.5)
+		uint8_t			psctl_psidf;		// [26:24] PSIDF Primary Stream Input Data Format
+											// 0=Primary Stream  1=..for 2X stretch (replication)  2=..bilinear for 2X stretch (interpolation)
+		// (MM8184 Color/Chroma Key Control)
+		uint8_t			ckctl_b_lb;			// [ 7: 0] B/V/Cr KEY (LOW)
+		uint8_t			ckctl_g_lb;			// [15: 8] G/U/Cb KEY (LOW)
+		uint8_t			ckctl_r_lb;			// [23:16] R/Y KEY (LOW)
+		uint8_t			ckctl_rgb_cc;		// [26:24] RGB CC - RGB Color Comparison Precision
+											// 0=Compare bit 7 of RGB
+											// 1=Compare bits 7-6 of RGB
+											// 2=Compare bits 7-5 of RGB
+											// 3=Compare bits 7-4 of RGB
+											// 4=Compare bits 7-3 of RGB
+											// 5=Compare bits 7-2 of RGB
+											// 6=Compare bits 7-1 of RGB
+											// 7=Compare bits 7-0 of RGB
+		uint8_t			ckctl_kc;			// [28:28] Key Control
+											// 0=Use K bit for keying in KRGB-16 (1.5.5.5) mode
+											// 1=Enable color or chroma keying for all modes other than KRGB-16
+
+		// (MM8190 Secondary Stream Control)
+		int16_t			ssctl_dda_haccum;	// [11: 0] DDA Horizontal Accumulator (signed 2's complement)
+											// Set to: 2*(W0-1) - (W1-1) [FIXME: Am I reading that right? Datasheet says 2 (W0-1) - (W1-1)
+											// Windows 3.1 DCI seems to compute instead: ((2*(W0-1) - (W1-1)) / 2)
+											// W0 = line length in pixels before scaling
+											// W1 = line length in pixels after scaling
+		uint8_t			ssctl_sdif;			// [26:24] SDIF Secondary Stream Input Data Format
+											// 1=YCbCr-16 (4.2.2), 16-240 input range (NTS: known as 'YUY2', 8-bit YUYV, for MPEG playback)
+											// 2=YUV-16 (4.2.2), 0-255 input range (NTS: 8-bit YUYV but full range, perhaps appropriate for JPEG)
+											// 3=KRGB-16 (1.5.5.5)
+											// 4=YUV (2.1.1) (NTS: I think this means planar YUV, U and V are one quarter resolution. Also known in the industry as 4:2:0)
+											// 5=RGB-16 (5.6.5)
+											// 7=XRGB-32 (X.8.8.8)
+		uint8_t			ssctl_sfc;			// [30:28] SFC - Secondary Stream Filter Characteristics
+											// 0=Secondary Stream  1=..linear 0-2-4-2-0, for X stretch  2=..bilinear for 2X to 4X stretch
+											// 3=..linear 1-2-2-2-1, for 4X stretch
+
+		// (MM8194 Chroma Key Upper Bound)
+		uint8_t			ckctl_b_ub;			// [ 7: 0] B/V/Cr KEY (UPPER)
+		uint8_t			ckctl_g_ub;			// [15: 8] G/U/Cb KEY (UPPER)
+		uint8_t			ckctl_r_ub;			// [23:16] R/Y KEY (UPPER)
+
+		// (MM8198 Secondary Stream Stretch/Filter Constants)
+		uint16_t		ssctl_k1_hscale;	// [10: 0] K1 horizontal scale factor
+											// Set to: W0-1, where W0 is width of pixels of the initial output window before scaling
+		int16_t			ssctl_k2_hscale;	// [26:16] K2 horizontal scale factor
+											// Set to: W0-W1, where W1 is the width of pixels of the final scaled output window.
+											// "This value is signed and will always be negative" (FIXME: Does that imply the card cannot *downscale* YUV overlays?)
+
+		// (MM81A0 Blend Control)
+		uint8_t			blendctl_ks;		// [ 4: 2] secondary stream blend coefficient
+		uint8_t			blendctl_kp;		// [12:10] primary stream blend coefficient
+		uint8_t			blendctl_composemode;//[26:24] compose mode
+											// 0=secondary stream opaque overlay on primary stream
+											// 1=primary stream opaque overlay on secondary stream
+											// 2=dissolve, [Pp x Kp + Ps x (8 - Kp)]/8, ignore Ks
+											// 3=Fade, [Pp x Kp + Ps x Ks]/8, where Kp + Ks must be <= 8
+											// 5=Color key on primary stream (secondary stream overlay on primary stream)
+											// 6=Color or chroma key on secondary stream (primary stream overlay on secondary stream)
+
+		// (MM81C0 Primary Stream Frame Buffer Address 0)
+		// (MM81C4 Primary Stream Frame Buffer Address 1)
+		uint32_t		ps_fba[2];			// [21: 0] Primary Buffer Address
+
+		// (MM81C8 Primary Stream Stride)
+		uint32_t		ps_stride;			// [11: 0] Primary Stream Stride
+
+		// (MM81CC Double Buffer/LPB Support)
+		uint8_t			ps_bufsel;			// [ 0: 0] Primary Stream Buffer Select (0=address 0  1=address 1)
+		uint8_t			ss_bufsel;			// [ 2: 1] Secondary Stream Buffer Select
+											// 0=address 0
+											// 1=address 1
+											// 2=address (LPB input buffer select ^ 0) and opposite is for LPB
+											// 3=address (LPB input buffer select ^ 1) and opposite is for LPB
+		uint8_t			lpb_in_bufsel;		// [ 4: 4] LIS LPB Input Buffer Select
+		uint8_t			lpb_in_bufselloading;//[ 5: 5] LSL LPB Input Buffer Select Loading
+		uint8_t			lpb_in_bufseltoggle;// [ 6: 6] LST LPB Input Buffer Select Toggle
+
+		// (MM81D0 Secondary Stream Frame Buffer Address 0)
+		// (MM81D4 Secondary Stream Frame Buffer Address 1)
+		uint32_t		ss_fba[2];			// [21: 0] Secondary Buffer Address
+
+		// (MM81D8 Secondary Stream Stride)
+		uint32_t		ss_stride;			// [11: 0] Secondary Stream Stride
+
+		// (MM81DC Opaque Overlay Control)
+		uint16_t		ooc_pixfetch_stop;  // [12: 3] Pixel stop fetch
+		uint16_t		ooc_pixfetch_resume;// [28:19] Pixel resume fetch
+		uint8_t			ooc_tss;			// [30:30] Top Stream Select  0=Secondary on top  1=Primary on top
+		uint8_t			ooc_ooc_enable;		// [31:31] Opaque Overlay Control Enable  0=disabled  1=enabled
+
+		// (MM81E0 K1 Vertical Scale Factor)
+		uint16_t		k1_vscale_factor;	// [10: 0] K1 Vertical Scale Factor
+											// Set to: [height in lines of initial output window before scaling] - 1
+
+		// (MM81E4 K2 Vertical Scale Factor)
+		int16_t			k2_vscale_factor;	// [10: 0] K2 Vertical Scale Factor
+											// Set to: (height in lines before scale) - (height in lines of final window after scaling)
+
+		// (MM81E8 DDA Vertical Accumulator Initial Value)
+		int16_t			dda_vaccum_iv;		// [11: 0] DDA Vertical Accumulator
+											// Set to: -((height in lines after scaling) - 1)
+		uint8_t			evf;				// [15:15] EVF Enable Vertical Filtering
+
+		// (MM81EC Stream FIFO and RAS Controls)
+		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots alloted to secondary stream.
+											// N = secondary stream slots	 This value is set to 24 - N
+		uint8_t			fifo_alloc_ss;		// Interpretation of [4:0], set to N (up to 24)
+		uint8_t			fifo_ss_threshhold;	// Threshhold at which FIFO refill of secondary stream is triggered (low water point). Must be <= alloc_ss
+		uint8_t			fifo_ps_threshhold;	// Threshhold at which FIFO refill of primary stream is triggered (low water point). Must be <= alloc_ps
+		uint8_t			ras_rl;				// [15:15] RL RAS Low Time Control
+		uint8_t			ras_rp;				// [16:16] RP RAS Pre-Charge Control
+		uint8_t			edo_wsctl;			// [18:18] EDO Memory Wait State Control
+
+		// (MM81F0 Primary Stream Window Start Coordinates)
+		uint16_t		pswnd_start_y;		// [10: 0] Primary Stream Y start
+											// Set to: Screen line number + 1
+		uint16_t		pswnd_start_x;		// [26:16] Primary Stream X start
+											// Set to: Screen pixel number + 1
+
+		// (MM81F4 Primary Stream Window Size)
+		uint16_t		pswnd_height;		// [10: 0] Primary Stream Height
+											// Set to: number of lines
+		uint16_t		pswnd_width;		// [26:16] Primary Stream Width
+											// Set to: number of pixels - 1
+
+		// (MM81F8 Secondary Stream Window Start Coordinates)
+		uint16_t		sswnd_start_y;		// [10: 0] Secondary Stream Y start
+											// Set to: Screen line number + 1
+		uint16_t		sswnd_start_x;		// [26:16] Secondary Stream X start
+											// Set to: Screen pixel number + 1
+
+		// (MM81FC Secondary Stream Window Size)
+		uint16_t		sswnd_height;		// [10: 0] Secondary Stream Height
+											// Set to: number of lines
+		uint16_t		sswnd_width;		// [26:16] Secondary Stream Width
+											// Set to: number of pixels - 1
+	} streams; // hardware YUV/RGB overlay i.e. for MPEG playback
 } VGA_S3;
 
 typedef struct {

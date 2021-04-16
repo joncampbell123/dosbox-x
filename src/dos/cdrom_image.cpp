@@ -111,6 +111,17 @@ CDROM_Interface_Image::BinaryFile::BinaryFile(const char *filename, bool &error)
 	file = new ifstream(filename, ios::in | ios::binary);
 	// If new fails, an exception is generated and scope leaves this constructor
 	error = file->fail();
+#if defined(WIN32)
+    if (error) {
+        typedef wchar_t host_cnv_char_t;
+        host_cnv_char_t *CodePageGuestToHost(const char *s);
+        const host_cnv_char_t* host_name = CodePageGuestToHost(filename);
+        if (host_name != NULL) {
+            file = new ifstream(host_name, ios::in | ios::binary);
+            error = file->fail();
+        }
+    }
+#endif
 }
 
 CDROM_Interface_Image::BinaryFile::~BinaryFile()

@@ -5301,13 +5301,19 @@ static void GUI_StartUp() {
 #endif
 
     // output type selection
-    // "overlay" was removed, pre-map to Direct3D or OpenGL or surface
-    if (output == "overlay"
+    // "overlay" and "ddraw" were removed, pre-map to Direct3D or OpenGL or surface
+    if (output == "overlay" || output == "ddraw"
+#if !C_DIRECT3D
+       || output == "direct3d"
+#endif
 #if !defined(USE_TTF)
        || output == "ttf"
 #endif
     ) {
-        LOG_MSG(output == "ttf"?"The TrueType font (TTF) output is not enabled.":"The overlay output has been removed.");
+        if (output == "overlay" || output == "ddraw")
+            LOG_MSG("The %s output has been removed.", output.c_str());
+        else
+            LOG_MSG("The %s output is not enabled.", output == "ttf" ? "TrueType font (TTF)":"Direct3D");
 #if C_DIRECT3D
         output = "direct3d";
 #elif C_OPENGL
@@ -5321,10 +5327,6 @@ static void GUI_StartUp() {
     // FIXME: this selection of output is duplicated in change_output:
     sdl.desktop.isperfect = false; /* Reset before selection */
     if (output == "surface") 
-    {
-        OUTPUT_SURFACE_Select();
-    } 
-    else if (output == "ddraw") 
     {
         OUTPUT_SURFACE_Select();
 #if C_OPENGL
@@ -7700,10 +7702,7 @@ void SDL_SetupConfigSection() {
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
-        "ddraw",
-#if C_DIRECT3D
-        "direct3d",
-#endif
+        "ddraw", "direct3d",
         0 };
 
     Pint = sdl_sec->Add_int("display", Property::Changeable::OnlyAtStart, 0);
@@ -8434,8 +8433,8 @@ void CopyClipboard(int all) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
 		if (buffer!=NULL) {
-			int reqsize = MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, NULL, 0);
-			if (reqsize>0 && MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, buffer, reqsize)==reqsize) {
+			int reqsize = MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), 0, text, len+1, NULL, 0);
+			if (reqsize>0 && MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), 0, text, len+1, buffer, reqsize)==reqsize) {
 				GlobalUnlock(clipbuffer);
 				SetClipboardData(CF_UNICODETEXT,clipbuffer);
 			}

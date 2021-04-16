@@ -127,12 +127,41 @@ PCI_Device::PCI_Device(uint16_t vendor, uint16_t device) {
 class PCI_VGADevice:public PCI_Device {
 private:
 	static const uint16_t vendor=0x5333;		// S3
-	static const uint16_t device=0x8811;		// trio64
+//	static const uint16_t device=0x8811;		// trio64
 //	static const uint16_t device=0x8810;		// trio32
 public:
-	PCI_VGADevice():PCI_Device(vendor,device) {
+	static uint16_t GetDevice(void) {
+		switch (s3Card) {
+			case S3_86C928:
+				return 0x88B0; // FIXME: Datasheet does not list PCI info at all. @TC1995 suggests the PCI version return 0xb0 for CR30, so this is probably the same here.
+			case S3_Vision864:
+				return 0x88C0; // Vision864, 0x88C0 or 0x88C1
+			case S3_Vision868:
+				return 0x8880; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
+			case S3_Trio32:
+				return 0x8810; // Trio32. 0x8810 or 0x8811
+			case S3_Trio64:
+			case S3_Trio64V:
+				return 0x8811; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
+			case S3_ViRGE:
+				return 0x5631;
+			case S3_ViRGEVX:
+				return 0x883D;
+			default:
+				break;
+		};
+
+		return 0x8811; // Trio64 DOSBox SVN default even though SVN is closer to Vision864 functionally
+	}
+	PCI_VGADevice():PCI_Device(vendor,GetDevice()) {
 		// init (S3 graphics card)
-		config[0x08] = 0x00;	// revision ID
+
+		// revision ID
+		if (s3Card == S3_Trio64V)
+			config[0x08] = 0x40; // Trio64V+ datasheet, page 280, PCI "class code". "Hardwired to 0300004xh" (revision is 40h or more)
+		else
+			config[0x08] = 0x00; // Trio32/Trio64 datasheet, page 242, PCI "class code". "Hardwired to 03000000h"
+
 		config[0x09] = 0x00;	// interface
 		config[0x0a] = 0x00;	// subclass type (vga compatible)
 		config[0x0b] = 0x03;	// class type (display controller)
@@ -150,11 +179,24 @@ public:
 
 		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
 
-		host_writed(config_writemask+0x10,0xFF000000);	/* BAR0: memory resource 16MB aligned */
+		switch (s3Card) {
+			case S3_86C928:
+			case S3_Vision864:
+			case S3_Trio32:
+			case S3_Trio64:
+				host_writed(config_writemask+0x10,0xFF800000);	/* BAR0: memory resource 8MB aligned [22:0 reserved] */
+				break;
+			case S3_Vision868:
+			case S3_Trio64V:
+			case S3_ViRGE:
+			case S3_ViRGEVX:
+				host_writed(config_writemask+0x10,0xFC000000);	/* BAR0: memory resource 64MB aligned [25:0 reserved] */
+				break;
+			default:
+				host_writed(config_writemask+0x10,0xFF800000);	/* BAR0: memory resource 8MB aligned [22:0 reserved] */
+				break;
+		};
 		host_writed(config+0x10,(((uint32_t)S3_LFB_BASE)&0xfffffff0) | 0x8);
-
-		host_writed(config_writemask+0x14,0xFFFF0000);	/* BAR1: memory resource 64KB aligned */
-		host_writed(config+0x14,(((uint32_t)(S3_LFB_BASE+0x1000000))&0xfffffff0));
 	}
 };
 

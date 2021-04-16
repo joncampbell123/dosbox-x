@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -270,7 +270,7 @@ void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 		pitchOffsetDelta = -pitchOffsetDelta;
 	}
 	// We want to maximise the number of bits of the int16_t "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
-	uint32_t absPitchOffsetDelta = pitchOffsetDelta << 16;
+	uint32_t absPitchOffsetDelta = (pitchOffsetDelta & 0xFFFF) << 16;
 	uint8_t normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
 	absPitchOffsetDelta = absPitchOffsetDelta >> 1; // Make room for the sign bit
 
@@ -337,13 +337,16 @@ void TVP::process() {
 		return;
 	}
 	// FIXME: Write explanation for this stuff
+	// NOTE: Value of shifts may happily exceed the maximum of 31 specified for the 8095 MCU.
+	// We assume the device performs a shift with the rightmost 5 bits of the counter regardless of argument size,
+	// since shift instructions of any size have the same maximum.
 	int rightShifts = shifts;
 	if (rightShifts > 13) {
 		rightShifts -= 13;
-		negativeBigTicksRemaining = negativeBigTicksRemaining >> rightShifts; // PORTABILITY NOTE: Assumes arithmetic shift
+		negativeBigTicksRemaining = negativeBigTicksRemaining >> (rightShifts & 0x1F); // PORTABILITY NOTE: Assumes arithmetic shift
 		rightShifts = 13;
 	}
-	int newResult = (negativeBigTicksRemaining * pitchOffsetChangePerBigTick) >> rightShifts; // PORTABILITY NOTE: Assumes arithmetic shift
+	int newResult = (negativeBigTicksRemaining * pitchOffsetChangePerBigTick) >> (rightShifts & 0x1F); // PORTABILITY NOTE: Assumes arithmetic shift
 	newResult += targetPitchOffsetWithoutLFO + lfoPitchOffset;
 	currentPitchOffset = newResult;
 	updatePitch();

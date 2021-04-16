@@ -1,3 +1,86 @@
+0.83.13
+  - Fixed Tseng ET4000 640x480 256-color SVGA mode
+    when using the ET4000.BIN VGA BIOS, or Windows 98.
+  - Added segment limit checks in Normal core for
+    MOVSB/MOVSW/MOVSD and STOSB/STOSW/STOSD, which is
+    needed for DOSBox-X to work with the Windows 3.1
+    S3 86C928 display drivers that use segment limit
+    exceptions to fake a linear framebuffer.
+  - Added S3 XGA "byte swap" emulation, needed for
+    correct menu/titlebar display in Windows 3.1 when
+    using the S3 86C928 driver.
+  - Added YUV (YUY2) overlay to S3 Trio64V+ card
+    emulation. Tested with XingMPEG under Windows 3.1
+    and ActiveMovie under Windows 98.
+  - Added machine types for 5 different variations of
+    S3 chipset: Vision864, Vision868, Trio32, Trio64,
+    and (experimental) Trio64V+, ViRGE, ViRGE/VX, and
+    S3 86C928.
+  - Removed second PCI BAR for S3 MMIO register space.
+    S3 datasheets do not show a second BAR. Windows 95
+    is perfectly happy without it.
+  - S3 SVGA XGA emulation BlitRect now supports
+    COLOR_CMP. DirectX-based Windows 95 games are now
+    able to blit in 256-color mode with a transparent
+    color key value.
+  - ANSI.SYS emulaion now supports the "Device Status
+    Report" escape when asked through code 6 (report
+    cursor position)
+  - Fixed RAM mapping bugs related to MDA/CGA/Hercules
+    emulation and the "allow more than 640kb" option,
+    that failed to map RAM as expected, and because of
+    that, easily triggered a "corrupt MCB chain" error
+    message.
+  - Worked around the mounting issue for disk or CD
+    image files with LaunchBox, by allowing a mounting
+    command-line with single quotes like IMGMOUNT D
+    'X:\FILES\DOS.IMG' on Windows systems. (Wengier)
+  - Restored Pentium MMX emulation code for the dynamic
+    x86 core to that of version 0.83.11 for better
+    compatibility with some Windows 9x games. (Wengier)
+  - Added "compresssaveparts" config option (in the
+    [dosbox] section) which when set to false will not
+    compress the components in saved states. (Wengier)
+  - When the current reported DOS version is less than
+    7.x and the user tries to mount a LBA or FAT32 disk
+    image, DOSBox-X will now show a message to ask if
+    the user wants it to set the required DOS version
+    automatically and proceed. (Wengier)
+  - DOSBox-X will now show the folder mounted after
+    mounting to a drive from the menu. (Wengier)
+  - Fixed MOUNT and IMGMOUNT commands unable to mount
+    directories or image files that contain non-ASCII
+    characters in the code page on Windows. (Wengier)
+  - Fixed the cycle information on the title bar when
+    the Turbo mode is enabled. (Wengier)
+  - Fixed that some games using the DOS4GW Extender
+    may not work due to swap file issue. (Wengier)
+  - Fixed that the clipboard copy and paste may not
+    work when the current code page is 808 or 872
+    and you are using Windows. (Wengier)
+  - The command "MIXER /LISTMIDI" now lists the ROM
+    directory/files and sound fonts for MT32, Synth
+    and FluidSynth MIDI device when active. (Wengier)
+  - Debugger "DOS XMS" command will only list handles
+    that are allocated, or with nonzero address or
+    nonzero size, to avoid showing irrelevant
+    information. (joncampbell123)
+  - Added LOADFIX -EMS option to allocate/free
+    EMS (expanded memory). (joncampbell123)
+  - LOADFIX -D -XMS will free all XMS blocks
+    allocated by LOADFIX -XMS. (joncampbell123)
+  - LOADFIX -A will not allocate memory unless there
+    is memory below 64KB to fill. (joncampbell123)
+  - INT 15h PS/2 mouse functions now clear pending
+    PS/2 mouse interrupt as part of the BIOS call.
+    This should resolve unresponsive mouse issues
+    with Windows 3.1. (joncampbell123)
+  - Add config option "mt32.model" in the [midi]
+    section to force a MT-32 model to use. (Wengier)
+  - Updated the MUNT MT-32 library to the latest
+    version 2.5.0. (Wengier)
+  - Updated FLAC decoder library to the latest version
+    (0.12.29 by David Reid). (Wengier)
 0.83.12
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC

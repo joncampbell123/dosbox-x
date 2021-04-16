@@ -47,6 +47,8 @@ static uint16_t dpos[256];
 static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
+void dos_ver_menu(bool start);
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 bool filename_not_8x3(const char *n) {
 	unsigned int i;
@@ -1595,6 +1597,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
                             break;
                         }
                         else if (mbrData.pentry[m].parttype == 0x0E/*FAT16B LBA*/) {
+                            if (dos.version.major < 7 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to change the reported DOS version to 7.0 now?","yesno", "question", 1)) {
+                                dos.version.major = 7;
+                                dos.version.minor = 0;
+                                dos_ver_menu(false);
+                            }
 							if (dos.version.major >= 7) { /* MS-DOS 7.0 or higher */
                                 mbrData.pentry[m].absSectStart = var_read(&mbrData.pentry[m].absSectStart);
                                 mbrData.pentry[m].partSize = var_read(&mbrData.pentry[m].partSize);
@@ -1607,6 +1614,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
                             break;
                         }
                         else if (mbrData.pentry[m].parttype == 0x0B || mbrData.pentry[m].parttype == 0x0C) { /* FAT32 types */
+                            if ((dos.version.major < 7 || ((dos.version.major == 7 && dos.version.minor < 10))) && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to change the reported DOS version to 7.10 now?","yesno", "question", 1)) {
+                                dos.version.major = 7;
+                                dos.version.minor = 10;
+                                dos_ver_menu(true);
+                            }
 							if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* MS-DOS 7.10 or higher */
                                 mbrData.pentry[m].absSectStart = var_read(&mbrData.pentry[m].absSectStart);
                                 mbrData.pentry[m].partSize = var_read(&mbrData.pentry[m].partSize);

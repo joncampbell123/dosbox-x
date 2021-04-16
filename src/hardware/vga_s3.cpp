@@ -23,6 +23,11 @@
 #include "mem.h"
 #include "pci_bus.h"
 
+void SD3_Reset(bool enable);
+bool has_pcibus_enable(void);
+
+extern bool enable_pci_vga;
+
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch (reg) {
@@ -326,6 +331,44 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 (3d4h index 18h). Bit 8 is in 3d4h index 7 bit 4 and bit 9 in 3d4h
                 index 9 bit 6.
         */
+    case 0x63:  /* Extended Control Register CR63 */
+        if (s3Card == S3_86C928 || s3Card == S3_Vision864 || s3Card == S3_Vision868) return; /* not mentioned in datasheet, does not exist */
+        if (s3Card >= S3_ViRGE && ((val ^ vga.s3.reg_63) & 2u/*RST*/)) SD3_Reset(!!(val & 2u));
+        vga.s3.reg_63 = (uint8_t)val;
+        break;
+        /* S3 Vision864 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
+         *
+         *      Datasheet does not mention this register, so it probably does not exist.
+         */
+        /* S3 Trio32/Trio64 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+         *
+         * 3-0  HSYNC-RESET-ADJST - HSYNC Reset Adjust
+         *      This value specifies the number of character clocks the HSYNC reset in the slave is de-
+         *      layed from the falling edge of the VSYNC input from the master during genlocking.
+         *      Remote mode (bit 0 of CRS6 set to 1) must be enabled for this field to take effect.
+         * 7-4  CHAR-CLK-RST-DELAY - Character clock reset delay
+         *      This specifies the number of DCLKs to delay the resetting of the character clock at the
+         *      end of the scan line. This is  used to sync the master and slave character clocks during
+         *      genlocking. Remote mode (bit 0 of CR56 set to 1) must be enabled for this field to
+         *      take effect.
+         */
+        /* S3 ViRGE/VX [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf]
+         *
+         *  0   ENBL ENH - Enable Enhanced Functions
+         *      0 = Enable VGA and VESA planar (4 bits/pixel) modes
+         *      1 = Enable all other modes (Enhanced and VESA non-planar)
+         *  1   RST - Reset
+         *      0 = No operation
+         *      1 = Software reset of the S3D Engine and memory controller
+         *  2   Reserved
+         *  3   PCI DISC - PCI Disconnects
+         *      0 = No effect
+         *      1 = An attempt to write data with the Command FIFO or LPB Output FIFO full or to
+         *          read data with the Command FIFO not empty generates a PCI bus disconnect
+         *          cycle
+         * 7-4  DELAY HSYNC/VSYNC
+         *      value = number of DCLKs the HSYNC and VSYNC active pulses are delayed
+         */
     case 0x67:  /* Extended Miscellaneous Control 2 */
         /*
             0   VCLK PHS. VCLK Phase With Respect to DCLK. If clear VLKC is inverted
@@ -373,14 +416,72 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x26:
         return ((vga.attr.disabled & 1u)?0x00u:0x20u) | (vga.attr.index & 0x1fu);
     case 0x2d:  /* Extended Chip ID (high byte of PCI device ID) */
+        /* NTS: As the high byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
+        /* NTS: Windows 98 S3 drivers will refuse to talk to the card if these registers (0x2D-0x2F) do not match the PCI ID or specific values */
+        switch (s3Card) {
+            case S3_86C928:
+                return 0x00; // not mentioned in datasheet, does not exist
+            case S3_Vision864:
+            case S3_Vision868:
+            case S3_Trio32:
+            case S3_Trio64:
+            case S3_Trio64V:
+            case S3_ViRGEVX:
+                return 0x88;
+            case S3_ViRGE:
+                return 0x56;
+            default:
+                break;
+        };
+
         return 0x88;
     case 0x2e:  /* New Chip ID  (low byte of PCI device ID) */
-        return 0x11;    // Trio64
+        /* NTS: Windows 98 S3 drivers will refuse to talk to the card if these registers (0x2D-0x2F) do not match the PCI ID or specific values */
+        /* "TESTING FOR THE PRESENCE OF A ViRGE/VX CHIP" section 13.3 PDF page 98 of 394
+         * "After unlocking, an ViRGENX chip can be identified via CR2E."
+         * (ASM code reading via 3D4h index 2Eh, comparing to 3Dh)
+         * Ref: [http://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%e2%88%95VX%20Integrated%203D%20Accelerator%20%281996%2d06%29%2epdf] */
+        /* NTS: As the low byte of the PCI ID, this should match the device ID in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
+        switch (s3Card) {
+            case S3_86C928:
+                return 0x00; // not mentioned in datasheet, does not exist
+            case S3_Vision864:
+                return 0xC0; // Vision864, 0x88C0 or 0x88C1
+            case S3_Vision868:
+                return 0x80; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
+            case S3_Trio32:
+                return 0x10; // Trio32. 0x8810 or 0x8811
+            case S3_Trio64:
+            case S3_Trio64V:
+                return 0x11; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
+            case S3_ViRGE:
+                return 0x31;
+            case S3_ViRGEVX:
+                return 0x3D;
+            default:
+                break;
+        };
+
+        return 0x11; // Trio64 DOSBox SVN default even though SVN is closer to Vision864 functionally
     case 0x2f:  /* Revision */
-        return 0x00;    // Trio64 (exact value?)
-//      return 0x44;    // Trio64 V+
+        /* NTS: As the low byte of the PCI ID, this should match the revision in src/hardware/pci_bus.cpp regarding PCI VGA emulation */
+        // revision ID
+        if (s3Card == S3_86C928)
+            return 0x0;  // not mentioned in datasheet, does not exist
+        else if (s3Card == S3_Trio64V)
+            return 0x40; // Trio64V+ datasheet, page 280, PCI "class code". "Hardwired to 0300004xh" (revision is 40h or more)
+        else
+            return 0x00; // Trio32/Trio64 datasheet, page 242, PCI "class code". "Hardwired to 03000000h"
+        //      return 0x44;    // Trio64 V+
     case 0x30:  /* CR30 Chip ID/REV register */
-        return 0xe1;    // Trio+ dual byte
+        if (s3Card >= S3_Trio32)
+            return 0xe1;    // Trio+ dual byte, ViRGE cards also report this
+        else if (s3Card >= S3_Vision864)
+            return 0xc0;    // Vision864 (Vision868 not mentioned but assume the same)
+        else if (s3Card == S3_86C928) /* PCI and ISA versions differ here according to @TC1995 */
+            return (enable_pci_vga && has_pcibus_enable()) ? 0xb0/*PCI*/ : 0x90/*ISA/EISA*/;
+        else
+            return 0x00;
     case 0x31:  /* CR31 Memory Configuration */
 //TODO mix in bits from baseaddress;
         return  vga.s3.reg_31;
@@ -443,6 +544,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
         return vga.s3.ex_hor_overflow;
     case 0x5e:  /* Extended Vertical Overflow */
         return vga.s3.ex_ver_overflow;
+    case 0x63:  /* Extended Control Register CR63 */
+        if (s3Card == S3_86C928 || s3Card == S3_Vision864 || s3Card == S3_Vision868) return 0x00; /* not mentioned in datasheet, does not exist */
+        return vga.s3.reg_63;
     case 0x67:  /* Extended Miscellaneous Control 2 */
         return vga.s3.misc_control_2;
     case 0x69:  /* Extended System Control 3 */
