@@ -11655,7 +11655,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
            root filesystem) and there is no terminal. What to run, what directory to run
            it from, and the dosbox-x.conf to read, is not obvious. If run from the Finder,
            prompt the user where to run from, and then set it as the current working
-           directory and continue. If they cancel, then the root directory is forced. */
+           directory and continue. If they cancel, then exit. */
         /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
            that we were started by the Finder */
         /* FIXME: Is there a better way to detect whether we were started by the Finder
@@ -11671,7 +11671,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             std::string path = osx_prompt_folder();
             if (path.empty()) {
-                if (!strcmp(cwd,"/")) {
+#if 1
+                if (false) // Exit if the user cancels
+#else
+                if (!strcmp(cwd,"/"))
+#endif
+                {
                     path=cwd;
                     fprintf(stderr,"Warning: No path returned, force to use root directory\n");
                 } else {
