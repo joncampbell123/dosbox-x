@@ -11505,6 +11505,10 @@ bool custom_bios = false;
 #define SDL_MAIN_NOEXCEPT
 #endif
 
+#if defined(MACOSX)
+std::string osx_prompt_folder(void);
+#endif
+
 void DISP2_Init(uint8_t color);
 //extern void UI_Init(void);
 void grGlideShutdown(void);
@@ -11643,23 +11647,54 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
     }
 
-    /* If we were launched by the Finder, the current working directory will usually be
-       the root of the filesystem (/) which is useless. If we see that, change instead
-       to the user's home directory */
     {
-        char *home = getenv("HOME");
-        char cwd[512];
-
-        cwd[0]=0;
+        char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
 
-        if (!strcmp(cwd,"/")) {
-            /* Only the Finder would do that.
-               Even if the user somehow did this from the Terminal app, it's still
-               worth changing to the home directory because certain directories
-               including / are locked readonly even for sudo in macOS */
-            /* NTS: HOME is usually an absolute path */
-            if (home != NULL) chdir(home);
+        /* When we're run from the Finder, the current working directory is often / (the
+           root filesystem) and there is no terminal. What to run, what directory to run
+           it from, and the dosbox.conf to read, is not obvious. If run from the Finder,
+           prompt the user where to run from, and then set it as the current working
+           directory and continue. If they cancel, then exit. */
+        /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
+           that we were started by the Finder */
+        /* FIXME: Is there a better way to detect whether we were started by the Finder
+                  or any other part of the OS X desktop? */
+        if (!isatty(0) || !strcmp(cwd,"/")) {
+            /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
+               first initializing the SDL video subsystem. SDL1 must initialize
+               the Cocoa NS objects first, or else strange things happen, like
+               DOSBox-X as an NSWindow with no apparent icon in the task manager,
+               inability to change or maintain the menu at the top, etc. */
+            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+                E_Exit("Can't init SDL %s",SDL_GetError());
+
+            std::string path = osx_prompt_folder();
+            if (path.empty()) {
+                fprintf(stderr,"No path returned, exiting\n");
+                return 1;
+            }
+
+            /* Thank you, no longer needed */
+            SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+            {
+                struct stat st;
+                if (stat(path.c_str(),&st)) {
+                    fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
+                    return 1;
+                }
+                if (!S_ISDIR(st.st_mode)) {
+                    fprintf(stderr,"Path '%s' is not S_ISDIR\n",path.c_str());
+                    return 1;
+                }
+                if (chdir(path.c_str())) {
+                    fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
+                    return 1;
+                }
+            }
+
+            fprintf(stderr,"User selected folder '%s', making that the current working directory.\n");
         }
     }
 #endif
