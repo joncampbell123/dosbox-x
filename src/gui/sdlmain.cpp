@@ -11517,6 +11517,32 @@ bool custom_bios = false;
 #define SDL_MAIN_NOEXCEPT
 #endif
 
+#if defined(WIN32) && !defined(HX_DOS)
+std::string win32_prompt_folder(void) {
+    OPENFILENAME of;
+    std::string res;
+    char tmp[1024];
+
+    tmp[0] = 0;
+    memset(&of, 0, sizeof(of));
+    of.lStructSize = sizeof(of);
+    of.lpstrFile = tmp;
+    of.nMaxFile = sizeof(tmp);
+    of.lpstrTitle = "Select folder where to run emulation, which will become DOSBox-X's working directory";
+    of.Flags = OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    of.lpstrFilter = "DOSBox configuration file\0" "dosbox.conf;dosbox-x.conf\0";
+    if (GetOpenFileName(&of)) {
+        if (of.nFileOffset >= sizeof(tmp)) return std::string();
+        while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
+        if (of.nFileOffset == 0) return std::string();
+        res = std::string(tmp, (size_t)of.nFileOffset);
+        MessageBox(NULL, res.c_str(), "", MB_OK);
+    }
+
+    return res;
+}
+#endif
+
 #if defined(MACOSX)
 std::string osx_prompt_folder(void);
 #endif
@@ -11696,6 +11722,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             std::string path = osx_prompt_folder();
             if (path.empty()) {
                 fprintf(stderr,"No path chosen by user, exiting\n");
+                return 1;
+            }
+#elif defined(WIN32) && !defined(HX_DOS)
+            std::string path = win32_prompt_folder();
+            if(path.empty()) {
+                fprintf(stderr, "No path chosen by user, exiting\n");
                 return 1;
             }
 #else
