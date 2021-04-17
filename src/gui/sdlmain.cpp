@@ -11536,7 +11536,6 @@ std::string win32_prompt_folder(void) {
         while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
         if (of.nFileOffset == 0) return std::string();
         res = std::string(tmp, (size_t)of.nFileOffset);
-        MessageBox(NULL, res.c_str(), "", MB_OK);
     }
 
     return res;
@@ -11695,8 +11694,28 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
 
+#if !defined(MACOSX)
+        if(control->opt_promptfolder < 0) {
+            struct stat st;
+
+            /* if dosbox.conf or dosbox-x.conf already exists in the current working directory, then skip folder prompt */
+            if(stat("dosbox-x.conf", &st) == 0 || stat("dosbox.conf", &st) == 0) {
+                if(S_ISREG(st.st_mode)) {
+                    control->opt_promptfolder = 0;
+                }
+            }
+        }
+#endif
+
+#if defined(WIN32)
+        /* A Windows application cannot detect with isatty() if run from the command prompt.
+        *  isatty() returns true even though STDIN/STDOUT/STDERR do not exist even if run from the command prompt. */
+        if (control->opt_promptfolder < 0)
+            control->opt_promptfolder = 1;
+#else
         if (control->opt_promptfolder < 0)
             control->opt_promptfolder = (!isatty(0) || !strcmp(cwd,"/")) ? 1 : 0;
+#endif
 
         /* When we're run from the Finder, the current working directory is often / (the
            root filesystem) and there is no terminal. What to run, what directory to run
