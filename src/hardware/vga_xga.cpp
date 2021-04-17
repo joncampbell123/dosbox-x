@@ -1005,11 +1005,14 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.sizex = xga.MAPcount;
 				xga.waitcmd.sizey = xga.MIPcount + 1;
 				xga.waitcmd.cmd = 2;
-				xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
+				if (s3Card >= S3_Vision864) /* this is when bit 10 became part of bit 9 to allow BUS SIZE == 32 (2-bit value == binary 10 == decimal 2) */
+					xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
+				else /* S3 86C928 datasheet lists bit 10 as reserved, therefore BUS WIDTH can only be 8 or 16 */
+					xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x200u) >> 4u);
 				xga.waitcmd.data = 0;
 				xga.waitcmd.datasize = 0;
 
-				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? */
+				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? FIXME: How does this work with BUS SIZE == 32? */
 					xga.waitcmd.bswap16 = (val&0x1200u) == 0x0200u; // BYTE SWP(12):  0=High byte first (big endian)  1=Low byte first (little endian)  and BUS SIZE  1=16-bit  0-8-bit
 				else
 					xga.waitcmd.bswap16 = false; // we're little endian, dammit!
