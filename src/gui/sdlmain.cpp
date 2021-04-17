@@ -11658,7 +11658,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 #endif
 
-#if defined(MACOSX) || defined(LINUX)
+#if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
         char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
