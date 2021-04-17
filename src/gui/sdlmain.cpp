@@ -11518,24 +11518,58 @@ bool custom_bios = false;
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
-std::string win32_prompt_folder(void) {
-    OPENFILENAME of;
-    std::string res;
-    char tmp[1024];
+std::wstring win32_prompt_folder(void) {
+    IFileDialog* ifd; /* Windows Vista file/folder picker interface COM object (shobjidl_core.h) */
+    OPENFILENAMEW of;
+    std::wstring res;
+    WCHAR tmp[1024];
+
+    /* Try the new picker first (Windows Vista or higher) which makes it possible to pick a folder */
+    if(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileDialog, (void**)(&ifd)) == S_OK) {
+        HRESULT hr;
+
+        ifd->SetOptions(FOS_PICKFOLDERS|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_DONTADDTORECENT);
+        ifd->SetTitle(L"Select folder where to run emulation, which will become DOSBox-X's working directory");
+        ifd->SetOkButtonLabel(L"Choose");
+        hr = ifd->Show(NULL);
+        if(hr == S_OK) {
+            IShellItem* sh = NULL;
+            if(ifd->GetFolder(&sh) == S_OK) {
+                LPWSTR str = NULL;
+
+                if(sh->GetDisplayName(SIGDN_FILESYSPATH, &str) == S_OK) {
+                    res = str;
+                    CoTaskMemFree(str);
+                }
+
+                sh->Release();
+            }
+
+            ifd->Release();
+            return res;
+        }
+        else if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
+            /* the user clicked cancel, sorry */
+            ifd->Release();
+            return std::wstring();
+        }
+        ifd->Release();
+        /* didn't work, try the other method below for Windows XP and below */
+    }
 
     tmp[0] = 0;
     memset(&of, 0, sizeof(of));
     of.lStructSize = sizeof(of);
     of.lpstrFile = tmp;
-    of.nMaxFile = sizeof(tmp);
-    of.lpstrTitle = "Select folder where to run emulation, which will become DOSBox-X's working directory";
+    of.nMaxFile = sizeof(tmp) / sizeof(tmp[0]); // Size in CHARACTERS not bytes
+    of.lpstrTitle = L"Select folder where to run emulation, which will become DOSBox-X's working directory";
     of.Flags = OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    of.lpstrFilter = "DOSBox configuration file\0" "dosbox.conf;dosbox-x.conf\0";
-    if (GetOpenFileName(&of)) {
-        if (of.nFileOffset >= sizeof(tmp)) return std::string();
+    of.lpstrFilter = L"DOSBox configuration file\0" L"dosbox.conf;dosbox-x.conf\0";
+    if (GetOpenFileNameW(&of)) {
+        if (of.nFileOffset >= sizeof(tmp)) return std::wstring();
         while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
-        if (of.nFileOffset == 0) return std::string();
-        res = std::string(tmp, (size_t)of.nFileOffset);
+        if (of.nFileOffset == 0) return std::wstring();
+        res = std::wstring(tmp, (size_t)of.nFileOffset);
     }
 
     return res;
@@ -11744,7 +11778,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 return 1;
             }
 #elif defined(WIN32) && !defined(HX_DOS)
-            std::string path = win32_prompt_folder();
+            std::wstring path = win32_prompt_folder();
             if(path.empty()) {
                 fprintf(stderr, "No path chosen by user, exiting\n");
                 return 1;
@@ -11764,6 +11798,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
 #endif
 
+#if defined(WIN32) && !defined(HX_DOS)
+            if(!path.empty()) {
+                /* our stat override makes wstat impossible */
+                if(_wchdir(path.c_str())) {
+                    MessageBoxW(NULL, path.c_str(), L"Failed to chdir() to path\n", MB_OK);
+                    return 1;
+                }
+            }
+#else
             if (!path.empty()) {
                 struct stat st;
                 if (stat(path.c_str(),&st)) {
@@ -11781,6 +11824,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
             }
+#endif
         }
     }
 #endif
