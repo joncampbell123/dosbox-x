@@ -9073,6 +9073,12 @@ bool DOSBOX_parse_argv() {
         else if (optname == "nogui") {
             control->opt_nogui = true;
         }
+        else if (optname == "nopromptfolder") {
+            control->opt_promptfolder = 0;
+        }
+        else if (optname == "promptfolder") {
+            control->opt_promptfolder = 1;
+        }
         else if (optname == "debug") {
             control->opt_debug = true;
         }
@@ -11516,9 +11522,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
+    control=&myconf;
+
 #if defined(WIN32) && !defined(HX_DOS)
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 #endif
+
+    /* -- parse command line arguments */
+    if (!DOSBOX_parse_argv()) return 1;
 
 #if 0 /* VGA_Draw_2 self test: dot clock */
     {
@@ -11616,7 +11627,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 
-    control=&myconf;
 #if defined(WIN32) && !defined(HX_DOS)
     /* Microsoft's IME does not play nice with DOSBox */
     ImmDisableIME((DWORD)(-1));
@@ -11646,10 +11656,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
     }
+#endif
 
+#if defined(MACOSX) || defined(LINUX)
     {
         char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
+
+        if (control->opt_promptfolder < 0)
+            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd,"/")) ? 1 : 0;
 
         /* When we're run from the Finder, the current working directory is often / (the
            root filesystem) and there is no terminal. What to run, what directory to run
@@ -11660,7 +11675,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
            that we were started by the Finder */
         /* FIXME: Is there a better way to detect whether we were started by the Finder
                   or any other part of the OS X desktop? */
-        if (!isatty(0) || !strcmp(cwd,"/")) {
+        if (control->opt_promptfolder > 0) {
+#if defined(MACOSX)
             /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
                first initializing the SDL video subsystem. SDL1 must initialize
                the Cocoa NS objects first, or else strange things happen, like
@@ -11668,17 +11684,26 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                inability to change or maintain the menu at the top, etc. */
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
                 E_Exit("Can't init SDL %s",SDL_GetError());
+#endif
 
+#if defined(MACOSX)
             std::string path = osx_prompt_folder();
             if (path.empty()) {
                 fprintf(stderr,"No path chosen by user, exiting\n");
                 return 1;
             }
+#else
+            std::string path;
 
+            fprintf(stderr,"No GUI to prompt for path, sorry\n");
+#endif
+
+#if defined(MACOSX)
             /* Thank you, no longer needed */
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
+#endif
 
-            {
+            if (!path.empty()) {
                 struct stat st;
                 if (stat(path.c_str(),&st)) {
                     fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
@@ -11692,18 +11717,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
                     return 1;
                 }
-            }
 
-            fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
+                fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
+            }
         }
     }
 #endif
 
     {
         std::string tmp,config_path,config_combined;
-
-        /* -- parse command line arguments */
-        if (!DOSBOX_parse_argv()) return 1;
 
         if (control->opt_time_limit > 0)
             time_limit_ms = (Bitu)(control->opt_time_limit * 1000);

@@ -86,6 +86,7 @@ public:
         opt_eraseconf = false;
         opt_resetconf = false;
         opt_printconf = false;
+        opt_promptfolder = -1;
         opt_noautoexec = false;
         opt_securemode = false;
         opt_fastlaunch = false;
@@ -128,6 +129,7 @@ public:
     std::vector<std::string> opt_c;
     std::vector<std::string> opt_set;
 
+    signed char opt_promptfolder;
     bool opt_disable_dpi_awareness;
     bool opt_disable_numlock_check;
     bool opt_date_host_forced;
