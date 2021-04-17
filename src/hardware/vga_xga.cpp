@@ -1010,7 +1010,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.datasize = 0;
 
 				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? */
-					xga.waitcmd.bswap16 = !(val&0x1000u); // BYTE SWP:  0=High byte first (big endian)  1=Low byte first (little endian)
+					xga.waitcmd.bswap16 = (val&0x1200u) == 0x0200u; // BYTE SWP(12):  0=High byte first (big endian)  1=Low byte first (little endian)  and BUS SIZE  1=16-bit  0-8-bit
 				else
 					xga.waitcmd.bswap16 = false; // we're little endian, dammit!
 
