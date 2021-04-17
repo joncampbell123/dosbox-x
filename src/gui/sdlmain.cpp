@@ -11693,9 +11693,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 return 1;
             }
 #else
-            std::string path;
+            char *cpath = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:",NULL);
+            std::string path = (cpath != NULL) ? cpath : "";
 
-            fprintf(stderr,"No GUI to prompt for path, sorry\n");
+            if (path.empty()) {
+                fprintf(stderr,"No path chosen by user, exiting\n");
+                return 1;
+            }
 #endif
 
 #if defined(MACOSX)
