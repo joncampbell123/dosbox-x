@@ -11519,11 +11519,14 @@ bool custom_bios = false;
 
 #if defined(WIN32) && !defined(HX_DOS)
 std::wstring win32_prompt_folder(void) {
+# if !defined(__MINGW32__) /* MinGW does not have these headers */
     IFileDialog* ifd; /* Windows Vista file/folder picker interface COM object (shobjidl_core.h) */
+# endif
     OPENFILENAMEW of;
     std::wstring res;
     WCHAR tmp[1024];
 
+# if !defined(__MINGW32__) /* MinGW does not have these headers */
     /* Try the new picker first (Windows Vista or higher) which makes it possible to pick a folder */
     if(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileDialog, (void**)(&ifd)) == S_OK) {
         HRESULT hr;
@@ -11556,6 +11559,7 @@ std::wstring win32_prompt_folder(void) {
         ifd->Release();
         /* didn't work, try the other method below for Windows XP and below */
     }
+# endif
 
     tmp[0] = 0;
     memset(&of, 0, sizeof(of));
