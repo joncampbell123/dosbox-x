@@ -12000,9 +12000,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
 #if !defined(HX_DOS)
-        if (workdiropt == "prompt" || workdiropt == "promptifroot") {
+        if (workdiropt == "prompt" || workdiropt == "warnroot") {
             char cwd[512] = {0};
-            getcwd(cwd,sizeof(cwd)-1);
+            char *res=getcwd(cwd,sizeof(cwd)-1);
 
             /* When we're run from the Finder, the current working directory is often / (the
                root filesystem) and there is no terminal. What to run, what directory to run
@@ -12014,11 +12014,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             /* FIXME: Is there a better way to detect whether we were started by the Finder
                       or any other part of the macOS desktop? */
             /* Wengier: This function has been extended to other platforms (Windows/Linux). */
+            if (workdiropt == "prompt" || ((res==NULL || !strlen(cwd) ||
 #if defined(WIN32)
-            if (workdiropt == "prompt")
+            !strcmp(cwd,"C:\\")
 #else
-            if (!isatty(0) || workdiropt == "prompt" || !strcmp(cwd,"/"))
+            !strcmp(cwd,"/")
 #endif
+            ) && systemmessagebox("Working directory for DOSBox-X","You are currently running DOSBox-X from the root directory of the file system, which is not recommended.\n\nDo you want to select a different folder as the DOSBox-X working directory?","yesno", "warning", 1)))
             {
                 /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
                    first initializing the SDL video subsystem. SDL1 must initialize
@@ -12029,7 +12031,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     E_Exit("Can't init SDL %s",SDL_GetError());
 
                 // std::string path = osx_prompt_folder();
-                char const * lTheSelectFolderName = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:", workdirdef.empty()?NULL:workdirdef.c_str()); // Make it cross-platform
+                std::string exepath=GetDOSBoxXPath();
+                char const * lTheSelectFolderName = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:", workdirdef.empty()?(exepath.size()?exepath.c_str():NULL):workdirdef.c_str()); // Make it cross-platform
                 std::string path = "";
                 if (lTheSelectFolderName == NULL) {
 #if 1
@@ -12041,6 +12044,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         path=cwd;
                         fprintf(stderr,"Warning: No path returned, force to use root directory\n");
                     } else {
+                        systemmessagebox("Exit from DOSBox-X", "You have not selected a valid path. Please try again.", "ok","info", 1);
                         fprintf(stderr,"No path returned, exiting\n");
                         return 1;
                     }
@@ -12053,14 +12057,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 {
                     struct stat st;
                     if (stat(path.c_str(),&st)) {
+                        systemmessagebox("Error", "The selected path cannot be accessed.", "ok","error", 1);
                         fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
                         return 1;
                     }
                     if (!(st.st_mode & S_IFDIR)) {
+                        systemmessagebox("Error", "The selected path is not a directory.", "ok","error", 1);
                         fprintf(stderr,"Path '%s' is not a directory\n",path.c_str());
                         return 1;
                     }
                     if (chdir(path.c_str())) {
+                        systemmessagebox("Error", "Cannot change to the selected path.", "ok","error", 1);
                         fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
                         return 1;
                     }

@@ -1196,7 +1196,7 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* workdiropts[] = {
-        "prompt", "promptifroot", "custom", "config", "runtime", "program", "force",
+        "config", "custom", "force", "runtime", "program", "prompt", "warnroot",
         0 };
 
     const char* switchoutputs[] = {
@@ -1285,21 +1285,21 @@ void DOSBOX_SetupConfigSections(void) {
             "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"promptifroot");
+    Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"warnroot");
     Pstring->Set_values(workdiropts);
     Pstring->Set_help("Select an option for DOSBox-X's working directory when it runs.\n"
-            "prompt: DOSBox-X will ask the user to select a working directory when it runs.\n"
-            "promptifroot: DOSBox-X will ask for a working directory if run from root (Linux/macOS).\n"
-            "custom: Specify a working directory via the \"working directory default\" option.\n"
             "config: DOSBox-X will use the primary config file directory as the working directory.\n"
+            "custom: Specify a working directory via the \"working directory default\" option.\n"
+            "force: Similar to \"custom\", while overriding -defaultdir command-line option if used.\n"
             "program: DOSBox-X will use the DOSBox-X program directory as the working directory.\n"
-            "runtime: The directory DOSBox-X runs becomes the working directory (default for Windows).\n"
-            "force: Similar to \"custom\", while overriding -defaultdir command-line option if used.");
+            "prompt: DOSBox-X will ask the user to select a working directory when it runs.\n"
+            "runtime: The directory DOSBox-X runs automatically becomes the working directory.\n"
+            "warnroot: DOSBox-X warns and asks for a different directory if run from the root.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_path("working directory default",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_help("The default directory to act as DOSBox-X's working directory. See also the setting \"working directory option\".\n"
-            "For working directory option=prompt/promptifroot, the specified directory becomes the default directory for the selection.");
+            "For working directory option=prompt/warnroot, the specified directory becomes the default directory for the selection.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
