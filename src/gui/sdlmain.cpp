@@ -37,6 +37,12 @@
 # define INCL_WIN
 #endif
 
+#if defined(WIN32)
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m)&S_IFMT)==S_IFDIR)
+#endif
+#endif
+
 int socknum=-1;
 int posx = -1;
 int posy = -1;
