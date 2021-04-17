@@ -104,6 +104,7 @@ public:
         opt_date_host_forced = false;
         opt_disable_numlock_check = false;
         opt_disable_dpi_awareness = false;
+        opt_used_defaultdir = false;
         opt_time_limit = -1;
         opt_log_con = false;
     }
@@ -129,6 +130,7 @@ public:
     std::vector<std::string> opt_c;
     std::vector<std::string> opt_set;
 
+    bool opt_used_defaultdir;
     signed char opt_promptfolder;
     bool opt_disable_dpi_awareness;
     bool opt_disable_numlock_check;

@@ -8995,6 +8995,7 @@ bool DOSBOX_parse_argv() {
             if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
         }
         else if (optname == "defaultdir") {
+            control->opt_used_defaultdir = true;
             if (control->cmdline->NextOptArgv(tmp)) {
                 struct stat st;
                 if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
@@ -11731,6 +11732,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     {
         char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
+
+        /* default do not prompt if -conf is used, or if -userconf is used, */
+        if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_used_defaultdir)) {
+            control->opt_promptfolder = 0;
+        }
 
 #if !defined(MACOSX)
         if(control->opt_promptfolder < 0) {
