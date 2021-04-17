@@ -1,4 +1,8 @@
 0.83.13
+  - S3 XGA "BYTE SWP" fixed only to byte swap if the
+    transfer is 16-bit wide. This fixes the dither
+    pattern drawn by Windows 95/98 when you select
+    "Shutdown" from the Start menu.
   - Mac OS X builds will prompt the user to select a
     folder at startup if run from the Finder (or from
     the root directory). The folder selected will then
