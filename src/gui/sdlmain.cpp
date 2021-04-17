@@ -11671,18 +11671,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             std::string path = osx_prompt_folder();
             if (path.empty()) {
-#if 1
-                if (false) // Exit if the user cancels
-#else
-                if (!strcmp(cwd,"/"))
-#endif
-                {
-                    path=cwd;
-                    fprintf(stderr,"Warning: No path returned, force to use root directory\n");
-                } else {
-                    fprintf(stderr,"No path returned, exiting\n");
-                    return 1;
-                }
+                fprintf(stderr,"No path chosen by user, exiting\n");
+                return 1;
             }
 
             /* Thank you, no longer needed */
