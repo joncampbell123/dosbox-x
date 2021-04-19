@@ -11601,6 +11601,34 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     /* -- parse command line arguments */
     if (!DOSBOX_parse_argv()) return 1;
 
+    if (control->opt_time_limit > 0)
+        time_limit_ms = (Bitu)(control->opt_time_limit * 1000);
+
+    if (control->opt_console)
+        DOSBox_ShowConsole();
+
+    /* -- Handle some command line options */
+    if (control->opt_eraseconf || control->opt_resetconf)
+        eraseconfigfile();
+    if (control->opt_printconf)
+        printconfiglocation();
+    if (control->opt_erasemapper || control->opt_resetmapper)
+        erasemapperfile();
+
+    /* -- Early logging init, in case these details are needed to debug problems at this level */
+    /*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
+    LOG::EarlyInit();
+
+    /* -- Init the configuration system and add default values */
+    CheckNumLockState();
+    CheckCapsLockState();
+    CheckScrollLockState();
+
+    /* -- setup the config sections for config parsing */
+    SDL_SetupConfigSection();
+    LOG::SetupConfigSection();
+    DOSBOX_SetupConfigSections();
+
 #if 0 /* VGA_Draw_2 self test: dot clock */
     {
         const double start_time = 0;
@@ -11842,24 +11870,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     {
         std::string tmp,config_path,config_combined;
 
-        if (control->opt_time_limit > 0)
-            time_limit_ms = (Bitu)(control->opt_time_limit * 1000);
-
-        if (control->opt_console)
-            DOSBox_ShowConsole();
-
-        /* -- Handle some command line options */
-        if (control->opt_eraseconf || control->opt_resetconf)
-            eraseconfigfile();
-        if (control->opt_printconf)
-            printconfiglocation();
-        if (control->opt_erasemapper || control->opt_resetmapper)
-            erasemapperfile();
-
-        /* -- Early logging init, in case these details are needed to debug problems at this level */
-        /*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
-        LOG::EarlyInit();
-
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
         {
             DISPLAY_DEVICE dd;
@@ -11877,16 +11887,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             } while (1);
         }
 #endif
-
-        /* -- Init the configuration system and add default values */
-        CheckNumLockState();
-        CheckCapsLockState();
-        CheckScrollLockState();
-
-        /* -- setup the config sections for config parsing */
-        SDL_SetupConfigSection();
-        LOG::SetupConfigSection();
-        DOSBOX_SetupConfigSections();
 
         /* -- Parse configuration files */
         Cross::GetPlatformConfigDir(config_path);
