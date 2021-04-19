@@ -92,6 +92,10 @@
     version 2.5.0. (Wengier)
   - Updated FLAC decoder library to the latest version
     (0.12.29 by David Reid). (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4447: Attribute Controller port alias on EGA
+    machine. Fixes EGA display of older Super Pac-Man
+    release.
 0.83.12
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
