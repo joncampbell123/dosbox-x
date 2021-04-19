@@ -11756,6 +11756,26 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 #endif
 
+    {
+        /* load the global config file first */
+        std::string tmp,config_path,config_combined;
+        struct stat st;
+
+        /* -- Parse configuration files */
+        Cross::GetPlatformConfigDir(config_path);
+        Cross::GetPlatformConfigName(tmp);
+
+        config_combined = config_path + "dosbox-x.conf";
+        if (stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+            control->ParseConfigFile(config_combined.c_str());
+
+        config_combined = config_path + tmp;
+        if (stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+            control->ParseConfigFile(config_combined.c_str());
+
+        control->configfiles.clear();
+    }
+
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
         char cwd[512] = {0};
