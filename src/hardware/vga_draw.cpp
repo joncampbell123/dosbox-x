@@ -1219,6 +1219,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
             // the mouse cursor *pattern* is not on this line, do nothing
         } else {
+            unsigned int hpos;
             uint8_t bg,fg;
 
             // S3 86C928: In 256-color modes, CRTC registers 0Eh-0Fh, normally used to hold
@@ -1242,6 +1243,27 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
                 bg = vga.s3.hgc.backstack[0];
             }
 
+            // On 86C928 cards, the "horizontal stretch" modes determine how the cursor is formatted
+            // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
+            // which must match the BYTE offset when run through the DAC. Without this code, the
+            // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
+            if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
+                /* NTS: S3 datasheets document bits 2-3 as follows:
+                 *
+                 *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
+                 *      bit 3: Hardware cursor horizontal stretch 3 - triple the width (24bpp, apparently)
+                 *
+                 * Windows 3.1 sets BOTH bits, which apparently means quadruple the width (32bpp)
+                 * Windows 95 does the same, which suggests that perhaps the hardware behaves as such.
+                 *
+                 * I don't know if this is how real hardware behaves but it's what Windows apparently
+                 * expects to do with the hardware based on how it's setting the X coordinate of the cursor. -- J.C. */
+                hpos = vga.s3.hgc.originx / (1 + ((vga.s3.hgc.curmode >> 2u) & 3u));
+            }
+            else {
+                hpos = vga.s3.hgc.originx;
+            }
+
             // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
             // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
             // This is used when the mouse cursor partially leaves the screen.
@@ -1259,7 +1281,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             // stay at the right position in the pattern
             if (cursorMemStart & 0x2) cursorMemStart--;
             Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-            uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+            uint32_t* xat = &temp2[hpos]; // mouse data start pos. in scanline
             for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
                 // for each byte of cursor data
                 uint8_t bitsA = vga.mem.linear[m];
@@ -1296,6 +1318,29 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // the mouse cursor *pattern* is not on this line
         return &vga.mem.linear[ vidstart ];
     } else {
+        unsigned int hpos;
+
+        // On 86C928 cards, the "horizontal stretch" modes determine how the cursor is formatted
+        // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
+        // which must match the BYTE offset when run through the DAC. Without this code, the
+        // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
+        if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
+            /* NTS: S3 datasheets document bits 2-3 as follows:
+             *
+             *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
+             *      bit 3: Hardware cursor horizontal stretch 3 - triple the width (24bpp, apparently)
+             *
+             * Windows 3.1 sets BOTH bits, which apparently means quadruple the width (32bpp)
+             * Windows 95 does the same, which suggests that perhaps the hardware behaves as such.
+             *
+             * I don't know if this is how real hardware behaves but it's what Windows apparently
+             * expects to do with the hardware based on how it's setting the X coordinate of the cursor. -- J.C. */
+            hpos = vga.s3.hgc.originx / (1 + ((vga.s3.hgc.curmode >> 2u) & 3u));
+        }
+        else {
+            hpos = vga.s3.hgc.originx;
+        }
+
         // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
         // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
         // This is used when the mouse cursor partially leaves the screen.
@@ -1312,7 +1357,7 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // stay at the right position in the pattern
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        uint8_t* xat = &TempLine[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+        uint8_t* xat = &TempLine[hpos]; // mouse data start pos. in scanline
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
@@ -1358,13 +1403,36 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
         return &vga.mem.linear[vidstart];
     } else {
+        unsigned int hpos;
+
+        // On 86C928 cards, the "horizontal stretch" modes determine how the cursor is formatted
+        // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
+        // which must match the BYTE offset when run through the DAC. Without this code, the
+        // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
+        if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
+            /* NTS: S3 datasheets document bits 2-3 as follows:
+             *
+             *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
+             *      bit 3: Hardware cursor horizontal stretch 3 - triple the width (24bpp, apparently)
+             *
+             * Windows 3.1 sets BOTH bits, which apparently means quadruple the width (32bpp)
+             * Windows 95 does the same, which suggests that perhaps the hardware behaves as such.
+             *
+             * I don't know if this is how real hardware behaves but it's what Windows apparently
+             * expects to do with the hardware based on how it's setting the X coordinate of the cursor. -- J.C. */
+            hpos = vga.s3.hgc.originx / (1 + ((vga.s3.hgc.curmode >> 2u) & 3u));
+        }
+        else {
+            hpos = vga.s3.hgc.originx;
+        }
+
         memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width*2);
         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
         Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        uint16_t* xat = &((uint16_t*)TempLine)[vga.s3.hgc.originx];
+        uint16_t* xat = &((uint16_t*)TempLine)[hpos];
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
@@ -1409,13 +1477,36 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
         return &vga.mem.linear[ vidstart ];
     } else {
+        unsigned int hpos;
+
+        // On 86C928 cards, the "horizontal stretch" modes determine how the cursor is formatted
+        // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
+        // which must match the BYTE offset when run through the DAC. Without this code, the
+        // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
+        if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
+            /* NTS: S3 datasheets document bits 2-3 as follows:
+             *
+             *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
+             *      bit 3: Hardware cursor horizontal stretch 3 - triple the width (24bpp, apparently)
+             *
+             * Windows 3.1 sets BOTH bits, which apparently means quadruple the width (32bpp)
+             * Windows 95 does the same, which suggests that perhaps the hardware behaves as such.
+             *
+             * I don't know if this is how real hardware behaves but it's what Windows apparently
+             * expects to do with the hardware based on how it's setting the X coordinate of the cursor. -- J.C. */
+            hpos = vga.s3.hgc.originx / (1 + ((vga.s3.hgc.curmode >> 2u) & 3u));
+        }
+        else {
+            hpos = vga.s3.hgc.originx;
+        }
+
         memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width*4);
         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
         Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        uint32_t* xat = &((uint32_t*)TempLine)[vga.s3.hgc.originx];
+        uint32_t* xat = &((uint32_t*)TempLine)[hpos];
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
