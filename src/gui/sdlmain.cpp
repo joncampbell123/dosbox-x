@@ -11529,16 +11529,16 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     OPENFILENAMEW of;
     std::wstring res;
     WCHAR tmp[1024];
-    const size_t size = strlen(default_folder)+1;
-    wchar_t* wfolder = new wchar_t[size];
-    mbstowcs (wfolder, default_folder, size);
+    const size_t size = default_folder == NULL? 0 : strlen(default_folder)+1;
+    wchar_t* wfolder = default_folder == NULL ? NULL : new wchar_t[size];
+    if (default_folder != NULL) mbstowcs (wfolder, default_folder, size);
 
 # if !defined(__MINGW32__) /* MinGW does not have these headers */
     /* Try the new picker first (Windows Vista or higher) which makes it possible to pick a folder */
     if(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileDialog, (void**)(&ifd)) == S_OK) {
         HRESULT hr;
 
-        if (default_folder != NULL) {
+        if (wfolder != NULL) {
             PIDLIST_ABSOLUTE pidl = NULL;
             SHParseDisplayName(wfolder, NULL, &pidl, 0, NULL);
             if (pidl != NULL) {
@@ -12276,8 +12276,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         char cwd[512] = {0};
-        getcwd(cwd,sizeof(cwd)-1);
-        LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
+        char *res = getcwd(cwd,sizeof(cwd)-1);
+        if (res!=NULL) LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
     }
 
 #if (ENVIRON_LINKED)

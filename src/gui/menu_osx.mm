@@ -571,9 +571,9 @@ std::string MacOSX_prompt_folder(const char *default_folder) {
     [panel setCanChooseFiles:false];
     [panel setCanChooseDirectories:true];
     [panel setAllowsMultipleSelection:false];
-    [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithFormat:@"%s",default_folder]]];
     [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
     [panel setCanCreateDirectories:true]; /* sure, why not? */
+    if (default_folder != NULL) [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithFormat:@"%s",default_folder]]];
 
     r = [panel runModal];
     if (r == NSFileHandlingPanelOKButton) {
