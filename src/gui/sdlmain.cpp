@@ -11535,7 +11535,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     wchar_t* wfolder = default_folder == NULL ? NULL : new wchar_t[size];
     if (default_folder != NULL) mbstowcs (wfolder, default_folder, size);
 
-#if 1 // Browse for folder using SHBrowseForFolder, which works on Windows XP and higher
+#if 0 // Browse for folder using SHBrowseForFolder, which works on Windows XP and higher
     WCHAR szDir[MAX_PATH];
     BROWSEINFOW bInfo;
     bInfo.hwndOwner = GetHWND();
