@@ -11522,18 +11522,44 @@ bool custom_bios = false;
 
 #if defined(WIN32) && !defined(HX_DOS)
 #include "Shlobj.h"
+int CALLBACK FolderBrowserCallback(HWND h_Dlg, UINT uMsg, LPARAM lParam, LPARAM lpData) {
+    if (uMsg == BFFM_INITIALIZED)
+        SendMessageW(h_Dlg, BFFM_SETEXPANDED, TRUE, lpData);
+    return 0;
+}
+
 std::wstring win32_prompt_folder(const char *default_folder) {
-# if !defined(__MINGW32__) /* MinGW does not have these headers */
-    IFileDialog* ifd; /* Windows Vista file/folder picker interface COM object (shobjidl_core.h) */
-# endif
-    OPENFILENAMEW of;
     std::wstring res;
-    WCHAR tmp[1024];
+    const WCHAR text[] = L"Select folder where to run emulation, which will become DOSBox-X's working directory:";
     const size_t size = default_folder == NULL? 0 : strlen(default_folder)+1;
     wchar_t* wfolder = default_folder == NULL ? NULL : new wchar_t[size];
     if (default_folder != NULL) mbstowcs (wfolder, default_folder, size);
 
+#if 1 // Browse for folder using SHBrowseForFolder, which works on Windows XP and higher
+    WCHAR szDir[MAX_PATH];
+    BROWSEINFOW bInfo;
+    bInfo.hwndOwner = GetHWND();
+    bInfo.pidlRoot = NULL;
+    bInfo.pszDisplayName = szDir;
+    bInfo.lpszTitle = text;
+    bInfo.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
+    if (wfolder != NULL) {
+        bInfo.lpfn   = FolderBrowserCallback;
+        bInfo.lParam = (LPARAM)wfolder;
+    } else {
+        bInfo.lpfn = NULL;
+        bInfo.lParam = 0;
+    }
+    LPITEMIDLIST lpItem = SHBrowseForFolderW(&bInfo);
+    if (lpItem != NULL) {
+        SHGetPathFromIDListW(lpItem, szDir);
+        res = std::wstring(szDir);
+        CoTaskMemFree(lpItem);
+    } else
+        return std::wstring();
+#else
 # if !defined(__MINGW32__) /* MinGW does not have these headers */
+    IFileDialog* ifd; /* Windows Vista file/folder picker interface COM object (shobjidl_core.h) */
     /* Try the new picker first (Windows Vista or higher) which makes it possible to pick a folder */
     if(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileDialog, (void**)(&ifd)) == S_OK) {
         HRESULT hr;
@@ -11552,7 +11578,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
             }
         }
         ifd->SetOptions(FOS_PICKFOLDERS|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_DONTADDTORECENT);
-        ifd->SetTitle(L"Select folder where to run emulation, which will become DOSBox-X's working directory");
+        ifd->SetTitle(text);
         ifd->SetOkButtonLabel(L"Choose");
         hr = ifd->Show(NULL);
         if(hr == S_OK) {
@@ -11581,13 +11607,15 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     }
 # endif
 
+    OPENFILENAMEW of;
+    WCHAR tmp[1024];
     tmp[0] = 0;
     memset(&of, 0, sizeof(of));
     of.lStructSize = sizeof(of);
     of.lpstrFile = tmp;
     of.nMaxFile = sizeof(tmp) / sizeof(tmp[0]); // Size in CHARACTERS not bytes
     of.lpstrInitialDir = wfolder;
-    of.lpstrTitle = L"Select folder where to run emulation, which will become DOSBox-X's working directory";
+    of.lpstrTitle = text;
     of.Flags = OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     of.lpstrFilter = L"DOSBox-X configuration file\0" L"dosbox-x.conf;dosbox.conf\0";
     if (GetOpenFileNameW(&of)) {
@@ -11596,7 +11624,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
         if (of.nFileOffset == 0) return std::wstring();
         res = std::wstring(tmp, (size_t)of.nFileOffset);
     }
-
+#endif
     return res;
 }
 #endif
@@ -12016,6 +12044,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         /* -- -- if none found, use userlevel conf */
+        if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());
         if (!control->configfiles.size()) {
             tmp.clear();
             Cross::GetPlatformConfigName(tmp);
