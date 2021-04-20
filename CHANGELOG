@@ -1,4 +1,9 @@
 0.83.13
+  - S386C928 hardware cursor fixed to divide X coordinate
+    by bytes per pixel indicated in the control register
+    to match apparent Windows 3.1/95 behavior. Cursor
+    now tracks host properly even in highcolor/truecolor
+    modes.
   - Added support for S386C928 hardware cursor color
     selection in 256-color mode, which is different
     from later cards.
