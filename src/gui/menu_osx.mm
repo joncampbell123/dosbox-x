@@ -562,7 +562,7 @@ void qz_set_match_monitor_cb(void) {
 // malfunctions occur in the Cocoa framework (at least in Big Sur).
 // You can quit the SDL Video subsystem and reinitialize later
 // after this function is done.
-std::string osx_prompt_folder(void) {
+std::string MacOSX_prompt_folder(const char *default_folder) {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     NSModalResponse r;
     std::string res;
@@ -571,6 +571,7 @@ std::string osx_prompt_folder(void) {
     [panel setCanChooseFiles:false];
     [panel setCanChooseDirectories:true];
     [panel setAllowsMultipleSelection:false];
+    [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithFormat:@"%s",default_folder]]];
     [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
     [panel setCanCreateDirectories:true]; /* sure, why not? */
 
@@ -595,3 +596,10 @@ std::string osx_prompt_folder(void) {
     return res;
 }
 
+void MacOSX_alert(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    [alert runModal];
+}

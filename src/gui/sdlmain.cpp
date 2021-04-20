@@ -1357,7 +1357,7 @@ void GFX_SetIcon(void)
 {
 #if !defined(MACOSX)
     /* Set Icon (must be done before any sdl_setvideomode call) */
-    /* But don't set it on OS X, as we use a nicer external icon there. */
+    /* But don't set it on macOS, as we use a nicer external icon there. */
     /* Made into a separate call, so it can be called again when we restart the graphics output on win32 */
     if (menu_compatible) { DOSBox_SetOriginalIcon(); return; }
 #endif
@@ -4027,7 +4027,7 @@ void GFX_SwitchFullScreen(void)
                     }
 
                     if (maxwidth != 0 && maxheight != 0) {
-                        LOG_MSG("OS X: Actual maximum screen resolution is %d x %d\n",maxwidth,maxheight);
+                        LOG_MSG("macOS: Actual maximum screen resolution is %d x %d\n",maxwidth,maxheight);
 
                         if (sdl.desktop.full.width_auto) {
                             if (sdl.desktop.full.width > maxwidth)
@@ -5036,7 +5036,7 @@ std::string GetDefaultOutput() {
 
             So for the best experience, default to OpenGL.
 
-            Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
+            Note that "surface" yields good performance with SDL2 and macOS because SDL2 doesn't
             use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
     output = "opengl";
 #else
@@ -8853,6 +8853,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
             fprintf(stderr,"  -startui, -startgui, -starttool         Start DOSBox-X with GUI configuration tool\n");
             fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
+            fprintf(stderr,"  -promptfolder                           Prompt for the working directory when DOSBox-X starts\n");
+            fprintf(stderr,"  -nopromptfolder                         Do not prompt for the working directory when DOSBox-X starts\n");
             fprintf(stderr,"  -nogui                                  Do not show GUI\n");
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -showcycles                             Show cycles count (FPS) in the title\n");
@@ -11519,19 +11521,36 @@ bool custom_bios = false;
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
-std::wstring win32_prompt_folder(void) {
+#include "Shlobj.h"
+std::wstring win32_prompt_folder(const char *default_folder) {
 # if !defined(__MINGW32__) /* MinGW does not have these headers */
     IFileDialog* ifd; /* Windows Vista file/folder picker interface COM object (shobjidl_core.h) */
 # endif
     OPENFILENAMEW of;
     std::wstring res;
     WCHAR tmp[1024];
+    const size_t size = strlen(default_folder)+1;
+    wchar_t* wfolder = new wchar_t[size];
+    mbstowcs (wfolder, default_folder, size);
 
 # if !defined(__MINGW32__) /* MinGW does not have these headers */
     /* Try the new picker first (Windows Vista or higher) which makes it possible to pick a folder */
     if(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileDialog, (void**)(&ifd)) == S_OK) {
         HRESULT hr;
 
+        if (default_folder != NULL) {
+            PIDLIST_ABSOLUTE pidl = NULL;
+            SHParseDisplayName(wfolder, NULL, &pidl, 0, NULL);
+            if (pidl != NULL) {
+                IShellItem *item = NULL;
+                SHCreateItemFromIDList(pidl, IID_IShellItem, (LPVOID*)&item);
+                if(item != NULL) {
+                    ifd->SetFolder(item);
+                    item->Release();
+                }
+                CoTaskMemFree(pidl);
+            }
+        }
         ifd->SetOptions(FOS_PICKFOLDERS|FOS_FORCEFILESYSTEM|FOS_PATHMUSTEXIST|FOS_DONTADDTORECENT);
         ifd->SetTitle(L"Select folder where to run emulation, which will become DOSBox-X's working directory");
         ifd->SetOkButtonLabel(L"Choose");
@@ -11567,9 +11586,10 @@ std::wstring win32_prompt_folder(void) {
     of.lStructSize = sizeof(of);
     of.lpstrFile = tmp;
     of.nMaxFile = sizeof(tmp) / sizeof(tmp[0]); // Size in CHARACTERS not bytes
+    of.lpstrInitialDir = wfolder;
     of.lpstrTitle = L"Select folder where to run emulation, which will become DOSBox-X's working directory";
     of.Flags = OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    of.lpstrFilter = L"DOSBox configuration file\0" L"dosbox.conf;dosbox-x.conf\0";
+    of.lpstrFilter = L"DOSBox-X configuration file\0" L"dosbox-x.conf;dosbox.conf\0";
     if (GetOpenFileNameW(&of)) {
         if (of.nFileOffset >= sizeof(tmp)) return std::wstring();
         while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
@@ -11582,7 +11602,8 @@ std::wstring win32_prompt_folder(void) {
 #endif
 
 #if defined(MACOSX)
-std::string osx_prompt_folder(void);
+std::string MacOSX_prompt_folder(const char *default_folder);
+void MacOSX_alert(const char *title, const char *message);
 #endif
 
 void DISP2_Init(uint8_t color);
@@ -11756,6 +11777,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 #endif
 
+    std::string workdiropt = "default";
+    std::string workdirdef = "";
+    std::string exepath=GetDOSBoxXPath();
     {
         /* load the global config file first */
         std::string tmp,config_path,config_combined;
@@ -11765,26 +11789,50 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Cross::GetPlatformConfigDir(config_path);
         Cross::GetPlatformConfigName(tmp);
 
+        if (exepath.size() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
+            control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
+            if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+        }
+
         config_combined = config_path + "dosbox-x.conf";
-        if (stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+        if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
             control->ParseConfigFile(config_combined.c_str());
 
         config_combined = config_path + tmp;
-        if (stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+        if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
             control->ParseConfigFile(config_combined.c_str());
 
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        workdiropt = section->Get_string("working directory option");
+        workdirdef = section->Get_path("working directory default")->realpath;
+        void ResolvePath(std::string& in);
+        ResolvePath(workdirdef);
+
         control->configfiles.clear();
+    }
+
+    if (workdiropt == "prompt" && control->opt_promptfolder < 0) control->opt_promptfolder = 1;
+    else if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
+        chdir(workdirdef.c_str());
+        control->opt_used_defaultdir = true;
+        usecfgdir = false;
+    } else if (workdiropt == "program") {
+        std::string exepath=GetDOSBoxXPath();
+        if (exepath.size()) chdir(exepath.c_str());
+    } else if (workdiropt == "config") {
+        control->opt_used_defaultdir = true;
+        usecfgdir = true;
+    }
+
+    /* default do not prompt if -conf, -userconf, -defaultconf, or -defaultdir is used */
+    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || workdiropt == "noprompt")) {
+        control->opt_promptfolder = 0;
     }
 
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
         char cwd[512] = {0};
         getcwd(cwd,sizeof(cwd)-1);
-
-        /* default do not prompt if -conf is used, or if -userconf is used, */
-        if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_used_defaultdir)) {
-            control->opt_promptfolder = 0;
-        }
 
 #if !defined(MACOSX)
         if(control->opt_promptfolder < 0) {
@@ -11817,10 +11865,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* Assume that if STDIN is not a TTY, or if the current working directory is "/",
            that we were started by the Finder */
         /* FIXME: Is there a better way to detect whether we were started by the Finder
-                  or any other part of the OS X desktop? */
+                  or any other part of the macOS desktop? */
         if (control->opt_promptfolder > 0) {
 #if defined(MACOSX)
-            /* NTS: Do NOT call osx_prompt_folder() to show a modal NSOpenPanel without
+            /* NTS: Do NOT call MacOSX_prompt_folder() to show a modal NSOpenPanel without
                first initializing the SDL video subsystem. SDL1 must initialize
                the Cocoa NS objects first, or else strange things happen, like
                DOSBox-X as an NSWindow with no apparent icon in the task manager,
@@ -11829,23 +11877,32 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 E_Exit("Can't init SDL %s",SDL_GetError());
 #endif
 
+            char folder[512], *default_folder=folder;
+            std::string dir = workdirdef.empty()?(exepath.size()?exepath:""):workdirdef;
+            if (dir.size()&&dir.size()<512)
+                strcpy(default_folder, dir.c_str());
+            else
+                default_folder = NULL;
 #if defined(MACOSX)
-            std::string path = osx_prompt_folder();
+            std::string path = MacOSX_prompt_folder(default_folder);
             if (path.empty()) {
+                MacOSX_alert("Exit from DOSBox-X", "You have not selected a valid path. Please try again.");
                 fprintf(stderr,"No path chosen by user, exiting\n");
                 return 1;
             }
 #elif defined(WIN32) && !defined(HX_DOS)
-            std::wstring path = win32_prompt_folder();
+            std::wstring path = win32_prompt_folder(default_folder);
             if(path.empty()) {
+                MessageBoxW(NULL, L"You have not selected a valid path. Please try again.", L"Exit from DOSBox-X", MB_OK);
                 fprintf(stderr, "No path chosen by user, exiting\n");
                 return 1;
             }
 #else
-            char *cpath = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:",NULL);
+            char *cpath = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:",default_folder);
             std::string path = (cpath != NULL) ? cpath : "";
 
             if (path.empty()) {
+                systemmessagebox("Exit from DOSBox-X", "You have not selected a valid path. Please try again.", "ok","info", 1);
                 fprintf(stderr,"No path chosen by user, exiting\n");
                 return 1;
             }
@@ -11856,16 +11913,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
             if(!path.empty()) {
+#if defined(WIN32) && !defined(HX_DOS)
                 /* our stat override makes wstat impossible */
                 if(_wchdir(path.c_str())) {
-                    MessageBoxW(NULL, path.c_str(), L"Failed to chdir() to path\n", MB_OK);
+                    MessageBoxW(NULL, path.c_str(), L"Failed to change to the selected path.", MB_OK);
                     return 1;
                 }
-            }
 #else
-            if (!path.empty()) {
                 struct stat st;
                 if (stat(path.c_str(),&st)) {
                     fprintf(stderr,"Unable to stat path '%s'\n",path.c_str());
@@ -11879,10 +11934,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     fprintf(stderr,"Failed to chdir() to path '%s', errno=%s\n",path.c_str(),strerror(errno));
                     return 1;
                 }
-
-                fprintf(stderr,"User selected folder '%s', making that the current working directory.\n",path.c_str());
-            }
 #endif
+                LOG_MSG("User selected folder '%s', making that the current working directory.\n",path.c_str());
+                control->opt_used_defaultdir = true;
+            }
         }
     }
 #endif
@@ -11943,7 +11998,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 // try to load it from the user directory
                 control->ParseConfigFile((config_path + cfg).c_str());
                 if (!control->ParseConfigFile((config_path + cfg).c_str())) {
-                LOG_MSG("CONFIG: Can't open specified config file: %s",cfg.c_str());
+                    LOG_MSG("CONFIG: Can't open specified config file: %s",cfg.c_str());
                 }
             }
         }
@@ -12203,6 +12258,27 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (!change_success&&!value.empty()) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
 		}
+
+    {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        workdiropt = section->Get_string("working directory option");
+        workdirdef = section->Get_path("working directory default")->realpath;
+        void ResolvePath(std::string& in);
+        ResolvePath(workdirdef);
+        if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
+            chdir(workdirdef.c_str());
+        } else if (workdiropt == "program" && exepath.size()) {
+            chdir(exepath.c_str());
+        } else if (workdiropt == "config" && control->configfiles.size()) {
+            std::string configpath=control->configfiles.front();
+            size_t found=configpath.find_last_of("/\\");
+            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
+        }
+
+        char cwd[512] = {0};
+        getcwd(cwd,sizeof(cwd)-1);
+        LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
+    }
 
 #if (ENVIRON_LINKED)
         /* -- parse environment block (why?) */

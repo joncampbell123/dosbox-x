@@ -4136,7 +4136,15 @@ static void MAPPER_SaveBinds(void) {
             fprintf(savefile,"%s \n",line.c_str());
     }
     fclose(savefile);
-    change_action_text("Mapper file saved.",CLR_WHITE);
+#if defined(WIN32)
+    char path[256];
+    if (GetFullPathName(mapper.filename.c_str(), 256, path, NULL))
+#else
+    char path[PATH_MAX];
+    if (realpath(mapper.filename.c_str(), path) != NULL)
+#endif
+        LOG_MSG("Saved mapper file: %s", path);
+    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
