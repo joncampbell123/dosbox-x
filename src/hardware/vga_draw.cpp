@@ -1219,6 +1219,25 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
             // the mouse cursor *pattern* is not on this line, do nothing
         } else {
+            uint8_t bg,fg;
+
+            // S3 86C928: In 256-color modes, CRTC registers 0Eh-0Fh, normally used to hold
+            // cursor position in VGA modes, becomes the foreground/background colors of
+            // the hardware cursor. This is needed for the Windows 3.1 driver to set the
+            // colors of the cursor correctly. The 86C928 appears to be the only card not
+            // to set 256-color cursor colors using the foreground/background stack registers
+            // of later cards. Truecolor/highcolor cards still use foreground/background
+            // stack on 86C928 cards.
+            if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
+                fg = (vga.config.cursor_start >> 8u) & 0xFFu; // register 0Eh
+                bg = (vga.config.cursor_start & 0xFFu); // register 0Fh
+            }
+            // all other cards use the fore/back stack as expected
+            else {
+                fg = vga.s3.hgc.forestack[0];
+                bg = vga.s3.hgc.backstack[0];
+            }
+
             // Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
             // 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
             // This is used when the mouse cursor partially leaves the screen.
@@ -1248,9 +1267,9 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
                         if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
                         //else Transparent
                     } else if (bitsB&bit) {
-                        *xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
+                        *xat = vga.dac.xlat32[fg]; // foreground color
                     } else {
-                        *xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
+                        *xat = vga.dac.xlat32[bg];
                     }
                     xat++;
                 }

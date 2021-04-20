@@ -240,6 +240,8 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		vga.config.cursor_start&=0xff00ff;
 		vga.config.cursor_start|=val << 8;
 		/*	0-7  Upper 8 bits of the address of the cursor */
+		/* S3 86C928 emulation: In "enhanced mode" (256-color SVGA), this register is also used to hold the hardware cursor foreground
+		 * color index [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf] */
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
 //TODO update cursor on screen
@@ -247,6 +249,8 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		vga.config.cursor_start&=0xffff00;
 		vga.config.cursor_start|=val;
 		/*	0-7  Lower 8 bits of the address of the cursor */
+		/* S3 86C928 emulation: In "enhanced mode" (256-color SVGA), this register is also used to hold the hardware cursor background
+		 * color index [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf] */
 		break;
 	case 0x10:	/* Vertical Retrace Start Register */
 		crtc(vertical_retrace_start)=(uint8_t)val;
