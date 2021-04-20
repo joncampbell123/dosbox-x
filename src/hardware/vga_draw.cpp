@@ -1228,6 +1228,10 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             // to set 256-color cursor colors using the foreground/background stack registers
             // of later cards. Truecolor/highcolor cards still use foreground/background
             // stack on 86C928 cards.
+            //
+            // FIXME: On 86C928 cards, bits 2 & 3 of the Hardware Graphics Cursor Mode Register (CR45)
+            //        enable horizontal stretch which also determines how the foreground/background
+            //        stack is used to render the cursor.
             if (svgaCard == SVGA_S3Trio && s3Card == S3_86C928) {
                 fg = (vga.config.cursor_start >> 8u) & 0xFFu; // register 0Eh
                 bg = (vga.config.cursor_start & 0xFFu); // register 0Fh
