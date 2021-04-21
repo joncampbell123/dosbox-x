@@ -150,6 +150,8 @@ and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also includ
 (set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
 (dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it).
 
+The slirp backend is only supported by MinGW builds but not Visual Studio builds.
+
 Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
 As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
@@ -372,14 +374,14 @@ src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
                                 DIR         CD/CHDIR    ADDKEY      ALIAS
                                 ATTRIB      BREAK       CALL        CHOICE
                                 CLS         COPY        COUNTRY     CTTY
-                                DATE        DEL/ERASE   DELTREE     ECHO
-                                EXIT        FOR         GOTO        HELP
-                                IF          LFNFOR      LH/LOADHIGH MD/MKDIR
-                                MORE        PATH        PAUSE       PROMPT
+                                DATE        DEBUGBOX    DEL/ERASE   DELTREE
+                                DX-CAPTURE  ECHO        EXIT        FOR
+                                GOTO        HELP        IF          LFNFOR
+                                LH/LOADHIGH MD/MKDIR    MORE        PATH
+                                PAUSE       POPD        PROMPT      PUSHD
                                 RD/RMDIR    REM         REN/RENAME  SET
                                 SHIFT       SUBST       TIME        TYPE
                                 VER         VERIFY      VOL         TRUENAME
-                                DX-CAPTURE  DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
@@ -440,7 +442,7 @@ src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
 src/gui/midi.cpp            MIDI output framework. Header files include
                             additional platform-specific code.
 
-src/gui/menu_osx.mm         macOS Objective C++ code to bridge Objective C
+src/gui/menu_macos.mm       macOS Objective C++ code to bridge Objective C
                             and C++ so that the menu manipulation code can
                             work correctly.
 

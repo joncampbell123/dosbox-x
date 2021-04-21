@@ -603,3 +603,14 @@ void MacOSX_alert(const char *title, const char *message) {
     [alert setAlertStyle:NSInformationalAlertStyle];
     [alert runModal];
 }
+
+int MacOSX_yesnocancel(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert addButtonWithTitle:@"No"];
+    [alert addButtonWithTitle:@"Cancel"];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    return [alert runModal];
+}
