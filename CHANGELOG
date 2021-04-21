@@ -18,7 +18,9 @@
     example, DOSBox-X can use the primary config file
     directory or the DOSBox-X program directory as its
     working directory. You can view the DOSBox-X'safe
-    working directory with CONFIG -L command. (Wengier)
+    working directory with CONFIG -L command. DOSBox-X
+    is also able to save the working directory that a
+    user selects to global config files. (Wengier)
   - Added new command-line options -promptfolder and
     -nopromptfolder which will cause the folder prompt
     dialogs to show or not to show at startup.
