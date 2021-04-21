@@ -20,6 +20,9 @@
 #include "Win32_SerialPort.h"
 
 #ifdef _WIN32
+#if defined(_MSC_VER)
+#define alloca _alloca
+#endif
 
 static const char log_tag[] = "retrowave platform win32_serialport";
 

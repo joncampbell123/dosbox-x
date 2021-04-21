@@ -4,6 +4,9 @@
     to match apparent Windows 3.1/95 behavior. Cursor
     now tracks host properly even in highcolor/truecolor
     modes.
+  - Added support for the RetroWave OPL3 hardware player.
+    Set "oplemu=retrowave_opl3" in [sblaster] section of
+    the config file to use it. (ClassicOldSong)
   - Added support for S386C928 hardware cursor color
     selection in 256-color mode, which is different
     from later cards.
