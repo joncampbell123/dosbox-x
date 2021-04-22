@@ -1196,7 +1196,7 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* workdiropts[] = {
-        "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt",
+        "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
         0 };
 
     const char* switchoutputs[] = {
@@ -1295,7 +1295,8 @@ void DOSBOX_SetupConfigSections(void) {
             "force: Similar to \"custom\", while overriding -defaultdir command-line option if used.\n"
             "noprompt: DOSBox-X uses the current directory and never prompts for a working directory.\n"
             "program: DOSBox-X will use the DOSBox-X program directory as the working directory.\n"
-            "prompt: DOSBox-X will ask the user to select a working directory when it runs.");
+            "prompt: DOSBox-X will always ask the user to select a working directory when it runs.\n"
+            "userconfig: DOSBox-X will use its user configuration directory as the working directory.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_path("working directory default",Property::Changeable::OnlyAtStart,"");

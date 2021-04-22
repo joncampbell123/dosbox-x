@@ -11841,6 +11841,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
 
+        control->ClearExtraData();
         control->configfiles.clear();
     }
 
@@ -11849,9 +11850,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         chdir(workdirdef.c_str());
         control->opt_used_defaultdir = true;
         usecfgdir = false;
+    } else if (workdiropt == "userconfig") {
+        std::string config_path;
+        Cross::GetPlatformConfigDir(config_path);
+        if (config_path.size()) chdir(config_path.c_str());
+        control->opt_used_defaultdir = true;
+        usecfgdir = false;
     } else if (workdiropt == "program") {
         std::string exepath=GetDOSBoxXPath();
         if (exepath.size()) chdir(exepath.c_str());
+        control->opt_used_defaultdir = true;
+        usecfgdir = false;
     } else if (workdiropt == "config") {
         control->opt_used_defaultdir = true;
         usecfgdir = true;
@@ -12033,6 +12042,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     workdirsave=0;
                     LOG_MSG("Saved the DOSBox-X working directory to %s", configfile.c_str());
                 }
+                control->ClearExtraData();
                 control->configfiles.clear();
             }
         }
@@ -12072,7 +12082,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     //Load them as well. Makes relative paths much easier
                     control->ParseConfigFile(config_combined.c_str());
                 }
-                if (!control->opt_userconf) control->configfiles.clear();
+                if (!control->opt_userconf) {control->ClearExtraData();control->configfiles.clear();}
             }
         }
         if (workdirsave>0) LOG_MSG("Unable to save the DOSBox-X working directory.");
@@ -12352,8 +12362,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         workdirdef = section->Get_path("working directory default")->realpath;
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
-        if ((((workdiropt == "custom" || workdiropt == "default") && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
+        if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
             chdir(workdirdef.c_str());
+        } else if (workdiropt == "userconfig") {
+            std::string config_path;
+            Cross::GetPlatformConfigDir(config_path);
+            if (config_path.size()) chdir(config_path.c_str());
         } else if (workdiropt == "program" && exepath.size()) {
             chdir(exepath.c_str());
         } else if (workdiropt == "config" && control->configfiles.size()) {
