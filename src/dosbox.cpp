@@ -2642,6 +2642,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("mt32.model",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_help("Model of the MT-32 synthesizer to use.");
     Pstring->Set_values(mt32models);
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("mt32.reverse.stereo",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Reverse stereo channels for MT-32 output");
@@ -2964,7 +2965,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
-	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("retrowave_bus", Property::Changeable::WhenIdle, "serial");
@@ -2973,7 +2974,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("retrowave_spi_cs", Property::Changeable::WhenIdle, "0,6");
     Pstring->Set_help("SPI chip select pin of the Retrowave series board. Only supported on Linux.");
-    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("retrowave_port", Property::Changeable::WhenIdle, "");
     Pstring->Set_help("Serial port of the Retrowave series board.");

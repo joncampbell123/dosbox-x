@@ -6,7 +6,9 @@
     modes.
   - Added support for the RetroWave OPL3 hardware player.
     Set "oplemu=retrowave_opl3" in [sblaster] section of
-    the config file to use it. (ClassicOldSong)
+    the config file to use it. Config options including
+    "retrowave_bus", "retrowave_spi_cs", "retrowave_port"
+    are added to adjust its settings. (ClassicOldSong)
   - Added support for S386C928 hardware cursor color
     selection in 256-color mode, which is different
     from later cards.
