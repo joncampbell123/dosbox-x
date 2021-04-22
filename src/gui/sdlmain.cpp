@@ -11812,7 +11812,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     std::string workdirdef = "";
     std::string configfile = "";
     std::string exepath=GetDOSBoxXPath();
-    if (!control->opt_defaultconf) {
+    if (!control->opt_defaultconf && control->config_file_list.empty()) {
         /* load the global config file first */
         std::string tmp,config_path,config_combined;
         struct stat st;
@@ -12025,7 +12025,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if (control->configfiles.size()) {
                 Section* tsec = control->GetSection("dosbox");
                 if (workdirsave==1 && workdirsaveas.size()) {
-                    tsec->HandleInputline("working directory option=custom");
+                    //tsec->HandleInputline("working directory option=custom");
                     tsec->HandleInputline(("working directory default="+workdirsaveas).c_str());
                 } else if (workdirsave==2)
                     tsec->HandleInputline("working directory option=autoprompt");
@@ -12053,7 +12053,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 if (workdirsave>0) {
                     Section* tsec = control->GetSection("dosbox");
                     if (workdirsave==1 && workdirsaveas.size()) {
-                        tsec->HandleInputline("working directory option=custom");
+                        //tsec->HandleInputline("working directory option=custom");
                         tsec->HandleInputline(("working directory default="+workdirsaveas).c_str());
                     } else if (workdirsave==2)
                         tsec->HandleInputline("working directory option=autoprompt");
