@@ -8540,7 +8540,9 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
-        if (control->opt_fastlaunch && machine != MCH_PC98) {
+        const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        bool fastbioslogo=section->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
+        if (fastbioslogo && machine != MCH_PC98) {
 #if defined(USE_TTF)
             if (TTF_using()) {
                 uint32_t lasttick=GetTicks();
@@ -8552,14 +8554,13 @@ private:
                 CALLBACK_RunRealInt(0x10);
             }
 #endif
-            return CBRET_NONE;
+            if (control->opt_fastlaunch) return CBRET_NONE;
         }
         extern const char* RunningProgram;
         extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
         RunningProgram = "DOSBOX-X";
         GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
-        const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         bool textsplash = section->Get_bool("disable graphical splash");
         char logostr[8][30];
         strcpy(logostr[0], "+-------------------+");
@@ -8893,7 +8894,6 @@ startfunction:
             emscripten_sleep(100);
         }
 #else
-        bool fastbioslogo=section->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false, bios_setup = false;
             int pos=1;

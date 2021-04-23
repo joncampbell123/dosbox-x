@@ -11812,16 +11812,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     std::string workdirdef = "";
     std::string configfile = "";
     std::string exepath=GetDOSBoxXPath();
-    if (!control->opt_defaultconf && control->config_file_list.empty()) {
+    struct stat st;
+    if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
         /* load the global config file first */
         std::string tmp,config_path,config_combined;
-        struct stat st;
 
         /* -- Parse configuration files */
         Cross::GetPlatformConfigDir(config_path);
         Cross::GetPlatformConfigName(tmp);
 
-        if (exepath.size() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
+        if (exepath.size()) {
             control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
             if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
         }

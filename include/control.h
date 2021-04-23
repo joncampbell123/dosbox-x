@@ -122,7 +122,7 @@ public:
     void ParseEnv(char ** envp);
     bool SecureMode() const { return secure_mode; }
     void SwitchToSecureMode() { secure_mode = true; }//can't be undone
-    void ClearExtraData() { Section_prop *sec; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec = dynamic_cast<Section_prop *>(*tel); if (sec) sec->data = "";} }
+    void ClearExtraData() { Section_prop *sec_prop; Section_line *sec_line; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec_prop = dynamic_cast<Section_prop *>(*tel); sec_line = dynamic_cast<Section_line *>(*tel); if (sec_prop) sec_prop->data = ""; else if (sec_line) sec_line->data = "";} }
 public:
     bool opt_log_con;
     double opt_time_limit;
