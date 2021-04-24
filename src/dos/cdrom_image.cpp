@@ -162,9 +162,18 @@ uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 
 bool CDROM_Interface_Image::BinaryFile::seek(int64_t offset)
 {
-	if (static_cast<int64_t>(file->tellg()) == offset)
+	const auto pos = static_cast<std::streamoff>(offset);
+	if (file->tellg() == pos)
 		return true;
-	file->seekg((streamoff)offset, ios::beg);
+
+	file->seekg(pos, std::ios::beg);
+
+	// If the first seek attempt failed, then try harder
+	if (file->fail()) {
+		file->clear();                   // clear fail and eof bits
+		file->seekg(0, std::ios::beg);   // "I have returned."
+		file->seekg(pos, std::ios::beg); // "It will be done."
+	}
 	return !file->fail();
 }
 
@@ -846,7 +855,10 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 				// uses either the stereo or mono and native or nonnative AddSamples call assigned during construction
 				(player.channel->*player.addSamples)(requested / bytes_per_request, (int16_t*)(player.buffer + player.bufferConsumed) );
 				player.bufferConsumed += requested;
+
 				player.playbackRemaining -= requested;
+				if (player.playbackRemaining < 0)
+					player.playbackRemaining = 0;
 
 				// Games can query the current Red Book MSF frame-position, so we keep that up-to-date here.
 				// We scale the final number of frames by the percent complete, which
