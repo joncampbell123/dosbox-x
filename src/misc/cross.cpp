@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <regex>
 
 #if defined(MACOSX)
 std::string MacOSXEXEPath;
@@ -47,6 +48,24 @@ std::string MacOSXResPath;
 #define _mkdir(x) mkdir(x)
 #endif
 
+#if !defined(WIN32)
+void autoExpandEnvironmentVariables(std::string & text) {
+    static std::regex env("\\$\\{([^}]+)\\}");
+    std::smatch match;
+    while (std::regex_search(text, match, env)) {
+        const char * s = getenv(match[1].str().c_str());
+        const std::string var(s == NULL ? "" : s);
+        text.replace(match[0].first, match[0].second, var);
+    }
+}
+
+std::string expandEnvironmentVariables(const std::string & input) {
+    std::string text = input;
+    autoExpandEnvironmentVariables(text);
+    return text;
+}
+#endif
+
 void ResolvePath(std::string& in) {
 #if defined(WIN32)
     char path[300],temp[300],*tempd=temp;
@@ -58,6 +77,7 @@ void ResolvePath(std::string& in) {
     struct stat test;
     if (stat(in.c_str(),&test))
         Cross::ResolveHomedir(in);
+    in = expandEnvironmentVariables(in);
 #endif
 }
 
