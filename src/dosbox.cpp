@@ -3625,7 +3625,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
     Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
-                   "Set to 0 to disable the limit, or -1 to use a reasonable default.");
+                   "Set to 0 to disable the limit, or -1 (default) to use a reasonable limit.\n"
+                   "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
+    Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
