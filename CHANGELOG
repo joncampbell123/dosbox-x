@@ -1,4 +1,7 @@
 0.83.13
+  - The error "Access Denied" is returned instead of
+    "File not found" for files opened exclusively in
+    another program on mounted local drives. (Wengier)
   - S386C928 hardware cursor fixed to divide X coordinate
     by bytes per pixel indicated in the control register
     to match apparent Windows 3.1/95 behavior. Cursor

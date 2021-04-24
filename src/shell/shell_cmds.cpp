@@ -2645,7 +2645,7 @@ void DOS_Shell::CMD_TYPE(char * args) {
 nextfile:
 	word=StripArg(args);
 	if (!DOS_OpenFile(word,0,&handle)) {
-		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
+		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_FILE_ACCESS_DENIED":(dos.errorcode==DOSERR_PATH_NOT_FOUND?"SHELL_ILLEGAL_PATH":"SHELL_CMD_FILE_NOT_FOUND")),word);
 		return;
 	}
 	ctrlbrk=false;
@@ -2737,7 +2737,7 @@ void DOS_Shell::CMD_MORE(char * args) {
 nextfile:
 	word=StripArg(args);
 	if (!DOS_OpenFile(word,0,&handle)) {
-		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
+		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_FILE_ACCESS_DENIED":(dos.errorcode==DOSERR_PATH_NOT_FOUND?"SHELL_ILLEGAL_PATH":"SHELL_CMD_FILE_NOT_FOUND")),word);
 		return;
 	}
 	ctrlbrk=false;
