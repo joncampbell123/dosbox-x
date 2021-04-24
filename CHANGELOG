@@ -1,4 +1,7 @@
 0.83.13
+  - DOSBox-X can now resolve file paths in its config
+    options that include environment variables on non-
+    Windows platforms (e.g. ${HOME}..) as well. (Wengier)
   - The error "Access Denied" is returned instead of
     "File not found" for files opened exclusively in
     another program on mounted local drives. (Wengier)
