@@ -4137,13 +4137,12 @@ static void MAPPER_SaveBinds(void) {
     }
     fclose(savefile);
 #if defined(WIN32)
-    char path[256];
-    if (GetFullPathName(mapper.filename.c_str(), 256, path, NULL))
-#else
+    char path[MAX_PATH];
+    if (GetFullPathName(mapper.filename.c_str(), MAX_PATH, path, NULL)) LOG_MSG("Saved mapper file: %s", path);
+#elif defined(HAVE_REALPATH)
     char path[PATH_MAX];
-    if (realpath(mapper.filename.c_str(), path) != NULL)
+    if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
 #endif
-        LOG_MSG("Saved mapper file: %s", path);
     change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
 }
 

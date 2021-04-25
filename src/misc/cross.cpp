@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <regex>
 
 #if defined(MACOSX)
 std::string MacOSXEXEPath;
@@ -48,7 +47,8 @@ std::string MacOSXResPath;
 #define _mkdir(x) mkdir(x)
 #endif
 
-#if !defined(WIN32)
+#if !defined(WIN32) && !defined(OS2)
+#include <regex>
 void autoExpandEnvironmentVariables(std::string & text) {
     static std::regex env("\\$\\{([^}]+)\\}");
     std::smatch match;
@@ -58,16 +58,11 @@ void autoExpandEnvironmentVariables(std::string & text) {
         text.replace(match[0].first, match[0].second, var);
     }
 }
-
-std::string expandEnvironmentVariables(const std::string & input) {
-    std::string text = input;
-    autoExpandEnvironmentVariables(text);
-    return text;
-}
 #endif
 
+// Resolve environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS], and tildes (~) in Linux/macOS)
 void ResolvePath(std::string& in) {
-#if defined(WIN32)
+#if defined(WIN32) || defined(OS2)
     char path[300],temp[300],*tempd=temp;
     strcpy(tempd, in.c_str());
     if (strchr(tempd, '%')&&ExpandEnvironmentStrings(tempd,path,300))
@@ -77,7 +72,7 @@ void ResolvePath(std::string& in) {
     struct stat test;
     if (stat(in.c_str(),&test))
         Cross::ResolveHomedir(in);
-    in = expandEnvironmentVariables(in);
+    autoExpandEnvironmentVariables(in);
 #endif
 }
 
