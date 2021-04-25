@@ -1833,7 +1833,7 @@ void DOSBox_SetSysMenu(void) {
     char msg[512];
 
     {
-        strcpy(msg, "Show &menu bar");
+        strcpy(msg, mainMenu.get_item("mapper_togmenu").get_text().c_str());
         key=get_mapper_shortcut("togmenu");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1851,7 +1851,7 @@ void DOSBox_SetSysMenu(void) {
     }
 
     {
-        strcpy(msg, "&Pause emulation");
+        strcpy(msg, mainMenu.get_item("mapper_pause").get_text().c_str());
         key=get_mapper_shortcut("pause");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1871,7 +1871,7 @@ void DOSBox_SetSysMenu(void) {
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        strcpy(msg, "Reset window size");
+        strcpy(msg, mainMenu.get_item("mapper_resetsize").get_text().c_str());
         key=get_mapper_shortcut("resetsize");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1891,7 +1891,7 @@ void DOSBox_SetSysMenu(void) {
 #if defined(USE_TTF)
     bool TTF_using(void);
     {
-        strcpy(msg, "Increase TTF font size");
+        strcpy(msg, mainMenu.get_item("mapper_incsize").get_text().c_str());
         key=get_mapper_shortcut("incsize");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1909,7 +1909,7 @@ void DOSBox_SetSysMenu(void) {
     }
 
     {
-        strcpy(msg, "Decrease TTF font size");
+        strcpy(msg, mainMenu.get_item("mapper_decsize").get_text().c_str());
         key=get_mapper_shortcut("decsize");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1930,7 +1930,7 @@ void DOSBox_SetSysMenu(void) {
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        strcpy(msg, "Configuration &tool");
+        strcpy(msg, mainMenu.get_item("mapper_gui").get_text().c_str());
         key=get_mapper_shortcut("gui");
         if (key.size()) {
             strcat(msg, "\t");
@@ -1948,7 +1948,7 @@ void DOSBox_SetSysMenu(void) {
     }
 
     {
-        strcpy(msg, "Mapper &editor");
+        strcpy(msg, mainMenu.get_item("mapper_mapper").get_text().c_str());
         key=get_mapper_shortcut("mapper");
         if (key.size()) {
             strcat(msg, "\t");
