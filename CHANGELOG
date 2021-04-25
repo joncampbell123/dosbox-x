@@ -101,6 +101,14 @@
   - Fixed that the clipboard copy and paste may not
     work when the current code page is 808 or 872
     and you are using Windows. (Wengier)
+  - Fixed the handling of the "Save & Restart" button
+    in Configuration Tool when using Direct3D output
+    in Windows SDL2 builds. (Wengier)
+  - Fixed incorrect display issue when using TrueType
+    font (TTF) output with customized screen dimension
+    when fastbioslogo=true is set. (Wengier)
+  - Fixed CD audio not looping for individual tracks
+    in games like Alien Trilogy. (kcgen)
   - The command "MIXER /LISTMIDI" now lists the ROM
     directory/files and sound fonts for MT32, Synth
     and FluidSynth MIDI device when active. (Wengier)
