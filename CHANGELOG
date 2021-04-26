@@ -2,6 +2,8 @@
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
     Windows platforms (e.g. ${HOME}..) as well. (Wengier)
+  - System menu text in Windows builds now match the text
+    in the drop-down menus to be translatable. (Wengier)
   - The error "Access Denied" is returned instead of
     "File not found" for files opened exclusively in
     another program on mounted local drives. (Wengier)
@@ -32,6 +34,9 @@
     working directory with CONFIG -L command. DOSBox-X
     is also able to save the working directory that a
     user selects to global config files. (Wengier)
+  - DOSBox-X will now also try to read the config file
+    named dosbox-x.conf in the user config directory
+    when searching for config files at start.
   - Added new command-line options -promptfolder and
     -nopromptfolder which will cause the folder prompt
     dialogs to show or not to show at startup.

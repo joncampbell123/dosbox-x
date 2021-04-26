@@ -13191,16 +13191,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             /* more */
             DOSBoxMenu::item *item;
 
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
-            item->set_text("Hide/show menu bar");
-
-            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
-            item->set_text("Pause with interrupts enabled");
-
             MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
             item->set_accelerator(DOSBoxMenu::accelerator('m'));
             item->set_description("Bring up the mapper UI");
             item->set_text("Mapper editor");
+
+            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
+            item->set_text("Pause with interrupts enabled");
+
+            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
+            item->set_text("Hide/show menu bar");
 
             /* Some extra SDL Functions */
             Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
