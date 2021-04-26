@@ -13188,6 +13188,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             launchsaves(control->opt_opensaves);
 
         {
+            /* more */
+            DOSBoxMenu::item *item;
+
+            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
+            item->set_text("Hide/show menu bar");
+
+            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
+            item->set_text("Pause with interrupts enabled");
+
+            MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
+            item->set_accelerator(DOSBoxMenu::accelerator('m'));
+            item->set_description("Bring up the mapper UI");
+            item->set_text("Mapper editor");
+
             /* Some extra SDL Functions */
             Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
@@ -13226,17 +13240,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * then change the mapper layout to "Japanese PC-98" */
         if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
             SetMapperKeyboardLayout(DKM_JPN_PC98);
-
-        /* more */
-        {
-            DOSBoxMenu::item *item;
-
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
-            item->set_text("Hide/show menu bar");
-
-            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
-            item->set_text("Pause with interrupts enabled");
-        }
 
         RENDER_Init();
         CAPTURE_Init();

@@ -5076,15 +5076,6 @@ void MAPPER_StartUp() {
 #if !defined(C_SDL2)
 	load=true;
 #endif
-
-    {
-        DOSBoxMenu::item *itemp = NULL;
-
-        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&itemp);
-        itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
-        itemp->set_description("Bring up the mapper UI");
-        itemp->set_text("Mapper editor");
-    }
 }
 
 void MAPPER_Shutdown() {
