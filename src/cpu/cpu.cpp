@@ -3279,7 +3279,7 @@ public:
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: imple core",&item);
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: simple core",&item);
 		item->set_text("Simple core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
 		item->set_text("Full core");
