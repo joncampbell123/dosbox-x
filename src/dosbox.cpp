@@ -1199,6 +1199,10 @@ void DOSBOX_SetupConfigSections(void) {
         "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
         0 };
 
+    const char* resolveopts[] = {
+        "true", "false", "dosvar", "tilde", "1", "0",
+        0 };
+
     const char* switchoutputs[] = {
         "auto", "surface",
 #if C_OPENGL
@@ -1307,6 +1311,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("resolve config path", Property::Changeable::Always, "true");
+    Pstring->Set_help("If set to true, DOSBox-X will resolve options containing paths in the config file (except [autoexec] section).\n"
+                      "This includes environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS] and tilde (~) in Linux/macOS.\n"
+                      "If set to dosvar, DOSBox-X forces to resolve DOS-style environment variables (%VAR%) in all platforms (and tilde).\n"
+                      "If set to tilde, DOSBox-X will only resolve tilde (~) in Linux/macOS but will not resolve environment variables.");
+    Pstring->Set_values(resolveopts);
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("hostkey", Property::Changeable::Always, "mapper");
     Pstring->Set_help("By default, DOSBox-X uses the mapper-defined host key, which defaults to F11 on Windows and F12 on other platforms.\n"

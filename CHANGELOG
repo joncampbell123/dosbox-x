@@ -1,7 +1,11 @@
 0.83.13
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
-    Windows platforms (e.g. ${HOME}..) as well. (Wengier)
+    Windows platforms (e.g. ${HOME}..) as well. A new
+    config option "resolve config path" (in [dosbox]
+    section) is added to control path resolving in the
+    config file (e.g. to resolve tildes only by setting
+    to "tilde", or disable all path resolving). (Wengier)
   - System menu text in Windows builds now match the text
     in the drop-down menus to be translatable. (Wengier)
   - The error "Access Denied" is returned instead of

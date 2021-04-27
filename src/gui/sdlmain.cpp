@@ -332,7 +332,7 @@ extern int dos_clipboard_device_access;
 extern bool dos_kernel_disabled;
 extern bool sync_time, manualtime;
 extern bool bootguest, bootfast, bootvm;
-extern int bootdrive;
+extern int bootdrive, resolveopt;
 
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
@@ -11838,6 +11838,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         workdiropt = section->Get_string("working directory option");
         workdirdef = section->Get_path("working directory default")->realpath;
+        std::string resolvestr = section->Get_string("resolve config path");
+        resolveopt = resolvestr=="true"||resolvestr=="1"?1:(resolvestr=="dosvar"?2:(resolvestr=="tilde"?3:0));
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
 
@@ -12360,6 +12362,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         workdiropt = section->Get_string("working directory option");
         workdirdef = section->Get_path("working directory default")->realpath;
+        std::string resolvestr = section->Get_string("resolve config path");
+        resolveopt = resolvestr=="true"||resolvestr=="1"?1:(resolvestr=="dosvar"?2:(resolvestr=="tilde"?3:0));
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
         if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
