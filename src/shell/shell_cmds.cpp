@@ -3989,7 +3989,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
 		return;
 	}
     if (IS_PC98_ARCH) {
-        WriteOut("Changing code page is not supported for the PC98 system.\n");
+        WriteOut("Changing code page is not supported for the PC-98 system.\n");
         return;
     }
 #if defined(USE_TTF)

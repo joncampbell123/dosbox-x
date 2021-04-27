@@ -1312,7 +1312,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
     Pbool->SetBasic(true);
 
-    Pstring = secprop->Add_string("resolve config path", Property::Changeable::Always, "true");
+    Pstring = secprop->Add_string("resolve config path", Property::Changeable::OnlyAtStart, "true");
     Pstring->Set_help("If set to true, DOSBox-X will resolve options containing paths in the config file (except [autoexec] section).\n"
                       "This includes environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS] and tilde (~) in Linux/macOS.\n"
                       "If set to dosvar, DOSBox-X forces to resolve DOS-style environment variables (%VAR%) in all platforms (and tilde).\n"
