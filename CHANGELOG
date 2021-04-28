@@ -144,6 +144,8 @@
   - Updated FLAC decoder library to the latest version
     (0.12.29 by David Reid). (Wengier)
   - Integrated SVN commits (Allofich)
+    - r4436, r4437: Rewrite store integer instructions
+    to check if the result fits.(vogons 78127)
     - r4447: Attribute Controller port alias on EGA
     machine. Fixes EGA display of older Super Pac-Man
     release.

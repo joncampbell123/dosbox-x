@@ -73,3 +73,4 @@ Commit#:	Reason for skipping:
 4415		Conflict
 4417		No function definition in DOSBox-X, so unnecessary.
 4418		No C_SRECORD in DOSBox-X
+4429		Conflict
