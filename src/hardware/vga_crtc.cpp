@@ -126,12 +126,12 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			5-6	Number of character clocks to delay start of display after Horizontal
 				Retrace.
 			7	bit 5 of the End Horizontal Blanking count (See 3d4h index 3 bit 0-4)
-		*/	
+		*/
 		break;
 	case 0x06: /* Vertical Total Register */
 		if (crtc(read_only)) break;
 		if (val != crtc(vertical_total)) {
-			crtc(vertical_total)=(uint8_t)val;	
+			crtc(vertical_total)=(uint8_t)val;
 			VGA_StartResize();
 		}
 		/*	0-7	Lower 8 bits of the Vertical Total. Bit 8 is found in 3d4h index 7
@@ -254,7 +254,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x10:	/* Vertical Retrace Start Register */
 		crtc(vertical_retrace_start)=(uint8_t)val;
-		/*	
+		/*
 			0-7	Lower 8 bits of Vertical Retrace Start. Vertical Retrace starts when
 			the line counter reaches this value. Bit 8 is found in 3d4h index 7
 			bit 2. Bit 9 is found in 3d4h index 7 bit 7.
@@ -262,7 +262,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x11:	/* Vertical Retrace End Register */
 		crtc(vertical_retrace_end)=(uint8_t)val;
-		
+
 		if (IS_EGAVGA_ARCH && !(val & 0x10)) {
 			vga.draw.vret_triggered=false;
 			if (GCC_UNLIKELY(machine==MCH_EGA)) PIC_DeActivateIRQ(9);
@@ -325,7 +325,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			crtc(start_vertical_blanking)=(uint8_t)val;
 			VGA_StartResize();
 		}
-		/* 
+		/*
 			0-7	Lower 8 bits of Vertical Blank Start. Vertical blanking starts when
 				the line counter reaches this value. Bit 8 is found in 3d4h index 7
 				bit 3.
@@ -420,7 +420,7 @@ Bitu vga_read_p3d5x(Bitu port,Bitu iolen) {
 	case 0x05:	/* End Horizontal Retrace Register */
 		return crtc(end_horizontal_retrace);
 	case 0x06: /* Vertical Total Register */
-		return crtc(vertical_total);	
+		return crtc(vertical_total);
 	case 0x07:	/* Overflow Register */
 		return crtc(overflow);
 	case 0x08:	/* Preset Row Scan Register */
