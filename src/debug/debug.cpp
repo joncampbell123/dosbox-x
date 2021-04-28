@@ -3243,7 +3243,7 @@ uint32_t DEBUG_CheckKeys(void) {
 					break;
 				}
 				// If we aren't stepping over something, do a normal step.
-				// NB: Fall-through
+				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
                 DrawRegistersUpdateOld();
 				exitLoop = false;
