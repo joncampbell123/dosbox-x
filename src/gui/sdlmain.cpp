@@ -703,12 +703,19 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     NULL
 };
 
+void GFX_ReleaseMouse();
 bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(37);
+    if(control->SecureMode()) {
+#if !defined(HX_DOS)
+        GFX_ReleaseMouse();
+        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
+    } else
+        GUI_Shortcut(37);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -1450,7 +1457,6 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
 bool warn_on_mem_write = false;
 
-void GFX_ReleaseMouse();
 void CPU_Snap_Back_To_Real_Mode();
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)

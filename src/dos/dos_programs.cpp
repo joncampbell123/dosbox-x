@@ -2878,6 +2878,10 @@ restart_int:
         unsigned int c, h, s, sectors; 
         uint64_t size = 0;
 
+        if(control->SecureMode()) {
+            WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+            return;
+        }
         if(cmd->FindExist("-?")) {
             printHelp();
             return;

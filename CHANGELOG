@@ -28,6 +28,8 @@
     transfer is 16-bit wide. This fixes the dither
     pattern drawn by Windows 95/98 when you select
     "Shutdown" from the Start menu.
+  - IMGMAKE command is now disabled in the secure mode,
+    similar to commands like IMGMOUNT. (Wengier)
   - Added config options "working directory option" and
     "working directory default" in [dosbox] section of
     the config file to provide various options for the
