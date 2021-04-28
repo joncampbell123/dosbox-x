@@ -542,6 +542,9 @@ private:
 	bool		once;
 
 	static std::list<CBreakpoint*>	BPoints;
+#if C_HEAVY_DEBUG
+	friend bool DEBUG_HeavyIsBreakpoint(void);
+#endif
 };
 
 CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),
@@ -4598,7 +4601,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		skipFirstInstruction = false;
 		return false;
 	}
-	if (CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
+	if (!CBreakpoint::BPoints.empty() && CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
 		return true;
 	}
 	return false;
