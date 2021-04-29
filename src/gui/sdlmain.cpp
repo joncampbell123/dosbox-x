@@ -339,6 +339,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void MenuBrowseProgramFile(void);
+void DOSBox_SetSysMenu(void);
 void SetGameState_Run(int value);
 size_t GetGameState_Run(void);
 
@@ -1662,6 +1663,9 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
 #endif
 
     is_paused = true;
+#if defined(WIN32)
+    DOSBox_SetSysMenu();
+#endif
 
     while (paused) {
         if (unpause_now) {
@@ -1774,6 +1778,9 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
 
     is_paused = false;
+#if defined(WIN32)
+    DOSBox_SetSysMenu();
+#endif
 }
 
 void PauseDOSBox(bool pressed) {
@@ -3711,8 +3718,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         void RENDER_CallBack( GFX_CallBackFunctions_t function );
         RENDER_CallBack( GFX_CallBackReset );
 #endif
-        void DOSBox_SetSysMenu(void);
+#if defined (WIN32)
         DOSBox_SetSysMenu();
+#endif
         ttf.fullScrn = true;
     } else
         ttf.fullScrn = false;
@@ -3915,7 +3923,6 @@ void modeSwitched(bool full) {
 
 #if defined (WIN32)
     // (re-)assign menu to window
-    void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
 #endif
 
@@ -4159,7 +4166,6 @@ void GFX_PreventFullscreen(bool lockout) {
     if (sdl.desktop.prevent_fullscreen != lockout) {
         sdl.desktop.prevent_fullscreen = lockout;
 #if defined(WIN32)
-        void DOSBox_SetSysMenu(void);
         DOSBox_SetSysMenu();
 #if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
@@ -4904,6 +4910,9 @@ int setTTFCodePage() {
             }
         if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
             cpMap[eurAscii] = 0x20ac;
+#if defined(WIN32) && !defined(HX_DOS)
+        DOSBox_SetSysMenu();
+#endif
         return notMapped;
     } else
         return -1;
@@ -11306,7 +11315,7 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-void update_all_shortcuts(), DOSBox_SetSysMenu();
+void update_all_shortcuts();
 bool hostkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     if (menuitem->get_name()=="hostkey_ctrlalt") hostkeyalt=1;
@@ -13220,7 +13229,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 LOG(LOG_MISC, LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if defined(WIN32)
-                void DOSBox_SetSysMenu(void);
                 DOSBox_SetSysMenu();
 #endif
                 //only switch if not already in fullscreen

@@ -85,7 +85,11 @@ int retrowave_init_win32_serialport(RetroWaveContext *ctx, const char *com_path)
 	BOOL fSuccess;
 
 	//  Initialize the DCB structure.
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+	memset(&dcb, 0, sizeof(DCB));
+#else
 	SecureZeroMemory(&dcb, sizeof(DCB));
+#endif
 	dcb.DCBlength = sizeof(DCB);
 
 	//  Build on the current configuration by first retrieving all current

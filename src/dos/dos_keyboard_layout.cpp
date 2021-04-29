@@ -37,6 +37,7 @@
 #include <windows.h>
 #endif
 
+void DOSBox_SetSysMenu(void);
 #if defined(USE_TTF)
 int setTTFCodePage(void);
 bool TTF_using(void);
@@ -988,8 +989,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			// set codepage entries
 			dos.loaded_codepage=(uint16_t)(codepage_id&0xffff);
 #if defined(USE_TTF)
-            if (TTF_using()) setTTFCodePage();
+            if (TTF_using()) setTTFCodePage(); else
 #endif
+            DOSBox_SetSysMenu();
 
 			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
@@ -1146,8 +1148,9 @@ public:
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
 #if defined(USE_TTF)
-        if (TTF_using()) setTTFCodePage();
+        if (TTF_using()) setTTFCodePage(); else
 #endif
+        DOSBox_SetSysMenu();
 		loaded_layout=new keyboard_layout();
 
 		const char * layoutname=section->Get_string("keyboardlayout");

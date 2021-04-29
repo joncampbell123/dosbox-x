@@ -758,6 +758,7 @@ static const char *def_menu_help[] =
     NULL
 };
 
+extern bool is_paused;
 void DOSBox_SetSysMenu(void);
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
@@ -1146,6 +1147,33 @@ void* DOSBoxMenu::getNsMenu(void) const {
 }
 #endif
 
+#if defined(WIN32) && !defined(HX_DOS)
+LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
+    LPWSTR ret = def;
+    int reqsize = 0, cp = dos.loaded_codepage?dos.loaded_codepage:(IS_PC98_ARCH?932:0);
+    Section_prop *section = section = static_cast<Section_prop *>(control->GetSection("config"));
+    if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
+        char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+        if (r!=NULL && *(r+1)) {
+            cp = atoi(trim(r+1));
+            if (cp==808) cp=866;
+            else if (cp==872) cp=855;
+        }
+    }
+    uint16_t len=(uint16_t)str.size();
+    if (cp) {
+        reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);
+        buffer = new wchar_t[reqsize];
+        if (reqsize>0 && MultiByteToWideChar(cp, 0, str.c_str(), len+1, buffer, reqsize)==reqsize) ret = (LPWSTR)buffer;
+    } else {
+        buffer = new wchar_t[len+1];
+        mbstowcs(buffer, str.c_str(), len+1);
+        ret = (LPWSTR)buffer;
+    }
+    return ret;
+}
+#endif
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
 std::string DOSBoxMenu::item::winConstructMenuText(void) {
     std::string r;
@@ -1183,6 +1211,7 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 }
 
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
+    wchar_t* buffer = NULL;
     if (type == separator_type_id) {
         AppendMenu(handle, MF_SEPARATOR, 0, NULL);
     }
@@ -1190,8 +1219,13 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         AppendMenu(handle, MF_MENUBREAK, 0, NULL);
     }
     else if (type == submenu_type_id) {
-        if (winMenu != NULL)
-            AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
+        if (winMenu != NULL) {
+            /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+            if (str!=L"")
+                AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
+            else*/
+                AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
+        }
     }
     else if (type == item_type_id) {
         unsigned int attr = MF_STRING;
@@ -1199,8 +1233,13 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+        /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+        if (str!=L"")
+            AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
+        else*/
+            AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
     }
+    if (buffer != NULL) {delete[] buffer;buffer = NULL;}
 }
 
 bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
@@ -1658,7 +1697,7 @@ void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
     if(!menu.gui) return;
     if(!menu.toggle) return;
 
-    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox's window");
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox-X's window");
 
     NonUserResizeCounter=1;
     SDL1_hax_SetMenu(altMenu.getWinMenu());
@@ -1681,7 +1720,7 @@ void DOSBox_SetMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if(!menu.gui) return;
 
-    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox-X's window");
 
     menu.toggle=true;
     NonUserResizeCounter=1;
@@ -1820,7 +1859,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 
 void DOSBox_SetSysMenu(void) {
 #if defined(WIN32) && !defined(HX_DOS)
-    MENUITEMINFO mii;
+    MENUITEMINFOW mii;
     HMENU sysmenu;
 
     sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
@@ -1829,140 +1868,119 @@ void DOSBox_SetSysMenu(void) {
 
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
-    std::string get_mapper_shortcut(const char *name), key="";
-    char msg[512];
+    std::string get_mapper_shortcut(const char *name), key="", msg="";
+    wchar_t* buffer = NULL;
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_togmenu").get_text().c_str());
-        key=get_mapper_shortcut("togmenu");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="togmenu";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
         mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg)+1);
+        mii.dwTypeData = getWString(msg, L"Show menu bar", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_pause").get_text().c_str());
-        key=get_mapper_shortcut("pause");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="pause";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = MFS_ENABLED;
+        mii.fState = (is_paused ? MFS_CHECKED : 0) | MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_PAUSE;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
+        mii.dwTypeData = getWString(msg, L"Pause emulation", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_resetsize").get_text().c_str());
-        key=get_mapper_shortcut("resetsize");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="resetsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_RESETSIZE;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg)+1);
+        mii.dwTypeData = getWString(msg, L"Reset window size", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 
 #if defined(USE_TTF)
     bool TTF_using(void);
     {
-        strcpy(msg, mainMenu.get_item("mapper_incsize").get_text().c_str());
-        key=get_mapper_shortcut("incsize");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="incsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFINCSIZE;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg)+1);
+        mii.dwTypeData = getWString(msg, L"Increase TTF font size", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_decsize").get_text().c_str());
-        key=get_mapper_shortcut("decsize");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="decsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFDECSIZE;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg)+1);
+        mii.dwTypeData = getWString(msg, L"Decrease TTF font size", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 #endif
 
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_gui").get_text().c_str());
-        key=get_mapper_shortcut("gui");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="gui";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_CFG_GUI;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
+        mii.dwTypeData = getWString(msg, L"Configuration tool", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 
     {
-        strcpy(msg, mainMenu.get_item("mapper_mapper").get_text().c_str());
-        key=get_mapper_shortcut("mapper");
-        if (key.size()) {
-            strcat(msg, "\t");
-            strcat(msg, key.c_str());
-        }
+        key="mapper";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_MAPPER;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
+        mii.dwTypeData = getWString(msg, L"Mapper editor", buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
     }
 #endif
 }

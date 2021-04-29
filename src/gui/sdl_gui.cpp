@@ -815,7 +815,7 @@ std::string CapName(std::string name) {
     else if (name=="ide, octernary")
         dispname="IDE Port #8";
     else if (name=="ethernet, pcap")
-        dispname="Ethernet pcap";
+        dispname="Ethernet PCap";
     else if (name=="ethernet, slirp")
         dispname="Ethernet Slirp";
     else
@@ -863,7 +863,7 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE Port #8")
         dispname="ide, octernary";
-    else if (name=="Ethernet pcap")
+    else if (name=="Ethernet PCap")
         dispname="ethernet, pcap";
     else if (name=="Ethernet Slirp")
         dispname="ethernet, slirp";
