@@ -786,8 +786,10 @@ string Section_line::GetPropValue(string const& /* _property*/) const {
     return NO_SUCH_PROPERTY;
 }
 
+#define HELPLINE_SIZE 256
 bool Config::PrintConfig(char const * const configfilename,int everything,bool norem) const {
-    char temp[50];char helpline[256];
+    char temp[50];
+    char helpline[HELPLINE_SIZE] = { 0 };
     FILE* outfile = fopen(configfilename,"w+t");
     if (outfile == NULL) return false;
 
@@ -867,7 +869,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                 const char * helpstr = MSG_Get(temp);
                 const char * linestart = helpstr;
                 char * helpwrite = helpline;
-                while (*helpstr && helpstr - linestart < sizeof(helpline)) {
+                while (*helpstr && helpstr - linestart < HELPLINE_SIZE - 2) {
                     *helpwrite++ = *helpstr;
                     if (*helpstr == '\n') {
                         *helpwrite = 0;

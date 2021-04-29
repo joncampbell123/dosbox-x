@@ -542,6 +542,9 @@ private:
 	bool		once;
 
 	static std::list<CBreakpoint*>	BPoints;
+#if C_HEAVY_DEBUG
+	friend bool DEBUG_HeavyIsBreakpoint(void);
+#endif
 };
 
 CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),
@@ -3243,7 +3246,7 @@ uint32_t DEBUG_CheckKeys(void) {
 					break;
 				}
 				// If we aren't stepping over something, do a normal step.
-				// NB: Fall-through
+				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
                 DrawRegistersUpdateOld();
 				exitLoop = false;
@@ -4598,7 +4601,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		skipFirstInstruction = false;
 		return false;
 	}
-	if (CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
+	if (!CBreakpoint::BPoints.empty() && CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
 		return true;
 	}
 	return false;
