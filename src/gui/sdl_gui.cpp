@@ -1470,7 +1470,7 @@ public:
         (new GUI::Button(this, 210, 60, "Use portable config file", 210))->addActionHandler(this);
         (new GUI::Button(this, 425, 60, "Use user config file", 180))->addActionHandler(this);
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        saveall = new GUI::Checkbox(this, 5, 95, "Save all config options to the configuration file");
+        saveall = new GUI::Checkbox(this, 5, 95, "Save all (including advanced) config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
         (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
         (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);

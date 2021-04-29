@@ -1627,6 +1627,16 @@ static SDL_FingerID touchscreen_finger_lock = no_finger_id;
 static SDL_TouchID touchscreen_touch_lock = no_touch_id;
 #endif
 
+void HideMenu_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+
+    void ToggleMenu(bool pressed);
+    ToggleMenu(true);
+
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+}
+
+void PauseWithInterrupts_mapper_shortcut(bool pressed);
 void PauseDOSBoxLoop(Bitu /*unused*/) {
     bool paused = true;
     SDL_Event event;
@@ -5273,6 +5283,77 @@ static void GUI_StartUp() {
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
 
+    /* Get some Event handlers */
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+    item->set_text("Reset virtual machine");
+
+    MAPPER_AddHandler(RebootGuest, MK_b, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
+    item->set_text("Reboot guest system");
+
+#if !defined(HX_DOS)
+    MAPPER_AddHandler(LoadMapFile, MK_nothing, 0, "loadmap", "Load mapper file", &item);
+    item->set_text("Load mapper file...");
+
+    MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "Quick launch program", &item);
+    item->set_text("Quick launch program...");
+#endif
+
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","Quit from DOSBox-X", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+    item->set_text("Quit");
+#endif
+
+    MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+    item->set_text("Capture mouse");
+
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
+    MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
+    item->set_text("Quick edit: copy on select and paste text");
+
+    MAPPER_AddHandler(CopyAllClipboard,MK_f5,MMOD1,"copyall", "Copy to clipboard", &item);
+    item->set_text("Copy all text on the DOS screen");
+#endif
+
+    MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
+    item->set_text("Pasting from the clipboard");
+
+    MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
+    item->set_text("Stop clipboard pasting");
+
+    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
+
+    MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
+    item->set_text("Pause with interrupts enabled");
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
+#endif
+
+    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
+    item->set_text("Configuration tool");
+
+    MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
+    item->set_accelerator(DOSBoxMenu::accelerator('m'));
+    item->set_description("Bring up the mapper UI");
+    item->set_text("Mapper editor");
+
+    MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
+    item->set_text("Toggle fullscreen");
+
+    MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
+    item->set_text("Reset window size");
+
+#if defined(USE_TTF)
+    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
+    item->set_text("Increase TTF font size");
+
+    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
+    item->set_text("Decrease TTF font size");
+#endif
+
+    MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
+    item->set_text("Hide/show menu bar");
+
     const int display = section->Get_int("display");
     int numscreen = GetNumScreen();
     if (display >= 0 && display <= numscreen)
@@ -5490,66 +5571,6 @@ static void GUI_StartUp() {
 
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
-
-    /* Get some Event handlers */
-    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
-    item->set_text("Reset virtual machine");
-
-    MAPPER_AddHandler(RebootGuest, MK_b, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
-    item->set_text("Reboot guest system");
-
-#if !defined(HX_DOS)
-    MAPPER_AddHandler(LoadMapFile, MK_nothing, 0, "loadmap", "Load mapper file", &item);
-    item->set_text("Load mapper file...");
-
-    MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "Quick launch program", &item);
-    item->set_text("Quick launch program...");
-#endif
-
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","Quit from DOSBox-X", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
-    item->set_text("Quit");
-#endif
-
-    MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
-    item->set_text("Capture mouse");
-
-    MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
-    item->set_text("Toggle fullscreen");
-
-#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
-    MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
-    item->set_text("Quick edit: copy on select and paste text");
-
-    MAPPER_AddHandler(CopyAllClipboard,MK_f5,MMOD1,"copyall", "Copy to clipboard", &item);
-    item->set_text("Copy all text on the DOS screen");
-#endif
-
-    MAPPER_AddHandler(PasteClipboard,MK_f6,MMOD1,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
-    item->set_text("Pasting from the clipboard");
-
-    MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
-    item->set_text("Stop clipboard pasting");
-
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
-    pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
-#endif
-
-    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
-    item->set_text("Configuration tool");
-
-    MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
-    item->set_text("Reset window size");
-
-#if defined(USE_TTF)
-    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
-    item->set_text("Increase TTF font size");
-
-    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
-    item->set_text("Decrease TTF font size");
-#endif
 
     UpdateWindowDimensions();
 }
@@ -11495,15 +11516,6 @@ void AspectRatio_mapper_shortcut(bool pressed) {
     }
 }
 
-void HideMenu_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-
-    void ToggleMenu(bool pressed);
-    ToggleMenu(true);
-
-    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
-}
-
 void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type == SCREEN_SURFACE).refresh_item(mainMenu);
 #if C_DIRECT3D
@@ -12628,7 +12640,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         sdl.lshiftstate = SDL_KEYUP;
         sdl.rshiftstate = SDL_KEYUP;
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && defined(C_SDL2)
+        char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
+        if (sdl_videodrv != NULL && !strcmp(sdl_videodrv,"windows")) sdl.using_windib = true;
+#elif defined(WIN32) && !defined(C_SDL2)
 # if SDL_VERSION_ATLEAST(1, 2, 10)
         sdl.using_windib=true;
 # else
@@ -13198,20 +13213,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             launchsaves(control->opt_opensaves);
 
         {
-            /* more */
-            DOSBoxMenu::item *item;
-
-            MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
-            item->set_accelerator(DOSBoxMenu::accelerator('m'));
-            item->set_description("Bring up the mapper UI");
-            item->set_text("Mapper editor");
-
-            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
-            item->set_text("Pause with interrupts enabled");
-
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
-            item->set_text("Hide/show menu bar");
-
             /* Some extra SDL Functions */
             Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 

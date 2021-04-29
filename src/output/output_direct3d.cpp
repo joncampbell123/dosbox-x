@@ -16,12 +16,6 @@ void ResolvePath(std::string& in);
 void d3d_init(void)
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
-#if defined(C_SDL2)
-    if (!sdl.using_windib) {
-        char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-        if (sdl_videodrv != NULL && !strcmp(sdl_videodrv,"windows")) sdl.using_windib = true;
-    }
-#endif
     if (!sdl.using_windib)
     {
         LOG_MSG("Resetting to WINDIB mode");
