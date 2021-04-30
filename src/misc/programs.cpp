@@ -1536,19 +1536,16 @@ void PROGRAMS_Init() {
 		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
-		"-gui Starts DOSBox-X's graphical configuration tool.\n"
-		"-l Lists DOSBox-X configuration parameters.\n"\
-		"-h, -help, -? sections / sectionname / propertyname\n"\
-		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
-		" For info about a specific section or property add its name behind.\n"\
+		"-l Lists DOSBox-X's configuration parameters.\n"\
+		"-h, -help, -? Shows this help; Add the word \"sections\" for a list of sections.\n"\
+		"-h, -help, -? section / property Shows info on a specific section or property.\n"\
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-		" disabled as well as the ability to create config and language files.\n"\
-		"-avistart starts AVI recording.\n"\
-		"-avistop stops AVI recording.\n"\
-		"-startmapper starts the keymapper.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-avistart, -avistop Starts or stops AVI recording.\n"\
+		"-startmapper Starts the mapper editor.\n"\
+		"-gui Starts the graphical configuration tool.\n"
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");

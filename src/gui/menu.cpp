@@ -1151,7 +1151,7 @@ void* DOSBoxMenu::getNsMenu(void) const {
 LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     LPWSTR ret = def;
     int reqsize = 0, cp = dos.loaded_codepage?dos.loaded_codepage:(IS_PC98_ARCH?932:0);
-    Section_prop *section = section = static_cast<Section_prop *>(control->GetSection("config"));
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
     if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
         if (r!=NULL && *(r+1)) cp = atoi(trim(r+1));
