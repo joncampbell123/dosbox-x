@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1025,7 +1025,7 @@ void VGA_Reset(Section*) {
     const char * vsyncmodestr;
     vsyncmodestr=section2->Get_string("vsyncmode");
     void change_output(int output);
-    change_output(8);
+    change_output(9);
     VGA_VsyncUpdateMode(VGA_Vsync_Decode(vsyncmodestr));
 
     const char * vsyncratestr;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -349,7 +349,7 @@ void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 extern bool dbg_zero_on_ems_allocmem;
 
 /* NTS: "page" in EMS refers to 16KB regions, not the 4KB memory pages we normally work with */
-static uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages) {
+uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages) {
 	/* Check for 0 page allocation */
 	if (!pages) {
 		if (!can_allocate_zpages) return EMM_ZERO_PAGES;
@@ -538,7 +538,7 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 	return EMM_ILL_PHYS;
 }
 
-static uint8_t EMM_ReleaseMemory(uint16_t handle) {
+uint8_t EMM_ReleaseMemory(uint16_t handle) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,7 +75,10 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x04:		//Vertical total
 		if (vga.other.vtotal ^ val) VGA_StartResize();
-		vga.other.vtotal=(uint8_t)(val&0x7f);
+		if (machine == MCH_TANDY) // FIXME: This is needed for "Math Rabbit", but does Tandy hardware *really* use all 8 bits? Or is it limited to 7 bits like MDA/CGA/Hercules/PCjr? This is default DOSBox SVN behavior.
+			vga.other.vtotal=(uint8_t)(val&0xff);
+		else
+			vga.other.vtotal=(uint8_t)(val&0x7f);
 		break;
 	case 0x05:		//Vertical display adjust
 		if (vga.other.vadjust ^ val) VGA_StartResize();
@@ -83,7 +86,10 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x06:		//Vertical rows
 		if (vga.other.vdend ^ val) VGA_StartResize();
-		vga.other.vdend=(uint8_t)(val&0x7f);
+		if (machine == MCH_TANDY) // FIXME: This is needed for "Math Rabbit", but does Tandy hardware *really* use all 8 bits? Or is it limited to 7 bits like MDA/CGA/Hercules/PCjr? This is default DOSBox SVN behavior.
+			vga.other.vdend=(uint8_t)(val&0xff);
+		else
+			vga.other.vdend=(uint8_t)(val&0x7f);
 		break;
 	case 0x07:		//Vertical sync position
 		vga.other.vsyncp=(uint8_t)val;
@@ -484,7 +490,7 @@ static void update_cga16_color(void) {
 	}
 }
 
-static void IncreaseHue(bool pressed) {
+void IncreaseHue(bool pressed) {
 	if (!pressed)
 		return;
 	hue_offset += 5.0;
@@ -492,7 +498,7 @@ static void IncreaseHue(bool pressed) {
 	LOG_MSG("Hue at %f",hue_offset); 
 }
 
-static void DecreaseHue(bool pressed) {
+void DecreaseHue(bool pressed) {
 	if (!pressed)
 		return;
 	hue_offset -= 5.0;
@@ -610,14 +616,14 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
-static void CGAModel(bool pressed) {
+void CGAModel(bool pressed) {
 	if (!pressed) return;
 	new_cga = !new_cga;
 	update_cga16_color();
 	LOG_MSG("%s model CGA selected", new_cga ? "Late" : "Early");
 }
  
-static void Composite(bool pressed) {
+void Composite(bool pressed) {
 	if (!pressed) return;
 	if (++cga_comp>2) cga_comp=0;
 	LOG_MSG("Composite output: %s",(cga_comp==0)?"auto":((cga_comp==1)?"on":"off"));
@@ -878,24 +884,30 @@ static void write_pcjr(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
-static void CycleHercPal(bool pressed) {
+void CycleHercPal(bool pressed) {
 	if (!pressed) return;
 	if (++herc_pal>3) herc_pal=0;
 	Herc_Palette();
 }
 
-static void CycleMonoCGAPal(bool pressed) {
+void CycleMonoCGAPal(bool pressed) {
 	if (!pressed) return;
 	if (++mono_cga_pal>3) mono_cga_pal=0;
 	Mono_CGA_Palette();
 }
 
-static void CycleMonoCGABright(bool pressed) {
+void CycleMonoCGABright(bool pressed) {
 	if (!pressed) return;
 	if (++mono_cga_bright>1) mono_cga_bright=0;
 	Mono_CGA_Palette();
 }
 	
+void HercBlend(bool pressed) {
+	if (!pressed) return;
+	vga.herc.blend = !vga.herc.blend;
+	VGA_SetupDrawing(0);
+}
+
 void Herc_Palette(void) {	
 	switch (herc_pal) {
 	case 0:	// White
@@ -917,12 +929,6 @@ void Herc_Palette(void) {
 	}
 	VGA_DAC_CombineColor(1,0x7);
 	VGA_DAC_CombineColor(2,0xf);
-}
-
-static void HercBlend(bool pressed) {
-	if (!pressed) return;
-	vga.herc.blend = !vga.herc.blend;
-	VGA_SetupDrawing(0);
 }
 
 void Mono_CGA_Palette(void) {	
@@ -1081,8 +1087,6 @@ void VGA_SetupOther(void) {
 	if (machine==MCH_HERC || machine==MCH_MDA) {
 		for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_14[i*14],14);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
-		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Herc Blend");
-		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Herc Pal");
 	}
 	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
 		vga.amstrad.mask_plane = 0x07070707;
@@ -1103,16 +1107,6 @@ void VGA_SetupOther(void) {
 			IO_RegisterWriteHandler(0x3de,write_cga,IO_MB);
 			IO_RegisterWriteHandler(0x3df,write_cga,IO_MB);
 		}
-
-		if(!mono_cga) {
-            MAPPER_AddHandler(IncreaseHue,MK_nothing,0,"inchue","Inc Hue");
-            MAPPER_AddHandler(DecreaseHue,MK_nothing,0,"dechue","Dec Hue");
-            MAPPER_AddHandler(CGAModel,MK_nothing,0,"cgamodel","CGA Model");
-            MAPPER_AddHandler(Composite,MK_nothing,0,"cgacomp","CGA Comp");
-        } else {
-            MAPPER_AddHandler(CycleMonoCGAPal,MK_nothing,0,"monocgapal","Mono CGA Pal"); 
-            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabri","Mono CGA Bright");
-        }
 	}
 	if (machine==MCH_TANDY) {
 		write_tandy( 0x3df, 0x0, 0 );

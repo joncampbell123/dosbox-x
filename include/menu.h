@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -422,6 +422,7 @@ class DOSBoxMenu {
     public:
         bool                            item_exists(const item_handle_t i);
         bool                            item_exists(const std::string &name);
+        std::vector<item>               get_master_list(void);
         item&                           get_item(const item_handle_t i);
         item&                           get_item(const std::string &name);
         item_handle_t                   get_item_id_by_name(const std::string &name);

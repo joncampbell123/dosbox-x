@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -76,8 +76,9 @@ bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
 extern bool ignore_opcode_63;
-
+extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
+extern bool auto_determine_dynamic_core_paging;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
@@ -190,7 +191,17 @@ void CPU_Core_Dynrec_Cache_Close(void);
 void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
 
-bool CPU_IsDynamicCore(void);
+int CPU_IsDynamicCore(void) {
+#if (C_DYNAMIC_X86)
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (cpudecoder == &CPU_Core_Dynrec_Run)
+        return 2;
+#endif
+    return 0;
+}
 
 void menu_update_cputype(void) {
     bool allow_prefetch = false;
@@ -270,6 +281,41 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
+}
+
+const char *GetCPUType() {
+    if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run))
+        return "8086";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run))
+        return "8086 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80186";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80186 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80286";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80286 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80386";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80386 prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486 (old)";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 (old) prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM)
+        return "Pentium";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW)
+        return "Pentium MMX";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
+        return "Pentium Pro";
+    else
+        return "Mixed/other x86";
 }
 
 int GetDynamicType() {
@@ -971,6 +1017,11 @@ doexception:
 	return CPU_PrepareException(EXCEPTION_GP,0);
 }
 
+void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
+  cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
+  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,oldeip);
+}
+
 #include <stack>
 
 int CPU_Exception_Level[0x20] = {0};
@@ -1050,6 +1101,10 @@ void CPU_Exception(Bitu which,Bitu error ) {
 
 uint8_t lastint;
 void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
+    if (num == EXCEPTION_DB && (type&CPU_INT_EXCEPTION) == 0) {
+      CPU_DebugException(0,oldeip); // DR6 bits need updating
+      return;
+    }
 	lastint=(uint8_t)num;
 	FillFlags();
 #if C_DEBUG
@@ -1064,7 +1119,6 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 # endif
     if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
         if (num == 0x21 && boothax == BOOTHAX_MSDOS) {
-            extern bool dos_kernel_disabled;
             if (dos_kernel_disabled) {
                 if ((reg_ah == 0x4A/*alloc*/ || reg_ah == 0x49/*free*/) && guest_msdos_LoL == 0) { /* needed for MS-DOS 3.3 */
                     if (SegValue(cs) != CB_SEG) {
@@ -2304,18 +2358,6 @@ void CPU_Snap_Back_Forget() {
 	snap_cpu_snapped = false;
 }
 
-bool CPU_IsDynamicCore(void) {
-#if (C_DYNAMIC_X86)
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
-        return true;
-#endif
-#if (C_DYNREC)
-    if (cpudecoder == &CPU_Core_Dynrec_Run)
-        return true;
-#endif
-    return false;
-}
-
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {
@@ -2355,12 +2397,16 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 #if (C_DYNREC)
 				if (GetDynamicType()==2 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dynrec_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dynrec_Run;
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
@@ -3233,7 +3279,7 @@ public:
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: imple core",&item);
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: simple core",&item);
 		item->set_text("Simple core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
 		item->set_text("Full core");
@@ -3286,10 +3332,18 @@ public:
 
 		report_fdiv_bug = section->Get_bool("report fdiv bug");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
+
+		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
+		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
+		if (auto_determine_dynamic_core_paging) {
+            int coretype=CPU_IsDynamicCore();
+            use_dynamic_core_with_paging = coretype==1?PAGING_Enabled()&&dos_kernel_disabled:(coretype==2?PAGING_Enabled()&&!dos_kernel_disabled:PAGING_Enabled());
+		} else {
+			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
+		}
 
         if (cpu_allow_big16) {
             /* FIXME: GCC 4.8: How is this an empty body? Explain. */
@@ -3411,6 +3465,10 @@ public:
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
+            mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+            mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
 #if (C_DYNAMIC_X86)
 		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;

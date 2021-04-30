@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -325,6 +325,19 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
+static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
+	GenReg * gr1=FindDynReg(dr1);
+	switch (size) {
+	case 1:cache_addb(0x88);break;	//mov byte
+	case 2:cache_addb(0x66);		//mov word
+	case 4:cache_addb(0x89);break;	//mov
+	default:
+		IllegalOption("gen_save_host");
+	}
+	cache_addb(0x5+((gr1->index+di1)<<3));
+	cache_addd((uint32_t)data);
+	dr1->flags|=DYNFLG_CHANGED;
+}
 
 static void gen_dop_byte(DualOps op,DynReg * dr1,uint8_t di1,DynReg * dr2,uint8_t di2) {
 	GenReg * gr1=FindDynReg(dr1);GenReg * gr2=FindDynReg(dr2);
@@ -948,9 +961,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
 	switch (write_size) {
-		case 1: cache_addd((uint32_t)mem_writeb_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 2: cache_addd((uint32_t)mem_writew_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 4: cache_addd((uint32_t)mem_writed_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 1: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 2: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 4: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
 		default: IllegalOption("gen_call_write");
 	}
 
@@ -1001,6 +1014,20 @@ static void gen_fill_jump(uint8_t * data,uint8_t * to=cache.pos) {
 	*(uint32_t*)data=(to-data-4);
 }
 
+static uint8_t * gen_create_short_jump(void) {
+	cache_addw(0x00EB);
+	return cache.pos-1;
+}
+
+static void gen_fill_short_jump(uint8_t * data, uint8_t * to=cache.pos) {
+#if C_DEBUG
+	Bits len=to-data-1;
+	if (len<0) len=~len;
+	if (len>127)
+		LOG_MSG("Big jump %d",len);
+#endif
+	data[0] = (uint8_t)(to-data-1);
+}
 
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 	cache_addb(0xa1);
@@ -1037,6 +1064,12 @@ static void gen_save_host_direct(void * data,Bits imm) {
 	cache_addw(0x05c7);		//MOV [],dword
 	cache_addd((uint32_t)data);
 	cache_addd(imm);
+}
+
+static void gen_test_host_byte(void * data, uint8_t imm) {
+	cache_addw(0x05f6); // test [],byte
+	cache_addd((uint32_t)data);
+	cache_addb(imm);
 }
 
 static void gen_return(BlockReturn retcode) {

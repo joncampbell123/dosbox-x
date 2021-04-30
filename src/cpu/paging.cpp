@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "debug.h"
 #include "setup.h"
 
+extern bool dos_kernel_disabled;
 PagingBlock paging;
 
 // Pagehandler implementation
@@ -267,9 +268,8 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 */
 
 bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
+bool auto_determine_dynamic_core_paging = false; /* enable use_dynamic_core_with_paging when paging is enabled */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
-
-bool CPU_IsDynamicCore(void);
 
 void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 	/* Save the state of the cpu cores */
@@ -312,7 +312,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_allow_nonrecursive_page_fault && !CPU_IsDynamicCore()) {
+	} else if (dosbox_allow_nonrecursive_page_fault) {
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
@@ -1436,10 +1436,16 @@ void PAGING_SetWP(bool wp) {
 		PAGING_ClearTLB();
 }
 
+int CPU_IsDynamicCore(void);
+
 void PAGING_Enable(bool enabled) {
 	/* If paging is disabled, we work from a default paging table */
 	if (paging.enabled==enabled) return;
 	paging.enabled=enabled;
+	if (auto_determine_dynamic_core_paging) {
+		int coretype=CPU_IsDynamicCore();
+		if (coretype) use_dynamic_core_with_paging = coretype==1?enabled&&dos_kernel_disabled:enabled&&!dos_kernel_disabled;
+	}
 	if (enabled) {
 //		LOG(LOG_PAGING,LOG_NORMAL)("Enabled");
 		PAGING_SetDirBase(paging.cr3);

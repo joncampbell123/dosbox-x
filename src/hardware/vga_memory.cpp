@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "inout.h"
 #include "setup.h"
 #include "cpu.h"
+#include "control.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
 #include "zipfile.h"
@@ -59,7 +60,9 @@ extern bool enable_pc98_256color;
 #define CHECKED3(v) ((v)&vga.mem.memmask)
 #define CHECKED4(v) ((v)&(vga.mem.memmask>>2))
 
-#define TANDY_VIDBASE(_X_)  &MemBase[ 0x80000 + (_X_)]
+uint32_t tandy_128kbase = 0x80000;
+
+#define TANDY_VIDBASE(_X_)  &MemBase[ tandy_128kbase + (_X_)]
 
 /* how much delay to add to VGA memory I/O in nanoseconds */
 int vga_memio_delay_ns = 1000;
@@ -2184,6 +2187,7 @@ void VGA_ChangedBank(void) {
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);
 
+extern void DISP2_SetPageHandler(void);
 void VGA_SetupHandlers(void) {
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
 	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
@@ -2208,7 +2212,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 	case MCH_MDA:
 	case MCH_HERC:
-		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+//		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );        // already done by VGA setup memory function, also interferes with "allow more than 640KB" option
 		vgapages.base=VGA_PAGE_B0;
 		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
 		if (vga.herc.enable_bits & 0x2) { /* bit 1: page in upper 32KB */
@@ -2397,6 +2401,9 @@ void VGA_SetupHandlers(void) {
     non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
 
 range_done:
+#if C_DEBUG
+	if (control->opt_display2) DISP2_SetPageHandler();
+#endif
 	PAGING_ClearTLB();
 }
 
@@ -2449,7 +2456,18 @@ void VGA_StartUpdateLFB(void) {
 static bool VGA_Memory_ShutDown_init = false;
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
-	MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+	if (machine == MCH_CGA)
+		MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
+	else if (machine == MCH_HERC || machine == MCH_MDA)
+		MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.empty);
+	else
+		MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+
+#if C_DEBUG
+	if (control->opt_display2)
+		MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.empty);
+#endif
+
 	PAGING_ClearTLB();
 
 	if (vga.mem.linear_orgptr != NULL) {

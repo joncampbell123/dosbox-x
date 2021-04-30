@@ -121,6 +121,12 @@
     <Filter Include="Sources\libs\decoder">
       <UniqueIdentifier>{8c545daa-26e1-4aad-a8ee-48caa3730fab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\cpu\core_dyn_x86">
+      <UniqueIdentifier>{09ec76de-76b7-416f-9a14-f47a19aabc07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\RetroWaveLib">
+      <UniqueIdentifier>{2a582629-0964-4559-9992-810e70c2f6ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -198,10 +204,10 @@
     <ClCompile Include="..\src\builtin\move_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builtin\sort_exe.cpp">
+    <ClCompile Include="..\src\builtin\replace_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builtin\tree_exe.cpp">
+    <ClCompile Include="..\src\builtin\sort_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp">
@@ -609,7 +615,16 @@
     <ClCompile Include="..\src\misc\cross.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\messages.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp">
@@ -734,6 +749,21 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
       <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Board\OPL3.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave_DOSBoX.cpp">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debug\debug.cpp">
       <Filter>Sources\debug</Filter>
@@ -1515,6 +1545,9 @@
     <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
       <Filter>Sources\libs\decoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1778,6 +1811,12 @@
     <ClInclude Include="..\src\libs\mt32\sha1\sha1.h">
       <Filter>Sources\libs\mt32\sha1</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_pcap.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_slirp.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\reSID\envelope.h">
       <Filter>Sources\hardware\reSID</Filter>
     </ClInclude>
@@ -1856,6 +1895,24 @@
     <ClInclude Include="..\include\cp858_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cp860_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp861_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp862_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp863_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp864_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp865_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\cp866_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -1863,6 +1920,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp872_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp874_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp932_uni.h">
@@ -1890,6 +1950,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dosbox.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ethernet.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\fpu.h">
@@ -2344,6 +2407,33 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\MidiStreamParser.h">
       <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -469,6 +469,9 @@ void RENDER_Reset( void ) {
         }
     }
 
+    if( sdl.desktop.isperfect ) /* Handle scaling if no pixel-perfect mode */
+        goto forcenormal;
+
     if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
@@ -576,7 +579,8 @@ void RENDER_Reset( void ) {
             else
                 simpleBlock = &ScaleNormalDh;
         }
-    } else  {
+    }
+    if( simpleBlock == NULL && complexBlock == NULL ) {
 forcenormal:
         complexBlock = 0;
         if(scalerOpGray==render.scale.op){
@@ -1119,12 +1123,14 @@ void RENDER_UpdateFromScalerSetting(void) {
 
 #if C_OPENGL
 extern int initgl;
-std::string shader_src="", GetDOSBoxXPath();
+void ResolvePath(std::string& in);
+std::string shader_src="", GetDOSBoxXPath(bool withexe=false);
 std::string LoadGLShader(Section_prop * section) {
 	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
     render.shader_def = false;
 	Prop_path *sh = section->Get_path("glshader");
 	std::string f = (std::string)sh->GetValue();
+    ResolvePath(f);
     const char *ssrc=shader_src.c_str();
 	if (f.empty() || f=="none" || f=="default") {
         render.shader_src = NULL;
@@ -1136,13 +1142,20 @@ std::string LoadGLShader(Section_prop * section) {
             std::string exePath = GetDOSBoxXPath();
             if (exePath.size()) path = exePath + std::string("glshaders") + CROSS_FILESPLIT + f;
             else path = "";
-        } else path = "";
+        } else {
+            if (initgl==2) sdl_opengl.use_shader=true;
+            LOG_MSG("Loaded GLSL shader: %s\n", path.c_str());
+            path = "";
+        }
         if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
             Cross::GetPlatformConfigDir(path);
             path = path + "glshaders" + CROSS_FILESPLIT + f;
             if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
                 sh->SetValue("none");
                 LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            } else {
+                if (initgl==2) sdl_opengl.use_shader=true;
+                LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
             }
         }
 	} else {
@@ -1219,6 +1232,26 @@ void RENDER_Init() {
 
 	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Fit to aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
+
+	if (machine==MCH_HERC || machine==MCH_MDA) {
+		void HercBlend(bool pressed), CycleHercPal(bool pressed);
+		MAPPER_AddHandler(CycleHercPal,MK_f7,MMOD1,"hercpal","Hercules Palette");
+		MAPPER_AddHandler(HercBlend,MK_f8,MMOD1,"hercblend","Hercules Blending");
+	}
+
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
+		if(!mono_cga) {
+            void IncreaseHue(bool pressed), DecreaseHue(bool pressed), CGAModel(bool pressed), Composite(bool pressed);
+            MAPPER_AddHandler(DecreaseHue,MK_f7,MMOD1|MMOD3,"dechue","Decrease Hue");
+            MAPPER_AddHandler(IncreaseHue,MK_f8,MMOD1|MMOD3,"inchue","Increase Hue");
+            MAPPER_AddHandler(CGAModel,MK_f7,MMOD1,"cgamodel","Early/Late CGA");
+            MAPPER_AddHandler(Composite,MK_f8,MMOD1,"cgacomp","CGA Composite");
+        } else {
+            void CycleMonoCGAPal(bool pressed), CycleMonoCGABright(bool pressed);
+            MAPPER_AddHandler(CycleMonoCGAPal,MK_f7,MMOD1,"monocgapal","Mono CGA Palette");
+            MAPPER_AddHandler(CycleMonoCGABright,MK_f8,MMOD1,"monocgabri","Mono CGA Brightness");
+        }
+	}
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
@@ -1309,7 +1342,13 @@ private:
 		READ_POD( &render.fullFrame, render.fullFrame );
 		READ_POD( &render.frameskip, render.frameskip );
 		READ_POD( &render.aspect, render.aspect );
+		scalerOperation_t op = render.scale.op;
+		Bitu size = render.scale.size;
+		bool hardware = render.scale.hardware;
 		READ_POD( &render.scale, render.scale );
+		render.scale.op = op;
+		render.scale.size = size;
+		render.scale.hardware = hardware;
 
 		//***************************************
 		//***************************************

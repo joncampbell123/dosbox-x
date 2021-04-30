@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,12 @@
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+#endif
+
 #define XGA_SCREEN_WIDTH	vga.s3.xga_screen_width
 #define XGA_COLOR_MODE		vga.s3.xga_color_mode
 
@@ -42,13 +48,17 @@ struct XGAStatus {
 	uint32_t forecolor;
 	uint32_t backcolor;
 
+	uint32_t color_compare;
+
 	Bitu curcommand;
 
 	uint16_t foremix;
 	uint16_t backmix;
 
 	uint16_t curx, cury;
+	uint16_t curx2, cury2;
 	uint16_t destx, desty;
+	uint16_t destx2, desty2;
 
 	uint16_t ErrTerm;
 	uint16_t MIPcount;
@@ -68,6 +78,7 @@ struct XGAStatus {
 		uint32_t data; /* transient data passed by multiple calls */
 		Bitu datasize;
 		Bitu buswidth;
+		bool bswap16; /* bit 12 of the CMD register (S3 86C928, Trio32/Trio64/Trio64V+): For any 16-bit word, swap hi/lo bytes (including both 16-bit words in 32-bit transfer) */
 	} waitcmd;
 
 } xga;
@@ -162,6 +173,21 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 			break;
 	}
 
+}
+
+Bitu XGA_PointMask() {
+	switch(XGA_COLOR_MODE) {
+		case M_LIN8:
+			return 0xFFul;
+		case M_LIN15:
+		case M_LIN16:
+			return 0xFFFFul;
+		case M_LIN32:
+			return 0xFFFFFFFFul;
+		default:
+			break;
+	}
+	return 0;
 }
 
 Bitu XGA_GetPoint(Bitu x, Bitu y) {
@@ -585,6 +611,11 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 	if(!xga.waitcmd.wait) return;
 	Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 	Bitu srcval;
+
+	// 86C928/Trio32/Trio64/Trio64V+ byte swap option
+	if (xga.waitcmd.bswap16 && len >= 2)
+		val = ((val & 0xFF00FF00u) >> 8u) | ((val & 0x00FF00FFu) << 8u);
+
 	switch(xga.waitcmd.cmd) {
 		case 2: /* Rectangle */
 			switch(mixmode) {
@@ -733,6 +764,7 @@ void XGA_BlitRect(Bitu val) {
 	uint32_t xat, yat;
 	Bitu srcdata;
 	Bitu dstdata;
+	Bitu colorcmpdata;
 
 	Bitu srcval;
 	Bitu destval;
@@ -744,6 +776,8 @@ void XGA_BlitRect(Bitu val) {
 
 	if(((val >> 5) & 0x01) != 0) dx = 1;
 	if(((val >> 7) & 0x01) != 0) dy = 1;
+
+	colorcmpdata = xga.color_compare & XGA_PointMask();
 
 	srcx = xga.curx;
 	srcy = xga.cury;
@@ -810,10 +844,25 @@ void XGA_BlitRect(Bitu val) {
 					break;
 			}
 
-			destval = XGA_GetMixResult(mixmode, srcval, dstdata);
-			//LOG_MSG("XGA: DrawPattern: Mixmode: %x Mixselect: %x", mixmode, mixselect);
+			bool doit = true;
 
-			XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
+			/* For more information, see the "S3 Vision864 Graphics Accelerator" datasheet
+			 * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20(1994-10).pdf]
+			 * Page 203 for "Multifunction Control Miscellaneous Register (MULT_MISC)" which this code holds as xga.control1, and
+			 * Page 198 for "Color Compare Register (COLOR_CMP)" which this code holds as xga.color_compare. */
+			if (xga.control1 & 0x100) { /* COLOR_CMP enabled. control1 corresponds to XGA register BEE8h */
+				/* control1 bit 7 is SRC_NE.
+				 * If clear, don't update if source value == COLOR_CMP.
+				 * If set, don't update if source value != COLOR_CMP */
+				doit = !!(((srcval == colorcmpdata)?0:1)^((xga.control1>>7u)&1u));
+			}
+
+			if (doit) {
+				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
+				//LOG_MSG("XGA: DrawPattern: Mixmode: %x Mixselect: %x", mixmode, mixselect);
+
+				XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
+			}
 
 			srcx += dx;
 			tarx += dx;
@@ -956,9 +1005,17 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.sizex = xga.MAPcount;
 				xga.waitcmd.sizey = xga.MIPcount + 1;
 				xga.waitcmd.cmd = 2;
-				xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
+				if (s3Card >= S3_Vision864) /* this is when bit 10 became part of bit 9 to allow BUS SIZE == 32 (2-bit value == binary 10 == decimal 2) */
+					xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
+				else /* S3 86C928 datasheet lists bit 10 as reserved, therefore BUS WIDTH can only be 8 or 16 */
+					xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x200u) >> 4u);
 				xga.waitcmd.data = 0;
 				xga.waitcmd.datasize = 0;
+
+				if (s3Card < S3_ViRGE) /* NTS: ViRGE datasheets do not mention port 9AE8H except in passing, maybe it was dropped? FIXME: How does this work with BUS SIZE == 32? */
+					xga.waitcmd.bswap16 = (val&0x1200u) == 0x0200u; // BYTE SWP(12):  0=High byte first (big endian)  1=Low byte first (little endian)  and BUS SIZE  1=16-bit  0-8-bit
+				else
+					xga.waitcmd.bswap16 = false; // we're little endian, dammit!
 
 #if XGA_SHOW_COMMAND_TRACE == 1
 				LOG_MSG("XGA: Draw wait rect, w/h(%3d/%3d), x/y1(%3d/%3d), x/y2(%3d/%3d), %4x",
@@ -967,6 +1024,108 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 					(xga.cury + xga.MIPcount + 1)&0x0fff,val&0xffff);
 #endif
 			
+			}
+			break;
+		case 3: /* Polygon fill (Trio64) */
+			if (s3Card == S3_Trio64) {
+#if XGA_SHOW_COMMAND_TRACE == 1
+				LOG_MSG("XGA: Polygon fill (Trio64)");
+#endif
+				/* From the datasheet [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+				 * Section 13.3.3.12 Polygon Fill Solid (Trio64 only)
+				 *
+				 * The idea is that there are two current/dest X/Y pairs and this command
+				 * is used to draw the polygon top to bottom as a series of trapezoids,
+				 * sending new x/y coordinates for each left or right edge as the polygon
+				 * continues. The acceleration function is described as rendering to the
+				 * minimum of the two Y coordinates, and stopping. One side or the other
+				 * is updated, and the command starts the new edge and continues the other
+				 * edge.
+				 *
+				 * The card requires that the first and last segments have equal Y values,
+				 * though not X values in order to allow polygons with flat top and/or
+				 * bottom.
+				 *
+				 * That would imply that there's some persistent error term here, and it
+				 * would also imply that the card updates current Y position to the minimum
+				 * of either side so the new coordinates continue properly.
+				 *
+				 * NTS: The Windows 3.1 Trio64 driver likes to send this command every single
+				 *      time it updates any coordinate, contrary to the Trio64 datasheet that
+				 *      suggests setting cur/dest X/Y and cur2/dest2 X/Y THEN sending this
+				 *      command, then setting either dest X/Y and sending the command until
+				 *      the polygon has been rasterized. We can weed those out here by ignoring
+				 *      any command where the cur/dest Y coordinates would result in no movement.
+				 *
+				 *      The Windows 3.1 driver also seems to use cur/dest X/Y for the RIGHT side,
+				 *      and cur2/dest2 X/Y for the LEFT side, which is completely opposite from
+				 *      the example given in the datasheet. This also implies that whatever order
+				 *      the vertices end up, they draw a span when rasterizing, and the sides can
+				 *      cross one another if necessary.
+				 *
+				 * NTS: You can test this code by bringing up Paintbrush, and drawing with the
+				 *      brush tool. Despite drawing a rectangle, the S3 Trio64 driver uses the
+				 *      Polygon fill command to draw it.
+				 *
+				 *      More testing is possible in Microsoft Word 2.0 using the shapes/graphics
+				 *      editor, adding solid rectangles or rounded rectangles (but not circles).
+				 *
+				 * Vertex at (*)
+				 *
+				 *                       *             *     *
+				 *                       +             +-----+
+				 *                      / \           /       \
+				 *                     /   \         /         \
+				 *                    /_____\ *     /___________\ *
+				 *                   /      /      /            |
+				 *                * /______/    * /_____________|
+				 *                  \     /       \             |
+				 *                   \   /         \            |
+				 *                    \ /           \           |
+				 *                     +             \__________|
+				 *                     *             *          *
+				 *
+				 * Windows 3.1 driver behavior suggests this is also possible?
+				 *
+				 *                   *
+				 *                  / \
+				 *                 /   \
+				 *                /     \
+				 *             * /_______\
+				 *               \________\ *
+				 *                \       /
+				 *                 \     /
+				 *                  \   /
+				 *                   \ /
+				 *                    X      <- crossover point
+				 *                   / \
+				 *                  /   \
+				 *               * /_____\
+				 *                 \      \
+				 *                  \______\
+				 *                  *       *
+				 */
+
+				if (xga.cury < xga.desty && xga.cury2 < xga.desty2) {
+					LOG(LOG_MISC,LOG_DEBUG)("Trio64 Polygon fill: leftside=(%d,%d)-(%d,%d) rightside=(%d,%d)-(%d,%d)",
+						xga.curx, xga.cury, xga.destx, xga.desty,
+						xga.curx2,xga.cury2,xga.destx2,xga.desty2);
+
+					// Not quite accurate, good enough for now.
+					xga.curx = xga.destx;
+					xga.cury = xga.desty;
+					xga.curx2 = xga.destx2;
+					xga.cury2 = xga.desty2;
+				}
+				else {
+					LOG(LOG_MISC,LOG_DEBUG)("Trio64 Polygon fill (nothing done)");
+
+					// Windows 3.1 Trio64 driver behavior suggests that if Y doesn't move,
+					// the X coordinate may change if cur Y == dest Y, else the result
+					// when actual rendering doesn't make sense.
+					if (xga.cury == xga.desty) xga.curx = xga.destx;
+					if (xga.cury2 == xga.desty2) xga.curx2 = xga.destx2;
+				}
 			}
 			break;
 		case 6: /* BitBLT */
@@ -1037,6 +1196,12 @@ extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
 //	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
 
+#if 0
+	// streams procesing debug
+	if (port >= 0x8180 && port <= 0x81FF)
+		LOG_MSG("XGA streams processing: Write to port %x, val %8x, len %x",(unsigned int)port,(unsigned int)val,(unsigned int)len);
+#endif
+
 	switch(port) {
 		case 0x8100:// drawing control: row (low word), column (high word)
 					// "CUR_X" and "CUR_Y" (see PORT 82E8h,PORT 86E8h)
@@ -1046,7 +1211,18 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x8102:
 			xga.curx = (uint16_t)(val& 0x0fff);
 			break;
-
+		case 0x8104:// drawing control: row (low word), column (high word)
+					// "CUR_X2" and "CUR_Y2" (see PORT 82EAh,PORT 86EAh)
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.cury2 = (uint16_t)(val & 0x0fff);
+				if(len==4) xga.curx2 = (uint16_t)((val>>16)&0x0fff);
+			}
+			break;
+		case 0x8106:
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.curx2 = (uint16_t)(val& 0x0fff);
+			}
+			break;
 		case 0x8108:// DWORD drawing control: destination Y and axial step
 					// constant (low word), destination X and axial step
 					// constant (high word) (see PORT 8AE8h,PORT 8EE8h)
@@ -1055,6 +1231,19 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0x810a:
 			xga.destx = (uint16_t)(val&0x3fff);
+			break;
+		case 0x810c:// DWORD drawing control: destination Y and axial step
+					// constant (low word), destination X and axial step
+					// constant (high word) (see PORT 8AEAh,PORT 8EEAh)
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.desty2 = (uint16_t)(val&0x3FFF);
+				if(len==4) xga.destx2 = (uint16_t)((val>>16)&0x3fff);
+			}
+			break;
+		case 0x810e:
+			if (s3Card == S3_Trio64) { // Only on Trio64, not Trio64V+, not ViRGE
+				xga.destx2 = (uint16_t)(val&0x3fff);
+			}
 			break;
 		case 0x8110: // WORD error term (see PORT 92E8h)
 			xga.ErrTerm = (uint16_t)(val&0x3FFF);
@@ -1096,25 +1285,202 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x813e:
 			xga.scissors.x2 = val&0x0fff;
 			break;
-
 		case 0x8140:// DWORD data manipulation control (low word) and
-					// miscellaneous 2 (high word) (see PORT BEE8h,#P1047)
+			// miscellaneous 2 (high word) (see PORT BEE8h,#P1047)
 			xga.pix_cntl=val&0xFFFF;
 			if(len==4) xga.control2=(val>>16)&0x0fff;
 			break;
 		case 0x8144:// DWORD miscellaneous (low word) and read register select
-					// (high word)(see PORT BEE8h,#P1047)
+			// (high word)(see PORT BEE8h,#P1047)
 			xga.control1=val&0xffff;
 			if(len==4)xga.read_sel=(val>>16)&0x7;
 			break; 
 		case 0x8148:// DWORD minor axis pixel count (low word) and major axis
-					// pixel count (high word) (see PORT BEE8h,#P1047,PORT 96E8h)
+			// pixel count (high word) (see PORT BEE8h,#P1047,PORT 96E8h)
 			xga.MIPcount = val&0x0fff;
 			if(len==4) xga.MAPcount = (val>>16)&0x0fff;
 			break;
 		case 0x814a:
 			xga.MAPcount = val&0x0fff;
 			break;
+
+		// Streams processing a.k.a overlays (0x8180-0x81FF)
+		// Commonly used in Windows 3.1 through ME for the hardware YUV overlay,
+		// such as playing MPEG files in ActiveMovie or XingMPEG.
+		// S3 Trio64V+ and ViRGE cards have this.
+		// Vision868 cards have a different register set for the same.
+
+		case 0x8180: // S3 Trio64V+ streams processor, Primary Stream Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.psctl_psidf = (val >> 24u) & 7u;
+				vga.s3.streams.psctl_psfc = (val >> 28u) & 7u;
+			}
+			break;
+		case 0x8184: // S3 Trio64V+ streams processor, Color/Chroma Key Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ckctl_b_lb = val & 0xFFu;
+				vga.s3.streams.ckctl_g_lb = (val >> 8u) & 0xFFu;
+				vga.s3.streams.ckctl_r_lb = (val >> 16u) & 0xFFu;
+				vga.s3.streams.ckctl_rgb_cc = (val >> 24u) & 7u;
+				vga.s3.streams.ckctl_kc = (val >> 28u) & 1u;
+			}
+			break;
+		case 0x8190: // S3 Trio64V+ streams processor, Secondary Stream Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ssctl_dda_haccum = val & 0xFFFu; // signed 12-bit value
+				if (vga.s3.streams.ssctl_dda_haccum &  0x0800u)
+					vga.s3.streams.ssctl_dda_haccum -= 0x1000u;
+				vga.s3.streams.ssctl_sdif = (val >> 24u) & 7u;
+				vga.s3.streams.ssctl_sfc = (val >> 28u) & 7u;
+			}
+			break;
+		case 0x8194: // S3 Trio64V+ streams processor, Chroma Key Upper Bound (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ckctl_b_ub = val & 0xFFu;
+				vga.s3.streams.ckctl_g_ub = (val >> 8u) & 0xFFu;
+				vga.s3.streams.ckctl_r_ub = (val >> 16u) & 0xFFu;
+			}
+			break;
+		case 0x8198: // S3 Trio64V+ streams processor, Secondary Stream Stretch/Filter Constants (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				uint32_t regmask;
+
+				if (s3Card >= S3_ViRGEVX) /* ViRGE/VX datasheet says the register is 12 bits large */
+					regmask = 0xFFFu;
+				else /* earlier cards say the register is 11 bits large */
+					regmask = 0x7FFu;
+
+				/* Whoah, wait a minute! The S3 ViRGE and S3 Trio64V+ datasheets have a rather irritating error!
+				 * They say K1 is bits 10-0 and K2 bits 26-16, but the visual diagram says K2 is bits 10-0 and
+				 * K1 is bits 26-16!
+				 *
+				 * Based on what the S3 driver DCI driver writes for a 320x240 YUV overlay, it appears that K1
+				 * (initial output window before scaling - 1) is the lower 16 bits.
+				 *
+				 * K2 is signed 2's complement */
+				vga.s3.streams.ssctl_k1_hscale = val & regmask;
+				vga.s3.streams.ssctl_k2_hscale = (val >> 16u) & regmask;
+				if (vga.s3.streams.ssctl_k2_hscale &  ((regmask+1u)>>1u))   /* (0x7FF+1)>>1 = 0x400 */
+					vga.s3.streams.ssctl_k2_hscale -= (regmask+1u);         /* (0x7FF+1)    = 0x800 */
+			}
+			break;
+		case 0x81A0: // S3 Trio64V+ streams processor, Blend Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.blendctl_ks = (val >> 2u) & 7u;
+				vga.s3.streams.blendctl_kp = (val >> 10u) & 7u;
+				vga.s3.streams.blendctl_composemode = (val >> 24u) & 7u;
+			}
+			break;
+		case 0x81C0: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 0 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_fba[0] = val & 0x3FFFFFu;
+			}
+			break;
+		case 0x81C4: // S3 Trio64V+ streams processor, Primary Stream Frame Buffer Address 1 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_fba[1] = val & 0x3FFFFFu;
+			}
+			break;
+		case 0x81C8: // S3 Trio64V+ streams processor, Primary Stream Stride (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_stride = val & 0x1FFFu;
+			}
+			break;
+		case 0x81CC: // S3 Trio64V+ streams processor, Double Buffer/LPB Support (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ps_bufsel = val & 1u;
+				vga.s3.streams.ss_bufsel = (val >> 1u) & 3u;
+				vga.s3.streams.lpb_in_bufsel = (val >> 4u) & 1u;
+				vga.s3.streams.lpb_in_bufselloading = (val >> 5u) & 1u;
+				vga.s3.streams.lpb_in_bufseltoggle = (val >> 6u) & 1u;
+			}
+			break;
+		case 0x81D0: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 0 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_fba[0] = val & 0x3FFFFFu;
+			}
+			break;
+		case 0x81D4: // S3 Trio64V+ streams processor, Secondary Stream Frame Buffer Address 1 (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_fba[1] = val & 0x3FFFFFu;
+			}
+			break;
+		case 0x81D8: // S3 Trio64V+ streams processor, Secondary Stream Stride (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ss_stride = val & 0x1FFFu;
+			}
+			break;
+		case 0x81DC: // S3 Trio64V+ streams processor, Opaque Overlay Control (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.ooc_pixfetch_stop = val & 0xFFFu;
+				vga.s3.streams.ooc_pixfetch_resume = (val >> 16u) & 0xFFFu;
+				vga.s3.streams.ooc_tss = (val >> 30u) & 1u;
+				vga.s3.streams.ooc_ooc_enable = (val >> 31u) & 1u;
+			}
+			break;
+		case 0x81E0: // S3 Trio64V+ streams processor, K1 Vertical Scale Factor (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.k1_vscale_factor = val & 0x7FFu;
+			}
+			break;
+		case 0x81E4: // S3 Trio64V+ streams processor, K2 Vertical Scale Factor (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.k2_vscale_factor = val & 0x7FFu;
+				if (vga.s3.streams.k2_vscale_factor & 0x400u)
+					vga.s3.streams.k2_vscale_factor -= 0x800u;
+			}
+			break;
+		case 0x81E8: // S3 Trio64V+ streams processor, DDA Vertical Accumulator Initial Value (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.dda_vaccum_iv = val & 0xFFFu;
+				if (vga.s3.streams.dda_vaccum_iv & 0x0800u)
+					vga.s3.streams.dda_vaccum_iv -= 0x1000u;
+			}
+			if (s3Card >= S3_ViRGE) {
+				vga.s3.streams.evf = (val >> 15u) & 1u;
+			}
+			break;
+		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				/* bits [4:0] should be a value from 0 to 24 to shift priority between primary and secondary.
+				 * The larger the value, the more slots alloted to secondary layer.
+				 * Allocation is out of 24 slots, therefore values larger than 24 are invalid. */
+				uint8_t thr = val & 0x1Fu;
+				if (thr > 24u) thr -= 16u; // assume some kind of odd malfunction happens on real hardware, check later
+				vga.s3.streams.fifo_alloc_ps = 24 - thr;
+				vga.s3.streams.fifo_alloc_ss = thr;
+				vga.s3.streams.fifo_ss_threshhold = (val >> 5u) & 0x1Fu;
+				vga.s3.streams.fifo_ps_threshhold = (val >> 10u) & 0x1Fu;
+				vga.s3.streams.ras_rl = (val >> 15u) & 1u;
+				vga.s3.streams.ras_rp = (val >> 16u) & 1u;
+				vga.s3.streams.edo_wsctl = (val >> 18u) & 1u;
+			}
+			break;
+		case 0x81F0: // S3 Trio64V+ streams processor, Primary Stream Window Start Coordinates (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.pswnd_start_y = val & 0x3FFu;
+				vga.s3.streams.pswnd_start_x = (val >> 16u) & 0x3FFu;
+			}
+			break;
+		case 0x81F4: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.pswnd_height = val & 0x3FFu;
+				vga.s3.streams.pswnd_width = (val >> 16u) & 0x3FFu;
+			}
+			break;
+		case 0x81F8: // S3 Trio64V+ streams processor, Secondary Stream Window Start Coordinates (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.sswnd_start_y = val & 0x3FFu;
+				vga.s3.streams.sswnd_start_x = (val >> 16u) & 0x3FFu;
+			}
+			break;
+		case 0x81FC: // S3 Trio64V+ streams processor, Primary Stream Window Size (MMIO only)
+			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
+				vga.s3.streams.sswnd_height = val & 0x3FFu;
+				vga.s3.streams.sswnd_width = (val >> 16u) & 0x3FFu;
+			}
+			break;
+
 		case 0x92e8:
 			xga.ErrTerm = val&0x3FFF;
 			break;
@@ -1150,7 +1516,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			xga.destx = val&0x3fff;
 			break;
 		case 0xb2e8:
-			//LOG_MSG("COLOR_CMP not implemented");
+			XGA_SetDualReg(xga.color_compare, val);
 			break;
 		case 0xb6e8:
 			xga.backmix = (uint16_t)val;
@@ -1196,6 +1562,16 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			return 0x400; // nothing busy
 		case 0x81ec: // S3 video data processor
 			return 0x00007000;
+		case 0x8504: // S3 ViRGE Subsystem Status Register
+			if (s3Card >= S3_ViRGE) /* HACK: Always say S3D ENGINE is IDLE, or else Windows 98 will hang at startup */
+				return (16 << 8)/*S3D FIFO SLOTS FREE*/ | 0x2000/*S3D ENGINE IDLE*/;
+			else
+				return 0xffffffff;
+		case 0x850c: // S3 ViRGE Advanced Function Control Register
+			if (s3Card >= S3_ViRGE) /* HACK: Always say not busy, or Windows 98 will hang at startup */
+				return (8 << 6)/*COMMAND FIFO STATUS*/ | 1/*Enable SVGA*/ | 0x10/*Linear address enable*/;
+			else
+				return 0xffffffff;
 		case 0x83da:
 			{
 				Bits delaycyc = CPU_CycleMax/5000;
@@ -1217,6 +1593,8 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			else return 0x0;
 		case 0xbee8:
 			return XGA_Read_Multifunc();
+		case 0xb2e8:
+			return XGA_GetDualReg(xga.color_compare);
 		case 0xa2e8:
 			return XGA_GetDualReg(xga.backcolor);
 		case 0xa6e8:
@@ -1351,3 +1729,9 @@ void POD_Load_VGA_XGA( std::istream& stream )
 	// - pure struct data
 	READ_POD( &xga, xga );
 }
+
+void SD3_Reset(bool enable) {
+	// STUB
+	LOG(LOG_VGA,LOG_DEBUG)("S3D reset %s",enable?"begin":"end");
+}
+

@@ -31,6 +31,13 @@ void GetClipboard(std::string* result) {
 	*result = std::string([text UTF8String]);
 }
 
+bool SetClipboard(std::string value) {
+	NSPasteboard* pb = [NSPasteboard generalPasteboard];
+	NSString* text = [NSString stringWithUTF8String:value.c_str()];
+	[pb clearContents];
+	return [pb setString:text forType:NSStringPboardType];
+}
+
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
 	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
 	return (ns_item != nil) ? ns_item : NULL;
@@ -550,4 +557,60 @@ void qz_set_match_monitor_cb(void) {
 #endif
 }
 
+// WARNING! You must initialize the SDL Video subsystem *FIRST*
+// before calling this function, or else strange errors and
+// malfunctions occur in the Cocoa framework (at least in Big Sur).
+// You can quit the SDL Video subsystem and reinitialize later
+// after this function is done.
+std::string MacOSX_prompt_folder(const char *default_folder) {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    NSModalResponse r;
+    std::string res;
 
+    [panel setPrompt:@"Choose"];
+    [panel setCanChooseFiles:false];
+    [panel setCanChooseDirectories:true];
+    [panel setAllowsMultipleSelection:false];
+    [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
+    [panel setCanCreateDirectories:true]; /* sure, why not? */
+    if (default_folder != NULL) [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithFormat:@"%s",default_folder]]];
+
+    r = [panel runModal];
+    if (r == NSFileHandlingPanelOKButton) {
+        NSArray *urls = [panel URLs];
+        if ([urls count] > 0) {
+            NSURL *url = urls[0];
+            if ([[url scheme] isEqual: @"file"]) {
+                /* NTS: /path/to/file is returned as file:///path/to/file */
+                res = [[url relativePath] UTF8String];
+            }
+            else {
+                fprintf(stderr,"WARNING: Rejecting returned protocol '%s', no selection accepted\n",
+                    [[url scheme] UTF8String]);
+            }
+        }
+    }
+
+    [panel release];
+
+    return res;
+}
+
+void MacOSX_alert(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    [alert runModal];
+}
+
+int MacOSX_yesnocancel(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert addButtonWithTitle:@"No"];
+    [alert addButtonWithTitle:@"Cancel"];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    return [alert runModal];
+}

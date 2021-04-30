@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,13 +32,24 @@
 #include "cross.h"
 #include "control.h"
 #include "shell.h"
+#include "hardware.h"
+#include "mapper.h"
 #include "menu.h"
+#include "render.h"
+#include "../ints/int10.h"
+#if defined(WIN32)
+#include "windows.h"
+extern RECT monrect;
+extern int curscreen;
+typedef struct {
+	int	x, y;
+} xyp;
+#endif
 
 Bitu call_program;
-
-extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, lastset;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -77,7 +88,7 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void EMS_Startup(Section* sec), EMS_DoShutDown();
+void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -183,7 +194,7 @@ void Program::ChangeToLongCmd() {
 	 * Length of arguments can be ~120. but switch when above 100 to be sure
 	 */
 
-	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100) {	
+	if (/*control->SecureMode() ||*/ cmd->Get_arglength() > 100 && full_arguments.size()) {
 		CommandLine* temp = new CommandLine(cmd->GetFileName(),full_arguments.c_str());
 		delete cmd;
 		cmd = temp;
@@ -551,20 +562,27 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program);
-bool set_ver(char *s);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+bool set_ver(char *s), GFX_IsFullscreen(void);
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
-		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
-		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
+		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
+		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype",
+		"-avistart","-avistop",
+		"-startmapper",
+		"-get", "-set",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
 		P_WRITECONF_PORTABLE, P_WRITECONF_DEFAULT, P_WRITECONF, P_WRITECONF2,
-		P_LISTCONF,	P_KILLCONF,
+		P_WRITECONF_PORTABLE_REBOOT, P_WRITECONF_DEFAULT_REBOOT, P_WRITECONF_REBOOT, P_WRITECONF2_REBOOT,
+		P_BOOTCONF, P_BOOTCONF2, P_LISTCONF, P_KILLCONF,
 		P_HELP, P_HELP2, P_HELP3,
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
+		P_REC_AVI_START, P_REC_AVI_STOP,
+		P_START_MAPPER,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
@@ -618,6 +636,9 @@ void CONFIG::Run(void) {
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
+			char cwd[512] = {0};
+			char *res = getcwd(cwd,sizeof(cwd)-1);
+			if (res!=NULL) WriteOut(MSG_Get("PROGRAM_CONFIG_WORKDIR"), cwd);
 			if (size==0) WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			else {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_PRIMARY_CONF"),control->configfiles.front().c_str());
@@ -635,39 +656,55 @@ void CONFIG::Run(void) {
 			}
 			break;
 		}
-		case P_WRITECONF: case P_WRITECONF2:
+		case P_WRITECONF: case P_WRITECONF2: case P_WRITECONF_REBOOT: case P_WRITECONF2_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
 				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all, norem);
+				if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all, norem);
-				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+				if (control->configfiles.size()) {
+					writeconf(control->configfiles[0], false, all, norem);
+					if (presult==P_WRITECONF_REBOOT || presult==P_WRITECONF2_REBOOT) RebootConfig(control->configfiles[0]);
+				} else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
-		case P_WRITECONF_DEFAULT: {
+		case P_WRITECONF_DEFAULT: case P_WRITECONF_DEFAULT_REBOOT: {
 			// write to /userdir/dosbox-x-0.xx.conf
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
 			writeconf(confname, true, all, norem);
+			if (presult==P_WRITECONF_DEFAULT_REBOOT) RebootConfig(confname);
 			break;
 		}
-		case P_WRITECONF_PORTABLE:
+		case P_WRITECONF_PORTABLE: case P_WRITECONF_PORTABLE_REBOOT:
 			if (securemode_check()) return;
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
 				writeconf(pvars[0], false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(pvars[0]);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
 				writeconf(std::string("dosbox-x.conf"), false, all, norem);
+				if (presult==P_WRITECONF_PORTABLE_REBOOT) RebootConfig(std::string("dosbox-x.conf"));
 			}
 			break;
-
+		case P_BOOTCONF: case P_BOOTCONF2:
+			if (securemode_check()) return;
+			if (pvars.size() > 1) return;
+			else if (pvars.size() == 1) {
+				RebootConfig(pvars[0]);
+			} else {
+				Bitu size = (Bitu)control->configfiles.size();
+				if (size==0) RebootConfig("dosbox-x.conf");
+				else RebootConfig(control->configfiles.front().c_str());
+            }
+			break;
 		case P_NOPARAMS:
 			if (!first) break;
 
@@ -824,6 +861,16 @@ void CONFIG::Run(void) {
 			WriteOut("\n%s",sec->data.c_str());
 			break;
 		}
+		case P_REC_AVI_START:
+			CAPTURE_VideoStart();
+			break;
+		case P_REC_AVI_STOP:
+			CAPTURE_VideoStop();
+			break;
+		case P_START_MAPPER:
+			if (securemode_check()) return;
+			MAPPER_Run(false);
+			break;
 		case P_GETPROP: {
 			// "section property"
 			// "property"
@@ -899,12 +946,68 @@ void CONFIG::Run(void) {
 					// no: maybe it's a property?
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
 					if (!sec) {
-						WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+                        int maxWidth, maxHeight;
+                        void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight), GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight);
+                        if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
+                            GetMaxWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
+                            GetMaxWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
+                            GetDrawWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxWidth);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
+                            GetDrawWidthHeight(&maxWidth, &maxHeight);
+                            WriteOut("%d\n",maxHeight);
+                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+#if defined(C_SDL2)
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+                            int w = 640,h = 480;
+                            SDL_Window* GFX_GetSDLWindow(void);
+                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                            WriteOut("%d\n",w);
+                            first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+                            int w = 640,h = 480;
+                            SDL_Window* GFX_GetSDLWindow(void);
+                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                            WriteOut("%d\n",h);
+                            first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
+#elif defined(WIN32)
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+                            RECT rect;
+                            GetClientRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+                            RECT rect;
+                            GetClientRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+#endif
+#if defined(WIN32)
+                        } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
+                            RECT rect;
+                            GetWindowRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.right-rect.left);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
+                            RECT rect;
+                            GetWindowRect(GetHWND(), &rect);
+                            WriteOut("%d\n",rect.bottom-rect.top);
+                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+#endif
+                        } else
+                            WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
 					}
 					// it's a property name
 					std::string val = sec->GetPropValue(pvars[0].c_str());
-					WriteOut("%s",val.c_str());
+					WriteOut("%s\n",val.c_str());
 					first_shell->SetEnv("CONFIG",val.c_str());
 				}
 				break;
@@ -950,7 +1053,7 @@ void CONFIG::Run(void) {
 						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
 					return;
 				}
-				WriteOut("%s",val.c_str());
+				WriteOut("%s\n",val.c_str());
                 first_shell->SetEnv("CONFIG",val.c_str());
                 break;
 			}
@@ -1068,7 +1171,7 @@ void CONFIG::Run(void) {
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "dos")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1106,6 +1209,23 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
+                                if (section->Get_bool("fullscreen")) {
+                                    if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                                } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                            }
+                            if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
+                                bool toOutput(const char *output);
+                                std::string GetDefaultOutput();
+                                std::string output=section->Get_string("output");
+                                if (output == "default") output=GetDefaultOutput();
+                                GFX_LosingFocus();
+                                toOutput(output.c_str());
+#if defined(WIN32) && !defined(HX_DOS)
+                                void DOSBox_SetSysMenu(void);
+                                DOSBox_SetSysMenu();
+#endif
+                            }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
@@ -1121,7 +1241,7 @@ void CONFIG::Run(void) {
                                 if (pp->realpath=="") ReloadMapper(section,true);
                             }
 							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
-								void setScanCode(Section_prop * section), loadScanCode(), GFX_LosingFocus(), MAPPER_Init();
+								void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
 								setScanCode(section);
 								loadScanCode();
 								GFX_LosingFocus();
@@ -1129,6 +1249,89 @@ void CONFIG::Run(void) {
 								load=true;
 							}
 #endif
+#endif
+                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
+                                void SetDisplayNumber(int display);
+                                int GetNumScreen();
+                                int numscreen = GetNumScreen();
+                                const int display = section->Get_int("display");
+                                if (display >= 0 && display <= numscreen)
+                                    SetDisplayNumber(display);
+                            }
+                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
+                                const char* windowposition = section->Get_string("windowposition");
+                                int GetDisplayNumber(void);
+                                int posx = -1, posy = -1;
+                                if (windowposition && *windowposition) {
+                                    char result[100];
+                                    safe_strncpy(result, windowposition, sizeof(result));
+                                    char* y = strchr(result, ',');
+                                    if (y && *y) {
+                                        *y = 0;
+                                        posx = atoi(result);
+                                        posy = atoi(y + 1);
+                                    }
+                                }
+#if defined(C_SDL2)
+                                SDL_Window* GFX_GetSDLWindow(void);
+                                SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
+                                if (posx < 0 || posy < 0) {
+                                    SDL_DisplayMode dm;
+                                    int w = 640,h = 480;
+                                    SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                                    if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
+                                        posx = (dm.w - w)/2;
+                                        posy = (dm.h - h)/2;
+                                    }
+                                }
+                                if (GetDisplayNumber()>0) {
+                                    int displays = SDL_GetNumVideoDisplays();
+                                    SDL_Rect bound;
+                                    for( int i = 1; i <= displays; i++ ) {
+                                        bound = SDL_Rect();
+                                        SDL_GetDisplayBounds(i-1, &bound);
+                                        if (i == GetDisplayNumber()) {
+                                            posx += bound.x;
+                                            posy += bound.y;
+                                            break;
+                                        }
+                                    }
+                                }
+                                SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
+#elif defined(WIN32)
+                                RECT rect;
+                                MONITORINFO info;
+                                GetWindowRect(GetHWND(), &rect);
+#if !defined(HX_DOS)
+                                if (GetDisplayNumber()>0) {
+                                    xyp xy={0};
+                                    xy.x=-1;
+                                    xy.y=-1;
+                                    curscreen=0;
+                                    BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
+                                    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+                                    HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+                                    info.cbSize = sizeof(MONITORINFO);
+                                    GetMonitorInfo(monitor, &info);
+                                    if (posx >=0 && posy >=0) {
+                                        posx+=info.rcMonitor.left;
+                                        posy+=info.rcMonitor.top;
+                                    } else {
+                                        posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
+                                        posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
+                                    }
+                                } else
+#endif
+                                if (posx < 0 && posy < 0) {
+                                    posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
+                                    posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
+                                }
+                                MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
+#endif
+                            }
+
+#if defined(USE_TTF)
+							resetFontSize();
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							mountwarning = section->Get_bool("mountwarning");
@@ -1173,7 +1376,88 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
 #endif
                             }
-						}
+						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
+                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
+							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
+#if defined(USE_TTF)
+                                ttf_reset();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
+#if defined(USE_TTF)
+                                bool iscol=!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=");
+                                if (iscol&&IS_PC98_ARCH)
+                                    SetVal("render", "ttf.cols", "80");
+                                else if (!CurMode)
+                                    ;
+                                else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+                                    WriteOut("[2J");
+                                else {
+                                    reg_ax=(uint16_t)CurMode->mode;
+                                    CALLBACK_RunRealInt(0x10);
+                                }
+                                lastset=iscol?2:1;
+                                ttf_setlines(0, 0);
+                                lastset=0;
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
+#if defined(USE_TTF)
+                                const char *wpstr=section->Get_string("ttf.wp");
+                                wpType=wpVersion=0;
+                                if (strlen(wpstr)>1) {
+                                    if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
+                                    else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
+                                    else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
+                                    if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
+                                }
+                                mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
+#if defined(USE_TTF)
+                                wpBG = section->Get_int("ttf.wpbg");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.bold=")) {
+#if defined(USE_TTF)
+                                showbold = section->Get_bool("ttf.bold");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.italic=")) {
+#if defined(USE_TTF)
+                                showital = section->Get_bool("ttf.italic");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.underline=")) {
+#if defined(USE_TTF)
+                                showline = section->Get_bool("ttf.underline");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.strikeout=")) {
+#if defined(USE_TTF)
+                                showsout = section->Get_bool("ttf.strikeout");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "ttf.char512=")) {
+#if defined(USE_TTF)
+                                char512 = section->Get_bool("ttf.char512");
+                                resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
+#if defined(USE_TTF)
+                                SetBlinkRate(section);
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+#if C_OPENGL
+                                std::string LoadGLShader(Section_prop * section);
+                                LoadGLShader(section);
+                                GFX_ForceRedrawScreen();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
+                                GFX_ForceRedrawScreen();
+                        }
 					}
 				}
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
@@ -1234,31 +1518,34 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
 	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");
 	
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
-		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
+		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
+		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
-		"-gui Starts DOSBox-X's graphical configuration tool.\n"
-		"-l Lists DOSBox-X configuration parameters.\n"\
-		"-h, -help, -? sections / sectionname / propertyname\n"\
-		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
-		" For info about a specific section or property add its name behind.\n"\
+		"-l Lists DOSBox-X's configuration parameters.\n"\
+		"-h, -help, -? Shows this help; add the word \"sections\" for a list of sections.\n"\
+		"-h, -help, -? section / property Shows info on a specific section or property.\n"\
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-		" disabled as well as the ability to create config and language files.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-avistart, -avistop Starts or stops AVI recording.\n"\
+		"-startmapper Starts the mapper editor.\n"\
+		"-gui Starts the graphical configuration tool.\n"
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
@@ -1277,6 +1564,6 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
-	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s");
+	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");
 }

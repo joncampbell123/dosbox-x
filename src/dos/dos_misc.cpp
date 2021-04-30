@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,14 +24,18 @@
 #include "dos_inc.h"
 #include "control.h"
 #include <list>
+#include <SDL.h>
 
 uint32_t DOS_HMA_LIMIT();
 uint32_t DOS_HMA_FREE_START();
 uint32_t DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
+#if defined(MACOSX)
+bool SetClipboard(std::string value);
+#endif
 
-extern bool enable_share_exe;
+extern bool enable_share_exe, enable_network_redirector;
 
 extern Bitu XMS_EnableA20(bool enable);
 
@@ -90,8 +94,10 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
-extern bool i4dos, shellrun, clipboard_dosapi;
+extern std::string strPasteBuffer;
+extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
+void PasteClipboard(bool bPressed);
 
 // INT 2F
 char regpath[CROSS_LEN+1]="C:\\WINDOWS\\SYSTEM.DAT";
@@ -254,10 +260,8 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
-#ifdef WIN32
-		if (!control->SecureMode() && (reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A || reg_sp >= 0xFF7A && reg_sp <= 0xFF8F && mem_readw(SegPhys(ss)+reg_sp) == reg_sp + 21))
+		if (!control->SecureMode() && (reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A || reg_sp >= 0xFF7A && reg_sp <= 0xFF8F && mem_readw(SegPhys(ss)+reg_sp) == reg_sp + 21)) // Hack for DOSCLIP
 			reg_ax = 0x301;
-#endif
         return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
@@ -379,7 +383,6 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */
 		return true;
-#ifdef WIN32
 	case 0x1700:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_al = 1;
@@ -387,26 +390,37 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1701:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
+#if defined(WIN32)
 		reg_ax=0;
 		if (OpenClipboard(NULL)) {
 			reg_ax=1;
 			CloseClipboard();
 		}
+#else
+		reg_ax=1;
+#endif
 		return true;
 	case 0x1702:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
-		if (OpenClipboard(NULL))
-			{
+#if defined(WIN32)
+		if (OpenClipboard(NULL)) {
 			reg_ax=EmptyClipboard()?1:0;
 			CloseClipboard();
-			}
+		}
+#elif defined(C_SDL2)
+        SDL_SetClipboardText("");
+        if (!SDL_HasClipboardText()) reg_ax=1;
+#elif defined(MACOSX)
+        if (SetClipboard("")) reg_ax=1;
+#endif
 		return true;
 	case 0x1703:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
-		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
-			{
+		if ((reg_dx==1||reg_dx==7)
+#if defined(WIN32)
+        &&OpenClipboard(NULL)) {
 			char *text, *buffer;
 			text = new char[reg_cx];
 			MEM_StrCopy(SegPhys(es)+reg_bx,text,reg_cx);
@@ -421,42 +435,109 @@ static bool DOS_MultiplexFunctions(void) {
 			SetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT,clipbuffer);
 			reg_ax++;
 			CloseClipboard();
-			}
+#elif defined(C_SDL2) || defined(MACOSX)
+        ) {
+			char *text = new char[reg_cx];
+			MEM_StrCopy(SegPhys(es)+reg_bx,text,reg_cx);
+            std::istringstream iss(text);
+            std::string result="";
+            for (std::string token; std::getline(iss, token); ) {
+                typedef char host_cnv_char_t;
+                host_cnv_char_t *CodePageGuestToHost(const char *s);
+                char* uname = CodePageGuestToHost(token.c_str());
+                result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
+            }
+            if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
+            if (SDL_SetClipboardText(result.c_str()) == 0) reg_ax++;
+#else
+            if (SetClipboard(result)) reg_ax++;
+#endif
+#else
+        ) {
+#endif
+		}
 		return true;
 	case 0x1704:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
-		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
-			{
-			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
-				{
+		if ((reg_dx==1||reg_dx==7)
+#if defined(WIN32)
+        &&OpenClipboard(NULL)) {
+			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT)) {
 				reg_ax=(uint16_t)strlen((char *)text)+1;
 				reg_dx=(uint16_t)((strlen((char *)text)+1)/65536);
-				}
-			else
+			} else
 				reg_dx=0;
 			CloseClipboard();
-			}
+#else
+        ) {
+            swapad=false;
+            PasteClipboard(true);
+            swapad=true;
+            uint32_t size = 0, extra = 0;
+            unsigned char head, last=13;
+            uint8_t *text;
+            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
+                while (strPasteBuffer.length()) {
+                    head = strPasteBuffer[0];
+                    if (head == 10 && last != 13) text[size++] = 13;
+                    if (head > 31 || head == 9 || head == 10 || head == 13) text[size++] = head;
+                    if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) text[size++] = 10;
+                    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+                    last = head;
+                }
+                text[size]=0;
+				reg_ax=(uint16_t)size;
+				reg_dx=(uint16_t)(size/65536);
+			} else
+				reg_dx=0;
+#endif
+		}
 		return true;
 	case 0x1705:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
-		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
-			{
-			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
-				{
+		if ((reg_dx==1||reg_dx==7)
+#if defined(WIN32)
+        &&OpenClipboard(NULL)) {
+			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT)) {
 				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(strlen((char *)text)+1));
 				reg_ax++;
-				}
-			CloseClipboard();
 			}
+			CloseClipboard();
+#else
+        ) {
+            swapad=false;
+            PasteClipboard(true);
+            swapad=true;
+            uint32_t size = 0, extra = 0;
+            unsigned char head, last=13;
+            uint8_t *text;
+            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
+                while (strPasteBuffer.length()) {
+                    head = strPasteBuffer[0];
+                    if (head == 10 && last != 13) text[size++] = 13;
+                    if (head > 31 || head == 9 || head == 10 || head == 13) text[size++] = head;
+                    if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) text[size++] = 10;
+                    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+                    last = head;
+                }
+				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(strlen((char *)text)+1));
+				reg_ax++;
+            }
+#endif
+		}
 		return true;
 	case 0x1708:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=1;
+#if defined(WIN32)
 		CloseClipboard();
-		return true;
 #endif
+		return true;
     case 0x1a00:    /* ANSI.SYS installation check (MS-DOS 4.0 or higher) */
         if (IS_PC98_ARCH) {
             /* NTS: PC-98 MS-DOS has ANSI handling directly within the kernel HOWEVER it does NOT
@@ -473,6 +554,15 @@ static bool DOS_MultiplexFunctions(void) {
             /* MS-DOS without ANSI.SYS loaded doesn't modify any registers in response to this call. */
             return true;
         }
+	case 0xb800:																	// Network - installation check
+        if (!enable_network_redirector) return false;
+		reg_al = 1;																	// Installed
+		reg_bx = 8;																	// Bit 3 - redirector
+		break;
+	case 0xb809:																	// Network - get version
+        if (!enable_network_redirector) return false;
+		reg_ax = 0x0201;															// Major-minor version as returned by NTVDM-Windows XP
+		break;
     case 0x4680:    /* Windows v3.0 check */
         // Leave AX as 0x4680, indicating that Windows 3.0 is not running in real (/R) or standard (/S) mode,
         // nor is DOS 5 DOSSHELL active

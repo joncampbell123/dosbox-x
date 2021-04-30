@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,9 @@
 #include "mame/ymf262.h"
 #include "opl2board/opl2board.h"
 #include "opl3duoboard/opl3duoboard.h"
+
+#define RETROWAVE_USE_BUFFER
+#include "RetroWaveLib/RetroWave_DOSBoX.hpp"
 
 #define OPL2_INTERNAL_FREQ    3600000   // The OPL2 operates at 3.6MHz
 #define OPL3_INTERNAL_FREQ    14400000  // The OPL3 operates at 14.4MHz
@@ -418,6 +421,71 @@ namespace OPL3DUOBOARD {
 	};
 }
 
+namespace Retrowave_OPL3 {
+	struct Handler : public Adlib::Handler {
+		int opl3_port = 0;
+
+		virtual void WriteReg(uint32_t reg, uint8_t val) {
+//			printf("writereg: 0x%08x 0x%02x\n", reg, val);
+
+			uint8_t real_reg = reg & 0xff;
+			uint8_t real_val = val;
+
+			if (opl3_port) {
+#ifdef RETROWAVE_USE_BUFFER
+				retrowave_opl3_queue_port1(&retrowave_global_context, real_reg, real_val);
+#else
+				retrowave_opl3_emit_port1(&retrowave_global_context, real_reg, real_val);
+#endif
+			} else {
+#ifdef RETROWAVE_USE_BUFFER
+				retrowave_opl3_queue_port0(&retrowave_global_context, real_reg, real_val);
+#else
+				retrowave_opl3_emit_port0(&retrowave_global_context, real_reg, real_val);
+#endif
+			}
+		}
+
+		virtual uint32_t WriteAddr(uint32_t port, uint8_t val) {
+//			printf("writeaddr: 0x%08x 0x%02x\n", port, val);
+
+			switch (port & 3) {
+				case 0:
+					opl3_port = 0;
+					return val;
+				case 2:
+					opl3_port = 1;
+					if (val == 0x05)
+						return 0x100 | val;
+					else
+						return val;
+			}
+
+			return 0;
+		}
+
+		virtual void Generate(MixerChannel* chan, Bitu samples) {
+#ifdef RETROWAVE_USE_BUFFER
+			retrowave_flush(&retrowave_global_context);
+#endif
+			const int16_t buf = 0;
+			chan->AddSamples_m16(1, &buf);
+		}
+
+		virtual void Init(Bitu rate) {
+			retrowave_opl3_reset(&retrowave_global_context);
+		}
+
+		Handler(const std::string& bus, const std::string& path, const std::string& spi_cs) {
+			retrowave_init_dosbox(bus, path, spi_cs);
+			LOG_MSG("RetroWave: OPL3 class init");
+		}
+
+		~Handler() {
+			retrowave_opl3_reset(&retrowave_global_context);
+		}
+	};
+}
 
 #define RAW_SIZE 1024
 
@@ -562,15 +630,24 @@ class Capture {
 		uint16_t i;
         uint8_t val;
 		/* Check the registers to add */
-		for (i=0;i<256;i++) {
-			//Skip the note on entries
-			if (i>=0xb0 && i<=0xb8) 
-				continue;
+		for (i = 0;i < 256;i++) {
 			val = (*cache)[ i ];
+			//Silence the note on entries
+			if (i >= 0xb0 && i <= 0xb8) {
+				val &= ~0x20;
+			}
+			if (i == 0xbd) {
+				val &= ~0x1f;
+			}
+
 			if (val) {
 				AddWrite( i, val );
 			}
 			val = (*cache)[ 0x100u + i ];
+
+			if (i >= 0xb0 && i <= 0xb8) {
+				val &= ~0x20;
+			}
 			if (val) {
 				AddWrite( 0x100u + i, val );
 			}
@@ -853,8 +930,8 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 					CtrlWrite( (uint8_t)val );
 					break;
 				}
-			}
-			//Fall-through if not handled by control chip
+			} //Fall-through if not handled by control chip
+			/* FALLTHROUGH */
 		case MODE_OPL2:
 		case MODE_OPL3:
 			if ( !chip[0].Write( reg.normal, (uint8_t)val ) ) {
@@ -893,8 +970,8 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 					ctrl.index = val & 0xff;
 					break;
 				}
-			}
-			//Fall-through if not handled by control chip
+			} //Fall-through if not handled by control chip
+			/* FALLTHROUGH */
 		case MODE_OPL3:
 			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0x1ff;
 			break;
@@ -937,8 +1014,8 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 			} else if ( port == 0x38b ) {
 				return CtrlRead();
 			}
-		}
-		//Fall-through if not handled by control chip
+		} //Fall-through if not handled by control chip
+		/* FALLTHROUGH */
 	case MODE_OPL3:
 		//We allocated 4 ports, so just return -1 for the higher ones
 		if ( !(port & 3 ) ) {
@@ -960,6 +1037,7 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 
 void Module::Init( Mode m ) {
 	mode = m;
+	memset(cache, 0, sizeof(cache));
 	switch ( mode ) {
 	case MODE_OPL3:
 	case MODE_OPL3GOLD:
@@ -1011,6 +1089,7 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 /*
 	Save the current state of the operators as instruments in an reality adlib tracker file
 */
+#if 0
 void SaveRad() {
 	unsigned char b[16 * 1024];
 	unsigned int w = 0;
@@ -1049,7 +1128,7 @@ void SaveRad() {
 	fwrite( b, 1, w, handle );
 	fclose( handle );
 }
-
+#endif
 
 void OPL_SaveRawEvent(bool pressed) {
 	if (!pressed)
@@ -1110,6 +1189,9 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	ctrl.mixer = section->Get_bool("sbmixer");
 
 	std::string oplport(section->Get_string("oplport"));
+	std::string retrowave_bus(section->Get_string("retrowave_bus"));
+	std::string retrowave_port(section->Get_string("retrowave_port"));
+	std::string retrowave_spi_cs(section->Get_string("retrowave_spi_cs"));
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
 
 	mixerChan = mixerObject.Install(OPL_CallBack,rate,"FM");
@@ -1137,6 +1219,10 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		  oplmode = OPL_opl3;
 		  handler = new OPL3DUOBOARD::Handler(oplport.c_str());
 	    }
+	else if (oplemu == "retrowave_opl3") {
+		oplmode = OPL_opl3;
+		handler = new Retrowave_OPL3::Handler(retrowave_bus, retrowave_port, retrowave_spi_cs);
+	}
 	else if (oplemu == "mame") {
 		if (oplmode == OPL_opl2) {
 			handler = new MAMEOPL2::Handler();

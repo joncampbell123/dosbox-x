@@ -3,7 +3,7 @@
 
 
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -114,8 +114,11 @@
 /* Define to 1 to enable MT32 emulation (x86/x86_64 only) */
 /* #undef C_MT32 */
 
-/* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-#define C_NE2000 1
+/* Define to 1 to enable ethernet passthrough, requires libpcap */
+#define C_PCAP 1
+
+/* Define to 1 to enable userspace TCP/IP emulation, requires libslirp */
+/* #undef C_SLIRP */
 
 /* Define to 1 to use opengl display output support */
 /*#define C_OPENGL 1*/
@@ -256,7 +259,7 @@
 #define PACKAGE_NAME "dosbox-x"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "dosbox-x 0.83.9"
+#define PACKAGE_STRING "dosbox-x 0.83.10"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "dosbox-x"
@@ -265,7 +268,7 @@
 #define PACKAGE_URL "https://dosbox-x.com"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.83.9"
+#define PACKAGE_VERSION "0.83.10"
 
 /* Compiling on RISC OS */
 /* #undef RISCOS */
@@ -277,7 +280,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "0.83.9"
+#define VERSION "0.83.10"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -543,9 +543,9 @@ PageHandler* lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
     (void)co;//UNUSED
     if (memory.lfb.start_page == 0 || memory.lfb.pages == 0)
         return NULL;
-    if (phys_page >= memory.lfb.start_page || phys_page < memory.lfb.end_page)
+    if (phys_page >= memory.lfb.start_page && phys_page < memory.lfb.end_page)
         return memory.lfb.handler;
-    if (phys_page >= memory.lfb_mmio.start_page || phys_page < memory.lfb_mmio.end_page)
+    if (phys_page >= memory.lfb_mmio.start_page && phys_page < memory.lfb_mmio.end_page)
         return memory.lfb_mmio.handler;
 
     return NULL;
@@ -618,9 +618,20 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
     memory.lfb_mmio.handler=mmiohandler;
     if (mmiohandler != NULL) {
         /* FIXME: Why is this hard-coded? There's more than just S3 emulation in this code's future! */
-        memory.lfb_mmio.start_page=page+(0x01000000/4096);
-        memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
-        memory.lfb_mmio.pages=16;
+        if (svgaCard == SVGA_S3Trio && (s3Card == S3_Trio64V || s3Card == S3_Vision868 || s3Card == S3_ViRGE || s3Card == S3_ViRGEVX)) {
+            /* 64MB BAR. According to the datasheet, this 64MB region is split into two 32MB halves,
+             * the lower half "little endian" and the upper half "big endian". Within the 32MB region,
+             * the low 16MB is video memory and the high 16MB is MMIO. */
+            memory.lfb_mmio.start_page=page+(0x01000000/4096);
+            memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
+            memory.lfb_mmio.pages=16;
+        }
+        else {
+            /* 8MB BAR, MMIO at +16MB */
+            memory.lfb_mmio.start_page=page+(0x01000000/4096);
+            memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
+            memory.lfb_mmio.pages=16;
+        }
     }
     else {
         memory.lfb_mmio.start_page=0;
@@ -1825,7 +1836,7 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
-    MemBase = new uint8_t[memory.pages*4096];
+    MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */

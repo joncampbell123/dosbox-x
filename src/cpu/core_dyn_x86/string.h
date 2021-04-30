@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ enum STRING_OP {
 static void dyn_string(STRING_OP op) {
 	DynReg * si_base=decode.segprefix ? decode.segprefix : DREG(DS);
 	DynReg * di_base=DREG(ES);
-	DynReg * tmp_reg;bool usesi;bool usedi;
+	DynReg * tmp_reg;bool usesi;bool usedi;bool cmp=false;
 	gen_protectflags();
 	if (decode.rep) {
 		gen_dop_word_imm(DOP_SUB,true,DREG(CYCLES),decode.cycles);
@@ -38,14 +38,16 @@ static void dyn_string(STRING_OP op) {
 	}
 	/* Check what each string operation will be using */
 	switch (op) {
-	case STR_MOVSB:	case STR_MOVSW:	case STR_MOVSD:
 	case STR_CMPSB:	case STR_CMPSW:	case STR_CMPSD:
+		cmp=true;
+	case STR_MOVSB:	case STR_MOVSW:	case STR_MOVSD:
 		tmp_reg=DREG(TMPB);usesi=true;usedi=true;break;
 	case STR_LODSB:	case STR_LODSW:	case STR_LODSD:
 		tmp_reg=DREG(EAX);usesi=true;usedi=false;break;
 	case STR_OUTSB:	case STR_OUTSW:	case STR_OUTSD:
 		tmp_reg=DREG(TMPB);usesi=true;usedi=false;break;
 	case STR_SCASB:	case STR_SCASW:	case STR_SCASD:
+		cmp=true;
 	case STR_STOSB:	case STR_STOSW:	case STR_STOSD:
 		tmp_reg=DREG(EAX);usesi=false;usedi=true;break;
 	case STR_INSB:	case STR_INSW:	case STR_INSD:
@@ -76,10 +78,10 @@ static void dyn_string(STRING_OP op) {
 		gen_preloadreg(DREG(ECX));
 		DynRegs[G_ECX].flags|=DYNFLG_CHANGED;
 	}
-	DynState rep_state;
+	DynState rep_state, cmp_state;
 	dyn_savestate(&rep_state);
 	uint8_t * rep_start=cache.pos;
-	uint8_t * rep_ecx_jmp;
+	uint8_t * rep_ecx_jmp, * rep_cmp_jmp;
 	/* Check if ECX!=zero */
 	if (decode.rep) {
 		gen_dop_word(DOP_TEST,decode.big_addr,DREG(ECX),DREG(ECX));
@@ -113,6 +115,14 @@ static void dyn_string(STRING_OP op) {
 		} else {
 			gen_lea(DREG(EA),di_base,DREG(EDI),0,0);
 		}
+		if (cmp) {
+			switch (op&3) {
+			case 0:dyn_read_byte(DREG(EA),DREG(TMPD),false);break;
+			case 1:dyn_read_word(DREG(EA),DREG(TMPD),false);break;
+			case 2:dyn_read_word(DREG(EA),DREG(TMPD),true);break;
+			}
+			gen_needflags();
+		}
 		/* Maybe something special to be done to fill the value */
 		switch (op) {
 		case STR_INSB:
@@ -121,11 +131,19 @@ static void dyn_string(STRING_OP op) {
 		case STR_STOSB:
 			dyn_write_byte(DREG(EA),tmp_reg,false);
 			break;
+		case STR_CMPSB:
+		case STR_SCASB:
+			gen_dop_byte(DOP_CMP,tmp_reg,0,DREG(TMPD),0);
+			break;
 		case STR_INSW:
 			gen_call_function((void*)&IO_ReadW,"%Dw%Rw",DREG(EDX),tmp_reg);
 		case STR_MOVSW:
 		case STR_STOSW:
 			dyn_write_word(DREG(EA),tmp_reg,false);
+			break;
+		case STR_CMPSW:
+		case STR_SCASW:
+			gen_dop_word(DOP_CMP,false,tmp_reg,DREG(TMPD));
 			break;
 		case STR_INSD:
 			gen_call_function((void*)&IO_ReadD,"%Dw%Rd",DREG(EDX),tmp_reg);
@@ -133,8 +151,20 @@ static void dyn_string(STRING_OP op) {
 		case STR_STOSD:
 			dyn_write_word(DREG(EA),tmp_reg,true);
 			break;
+		case STR_CMPSD:
+		case STR_SCASD:
+			gen_dop_word(DOP_CMP,true,tmp_reg,DREG(TMPD));
+			break;
 		default:
 			IllegalOption("dyn_string op");
+		}
+		if (cmp) {
+			gen_protectflags();
+			
+			if (decode.rep) {
+				dyn_savestate(&cmp_state);
+				rep_cmp_jmp=gen_create_branch_long(decode.rep == REP_NZ ? BR_Z : BR_NZ);
+			}
 		}
 	}
 	gen_releasereg(DREG(EA));gen_releasereg(DREG(TMPB));
@@ -156,6 +186,19 @@ static void dyn_string(STRING_OP op) {
 		/* Jump back to start of ECX check */
 		dyn_synchstate(&rep_state);
 		gen_create_jump(rep_start);
+
+		if (cmp) {
+			dyn_loadstate(&cmp_state);
+			gen_fill_branch_long(rep_cmp_jmp);
+
+			/* update registers */
+			if (usesi) gen_dop_word(DOP_ADD,decode.big_addr,DREG(ESI),DREG(TMPW));
+			if (usedi) gen_dop_word(DOP_ADD,decode.big_addr,DREG(EDI),DREG(TMPW));
+
+			gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
+
+			dyn_synchstate(&rep_state);
+		}
 
 		dyn_loadstate(&rep_state);
 		gen_fill_branch_long(rep_ecx_jmp);

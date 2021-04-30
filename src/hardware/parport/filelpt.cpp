@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "Shellapi.h"
 #endif
 
+void ResolvePath(std::string& in);
 CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
                               :CParallel (cmd, nr,initIrq) {
     bool is_file = false;
@@ -77,24 +78,30 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 		name = str.c_str();
 		filetype = FILE_DEV;
 	} else if(cmd->FindStringBegin("file:",str,false)) {
+        ResolvePath(str);
 		name = str.c_str();
 		filetype = FILE_DEV;
         is_file = true;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
+        ResolvePath(str);
 		name = str.c_str();
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
 	if (cmd->FindStringFullBegin("openps:",str,squote,false)) {
+        ResolvePath(str);
 		action1 = trim((char *)str.c_str());
     }
 	if (cmd->FindStringFullBegin("openpcl:",str,squote,false)) {
+        ResolvePath(str);
 		action2 = trim((char *)str.c_str());
     }
 	if (cmd->FindStringFullBegin("openwith:",str,squote,false)) {
+        ResolvePath(str);
 		action3 = trim((char *)str.c_str());
     }
 	if (cmd->FindStringFullBegin("openerror:",str,squote,false)) {
+        ResolvePath(str);
 		action4 = trim((char *)str.c_str());
     }
 

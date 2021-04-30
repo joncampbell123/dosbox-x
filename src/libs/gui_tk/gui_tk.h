@@ -778,6 +778,74 @@ public:
 
 };
 
+class Timer;
+
+/// Timer callback type
+struct Timer_Callback {
+public:
+		/// The timer has expired.
+		/** Callbacks for timers take one parameter, the number of ticks since
+		 *  application start. Note that this value may wrap after a little less
+		 *  than 500 days. If you want callbacks to be called again, return the
+		 *  delay in ticks relative to the scheduled time of this
+		 *  callback (which may be earlier than now() ). Otherwise return 0. */
+		virtual Ticks timerExpired(Ticks time) = 0;
+		virtual ~Timer_Callback() {}
+};
+
+/** \brief Timing service.
+ *  Time is measured in ticks. A tick is about 10 msec.
+ *
+ *  Note that this is not suitable as a high-accuracy timing service. Timer
+ *  events can be off by many ticks, and a tick may be slightly more or
+ *  slightly less than 10 msec. Because of that, Timers are only intended for
+ *  simple animation effects, input timeouts and similar things.
+ *
+ */
+class Timer {
+protected:
+	/// Number of ticks since application start.
+	static Ticks ticks;
+
+	/// Compare two integers for 'less-than'.
+	struct ltuint { bool operator()(Ticks i1, Ticks i2) const {
+		return (i1 < i2);
+	} };
+
+	/// Active timers.
+	static std::multimap<Ticks,Timer_Callback*,ltuint> timers;
+
+public:
+	/// Advance time and check for expired timers.
+	static void check(Ticks ticks);
+	static void check_to(Ticks ticks);
+
+	/// Add a timed callback. \p ticks is a value relative to now().
+	/** \p cb is not copied. */
+	static void add(Timer_Callback *cb, const Ticks ticks) { timers.insert(std::pair<const Ticks,Timer_Callback *>(ticks+Timer::ticks,cb)); }
+
+	static void remove(const Timer_Callback *const timer);
+
+	/// Return current time (ticks since application start)
+	static Ticks now() { return ticks; }
+
+	/// Return number of ticks until next scheduled timer or 0 if no timers
+	static Ticks next();
+};
+
+struct vscrollbarlayout {
+    SDL_Rect scrollthumbRegion = {0,0,0,0};
+    SDL_Rect scrollbarRegion = {0,0,0,0};
+    int thumbwidth = 0;
+    int thumbheight = 0;
+    int thumbtravel = 0;
+    bool drawthumb = false;
+    bool disabled = true;
+    bool draw = false;
+    int xleft = -1;
+    int ytop = -1;
+};
+
 /* Window wrapper to make scrollable regions */
 class WindowInWindow : public Window {
 protected:
@@ -804,6 +872,13 @@ public:
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 
+	virtual void getVScrollInfo(vscrollbarlayout &vsl) const;
+	virtual void paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const;
+	virtual void paintScrollBarThumbDragOutline(Drawable &dscroll,const vscrollbarlayout &vsl) const;
+	virtual void paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const;
+	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
+	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
+	virtual void paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintAll(Drawable &d) const;
 
 	virtual void resize(int w, int h);
@@ -813,9 +888,32 @@ public:
 
     bool    hscroll_dragging = false;
     bool    vscroll_dragging = false;
+    bool    vscroll_uparrowhold = false;
+    bool    vscroll_downarrowhold = false;
+    bool    vscroll_uparrowdown = false;
+    bool    vscroll_downarrowdown = false;
+
+    /// Timer callback type
+    struct DragTimer_Callback : public Timer_Callback {
+        public:
+            /// The timer has expired.
+            /** Callbacks for timers take one parameter, the number of ticks since
+             *  application start. Note that this value may wrap after a little less
+             *  than 500 days. If you want callbacks to be called again, return the
+             *  delay in ticks relative to the scheduled time of this
+             *  callback (which may be earlier than now() ). Otherwise return 0. */
+            virtual Ticks timerExpired(Ticks time);
+            virtual ~DragTimer_Callback() {}
+        public:
+            WindowInWindow *wnd = NULL;
+    };
 
     bool    dragging = false;
     int     drag_x = 0, drag_y = 0;
+    Ticks   drag_start = 0;
+    int     drag_start_pos = 0;
+    Timer   drag_timer;
+    DragTimer_Callback drag_timer_cb;
 
     int     scroll_pos_x = 0;
     int     scroll_pos_y = 0;
@@ -901,61 +999,6 @@ public:
 	virtual void paint(Drawable &d) const;
 };
 
-class Timer;
-
-/// Timer callback type
-struct Timer_Callback {
-public:
-		/// The timer has expired.
-		/** Callbacks for timers take one parameter, the number of ticks since
-		 *  application start. Note that this value may wrap after a little less
-		 *  than 500 days. If you want callbacks to be called again, return the
-		 *  delay in ticks relative to the scheduled time of this
-		 *  callback (which may be earlier than now() ). Otherwise return 0. */
-		virtual Ticks timerExpired(Ticks time) = 0;
-		virtual ~Timer_Callback() {}
-};
-
-/** \brief Timing service.
- *  Time is measured in ticks. A tick is about 10 msec.
- *
- *  Note that this is not suitable as a high-accuracy timing service. Timer
- *  events can be off by many ticks, and a tick may be slightly more or
- *  slightly less than 10 msec. Because of that, Timers are only intended for
- *  simple animation effects, input timeouts and similar things.
- *
- */
-class Timer {
-protected:
-	/// Number of ticks since application start.
-	static Ticks ticks;
-
-	/// Compare two integers for 'less-than'.
-	struct ltuint { bool operator()(Ticks i1, Ticks i2) const {
-		return (i1 < i2);
-	} };
-
-	/// Active timers.
-	static std::multimap<Ticks,Timer_Callback*,ltuint> timers;
-
-public:
-	/// Advance time and check for expired timers.
-	static void check(Ticks ticks);
-	static void check_to(Ticks ticks);
-
-	/// Add a timed callback. \p ticks is a value relative to now().
-	/** \p cb is not copied. */
-	static void add(Timer_Callback *cb, const Ticks ticks) { timers.insert(std::pair<const Ticks,Timer_Callback *>(ticks+Timer::ticks,cb)); }
-
-	static void remove(const Timer_Callback *const timer);
-
-	/// Return current time (ticks since application start)
-	static Ticks now() { return ticks; }
-
-	/// Return number of ticks until next scheduled timer or 0 if no timers
-	static Ticks next();
-};
-
 
 /** \brief A 24 bit per pixel RGB framebuffer aligned to 32 bit per pixel.
  *
@@ -1009,6 +1052,9 @@ protected:
 	/// time of last click for double-click detection.
 	Ticks lastclick,lastdown;
 
+    /// Integer scaling factor.
+	int scale;
+
 public:
 
 	/** Initialize SDL screen with a surface
@@ -1016,7 +1062,7 @@ public:
 	 *  The dimensions of this surface will define the screen dimensions. Changing the surface
 	 *  later on will not change the available area.
 	 */
-	ScreenSDL(SDL_Surface *surface);
+	ScreenSDL(SDL_Surface *surface, int scale);
     virtual ~ScreenSDL();
 
 	/** Change current surface
@@ -1037,13 +1083,13 @@ public:
 	Ticks update(Ticks ticks);
 
 	/// Process an SDL event. Returns \c true if event was handled.
-	bool event(const SDL_Event *ev) { return event(*ev); }
+	bool event(SDL_Event *ev) { return event(*ev); }
 
 	void watchTime();
 	Uint32 getTime() { return current_time; }
 
 	/// Process an SDL event. Returns \c true if event was handled.
-	bool event(const SDL_Event& event);
+	bool event(SDL_Event& event);
 };
 #endif
 

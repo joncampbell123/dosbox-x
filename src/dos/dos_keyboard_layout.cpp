@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,8 +37,9 @@
 #include <windows.h>
 #endif
 
+void DOSBox_SetSysMenu(void);
 #if defined(USE_TTF)
-void setTTFCodePage(void);
+int setTTFCodePage(void);
 bool TTF_using(void);
 #endif
 static FILE* OpenDosboxFile(const char* name) {
@@ -988,8 +989,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			// set codepage entries
 			dos.loaded_codepage=(uint16_t)(codepage_id&0xffff);
 #if defined(USE_TTF)
-            if (TTF_using()) setTTFCodePage();
+            if (TTF_using()) setTTFCodePage(); else
 #endif
+            DOSBox_SetSysMenu();
 
 			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
@@ -1053,6 +1055,7 @@ Bitu keyboard_layout::switch_keyboard_layout(const char* new_layout, keyboard_la
 	} else if (this->use_foreign_layout) {
 		// switch to the US layout
 		this->use_foreign_layout=false;
+		if (tried_cp < 0) dos.loaded_codepage = 437;
 		diacritics_character=0;
 		LOG(LOG_BIOS,LOG_NORMAL)("Switched to US layout");
 	}
@@ -1145,8 +1148,9 @@ public:
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
 #if defined(USE_TTF)
-        if (TTF_using()) setTTFCodePage();
+        if (TTF_using()) setTTFCodePage(); else
 #endif
+        DOSBox_SetSysMenu();
 		loaded_layout=new keyboard_layout();
 
 		const char * layoutname=section->Get_string("keyboardlayout");

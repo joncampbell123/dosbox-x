@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1330,6 +1330,7 @@ void BIOS_Post_register_comports() {
 	}
 }
 
+void ResolvePath(std::string& in);
 class SERIALPORTS:public Module_base {
 public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
@@ -1341,7 +1342,9 @@ public:
 
 #if C_MODEM
 		const Prop_path *pbFilename = section->Get_path("phonebookfile");
-		MODEM_ReadPhonebook(pbFilename->realpath);
+        std::string path=pbFilename->realpath;
+        ResolvePath(path);
+		MODEM_ReadPhonebook(path);
 #endif
                 
 		char s_property[] = "serialx"; 

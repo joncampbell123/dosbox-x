@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -89,6 +89,8 @@ public:
 
 	CPrinter (uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput);
 	virtual ~CPrinter();
+
+	void getPrinterContext();
 
 	// Process one character sent to virtual printer
 	void printChar(uint8_t ch);

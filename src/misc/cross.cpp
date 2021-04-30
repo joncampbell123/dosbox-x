@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <regex>
 
 #if defined(MACOSX)
 std::string MacOSXEXEPath;
@@ -46,6 +47,40 @@ std::string MacOSXResPath;
 #if defined __MINGW32__
 #define _mkdir(x) mkdir(x)
 #endif
+
+int resolveopt = 1;
+void autoExpandEnvironmentVariables(std::string & text, bool dosvar) {
+    static std::regex env(dosvar?"\\%([^%]+)%":"\\$\\{([^}]+)\\}");
+    std::smatch match;
+    while (std::regex_search(text, match, env)) {
+        const char * s = getenv(match[1].str().c_str());
+        const std::string var(s == NULL ? "" : s);
+        text.replace(match[0].first, match[0].second, var);
+    }
+}
+
+// Resolve environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS]), and tilde (~) in Linux/macOS
+void ResolvePath(std::string& in) {
+    if (!resolveopt) return;
+#if defined(WIN32)
+    if (resolveopt==3) return;
+    if (resolveopt==2) {autoExpandEnvironmentVariables(in, true);return;}
+    char path[300],temp[300],*tempd=temp;
+    strcpy(tempd, in.c_str());
+    if (strchr(tempd, '%')&&ExpandEnvironmentStrings(tempd,path,300))
+        tempd=path;
+    in=std::string(tempd);
+#elif defined(OS2)
+    if (resolveopt==3) return;
+    autoExpandEnvironmentVariables(in, true);
+#else
+    struct stat test;
+    if (stat(in.c_str(),&test))
+        Cross::ResolveHomedir(in);
+    if (resolveopt==3) return;
+    autoExpandEnvironmentVariables(in, resolveopt==2);
+#endif
+}
 
 #if defined(WIN32) && !defined(HX_DOS)
 static void W32_ConfDir(std::string& in,bool create) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -107,9 +107,12 @@ void CParallel::handleEvent(uint16_t type) {
 static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
     (void)iolen;//UNUSED
 	for(Bitu i = 0; i < 9; i++) {
-		if(parallel_baseaddr[i]==(port&0xfffc) && (parallelPortObjects[i]!=0)) {
+		/* NTS: The traditional parport range is assigned 8 ports by IBM, but only 0-2 are assigned.
+		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
+		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
+		if(((port-parallel_baseaddr[i])&0xfff8) == 0 && (parallelPortObjects[i]!=0)) {
 			Bitu retval=0xff;
-			switch (port & 0x7) {
+			switch ((port-parallel_baseaddr[i]) & 0x7) {
 				case 0:
 					retval = parallelPortObjects[i]->Read_PR();
 					break;
@@ -134,7 +137,10 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 
 static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
 	for(Bitu i = 0; i < 9; i++) {
-		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
+		/* NTS: The traditional parport range is assigned 8 ports by IBM, but only 0-2 are assigned.
+		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
+		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
+		if(((port-parallel_baseaddr[i])&0xfff8) == 0 && (parallelPortObjects[i]!=0)) {
 #if PARALLEL_DEBUG
 			const char* const dbgtext[]={"DAT","IOS","CON","???"};
 			parallelPortObjects[i]->log_par(parallelPortObjects[i]->dbg_cregs,
@@ -143,7 +149,7 @@ static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
 				fprintf(parallelPortObjects[i]->debugfp,"%c",val);
 			}
 #endif
-			switch (port & 0x3) {
+			switch ((port-parallel_baseaddr[i]) & 0x7) {
 				case 0:
 					parallelPortObjects[i]->Write_PR (val);
 					return;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,8 +46,9 @@ static CPrinter* defaultPrinter = NULL;
 static uint16_t confdpi, confwidth, confheight;
 static Bitu printer_timout;
 static bool timeout_dirty;
-static const char* document_path;
-static const char* font_path;
+static std::string document_path;
+static std::string font_path;
+static std::string device;
 static char confoutputDevice[50];
 static bool confmultipageOutput, shellhide;
 static std::string actstd, acterr;
@@ -65,6 +66,41 @@ void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, ui
 		pal->colors[i+colormask].g = 255 - (uint8_t)floor(green * (float)i);
 		pal->colors[i+colormask].b = 255 - (uint8_t)floor(blue * (float)i);
 	}
+}
+
+extern std::string prtlist;
+
+void CPrinter::getPrinterContext() {
+#if defined (WIN32)
+    if (device.size()&&device!="-") {
+        printerDC = CreateDC("WINSPOOL", device.c_str(), NULL, NULL);
+        return;
+    }
+
+	// Show Print dialog to obtain a printer device context
+    PRINTDLG pd;
+    pd.lStructSize = sizeof(PRINTDLG);
+    pd.hDevMode = (HANDLE) NULL;
+    pd.hDevNames = (HANDLE) NULL;
+    pd.Flags = PD_RETURNDC;
+    pd.hwndOwner = NULL;
+    pd.hDC = (HDC) NULL;
+    pd.nFromPage = 1;
+    pd.nToPage = 1;
+    pd.nMinPage = 0;
+    pd.nMaxPage = 0;
+    pd.nCopies = 1;
+    pd.hInstance = NULL;
+    pd.lCustData = 0L;
+    pd.lpfnPrintHook = (LPPRINTHOOKPROC) NULL;
+    pd.lpfnSetupHook = (LPSETUPHOOKPROC) NULL;
+    pd.lpPrintTemplateName = (LPSTR) NULL;
+    pd.lpSetupTemplateName = (LPSTR) NULL;
+    pd.hPrintTemplate = (HANDLE) NULL;
+    pd.hSetupTemplate = (HANDLE) NULL;
+    if (PrintDlg(&pd)) printerDC = pd.hDC;
+    else printerDC = NULL;
+#endif
 }
 
 CPrinter::CPrinter(uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput) 
@@ -127,35 +163,6 @@ CPrinter::CPrinter(uint16_t dpi, uint16_t width, uint16_t height, char* output, 
 
 		resetPrinter();
 
-		if (strcasecmp(output, "printer") == 0)
-		{
-#if defined (WIN32)
-			// Show Print dialog to obtain a printer device context
-			PRINTDLG pd;
-			pd.lStructSize = sizeof(PRINTDLG); 
-			pd.hDevMode = (HANDLE) NULL; 
-			pd.hDevNames = (HANDLE) NULL; 
-			pd.Flags = PD_RETURNDC; 
-			pd.hwndOwner = NULL; 
-			pd.hDC = (HDC) NULL; 
-			pd.nFromPage = 1; 
-			pd.nToPage = 1; 
-			pd.nMinPage = 0; 
-			pd.nMaxPage = 0; 
-			pd.nCopies = 1; 
-			pd.hInstance = NULL; 
-			pd.lCustData = 0L; 
-			pd.lpfnPrintHook = (LPPRINTHOOKPROC) NULL; 
-			pd.lpfnSetupHook = (LPSETUPHOOKPROC) NULL; 
-			pd.lpPrintTemplateName = (LPSTR) NULL; 
-			pd.lpSetupTemplateName = (LPSTR)  NULL; 
-			pd.hPrintTemplate = (HANDLE) NULL; 
-			pd.hSetupTemplate = (HANDLE) NULL; 
-			PrintDlg(&pd);
-			// TODO: what if user presses cancel?
-			printerDC = pd.hDC;
-#endif
-		}
 		LOG(LOG_MISC,LOG_NORMAL)("PRINTER: Enabled");
 	}
 }
@@ -223,7 +230,7 @@ CPrinter::~CPrinter(void)
 		FT_Done_FreeType(FTlib);
 	}
 #if defined (WIN32)
-	DeleteDC(printerDC);
+	if (printerDC) DeleteDC(printerDC);
 #endif
 }
 
@@ -256,12 +263,7 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	std::string fontName, basedir;
-#if defined(WIN32)
-    basedir = font_path;
-#else
-    basedir = font_path;
-#endif
+	std::string fontName, basedir = font_path;
     if (basedir.back()!='\\' && basedir.back()!='/')
         basedir += CROSS_FILESPLIT;
 
@@ -1643,7 +1645,7 @@ void CPrinter::formFeed()
 static void findNextName(const char* front, const char* ext, char* fname)
 {
 	int i = 1;
-	Bitu slen = (Bitu)strlen(document_path);
+	Bitu slen = (Bitu)document_path.size();
 	if(slen > (200 - 15))
     {
 		fname[0] = 0;
@@ -1653,7 +1655,7 @@ static void findNextName(const char* front, const char* ext, char* fname)
     FILE *test = NULL;
 	do
 	{
-		strcpy(fname, document_path);
+		strcpy(fname, document_path.c_str());
 #ifdef WIN32
 		const char* const pathstring = "\\%s%d%s";
 #else 
@@ -1725,8 +1727,9 @@ void CPrinter::outputPage()
 	{
 #if defined (WIN32)
 		// You'll need the mouse for the print dialog
-		if(mouselocked)
+		if (mouselocked)
 			 GFX_CaptureMouse();
+        if (!device.size() || printerDC==NULL) getPrinterContext();
 
 		uint16_t physW = GetDeviceCaps(printerDC, PHYSICALWIDTH);
 		uint16_t physH = GetDeviceCaps(printerDC, PHYSICALHEIGHT);
@@ -2079,7 +2082,7 @@ void CPrinter::finishMultipage()
 		else if (strcasecmp(output, "printer") == 0)
 		{
 #if defined (WIN32)
-			EndDoc(printerDC);
+			if (printerDC) EndDoc(printerDC);
 #endif
 		}
 		outputHandle = NULL;
@@ -2235,6 +2238,7 @@ bool PRINTER_isInited()
 	return inited;
 }
 
+void ResolvePath(std::string& in);
 void PRINTER_Init() 
 {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("printer"));
@@ -2244,9 +2248,11 @@ void PRINTER_Init()
 	//real_writew(0x0040, 0x0008, LPTPORT);
 
 	if (!section->Get_bool("printer")) return;
-	inited = true;
 	document_path = section->Get_string("docpath");
+	ResolvePath(document_path);
 	font_path = section->Get_string("fontpath");
+	ResolvePath(font_path);
+	device = section->Get_string("device");
 	confdpi = section->Get_int("dpi");
 	confwidth = section->Get_int("width");
 	confheight = section->Get_int("height");
@@ -2257,7 +2263,9 @@ void PRINTER_Init()
 	confmultipageOutput = section->Get_bool("multipage");
 	shellhide = section->Get_bool("shellhide");
 	actstd = section->Get_string("openwith");
+    ResolvePath(actstd);
 	acterr = section->Get_string("openerror");
+    ResolvePath(acterr);
 
 	//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);
@@ -2269,6 +2277,32 @@ void PRINTER_Init()
     DOSBoxMenu::item *item;
 	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
     item->set_text("Send form-feed");
+
+#if defined(WIN32)
+    if (!inited && !strcasecmp(confoutputDevice, "printer")) {
+        DWORD dwNeeded = 0, dwReturned = 0;
+        bool fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)NULL, 0L, &dwNeeded, &dwReturned);        PRINTER_INFO_1* pInfo = NULL;
+        if (dwNeeded > 0) pInfo = (PRINTER_INFO_1 *)HeapAlloc(GetProcessHeap(), 0L, dwNeeded);
+        if (NULL != pInfo) {
+            dwReturned = 0;
+            fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)pInfo, dwNeeded, &dwNeeded, &dwReturned);
+        }
+        if (fnReturn) {
+            unsigned int devnum;
+            if (1!=sscanf(device.c_str(),"%u",&devnum)) devnum=-2;
+            prtlist = "Printer Device List\n-------------------------------------------------------------\n";
+            for (int i=1; i < dwReturned; i++) {
+                if(devnum>0&&i==devnum) device=pInfo[i].pName;
+                prtlist+=(i<10?"0":"")+std::to_string(i)+" "+pInfo[i].pName+"\n";
+            }
+            std::istringstream in(("\n"+prtlist+"\n").c_str());
+            if (in)	for (std::string line; std::getline(in, line); )
+                LOG_MSG("%s", line.c_str());
+        } else
+            pInfo = NULL;
+    }
+#endif
+	inited = true;
 }
 
 #endif

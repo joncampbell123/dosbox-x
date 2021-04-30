@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,8 +71,10 @@ static void synth_CallBack(Bitu len) {
 #	define PATH_SEP "/"
 #endif
 
+void ResolvePath(std::string& in);
 class MidiHandler_synth: public MidiHandler {
 private:
+	std::string fsinfo = "";
 	fluid_settings_t *settings;
 	int sfont_id;
 	bool isOpen;
@@ -175,8 +177,10 @@ public:
 				return false;
 			}
 #endif
-		} else
+		} else {
             sf = std::string(conf);
+            ResolvePath(sf);
+        }
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
@@ -218,6 +222,7 @@ public:
 			return false;
 		}
 		sffile=sf;
+        fsinfo="Sound font: "+sf;
 
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
@@ -247,12 +252,18 @@ public:
 	void PlaySysex(uint8_t *sysex, Bitu len) {
 		PlayEvent(sysex, len);
 	};
+
+	void ListAll(Program* base) {
+		base->WriteOut("  %s\n",fsinfo.c_str());
+	}
+
 };
 
 MidiHandler_synth Midi_synth;
 
 class MidiHandler_fluidsynth : public MidiHandler {
 private:
+	std::string fsinfo = "";
 	std::string soundfont;
 	int soundfont_id;
 	fluid_settings_t *settings;
@@ -342,7 +353,8 @@ public:
 				return false;
 			}
 #endif
-		}
+		} else
+            ResolvePath(sf);
 		soundfont.assign(sf);
 		settings = new_fluid_settings();
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
@@ -415,6 +427,7 @@ public:
 			}
 			else {
 				sffile=soundfont;
+				fsinfo="Sound font: "+soundfont;
 				LOG_MSG("MIDI:fluidsynth: Loaded SoundFont: %s", soundfont.c_str());
 			}
 		}
@@ -423,6 +436,10 @@ public:
 			LOG_MSG("MIDI:fluidsynth: No SoundFont loaded");
 		}
 		return true;
+	}
+
+	void ListAll(Program* base) {
+		base->WriteOut("  %s\n",fsinfo.c_str());
 	}
 };
 

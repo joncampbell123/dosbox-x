@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -158,6 +158,15 @@ static void dh_fpu_mem(uint8_t inst, Bitu reg=decode.modrm.reg, void* mem=&dyn_d
 #endif
 }
 
+static void dh_fpu_save_mem_revert(uint8_t inst, uint8_t group) {
+	decode.pf_restore.data.dh_fpu_inst = inst;
+	decode.pf_restore.data.dh_fpu_group = group;
+}
+
+static void dh_fpu_mem_revert(uint8_t inst, uint8_t group) {
+	dh_fpu_mem(inst, group);
+}
+
 static void dh_fpu_esc0(){
 	dyn_get_modrm(); 
 	if (decode.modrm.val >= 0xc0) {
@@ -165,7 +174,7 @@ static void dh_fpu_esc0(){
 		cache_addb(decode.modrm.val);
 	} else { 
 		dyn_fill_ea();
-		gen_call_function((void*)&FPU_FLD_32,"%Drd",DREG(EA));
+		dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA));
 		dh_fpu_mem(0xd8);
 	}
 }
@@ -181,7 +190,7 @@ static void dh_fpu_esc1(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00: /* FLD float*/
-			gen_call_function((void*)&FPU_FLD_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA));
 			dh_fpu_mem(0xd9);
 			break;
 		case 0x01: /* UNKNOWN */
@@ -189,26 +198,27 @@ static void dh_fpu_esc1(){
 			break;
 		case 0x02: /* FST float*/
 			dh_fpu_mem(0xd9);
-			gen_call_function((void*)&FPU_FST_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x03: /* FSTP float*/
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xd9, 0x00);
 			dh_fpu_mem(0xd9);
-			gen_call_function((void*)&FPU_FST_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x04: /* FLDENV */
-			gen_call_function((void*)&FPU_FLDENV_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLDENV_DH,"%Drd",DREG(EA));
 			dh_fpu_mem(0xd9);
 			break;
 		case 0x05: /* FLDCW */
-			gen_call_function((void *)&FPU_FLDCW_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void *)&FPU_FLDCW_DH,"%Drd",DREG(EA));
 			dh_fpu_mem(0xd9);
 			break;
 		case 0x06: /* FSTENV */
 			dh_fpu_mem(0xd9);
-			gen_call_function((void*)&FPU_FSTENV_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FSTENV_DH,"%Drd",DREG(EA));
 			break;
 		case 0x07:  /* FNSTCW*/
-			gen_call_function((void*)&FPU_FNSTCW_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FNSTCW_DH,"%Drd",DREG(EA));
 			break;
 		default:
 			FPU_LOG_WARN(1,true,group,sub);
@@ -224,7 +234,7 @@ static void dh_fpu_esc2(){
 		cache_addb(decode.modrm.val);
 	} else {
 		dyn_fill_ea(); 
-		gen_call_function((void*)&FPU_FLD_32,"%Drd",DREG(EA)); 
+		dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA)); 
 		dh_fpu_mem(0xda);
 	}
 }
@@ -268,7 +278,7 @@ static void dh_fpu_esc3(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:	/* FILD */
-			gen_call_function((void*)&FPU_FLD_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdb);
 			break;
 		case 0x01:	/* FISTTP */
@@ -276,19 +286,21 @@ static void dh_fpu_esc3(){
 			break;
 		case 0x02:	/* FIST */
 			dh_fpu_mem(0xdb);
-			gen_call_function((void*)&FPU_FST_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FISTP */
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdb, 0x00);
 			dh_fpu_mem(0xdb);
-			gen_call_function((void*)&FPU_FST_32,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x05:	/* FLD 80 Bits Real */
-			gen_call_function((void*)&FPU_FLD_80,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_80,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdb);
 			break;
 		case 0x07:	/* FSTP 80 Bits Real */
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdb, 0x05);
 			dh_fpu_mem(0xdb);
-			gen_call_function((void*)&FPU_FST_80,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_80,"%Drd",DREG(EA));
 			break;
 		default:
 			FPU_LOG_WARN(3,true,group,sub);
@@ -304,7 +316,7 @@ static void dh_fpu_esc4(){
 		cache_addb(decode.modrm.val);
 	} else { 
 		dyn_fill_ea(); 
-		gen_call_function((void*)&FPU_FLD_64,"%Drd",DREG(EA)); 
+		dyn_call_function_pagefault_check((void*)&FPU_FLD_64,"%Drd",DREG(EA)); 
 		dh_fpu_mem(0xdc);
 	}
 }
@@ -320,7 +332,7 @@ static void dh_fpu_esc5(){
 		Bitu sub=(decode.modrm.val & 7);
 		switch(group){
 		case 0x00:  /* FLD double real*/
-			gen_call_function((void*)&FPU_FLD_64,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_64,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdd);
 			break;
 		case 0x01:  /* FISTTP longint*/
@@ -328,24 +340,25 @@ static void dh_fpu_esc5(){
 			break;
 		case 0x02:   /* FST double real*/
 			dh_fpu_mem(0xdd);
-			gen_call_function((void*)&FPU_FST_64,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FSTP double real*/
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdd, 0x00);
 			dh_fpu_mem(0xdd);
-			gen_call_function((void*)&FPU_FST_64,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
 		case 0x04:	/* FRSTOR */
-			gen_call_function((void*)&FPU_FRSTOR_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR_DH,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
 			break;
 		case 0x06:	/* FSAVE */
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
-			gen_call_function((void*)&FPU_FSAVE_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FSAVE_DH,"%Drd",DREG(EA));
 			cache_addw(0xE3DB);
 			break;
 		case 0x07:   /* FNSTSW */
 			dh_fpu_mem(0xdd);
-			gen_call_function((void*)&FPU_FST_16,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_16,"%Drd",DREG(EA));
 			break;
 		default:
 			FPU_LOG_WARN(5,true,group,sub);
@@ -361,7 +374,7 @@ static void dh_fpu_esc6(){
 		cache_addb(decode.modrm.val);
 	} else {
 		dyn_fill_ea(); 
-		gen_call_function((void*)&FPU_FLD_16,"%Drd",DREG(EA)); 
+		dyn_call_function_pagefault_check((void*)&FPU_FLD_16,"%Drd",DREG(EA)); 
 		dh_fpu_mem(0xde);
 	}
 }
@@ -406,7 +419,7 @@ static void dh_fpu_esc7(){
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:  /* FILD int16_t */
-			gen_call_function((void*)&FPU_FLD_16,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_16,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdf);
 			break;
 		case 0x01:
@@ -414,27 +427,30 @@ static void dh_fpu_esc7(){
 			break;
 		case 0x02:   /* FIST int16_t */
 			dh_fpu_mem(0xdf);
-			gen_call_function((void*)&FPU_FST_16,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_16,"%Drd",DREG(EA));
 			break;
 		case 0x03:	/* FISTP int16_t */
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x00);
 			dh_fpu_mem(0xdf);
-			gen_call_function((void*)&FPU_FST_16,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_16,"%Drd",DREG(EA));
 			break;
 		case 0x04:   /* FBLD packed BCD */
-			gen_call_function((void*)&FPU_FLD_80,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_80,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdf);
 			break;
 		case 0x05:  /* FILD Bit64s */
-			gen_call_function((void*)&FPU_FLD_64,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLD_64,"%Drd",DREG(EA));
 			dh_fpu_mem(0xdf);
 			break;
 		case 0x06:	/* FBSTP packed BCD */
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x04);
 			dh_fpu_mem(0xdf);
-			gen_call_function((void*)&FPU_FST_80,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_80,"%Drd",DREG(EA));
 			break;
 		case 0x07:  /* FISTP Bit64s */
+			if (use_dynamic_core_with_paging) dh_fpu_save_mem_revert(0xdf, 0x05);
 			dh_fpu_mem(0xdf);
-			gen_call_function((void*)&FPU_FST_64,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
 		default:
 			FPU_LOG_WARN(7,true,group,sub);

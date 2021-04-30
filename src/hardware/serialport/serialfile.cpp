@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "Shellapi.h"
 #endif
 
+void ResolvePath(std::string& in);
 CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 	CSerial::Init_Registers();
 	// DSR+CTS on to make sure the DOS COM device will not get stuck waiting for them
@@ -39,15 +40,18 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 
     filename = "serial"; // Default output filename
     cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
+    ResolvePath(filename);
     LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
 
     std::string str;
 	if(cmd->FindStringBegin("shellhide",str,false))	shellhide = true;
 
 	if (cmd->FindStringFullBegin("openwith:",str,squote,false)) {
+        ResolvePath(str);
 		actstd = trim((char *)str.c_str());
     }
 	if (cmd->FindStringFullBegin("openerror:",str,squote,false)) {
+        ResolvePath(str);
 		acterr = trim((char *)str.c_str());
     }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -737,7 +737,9 @@ class Typer {
 					for (auto &event : *m_events) {
 						if (bind_name == event->GetName()) {
 							found = true;
-							MAPPER_TriggerEvent(event, true);
+							event->Active(true);
+						        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+							event->Active(false);
 							break;
 						}
 					}
@@ -912,9 +914,9 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
 	const char *usesc = section->Get_string("usescancodes");
-	if (!strcasecmp(usesc, "true"))
+	if (!strcasecmp(usesc, "true")||!strcmp(usesc, "1"))
 		usescancodes = 1;
-	else if (!strcasecmp(usesc, "false"))
+	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
 }
 void loadScanCode();
@@ -1038,7 +1040,12 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
+        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        if (!strcmp(r, "left super")) r = "left Windows";
+        else if (!strcmp(r, "right super")) r = "right Windows";
+        else if (!strcmp(r, "left meta")) r = "left Command";
+        else if (!strcmp(r, "right meta")) r = "right Command";
+        sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -1065,6 +1072,10 @@ public:
 				if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
 				if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
 				if (c!=NULL) *(c+1)=toupper(*(c+1));
+                else if (r=="Left super") r = "Left Windows";
+                else if (r=="Right super") r = "Right Windows";
+                else if (r=="Left meta") r = "Left Command";
+                else if (r=="Right meta") r = "Right Command";
 			}
 		}
 #endif
@@ -1098,12 +1109,14 @@ std::string CEvent::GetBindMenuText(void) {
             first=false;
             r += t;
         }
-        if (t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
+        if (t!="Right Windows"&&t!="Left Windows"&&t!="Right Command"&&t!="Left Command"&&t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
         s += t;
     }
-    if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
-    if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
-    if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
+    if (s=="Right WindowsLeft Windows"||s=="Left WindowsRight Windows") r="Windows";
+    else if (s=="Right CommandLeft Command"||s=="Left CommandRight Command") r="Command";
+    else if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
+    else if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
+    else if (s=="Right ShiftLeft Shift"||s=="Left ShiftRight Shift") r="Shift";
 
     return r;
 }
@@ -1615,6 +1628,7 @@ private:
         return NULL;
     }
     CBind * CreateHatBind(Bitu hat,uint8_t value) {
+        if (hat < hats_cap) return NULL;
         Bitu hat_dir;
         if (value&SDL_HAT_UP) hat_dir=0;
         else if (value&SDL_HAT_RIGHT) hat_dir=1;
@@ -1801,8 +1815,8 @@ public:
 
         axes_cap=emulated_axes;
         if (axes_cap>axes) axes_cap=axes;
-        hats_cap=emulated_hats;
-        if (hats_cap>hats) hats_cap=hats;
+        //hats_cap=emulated_hats;
+        //if (hats_cap>hats) hats_cap=hats;
 
         JOYSTICK_Enable(1,true);
         JOYSTICK_Move_Y(1,1.0);
@@ -4122,7 +4136,14 @@ static void MAPPER_SaveBinds(void) {
             fprintf(savefile,"%s \n",line.c_str());
     }
     fclose(savefile);
-    change_action_text("Mapper file saved.",CLR_WHITE);
+#if defined(WIN32)
+    char path[MAX_PATH];
+    if (GetFullPathName(mapper.filename.c_str(), MAX_PATH, path, NULL)) LOG_MSG("Saved mapper file: %s", path);
+#elif defined(HAVE_REALPATH)
+    char path[PATH_MAX];
+    if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
+#endif
+    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
@@ -4656,6 +4677,12 @@ void MAPPER_RunInternal() {
     SDL_FreeSurface(mapper.draw_surface_nonpaletted);
     SDL_FreePalette(sdl2_map_pal_ptr);
     GFX_SetResizeable(true);
+#elif C_DIRECT3D
+    bool Direct3D_using(void);
+    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+        change_output(0);
+        change_output(6);
+    }
 #endif
 #if defined(USE_TTF)
     void resetFontSize();
@@ -4824,7 +4851,8 @@ void MAPPER_Init(void) {
 #endif
 }
 
-std::string GetDOSBoxXPath();
+std::string GetDOSBoxXPath(bool withexe=false);
+void ResolvePath(std::string& in);
 void ReloadMapper(Section_prop *section, bool init) {
     if (!init&&control->opt_defaultmapper) return;
     Prop_path* pp;
@@ -4836,6 +4864,7 @@ void ReloadMapper(Section_prop *section, bool init) {
     mapper.filename = pp->realpath;
 	if (mapper.filename=="") pp = section->Get_path("mapperfile");
     mapper.filename = pp->realpath;
+    ResolvePath(mapper.filename);
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) {
         std::string exepath=GetDOSBoxXPath();
@@ -5047,15 +5076,6 @@ void MAPPER_StartUp() {
 #if !defined(C_SDL2)
 	load=true;
 #endif
-
-    {
-        DOSBoxMenu::item *itemp = NULL;
-
-        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&itemp);
-        itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
-        itemp->set_description("Bring up the mapper UI");
-        itemp->set_text("Mapper editor");
-    }
 }
 
 void MAPPER_Shutdown() {

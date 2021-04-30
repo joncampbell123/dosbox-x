@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@
 
 extern bool log_int21;
 extern bool log_fileio;
+extern bool enable_share_exe;
 extern int dos_clipboard_device_access;
 extern char *dos_clipboard_device_name;
 
@@ -425,18 +426,16 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	bool clip=false;
 	if ( (DOS_FindDevice(oldname) != DOS_DEVICES) ||
 	     (DOS_FindDevice(newname) != DOS_DEVICES) ) {
-#if defined (WIN32)
-	if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
-		if (DOS_FindDevice(oldname) == DOS_DEVICES) {
-            const char* find_last;
-			find_last=strrchr(fullnew,'\\');
-			if (find_last==NULL) find_last=fullnew;
-			else find_last++;
-			if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
-				clip=true;
-		}
-	}
-#endif
+        if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
+            if (DOS_FindDevice(oldname) == DOS_DEVICES) {
+                const char* find_last;
+                find_last=strrchr(fullnew,'\\');
+                if (find_last==NULL) find_last=fullnew;
+                else find_last++;
+                if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
+                    clip=true;
+            }
+        }
 		if (!clip) {
 			DOS_SetError(DOSERR_FILE_NOT_FOUND);
 			return false;
@@ -796,7 +795,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 		return true;
 	} else {
 		//Test if file exists, but opened in read-write mode (and writeprotected)
-		if(((flags&3) != OPEN_READ) && Drives[drive]->FileExists(fullname))
+		if((((flags&3) != OPEN_READ) || (enable_share_exe && !strncmp(Drives[drive]->GetInfo(),"local directory ",16))) && Drives[drive]->FileExists(fullname))
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 		else {
 			if(!PathExists(name)) DOS_SetError(DOSERR_PATH_NOT_FOUND); 
@@ -1170,6 +1169,18 @@ bool DOS_ForceDuplicateEntry(uint16_t entry,uint16_t newentry) {
 	return true;
 }
 
+void initRand() {
+#ifdef WIN32
+    srand(GetTickCount());
+#else
+    struct timespec ts;
+    unsigned theTick = 0U;
+    clock_gettime( CLOCK_REALTIME, &ts );
+    theTick  = ts.tv_nsec / 1000000;
+    theTick += ts.tv_sec * 1000;
+    srand(theTick);
+#endif
+}
 
 bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 	size_t namelen=strlen(name);
@@ -1186,13 +1197,17 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 	}
 	dos.errorcode=0;
 	/* add random crap to the end of the name and try to open */
+	initRand();
+	bool cont;
 	do {
+		cont=false;
 		uint32_t i;
 		for (i=0;i<8;i++) {
 			tempname[i]=(rand()%26)+'A';
 		}
 		tempname[8]=0;
-	} while ((!DOS_CreateFile(name,0,entry)) && (dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
+		//if (DOS_FileExists(name)) {cont=true;continue;} // FIXME: Check name uniqueness
+	} while (cont || (!DOS_CreateFile(name,0,entry) && dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
 	if (dos.errorcode) return false;
 	return true;
 }
@@ -2061,6 +2076,10 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     oalloc.total_clusters=odp->allocation.total_clusters;
                     oalloc.free_clusters=odp->allocation.free_clusters;
                     oalloc.mediaid=odp->allocation.mediaid;
+                } else {
+                    physfsDrive *pdp = dynamic_cast<physfsDrive*>(Drives[lcv]);
+                    if (pdp && pdp->getOverlaydir())
+                        strcpy(overlaydir,pdp->getOverlaydir());
                 }
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
@@ -2268,6 +2287,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                         str=str.substr(0,found);
                     Drives[lcv]=new physfsDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
                     if (Drives[lcv]) {
+                        if (strlen(overlaydir)) dynamic_cast<physfsDrive*>(Drives[lcv])->setOverlaydir(overlaydir);
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                     } else

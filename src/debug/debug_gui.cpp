@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fstream>
 
 #if defined(WIN32)
 #include <conio.h>
@@ -105,6 +106,16 @@ static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
+
+bool savetologfile(const char *name) {
+    std::ofstream out(name);
+    if (!out.is_open()) return false;
+    std::list<string>::iterator it;
+    for (it = logBuff.begin(); it != logBuff.end(); ++it)
+        out << (std::string)(*it) << endl;
+    out.close();
+    return true;
+}
 
 const char *DBGBlock::get_winname(int idx) {
     if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
@@ -809,6 +820,7 @@ void LOG::ParseEnableSetting(_LogGroup &group,const char *setting) {
 		group.min_severity = LOG_NORMAL;
 }
 
+void ResolvePath(std::string& in);
 void LOG::Init() {
 	char buf[64];
 
@@ -826,14 +838,15 @@ void LOG::Init() {
 	assert(sect != NULL);
 
 	/* do we write to a logfile, or not? */
-	const char *blah = sect->Get_string("logfile");
-	if (blah != NULL && blah[0] != 0) {
-		if ((debuglog=fopen(blah,"wt+")) != NULL) {
-			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to this file.",blah);
+	std::string logfile = sect->Get_string("logfile");
+	if (logfile.size()) {
+		ResolvePath(logfile);
+		if ((debuglog=fopen(logfile.c_str(),"wt+")) != NULL) {
+			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to this file.",logfile.c_str());
 			setbuf(debuglog,NULL);
 		}
 		else {
-			LOG_MSG("Logging: failed to open logfile '%s'. All further logging will be discarded. Error: %s",blah,strerror(errno));
+			LOG_MSG("Logging: failed to open logfile '%s'. All further logging will be discarded. Error: %s",logfile.c_str(),strerror(errno));
 		}
 	}
 	else {

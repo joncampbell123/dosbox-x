@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,16 @@
 #include "serialport.h"
 #include "dos_network.h"
 #include "render.h"
+#if defined(WIN32)
+#include "../dos/cdrom.h"
+#include <shellapi.h>
+#include <shlwapi.h>
+#include <winsock.h>
+#else
+#include <unistd.h>
+#endif
 
+extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
 extern int lfn_filefind_handle;
@@ -91,11 +100,13 @@ bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
-bool enable_filenamechar = true;
 bool enable_share_exe = true;
+bool enable_filenamechar = true;
+bool enable_network_redirector = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
+int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
@@ -105,10 +116,10 @@ const char dos_clipboard_device_default[]="CLIP$";
 int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
-bool uselfn;
+bool uselfn, winautorun=false;
 extern int infix;
 extern bool int15_wait_force_unmask_irq, shellrun, i4dos;
-extern bool winrun, startcmd, startwait, startquiet, winautorun;
+extern bool winrun, startcmd, startwait, startquiet, ctrlbrk;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
@@ -360,6 +371,7 @@ static void DOS_AddDays(uint8_t days) {
 #endif
 
 // TODO: Make this configurable.
+//       (This can be controlled with the setting "hard drive data rate limit")
 //       Additionally, allow this to vary per-drive so that
 //       Drive D: can be as slow as a 2X IDE CD-ROM drive in PIO mode
 //       Drive C: can be as slow as a IDE drive in PIO mode and
@@ -565,6 +577,148 @@ typedef struct {
 } ext_space_info_t;
 
 #define DOSNAMEBUF 256
+char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
+
+#if defined (WIN32) && !defined(HX_DOS)
+intptr_t hret=0;
+void EndRunProcess() {
+    if(hret) {
+        DWORD exitCode;
+        GetExitCodeProcess((HANDLE)hret, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess((HANDLE)hret, 0);
+    }
+    ctrlbrk=false;
+}
+
+void HostAppRun() {
+    char comline[256], *p=comline;
+    char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
+    char *fullname=appname;
+    uint8_t drive;
+    if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
+    if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+        bool useoverlay=false;
+        Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+        if (odp != NULL) {
+            strcpy(winName, odp->getOverlaydir());
+            strcat(winName, winDirNew);
+            struct stat tempstat;
+            if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
+                useoverlay=true;
+        }
+        if (!useoverlay) {
+            strcpy(winName, Drives[drive]->GetBaseDir());
+            strcat(winName, winDirNew);
+            if (!PathFileExists(winName)) {
+                bool olfn=uselfn;
+                uselfn=true;
+                if (DOS_GetSFNPath(fullname,dir,true)&&DOS_MakeName(("\""+std::string(dir)+"\"").c_str(), winDirNew, &drive)) {
+                    strcpy(winName, Drives[drive]->GetBaseDir());
+                    strcat(winName, winDirNew);
+                }
+                uselfn=olfn;
+            }
+        }
+        if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
+            Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+            strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+            strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+            if (!PathFileExists(winDirNew)) {
+                bool olfn=uselfn;
+                uselfn=true;
+                if (DOS_GetCurrentDir(0,dir,true)) {
+                    strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                    strcat(winDirNew, dir);
+                }
+                uselfn=olfn;
+            }
+        } else {
+            strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
+            strcat(winDirNew, Drives[drive]->curdir);
+        }
+        if (SetCurrentDirectory(winDirNew)) {
+            SHELLEXECUTEINFO lpExecInfo;
+            strcpy(comline, appargs);
+            strcpy(comline, trim(p));
+            if (!startquiet) {
+                char msg[]="Now run it as a Windows application...\r\n";
+                uint16_t s = (uint16_t)strlen(msg);
+                DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+            }
+            DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
+            if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
+            if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
+                lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
+                lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
+                lpExecInfo.hwnd = NULL;
+                lpExecInfo.lpVerb = "open";
+                lpExecInfo.lpDirectory = NULL;
+                lpExecInfo.nShow = SW_SHOW;
+                lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
+                strcpy(dir, "/C \"");
+                strcat(dir, winName);
+                strcat(dir, " ");
+                strcat(dir, comline);
+                strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+                lpExecInfo.lpFile = "CMD.EXE";
+                lpExecInfo.lpParameters = dir;
+                ShellExecuteEx(&lpExecInfo);
+                hret = (intptr_t)lpExecInfo.hProcess;
+            } else {
+                char qwinName[258];
+                sprintf(qwinName,"\"%s\"",winName);
+                hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+            }
+            SetCurrentDirectory(winDirCur);
+            if (startwait && hret > 0) {
+                int count=0;
+                ctrlbrk=false;
+                DWORD exitCode = 0;
+                GetExitCodeProcess((HANDLE)hret, &exitCode);
+                while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
+                    CALLBACK_Idle();
+                    if (ctrlbrk) {
+                        uint8_t c;uint16_t n=1;
+                        DOS_ReadFile (STDIN,&c,&n);
+                        if (c == 3) {
+                            char msg[]="^C\r\n";
+                            uint16_t s = (uint16_t)strlen(msg);
+                            DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+                        }
+                        EndRunProcess();
+                        exitCode=0;
+                        break;
+                    }
+                    if (++count==20000&&!startquiet) {
+                        char msg[]="(Press Ctrl+C to exit immediately)\r\n";
+                        uint16_t s = (uint16_t)strlen(msg);
+                        DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+                    }
+                }
+                dos.return_code = exitCode&255;
+                dos.return_mode = 0;
+                hret = 0;
+            } else if (hret > 0)
+                hret = 0;
+            else
+                hret = errno;
+            DOS_SetError((uint16_t)hret);
+            hret=0;
+            return;
+        } else if (startquiet) {
+            char msg[]="This program cannot be run in DOS mode.\r\n";
+            uint16_t s = (uint16_t)strlen(msg);
+            DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+        }
+    } else if (startquiet) {
+        char msg[]="This program cannot be run in DOS mode.\r\n";
+        uint16_t s = (uint16_t)strlen(msg);
+        DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+    }
+}
+#endif
+
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
@@ -1680,7 +1834,15 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 LOG(LOG_EXEC,LOG_NORMAL)("Execute %s %d",name1,reg_al);
-                if (!DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
+                DOS_ParamBlock block(SegPhys(es)+reg_bx);
+                block.LoadData();
+                CommandTail ctail;
+                MEM_BlockRead(Real2Phys(block.exec.cmdtail),&ctail,CTBUF+1);
+                if (DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
+                    strcpy(appname, name1);
+                    strncpy(appargs, ctail.buffer, ctail.count);
+                    *(appargs+ctail.count)=0;
+                } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
@@ -1691,7 +1853,14 @@ static Bitu DOS_21Handler(void) {
         case 0x4c:                  /* EXIT Terminate with return code */
             DOS_Terminate(dos.psp(),false,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+#if defined (WIN32) && !defined(HX_DOS)
+            if (winautorun&&reqwin&&*appname&&!control->SecureMode())
+                HostAppRun();
+            reqwin=false;
+#endif
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x4d:                  /* Get Return code */
             reg_al=dos.return_code;/* Officially read from SDA and clear when read */
@@ -1881,8 +2050,31 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x5e:                  /* Network and printer functions */
-            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:5E Network and printer functions not implemented");
-            goto default_fallthrough;
+            if (reg_al == 0 && !control->SecureMode() && enable_network_redirector) {	// Get machine name
+#if defined(WIN32)
+                DWORD size = DOSNAMEBUF;
+                GetComputerName(name1, &size);
+                if (size)
+#else
+                int result = gethostname(name1, DOSNAMEBUF);
+                if (!result)
+#endif
+                {
+                    strcat(name1, "               ");									// Simply add 15 spaces
+                    if (!strcmp(RunningProgram, "4DOS") || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
+                        name1[16] = 0;
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 17);
+                    } else {
+                        name1[15] = 0;													// ASCIIZ
+                        MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 16);
+                    }
+                    reg_cx = 0x1ff;														// 01h name valid, FFh NetBIOS number for machine name
+                    CALLBACK_SCF(false);
+                    break;
+                }
+            }
+            CALLBACK_SCF(true);
+            break;
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS)
             switch(reg_al)
@@ -2711,7 +2903,7 @@ Bitu MEM_PageMask(void);
 
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
-extern bool log_dev_con;
+extern bool log_dev_con, addovl;
 
 bool set_ver(char *s) {
 	s=trim(s);
@@ -2818,9 +3010,11 @@ public:
 
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
+		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
+		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
@@ -2836,10 +3030,11 @@ public:
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
         mountwarning = section->Get_bool("mountwarning");
-#if defined (WIN32)
         if (winrun) {
             Section* tsec = control->GetSection("dos");
+#if defined (WIN32)
             tsec->HandleInputline("startcmd=true");
+#endif
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
@@ -2863,13 +3058,12 @@ public:
 			}
 			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
-            mainMenu.get_item("clipboard_device").set_text("Enable DOS clipboard device access: "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
+            std::string text=mainMenu.get_item("clipboard_device").get_text();
+            std::size_t found = text.find(":");
+            if (found!=std::string::npos) text = text.substr(0, found);
+            mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
 		} else
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
-#else
-        dos_clipboard_device_access = 0;
-		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
-#endif
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
 
@@ -3191,8 +3385,10 @@ public:
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
 
-		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
-	
+        const char *keepstr = section->Get_string("keep private area on boot");
+        if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
+        else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
+        else keep_private_area_on_boot = addovl;
 		dos.version.major=5;
 		dos.version.minor=0;
 		dos.direct_output=false;
@@ -3233,12 +3429,14 @@ public:
 
             real_writeb(0x60,0x113,0x01); /* 25-line mode */
         }
+        *appname=0;
+        *appargs=0;
 	}
 	~DOS(){
 		infix=-1;
 #if defined(WIN32) && !defined(HX_DOS)
 		if (startwait) {
-			void EndStartProcess(), EndRunProcess();
+			void EndStartProcess();
 			EndStartProcess();
 			EndRunProcess();
 		}
@@ -3261,10 +3459,8 @@ public:
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
-#if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
-#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();
@@ -3353,8 +3549,6 @@ void DOS_EnableDriveMenu(char drv) {
     }
 }
 
-extern const char* RunningProgram;
-
 void DOS_DoShutDown() {
 	if (test != NULL) {
 		if (strcmp(RunningProgram, "LOADLIN")) delete test;
@@ -3369,15 +3563,18 @@ void DOS_DoShutDown() {
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
+void DOS_GetMemory_reinit();
+void LOADFIX_OnDOSShutdown();
+
 void DOS_ShutDown(Section* /*sec*/) {
+	LOADFIX_OnDOSShutdown();
 	DOS_DoShutDown();
 }
 
-void DOS_GetMemory_reinit();
-
 void DOS_OnReset(Section* /*sec*/) {
+	LOADFIX_OnDOSShutdown();
 	DOS_DoShutDown();
-    DOS_GetMemory_reinit();
+	DOS_GetMemory_reinit();
 }
 
 void DOS_Startup(Section* sec) {
@@ -3818,7 +4015,30 @@ void DOS_Int21_716c(char *name1, const char *name2) {
 }
 
 void DOS_Int21_71a0(char *name1, char *name2) {
+		/* NTS:  Windows Millenium Edition's SETUP program will make this LFN call to
+		 *		 canonicalize "C:", except the protected mode kernel does not translate
+		 *		 DS:DX and ES:DI from protected mode. So DS:DX correctly points to
+		 *		 ASCII-Z string "C:" but when the jump is made back to real mode and
+		 *		 our INT 21h is actually called, DS:DX points to unrelated memory and
+		 *		 the string we read is gibberish, and ES:DI likewise point to unrelated
+		 *		 memory.
+		 *
+		 *		 If we write to ES:DI, we corrupt memory in a way that quickly causes
+		 *		 the setup program to fault and crash (often, a Segment Not Present
+		 *		 exception but sometimes worse).
+		 *
+		 *		 The reason nobody ever encounters this error when installing Windows
+		 *		 ME normally from a boot disk is because in pure DOS mode where SETUP
+		 *		 is normally run, LFN functions do not exist. This call, INT 21h AX=71A0h,
+		 *		 will normally return an error (CF=1) without reading or writing any
+		 *		 memory, and SETUP carries on without crashing.
+		 *
+		 *		 Therefore, if you want to install Windows ME from the DOSBox-X DOS
+		 *		 environment, you need to disable Long Filename emulation first before
+		 *		 running SETUP.EXE to avoid crashes and instability during the install
+		 *		 process. --J.C. */
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+
 		if (DOS_Canonicalize(name1,name2)) {
 				if (reg_cx > 3)
 						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
@@ -3957,24 +4177,33 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0,o=0;
             char c[13];
-            const char* s = strrchr(name1, '.');
-			for (i=0;i<8;j++) {
-					if (name1[j] == 0 || s-name1 <= j) break;
-					if (name1[j] == '.') continue;
-					c[o++] = toupper(name1[j]);
-					i++;
-			}
-			if (s != NULL) {
-					s++;
-					if (s != 0 && reg_dh == 1) c[o++] = '.';
-					for (i=0;i<3;i++) {
-							if (*(s+i) == 0) break;
-							c[o++] = toupper(*(s+i));
-					}
-			}
-			assert(o <= 12);
-			c[o] = 0;
-			MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+            if (reg_dh == 0) memset(c, 0, sizeof(c));
+            if (strcmp(name1, ".") && strcmp(name1, "..")) {
+                const char* s = strrchr(name1, '.');
+                for (i=0;i<8;j++) {
+                        if (name1[j] == 0 || (s==NULL?8:s-name1) <= j) {
+                            if (reg_dh == 0 && s != NULL) for (int j=0; j<8-i; j++) c[o++] = ' ';
+                            break;
+                        }
+                        while (name1[j]&&name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*') j++;
+                        c[o++] = toupper(name1[j]);
+                        i++;
+                }
+                if (s != NULL) {
+                        s++;
+                        if (s != 0 && reg_dh == 1) c[o++] = '.';
+                        j=0;
+                        for (i=0;i<3;i++) {
+                                if (*(s+i+j) == 0) break;
+                                while (*(s+i+j)&&*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*') j++;
+                                c[o++] = toupper(*(s+i+j));
+                        }
+                }
+                assert(o <= 12);
+                c[o] = 0;
+            } else
+                strcpy(c, name1);
+			MEM_BlockWrite(SegPhys(es)+reg_di,c,reg_dh==1?strlen(c)+1:11);
 			reg_ax=0;
 			CALLBACK_SCF(false);
 	} else {

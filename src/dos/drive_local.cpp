@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -76,9 +76,16 @@
 #include "cp855_uni.h"
 #include "cp857_uni.h"
 #include "cp858_uni.h"
+#include "cp860_uni.h"
+#include "cp861_uni.h"
+#include "cp862_uni.h"
+#include "cp863_uni.h"
+#include "cp864_uni.h"
+#include "cp865_uni.h"
 #include "cp866_uni.h"
 #include "cp869_uni.h"
 #include "cp872_uni.h"
+#include "cp874_uni.h"
 #include "cp932_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
@@ -119,7 +126,7 @@ static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
 extern bool rsize, force_sfn, enable_share_exe;
-extern int lfn_filefind_handle, freesizecap;
+extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -385,12 +392,26 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -424,12 +445,26 @@ bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default: // Otherwise just use code page 437
@@ -457,12 +492,26 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -558,12 +607,29 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		fclose(test);
 		existing_file=true;
 	}
-	
-#ifdef host_cnv_use_wchar
-	FILE * hand=_wfopen(host_name,L"wb+");
+
+    FILE * hand;
+    if (enable_share_exe && !existing_file) {
+#if defined(WIN32)
+        int attribs = FILE_ATTRIBUTE_NORMAL;
+        if (attributes&3) attribs = attributes&3;
+        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, attribs, NULL);
+        if (handle == INVALID_HANDLE_VALUE) return false;
+        int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
+        if (nHandle == -1) {CloseHandle(handle);return false;}
+        hand = _wfdopen(nHandle, L"wb+");
 #else
-	FILE * hand=fopen(host_name,"wb+");
+        int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        if (fd<0) {close(fd);return false;}
+        hand = fdopen(fd, "wb+");
 #endif
+    } else {
+#ifdef host_cnv_use_wchar
+        hand=_wfopen(host_name,L"wb+");
+#else
+        hand=fopen(host_name,"wb+");
+#endif
+    }
 	if (!hand){
 		LOG_MSG("Warning: file creation failed: %s",newname);
 		return false;
@@ -582,6 +648,101 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 
 	return true;
 }
+
+#ifndef WIN32
+int lock_file_region(int fd, int cmd, struct flock *fl, long long start, unsigned long len)
+{
+  fl->l_whence = SEEK_SET;
+  fl->l_pid = 0;
+  //if (start == 0x100000000LL) start = len = 0; //first handle magic file lock value
+#ifdef F_SETLK64
+  if (cmd == F_SETLK64 || cmd == F_GETLK64) {
+    struct flock64 fl64;
+    int result;
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Large file locking start=%llx, len=%lx\n", start, len);
+    fl64.l_type = fl->l_type;
+    fl64.l_whence = fl->l_whence;
+    fl64.l_pid = fl->l_pid;
+    fl64.l_start = start;
+    fl64.l_len = len;
+    result = fcntl( fd, cmd, &fl64 );
+    fl->l_type = fl64.l_type;
+    fl->l_start = (long) fl64.l_start;
+    fl->l_len = (long) fl64.l_len;
+    return result;
+  }
+#endif
+  if (start == 0x100000000LL)
+    start = 0x7fffffff;
+  fl->l_start = start;
+  fl->l_len = len;
+  return fcntl( fd, cmd, fl );
+}
+
+#define COMPAT_MODE	0x00
+#define DENY_ALL	0x01
+#define DENY_WRITE	0x02
+#define DENY_READ	0x03
+#define DENY_NONE	0x04
+#define FCB_MODE	0x07
+bool share(int fd, int mode, uint32_t flags) {
+  struct flock fl;
+  int ret;
+  int share_mode = ( flags >> 4 ) & 0x7;
+  fl.l_type = F_WRLCK;
+  /* see whatever locks are possible */
+
+#ifdef F_GETLK64
+  ret = lock_file_region( fd, F_GETLK64, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+  ret = lock_file_region( fd, F_GETLK, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 ) return true;
+
+  /* file is already locked? then do not even open */
+  /* a Unix read lock prevents writing;
+     a Unix write lock prevents reading and writing,
+     but for DOS compatibility we allow reading for write locks */
+  if ((fl.l_type == F_RDLCK && mode != O_RDONLY) || (fl.l_type == F_WRLCK && mode != O_WRONLY))
+    return false;
+
+  switch ( share_mode ) {
+  case COMPAT_MODE:
+    if (fl.l_type == F_WRLCK) return false;
+  case DENY_NONE:
+    return true;                   /* do not set locks at all */
+  case DENY_WRITE:
+    if (fl.l_type == F_WRLCK) return false;
+    if (mode == O_WRONLY) return true; /* only apply read locks */
+    fl.l_type = F_RDLCK;
+    break;
+  case DENY_READ:
+    if (fl.l_type == F_RDLCK) return false;
+    if (mode == O_RDONLY) return true; /* only apply write locks */
+    fl.l_type = F_WRLCK;
+    break;
+  case DENY_ALL:
+    if (fl.l_type == F_WRLCK || fl.l_type == F_RDLCK) return false;
+    fl.l_type = mode == O_RDONLY ? F_RDLCK : F_WRLCK;
+    break;
+  case FCB_MODE:
+    if ((flags & 0x8000) && (fl.l_type != F_WRLCK)) return true;
+    /* else fall through */
+  default:
+    LOG(LOG_DOSMISC,LOG_WARN)("internal SHARE: unknown sharing mode %x\n", share_mode);
+    return false;
+    break;
+  }
+#ifdef F_SETLK64
+  ret = lock_file_region( fd, F_SETLK64, &fl, 0x100000000LL, 1 );
+  if ( ret == -1 && errno == EINVAL )
+#endif
+    lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
+    LOG(LOG_DOSMISC,LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
+
+    return true;
+}
+#endif
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     if (nocachedir) EmptyCache();
@@ -634,27 +795,28 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     }
 
     FILE * hand;
+    if (enable_share_exe) {
 #if defined(WIN32)
-    if (enable_share_exe && nocachedir) {
         int ohFlag = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?GENERIC_READ:((flags&0xf)==OPEN_WRITE?GENERIC_WRITE:GENERIC_READ|GENERIC_WRITE);
         int shhFlag = (flags&0x70)==0x10?0:((flags&0x70)==0x20?FILE_SHARE_READ:((flags&0x70)==0x30?FILE_SHARE_WRITE:FILE_SHARE_READ|FILE_SHARE_WRITE));
         HANDLE handle = CreateFileW(host_name, ohFlag, shhFlag, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
-        hand = _wfdopen(nHandle, type);
-    } else
-#endif
-    {
-#ifdef host_cnv_use_wchar
-	hand=_wfopen(host_name,type);
+        hand = _wfdopen(nHandle, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #else
-	hand=fopen(host_name,type);
+        uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
+        int fd = open(host_name, unix_mode);
+        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
+        hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
+#endif
+    } else {
+#ifdef host_cnv_use_wchar
+		hand=_wfopen(host_name,type);
+#else
+		hand=fopen(host_name,type);
 #endif
     }
-#if !defined(WIN32)
-    if (hand && enable_share_exe && nocachedir && (flags&0x70)==0x10 && flock(fileno(hand), LOCK_EX | LOCK_NB)==-1) return false;
-#endif
 //	uint32_t err=errno;
 	if (!hand) {
 		if((flags&0xf) != OPEN_READ) {
@@ -1572,6 +1734,22 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        uint32_t bytesRead;
+        for (int tries = file_access_tries; tries; tries--) {							// Try specified number of times
+            if (ReadFile(hFile,static_cast<LPVOID>(data), (uint32_t)*size, (LPDWORD)&bytesRead, NULL)) {
+                *size = (uint16_t)bytesRead;
+                return true;
+            }
+            Sleep(25);																	// If failed (should be region locked), wait 25 millisecs
+        }
+        DOS_SetError((uint16_t)GetLastError());
+        *size = 0;
+        return false;
+    }
+#endif
 	if (last_action==WRITE) {
         fseek(fhandle,ftell(fhandle),SEEK_SET);
         if (!newtime) UpdateLocalDateTime();
@@ -1595,6 +1773,31 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        if (*size == 0)
+            if (SetEndOfFile(hFile)) {
+                UpdateLocalDateTime();
+                return true;
+            } else {
+                DOS_SetError((uint16_t)GetLastError());
+                return false;
+            }
+        uint32_t bytesWritten;
+        for (int tries = file_access_tries; tries; tries--) {							// Try three times
+            if (WriteFile(hFile, data, (uint32_t)*size, (LPDWORD)&bytesWritten, NULL)) {
+                *size = (uint16_t)bytesWritten;
+                UpdateLocalDateTime();
+                return true;
+            }
+            Sleep(25);																	// If failed (should be region locked? (not documented in MSDN)), wait 25 millisecs
+        }
+        DOS_SetError((uint16_t)GetLastError());
+        *size = 0;
+        return false;
+    }
+#endif
 	if (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
 	last_action=WRITE;
 	if(*size==0){  
@@ -1607,11 +1810,56 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
     }
 }
 
+#ifndef WIN32
+bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
+    struct flock larg;
+    unsigned long mask = 0xC0000000;
+    int flag = fcntl(fd, F_GETFL);
+    larg.l_type = is_lock ? (flag & O_RDWR || flag & O_WRONLY ? F_WRLCK : F_RDLCK) : F_UNLCK;
+    larg.l_start = pos;
+    larg.l_len = size;
+    larg.l_len &= ~mask;
+    if ((larg.l_start & mask) != 0)
+        larg.l_start = (larg.l_start & ~mask) | ((larg.l_start & mask) >> 2);
+    int ret;
+#ifdef F_SETLK64
+    ret = lock_file_region (fd,F_SETLK64,&larg,pos,size);
+    if (ret == -1 && errno == EINVAL)
+#endif
+    ret = lock_file_region (fd,F_SETLK,&larg,larg.l_start,larg.l_len);
+    return ret != -1;
+}
+#endif
+
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
+static bool lockWarn = true;
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+    if (file_access_tries>0) {
+        if (mode > 1) {
+            DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+            return false;
+        }
+        if (!mode)																		// Lock, try 3 tries
+            for (int tries = file_access_tries; tries; tries--) {
+                if (::LockFile(hFile, pos, 0, size, 0)) {
+                    if (lockWarn && ::LockFile(hFile, pos, 0, size, 0)) {
+                        lockWarn = false;
+                        char caption[512];
+                        strcat(strcpy(caption, "Windows reference: "), dynamic_cast<localDrive*>(Drives[GetDrive()])->getBasedir());
+                        MessageBox(NULL, "Record locking seems incorrectly implemented!\nConsult ...", caption, MB_OK|MB_ICONSTOP);
+                    }
+                    return true;
+                }
+                Sleep(25);																// If failed, wait 25 millisecs
+            }
+        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanet condition!
+            return true;
+        DOS_SetError((uint16_t)GetLastError());
+        return false;
+    }
 	BOOL bRet;
 #else
 	bool bRet;
@@ -1623,8 +1871,8 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	case 0: bRet = ::LockFile (hFile, pos, 0, size, 0); break;
 	case 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); break;
 #else
-	case 0: bRet = flock(fileno(fhandle), LOCK_SH | LOCK_NB) == 0; break;
-	case 1: bRet = flock(fileno(fhandle), LOCK_UN | LOCK_NB) == 0; break;
+	case 0: bRet = toLock(fileno(fhandle), true, pos, size); break;
+	case 1: bRet = toLock(fileno(fhandle), false, pos, size); break;
 #endif
 	default: 
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -1659,7 +1907,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 		{
 		case EINTR:
 		case ENOLCK:
-		case EWOULDBLOCK:
+		case EAGAIN:
 			DOS_SetError(0x21);
 			break;
 		case EBADF:
@@ -1675,6 +1923,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	return bRet;
 }
 
+extern const char* RunningProgram;
 bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
@@ -1685,6 +1934,20 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	//TODO Give some doserrorcode;
 		return false;//ERROR
 	}
+#if defined(WIN32)
+    if (file_access_tries>0) {
+        HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+        int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
+        if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
+            dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
+        if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success
+            *pos = (uint32_t)dwPtr;
+            return true;
+        }
+        DOS_SetError((uint16_t)GetLastError());
+        return false;
+    }
+#endif
 	int ret=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype);
 	if (ret!=0) {
 		// Out of file range, pretend everythings ok 
@@ -1840,6 +2103,9 @@ bool localFile::UpdateLocalDateTime(void) {
 
 
 void localFile::Flush(void) {
+#if defined(WIN32)
+    if (file_access_tries>0) return;
+#endif
 	if (last_action==WRITE) {
 		fseek(fhandle,ftell(fhandle),SEEK_SET);
         fflush(fhandle);
@@ -2005,6 +2271,8 @@ public:
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(uint32_t * pos,uint32_t type);
+	bool prepareRead();
+	bool prepareWrite();
 	bool Close();
 	uint16_t GetInformation(void);
 	bool UpdateDateTimeFromHost(void);
@@ -2016,12 +2284,64 @@ private:
 };
 
 bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
-	/* Always report 100 mb free should be enough */
-	/* Total size is always 1 gb */
-	*_bytes_sector=allocation.bytes_sector;
-	*_sectors_cluster=allocation.sectors_cluster;
-	*_total_clusters=allocation.total_clusters;
-	*_free_clusters=0;
+	const char *wdir = PHYSFS_getWriteDir();
+	if (wdir) {
+		bool res=false;
+#if defined(WIN32)
+		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+		uint8_t drive=strlen(wdir)>1&&wdir[1]==':'?toupper(wdir[0])-'A'+1:0;
+		if (drive>26) drive=0;
+		char root[4]="A:\\";
+		root[0]='A'+drive-1;
+		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+		if (res) {
+			unsigned long total = dwTotalClusters * dwSectPerClust;
+			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
+			*_bytes_sector = (uint16_t)dwBytesPerSect;
+			*_sectors_cluster = ratio;
+			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
+			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio);
+			if (rsize) {
+				totalc=dwTotalClusters * dwSectPerClust / ratio;
+				freec=dwFreeClusters * dwSectPerClust / ratio;
+			}
+#else
+		struct statvfs stat;
+		res = statvfs(wdir, &stat) == 0;
+		if (res) {
+			int ratio = stat.f_blocks / 65536, tmp=ratio;
+			*_bytes_sector = 512;
+			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			if (ratio>1) {
+				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
+				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
+				ratio = tmp;
+			}
+			*_total_clusters = stat.f_blocks > 65535? 65535 : stat.f_blocks;
+			*_free_clusters = stat.f_bavail > 61440? 61440 : stat.f_bavail;
+			if (rsize) {
+				totalc=stat.f_blocks;
+				freec=stat.f_bavail;
+				if (ratio>1) {
+					totalc/=ratio;
+					freec/=ratio;
+				}
+			}
+#endif
+		} else {
+            // 512*32*32765==~500MB total size
+            // 512*32*16000==~250MB total free size
+            *_bytes_sector = 512;
+            *_sectors_cluster = 32;
+            *_total_clusters = 32765;
+            *_free_clusters = 16000;
+		}
+	} else {
+        *_bytes_sector=allocation.bytes_sector;
+        *_sectors_cluster=allocation.sectors_cluster;
+        *_total_clusters=allocation.total_clusters;
+        *_free_clusters=0;
+    }
 	return true;
 }
 
@@ -2130,7 +2450,8 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 {
 	this->driveLetter = driveLetter;
 	this->mountarc = "";
-	char mp[3] = {'_', driveLetter, 0};
+	char mp[] = "A_DRIVE";
+	mp[0] = driveLetter;
 	char newname[CROSS_LEN+1];
 	strcpy(newname,startdir);
 	CROSS_FILENAME(newname);
@@ -2190,6 +2511,30 @@ physfsDrive::~physfsDrive(void) {
 	}
 }
 
+const char *physfsDrive::getOverlaydir(void) {
+	static const char *overlaydir = PHYSFS_getWriteDir();
+	return overlaydir;
+}
+
+bool physfsDrive::setOverlaydir(const char * name) {
+	char newname[CROSS_LEN+1];
+	strcpy(newname,name);
+	CROSS_FILENAME(newname);
+	const char *oldwrite = PHYSFS_getWriteDir();
+	if (oldwrite) oldwrite = strdup(oldwrite);
+	if (!PHYSFS_setWriteDir(newname)) {
+		if (oldwrite)
+			PHYSFS_setWriteDir(oldwrite);
+        return false;
+	} else {
+        if (oldwrite) PHYSFS_removeFromSearchPath(oldwrite);
+        PHYSFS_addToSearchPath(newname, 1);
+        dirCache.EmptyCache();
+    }
+	if (oldwrite) free((char *)oldwrite);
+    return true;
+}
+
 const char *physfsDrive::GetInfo() {
 	sprintf(info,"PhysFS directory %s", mountarc.c_str());
 	return info;
@@ -2229,23 +2574,104 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	return true;
 }
 
-bool physfsDrive::FileCreate(DOS_File * * /*file*/,const char * /*name*/,uint16_t /*attributes*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	normalize(newname,basedir);
+
+	/* Test if file exists, don't add to dirCache then */
+	bool existing_file=PHYSFS_exists(newname);
+
+	char *slash = strrchr(newname,'/');
+	if (slash && slash != newname) {
+		*slash = 0;
+		if (!PHYSFS_isDirectory(newname)) return false;
+		PHYSFS_mkdir(newname);
+		*slash = '/';
+	}
+
+	PHYSFS_file * hand=PHYSFS_openWrite(newname);
+	if (!hand){
+		LOG_MSG("Warning: file creation failed: %s (%s)",newname,PHYSFS_getLastError());
+		return false;
+	}
+
+	/* Make the 16 bit device information */
+	*file=new physfsFile(name,hand,0x202,newname,true);
+	(*file)->flags=OPEN_READWRITE;
+	if(!existing_file) {
+		strcpy(newname,basedir);
+		strcat(newname,name);
+		CROSS_FILENAME(newname);
+		dirCache.AddEntry(newname, true);
+		dirCache.EmptyCache();
+	}
+	return true;
+}
+
+bool physfsDrive::FileUnlink(const char * name) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	normalize(newname,basedir);
+	if (PHYSFS_delete(newname)) {
+		CROSS_FILENAME(newname);
+		dirCache.DeleteEntry(newname);
+		dirCache.EmptyCache();
+		return true;
+	};
 	return false;
 }
 
-bool physfsDrive::FileUnlink(const char * /*name*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::RemoveDir(const char * dir) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newdir[CROSS_LEN];
+	strcpy(newdir,basedir);
+	strcat(newdir,dir);
+	CROSS_FILENAME(newdir);
+	dirCache.ExpandName(newdir);
+	normalize(newdir,basedir);
+	if (PHYSFS_isDirectory(newdir) && PHYSFS_delete(newdir)) {
+		CROSS_FILENAME(newdir);
+		dirCache.DeleteEntry(newdir,true);
+		dirCache.EmptyCache();
+		return true;
+	}
 	return false;
 }
 
-bool physfsDrive::RemoveDir(const char * /*dir*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfsDrive::MakeDir(const char * /*dir*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::MakeDir(const char * dir) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newdir[CROSS_LEN];
+	strcpy(newdir,basedir);
+	strcat(newdir,dir);
+	CROSS_FILENAME(newdir);
+	dirCache.ExpandName(newdir);
+	normalize(newdir,basedir);
+	if (PHYSFS_mkdir(newdir)) {
+		CROSS_FILENAME(newdir);
+		dirCache.CacheOut(newdir,true);
+		return true;
+	}
 	return false;
 }
 
@@ -2259,8 +2685,36 @@ bool physfsDrive::TestDir(const char * dir) {
 	return (PHYSFS_isDirectory(newdir));
 }
 
-bool physfsDrive::Rename(const char * /*oldname*/,const char * /*newname*/) {
-	DOS_SetError(DOSERR_ACCESS_DENIED);
+bool physfsDrive::Rename(const char * oldname,const char * newname) {
+    if (!getOverlaydir()) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+	char newold[CROSS_LEN];
+	strcpy(newold,basedir);
+	strcat(newold,oldname);
+	CROSS_FILENAME(newold);
+	dirCache.ExpandName(newold);
+	normalize(newold,basedir);
+
+	char newnew[CROSS_LEN];
+	strcpy(newnew,basedir);
+	strcat(newnew,newname);
+	CROSS_FILENAME(newnew);
+	dirCache.ExpandName(newnew);
+	normalize(newnew,basedir);
+    const char *dir=PHYSFS_getRealDir(newold);
+    if (dir && !strcmp(getOverlaydir(), dir)) {
+        char fullold[CROSS_LEN], fullnew[CROSS_LEN];
+        strcpy(fullold, dir);
+        strcat(fullold, newold);
+        strcpy(fullnew, dir);
+        strcat(fullnew, newnew);
+        if (rename(fullold, fullnew)==0) {
+            dirCache.EmptyCache();
+            return true;
+        }
+    } else LOG_MSG("PHYSFS: rename not supported (%s -> %s)",newold,newnew); // yuck. physfs doesn't have "rename".
 	return false;
 }
 
@@ -2378,7 +2832,8 @@ bool physfsDrive::isRemovable(void) {
 }
 
 Bits physfsDrive::UnMount(void) {
-	char mp[3] = {'_', driveLetter, 0};
+	char mp[] = "A_DRIVE";
+	mp[0] = driveLetter;
 	PHYSFS_unmount(mp);
 	delete this;
 	return 0;
@@ -2389,6 +2844,7 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+	if (last_action==WRITE) prepareRead();
 	last_action=READ;
 	PHYSFS_sint64 mysize = PHYSFS_read(fhandle,data,1,(PHYSFS_uint64)*size);
 	//LOG_MSG("Read %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
@@ -2397,8 +2853,26 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 }
 
 bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
-    DOS_SetError(DOSERR_ACCESS_DENIED);
-    return false;
+	if (!PHYSFS_getWriteDir() || (this->flags & 0xf) == OPEN_READ) { // check if file opened in read-only mode
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+	if (last_action==READ) prepareWrite();
+	last_action=WRITE;
+	if (*size==0) {
+		if (PHYSFS_tell(fhandle) == 0) {
+			PHYSFS_close(PHYSFS_openWrite(pname));
+			//LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+		} else {
+			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,PHYSFS_tell(fhandle));
+			return false;
+		}
+	} else {
+		PHYSFS_sint64 mysize = PHYSFS_write(fhandle,data,1,(PHYSFS_uint64)*size);
+		//LOG_MSG("Wrote %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
+		*size = (uint16_t)mysize;
+		return true;
+	}
 }
 
 bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
@@ -2420,6 +2894,66 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	//LOG_MSG("Seek to %i (%i at %x) of %s (%s)",(int)mypos,(int)*pos,type,name,PHYSFS_getLastError());
 
 	*pos=(uint32_t)PHYSFS_tell(fhandle);
+	return true;
+}
+
+bool physfsFile::prepareRead() {
+	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
+	PHYSFS_close(fhandle);
+	fhandle = PHYSFS_openRead(pname);
+	PHYSFS_seek(fhandle, pos);
+	return true; //LOG_MSG("Goto read (%s at %i)",pname,PHYSFS_tell(fhandle));
+}
+
+#ifndef WIN32
+#include <fcntl.h>
+#include <errno.h>
+#endif
+
+bool physfsFile::prepareWrite() {
+	const char *wdir = PHYSFS_getWriteDir();
+	if (wdir == NULL) {
+		LOG_MSG("PHYSFS could not fulfill write request: no write directory set.");
+		return false;
+	}
+	//LOG_MSG("Goto write (%s at %i)",pname,PHYSFS_tell(fhandle));
+	const char *fdir = PHYSFS_getRealDir(pname);
+	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
+	char *slash = strrchr(pname,'/');
+	if (slash && slash != pname) {
+		*slash = 0;
+		PHYSFS_mkdir(pname);
+		*slash = '/';
+	}
+	if (strcmp(fdir,wdir)) { /* we need COW */
+		//LOG_MSG("COW",pname,PHYSFS_tell(fhandle));
+		PHYSFS_file *whandle = PHYSFS_openWrite(pname);
+		if (whandle == NULL) {
+			LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+			return false;
+		}
+		char buffer[65536];
+		PHYSFS_sint64 size;
+		PHYSFS_seek(fhandle, 0);
+		while ((size = PHYSFS_read(fhandle,buffer,1,65536)) > 0) {
+			if (PHYSFS_write(whandle,buffer,1,size) != size) {
+				LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+				PHYSFS_close(whandle);
+				return false;
+			}
+		}
+		PHYSFS_seek(whandle, pos);
+		PHYSFS_close(fhandle);
+		fhandle = whandle;
+	} else { // megayuck - physfs on posix platforms uses O_APPEND. We illegally access the fd directly and clear that flag.
+		//LOG_MSG("noCOW",pname,PHYSFS_tell(fhandle));
+		PHYSFS_close(fhandle);
+		fhandle = PHYSFS_openAppend(pname);
+#ifndef WIN32
+		int rc = fcntl(**(int**)fhandle->opaque,F_SETFL,0);
+#endif
+		PHYSFS_seek(fhandle, pos);
+	}
 	return true;
 }
 

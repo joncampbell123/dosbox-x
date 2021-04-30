@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -74,7 +74,11 @@ UINT32 texrgb[256*256];
 /* texture address map */
 std::map <const UINT32, ogl_texmap> textures[2];
 
-void GFX_PreventFullscreen(bool lockout);
+bool Direct3D_using(void);
+void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output);
+#if defined(C_SDL2)
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
+#endif
 
 int Voodoo_OGL_GetWidth() {
 	if (v != NULL)
@@ -220,7 +224,7 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 	iterw = extra->startw + ((dy * extra->dwdy)>>4) + ((dx * extra->dwdx)>>4);
 
 	for (Bitu i=0; i<extra->texcount; i++) {
-		INT64 iters,itert,iterw2;
+		INT64 iters,itert,iterw;
 		UINT32 smax,tmax;
 		INT64 s, t;
 		INT32 lod=0;
@@ -236,14 +240,14 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 		smax = (v->tmu[i].wmask >> ilod) + 1;
 		tmax = (v->tmu[i].hmask >> ilod) + 1;
 
-		iterw2 = v->tmu[i].startw + ((dy * v->tmu[i].dwdy)>>4) + ((dx * v->tmu[i].dwdx)>>4);
+		iterw = v->tmu[i].startw + ((dy * v->tmu[i].dwdy)>>4) + ((dx * v->tmu[i].dwdx)>>4);
 		iters = v->tmu[i].starts + ((dy * v->tmu[i].dsdy)>>4) + ((dx * v->tmu[i].dsdx)>>4);
 		itert = v->tmu[i].startt + ((dy * v->tmu[i].dtdy)>>4) + ((dx * v->tmu[i].dtdx)>>4);
 
 		/* determine the S/T/LOD values for this texture */
 		if (TEXMODE_ENABLE_PERSPECTIVE(texmode))
 		{
-			INT64 oow = fast_reciplog((iterw2), &lod);
+			INT64 oow = fast_reciplog((iterw), &lod);
 			s = (oow * (iters)) >> 29;
 			t = (oow * (itert)) >> 29;
 			lod += LODBASE;
@@ -265,14 +269,14 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 			lod = v->tmu[i].lodmax;
 
 		/* clamp W */
-		if (TEXMODE_CLAMP_NEG_W(texmode) && (iterw2) < 0)
+		if (TEXMODE_CLAMP_NEG_W(texmode) && (iterw) < 0)
 			s = t = 0;
 
 		if (s != 0) vd->m[i].s = (float)((float)s/(float)(smax*(1u<<(18u+ilod))));
 		else vd->m[i].s = 0.0f;
 		if (t != 0) vd->m[i].t = (float)((float)t/(float)(tmax*(1u<<(18u+ilod))));
 		else vd->m[i].t = 0.0f;
-		if (iterw2 != 0) vd->m[i].w = (float)((float)iterw2/(float)(0xffffff));
+		if (iterw != 0) vd->m[i].w = (float)((float)iterw/(float)(0xffffff));
 		else vd->m[i].w = 0.0f;
 
 		vd->m[i].sw = vd->m[i].s * vd->m[i].w;
@@ -380,6 +384,7 @@ UINT32 calculate_palsum(UINT32 tmunum) {
 
 void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 	v=(voodoo_state*)extra->state;
+	UINT32 texbase;
 
 	INT32 smax, tmax;
 	UINT32 *texrgbp;
@@ -395,7 +400,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 		if (!((v->tmu[j].lodmask >> ilod) & 1))
 			ilod++;
 
-		UINT32 texbase = v->tmu[j].lodoffset[ilod];
+		texbase = v->tmu[j].lodoffset[ilod];
 
 		if ( extra->texcount && (extra->texcount >= j) && (v->tmu[j].lodmin < (8 << 8)) ) {
 			bool valid_texid = true;
@@ -1664,13 +1669,15 @@ void voodoo_ogl_reset_videomode(void) {
 
     ogl_surface = NULL;
 
-    void GFX_ReleaseMouse(void);
-    void GFX_ForceFullscreenExit(void);
+    void GFX_LosingFocus(void), GFX_ReleaseMouse(void), GFX_ForceFullscreenExit(void);
 
+    GFX_LosingFocus();
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
 
 #if defined(C_SDL2)
+    GFX_SetResizeable(false);
+    sdl.window = GFX_SetSDLWindowMode((int)v->fbi.width, (int)v->fbi.height, SCREEN_OPENGL);
     if (sdl.window != NULL) ogl_surface = SDL_GetWindowSurface(sdl.window);
 	if (ogl_surface == NULL)
 		E_Exit("VOODOO: opengl init error");
@@ -1721,6 +1728,7 @@ void voodoo_ogl_reset_videomode(void) {
      *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
     glShadeModel (GL_SMOOTH);
 
+	GFX_PreventFullscreen(true);
 	GFX_UpdateSDLCaptureState();
 
 	int value;
@@ -1760,8 +1768,9 @@ void voodoo_ogl_reset_videomode(void) {
 #if defined(WIN32) && !defined(C_SDL2)
 	// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.
 	// make sure to put it back.
+	bool OpenGL_using(void);
 	void DOSBox_SetMenu(void);
-	DOSBox_SetMenu();
+	if (OpenGL_using()) DOSBox_SetMenu();
 #endif
 
 	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
@@ -1880,6 +1889,12 @@ void voodoo_ogl_leave(bool leavemode) {
         ogl_surface = NULL;
         GFX_PreventFullscreen(false);
         GFX_RestoreMode();
+#if defined(C_SDL2)
+        if (Direct3D_using()) {
+            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
+            change_output(6);
+        }
+#endif
     }
 }
 

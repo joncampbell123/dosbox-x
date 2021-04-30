@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,6 +50,16 @@ char * ScanCMDRemain(char * cmd);
 char * StripWord(char *&line);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
+
+enum {
+	UTF8ERR_INVALID=-1,
+	UTF8ERR_NO_ROOM=-2
+};
+
+int utf8_encode(char **ptr,const char *fence,uint32_t code);
+int utf8_decode(const char **ptr,const char *fence);
+int utf16le_encode(char **ptr,const char *fence,uint32_t code);
+int utf16le_decode(const char **ptr,const char *fence);
 
 void trim(std::string& str);
 void upcase(std::string &str);

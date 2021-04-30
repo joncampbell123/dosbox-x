@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -286,10 +286,7 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 
 	v = new voodoo_state;
 	v->ogl = false;
-	extern bool OpenGL_using(void);
-	if (emulation_type == 2) v->ogl = OpenGL_using();
-
-	LOG(LOG_VOODOO,LOG_DEBUG)("voodoo: ogl=%u",v->ogl);
+    if (emulation_type == 2) v->ogl = true;
 
 	vdraw.vfreq = 1000.0f/60.0f;
 
@@ -323,4 +320,3 @@ void Voodoo_PCI_Enable(bool enable) {
 PageHandler* Voodoo_GetPageHandler() {
 	return voodoo_pagehandler;
 }
-

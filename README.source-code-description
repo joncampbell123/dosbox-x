@@ -94,18 +94,25 @@ macOS: If you want to make an .app bundle you can run from the Finder, compile t
 XCode (on macOS, from the Terminal) to target macOS
 ./build-debug
 
-## To compile DOSBox-X in Ubuntu (added by kapper1224):
+## To compile DOSBox-X in Ubuntu (tested with 20.04 and 20.10):
 
-sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
-./build
+First install the development tools, headers and libraries needed
+
+sudo apt install automake gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-dev libavcodec-dev libavcodec-extra libavcodec-extra58 libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev
+
+Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
+
+./build-debug
 sudo make install
+
+Alternatively you can also compile the SDL2 version by running the ./build-debug-sdl2 script.
 
 ## To compile DOSBox-X in Fedora Workstation:
 
 First install the development tools, headers and libraries needed
 
  sudo dnf group install "C Development Tools and Libraries"
- sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libpng-devel fluidsynth-devel freetype-devel nasm
+ sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libslirp-devel libpng-devel fluidsynth-devel freetype-devel nasm
 
 If you want to be able to record video, you will also need to install ffmpeg-devel which you can get from the optional rpmfusion-free repository.
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
@@ -139,11 +146,13 @@ For building the source code in Visual Studio 2015 or 2017,
 you may change the platform toolset to v140 or v141 respectively.
 
 Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
-and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included.
+and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included
+(set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
+(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it).
 
-Build the source code. FluidSynth support should be enabled for the DOSBox-X build.
-Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
-(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
+The slirp backend is only supported by MinGW builds but not Visual Studio builds.
+
+Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
 As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
 a processor that supports the SSE instruction set.
@@ -163,42 +172,63 @@ SDL 1.2.x or SDL 2.0.x
     been modified from the original. You can find the changes in the
     source package of DOSBox-X (src/platform/sdl-win32.diff). If you
     want the patched source tree send us an email. (see README)
-    Licensed under LGPL
     Note that only version 1.2.x (SDL1 version) and version 2.0.x
     (SDL2 version) are currently supported.
+    License: LGPLv2+
 
 Curses (optional)
     If you want to enable the debugger you need a curses library.
     ncurses should be installed on just about every unix distro.
-    For win32 get pdcurses at https://pdcurses.sourceforge.net
-    License: Open source
+    For win32 get pdcurses at https://pdcurses.org/
+    License: Public Domain
 
 Libpng (optional)
     Needed for the screenshots.
     For win32 get libpng from https://gnuwin32.sourceforge.net/packages.html
     See http://www.libpng.org/pub/png/ for more details.
-    License: Open Source
+    License: zlib/libpng
 
-Zlib (optional)
-    Needed by libpng.
+Zlib
+    Needed by libpng, and for saving state and CHD support.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
-    See http://www.zlib.net for more details.
-    License: Open Source
+    See https://www.zlib.net/ for more details.
+    License: zlib
+
+FreeType (optional)
+    Needed for TrueType font (TTF) output and printing support.
+    It is available from https://www.freetype.org/download.html
+    License: FTL or GPLv2+
+
+FluidSynth (optional)
+    For soundfont support.
+    It is available from https://www.fluidsynth.org/download/
+    License: LGPLv2+
+    
+libpcap (optional)
+    For pcap backend of NE2000 networking support.
+    Get it from https://www.tcpdump.org/index.html#latest-releases
+    For win32 get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
+    License: 3-clause BSD license
+
+libslirp (optional)
+    For slirp backend of NE2000 networking support.
+    Get it from https://gitlab.freedesktop.org/slirp/libslirp
+    License: Modified 4-clause BSD license
 
 SDL_Net (optional)
-    For modem/ipx support. Get it from https://www.libsdl.org/projects/SDL_net/
-    Licensed under LGPL
+    For modem/ipx support.
+    Get it from https://www.libsdl.org/projects/SDL_net/release-1.2.html
+    License: LGPLv2+
 
-SDL_Sound 
-    For compressed audio on diskimages. (optional)
+SDL_Sound (optional)
+    For compressed audio on diskimages (cue sheets) support.
     This is for cue/bin CD-ROM images with compressed (MP3/OGG/FLAC) audio tracks.
     Get it from https://icculus.org/SDL_sound
-    Licenced under LGPL
+    Licence: LGPLv2+
 
-ALSA_Headers
-    (optional)
+ALSA_Headers (optional)
     for Alsa support under linux. Part of the linux kernel sources
-    Licensed under LGPL
+    License: LGPLv2+
 
 Configure script options
 ------------------------
@@ -247,8 +277,9 @@ The DOSBox-X configure script accepts the following switches, which you can use 
 
 --enable-debug 
         Enables the internal debugger. --enable-debug=heavy enables even more 
-        debug options. DOSBox-X should then be run from a xterm and when the sdl-
-        window is active press alt-pause to enter the debugger.
+        debug options. To use the debugger, DOSBox-X should be run from an xterm
+        and when the sdl-window is active press alt-pause to enter the
+        debugger.
 
 --disable-FEATURE
         Do not include FEATURE (same as --enable-FEATURE=no)
@@ -297,29 +328,30 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         for a possible speed decrease.
 
 --disable-fpu
-        Disables the emulated FPU. Although the fpu emulation code isn't 
-        finished and isn't entirely accurate it's advised to leave it on. 
+        Disables the emulated FPU. Although the FPU emulation code isn't
+        finished and isn't entirely accurate, it's advised to leave it on.
 
 --disable-fpu-x86
 --disable-fpu-x64
-        Disables the assembly FPU core. Although relatively new, the x86/x64 fpu  
-        core has more accuracy then the regular fpu core. 
+        Disables the assembly FPU core. Although relatively new, the x86/x64
+        FPU core has more accuracy than the regular FPU core. 
 
 --disable-dynamic-x86
-        Disables the dynamic x86 specific CPU core. Although it might be 
-        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
-        hosts.
-        Please note that this option on x86 will result in a different
-        dynamic/recompiling CPU core being compiled then the default.
+        Disables the dynamic x86/x64 specific CPU core. Although it might be
+        a bit unstable, it can greatly improve the speed of dosbox-x on x86 
+        and x64 hosts.
+        Please note that this option on x86/x64 will result in a different
+        dynamic/recompiling CPU core being compiled than the default.
         For more information see the option --disable-dynrec
 
 --disable-dynrec
-        Disables the recompiling CPU core. Currently x86 and x86_64 only.
-        You can activate this core on x86 by disabling the dynamic-x86 core.
+        Disables the recompiling CPU core. Currently x86/x64 and arm only.
+        You can activate this core on x86/x64 by disabling the dynamic-x86
+        core.
 
 --disable-dynamic-core
-        Disables all dynamic cores. (same effect as 
-        --disable-dynamic-x86 --disable-dynrec)
+        Disables all dynamic cores. (same effect as --disable-dynamic-x86
+        or --disable-dynrec).
 
 --disable-opengl
         Disables OpenGL support (output mode that can be selected in the
@@ -342,14 +374,14 @@ src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
                                 DIR         CD/CHDIR    ADDKEY      ALIAS
                                 ATTRIB      BREAK       CALL        CHOICE
                                 CLS         COPY        COUNTRY     CTTY
-                                DATE        DEL/ERASE   DELTREE     ECHO
-                                EXIT        FOR         GOTO        HELP
-                                IF          LFNFOR      LH/LOADHIGH MD/MKDIR
-                                MORE        PATH        PAUSE       PROMPT
+                                DATE        DEBUGBOX    DEL/ERASE   DELTREE
+                                DX-CAPTURE  ECHO        EXIT        FOR
+                                GOTO        HELP        IF          LFNFOR
+                                LH/LOADHIGH MD/MKDIR    MORE        PATH
+                                PAUSE       POPD        PROMPT      PUSHD
                                 RD/RMDIR    REM         REN/RENAME  SET
                                 SHIFT       SUBST       TIME        TYPE
                                 VER         VERIFY      VOL         TRUENAME
-                                DX-CAPTURE  DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
@@ -410,7 +442,7 @@ src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
 src/gui/midi.cpp            MIDI output framework. Header files include
                             additional platform-specific code.
 
-src/gui/menu_osx.mm         macOS Objective C++ code to bridge Objective C
+src/gui/menu_macos.mm       macOS Objective C++ code to bridge Objective C
                             and C++ so that the menu manipulation code can
                             work correctly.
 
@@ -899,7 +931,7 @@ Within each 1ms tick, a cycle count specified by the user
 is executed as CPU time.
 
 Setting cycles=3000 therefore, instructs DOSBox and DOSBox-X
-to execute 3000 cpu cycles per millisecond. That generally
+to execute 3000 CPU cycles per millisecond. That generally
 means (though not always) that 3000 instructions are executed
 per millisecond.
 

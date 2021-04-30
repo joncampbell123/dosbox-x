@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -804,19 +804,42 @@ CX	640x480	800x600	  1024x768/1280x1024
 	return CBRET_NONE;
 }
 
+bool DISP2_Active(void);
 static void INT10_Seg40Init(void) {
-	// the default char height
-	real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
-	// Clear the screen 
-	real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
-	// Set the basic screen we have
-	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
-	// Set the basic modeset options
-	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
-	// Set the  default MSR
+	// Clear the screen.
+	//
+	// The byte value at 40:87 (BIOSMEM_VIDEO_CTL) only means something if EGA/VGA.
+	// Should be zero for PCjr (which defines it as function key), and Tandy (which does not define it),
+	// and MDA/Hercules/CGA (which also does not define this byte).
+	// 
+	// Furthermore, some games such as "Road Runner" by Mindscape use that byte as part of it's
+	// detection routines to differentiate between CGA, EGA, and Tandy. For the game to work properly
+	// in Tandy emulation, this byte must be zero.
+	if (IS_EGAVGA_ARCH) {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
+		// Set the pointer to video save pointer table
+		real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
+	}
+	else {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x00);
+		if (machine == MCH_TANDY || machine == MCH_CGA || machine == MCH_PCJR)
+			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,8); /* FIXME: INT 10h teletext routines depend on this */
+		else
+			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,0);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x00);
+	}
+#if C_DEBUG
+	if (control->opt_display2)
+		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
+    else
+#endif
+	if (IS_EGAVGA_ARCH) {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
+	}
+	// Set the default MSR
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
-	// Set the pointer to video save pointer table
-	real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 }
 
 static void INT10_InitVGA(void) {
@@ -1129,6 +1152,8 @@ RealPt GetSystemBiosINT10Vector(void) {
         return 0;
 }
 
+extern bool VGA_BIOS_use_rom;
+
 void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
@@ -1143,22 +1168,25 @@ void INT10_Startup(Section *sec) {
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
 	int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
 	int10_vga_bios_vector = video_section->Get_bool("int 10h points at vga bios");
+	int size_override = video_section->Get_int("vga bios size override");
 
     if (!IS_PC98_ARCH) {
-        INT10_InitVGA();
-        if (IS_TANDY_ARCH) SetupTandyBios();
-        /* Setup the INT 10 vector */
-        call_10=CALLBACK_Allocate();	
-        CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
-        RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-        //Init the 0x40 segment and init the datastructures in the the video rom area
-        INT10_SetupRomMemory();
-        INT10_Seg40Init();
-        INT10_SetupBasicVideoParameterTable();
+        if (!VGA_BIOS_use_rom) {
+            INT10_InitVGA();
+            if (IS_TANDY_ARCH) SetupTandyBios();
+            /* Setup the INT 10 vector */
+            call_10=CALLBACK_Allocate();	
+            CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
+            RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+            //Init the 0x40 segment and init the datastructures in the the video rom area
+            INT10_SetupRomMemory();
+            INT10_Seg40Init();
+            INT10_SetupBasicVideoParameterTable();
 
-        LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
-        if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
-            E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
+            LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
+            if (int10.rom.used > VGA_BIOS_Size && size_override > -512) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
+                E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
+        }
 
         /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
         if (VGA_BIOS_Size > 0) {

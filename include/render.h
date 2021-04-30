@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -117,8 +117,8 @@ typedef struct Render_t {
 
 #if defined(USE_TTF)
 #include "SDL_ttf.h"
-#define txtMaxCols 160
-#define txtMaxLins 60
+#define txtMaxCols 255
+#define txtMaxLins 88
 typedef struct {
 	bool	inUse;
 	TTF_Font *SDL_font;

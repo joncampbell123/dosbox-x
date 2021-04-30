@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -374,14 +374,15 @@ public:
 	}
 	void ClearRelease(void) {
 		// clear out all cache blocks in this page
-		for (Bitu index=0;index<(1+DYN_PAGE_HASH);index++) {
-			CacheBlockDynRec * block=hash_map[index];
-			while (block) {
-				CacheBlockDynRec * nextblock=block->hash.next;
-				block->page.handler=0;			// no need, full clear
-				block->Clear();
-				block=nextblock;
-			}
+		Bitu count=active_blocks;
+		CacheBlockDynRec **map=hash_map;
+		for (CacheBlockDynRec * block=*map;count;count--) {
+			while (block==NULL)
+				block=*++map;
+			CacheBlockDynRec * nextblock=block->hash.next;
+			block->page.handler=0;			// no need, full clear
+			block->Clear();
+			block=nextblock;
 		}
 		Release();	// now can release this page
 	}
@@ -556,26 +557,43 @@ static void cache_closeblock(void) {
 
 
 // place an 8bit value into the cache
+static INLINE void cache_addb(uint8_t val,uint8_t *pos) {
+	*pos=val;
+}
 static INLINE void cache_addb(uint8_t val) {
-	*cache.pos++=val;
+	uint8_t *pos=cache.pos+1;
+	cache_addb(val,cache.pos);
+	cache.pos=pos;
 }
 
 // place a 16bit value into the cache
+static INLINE void cache_addw(uint16_t val,uint8_t *pos) {
+	*(uint16_t*)pos=val;
+}
 static INLINE void cache_addw(uint16_t val) {
-	*(uint16_t*)cache.pos=val;
-	cache.pos+=2;
+	uint8_t *pos=cache.pos+2;
+	cache_addw(val,cache.pos);
+	cache.pos=pos;
 }
 
 // place a 32bit value into the cache
+static INLINE void cache_addd(uint32_t val,uint8_t *pos) {
+	*(uint32_t*)pos=val;
+}
 static INLINE void cache_addd(uint32_t val) {
-	*(uint32_t*)cache.pos=val;
-	cache.pos+=4;
+	uint8_t *pos=cache.pos+4;
+	cache_addd(val,cache.pos);
+	cache.pos=pos;
 }
 
 // place a 64bit value into the cache
+static INLINE void cache_addq(uint64_t val,uint8_t *pos) {
+	*(uint64_t*)pos=val;
+}
 static INLINE void cache_addq(uint64_t val) {
-	*(uint64_t*)cache.pos=val;
-	cache.pos+=8;
+	uint8_t *pos=cache.pos+8;
+	cache_addq(val,cache.pos);
+	cache.pos=pos;
 }
 
 

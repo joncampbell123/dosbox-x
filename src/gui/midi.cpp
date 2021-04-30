@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -657,6 +657,18 @@ public:
 	}
 };
 
+void MIDI_ListHandler(Program *caller, const char *name)
+{
+    if (!*name) return;
+    bool found=false;
+    for (auto *handler = handler_list; handler; handler = handler->next)
+        if (!strcasecmp(handler->GetName(), name)) {
+            handler->ListAll(caller);
+            found=true;
+            break;
+        }
+    if (!found) caller->WriteOut("MIDI handler not available - %s\n", name);
+}
 
 static MIDI* test = NULL;
 void MIDI_Destroy(Section* /*sec*/){

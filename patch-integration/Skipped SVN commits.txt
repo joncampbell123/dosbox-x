@@ -34,13 +34,43 @@ Commit#:	Reason for skipping:
 4270		Conflict
 4278		Conflict
 4281		Conflict
-4285		Website
-4376		The change to P_RESTART, which is removed in DOSBox-X, was skipped.
-4381		Conflict
-4385		Conflict
-
-(Status for commits in this interval needs to be added)
-
+4291		Skipped because DOSBox-X may be phasing out Bitu and Bits
+4292		Skipped because DOSBox-X may be phasing out Bitu and Bits
+4298		Skipped the timing change. It makes the cursor blink too slow compared to footage of an actual machine.
+4303		DOSBox-X has its own handling for dpi awareness and preventing scaling.
+4306		Conflict
+4311		Sets max scalers to 3, but DOSBox-X already has code involving higher scalers.
+4313		Conflict. DOSBox-X also has vga.dac.xlat32 statements here, should they also be rewritten to use var_write?
+4314		Conflict
+4315		Conflict
+4316		Conflict
+4322		Conflict
+4324		Conflict
+4325		Fix to 4065, which was skipped
+4326		Conflict
+4329		Conflict
+4334		Conflict
+4335		Conflict
+4347		Conflict
 4357		Conflict
 4360		Conflict
 4367		Conflict
+4376		The change to P_RESTART, which is removed in DOSBox-X, was skipped.
+4381		Conflict
+4385		Conflict
+4387		Conflict
+4388		If needed, should be done using #ifdef LINUX
+4389		Conflict
+4390		Conflict
+4391		In dispute and may make it more difficult to implement future Gravis Ultrasound PnP (AMD InterWave) emulation
+4396		Conflict. DOSBox-X's cache.h files differ from SVN's. Can they be merged in the same way?
+4397		Conflict
+4400		No "sBitfs" in DOSBox-X
+4407		Conflict
+4408		Conflict
+4411		What spacing do we want in DOSBox-X code?
+4413		Conflict
+4415		Conflict
+4417		No function definition in DOSBox-X, so unnecessary.
+4418		No C_SRECORD in DOSBox-X
+4429		Conflict

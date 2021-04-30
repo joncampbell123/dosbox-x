@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -345,6 +345,8 @@ Bitu read_p3c1(Bitu /*port*/,Bitu iolen) {
 void VGA_SetupAttr(void) {
 	if (IS_EGAVGA_ARCH) {
 		IO_RegisterWriteHandler(0x3c0,write_p3c0,IO_MB);
+		if (machine==MCH_EGA)
+			IO_RegisterWriteHandler(0x3c1,write_p3c0,IO_MB); // alias on EGA
 		if (IS_VGA_ARCH) {
 			IO_RegisterReadHandler(0x3c0,read_p3c0,IO_MB);
 			IO_RegisterReadHandler(0x3c1,read_p3c1,IO_MB);

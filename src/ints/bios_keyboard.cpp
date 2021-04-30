@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -585,8 +585,12 @@ irq1_end:
         const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
         const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
         const auto ssl = static_cast<uint8_t>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
-        if (CurMode->type == M_TEXT)
-            INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
+        if (CurMode->type == M_TEXT) {
+            if (machine==MCH_MDA||machine==MCH_HERC)
+                INT10_SetCursorShape((ssl + 6) | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END + 6); /* 14 - 8 = 6 */
+            else
+                INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
+        }
     }
 					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */
@@ -657,6 +661,7 @@ static Bitu IRQ1_Handler_PC98(void) {
          */
         uint8_t modflags = mem_readb(0x52A + 0xE);
 
+        bool ctrl = !!(modflags & 0x10);
         bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
 
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
@@ -883,7 +888,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x10: // q
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'q' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'Q');
                     else
                         add_key(scan_add + 'q');
@@ -891,7 +898,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x11: // w
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'w' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'W');
                     else
                         add_key(scan_add + 'w');
@@ -899,7 +908,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x12: // e
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'e' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'E');
                     else
                         add_key(scan_add + 'e');
@@ -907,7 +918,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x13: // r
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'r' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'R');
                     else
                         add_key(scan_add + 'r');
@@ -915,7 +928,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x14: // t
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 't' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'T');
                     else
                         add_key(scan_add + 't');
@@ -923,7 +938,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x15: // y
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'y' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'Y');
                     else
                         add_key(scan_add + 'y');
@@ -931,7 +948,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x16: // u
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'u' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'U');
                     else
                         add_key(scan_add + 'u');
@@ -939,7 +958,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x17: // i
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'i' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'I');
                     else
                         add_key(scan_add + 'i');
@@ -947,7 +968,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x18: // o
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'o' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'O');
                     else
                         add_key(scan_add + 'o');
@@ -955,7 +978,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x19: // p
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'p' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'P');
                     else
                         add_key(scan_add + 'p');
@@ -989,7 +1014,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1D: // A
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'a' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'A');
                     else
                         add_key(scan_add + 'a');
@@ -997,7 +1024,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1E: // S
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 's' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'S');
                     else
                         add_key(scan_add + 's');
@@ -1005,7 +1034,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1F: // D
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'd' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'D');
                     else
                         add_key(scan_add + 'd');
@@ -1013,7 +1044,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x20: // F
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'f' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'F');
                     else
                         add_key(scan_add + 'f');
@@ -1021,7 +1054,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x21: // G
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'g' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'G');
                     else
                         add_key(scan_add + 'g');
@@ -1029,7 +1064,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x22: // H
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'h' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'H');
                     else
                         add_key(scan_add + 'h');
@@ -1037,7 +1074,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x23: // J
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'j' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'J');
                     else
                         add_key(scan_add + 'j');
@@ -1045,7 +1084,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x24: // K
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'k' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'K');
                     else
                         add_key(scan_add + 'k');
@@ -1053,7 +1094,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x25: // L
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'l' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'L');
                     else
                         add_key(scan_add + 'l');
@@ -1097,7 +1140,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x29: // Z
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'z' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'Z');
                     else
                         add_key(scan_add + 'z');
@@ -1105,7 +1150,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2A: // X
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'x' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'X');
                     else
                         add_key(scan_add + 'x');
@@ -1113,7 +1160,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2B: // C
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'c' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'C');
                     else
                         add_key(scan_add + 'c');
@@ -1121,7 +1170,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2C: // V
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'v' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'V');
                     else
                         add_key(scan_add + 'v');
@@ -1129,7 +1180,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2D: // B
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'b' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'B');
                     else
                         add_key(scan_add + 'b');
@@ -1137,7 +1190,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2E: // N
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'n' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'N');
                     else
                         add_key(scan_add + 'n');
@@ -1145,7 +1200,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2F: // M
                 if (pressed) {
-                    if (caps_capitals) /* shift */
+                    if (ctrl)
+                        add_key(scan_add + 'm' + 1 - 'a');
+                    else if (caps_capitals) /* shift */
                         add_key(scan_add + 'M');
                     else
                         add_key(scan_add + 'm');

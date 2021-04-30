@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2020  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -151,6 +151,24 @@ void DoString(STRING_OP type) {
 
 				case R_STOSB:
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+1U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
+											(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMb(di_base+di_index,reg_al);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
@@ -160,6 +178,24 @@ void DoString(STRING_OP type) {
 				case R_STOSW:
 					add_index<<=1;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+2U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
+											(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMw(di_base+di_index,reg_ax);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
@@ -169,6 +205,24 @@ void DoString(STRING_OP type) {
 				case R_STOSD:
 					add_index<<=2;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+4U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
+											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMd(di_base+di_index,reg_eax);
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
@@ -178,6 +232,40 @@ void DoString(STRING_OP type) {
 
 				case R_MOVSB:
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+1U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)1U,
+											(unsigned int)(si_index+1U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+1U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
+											(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMb(di_base+di_index,LoadMb(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;
@@ -188,6 +276,40 @@ void DoString(STRING_OP type) {
 				case R_MOVSW:
 					add_index<<=1;
 					do {
+						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+2U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)2U,
+											(unsigned int)(si_index+2U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((di_index+2U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
+											(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+						}
+
 						SaveMw(di_base+di_index,LoadMw(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;
@@ -203,27 +325,44 @@ void DoString(STRING_OP type) {
 						 *      switching window. In a way it's similar to the page fault based way Windows 95 treats
 						 *      bank switched ISA cards like a linear framebuffer.
 						 *
+						 *      This technique is also used by the Windows 3.1 S3 86C928 display driver, without which
+						 *      Windows 3.1 will draw incorrectly, and BitBlt will contain garbage.
+						 *
 						 *      In order for these demos to correctly use VESA BIOS modes, this code MUST check segment
 						 *      limits and throw a GP fault if exceeded, so that the demo code changes the active bank
 						 *      to resolve the fault. Without this check, the demo will only draw on the top 64KB of
 						 *      the screen and (depending on the implementation) may go as far as scribbling on the
 						 *      VGA BIOS at C0000h and into the UMB and DOSBox private data area! */
 						if (do_seg_limits) {
+							if (Segs.expanddown[core.base_val_ds]) {
+								if (si_index <= SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x <= %x (E) DS:SI",(unsigned int)si_index,(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+							else {
+								if ((si_index+4U-1UL) > SegLimit(core.base_val_ds)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)4U,
+											(unsigned int)(si_index+4U-1U),(unsigned int)SegLimit(core.base_val_ds));
+									LOG_MSG("Segment limit violation");
+									throw GuestGenFaultException();
+								}
+							}
+
 							if (Segs.expanddown[es]) {
 								if (di_index <= SegLimit(es)) {
-									LOG_MSG("Limit check %x <= %x (E)",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Limit check %x <= %x (E) ES:DI",(unsigned int)di_index,(unsigned int)SegLimit(es));
 									LOG_MSG("Segment limit violation");
-									CPU_Exception(EXCEPTION_GP,0);
-									break;
+									throw GuestGenFaultException();
 								}
 							}
 							else {
 								if ((di_index+4U-1UL) > SegLimit(es)) {
-									LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)di_index,(unsigned int)4U,
+									LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
 											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
 									LOG_MSG("Segment limit violation");
-									CPU_Exception(EXCEPTION_GP,0);
-									break;
+									throw GuestGenFaultException();
 								}
 							}
 						}
@@ -393,6 +532,26 @@ void DoString(STRING_OP type) {
 			}
 		}
 		catch (GuestPageFaultException &pf) {
+			(void)pf;
+			/* Clean up after certain amount of instructions */
+			reg_esi&=(~add_mask);
+			reg_esi|=(si_index & add_mask);
+			reg_edi&=(~add_mask);
+			reg_edi|=(di_index & add_mask);
+			if (TEST_PREFIX_REP) {
+				count+=count_left;
+				reg_ecx&=(~add_mask);
+				reg_ecx|=(count & add_mask);
+			}
+
+			/* rethrow the exception.
+			 * NOTE: this means the normal core has no chance to execute SAVEIP, therefore
+			 *       when the guest OS has finished handling the page fault the instruction
+			 *       pointer will come right back to the string op that caused the fault
+			 *       and the string op will restart where it left off. */
+			throw;
+		}
+		catch (GuestGenFaultException &pf) {
 			(void)pf;
 			/* Clean up after certain amount of instructions */
 			reg_esi&=(~add_mask);
