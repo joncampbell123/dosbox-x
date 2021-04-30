@@ -1373,14 +1373,15 @@ void SHELL_Init() {
 	        "  text  -  The text to display as a prompt.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
-			"  +	Sets an attribute.\n"
-			"  -	Clears an attribute.\n"
-			"  R	Read-only file attribute.\n"
-			"  A	Archive file attribute.\n"
-			"  S	System file attribute.\n"
-			"  H	Hidden file attribute.\n"
-			"  [drive:][path][filename] Specifies file(s) for ATTRIB to process.\n"
-			"  /S Processes files in all directories in the specified path.\n");
+			"  +   Sets an attribute.\n"
+			"  -   Clears an attribute.\n"
+			"  R   Read-only file attribute.\n"
+			"  A   Archive file attribute.\n"
+			"  S   System file attribute.\n"
+			"  H   Hidden file attribute.\n"
+			"  [drive:][path][filename]\n"
+			"      Specifies file(s) or directory for ATTRIB to process.\n"
+			"  /S  Processes files in all directories in the specified path.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP","Displays or sets a search path for executable files.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP_LONG","PATH [[drive:]path[;...][;%PATH%]\n"
 		   "PATH ;\n\n"
