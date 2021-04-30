@@ -13222,6 +13222,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             launchsaves(control->opt_opensaves);
 
         {
+#if defined(WIN32) && !defined(C_SDL2)
+            Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
+            enable_hook_special_keys = sec->Get_bool("keyboard hook");
+#endif
+
             /* Some extra SDL Functions */
             Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
@@ -13243,13 +13248,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         /* Start up main machine */
-
-#if defined(WIN32) && !defined(C_SDL2)
-        {
-            Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
-            enable_hook_special_keys = sec->Get_bool("keyboard hook");
-        }
-#endif
 
         MAPPER_StartUp();
         DOSBOX_InitTickLoop();
