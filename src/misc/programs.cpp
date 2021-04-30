@@ -1537,7 +1537,7 @@ void PROGRAMS_Init() {
 		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
 		"-l Lists DOSBox-X's configuration parameters.\n"\
-		"-h, -help, -? Shows this help; Add the word \"sections\" for a list of sections.\n"\
+		"-h, -help, -? Shows this help; add the word \"sections\" for a list of sections.\n"\
 		"-h, -help, -? section / property Shows info on a specific section or property.\n"\
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\

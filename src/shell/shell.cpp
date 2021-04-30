@@ -1277,7 +1277,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
 		    "   /A or /ALL   Lists all supported internal commands.\n"
 		    "   [command]    Shows help for the specified command.\n\n"
-            "E.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help infomration for COPY command.\n\n"
+            "\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
 			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
 			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
             "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
@@ -1328,7 +1328,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
 	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
 	        "Note that you can not specify a new drive or path for your destination.\n\n"
-	        "Wildcards are supported for files, e.g. \033[37;1mREN *.TXT *.BAK\033[0m renames all text files.\n");
+	        "Wildcards (* and ?) are supported for files. For example, the following command\n"
+	        "renames all text files: \033[37;1mREN *.TXT *.BAK\033[0m\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
@@ -1399,7 +1400,7 @@ void SHELL_Init() {
 		   "  /R                 Display DOSBox-X's Git commit version and build date.\n"
 		   "  [SET] number       Set the specified number as the reported DOS version.\n"
 		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
-		   "  E.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
+		   "  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
 		   "  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
