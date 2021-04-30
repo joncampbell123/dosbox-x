@@ -1154,14 +1154,12 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     Section_prop *section = section = static_cast<Section_prop *>(control->GetSection("config"));
     if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
-        if (r!=NULL && *(r+1)) {
-            cp = atoi(trim(r+1));
-            if (cp==808) cp=866;
-            else if (cp==872) cp=855;
-        }
+        if (r!=NULL && *(r+1)) cp = atoi(trim(r+1));
     }
     uint16_t len=(uint16_t)str.size();
     if (cp) {
+        if (cp==808) cp=866;
+        else if (cp==872) cp=855;
         reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);
         buffer = new wchar_t[reqsize];
         if (reqsize>0 && MultiByteToWideChar(cp, 0, str.c_str(), len+1, buffer, reqsize)==reqsize) ret = (LPWSTR)buffer;
@@ -1221,7 +1219,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     else if (type == submenu_type_id) {
         if (winMenu != NULL) {
             /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
-            if (str!=L"")
+            if (wcscmp(str, L""))
                 AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
             else*/
                 AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
@@ -1234,7 +1232,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
         /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
-        if (str!=L"")
+        if (wcscmp(str, L""))
             AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
         else*/
             AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
