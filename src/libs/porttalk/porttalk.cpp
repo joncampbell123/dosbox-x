@@ -240,6 +240,8 @@ bool setPermissionList() {
 # if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
 // This Linux ioperm only works up to port 0x3FF
 #include <sys/perm.h>
+// For musl-libc based toolchain, use <sys/io.h> instead of <sys/perm.h>
+//#include <sys/io.h>
 
 bool initPorttalk() {
     if(ioperm(0x3da,1,1) < 0) return false;
