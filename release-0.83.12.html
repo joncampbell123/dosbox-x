@@ -46,6 +46,30 @@
             <td width="60%" style="border: hidden; text-align: left">
 <ul>
 <li>
+    CD-ROM image emulation now supports ISO images
+    that are 2GB or larger, 32-bit integer size limit
+    has been lifted.
+</li><li>
+    Added scrollbar buttons to the Configuration Tool,
+    so that the scrollbars better resemble the style of
+    the Windows 3.1 scrollbars.
+</li><li>
+    The help window for the Configuration Tool will now
+    display possible and default values for the config
+    options in addition to the descriptions. (Wengier)
+</li><li>
+    Updated the MMX patch code by kekko. (Wengier)
+</li><li>
+    Improved the compatibility of AUTOTYPE command with
+    games like Asterix & Obelix. (Wengier)
+</li><li>
+    MIXER command now supports the /GUI option to show
+    a popup window to display the mixer information.
+    Also improved its /LISTMIDI option which will show
+    the name of the current MIDI handler and you can
+    optionally specify a MIDI handler name (win32/alsa)
+    to show the information for this handler. (Wengier)
+</li><li>
     Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
     registers, which is needed for the tweaked
@@ -92,33 +116,9 @@
     of B800:0000 segment and causes half the graphics
     to not render.
 </li><li>
-    CD-ROM image emulation now supports ISO images
-    that are 2GB or larger, 32-bit integer size limit
-    has been lifted.
-</li><li>
     Increased upper limit of "prebuffer" config option
     (in [mixer] section) from 100 to 250. It is still
     recommended to set a value less than 100. (Wengier)
-</li><li>
-    Added scrollbar buttons to the Configuration Tool,
-    so that the scrollbars better resemble the style of
-    the Windows 3.1 scrollbars.
-</li><li>
-    The help window for the Configuration Tool will now
-    display possible and default values for the config
-    options in addition to the descriptions. (Wengier)
-</li><li>
-    Updated the MMX patch code by kekko. (Wengier)
-</li><li>
-    MIXER command now supports the /GUI option to show
-    a popup window to display the mixer information.
-    Also improved its /LISTMIDI option which will show
-    the name of the current MIDI handler and you can
-    optionally specify a MIDI handler name (win32/alsa)
-    to show the information for this handler. (Wengier)
-</li><li>
-    Improved the compatibility of AUTOTYPE command with
-    games like Asterix & Obelix. (Wengier)
 </li><li>
     The config options ttf.wpbg, ttf.bold, ttf.italic,
     ttf.underline, ttf.strikeout, and ttf.char512 can
