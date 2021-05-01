@@ -7,7 +7,8 @@
     config file (e.g. to resolve tildes only by setting
     to "tilde", or disable all path resolving). (Wengier)
   - System menu text in Windows builds now match the text
-    in the drop-down menus to be translatable. (Wengier)
+    in the drop-down menus to be translatable by language
+    files and is compatible with Unicode. (Wengier)
   - The error "Access Denied" is returned instead of
     "File not found" for files opened exclusively in
     another program on mounted local drives. (Wengier)
@@ -105,6 +106,8 @@
   - Fixed MOUNT and IMGMOUNT commands unable to mount
     directories or image files that contain non-ASCII
     characters in the code page on Windows. (Wengier)
+  - Fixed CapsLock may not work properly in Windows
+    SDL1 builds when -fs option is used. (Wengier)
   - Fixed the cycle information on the title bar when
     the Turbo mode is enabled. (Wengier)
   - Fixed that some games using the DOS4GW Extender

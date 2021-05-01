@@ -1542,9 +1542,9 @@ void PROGRAMS_Init() {
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
 		"-avistart, -avistop Starts or stops AVI recording.\n"\
-		"-startmapper Starts the mapper editor.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-startmapper Starts the DOSBox-X mapper editor.\n"\
 		"-gui Starts the graphical configuration tool.\n"
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");
