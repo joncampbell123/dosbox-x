@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.13 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">April 30, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    DOSBox-X can now resolve file paths in its config
+    options that include environment variables on non-
+    Windows platforms (e.g. ${HOME}..) as well. A new
+    config option "resolve config path" (in [dosbox]
+    section) is added to control path resolving in the
+    config file (e.g. to resolve tildes only by setting
+    to "tilde", or disable all path resolving). (Wengier)
+</li>
+<li>
+    System menu text in Windows builds now match the text
+    in the drop-down menus to be translatable by language
+    files and is compatible with Unicode. (Wengier)
+</li>
+<li>
+    The error "Access Denied" is returned instead of
+    "File not found" for files opened exclusively in
+    another program on mounted local drives. (Wengier)
+</li>
+<li>
+    S386C928 hardware cursor fixed to divide X coordinate
+    by bytes per pixel indicated in the control register
+    to match apparent Windows 3.1/95 behavior. Cursor
+    now tracks host properly even in highcolor/truecolor
+    modes.
+</li>
+<li>
+    Added support for the RetroWave OPL3 hardware player.
+    Set "oplemu=retrowave_opl3" in [sblaster] section of
+    the config file to use it. Config options including
+    "retrowave_bus", "retrowave_spi_cs", "retrowave_port"
+    are added to adjust its settings. (ClassicOldSong)
+</li>
+<li>
+    Added support for S386C928 hardware cursor color
+    selection in 256-color mode, which is different
+    from later cards.
+</li>
+<li>
+    S3 XGA "BYTE SWP" fixed only to byte swap if the
+    transfer is 16-bit wide. This fixes the dither
+    pattern drawn by Windows 95/98 when you select
+    "Shutdown" from the Start menu.
+</li>
+<li>
+    IMGMAKE command is now disabled in the secure mode,
+    similar to commands like IMGMOUNT. (Wengier)
+</li>
+<li>
+    Added config options "working directory option" and
+    "working directory default" in [dosbox] section of
+    the config file to provide various options for the
+    users to control DOSBox-X's working directory. For
+    example, DOSBox-X can use the primary config file
+    directory or the DOSBox-X program directory as its
+    working directory. You can view the DOSBox-X'safe
+    working directory with CONFIG -L command. DOSBox-X
+    is also able to save the working directory that a
+    user selects to global config files. (Wengier)
+</li>
+<li>
+    DOSBox-X will now also try to read the config file
+    named dosbox-x.conf in the user config directory
+    when searching for config files at start.
+</li>
+<li>
+    Added new command-line options -promptfolder and
+    -nopromptfolder which will cause the folder prompt
+    dialogs to show or not to show at startup.
+</li>
+<li>
+    Mac OS X builds will prompt the user to select a
+    folder at startup if run from the Finder (or from
+    the root directory). The folder selected will then
+    become the current working directory of DOSBox-X.
+    This makes it possible to start DOSBox-X with a
+    config file of your choice and to control where
+    the capture, save states and other files go.
+</li>
+<li>
+    Fixed Tseng ET4000 640x480 256-color SVGA mode
+    when using the ET4000.BIN VGA BIOS, or Windows 98.
+</li>
+<li>
+    Added segment limit checks in Normal core for
+    MOVSB/MOVSW/MOVSD and STOSB/STOSW/STOSD, which is
+    needed for DOSBox-X to work with the Windows 3.1
+    S3 86C928 display drivers that use segment limit
+    exceptions to fake a linear framebuffer.
+</li>
+<li>
+    Added S3 XGA "byte swap" emulation, needed for
+    correct menu/titlebar display in Windows 3.1 when
+    using the S3 86C928 driver.
+</li>
+<li>
+    Added YUV (YUY2) overlay to S3 Trio64V+ card
+    emulation. Tested with XingMPEG under Windows 3.1
+    and ActiveMovie under Windows 98.
+</li>
+<li>
+    Added machine types for 5 different variations of
+    S3 chipset: Vision864, Vision868, Trio32, Trio64,
+    and (experimental) Trio64V+, ViRGE, ViRGE/VX, and
+    S3 86C928.
+</li>
+<li>
+    Removed second PCI BAR for S3 MMIO register space.
+    S3 datasheets do not show a second BAR. Windows 95
+    is perfectly happy without it.
+</li>
+<li>
+    S3 SVGA XGA emulation BlitRect now supports
+    COLOR_CMP. DirectX-based Windows 95 games are now
+    able to blit in 256-color mode with a transparent
+    color key value.
+</li>
+<li>
+    ANSI.SYS emulaion now supports the "Device Status
+    Report" escape when asked through code 6 (report
+    cursor position)
+</li>
+<li>
+    Fixed RAM mapping bugs related to MDA/CGA/Hercules
+    emulation and the "allow more than 640kb" option,
+    that failed to map RAM as expected, and because of
+    that, easily triggered a "corrupt MCB chain" error
+    message.
+</li>
+<li>
+    Worked around the mounting issue for disk or CD
+    image files with LaunchBox, by allowing a mounting
+    command-line with single quotes like IMGMOUNT D
+    'X:\FILES\DOS.IMG' on Windows systems. (Wengier)
+</li>
+<li>
+    Restored Pentium MMX emulation code for the dynamic
+    x86 core to that of version 0.83.11 for better
+    compatibility with some Windows 9x games. (Wengier)
+</li>
+<li>
+    Added "compresssaveparts" config option (in the
+    [dosbox] section) which when set to false will not
+    compress the components in saved states. (Wengier)
+</li>
+<li>
+    When the current reported DOS version is less than
+    7.x and the user tries to mount a LBA or FAT32 disk
+    image, DOSBox-X will now show a message to ask if
+    the user wants it to set the required DOS version
+    automatically and proceed. (Wengier)
+</li>
+<li>
+    DOSBox-X will now show the folder mounted after
+    mounting to a drive from the menu. (Wengier)
+</li>
+<li>
+    Fixed MOUNT and IMGMOUNT commands unable to mount
+    directories or image files that contain non-ASCII
+    characters in the code page on Windows. (Wengier)
+</li>
+<li>
+    Fixed CapsLock may not work properly in Windows
+    SDL1 builds when -fs option is used. (Wengier)
+</li>
+<li>
+    Fixed the cycle information on the title bar when
+    the Turbo mode is enabled. (Wengier)
+</li>
+<li>
+    Fixed that some games using the DOS4GW Extender
+    may not work due to swap file issue. (Wengier)
+</li>
+<li>
+    Fixed that the clipboard copy and paste may not
+    work when the current code page is 808 or 872
+    and you are using Windows. (Wengier)
+</li>
+<li>
+    Fixed the handling of the "Save & Restart" button
+    in Configuration Tool when using Direct3D output
+    in Windows SDL2 builds. (Wengier)
+</li>
+<li>
+    Fixed incorrect display issue when using TrueType
+    font (TTF) output with customized screen dimension
+    when fastbioslogo=true is set. (Wengier)
+</li>
+<li>
+    Fixed CD audio not looping for individual tracks
+    in games like Alien Trilogy. (kcgen)
+</li>
+<li>
+    The command "MIXER /LISTMIDI" now lists the ROM
+    directory/files and sound fonts for MT32, Synth
+    and FluidSynth MIDI device when active. (Wengier)
+</li>
+<li>
+    Debugger "DOS XMS" command will only list handles
+    that are allocated, or with nonzero address or
+    nonzero size, to avoid showing irrelevant
+    information. (joncampbell123)
+</li>
+<li>
+    Added LOADFIX -EMS option to allocate/free
+    EMS (expanded memory). (joncampbell123)
+</li>
+<li>
+    LOADFIX -D -XMS will free all XMS blocks
+    allocated by LOADFIX -XMS. (joncampbell123)
+</li>
+<li>
+    LOADFIX -A will not allocate memory unless there
+    is memory below 64KB to fill. (joncampbell123)
+</li>
+<li>
+    INT 15h PS/2 mouse functions now clear pending
+    PS/2 mouse interrupt as part of the BIOS call.
+    This should resolve unresponsive mouse issues
+    with Windows 3.1. (joncampbell123)
+</li>
+<li>
+    Add config option "mt32.model" in the [midi]
+    section to force a MT-32 model to use. (Wengier)
+</li>
+<li>
+    Updated the MUNT MT-32 library to the latest
+    version 2.5.0. (Wengier)
+</li>
+<li>
+    Updated FLAC decoder library to the latest version
+    (0.12.29 by David Reid). (Wengier)
+</li>
+<li>
+    Integrated SVN commits (Allofich)
+<br />
+    - r4436, r4437: Rewrite store integer instructions
+    to check if the result fits.(vogons 78127)
+<br />
+    - r4447: Attribute Controller port alias on EGA
+    machine. Fixes EGA display of older Super Pac-Man
+    release.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.12 (<a href="release-0.83.12.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
