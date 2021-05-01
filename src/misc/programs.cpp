@@ -636,6 +636,9 @@ void CONFIG::Run(void) {
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
+			char cwd[512] = {0};
+			char *res = getcwd(cwd,sizeof(cwd)-1);
+			if (res!=NULL) WriteOut(MSG_Get("PROGRAM_CONFIG_WORKDIR"), cwd);
 			if (size==0) WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			else {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_PRIMARY_CONF"),control->configfiles.front().c_str());
@@ -1218,6 +1221,10 @@ void CONFIG::Run(void) {
                                 if (output == "default") output=GetDefaultOutput();
                                 GFX_LosingFocus();
                                 toOutput(output.c_str());
+#if defined(WIN32) && !defined(HX_DOS)
+                                void DOSBox_SetSysMenu(void);
+                                DOSBox_SetSysMenu();
+#endif
                             }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
@@ -1511,6 +1518,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
 	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");
 	
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
@@ -1528,19 +1536,16 @@ void PROGRAMS_Init() {
 		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
-		"-gui Starts DOSBox-X's graphical configuration tool.\n"
-		"-l Lists DOSBox-X configuration parameters.\n"\
-		"-h, -help, -? sections / sectionname / propertyname\n"\
-		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
-		" For info about a specific section or property add its name behind.\n"\
+		"-l Lists DOSBox-X's configuration parameters.\n"\
+		"-h, -help, -? Shows this help; add the word \"sections\" for a list of sections.\n"\
+		"-h, -help, -? section / property Shows info on a specific section or property.\n"\
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-		" disabled as well as the ability to create config and language files.\n"\
-		"-avistart starts AVI recording.\n"\
-		"-avistop stops AVI recording.\n"\
-		"-startmapper starts the keymapper.\n"\
+		"-avistart, -avistop Starts or stops AVI recording.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-startmapper Starts the DOSBox-X mapper editor.\n"\
+		"-gui Starts the graphical configuration tool.\n"
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
@@ -1559,6 +1564,6 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
-	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s");
+	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");
 }

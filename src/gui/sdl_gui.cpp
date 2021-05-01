@@ -815,7 +815,7 @@ std::string CapName(std::string name) {
     else if (name=="ide, octernary")
         dispname="IDE Port #8";
     else if (name=="ethernet, pcap")
-        dispname="Ethernet pcap";
+        dispname="Ethernet PCap";
     else if (name=="ethernet, slirp")
         dispname="Ethernet Slirp";
     else
@@ -863,7 +863,7 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE Port #8")
         dispname="ide, octernary";
-    else if (name=="Ethernet pcap")
+    else if (name=="Ethernet PCap")
         dispname="ethernet, pcap";
     else if (name=="Ethernet Slirp")
         dispname="ethernet, slirp";
@@ -1470,7 +1470,7 @@ public:
         (new GUI::Button(this, 210, 60, "Use portable config file", 210))->addActionHandler(this);
         (new GUI::Button(this, 425, 60, "Use user config file", 180))->addActionHandler(this);
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        saveall = new GUI::Checkbox(this, 5, 95, "Save all config options to the configuration file");
+        saveall = new GUI::Checkbox(this, 5, 95, "Save all (including advanced) config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
         (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
         (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);

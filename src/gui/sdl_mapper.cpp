@@ -4136,7 +4136,14 @@ static void MAPPER_SaveBinds(void) {
             fprintf(savefile,"%s \n",line.c_str());
     }
     fclose(savefile);
-    change_action_text("Mapper file saved.",CLR_WHITE);
+#if defined(WIN32)
+    char path[MAX_PATH];
+    if (GetFullPathName(mapper.filename.c_str(), MAX_PATH, path, NULL)) LOG_MSG("Saved mapper file: %s", path);
+#elif defined(HAVE_REALPATH)
+    char path[PATH_MAX];
+    if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
+#endif
+    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
@@ -5069,15 +5076,6 @@ void MAPPER_StartUp() {
 #if !defined(C_SDL2)
 	load=true;
 #endif
-
-    {
-        DOSBoxMenu::item *itemp = NULL;
-
-        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&itemp);
-        itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
-        itemp->set_description("Bring up the mapper UI");
-        itemp->set_text("Mapper editor");
-    }
 }
 
 void MAPPER_Shutdown() {

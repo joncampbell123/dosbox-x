@@ -124,6 +124,9 @@
     <Filter Include="Sources\cpu\core_dyn_x86">
       <UniqueIdentifier>{09ec76de-76b7-416f-9a14-f47a19aabc07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\hardware\RetroWaveLib">
+      <UniqueIdentifier>{2a582629-0964-4559-9992-810e70c2f6ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -746,6 +749,21 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
       <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Board\OPL3.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave_DOSBoX.cpp">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debug\debug.cpp">
       <Filter>Sources\debug</Filter>

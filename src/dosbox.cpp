@@ -1162,7 +1162,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board","opl3duoboard" ,0 };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", 0 };
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
@@ -1195,14 +1195,20 @@ void DOSBOX_SetupConfigSections(void) {
 
         0 };
 
+    const char* workdiropts[] = {
+        "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
+        0 };
+
+    const char* resolveopts[] = {
+        "true", "false", "dosvar", "tilde", "1", "0",
+        0 };
+
     const char* switchoutputs[] = {
         "auto", "surface",
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
-#if C_DIRECT3D
         "direct3d",
-#endif
         0 };
 
     const char* scalers[] = {
@@ -1283,9 +1289,36 @@ void DOSBOX_SetupConfigSections(void) {
             "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"default");
+    Pstring->Set_values(workdiropts);
+    Pstring->Set_help("Select an option for DOSBox-X's working directory when it runs.\n"
+            "autoprompt: DOSBox-X will auto-decide whether to prompt for a working directory.\n"
+            "config: DOSBox-X will use the primary config file directory as the working directory.\n"
+            "custom: Specify a working directory via the \"working directory default\" option.\n"
+            "default: Similar to autoprompt, but DOSBox-X will ask whether to save the selected folder.\n"
+            "force: Similar to \"custom\", while overriding -defaultdir command-line option if used.\n"
+            "noprompt: DOSBox-X uses the current directory and never prompts for a working directory.\n"
+            "program: DOSBox-X will use the DOSBox-X program directory as the working directory.\n"
+            "prompt: DOSBox-X will always ask the user to select a working directory when it runs.\n"
+            "userconfig: DOSBox-X will use its user configuration directory as the working directory.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_path("working directory default",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("The default directory to act as DOSBox-X's working directory. See also the setting \"working directory option\".\n"
+            "For working directory option=prompt, the specified directory becomes the default directory for the folder selection.");
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("resolve config path", Property::Changeable::OnlyAtStart, "true");
+    Pstring->Set_help("If set to true, DOSBox-X will resolve options containing paths in the config file (except [autoexec] section).\n"
+                      "This includes environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS] and tilde (~) in Linux/macOS.\n"
+                      "If set to dosvar, DOSBox-X forces to resolve DOS-style environment variables (%VAR%) in all platforms (and tilde).\n"
+                      "If set to tilde, DOSBox-X will only resolve tilde (~) in Linux/macOS but will not resolve environment variables.");
+    Pstring->Set_values(resolveopts);
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("hostkey", Property::Changeable::Always, "mapper");
     Pstring->Set_help("By default, DOSBox-X uses the mapper-defined host key, which defaults to F11 on Windows and F12 on other platforms.\n"
@@ -2622,6 +2655,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("mt32.model",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_help("Model of the MT-32 synthesizer to use.");
     Pstring->Set_values(mt32models);
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("mt32.reverse.stereo",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Reverse stereo channels for MT-32 output");
@@ -2944,7 +2978,18 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
-	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("retrowave_bus", Property::Changeable::WhenIdle, "serial");
+    Pstring->Set_help("Bus of the Retrowave series board (serial/spi). SPI is only supported on Linux.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("retrowave_spi_cs", Property::Changeable::WhenIdle, "0,6");
+    Pstring->Set_help("SPI chip select pin of the Retrowave series board. Only supported on Linux.");
+
+    Pstring = secprop->Add_string("retrowave_port", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Serial port of the Retrowave series board.");
     Pstring->SetBasic(true);
 
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
@@ -3592,7 +3637,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
     Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
-                   "Set to 0 to disable the limit, or -1 to use a reasonable default.");
+                   "Set to 0 to disable the limit, or -1 (default) to use a reasonable limit.\n"
+                   "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
+    Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);

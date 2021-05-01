@@ -86,6 +86,7 @@ public:
         opt_eraseconf = false;
         opt_resetconf = false;
         opt_printconf = false;
+        opt_promptfolder = -1;
         opt_noautoexec = false;
         opt_securemode = false;
         opt_fastlaunch = false;
@@ -103,6 +104,7 @@ public:
         opt_date_host_forced = false;
         opt_disable_numlock_check = false;
         opt_disable_dpi_awareness = false;
+        opt_used_defaultdir = false;
         opt_time_limit = -1;
         opt_log_con = false;
     }
@@ -120,6 +122,7 @@ public:
     void ParseEnv(char ** envp);
     bool SecureMode() const { return secure_mode; }
     void SwitchToSecureMode() { secure_mode = true; }//can't be undone
+    void ClearExtraData() { Section_prop *sec_prop; Section_line *sec_line; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec_prop = dynamic_cast<Section_prop *>(*tel); sec_line = dynamic_cast<Section_line *>(*tel); if (sec_prop) sec_prop->data = ""; else if (sec_line) sec_line->data = "";} }
 public:
     bool opt_log_con;
     double opt_time_limit;
@@ -128,6 +131,8 @@ public:
     std::vector<std::string> opt_c;
     std::vector<std::string> opt_set;
 
+    bool opt_used_defaultdir;
+    signed char opt_promptfolder;
     bool opt_disable_dpi_awareness;
     bool opt_disable_numlock_check;
     bool opt_date_host_forced;

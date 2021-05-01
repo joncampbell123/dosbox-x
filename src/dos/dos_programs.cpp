@@ -2878,6 +2878,10 @@ restart_int:
         unsigned int c, h, s, sectors; 
         uint64_t size = 0;
 
+        if(control->SecureMode()) {
+            WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+            return;
+        }
         if(cmd->FindExist("-?")) {
             printHelp();
             return;
@@ -7180,7 +7184,7 @@ void DOS_SetupPrograms(void) {
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
         "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
-        "  -f          Frees previously allocated memory\n"
+        "  -f (or -d)  Frees previously allocated memory\n"
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"

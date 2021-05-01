@@ -890,9 +890,10 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 				 *
 				 * C:\>echo %PATH %
 				 * %PATH % */
-				if (isalpha(*r) || *r == ' ') { /* must start with a letter. space is apparently valid too. (Win95) */
+				if (isalpha(*r) || *r == '_' || *r == '~' || *r == '^' || *r == '&' || *r == '@' || *r == '#' || *r == '$' || *r == '!' || *r == ' ') {
+					/* must start with a letter. space and some special symbols like _ and ~ are apparently valid too. (MS-DOS 7/Windows 9x) */
 					if (*r == ' ') spaces++;
-					else if (isalpha(*r)) chars++;
+					else chars++;
 
 					r++;
 					while (*r != 0 && *r != '%') {

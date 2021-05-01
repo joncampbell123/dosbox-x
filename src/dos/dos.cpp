@@ -371,6 +371,7 @@ static void DOS_AddDays(uint8_t days) {
 #endif
 
 // TODO: Make this configurable.
+//       (This can be controlled with the setting "hard drive data rate limit")
 //       Additionally, allow this to vary per-drive so that
 //       Drive D: can be as slow as a 2X IDE CD-ROM drive in PIO mode
 //       Drive C: can be as slow as a IDE drive in PIO mode and

@@ -1065,6 +1065,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER","IF ERRORLEVEL: Invalid number.\n");
 	MSG_Add("SHELL_CMD_GOTO_MISSING_LABEL","No label supplied to GOTO command.\n");
 	MSG_Add("SHELL_CMD_GOTO_LABEL_NOT_FOUND","GOTO: Label %s not found.\n");
+	MSG_Add("SHELL_CMD_FILE_ACCESS_DENIED","Access denied - %s\n");
 	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File not found - %s\n");
 	MSG_Add("SHELL_CMD_FILE_EXISTS","File %s already exists.\n");
 	MSG_Add("SHELL_CMD_DIR_INTRO"," Directory of %s\n\n");
@@ -1276,7 +1277,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
 		    "   /A or /ALL   Lists all supported internal commands.\n"
 		    "   [command]    Shows help for the specified command.\n\n"
-            "E.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help infomration for COPY command.\n\n"
+            "\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
 			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
 			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
             "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
@@ -1327,7 +1328,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
 	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
 	        "Note that you can not specify a new drive or path for your destination.\n\n"
-	        "Wildcards are supported for files, e.g. \033[37;1mREN *.TXT *.BAK\033[0m renames all text files.\n");
+	        "Wildcards (* and ?) are supported for files. For example, the following command\n"
+	        "renames all text files: \033[37;1mREN *.TXT *.BAK\033[0m\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
@@ -1371,14 +1373,15 @@ void SHELL_Init() {
 	        "  text  -  The text to display as a prompt.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
-			"  +	Sets an attribute.\n"
-			"  -	Clears an attribute.\n"
-			"  R	Read-only file attribute.\n"
-			"  A	Archive file attribute.\n"
-			"  S	System file attribute.\n"
-			"  H	Hidden file attribute.\n"
-			"  [drive:][path][filename] Specifies file(s) for ATTRIB to process.\n"
-			"  /S Processes files in all directories in the specified path.\n");
+			"  +   Sets an attribute.\n"
+			"  -   Clears an attribute.\n"
+			"  R   Read-only file attribute.\n"
+			"  A   Archive file attribute.\n"
+			"  S   System file attribute.\n"
+			"  H   Hidden file attribute.\n"
+			"  [drive:][path][filename]\n"
+			"      Specifies file(s) or directory for ATTRIB to process.\n"
+			"  /S  Processes files in all directories in the specified path.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP","Displays or sets a search path for executable files.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP_LONG","PATH [[drive:]path[;...][;%PATH%]\n"
 		   "PATH ;\n\n"
@@ -1398,7 +1401,7 @@ void SHELL_Init() {
 		   "  /R                 Display DOSBox-X's Git commit version and build date.\n"
 		   "  [SET] number       Set the specified number as the reported DOS version.\n"
 		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
-		   "  E.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
+		   "  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
 		   "  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");

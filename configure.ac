@@ -386,18 +386,26 @@ AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
 dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
 AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
 
-dnl Some stuff for the icon.
+dnl Some stuff for the icon and other makefile platform stuff.
+dnl Slightly double with the above, but that deals more with compiled features.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
        LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
+       DBPLATFORM="win"
+    ;;
+    *-*-darwin*)
+       WINDRES=":"
+       DBPLATFORM="mac"
     ;;
     *)
        WINDRES=":"
+       DBPLATFORM="other"
     ;;
 esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
+       AM_CONDITIONAL(MACOSX, test "x$DBPLATFORM" = "xmac")
        AC_SUBST(WINDRES)
 
 dnl LIBRARY TEST: SDL 2.x

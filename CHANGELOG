@@ -1,4 +1,52 @@
 0.83.13
+  - DOSBox-X can now resolve file paths in its config
+    options that include environment variables on non-
+    Windows platforms (e.g. ${HOME}..) as well. A new
+    config option "resolve config path" (in [dosbox]
+    section) is added to control path resolving in the
+    config file (e.g. to resolve tildes only by setting
+    to "tilde", or disable all path resolving). (Wengier)
+  - System menu text in Windows builds now match the text
+    in the drop-down menus to be translatable by language
+    files and is compatible with Unicode. (Wengier)
+  - The error "Access Denied" is returned instead of
+    "File not found" for files opened exclusively in
+    another program on mounted local drives. (Wengier)
+  - S386C928 hardware cursor fixed to divide X coordinate
+    by bytes per pixel indicated in the control register
+    to match apparent Windows 3.1/95 behavior. Cursor
+    now tracks host properly even in highcolor/truecolor
+    modes.
+  - Added support for the RetroWave OPL3 hardware player.
+    Set "oplemu=retrowave_opl3" in [sblaster] section of
+    the config file to use it. Config options including
+    "retrowave_bus", "retrowave_spi_cs", "retrowave_port"
+    are added to adjust its settings. (ClassicOldSong)
+  - Added support for S386C928 hardware cursor color
+    selection in 256-color mode, which is different
+    from later cards.
+  - S3 XGA "BYTE SWP" fixed only to byte swap if the
+    transfer is 16-bit wide. This fixes the dither
+    pattern drawn by Windows 95/98 when you select
+    "Shutdown" from the Start menu.
+  - IMGMAKE command is now disabled in the secure mode,
+    similar to commands like IMGMOUNT. (Wengier)
+  - Added config options "working directory option" and
+    "working directory default" in [dosbox] section of
+    the config file to provide various options for the
+    users to control DOSBox-X's working directory. For
+    example, DOSBox-X can use the primary config file
+    directory or the DOSBox-X program directory as its
+    working directory. You can view the DOSBox-X'safe
+    working directory with CONFIG -L command. DOSBox-X
+    is also able to save the working directory that a
+    user selects to global config files. (Wengier)
+  - DOSBox-X will now also try to read the config file
+    named dosbox-x.conf in the user config directory
+    when searching for config files at start.
+  - Added new command-line options -promptfolder and
+    -nopromptfolder which will cause the folder prompt
+    dialogs to show or not to show at startup.
   - Mac OS X builds will prompt the user to select a
     folder at startup if run from the Finder (or from
     the root directory). The folder selected will then
@@ -58,6 +106,8 @@
   - Fixed MOUNT and IMGMOUNT commands unable to mount
     directories or image files that contain non-ASCII
     characters in the code page on Windows. (Wengier)
+  - Fixed CapsLock may not work properly in Windows
+    SDL1 builds when -fs option is used. (Wengier)
   - Fixed the cycle information on the title bar when
     the Turbo mode is enabled. (Wengier)
   - Fixed that some games using the DOS4GW Extender
@@ -65,6 +115,14 @@
   - Fixed that the clipboard copy and paste may not
     work when the current code page is 808 or 872
     and you are using Windows. (Wengier)
+  - Fixed the handling of the "Save & Restart" button
+    in Configuration Tool when using Direct3D output
+    in Windows SDL2 builds. (Wengier)
+  - Fixed incorrect display issue when using TrueType
+    font (TTF) output with customized screen dimension
+    when fastbioslogo=true is set. (Wengier)
+  - Fixed CD audio not looping for individual tracks
+    in games like Alien Trilogy. (kcgen)
   - The command "MIXER /LISTMIDI" now lists the ROM
     directory/files and sound fonts for MT32, Synth
     and FluidSynth MIDI device when active. (Wengier)
@@ -88,6 +146,12 @@
     version 2.5.0. (Wengier)
   - Updated FLAC decoder library to the latest version
     (0.12.29 by David Reid). (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4436, r4437: Rewrite store integer instructions
+    to check if the result fits.(vogons 78127)
+    - r4447: Attribute Controller port alias on EGA
+    machine. Fixes EGA display of older Super Pac-Man
+    release.
 0.83.12
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
