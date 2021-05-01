@@ -616,7 +616,20 @@ OpenGlide does not support locking aux buffer, as such please use _noaux modes.
 </div>
 <div class="paragraph">
 <p>This option only applies when using the high-level Glide API emulation.
-In addition, this is only supported on Windows hosts, and it requires 3dfxSpl2.dll to be installed.</p>
+In addition, this is only supported on Windows hosts, and it requires <code>3dfxSpl2.dll</code> to be installed.
+It is enough for <code>3dfxSpl2.dll</code> to be in the same directory as <code>dosbox-x.exe</code></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The CPU type for <code>3dfxSpl2.dll</code> and DOSBox-X needs to match for this to work. So if you have a x86 32bit <code>3dfxSpl2.dll</code>, you need to use a x86 32bit <code>dosbox-x.exe</code>.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -746,10 +759,11 @@ The nGlide installer is available from:</p>
 <div class="paragraph">
 <p>dgVoodoo is another 3dfx Voodoo Glide wrapper to Direct3D provider for Windows.
 Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit and 64-bit glide2x.dll files in its zip packages.
-Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable. You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:</p>
+Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable.
+You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:</p>
 </div>
 <div class="paragraph">
-<p><a href="http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2.html" class="bare">http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2.html</a></p>
+<p><a href="http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/" class="bare">http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/</a></p>
 </div>
 </div>
 <div class="sect3">
@@ -1041,7 +1055,7 @@ NoSplash=1</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

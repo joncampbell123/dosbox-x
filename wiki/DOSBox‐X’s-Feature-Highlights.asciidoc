@@ -5,7 +5,7 @@ Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
 ## DOSBox-X’s Feature Highlights
 
-As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X's unique features include:
+As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X's unique features include (note that these are just examples):
 
 * **GUI drop-down menu for easier usage**
 +
@@ -93,7 +93,7 @@ It is possible to launch a Windows application from inside DOSBox-X to run on th
 * **Support for changing or synchronizing the date and time**
 +
 You can change the date and time either from DOSBox-X's DOS shell (DATE and TIME commands), or using the DOS APIs or with DOSBox-X's BIOS Setup Utility. DOSBox-X also provides the option to automatically synchronize the date and time with the host system.
-* **Support for quick-launch programs to run inside DOSBox-X**
+* **Support for quick-launching programs to run inside DOSBox-X**
 +
 DOSBox-X lets you use the system file browser to select a DOS program to quickly run inside DOSBox-X on all supported platforms, and file associations for DOS programs are supported for the Windows Explorer as well.
 * **Support for setting config options from the DOSBox-X command line**

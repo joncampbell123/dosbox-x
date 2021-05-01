@@ -15,21 +15,21 @@ Usage: Simply enter 25, 28, or 50 without any parameters.
 +
 * **4DOS** (external command)
 +
-Start the 4DOS 8.00 command shell for 4DOS features and capabilities.
+Starts the 4DOS 8.00 command shell for 4DOS features and capabilities.
 +
 Usage: 4DOS [option]
 +
 Note: You can set 4DOS.COM as the default shell to start (instead of COMMAND.COM) via the SHELL option in the config file.
 * **A20GATE** (external command)
 +
-Turns on/off or changes the A20 gate mode.
+Views, turns on/off or changes the A20 gate mode.
 +
 Usage: A20GATE SET [off | off_fake | on | on_fake | mask | fast] or A20GATE [ON | OFF]
 * **ADDKEY** (external command)
 +
 Generates artificial keypresses.
 +
-Usage: ADDKEY key
+Usage: ADDKEY key(s)
 * **APPEND** (external command)
 +
 Enables programs to open data files in specified directories as if the files were in the current directory.
@@ -183,7 +183,7 @@ Usage: DELTREE [/Y] [drive:]path [[drive:]path[...]]
 Note: This will delete the entire directory tree. Please use this command with caution.
 * **DEVICE** (external command)
 +
-Load device drivers as CONFIG.SYS's DEVICE command.
+Loads device drivers as CONFIG.SYS's DEVICE command.
 +
 Usage: DEVICE [program] [options]
 * **DIR** (internal command)
@@ -275,7 +275,7 @@ Usage: GOTO label
 +
 Shows DOSBox-X command help.
 +
-Usage: HELP [/A or /ALL]
+Usage: HELP [/A|/ALL] or HELP command
 * **HEXMEM16/HEXMEM32** (external command)
 +
 Runs DOSLIB's HEXMEM tool, a memory viewer/dumper.

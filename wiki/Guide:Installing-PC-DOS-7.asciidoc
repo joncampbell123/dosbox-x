@@ -28,27 +28,39 @@ toc::[]
 
 * There is also PC DOS 7.1 which has LBA and FAT32 support, but it only contains kernel files, and it does not have an installation program.
 * Some disk versions of IBM PC DOS 7 and 2000 were distributed in IBM XDF format or IBM DSKF image format.
-** XDF image files are easy to recognise as they use the .XDF extension. They are incompatible with DOSBox-X's FDD emulation, and cannot be converted to a disk image format that DOSBox can handle. Original disks in XDF format also cannot be read on a modern PC with a USB diskette drive.
-** DSKF image files can be trickier to recognise as they use the same .DSK extension as is sometimes used for regular MFM disk images. While DOSBox-X will fail to ``IMGMOUNT`` a DSKF image, it will happily try to ``BOOT`` a DSKF disk image and fail. On Linux you can run the command ``file filename.dsk``, and if it returns ``floppy image data (IBM SaveDskF)``, it is a DSKF disk image. Another way is to check the size of the .DSK file. If it is exactly 1474560, 1228800, 737280 or 368640 bytes, it is likely to be a regular MFM disk image (in respectively 1.44MB, 1.2MB, 720KB or 360KB sizes). The size of a DSKF disk image will instead vary. DSKF images can be converted in DOSBox-X to regular diskette images with LOADDSKF.
-* The PC DOS 2000 CD-ROM release is a bit of an odd release. One may expect that the CD-ROM is bootable, or that there is a DOS boot diskette provided with CD-ROM drivers. But neither is the case. Officially you could install it in one of two ways:
+** XDF image files are easy to recognise as they use the .XDF extension. They are incompatible with DOSBox-X's FDD emulation, and cannot be converted to a disk image format that DOSBox-X can handle.
+Original disks in XDF format also cannot be read on a modern PC with a USB diskette drive.
+** DSKF image files can be trickier to recognise as they use the same .DSK extension as is sometimes used for regular MFM disk images.
+While DOSBox-X will fail to ``IMGMOUNT`` a DSKF image, it will happily try to ``BOOT`` a DSKF disk image and fail.
+On Linux you can run the command ``file filename.dsk``, and if it returns ``floppy image data (IBM SaveDskF)``, it is a DSKF disk image.
+Another way is to check the size of the .DSK file.
+If it is exactly 1474560, 1228800, 737280 or 368640 bytes, it is likely to be a regular MFM disk image (in respectively 1.44MB, 1.2MB, 720KB or 360KB sizes).
+The size of a DSKF disk image will instead vary.
+IBM DSKF image files can be converted in DOSBox-X to regular diskette images with link:http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe[LOADDSKF.EXE].
+* The PC DOS 2000 CD-ROM release is a bit of an odd release.
+One may expect that the CD-ROM is bootable, or that there is a DOS boot diskette provided with CD-ROM drivers.
+But neither is the case. Officially you could install it in one of two ways:
 ** If you already have some version of DOS installed with CD-ROM support, and want to upgrade, you can directly run SETUP.EXE from the CD-ROM to install onto your system.
-** If you want to do a clean install, the CD-ROM contains six 3.5" 1.44MB disk images in IBM DSKF format together with LOADDSKF to write them to diskettes. You can then boot from the diskettes to install PC DOS 2000.
+** If you want to do a clean install, the CD-ROM contains six 3.5" 1.44MB disk images in IBM DSKF format together with LOADDSKF.EXE to write them to diskettes.
+You can then boot from the diskettes to install PC DOS 2000.
 
 # Creating a PC DOS 7 HDD image
-Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X. You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
+Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X.
+You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
 
 # Creating a PC DOS 2000 HDD image from CD-ROM
 
-Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 
 You have the following installation options:
 
-* Use LOADDSKF to convert the the DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.
+* Use LOADDSKF.EXE to convert the the IBM DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.
 * Run the SETUP program on the CD image directly from the DOSBox-X integrated DOS. This is the method we will use below.
 
-Note: This method requires DOSBox-X 0.83.2 or newer.
+NOTE: This method requires DOSBox-X 0.83.2 or newer.
+
 ....
  IMGMAKE hdd.img -t hd -size 2048
  IMGMOUNT C hdd.img
@@ -64,7 +76,7 @@ BOOT C:
 ....
 
 ## Creating a PC DOS 2000 HDD image from diskettes
-If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF in DOSBox-X as follows:
+If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF.EXE in DOSBox-X as follows:
 ....
 IMGMAKE DISK1.IMG -t fd_1440
 IMGMOUNT A DISK1.IMG -U

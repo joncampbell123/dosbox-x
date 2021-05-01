@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>The DOSBox-X Wiki is now also available from: https://dosbox-x.com/wiki</title>
+<title>Introduction</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -447,8 +447,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<div class="sect1">
-<div class="sectionbody">
 <div class="sect2">
 <h3 id="_introduction">Introduction</h3>
 <div class="paragraph">
@@ -462,7 +460,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel1">
 <ul class="sectlevel2">
 <li><a href="#_introduction">Introduction</a></li>
 <li><a href="#_dosbox_xs_main_focus">DOSBox-X&#8217;s Main Focus</a></li>
@@ -474,8 +471,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_dosbox_x_guides_and_tips">DOSBox-X Guides and Tips</a></li>
 <li><a href="#_dosbox_xs_compatibility">DOSBox-X’s Compatibility</a></li>
 <li><a href="#_frequently_asked_questions_faq">Frequently Asked Questions (FAQ)</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
@@ -534,7 +529,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>You can set various configuration options for use with DOSBox-X. DOSBox-X will load the configuration file from either the current directory (typically the directory where the DOSBox-X program is located), or from the platform-dependent user directory.</p>
 </div>
 <div class="paragraph">
-<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the <code>-defaultdir</code> command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:</p>
+<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory, followed by the DOSBox-X program directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the <code>-defaultdir</code> command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -550,10 +545,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Furthermore, you can start DOSBox-X with the <code>-conf</code> parameter to load a specified configuration file and use its settings. If this parameter is used, then DOSBox-X will try to load the specified configuration file before try to load the configuration file from the current directory or the user directory. There is also a <code>-defaultconf</code> command-line option which will force the use of the default DOSBox-X settings (ignoring any config files).</p>
 </div>
 <div class="paragraph">
-<p>You can override one or more config options when DOSBox-X starts by using the <code>-set</code> command-line option. For example, <code>-set machine=pc98</code> will force DOSBox-X to start in PC-98 mode regardless of the setting in the config file.</p>
+<p>You can override one or more config options when DOSBox-X starts by using the <code>-set</code> command-line option. For example, <code>-set machine=pc98</code> will force DOSBox-X to start in PC-98 mode regardless of the setting in the config file. If there is at least one space in the config option (e.g. “dpi aware” in [dosbox] section) then you will need to put the section name in front of it and quote the whole string, such as <code>-set “dosbox dpi aware=true”</code>.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X features the graphical configuration tool so that you can use its built-in GUI interface to modify its settings easily. An configuration file can be generated or updated by the configuration tool, or with the built-in CONFIG command (which can be found on the internal Z: drive when you run DOSBox-X).</p>
+<p>There are two config reference files in DOSBox-X, a “common” one and a full one, namely dosbox-x.reference.conf and dosbox-x.reference.full.conf respectively. The full config reference file contains all DOSBox-X’s options whereas the common config reference file contains only options that are relatively common. Some advanced users may prefer a full config file, but for other users the common config reference file is probably sufficient, and they can just use dosbox-x.reference.conf as their config reference file.</p>
+</div>
+<div class="paragraph">
+<p>DOSBox-X features the graphical configuration tool so that you can use its built-in GUI interface to modify its settings easily. A configuration file can be generated or updated by the configuration tool, or with the built-in CONFIG command (which can be found on the internal Z: drive when you run DOSBox-X). Some users may prefer the config file to contain modified config options only (in such case other options will use the default values), and/or remove all comments in the config file; they can create such a config file using a command like <code>config -mod -norem -wcp [filename.conf]</code> inside DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>Starting with DOSBox-X version 0.83.13, DOSBox-X may also prompt for a directory if the config file dosbox-x.conf (or dosbox.conf) is not found in the current directory, and the -conf (or -defaultonf) option is not specified. You can select a folder that will become the working directory for DOSBox-X. You may customize this via the <code>working directory option</code> and <code>working directory default</code> options in the [dosbox] section of the global config file (i.e. the DOSBox-X config file in the user configuration directory or the directory where the DOSBox-X executable is located).</p>
 </div>
 </div>
 <div class="sect2">
@@ -842,6 +843,12 @@ press the X key on your keyboard.</p>
 </div>
 </li>
 <li>
+<p><a href="Guide%3ACPU-settings-in-DOSBox‐X">Guide: CPU settings in DOSBox‐X</a></p>
+<div class="paragraph">
+<p>Explains the CPU emulation and different CPU types in DOSBox-X.</p>
+</div>
+</li>
+<li>
 <p><a href="Guide%3ARegional-settings-in-DOSBox‐X">Guide: Regional settings in DOSBox‐X</a></p>
 <div class="paragraph">
 <p>Explains how to customize DOSBox-X&#8217;s regional settings and international support, such as display languages and keyboard layouts.</p>
@@ -920,36 +927,66 @@ press the X key on your keyboard.</p>
 <li>
 <p><strong>How can I save and load a state in DOSBox-X?</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. Alternatively, you can use your own save files instead of the built-in save slots.</p>
+<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state (or pre-set one using the “saveslot” option in [dosbox] section of the config file). DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. DOSBox-X also asks for a save remark by default when saving a state, which can be disabled by enabling the “No remark when saving state” menu toggle. Moreover, you can use your own save file(s) instead of the built-in save slots, which can also be specified using the “savefile” option in [dosbox] section of the config file. Starting from version 0.83.11 there is also a feature to automatically save states in the specified time interval.</p>
 </div>
 </li>
 <li>
 <p><strong>Can I change config options from the command line?</strong></p>
 <div class="paragraph">
-<p>You can do this either from the DOSBox-X command line (before starting DOSBox-X) or from the DOSBox-X command shell (when DOSBox-X is running). To specify a config option before starting DOSBox-X, just use the -set command-line option (specify it multiple times for multiple config options). For example, the command <code>dosbox-x -set machine=pc98</code> will start DOSBox-X in PC-98 mode regardless of the setting in the config file. If you want to change a setting from the DOSBox-X command shell when DOSBox-X is already running, you can do so via the config command, e.g. <code>config -set cycles=max</code>, or with the "Config options as commands" option enabled (under "DOS" menu), directly via a command line like <code>cycles=max</code>. Note that you cannot change all config settings from the DOSBox-X command shell when DOSBox-X is already running.</p>
+<p>You can do this either from the DOSBox-X command line (before starting DOSBox-X) or from the DOSBox-X command shell (when DOSBox-X is running). To specify a config option before starting DOSBox-X, just use the -set command-line option (specify it multiple times for multiple config options). For example, the command <code>dosbox-x -set machine=pc98</code> will start DOSBox-X in PC-98 mode regardless of the setting in the config file (remember to put the section name in front and quote the whole string in case the option contains a space, e.g. <code>dosbox-x -set “dosbox quit warning=false”</code> for the “quit warning” option in [dosbox] section of the config file). If you want to change a setting from the DOSBox-X command shell when DOSBox-X is already running, you can do so via the config command, e.g. <code>config -set cycles=max</code>, or with the "Config options as commands" option enabled (under "DOS" menu), directly via a command line like <code>cycles=max</code>. Note that you cannot change all config settings from the DOSBox-X command shell when DOSBox-X is already running, but you may want DOSBox-X to restart itself automatically to load the specified config file. For example, with the command <code>config -bc config.conf</code> DOSBox-X will reboot itself using the config file config.conf.</p>
 </div>
 </li>
 <li>
 <p><strong>Can I launch programs to run on the host from the DOSBox-X command line?</strong></p>
 <div class="paragraph">
-<p>Yes, you can do this, although currently only available in the Windows version. You can either run Windows applications directly from the DOSBox-X command line, or run it with the START command. This feature is disabled by default for security reasons, but can be enabled in the Windows version with either the "-winrun" command-line option or the "startcmd" config option (in the [dos] section). You can also find the submenu "Windows host applications" (under "DOS" menu) to control some settings. If this feature is enabled there is in fact no difference between how you enter commands to launch DOS applications and to launch Windows applications to run on the host on mounted local drives. The START command additionally allows you to enter any host path to run Windows applications, or open files (instead of executable programs) with their default associated actions on the Windows host.</p>
+<p>Yes, you can do this, although currently only available in the Windows version. You can either run Windows applications directly from the DOSBox-X command line, or run it with the START command. This feature is disabled by default for security reasons, but can be enabled in the Windows version with either the "-winrun" command-line option or the "startcmd" config option (in the [dos] section). You can also find the submenu "Windows host applications" (under "DOS" menu) to control some settings. If this feature is enabled there is in fact no difference between how you enter commands to launch DOS applications and to launch Windows applications to run on the host on mounted local drives. The START command additionally allows you to enter any host path to run Windows applications, or open files (instead of executable programs) with their default associated actions on the Windows host. You can also run your program maximize, minimized, or hidden using its command-line option (type <code>START /?</code> for more information about the usage of this command).</p>
+</div>
+</li>
+<li>
+<p><strong>Can I customize the content of the Z drive?</strong></p>
+<div class="paragraph">
+<p>Yes, you can! You can add your own files to the Z drive by putting the files on the directory named “drivez” in the DOSBox-X working directory, the user configuration directory, or the directory where the DOSBox-X executable is located. The files in this directory will then appear in the Z drive, or in the case there are already existing files with the same names they will replace the existing files. You can also hide or remove existing files or programs on the Z drive using the “drive z hide files” config option in [dos] section of the config file. The files listed here (separated by space) will be hidden or removed from the Z drive (files with leading forward slashs like <code>/A20GATE.COM</code> will become hidden files, which can be listed using the <code>DIR /A</code> command). With these you can virtually customize the content of the Z drive in any way you want, just make sure any programs you may need (e.g. MOUNT.COM for MOUNT command) are still available on the drive. Moreover, you can move the Z drive to a different drive (e.g. Y drive) using the MOUNT command using its -Z option, such as <code>MOUNT -Z Y</code>. You can move the drive as many times as you want, or move it back and forth as needed.</p>
 </div>
 </li>
 <li>
 <p><strong>Can I change the default command shell in DOSBox-X?</strong></p>
 <div class="paragraph">
-<p>Yes, you can! DOSBox-X supports the SHELL= option in [config] section of dosbox-x.conf to specify an alternative command shell, which resembles the counterpart in DOS&#8217;s config.sys file. With this option you can use the free but powerful 4DOS 8.00 shell as the command shell for DOSBox-X, which is already built into DOSBox-X. By setting "SHELL=4DOS.COM" the 4DOS 8.00 command shell will be launched when DOSBox-X starts, and you will be able to use it as the command processor for DOSBox-X with 4DOS features and capabilities. When you are in this shell you can type "HELP" command to see its help information from its interactive help system. There is also a [4dos] section in the dosbox-x.conf file to act as the 4DOS.INI file if you use this shell. On the other hand, the original command shell will be used for DOSBox-X if SHELL= is not specified, or if you specify "SHELL=COMMAND.COM" in [config] section of dosbox-x.conf.</p>
+<p>Yes, you can! DOSBox-X supports the SHELL= command in [config] section of dosbox-x.conf to specify an alternative command shell, which resembles the counterpart in DOS&#8217;s config.sys file. With this option you can use the free but powerful 4DOS 8.00 shell as the command shell for DOSBox-X, which is already built into DOSBox-X. By setting <code>SHELL=4DOS.COM</code> the 4DOS 8.00 command shell will be launched when DOSBox-X starts, and you will be able to use it as the command processor for DOSBox-X with 4DOS features and capabilities. When you are in this shell you can type "HELP" command to see its help information from its interactive help system. There is also a [4dos] section in the dosbox-x.conf file to act as the 4DOS.INI file if you use this shell. On the other hand, the original command shell will be used for DOSBox-X if SHELL= is not specified, or if you specify <code>SHELL=COMMAND.COM</code> in [config] section of dosbox-x.conf. You can also specify another command shell on your local drive, and in such case you can either add it to the Z drive directly, or mount your local drive in [config] section using INSTALL= command, like <code>INSTALL=MOUNT.COM C C:\DOS</code>, and then point to the location of the command shell using SHELL= command, like <code>SHELL=C:\CMDSHELL.COM</code>.</p>
+</div>
+</li>
+<li>
+<p><strong>Can DOSBox-X synchronize the content of mounted local drives with the host file system and/or the internal clock with the host system clock automatically?</strong></p>
+<div class="paragraph">
+<p>Yes, you can let DOSBox-X synchronize them automatically with config options, or they may become desynchronized if there are changes outside of DOSBox-X (DOSBox-X caches the file list on a directory/drive by default to improve its performance). To synchronize the content of mounted local drives with the host file system automatically, you can set <code>nocachedir=true</code> in [dosbox] section of the config file. Alternatively, you can synchronize individual drive with the host file system by adding the <code>-nocachedir</code> option to <code>MOUNT</code> command, e.g. <code>MOUNT D D:\ -nocachedir</code>. Likewise, to synchronize the internal clock with the host system clock automatically, you can set <code>synchronize time=true</code> in [dosbox] section of the config file, or you can toggle this from DOSBox-X’s drop-down menu ("DOS" &#8658; "synchronize host date/time"). Note that you can also use <code>RESCAN</code> command to manually synchronize the content of mounted local drive(s) with the host file system (type <code>RESCAN /?</code> for more information about this command), and you can use <code>DATE /H</code> or <code>TIME /H</code> command to manually synchronize the internal date/time with the host system date/time.</p>
+</div>
+</li>
+<li>
+<p><strong>How can I improve the running speed in DOSBox-X?</strong></p>
+<div class="paragraph">
+<p>DOSBox-X comes with a default setting for general usages, which may already be optimal for some settings but not for others in terms of performance, and you may want to change certain settings to further improve its running speed. If you want to have a better speed for running your specific games or programs (such as data processing programs), you can consider setting the following in the DOSBox-X config file (dosbox-x.conf), which will disable the BIOS logo and welcome banner at launch as well as using the dynamic core and disabling the drive rate limit:</p>
 </div>
 </li>
 </ul>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>[dosbox]
+fastbioslogo = true
+startbanner = false
+
+[cpu]
+core = dynamic
+cycles = max
+
+[dos]
+hard drive data rate limit = 0</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

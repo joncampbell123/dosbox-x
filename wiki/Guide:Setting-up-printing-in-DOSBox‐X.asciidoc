@@ -393,7 +393,19 @@ Alternatively you can try to set it up as follows, but this reportedly only work
 parallel1=reallpt directlpt:378
 ....
 
-Other alternatives are to install either link:http://sourceforge.net/projects/winprint/[WinPrint] (Open Source), or link:http://www.dosprn.com/[DOSPRN], a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.
+## Windows host, in combination with 3rd-party printing solution
+
+In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like link:http://sourceforge.net/projects/winprint/[WinPrint] (open-source), link:https://www.printfil.com/[Printfil], or link:http://www.dosprn.com/[DOSPRN]. Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.
+
+### Windows host, extended solution using Printfil
+
+According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications. You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.
+
+Printfil has implemented official support for integration with DOSBox-X since version 5.27. In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing. You can find the main features of Printfil in link:https://www.printfil.com/edesc.htm[its feature list page]. Once configured, there is no additional setup needed for printing support.
+
+You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window. Printfil will automatically detect DOSBox-X if installed, and ask whether to capture the selected port for DOSBox-X. If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions. Below is a screenshot of its configuration window.
+
+image::images/Printfil_configuration_window.png[The Printfil configuration window]
 
 ## Linux host
 

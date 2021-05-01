@@ -26,21 +26,21 @@ toc::[]
 
 Windows 1.0x was the first versions of the Microsoft Windows line, available for both Retail and via OEM. A runtime version was also included with some applications.
 
-The retail release of Windows 1.04 adds support for the IBM PS/2, but *DID NOT* add support for the IBM PS/2 Mouse, or the newer VGA, MCGA or 8514/A video adapters.
-IBM distributed a special OEM version of Windows 1.04 as part of the "IBM PS/2 Collegiate Kit", which *DOES* have support for these features.
+The retail release of Windows 1.04 adds support for the IBM PS/2 but did not add support for the IBM PS/2 Mouse, or the newer VGA, MCGA or 8514/A video adapters.
+IBM distributed a special OEM version of Windows 1.04 as part of the "**IBM PS/2 Collegiate Kit**", which does have support for those features.
 
-According to Microsoft, _Windows 1.0 required a minimum of 256 kilobyte, two double-sided disk drives and a graphics adapter.
+According to Microsoft: _Windows 1.0 required a minimum of 256 kilobyte, two double-sided disk drives and a graphics adapter.
 A hard disk and 512KB memory are recommended for running multiple programs or when using DOS 3.0 or higher._
 
-In reality, it also needs at least DOS 2.0, and the two disk drives are not mandatory if there is a harddisk.
+In actuality, it also needs at least DOS 2.0, and the two disk drives are not mandatory if there is a harddisk.
 It only supports up to 640KB base memory (no support for EMS/XMS/UMB memory).
 
 ## README.1ST
 Apart from the special IBM OEM version of Windows 1.04, there is no support for the default PS/2 mouse that DOSBox-X emulates.
-Therefore it is necessary if you want mouse support to enable serial mouse support.
+Therefore, it is necessary if you want mouse support to enable serial mouse support.
 
 In addition, Windows 1.0x has problems starting if the DOS version is 4.0 or higher.
-Therefore it is necessary to set the reported DOS version to something like 3.30.
+Therefore, it is necessary to set the reported DOS version to something like 3.30.
 
 ### Useful links
 
@@ -84,7 +84,7 @@ Copy the above config and save it as *win1x.conf*
 The installation will be into a mounted folder, and Windows 1.0x will run from the integrated DOS that DOSBox-X provides.
 You can optionally install real DOS into DOSBox-X and install Windows 1.0x in that, but there is no known advantage to doing so.
 
-Start by creating a directory on your system that your going to use (mount) as your Windows 1.0x C: drive. Valid examples:
+Start by creating a directory on your system that you're going to use (mount) as your Windows 1.0x C: drive. Valid examples:
 
 * For Windows hosts
 ** C:\winroot
@@ -93,15 +93,15 @@ Start by creating a directory on your system that your going to use (mount) as y
 ** /home/myuser/winroot
 ** /home/myuser/windows/win1x
 
-Note: For Windows users, do *NOT* mount the root of your C: drive as the DOSBox-X C: drive! (e.g. ``MOUNT C C:\`` should NOT be done)
+NOTE: For users running Windows on their host computer, do *NOT* mount the root of your C: drive as the DOSBox-X C: drive! (e.g., ``MOUNT C C:\`` should NOT be done)
 
 Windows 1.0x versions were shipped on diskettes, requiring anywhere between 3 and 7 disks, depending on media-type and windows version.
-And while it is definitely possible to install Windows 1.0x from diskette images in DOSBox-X, the disk-swap process for this is rather tedious for large number of disks.
+And while it is possible to install Windows 1.0x from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
 As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
 This way there is no need to swap disks during the installation process.
 
 ## Example of extracting files from disk images
-There are various ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
+There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.
 
 ....
@@ -121,12 +121,12 @@ XCOPY A:\. C:\INSTALL /S /Y
 IMGMOUNT A -U
 ....
 
-Your new INSTALL directory now contains the contents of all 5 disks.
+Your new INSTALL directory now holds the contents of all 5 floppy disks.
 
 # Installing in a mounted folder
 
-You are now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
-This assumes that dosbox-x is in your path and win1x.conf is in your current directory.
+Your now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
+This assumes that the ``dosbox-x`` program is in your path and ``win1x.conf`` is in your current directory.
 ....
 dosbox-x -conf win1x.conf
 ....
@@ -139,10 +139,7 @@ SETUP
 ....
 Adjust the path for mounting the A: and C: drive as needed.
 
-*Notes*
-
-* If your path contains spaces, you need to enclose it in quotes. e.g. ``MOUNT C "C:\Users\John Doe\winroot"``
-
+NOTE: If your path has spaces, you need to enclose it in quotes. e.g., ``MOUNT C "C:\Users\John Doe\winroot"``
 
 The Windows installation will now take place. See the link:#Windows-1.0x-setup-program[Windows 1.0x setup program] section below.
 
@@ -151,10 +148,10 @@ The setup program will ask several question relating to mouse, display and print
 If you have v1.02 or newer it will also ask you about the keyboard layout.
 
 Note: the below screenshots are from the retail Windows 1.01 release, other releases can vary.
-In particular OEM or Runtime versions may have a different number of disks and present other options.
+In particular, OEM or Runtime versions may have a different number of disks and present other options.
 
 '''
-Simply press Enter, or "C" to continue as prompted.
+Simply press Enter, or "**C**" to continue as prompted.
 
 image::images/Windows:Windows_1.01_SETUP_01.png[Windows 1.01 SETUP]
 
@@ -163,53 +160,53 @@ image::images/Windows:Windows_1.01_SETUP_01.png[Windows 1.01 SETUP]
 
 You can optionally specify a different directory to install Windows into.
 
-Simply press Enter to continue as prompted.
+Simply press **Enter** to continue as prompted.
 
 image::images/Windows:Windows_1.01_SETUP_02.png[Windows 1.01 SETUP directory]
 
 '''
 This screen will vary depending on the release version, OEM and if it is a runtime version.
 
-Simply press Enter, or "C" to continue as prompted.
+Simply press Enter, or "**C**" to continue as prompted.
 
 image::images/Windows:Windows_1.01_SETUP_03.png[Windows 1.01 SETUP]
 
 '''
 *Keyboard selection*
 
-If you have version 1.02 or later, setup will ask for the keyboard layout.
+If you have version 1.02 or later, SETUP will ask for your keyboard layout.
 
 image::images/Windows:Windows_1.04_SETUP_KB_PS2.png[Windows 1.04 SETUP]
 
 '''
 *Mouse selection*
 
-If you have the special IBM OEM version of Windows 1.04, you can select option 8 "IBM Personal System/2 Mouse" for PS/2 mouse.
+If you have the special IBM OEM version of Windows 1.04, you can select option 8 "**IBM Personal System/2 Mouse**" for PS/2 mouse.
 In which case you need to disable the serialmouse option in your DOSBox-X config file.
 
 image::images/Windows:Windows_1.04_SETUP_04_PS2.png[Windows 1.04 SETUP MOUSE PS2]
 
-Otherwise select option 2 "Microsoft Mouse (Bus/Serial)" and press Enter to continue as prompted.
+Otherwise select option 2 "**Microsoft Mouse (Bus/Serial)**" and press Enter to continue as prompted.
 
 image::images/Windows:Windows_1.01_SETUP_04.png[Windows 1.01 SETUP MOUSE]
 
 '''
 *Graphics Adapter selection*
 
-If you have the special IBM OEM version of Windows 1.04, you can select option 2 "IBM Personal System/2 Model 50, 60, 80" for VGA.
+If you have the special IBM OEM version of Windows 1.04, you can select option 2 "**IBM Personal System/2 Model 50, 60, 80**" for VGA.
 
 image::images/Windows:Windows_1.04_SETUP_05_PS2.png[Windows 1.04 SETUP GRAPHICS PS2]
 
-Otherwise select option 6 "EGA (more than 64K) with Enhanced Color Display" as shown below, and press Enter to continue as prompted.
+Otherwise select option 6 "**EGA (more than 64K) with Enhanced Color Display**" as shown below, and press Enter to continue as prompted.
 
 image::images/Windows:Windows_1.01_SETUP_05.png[Windows 1.01 SETUP GRAPHICS]
 
 '''
 *Build disk*
 
-It now asks for the Build disk.
+SETUP now asks for the Build disk.
 
-* If your following Method 1, you can simply press Enter
+* If your following Method 1, you can simply press Enter.
 * If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.
 
 image::images/Windows:Windows_1.01_SETUP_06.png[Windows 1.01 SETUP Build Disk]
@@ -217,9 +214,9 @@ image::images/Windows:Windows_1.01_SETUP_06.png[Windows 1.01 SETUP Build Disk]
 '''
 *Utilities disk*
 
-It now asks for the Utilities disk.
+SETUP now asks for the Utilities disk.
 
-* If your following Method 1, you can simply press Enter
+* If your following Method 1, you can simply press Enter.
 * If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.
 
 image::images/Windows:Windows_1.01_SETUP_07.png[Windows 1.01 SETUP Build Disk]
@@ -227,29 +224,29 @@ image::images/Windows:Windows_1.01_SETUP_07.png[Windows 1.01 SETUP Build Disk]
 '''
 *Printer setup*
 
-It now asks if you want to setup a printer. You can press enter or Y to confirm.
+SETUP now asks if you want to setup a printer. You can press enter or "**Y**" to confirm, or you can press "**N**" to skip this step.
 
 image::images/Windows:Windows_1.01_SETUP_08.png[Windows 1.01 SETUP printer]
 
 '''
 *Printer setup - select model*
 
-If you indicated wanting a printer, it now asks you which model.
+If you indicated wanting to setup a printer, SETUP now asks you which model.
 
-For this guide we use option 2, the "Epson MX-80 Graftrax+", and press Enter.
+For this guide we use option 2, the "**Epson MX-80 Graftrax+**", and press Enter.
 
-Later releases may have other options, such as a "Generic / Text Only" printer which can also be used.
+Later releases may have more options, such as a "**Generic / Text Only**" printer which can also be used.
 
 image::images/Windows:Windows_1.01_SETUP_09.png[Windows 1.01 SETUP printer]
 
 '''
 *Printer setup - port select*
 
-If you indicated wanting a printer, it now asks you which port the printer is connected to.
+If you indicated wanting to setup a printer, SETUP now asks you which port the printer is connected to.
 
-Select the number for the "LPT1:" port and press Enter.
+Select the number for the "**LPT1:**" port and press Enter.
 
-Note: In this version, it is option 1, but in other releases it is option 2.
+NOTE: In the version shown, it is option 1, but in other releases it is option 2.
 
 image::images/Windows:Windows_1.01_SETUP_10.png[Windows 1.01 SETUP printer]
 
@@ -260,16 +257,16 @@ SETUP now asks if you want to setup another printer.
 
 Press Enter to continue without setting up another printer.
 
-You can always change the installed printers afterwards by running CONTROL.EXE from within Windows.
+You can always change the installed printers afterwards by running ``CONTROL.EXE`` from within Windows 1.0x.
 
 image::images/Windows:Windows_1.01_SETUP_11.png[Windows 1.01 SETUP printer]
 
 '''
 *Desktop Applications disk*
 
-It now asks for the Desktop Applications disk.
+SETUP now asks for the Desktop Applications disk.
 
-* If your following Method 1, you can simply press Enter
+* If your following Method 1, you can simply press Enter.
 * If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.
 
 image::images/Windows:Windows_1.01_SETUP_12.png[Windows 1.01 SETUP Applications Disk]
@@ -277,23 +274,23 @@ image::images/Windows:Windows_1.01_SETUP_12.png[Windows 1.01 SETUP Applications 
 '''
 *Microsoft Write Program disk*
 
-It now asks for the Microsoft Write Program disk.
+SETUP now asks for the Microsoft Write Program disk.
 
-* If your following Method 1, you can simply press Enter
+* If your following Method 1, you can simply press Enter.
 * If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.
 
 image::images/Windows:Windows_1.01_SETUP_13.png[Windows 1.01 SETUP Write Program Disk]
 
 '''
-*SETUP finished*
+*SETUP completed*
 
 image::images/Windows:Windows_1.01_SETUP_14.png[Windows 1.01 SETUP finished]
 
-The setup program is now finished, and your ready to start Windows 1.0x.
+The setup program is now finished, and you're ready to start Windows 1.0x.
 
 But first type ``EXIT`` to close DOSBox-X.
 
-And then edit your win1x.conf config file and add the following lines into the [autoexec] section at the end of the file:
+And then edit your ``win1x.conf`` config file and add the following lines into the ``[autoexec]`` section at the end of the file:
 
 ....
 MOUNT C /home/myuser/winroot
@@ -303,7 +300,8 @@ C:\WINDOWS\WIN
 EXIT
 ....
 
-Adjust the path for mounting the C: drive as needed. If you don't want DOSBox-X to close when exiting Windows 1.0x, remove the ``EXIT`` command.
+Adjust the path for mounting the C: drive as needed.
+If you don't want DOSBox-X to close when exiting Windows 1.0x, remove the ``EXIT`` command.
 
 # Starting Windows 1.0x after installation
 After the installation is finished, you can start Windows 1.0x from the command-prompt with the following command:
@@ -311,5 +309,7 @@ After the installation is finished, you can start Windows 1.0x from the command-
 ....
 dosbox-x -conf win1x.conf
 ....
+
+You can optionally create a shortcut on your desktop to start Windows 1.0x directly.
 
 image::images/Windows:Windows_1.01.png[Windows 1.01 MS-DOS Executive]

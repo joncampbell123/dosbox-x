@@ -12,20 +12,20 @@ toc::[]
 ## Editions this applies to
 
 * *Windows/386 2.01*
-** Only meant for Compaq 386 computers
-** Introduces 386 extensions (protected mode)
-** LIM EMS 4.0 support
-** Provides EMS emulation
-** Support for overlapping windows
+** Only meant for Compaq 386 computers.
+** Introduces 386 extensions (protected mode).
+** LIM EMS 4.0 support.
+** Supplies EMS emulation.
+** Support for overlapping windows.
 * *Windows 2.03*
-** Adds support for non-Compaq computers
-** Runs on 8086 or 286
+** Adds support for non-Compaq computers.
+** Runs on 8086 or 286.
 * *Windows/286 2.10* and *Windows/386 2.10*
-** Adds HIMEM.SYS support for HMA (High Memory Area)
+** Adds HIMEM.SYS support for HMA (High Memory Area).
 * *Windows/286 2.11* and *Windows/386 2.11*
-** minor update to memory management
-** AppleTalk Support
-** Faster printing and updated printer drivers
+** minor update to memory management.
+** AppleTalk Support.
+** Faster printing and updated printer drivers.
 
 |===
 |Edition|Min CPU|Min DOS|HMA
@@ -38,23 +38,24 @@ toc::[]
 |Windows/286 2.11|8086|3.00|Yes
 |Windows/386 2.11|386|3.10|Yes
 |===
-Windows 2.x was available for both Retail and via OEM. A runtime version was also included with some applications.
+Windows 2.x was available for both Retail and via OEM.
+A limited runtime version was also included with some applications.
 
 *Windows 2.03* was followed by *Windows/286 2.10* and *Windows/286 2.11*.
 The reason for the name change, is that version 2.10 includes HIMEM.SYS which requires at least a 286.
 However, despite the 286 in the name, it will also run on 8086/8088 CPUs.
 
-* Running Windows 2.03 requires at least DOS 2.0
-* Running a Windows/286 edition requires at least DOS 3.0
-* Running a Windows/386 edition requires at least DOS 3.1
+* Running Windows 2.03 requires at least DOS 2.0.
+* Running a Windows/286 edition requires at least DOS 3.0.
+* Running a Windows/386 edition requires at least DOS 3.1.
 
 ## README.1ST
 Windows 2.x has problems starting if the reported DOS version is 5.0 or higher.
-Therefore it is necessary to set the reported DOS version to something like 4.0.
+Therefore, it is necessary to set the reported DOS version to something like 4.0.
 
-Windows/386 2.01 was the first Windows 2.x release, and meant for Compaq 386 computers.
-As such it has a very small selection of drivers, and for instance no driver for PS/2 mouse.
-Therefore if you want to run this version in DOSBox-X, you should enable ``serial1=serialmouse`` support.
+Windows/386 2.01 was the first Windows 2.x release and meant for Compaq 386 computers.
+As such it has a very small selection of drivers, and for instance no driver for a PS/2 mouse.
+Therefore, if you want to run this version in DOSBox-X, you should enable ``serial1=serialmouse`` support.
 
 Windows 2.1x will complain if the High Memory Area (HMA) is used.
 This can be resolved by setting ``DOS=LOW`` in the [config] section of the DOSBox-X config file.
@@ -63,8 +64,8 @@ The Windows/386 editions install by default into ``C:\WIN386`` instead of ``C:\W
 And the command to start Windows/386 is ``win386.exe``, instead of the typical ``win.com`` of most other Windows versions at the time.
 Windows/386 also has a ``win86.com`` executable, which is effectively a renamed ``win.com``, and this makes it possible to run Windows/386 on 8086 and 286 computers.
 
-IMPORTANT: Unfortunately at this point only *Windows 2.03* works in the integrated DOS that DOSBox-X provides.
-All other Windows/286 and Windows/386 editions need to be run from a real DOS.
+IMPORTANT: Unfortunately, at this moment only *Windows 2.03* works in the integrated DOS that DOSBox-X provides.
+All other Windows/286 and Windows/386 editions need to be run from a real DOS in DOSBox-X.
 
 ### Useful links
 
@@ -120,7 +121,7 @@ For other Windows versions, please see Method 2 below.
 The installation will be into a mounted folder, and Windows 2.03 will run from the integrated DOS that DOSBox-X provides.
 You can optionally install real DOS into DOSBox-X and install Windows 2.03 in that, but there is no known advantage to doing so.
 
-Start by creating a directory on your system that your going to use (mount) as your Windows 2.03 C: drive.
+Start by creating a directory on your system that you're going to use (mount) as your Windows 2.03 C: drive.
 Valid examples:
 
 * For Windows hosts
@@ -130,15 +131,15 @@ Valid examples:
 ** /home/myuser/winroot
 ** /home/myuser/windows/win2x
 
-Note: For Windows users, do *NOT* mount the root of your C: drive as the DOSBox-X C: drive! (e.g. ``MOUNT C C:\`` should NOT be done)
+Note: For Windows users, do *NOT* mount the root of your C: drive as the DOSBox-X C: drive! (e.g., ``MOUNT C C:\`` should NOT be done)
 
-Windows 2.x versions were shipped on diskettes, requiring anywhere between 4 and 10 disks, depending on media-type and windows version.
-And while it is definitely possible to install Windows 2.x from diskette images in DOSBox-X, the disk-swap process for this is rather tedious for large number of disks.
+Windows 2.x versions were shipped on floppies, requiring anywhere between 4 and 10 disks, depending on media-type and windows version.
+And while it is possible to install Windows 2.x from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
 As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
 This way there is no need to swap disks during the installation process.
 
 ### Example of extracting files from disk images
-There are various ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
+There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.
 
 ....
@@ -157,12 +158,12 @@ IMGMOUNT A DISK05.IMG -U
 XCOPY A:\. C:\INSTALL /S /Y
 IMGMOUNT A -U
 ....
-Your new INSTALL directory now contains the contents of all 5 disks.
+Your new INSTALL directory now holds the contents of all 5 disks in this example.
 
 ## Installing in a mounted folder
 
-You are now ready to start DOSBox-X from the command-line, using the newly created win2x.conf config file.
-This assumes that dosbox-x is in your path and win2x.conf is in your current directory.
+You're now ready to start DOSBox-X from the command-line, using the newly created ``win2x.conf`` config file.
+This assumes that the ``dosbox-x`` program is in your path and ``win2x.conf`` is in your current directory.
 ....
 dosbox-x -conf win2x.conf
 ....
@@ -175,17 +176,16 @@ SETUP
 ....
 Adjust the path for mounting the C: drive as needed.
 
-*Notes*
+NOTE: If your path has spaces in it, you need to enclose it in quotes. e.g., ``MOUNT C "C:\Users\John Doe\winroot"``
 
-* If your path contains spaces, you need to enclose it in quotes. e.g. ``MOUNT C "C:\Users\John Doe\winroot"``
-
-The Windows installation will now take place. See the link:#Windows-2.x-setup-program[Windows 2.x setup program] section below.
+The Windows installation will now take place.
+See the link:#Windows-2.x-setup-program[Windows 2.x setup program] section below.
 
 # Method 2 - Installing in real DOS
-This method is required for most Windows 2.x versions, and requires that you create a DOS HDD image.
+This method is needed for most Windows 2.x versions and requires that you create a DOS HDD image.
 
-In addition, it brings with it several inconveniences.
-For instance you will need to do your own DOS memory management and load DOS drivers for CD-ROM access if you need it.
+But it brings with it a bit of added inconvenience.
+For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
 You can also not mount a host directory in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
 Everything needs to be done using IMAGE files.
@@ -196,7 +196,7 @@ When using DOS 5.0 or higher however, it will be necessary to use link:https://w
 
 Once you have a DOS HDD image, temporarily mount it in DOSBox-X to transfer your INSTALL folder into your DOS HDD image, together with any drivers and add-ons you might need (preferably already unzipped, such that you don't need to do that in DOS or Windows 3.x, as they lack support for that by default).
 
-Something along the lines of:
+Something like:
 
 ....
 IMGMOUNT C hdd.img
@@ -208,7 +208,7 @@ EXIT
 ....
 Adjust paths in the above example as needed.
 
-Now edit your win2x.conf config file and in the [autoexec] section at the end, add the following lines:
+Now edit your ``win2x.conf`` config file and in the ``[autoexec]`` section at the end, add the following lines:
 ....
 IMGMOUNT C hdd.img
 BOOT C:
@@ -220,7 +220,7 @@ Now start DOSBox-X with your win2x.conf config file from the command-line:
 dosbox-x -conf win2x.conf
 ....
 
-It should boot to the C: prompt, and you can start the installation process
+It should boot to the C: prompt, and you can start the installation process.
 ....
 CD INSTALL
 SETUP
@@ -232,7 +232,7 @@ After the installation is finished, you can install your drivers and add-ons.
 The setup program will ask several question relating to mouse, display, keyboard, region and printer.
 
 Note: the below screenshots are from the retail Windows 2.03 release, other releases can vary.
-In particular OEM or Runtime versions may have a different number of disks and present other options.
+In particular, OEM or Runtime versions may have a different number of disks and present other options.
 
 '''
 Simply press Enter to continue as prompted.
@@ -244,7 +244,7 @@ image::images/Windows:Windows_2.03_SETUP_01.png[Windows 2.03 SETUP]
 
 This screen is only shown on Windows 2.03. Later versions require a harddisk.
 
-Confirm you want to install onto the hard disk (H) by pressing Enter.
+Confirm you want to install onto the hard disk (**H**) by pressing Enter.
 
 image::images/Windows:Windows_2.03_SETUP_02.png[Windows 2.03 SETUP drive]
 
@@ -253,8 +253,8 @@ image::images/Windows:Windows_2.03_SETUP_02.png[Windows 2.03 SETUP drive]
 
 You can optionally specify a different directory to install into.
 
-* Windows 2.03 and Windows/386 2.1x will propose to install into C:\WINDOWS
-* Windows/386 2.x will propose to install into C:\WIN386
+* **Windows 2.03** and **Windows/386 2.1x** will propose to install into ``C:\WINDOWS``.
+* **Windows/386 2.x** will propose to install into ``C:\WIN386``.
 
 Simply press Enter when ready.
 
@@ -264,19 +264,19 @@ image::images/Windows:Windows_2.03_SETUP_03.png[Windows 2.03 SETUP directory]
 
 The options offered on this screen will vary depending on the version, and edition (retail, OEM).
 
-* For Windows 2.03 select the "IBM Personal System/2 Model 50, 60 or 80" option or alternatively "IBM PC, XT, AT (or 100% compatible)"
-* For Windows/286 2.1x select the "IBM Personal System/2 Model 50, 60 or 80" option or alternatively "IBM AT (or 100% compatible)".
-* For Windows/386 2.x select the "IBM Personal System/2 Model 80"
+* For **Windows 2.03** select the "**IBM Personal System/2 Model 50, 60 or 80**" option or alternatively "**IBM PC, XT, AT (or 100% compatible)**".
+* For **Windows/286 2.1x** select the "**IBM Personal System/2 Model 50, 60 or 80**" option or alternatively "**IBM AT (or 100% compatible)**".
+* For **Windows/386 2.x** select the "**IBM Personal System/2 Model 80**".
 
-It does not seem to matter which you choose, the only difference appears to be the order that video and mouse options are presented on the following screens.
+It does not seem to matter which you choose; the only difference appears to be the order that video and mouse options are presented on the following screens.
 
 image::images/Windows:Windows_2.03_SETUP_04.png[Windows 2.03 SETUP machine type]
 '''
 *Graphics Adapter selection*
 
-Select "IBM (or 100% compatible) VGA (Video Graphics Array)" and press Enter.
+Select "**IBM (or 100% compatible) VGA (Video Graphics Array)**" and press Enter.
 
-Note: depending on the edition, this option may be labelled slightly differently.
+Note: depending on the edition, this choice may be labelled slightly differently.
 
 image::images/Windows:Windows_2.03_SETUP_05.png[Windows 2.03 SETUP GRAPHICS]
 
@@ -290,50 +290,50 @@ image::images/Windows:Windows_2.03_SETUP_06.png[Windows 2.03 SETUP Keyboard]
 '''
 *Mouse selection*
 
-Select "Microsoft Mouse connected to PS/2 Mouse Port" and press Enter to continue.
+Select "**Microsoft Mouse connected to PS/2 Mouse Port**" and press Enter to continue.
 
-If installing Windows/386 2.01, you will need to select the Microsoft serial mouse instead, and activate serial mouse support in your dosbox config file.
+NOTE: If installing Windows/386 2.01, you will need to select the **Microsoft serial mouse** instead and activate serial mouse support in your dosbox-x config file.
 
 image::images/Windows:Windows_2.03_SETUP_07.png[Windows 2.03 SETUP MOUSE]
 '''
 *Installation confirmation*
 
-Confirm that the settings are correct by selecting "No Change", and pressing Enter, and windows will start the first part of the installation process.
+Confirm that the settings are correct by selecting "**No Change**", and pressing Enter, and windows will start the first part of the installation process.
 
 image::images/Windows:Windows_2.03_SETUP_08.png[Windows 2.03 CONFIRM]
 '''
 *Extended Memory Setting*
 
-Starting with Windows 2.10 the following screen will be presented.
+Starting with **Windows 2.10** the following screen will be presented.
 
-Simply confirm by pressing Enter.
+Simply confirm by pressing Enter that you want EMS to be available.
 
 image::images/Windows:Windows_2.11_SETUP_01.png[Windows 2.03 SETUP EMS]
 
 '''
 *Printer setup*
 
-It now asks if you want to setup a printer. You can press enter to confirm.
+SETUP now asks if you want to setup a printer. You can press enter to confirm, or select **Continue Setup** to bypass printer setup.
 
 image::images/Windows:Windows_2.03_SETUP_09.png[Windows 2.03 SETUP printer]
 
 '''
 *Printer setup - select model*
 
-If you indicated wanting a printer, it now asks you which model.
+If you indicated wanting to setup a printer, SETUP now asks you which model.
 
-For this guide, scroll to the "Epson LQ-800", and press Enter.
+For this guide, scroll to the "**Epson LQ-800 [Epson LQ 2]**", and press Enter.
 
-Later releases may have other options, such as a "Generic / Text Only" printer which can also be used.
+Later releases may have more options, such as a "**Generic / Text Only**" printer which can also be used.
 
 image::images/Windows:Windows_2.03_SETUP_10.png[Windows 2.03 SETUP printer]
 
 '''
 *Printer setup - port select*
 
-If you indicated wanting a printer, it now asks you which port the printer is connected to.
+If you indicated wanting to setup a printer, SETUP now asks you which port the printer is connected to.
 
-Select the "LPT1:" port and press Enter.
+Select the "**LPT1:**" port and press Enter.
 
 image::images/Windows:Windows_2.03_SETUP_11.png[Windows 2.03 SETUP printer port]
 
@@ -342,39 +342,40 @@ image::images/Windows:Windows_2.03_SETUP_11.png[Windows 2.03 SETUP printer port]
 
 SETUP now asks if you want to setup another printer.
 
-Press Enter to continue without setting up another printer.
+Select the "**Continue Setup**" option by pressing Enter to continue without setting up another printer.
 
-You can always change the installed printers afterwards by running CONTROL.EXE from within Windows.
+You can always change the installed printers afterwards by running ``CONTROL.EXE`` from within Windows.
 
 image::images/Windows:Windows_2.03_SETUP_12.png[Windows 2.03 SETUP another printer]
 '''
 *Country selection*
-You will be asked for a country for regional settings
+You will be asked for a country for regional settings.
 
-Select a country, and press Enter.
+Select a country from the list, and press Enter.
 
 image::images/Windows:Windows_2.03_SETUP_13.png[Windows 2.03 SETUP country]
 
 '''
 *View Readme files*
 
-You can now optionally view the README files. Select F and press Enter when ready.
+You can now optionally view the README files. Select "**F**" and press Enter when ready.
 
-* If your following Method 1, you can simply press Enter
-* If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.
+* If your following Method 1, you can simply press Enter.
+* If your using disk images to install Windows, you must now swap the disk using the menu item "DOS" followed by "Swap floppy".
+And then press enter.
 
 image::images/Windows:Windows_2.03_SETUP_14.png[Windows 2.03 SETUP View readme files]
 
 '''
-*SETUP finished*
+*SETUP completed*
 
 image::images/Windows:Windows_2.03_SETUP_15.png[Windows 2.03 SETUP finished]
 
-The setup program is now finished, and your ready to start Windows 2.x.
+The setup program is now finished, and you're ready to start Windows 2.x.
 
 But first type ``EXIT`` to close DOSBox-X.
 
-And then edit your win2x.conf config file and add the following lines into the [autoexec] section at the end of the file:
+And then edit your ``win2x.conf`` config file and add the following lines into the ``[autoexec]`` section at the end of the file:
 
 ....
 MOUNT C /home/myuser/winroot
@@ -384,10 +385,13 @@ C:\WINDOWS\WIN
 EXIT
 ....
 
-Adjust the path for mounting the C: drive as needed. If you don't want DOSBox-X to close when exiting Windows 2.x, remove the ``EXIT`` command.
+Adjust the path for mounting the C: drive as needed.
+If you don't want DOSBox-X to close when exiting Windows 2.x, remove the ``EXIT`` command.
 
 # Starting Windows 2.x after installation
 After the installation is finished, you can start Windows 2.x from the command-prompt with the following command:
+
+You can optionally create a shortcut on your desktop to start Windows 2.x directly.
 
 ....
 dosbox-x -conf win2x.conf

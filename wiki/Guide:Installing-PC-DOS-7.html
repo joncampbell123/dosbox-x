@@ -541,23 +541,33 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>XDF image files are easy to recognise as they use the .XDF extension. They are incompatible with DOSBox-X&#8217;s FDD emulation, and cannot be converted to a disk image format that DOSBox can handle. Original disks in XDF format also cannot be read on a modern PC with a USB diskette drive.</p>
+<p>XDF image files are easy to recognise as they use the .XDF extension. They are incompatible with DOSBox-X&#8217;s FDD emulation, and cannot be converted to a disk image format that DOSBox-X can handle.
+Original disks in XDF format also cannot be read on a modern PC with a USB diskette drive.</p>
 </li>
 <li>
-<p>DSKF image files can be trickier to recognise as they use the same .DSK extension as is sometimes used for regular MFM disk images. While DOSBox-X will fail to <code>IMGMOUNT</code> a DSKF image, it will happily try to <code>BOOT</code> a DSKF disk image and fail. On Linux you can run the command <code>file filename.dsk</code>, and if it returns <code>floppy image data (IBM SaveDskF)</code>, it is a DSKF disk image. Another way is to check the size of the .DSK file. If it is exactly 1474560, 1228800, 737280 or 368640 bytes, it is likely to be a regular MFM disk image (in respectively 1.44MB, 1.2MB, 720KB or 360KB sizes). The size of a DSKF disk image will instead vary. DSKF images can be converted in DOSBox-X to regular diskette images with LOADDSKF.</p>
+<p>DSKF image files can be trickier to recognise as they use the same .DSK extension as is sometimes used for regular MFM disk images.
+While DOSBox-X will fail to <code>IMGMOUNT</code> a DSKF image, it will happily try to <code>BOOT</code> a DSKF disk image and fail.
+On Linux you can run the command <code>file filename.dsk</code>, and if it returns <code>floppy image data (IBM SaveDskF)</code>, it is a DSKF disk image.
+Another way is to check the size of the .DSK file.
+If it is exactly 1474560, 1228800, 737280 or 368640 bytes, it is likely to be a regular MFM disk image (in respectively 1.44MB, 1.2MB, 720KB or 360KB sizes).
+The size of a DSKF disk image will instead vary.
+IBM DSKF image files can be converted in DOSBox-X to regular diskette images with <a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a>.</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>The PC DOS 2000 CD-ROM release is a bit of an odd release. One may expect that the CD-ROM is bootable, or that there is a DOS boot diskette provided with CD-ROM drivers. But neither is the case. Officially you could install it in one of two ways:</p>
+<p>The PC DOS 2000 CD-ROM release is a bit of an odd release.
+One may expect that the CD-ROM is bootable, or that there is a DOS boot diskette provided with CD-ROM drivers.
+But neither is the case. Officially you could install it in one of two ways:</p>
 <div class="ulist">
 <ul>
 <li>
 <p>If you already have some version of DOS installed with CD-ROM support, and want to upgrade, you can directly run SETUP.EXE from the CD-ROM to install onto your system.</p>
 </li>
 <li>
-<p>If you want to do a clean install, the CD-ROM contains six 3.5" 1.44MB disk images in IBM DSKF format together with LOADDSKF to write them to diskettes. You can then boot from the diskettes to install PC DOS 2000.</p>
+<p>If you want to do a clean install, the CD-ROM contains six 3.5" 1.44MB disk images in IBM DSKF format together with LOADDSKF.EXE to write them to diskettes.
+You can then boot from the diskettes to install PC DOS 2000.</p>
 </li>
 </ul>
 </div>
@@ -569,16 +579,26 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1 id="_creating_a_pc_dos_7_hdd_image" class="sect0">Creating a PC DOS 7 HDD image</h1>
 <div class="openblock partintro">
 <div class="content">
-Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X. You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
+Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X.
+You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
 </div>
 </div>
 <h1 id="_creating_a_pc_dos_2000_hdd_image_from_cd_rom" class="sect0">Creating a PC DOS 2000 HDD image from CD-ROM</h1>
 <div class="openblock partintro">
 <div class="content">
-<div class="paragraph">
-<p>Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
-This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.</p>
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>You have the following installation options:</p>
@@ -586,15 +606,24 @@ This option allows for various common harddisk types to be created, for less com
 <div class="ulist">
 <ul>
 <li>
-<p>Use LOADDSKF to convert the the DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.</p>
+<p>Use LOADDSKF.EXE to convert the the IBM DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.</p>
 </li>
 <li>
 <p>Run the SETUP program on the CD image directly from the DOSBox-X integrated DOS. This is the method we will use below.</p>
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>Note: This method requires DOSBox-X 0.83.2 or newer.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This method requires DOSBox-X 0.83.2 or newer.
+</td>
+</tr>
+</table>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -620,7 +649,7 @@ BOOT C:</pre>
 <h2 id="_creating_a_pc_dos_2000_hdd_image_from_diskettes">Creating a PC DOS 2000 HDD image from diskettes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF in DOSBox-X as follows:</p>
+<p>If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF.EXE in DOSBox-X as follows:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -675,7 +704,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

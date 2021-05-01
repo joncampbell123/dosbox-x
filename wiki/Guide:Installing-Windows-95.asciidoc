@@ -56,6 +56,7 @@ vesa modelist height limit=0
 [dos]
 # Set 'ver=7.1' if using Win95 OSR2 (95B) or later
 ver=7.0
+hard drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx
@@ -86,15 +87,15 @@ Copy the above config and save it as *win95.conf*
 
 NOTE: If using Windows 95 OSR2 (or later) with FAT32 volumes, be sure to change the DOS version to 7.1 (``ver=7.1`` or from the DOSBox-X prompt: ``ver set 7.1``) or else you will get errors mounting the FAT32 volume.
 
-NOTE: You can increase the allocated RAM up to Windows 95 maximum of 480MB by setting ``memsize=480``.
-Larger values may be possible with tweaks, but are not covered here.
+NOTE: You can increase the allocated RAM up to the Windows 95 maximum of 480MB by setting ``memsize=480``.
+Larger values may be possible with tweaks but are not covered here.
 
 # General installation Notes
 
 * Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
 * When creating your HDD image with ``IMGMAKE``, instead of specifying a custom size, you can choose a pre-defined template. The pre-defined HDD templates can be seen by running ``IMGMAKE`` without arguments.
 * If you get a prompt stating that C:\WINDOWS already exists, ignore it, and continue the installation.
-* During the installation it may ask you if you have a CD-ROM, Network card or sound card that you want it to scan for. If you have NE2000 enabled in your DOSBox-X config file, you may want to check the Network adapter check box. Your DOSBox-X CD-ROM and Sound Card will be detected regardless if you check it's box or not.
+* During the installation it may ask you if you have a CD-ROM, Network card or sound card that you want it to scan for. If you have NE2000 enabled in your DOSBox-X config file, you may want to check the Network adapter check box. Your DOSBox-X CD-ROM and Sound Card will be detected regardless if you check its box or not.
 * In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional install. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.
 
 # Dynamic vs Normal core
@@ -111,15 +112,15 @@ One known issue is that opening a DOS window in Windows 95 will cause a crash wh
 # Creating a Harddisk image
 
 NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
-Go to the "DOS" menu, and select "Create blank disk image…​".
+Go to the "DOS" menu and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 
 Some quick rules about IMGMAKE (for more detail, see: link:Guide%3AManaging-image-files-in-DOSBox%E2%80%90X[Guide: Managing image files in DOSBox-X]):
 
-- Diskette (floppy) images are always created as FAT12
-- If your reported DOS version is 7.0 or lower, then harddisk images up to 2GB will use FAT16 by default
-- If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default
-- Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)
+- Diskette (floppy) images are always created as FAT12.
+- If your reported DOS version is 7.0 or lower, then harddisk images up to 2GB will use FAT16 by default.
+- If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default.
+- Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32).
 
 Alternatively, you can use the ``-fat`` option to instruct ``IMGMAKE`` to create a certain FAT type (assuming that is possible for the harddisk size).
 
@@ -132,14 +133,15 @@ dosbox-x -conf win95.conf
 ....
 Then in DOSBox-X you need to create a new harddisk image file with ``IMGMAKE``.
 
-This example uses a 2GB harddisk formatted to FAT16, which is the maximum for FAT16, and supported by all Windows 95 versions.
+This example uses an 2GB hard disk image with a single FAT16 formatted partition.
+This is the maximum size for FAT16 and supported by all Windows 95 releases.
 ....
 IMGMAKE hdd.img -t hd_2gig -fat 16
 ....
 
 Or if your using **Windows 95 OSR2** or later, you can create a FAT32 volume.
 Technically the FAT32 filesystem is capable of supporting partitions up to 2TB, but the generic IDE driver in Windows 95 cannot handle volumes greater than 32GB.
-Larger partition sizes may be possible with 3rd party drivers, but are not covered here.
+Larger partition sizes may be possible with 3rd party drivers but are not covered here.
 
 In later Windows versions, starting with Windows 2000, Microsoft won't let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.
 
@@ -148,14 +150,14 @@ IMGMAKE hdd.img -t hd_8gig
 ....
 
 Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.
+This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, will be formatted as FAT32.
 ....
 IMGMAKE hdd.img -t hd -size 16384
 ....
 
 # Installation Method
 Other installation methods are possible than the one described below.
-This method is however considered to be the quickest one with the least amount of steps.
+This method is however considered to be the quickest one with the least number of steps.
 
 ## Requirements
 
@@ -165,13 +167,13 @@ This method is however considered to be the quickest one with the least amount o
 Getting this image file is outside the scope of this guide.
 
 ## Starting the installation
-This assumes you have already started DOSBox-X with the win95.conf config file, and created your harddisk image.
+This assumes you have already started DOSBox-X with the win95.conf config file and created your harddisk image.
 
 First mount the harddisk image you created earlier:
 ....
 IMGMOUNT C hdd.img
 ....
-NOTE: If you get an error saying that "This operation requires DOS version 7.10 or higher", than your trying to mount a FAT32 volume, and have not set your reported DOS version in your DOSBox-X config to 7.1.
+NOTE: If you get an error saying that "This operation requires DOS version 7.10 or higher", than you're trying to mount a FAT32 volume, and have not set your reported DOS version in your DOSBox-X config to 7.1.
 FAT32 volumes are only supported if your installing **Windows 95 OSR2** or later.
 
 You will also need to mount the Windows 95 CD-ROM. There are a few ways of doing so, but this guide assumes you have a ISO image.
@@ -182,7 +184,7 @@ IMGMOUNT D Win95.iso
 ....
 
 ## Copying the contents of the CD-ROM
-While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN95 directory on the CD-ROM) to your HDD image, as it will prevent Windows 95 from asking for the CD-ROM when it needs additional files later.
 
 ....
@@ -206,8 +208,11 @@ CD \WIN95
 SETUP
 ....
 
-Now run through the install process, until it reboots and your back at the DOSBox-X ``Z:\`` prompt.
-At this point close DOSBox-X, and edit your win95.conf config file.
+Now run through the install process. The actual steps will not be covered in this guide but are pretty self-explanatory and detailed guides on the Windows 95 install process can be found online such as youtube.
+
+When the installer reboots DOSBox-X, and your back at the DOSBox-X ``Z:\`` prompt, type ``EXIT``.
+
+Now edit your ``win98.conf`` config file.
 At the end of the file, in the [autoexec] section, add the following two lines:
 
 ....
@@ -215,7 +220,7 @@ IMGMOUNT C hdd.img
 BOOT C:
 ....
 
-Save the config file, and at the command-prompt you can type the following to continue the installation process.
+Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
 This is also the command you use, after the installation is finished, to start Windows 95 in DOSBox-X.
 
 ....
@@ -223,13 +228,15 @@ dosbox-x -conf win95.conf
 ....
 
 # Booting Windows 95 after installation
-After the installation is finished, you can start Windows 95 from the command-prompt with the following command:
+After the installation is finished, you can start Windows 95 from the command-prompt of your host PC, with the following command:
 
 ....
 dosbox-x -conf win95.conf
 ....
 
-# Steps to take after Installation
+You can optionally create a shortcut on your desktop to start Windows 95 directly.
+
+# Steps to take after installation
 Once Windows 95 is installed, here is some additional software you may want to install or update:
 
 * Install Microsoft .NET framework version 1.0 and 1.1 (includes Visual C++ 2003 runtime)
@@ -251,7 +258,7 @@ The option to load image files from the menu bar becomes unavailable the moment 
 
 This is a known limitation that hopefully will be resolved in the near future.
 
-For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:
+For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:
 ....
 IMGMOUNT A disk1.img disk2.img disk3.img
 IMGMOUNT D cd1.iso cd2.iso cd3.iso
@@ -259,7 +266,7 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso
 You can then swap between disk images with the swap option from the menu.
 
 # Enabling networking
-To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 adapter emulation in your ``win95.conf`` config file and select an appropriate back-end for the NE2000 emulation.
 
 ## Enabling NE2000 in your DOSBox-X config file
 
@@ -271,12 +278,12 @@ The PCAP back-end uses something called "Promiscuous mode".
 This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
 
-However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
-In some cases this is not possible, such as:
+However, for this to work DOSBox-X needs to have very low-level access to your real network adapter.
+In some cases, this is not possible, such as:
 
-- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
-- Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
-- Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
+- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).
+- Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.
+- Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.
 
 To enable NE2000 emulation with the pcap back-end, add the following to your win95.conf config file:
 
@@ -290,7 +297,7 @@ backend=pcap
 realnic=list
 ....
 
-The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+The ``list`` value for ``realnic=`` will need to be replaced by a value representing your actual network adapter.
 See link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X] for more information.
 
 ### backend=slirp
@@ -299,9 +306,9 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 
 But obviously, it has its own limitations.
 
-- For now it only works on Linux
-- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
-- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+- For now, it only works on Linux.
+- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
+- It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 
 To enable NE2000 emulation with the slirp back-end, add the following to your win95.conf config file:
 
@@ -312,7 +319,7 @@ nicirq=10
 backend=slirp
 ....
 
-## Setting up NE2000 networking in Windows 95
+## Setting up NE2000 networking
 
 ### Detection during installation
 Windows 95 setup wizard will ask if you want to detect additional hardware during installation.
@@ -330,17 +337,17 @@ Now in the "System Properties" dialogue, select the "Device Manager" tab.
 
 image::images/Windows:Windows_95_Device_Manager_NE2000.png[Windows 95 Device Manager - Select NE2000]
 
-Highlight the "NE2000 Compatible" entry, and click on the "Properties" tab and then click the "Set Configuration Manually" button.
+Highlight the "NE2000 Compatible" entry and click on the "Properties" tab and then click the "Set Configuration Manually" button.
 
 image::images/Windows:Windows_95_Device_Manager_NE2000_03.png[Windows 95 Device Manager - NE2000 Resources]
 
-Now you need to highlight the "Interrupt Request" entry, and click the "Change Setting..." button. You can now change the IRQ to 10 to match the ``nicirq=`` value in your DOSBox-X config file.
+Now you need to highlight the "Interrupt Request" entry and click the "Change Setting..." button. You can now change the IRQ to 10 to match the ``nicirq=`` value in your DOSBox-X config file.
 
 Next, highlight the "Input/Output Range" entry, and again click the "Change Setting..." button. Now change the value to "0300 - 031F".
 
-Once your finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.
+Once you're finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.
 
-NOTE: By default Windows 95 only enables Novell's IPX/SPX protocol.
+NOTE: By default, Windows 95 only enables Novell's IPX/SPX protocol.
 Most Windows 95 applications expect TCP/IP which you will need to manually enable in the Network settings.
 
 ### Detection after installation
@@ -358,7 +365,7 @@ It will ask for another confirmation.
 Again, simply click the "Next >" button.
 
 If it detected new hardware, you should get this dialogue.
-You can click the "Details..." button to see what it found, after which you can click on "Finish"
+You can click the "Details..." button to see what it found, after which you can click on "Finish".
 
 image::images/Windows:Windows_95_NE2000_06.png[Windows 95 - Add New Hardware Wizard]
 
@@ -371,11 +378,11 @@ If you don't know what to type, just type "WORKGROUP".
 
 You may also want to provide a more descriptive "Computer Name".
 
-Don't close the dialogue just yet though, click on "Configuration" tab instead.
+Don't close the dialogue just yet though, click on the "Configuration" tab instead.
 
 image::images/Windows:Windows_95_NE2000_08.png[Windows 95 - Network settings]
 
-Highlight the "NE2000 Compatible" entry, and click the "Properties" button.
+Highlight the "NE2000 Compatible" entry and click the "Properties" button.
 
 image::images/Windows:Windows_95_NE2000_09.png[Windows 95 - Network settings]
 
@@ -384,7 +391,7 @@ Then click "OK" to finish.
 
 image::images/Windows:Windows_95_NE2000_10.png[Windows 95 - Network settings]
 
-Lastly, while your in the Network settings dialogue, you may also want to add the TCP/IP protocol, which is not enabled by default on Windows 95.
+Lastly, while you're in the Network settings dialogue, you may also want to add the TCP/IP protocol, which is not enabled by default on Windows 95.
 
 On the Configuration tab, click on "Add", then select "Protocol" and click again "Add..."
 
@@ -393,14 +400,14 @@ Select manufacturer: "Microsoft", and for Network Protocols: "TCP/IP", and click
 
 NOTE: In the Network settings, you can optionally remove the "IPX/SPX-compatible Protocol" that was automatically installed, as few Windows programs need it.
 
-NOTE: By default, TCP/IP will try to get it's network configuration over DHCP, which should work in most cases.
+NOTE: By default, TCP/IP will try to get its network configuration over DHCP, which should work in most cases.
 If you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.
 
-Once your finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
+Once you're finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
 Confirm, and Windows 95 will reboot.
 After the reboot you should have working TCP/IP networking.
 
-If networking does not work, see link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X]
+If networking does not work, see: link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X]
 
 # Emulated video adapter and video mode
 The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.
@@ -411,15 +418,24 @@ It can typically be found online as w9520204.zip.
 This update however does not add support for 8MB video RAM, or wide-screen video modes.
 If you installed Windows 95 OSR2 or later, you already have the latest video driver installed.
 
+The available video modes with the S3 Trio64 driver are:
+
+* 4-bit colour (16): 640x480
+* 8-bit colour (256): 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200
+* 16-bit colour (65536): 640x480, 800x600 and 1024x768
+* 32-bit colour (16.7M): 640x480 and 800x600
+
 A few enhancements have been made to the emulated S3 Trio64, compared to a real S3 Trio64:
 
 * No real S3 Trio64 was ever produced with more than 4MB video memory, under DOSBox-X you can optionally configure 8MB.
 * The real cards never supported wide-screen resolutions, wide-screen VESA modes can optionally be enabled in DOSBox-X.
 
 However, these enhancements cannot be used in Windows 95 with the S3 video driver due to driver limitations.
-As such you will be limited to 640x480 in 32bit colour, 1024x768 in 16bit colour or 1280x1024 in 8bit (256) colour.
+As such you will be limited to the above video modes with this driver.
 
+### VESA driver
 These restrictions can be overcome by switching to the link:https://bearwindows.zcm.com.au/vbe9x.htm[Universal VESA/VBE Video Display Driver (VBEMP)].
+
 First add the following lines to your DOSBox-X config file in the [video] section:
 ....
 allow high definition vesa modes=true
@@ -434,27 +450,28 @@ NOTE: Using the VBEMP driver does have a negative graphics performance impact, w
 
 # Emulated sound card
 The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
-This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
+This is simply because the SB16 Vibra is an ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 
-NOTE: One often heard complaint of the real SB16 Vibra is the CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+NOTE: One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
+However, DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore, the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
 
 An optional driver link:http://vogonsdrivers.com/getfile.php?fileid=50&menustate=0[update to 4.38.14] is available on the VOGONS Vintage Driver Library (ignore that the download claims it is for Windows 98, the update is for both Windows 95 and 98).
 
 ## Enabling General MIDI
 If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows 95.
-Open the "Control Panel", and then double-click on "Multimedia".
 
-Now in "Multimedia Properties" on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.
+Go to "Start", "Settings" and open "Control Panel", and then double-click on "Multimedia".
+
+Now on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.
 
 image::images/Windows:Windows_95_MIDI.png[Windows 95 MIDI setup]
 
-For more information about setting up MIDI support, see link:Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X[Guide: Setting up MIDI in DOSBox-X]
+For more information about setting up MIDI support, see: link:Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X[Guide: Setting up MIDI in DOSBox-X]
 
 # Enabling printing
-To enable printing support in Windows 95, see link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+To enable printing support in Windows 95, see: link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
 
 # 3dfx Voodoo
 The emulated 3dfx Voodoo PCI device is enabled by default in DOSBox-X, but Windows 95 lacks drivers for it by default.
@@ -474,7 +491,7 @@ Starting with DOSBox-X 0.83.10 it is possible to use glide pass-through with Win
 There are however a few points you need to be aware of.
 
 * The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
-So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper
+So, if you're using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper.
 * The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue link:https://github.com/voyageur/openglide/issues/20[#20]).
 The work-around is to use the SDL1 DOSBox-X instead.
 
@@ -486,7 +503,8 @@ glide=true
 ....
 
 You will also need a specially patched link:https://www.vogons.org/download/file.php?id=102360[GLIDE2X.DLL] which you can place in either the ``C:\Windows\System`` directory of Windows 95, or in the game directory.
-But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory. If so, you will have to remove this DLL file for glide pass-through to work.
+But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory.
+If so, you will have to remove this DLL file for glide pass-through to work.
 
 For more detail on 3dfx Voodoo emulation, see the link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X[Guide: Setting up 3dfx Voodoo in DOSBox-X]
 

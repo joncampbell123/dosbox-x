@@ -62,7 +62,10 @@ NOTE: OpenGlide does not support locking aux buffer, as such please use _noaux m
 Show 3dfx splash screen
 
 This option only applies when using the high-level Glide API emulation.
-In addition, this is only supported on Windows hosts, and it requires 3dfxSpl2.dll to be installed.
+In addition, this is only supported on Windows hosts, and it requires ``3dfxSpl2.dll`` to be installed.
+It is enough for ``3dfxSpl2.dll`` to be in the same directory as ``dosbox-x.exe``
+
+NOTE: The CPU type for ``3dfxSpl2.dll`` and DOSBox-X needs to match for this to work. So if you have a x86 32bit ``3dfxSpl2.dll``, you need to use a x86 32bit ``dosbox-x.exe``.
 
 ## [cpu] option
 
@@ -125,9 +128,10 @@ https://www.zeus-software.com/downloads/nglide
 #### dgVoodoo
 dgVoodoo is another 3dfx Voodoo Glide wrapper to Direct3D provider for Windows.
 Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit and 64-bit glide2x.dll files in its zip packages.
-Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable. You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:
+Thus with this you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct glide2x.dll file is available to the DOSBox-X executable.
+You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file). The zip packages are available from:
 
-http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2.html
+http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/
 
 #### OpenGlide
 Furthermore, for advanced users you can build your own glide2x.dll file(s) if you wish.

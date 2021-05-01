@@ -467,6 +467,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
 <li><a href="#_general_installation_notes">General installation Notes</a></li>
+<li><a href="#_dynamic_vs_normal_core">Dynamic vs Normal core</a></li>
 <li><a href="#_creating_a_harddisk_image">Creating a Harddisk image</a></li>
 <li><a href="#_installation_method_1_boot_from_cd_rom_image">Installation Method 1: Boot from CD-ROM image</a>
 <ul class="sectlevel1">
@@ -494,7 +495,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_backendslirp">backend=slirp</a></li>
 </ul>
 </li>
-<li><a href="#_setting_up_ne2000_networking_in_windows_me">Setting up NE2000 networking in Windows ME</a></li>
+<li><a href="#_setting_up_ne2000_networking">Setting up NE2000 networking</a></li>
 </ul>
 </li>
 <li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a>
@@ -609,6 +610,7 @@ vesa modelist height limit=0
 [dos]
 ver=8.0
 lfn=false
+hard drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx
@@ -658,7 +660,7 @@ It is recommended by DOSBox-X developers that at this time, you do not enable in
 </td>
 <td class="content">
 You can increase the allocated RAM up to the Windows ME maximum of 512MB by setting <code>memsize=512</code>.
-Larger values may be possible with tweaks, but are not covered here.
+Larger values may be possible with tweaks but are not covered here.
 </td>
 </tr>
 </table>
@@ -680,6 +682,23 @@ Larger values may be possible with tweaks, but are not covered here.
 </div>
 </div>
 </div>
+<h1 id="_dynamic_vs_normal_core" class="sect0">Dynamic vs Normal core</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows 98.</p>
+</div>
+<div class="paragraph">
+<p>However, for now we still recommend that you do the installation of Windows ME using <code>core=normal</code> until issue <a href="https://github.com/joncampbell123/dosbox-x/issues/2215">#2215</a> is resolved.</p>
+</div>
+<div class="paragraph">
+<p>But after the installation is finished you should be able to change to <code>core=dynamic_x86</code>.</p>
+</div>
+<div class="paragraph">
+<p>Should you run into problems such as application crashes or a Windows ME blue-screen that cannot be reproduced with <code>core=normal</code>,  please report the problem on the DOSBox-X Git <a href="https://github.com/joncampbell123/dosbox-x/issues">issues</a> page.</p>
+</div>
+</div>
+</div>
 <h1 id="_creating_a_harddisk_image" class="sect0">Creating a Harddisk image</h1>
 <div class="openblock partintro">
 <div class="content">
@@ -691,7 +710,7 @@ Larger values may be possible with tweaks, but are not covered here.
 </td>
 <td class="content">
 In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
-Go to the "DOS" menu, and select "Create blank disk image…​".
+Go to the "DOS" menu and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 </td>
 </tr>
@@ -703,13 +722,13 @@ This option allows for various common harddisk types to be created, for less com
 <div class="ulist">
 <ul>
 <li>
-<p>Diskette (floppy) images are always created as FAT12</p>
+<p>Diskette (floppy) images are always created as FAT12.</p>
 </li>
 <li>
-<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default</p>
+<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default.</p>
 </li>
 <li>
-<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)</p>
+<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32).</p>
 </li>
 </ul>
 </div>
@@ -729,7 +748,8 @@ This assumes that dosbox-x is in your path and winme.conf is in your current dir
 <p>Then in DOSBox-X you need to create a new harddisk image file with <code>IMGMAKE</code>.</p>
 </div>
 <div class="paragraph">
-<p>This example uses a 8GB hard disk image with a single FAT32 formatted partition. The maximum FAT32 partition size for Windows ME should be 2TB, but this has not yet been tested in DOSBox-X.</p>
+<p>This example uses an 8GB hard disk image with a single FAT32 formatted partition.
+The maximum FAT32 partition size for Windows ME should be 2TB, but this has not yet been tested in DOSBox-X.</p>
 </div>
 <div class="paragraph">
 <p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.</p>
@@ -741,7 +761,7 @@ This assumes that dosbox-x is in your path and winme.conf is in your current dir
 </div>
 <div class="paragraph">
 <p>Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.</p>
+This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, will be formatted as FAT32.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -778,7 +798,7 @@ It is possible to boot directly from the Windows ME CD-ROM, as long as you have 
 <h2 id="_starting_the_installation">Starting the installation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you have already started DOSBox-X with the winme.conf config file, and created your harddisk image.</p>
+<p>This assumes you have already started DOSBox-X with the winme.conf config file and created your harddisk image.</p>
 </div>
 <div class="paragraph">
 <p>First mount the harddisk image you created earlier:</p>
@@ -859,7 +879,7 @@ BOOT C:</pre>
 You can copy it to any directory you want, but we assume here that you copied it to C:\WIN9X</p>
 </div>
 <div class="paragraph">
-<p>Once the files are copied, start REGEDIT and navigate to <code>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Setup</code> and change <code>SourcePath=</code> to the location where you copied the files. e.g. <code>SourcePath=C:\WIN9X</code></p>
+<p>Once the files are copied, start REGEDIT and navigate to <code>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Setup</code> and change <code>SourcePath=</code> to the location where you copied the files. e.g., <code>SourcePath=C:\WIN9X</code></p>
 </div>
 <div class="paragraph">
 <p>In the case of Windows ME, copying the entire directory will require roughly 195MB of diskspace.
@@ -870,7 +890,7 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 <h1 id="_installation_method_2" class="sect0">Installation Method 2</h1>
 <div class="openblock partintro">
 <div class="content">
-This method will start the install from DOSBox-X, and does not require a bootable CD-ROM image.
+This method will start the install from DOSBox-X and does not require a bootable CD-ROM image.
 </div>
 </div>
 <div class="sect1">
@@ -922,7 +942,7 @@ This method will start the install from DOSBox-X, and does not require a bootabl
 <h2 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN9X directory on the CD-ROM) to your HDD image, as it will prevent Windows ME from asking for the CD-ROM when it needs additional files later.</p>
 </div>
 <div class="literalblock">
@@ -977,7 +997,7 @@ SETUP /NM</pre>
 </div>
 <div class="paragraph">
 <p>Now run through the install process.
-The actual steps will not be covered in this guide, but are pretty self explanatory and detailed guides on the Windows ME install process can be found online such as youtube.</p>
+The actual steps will not be covered in this guide, but are pretty self-explanatory and detailed guides on the Windows ME install process can be found online such as youtube.</p>
 </div>
 <div class="paragraph">
 <p>When the installer reboots DOSBox-X, and your back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
@@ -1070,7 +1090,7 @@ The option to load image files from the menu bar becomes unavailable the moment 
 <p>This is a known limitation that hopefully will be resolved in the near future.</p>
 </div>
 <div class="paragraph">
-<p>For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
+<p>For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1104,19 +1124,19 @@ This has the advantage that DOSBox-X can support various legacy network protocol
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
 </div>
 <div class="paragraph">
-<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
-In some cases this is not possible, such as:</p>
+<p>However, for this to work DOSBox-X needs to have very low-level access to your real network adapter.
+In some cases, this is not possible, such as:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).</p>
 </li>
 <li>
-<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.</p>
 </li>
 <li>
-<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+<p>Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.</p>
 </li>
 </ul>
 </div>
@@ -1151,10 +1171,10 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 <div class="ulist">
 <ul>
 <li>
-<p>For now it only works on Linux</p>
+<p>For now, it only works on Linux.</p>
 </li>
 <li>
-<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).</p>
 </li>
 <li>
 <p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
@@ -1176,7 +1196,7 @@ backend=slirp</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_setting_up_ne2000_networking_in_windows_me">Setting up NE2000 networking in Windows ME</h2>
+<h2 id="_setting_up_ne2000_networking">Setting up NE2000 networking</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Windows ME does not detect the emulated NE2000 adapter during installation as it is not a ISA PnP or PCI adapter.
@@ -1286,7 +1306,7 @@ After the shutdown you will have to restart DOSBox-X.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-By default TCP/IP will try to get it&#8217;s network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
+By default, TCP/IP will try to get its network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
 Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
 </td>
 </tr>
@@ -1338,7 +1358,7 @@ If you want to share files between Windows ME and Windows 10 on the network, hav
 <div class="content">
 <div class="paragraph">
 <p>The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.
-In addition this video adapter is supported out-of-the-box in Windows ME, simplifying the installation process.</p>
+In addition, this video adapter is supported out-of-the-box in Windows ME, simplifying the installation process.</p>
 </div>
 <div class="paragraph">
 <p>The available video modes with the S3 Trio64 driver are:</p>
@@ -1349,7 +1369,7 @@ In addition this video adapter is supported out-of-the-box in Windows ME, simpli
 <p>4-bit colour (16): 640x480</p>
 </li>
 <li>
-<p>8-bit colour (256) : 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200</p>
+<p>8-bit colour (256): 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200</p>
 </li>
 <li>
 <p>16-bit colour (65536): 640x480, 800x600 and 1024x768</p>
@@ -1418,7 +1438,7 @@ Using the VBEMP driver does have a negative graphics performance impact, which w
 <div class="content">
 <div class="paragraph">
 <p>The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
-This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
+This is simply because the SB16 Vibra is an ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.</p>
 </div>
 <div class="paragraph">
@@ -1432,8 +1452,8 @@ There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 </td>
 <td class="content">
 One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+However, DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore, the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
 </td>
 </tr>
 </table>
@@ -1447,8 +1467,8 @@ Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to 
 <p>If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows ME.</p>
 </div>
 <div class="paragraph">
-<p>Go to "Start", "Settings" and open "Control Panel".
-Now double-click on "Sounds and Multimedia". If you don&#8217;t see this option listed, click on the "view all Control Panel options" link on the left side.</p>
+<p>Go to "Start", "Settings" and open "Control Panel", and then double-click on "Sounds and Multimedia".
+If you don&#8217;t see this option listed, click on the "view all Control Panel options" link on the left side.</p>
 </div>
 <div class="paragraph">
 <p>Now on the "Audio" tab, change the "MIDI Music Playback" option to "Creative MPU-401", and click OK to close the window.</p>
@@ -1500,7 +1520,7 @@ There are however a few points you need to be aware of.</p>
 <ul>
 <li>
 <p>The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
-So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper</p>
+So, if you&#8217;re using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper.</p>
 </li>
 <li>
 <p>The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue <a href="https://github.com/voyageur/openglide/issues/20">#20</a>).
@@ -1577,7 +1597,7 @@ This is no doubt because the host system is better at caching then the Windows M
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

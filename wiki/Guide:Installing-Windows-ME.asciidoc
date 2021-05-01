@@ -45,6 +45,7 @@ vesa modelist height limit=0
 [dos]
 ver=8.0
 lfn=false
+hard drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx
@@ -76,24 +77,33 @@ Copy the above config and save it as *winme.conf*
 NOTE: It is recommended by DOSBox-X developers that at this time, you do not enable int13fakev86io in your config file when using Windows ME.
 
 NOTE: You can increase the allocated RAM up to the Windows ME maximum of 512MB by setting ``memsize=512``.
-Larger values may be possible with tweaks, but are not covered here.
+Larger values may be possible with tweaks but are not covered here.
 
 # General installation Notes
 
 * Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
 * When creating your HDD image with ``IMGMAKE``, instead of specifying a custom size, you can choose a pre-defined template. The pre-defined HDD templates can be seen by running ``IMGMAKE`` without arguments.
 
+# Dynamic vs Normal core
+Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows 98.
+
+However, for now we still recommend that you do the installation of Windows ME using ``core=normal`` until issue link:https://github.com/joncampbell123/dosbox-x/issues/2215[#2215] is resolved.
+
+But after the installation is finished you should be able to change to ``core=dynamic_x86``.
+
+Should you run into problems such as application crashes or a Windows ME blue-screen that cannot be reproduced with ``core=normal``,  please report the problem on the DOSBox-X Git link:https://github.com/joncampbell123/dosbox-x/issues[issues] page.
+
 # Creating a Harddisk image
 
 NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
-Go to the "DOS" menu, and select "Create blank disk image…​".
+Go to the "DOS" menu and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 
 Some quick rules about IMGMAKE (for more detail, see: link:Guide%3AManaging-image-files-in-DOSBox%E2%80%90X[Guide: Managing image files in DOSBox-X]):
 
-- Diskette (floppy) images are always created as FAT12
-- If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default
-- Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)
+- Diskette (floppy) images are always created as FAT12.
+- If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default.
+- Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32).
 
 Alternatively, you can use the ``-fat`` option to instruct ``IMGMAKE`` to create a certain FAT type (assuming that is possible for the harddisk size).
 
@@ -104,7 +114,8 @@ dosbox-x -conf winme.conf
 ....
 Then in DOSBox-X you need to create a new harddisk image file with ``IMGMAKE``.
 
-This example uses a 8GB hard disk image with a single FAT32 formatted partition. The maximum FAT32 partition size for Windows ME should be 2TB, but this has not yet been tested in DOSBox-X.
+This example uses an 8GB hard disk image with a single FAT32 formatted partition.
+The maximum FAT32 partition size for Windows ME should be 2TB, but this has not yet been tested in DOSBox-X.
 
 In later Windows versions, starting with Windows 2000, Microsoft won't let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.
 
@@ -113,7 +124,7 @@ IMGMAKE hdd.img -t hd_8gig
 ....
 
 Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.
+This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, will be formatted as FAT32.
 ....
 IMGMAKE hdd.img -t hd -size 16384
 ....
@@ -129,7 +140,7 @@ It is possible to boot directly from the Windows ME CD-ROM, as long as you have 
 Getting this image file is outside the scope of this guide.
 
 ## Starting the installation
-This assumes you have already started DOSBox-X with the winme.conf config file, and created your harddisk image.
+This assumes you have already started DOSBox-X with the winme.conf config file and created your harddisk image.
 
 First mount the harddisk image you created earlier:
 ....
@@ -178,14 +189,14 @@ This is an optional step. It is to prevent Windows from asking for the CD-ROM wh
 Boot Windows ME with the CD-ROM image mounted. In Windows ME, copy the \WIN9X directory and its contents from the CD-ROM to your C: drive.
 You can copy it to any directory you want, but we assume here that you copied it to C:\WIN9X
 
-Once the files are copied, start REGEDIT and navigate to ``HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Setup`` and change ``SourcePath=`` to the location where you copied the files. e.g. ``SourcePath=C:\WIN9X``
+Once the files are copied, start REGEDIT and navigate to ``HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Setup`` and change ``SourcePath=`` to the location where you copied the files. e.g., ``SourcePath=C:\WIN9X``
 
 In the case of Windows ME, copying the entire directory will require roughly 195MB of diskspace.
 The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB, bringing the total to roughly 153MB.
 
 # Installation Method 2
 
-This method will start the install from DOSBox-X, and does not require a bootable CD-ROM image.
+This method will start the install from DOSBox-X and does not require a bootable CD-ROM image.
 
 ## Requirements
 
@@ -209,7 +220,7 @@ IMGMOUNT D WinME.iso
 ....
 
 ## Copying the contents of the CD-ROM
-While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN9X directory on the CD-ROM) to your HDD image, as it will prevent Windows ME from asking for the CD-ROM when it needs additional files later.
 
 ....
@@ -238,7 +249,7 @@ SETUP /NM
 image::images/Windows:Windows_ME_SETUP_01.png[Windows ME SETUP.EXE Welcome]
 
 Now run through the install process.
-The actual steps will not be covered in this guide, but are pretty self explanatory and detailed guides on the Windows ME install process can be found online such as youtube.
+The actual steps will not be covered in this guide, but are pretty self-explanatory and detailed guides on the Windows ME install process can be found online such as youtube.
 
 When the installer reboots DOSBox-X, and your back at the DOSBox-X ``Z:\`` prompt, type ``EXIT``.
 
@@ -286,7 +297,7 @@ The option to load image files from the menu bar becomes unavailable the moment 
 
 This is a known limitation that hopefully will be resolved in the near future.
 
-For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:
+For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:
 ....
 IMGMOUNT A disk1.img disk2.img disk3.img
 IMGMOUNT D cd1.iso cd2.iso cd3.iso
@@ -306,12 +317,12 @@ The PCAP back-end uses something called "Promiscuous mode".
 This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
 
-However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
-In some cases this is not possible, such as:
+However, for this to work DOSBox-X needs to have very low-level access to your real network adapter.
+In some cases, this is not possible, such as:
 
-- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
-- Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
-- Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
+- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).
+- Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.
+- Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.
 
 To enable NE2000 emulation with the pcap back-end, add the following to your winme.conf config file:
 
@@ -334,8 +345,8 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 
 But obviously, it has its own limitations.
 
-- For now it only works on Linux
-- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
+- For now, it only works on Linux.
+- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
 - It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 
 To enable NE2000 emulation with the slirp back-end, add the following to your winme.conf config file:
@@ -347,7 +358,7 @@ nicirq=10
 backend=slirp
 ....
 
-## Setting up NE2000 networking in Windows ME
+## Setting up NE2000 networking
 Windows ME does not detect the emulated NE2000 adapter during installation as it is not a ISA PnP or PCI adapter.
 As such you need to set it up manually afterwards, which is quite a bit more involved than in older Windows versions.
 
@@ -407,7 +418,7 @@ image::images/Windows:Windows_ME_NE2000_09.png[Windows ME System Properties]
 Windows ME will now ask you to shut down to apply the settings, click the "Yes" button to let it perform a shutdown.
 After the shutdown you will have to restart DOSBox-X.
 
-NOTE: By default TCP/IP will try to get it's network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
+NOTE: By default, TCP/IP will try to get its network configuration over DHCP, if you need to manually specify the settings you can do so, in "Control Panel", double-click "Network".
 Once it opens, highlight "TCP/IP", and click the "Properties" button to modify the TCP/IP settings.
 
 NOTE: In the Network settings, there will also be a "Dial-Up Adapter" listed, which you can safely remove.
@@ -420,12 +431,12 @@ If networking does not work, see link:Guide%3ASetting-up-networking-in-DOSBox%E2
 
 # Emulated video adapter and video mode
 The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.
-In addition this video adapter is supported out-of-the-box in Windows ME, simplifying the installation process.
+In addition, this video adapter is supported out-of-the-box in Windows ME, simplifying the installation process.
 
 The available video modes with the S3 Trio64 driver are:
 
 * 4-bit colour (16): 640x480
-* 8-bit colour (256) : 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200
+* 8-bit colour (256): 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200
 * 16-bit colour (65536): 640x480, 800x600 and 1024x768
 * 32-bit colour (16.7M): 640x480 and 800x600
 
@@ -455,20 +466,20 @@ NOTE: Using the VBEMP driver does have a negative graphics performance impact, w
 
 # Emulated sound card
 The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
-This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
+This is simply because the SB16 Vibra is an ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 
 Windows ME includes WDM driver version 4.90.2471.1. No newer driver appears to exist.
 
 NOTE: One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+However, DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore, the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
 
 ## Enabling General MIDI
 If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows ME.
 
-Go to "Start", "Settings" and open "Control Panel".
-Now double-click on "Sounds and Multimedia". If you don't see this option listed, click on the "view all Control Panel options" link on the left side.
+Go to "Start", "Settings" and open "Control Panel", and then double-click on "Sounds and Multimedia".
+If you don't see this option listed, click on the "view all Control Panel options" link on the left side.
 
 Now on the "Audio" tab, change the "MIDI Music Playback" option to "Creative MPU-401", and click OK to close the window.
 
@@ -497,7 +508,7 @@ DOSBox-X supports glide pass-through with Windows ME.
 There are however a few points you need to be aware of.
 
 * The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
-So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper
+So, if you're using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper.
 * The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue link:https://github.com/voyageur/openglide/issues/20[#20]).
 The work-around is to use the SDL1 DOSBox-X instead.
 

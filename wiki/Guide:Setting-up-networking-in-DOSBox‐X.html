@@ -1324,10 +1324,15 @@ There are two ways to enable IPX communication, which was used by some <a href="
 <h2 id="_using_dosbox_x_integrated_ipx_support">Using DOSBox-X integrated IPX support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X has integrated support for IPX over IP.
-You do not even have to enable NE2000 emulation for this.
-The advantage of this is that you can communicate with any other system that is directly reachable over TCP/IP.
-To test this, first <code>ping</code> the remote systems to ensure connectivity.</p>
+<p>DOSBox-X has integrated support for IPX over IP (IPX encapsulated in IP).
+You do not even have to enable NE2000 emulation for this.</p>
+</div>
+<div class="paragraph">
+<p>The advantage of this is that you can communicate with any other system that is directly reachable over TCP/IP.
+To test this, first <code>ping</code> the remote systems from the host OS to ensure connectivity.</p>
+</div>
+<div class="paragraph">
+<p>A disadvantage of this approach is that you cannot communicate with retro PCs on the same network that are running native IPX.</p>
 </div>
 <div class="paragraph">
 <p>This process is described on the <a href="https://www.dosbox.com/wiki/Connectivity">DOSBox wiki</a>.</p>
@@ -1479,7 +1484,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

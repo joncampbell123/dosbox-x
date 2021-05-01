@@ -478,7 +478,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_booting_windows_95_after_installation">Booting Windows 95 after installation</a></li>
-<li><a href="#_steps_to_take_after_installation">Steps to take after Installation</a></li>
+<li><a href="#_steps_to_take_after_installation">Steps to take after installation</a></li>
 <li><a href="#_mounting_cd_or_diskette_images">Mounting CD or Diskette images</a></li>
 <li><a href="#_enabling_networking">Enabling networking</a>
 <ul class="sectlevel1">
@@ -488,7 +488,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_backendslirp">backend=slirp</a></li>
 </ul>
 </li>
-<li><a href="#_setting_up_ne2000_networking_in_windows_95">Setting up NE2000 networking in Windows 95</a>
+<li><a href="#_setting_up_ne2000_networking">Setting up NE2000 networking</a>
 <ul class="sectlevel2">
 <li><a href="#_detection_during_installation">Detection during installation</a></li>
 <li><a href="#_detection_after_installation">Detection after installation</a></li>
@@ -496,7 +496,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a></li>
+<li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a>
+<ul class="sectlevel2">
+<li><a href="#_vesa_driver">VESA driver</a></li>
+</ul>
+</li>
 <li><a href="#_emulated_sound_card">Emulated sound card</a>
 <ul class="sectlevel1">
 <li><a href="#_enabling_general_midi">Enabling General MIDI</a></li>
@@ -632,6 +636,7 @@ vesa modelist height limit=0
 [dos]
 # Set 'ver=7.1' if using Win95 OSR2 (95B) or later
 ver=7.0
+hard drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx
@@ -680,8 +685,8 @@ If using Windows 95 OSR2 (or later) with FAT32 volumes, be sure to change the DO
 <div class="title">Note</div>
 </td>
 <td class="content">
-You can increase the allocated RAM up to Windows 95 maximum of 480MB by setting <code>memsize=480</code>.
-Larger values may be possible with tweaks, but are not covered here.
+You can increase the allocated RAM up to the Windows 95 maximum of 480MB by setting <code>memsize=480</code>.
+Larger values may be possible with tweaks but are not covered here.
 </td>
 </tr>
 </table>
@@ -703,7 +708,7 @@ Larger values may be possible with tweaks, but are not covered here.
 <p>If you get a prompt stating that C:\WINDOWS already exists, ignore it, and continue the installation.</p>
 </li>
 <li>
-<p>During the installation it may ask you if you have a CD-ROM, Network card or sound card that you want it to scan for. If you have NE2000 enabled in your DOSBox-X config file, you may want to check the Network adapter check box. Your DOSBox-X CD-ROM and Sound Card will be detected regardless if you check it&#8217;s box or not.</p>
+<p>During the installation it may ask you if you have a CD-ROM, Network card or sound card that you want it to scan for. If you have NE2000 enabled in your DOSBox-X config file, you may want to check the Network adapter check box. Your DOSBox-X CD-ROM and Sound Card will be detected regardless if you check its box or not.</p>
 </li>
 <li>
 <p>In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional install. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.</p>
@@ -743,7 +748,7 @@ Larger values may be possible with tweaks, but are not covered here.
 </td>
 <td class="content">
 In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
-Go to the "DOS" menu, and select "Create blank disk image…​".
+Go to the "DOS" menu and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 </td>
 </tr>
@@ -755,16 +760,16 @@ This option allows for various common harddisk types to be created, for less com
 <div class="ulist">
 <ul>
 <li>
-<p>Diskette (floppy) images are always created as FAT12</p>
+<p>Diskette (floppy) images are always created as FAT12.</p>
 </li>
 <li>
-<p>If your reported DOS version is 7.0 or lower, then harddisk images up to 2GB will use FAT16 by default</p>
+<p>If your reported DOS version is 7.0 or lower, then harddisk images up to 2GB will use FAT16 by default.</p>
 </li>
 <li>
-<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default</p>
+<p>If your reported DOS version is 7.1 or higher, then harddisk images up to 512MB will use FAT16 by default.</p>
 </li>
 <li>
-<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32)</p>
+<p>Larger size harddisk images will use FAT32 by default (larger than 2GB can only be created as FAT32).</p>
 </li>
 </ul>
 </div>
@@ -796,7 +801,8 @@ This assumes that dosbox-x is in your path and win95.conf is in your current dir
 <p>Then in DOSBox-X you need to create a new harddisk image file with <code>IMGMAKE</code>.</p>
 </div>
 <div class="paragraph">
-<p>This example uses a 2GB harddisk formatted to FAT16, which is the maximum for FAT16, and supported by all Windows 95 versions.</p>
+<p>This example uses an 2GB hard disk image with a single FAT16 formatted partition.
+This is the maximum size for FAT16 and supported by all Windows 95 releases.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -806,7 +812,7 @@ This assumes that dosbox-x is in your path and win95.conf is in your current dir
 <div class="paragraph">
 <p>Or if your using <strong>Windows 95 OSR2</strong> or later, you can create a FAT32 volume.
 Technically the FAT32 filesystem is capable of supporting partitions up to 2TB, but the generic IDE driver in Windows 95 cannot handle volumes greater than 32GB.
-Larger partition sizes may be possible with 3rd party drivers, but are not covered here.</p>
+Larger partition sizes may be possible with 3rd party drivers but are not covered here.</p>
 </div>
 <div class="paragraph">
 <p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.</p>
@@ -818,7 +824,7 @@ Larger partition sizes may be possible with 3rd party drivers, but are not cover
 </div>
 <div class="paragraph">
 <p>Or if you want to create a larger disk, you can create a custom type.
-This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.</p>
+This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, will be formatted as FAT32.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -831,7 +837,7 @@ This is an example of a 16GB (16*1024=16384 MB) disk, formatted as FAT32.</p>
 <div class="openblock partintro">
 <div class="content">
 Other installation methods are possible than the one described below.
-This method is however considered to be the quickest one with the least amount of steps.
+This method is however considered to be the quickest one with the least number of steps.
 </div>
 </div>
 <div class="sect1">
@@ -856,7 +862,7 @@ This method is however considered to be the quickest one with the least amount o
 <h2 id="_starting_the_installation">Starting the installation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you have already started DOSBox-X with the win95.conf config file, and created your harddisk image.</p>
+<p>This assumes you have already started DOSBox-X with the win95.conf config file and created your harddisk image.</p>
 </div>
 <div class="paragraph">
 <p>First mount the harddisk image you created earlier:</p>
@@ -873,7 +879,7 @@ This method is however considered to be the quickest one with the least amount o
 <div class="title">Note</div>
 </td>
 <td class="content">
-If you get an error saying that "This operation requires DOS version 7.10 or higher", than your trying to mount a FAT32 volume, and have not set your reported DOS version in your DOSBox-X config to 7.1.
+If you get an error saying that "This operation requires DOS version 7.10 or higher", than you&#8217;re trying to mount a FAT32 volume, and have not set your reported DOS version in your DOSBox-X config to 7.1.
 FAT32 volumes are only supported if your installing <strong>Windows 95 OSR2</strong> or later.
 </td>
 </tr>
@@ -896,7 +902,7 @@ FAT32 volumes are only supported if your installing <strong>Windows 95 OSR2</str
 <h2 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (as long as you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
+<p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN95 directory on the CD-ROM) to your HDD image, as it will prevent Windows 95 from asking for the CD-ROM when it needs additional files later.</p>
 </div>
 <div class="literalblock">
@@ -942,8 +948,13 @@ SETUP</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now run through the install process, until it reboots and your back at the DOSBox-X <code>Z:\</code> prompt.
-At this point close DOSBox-X, and edit your win95.conf config file.
+<p>Now run through the install process. The actual steps will not be covered in this guide but are pretty self-explanatory and detailed guides on the Windows 95 install process can be found online such as youtube.</p>
+</div>
+<div class="paragraph">
+<p>When the installer reboots DOSBox-X, and your back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
+</div>
+<div class="paragraph">
+<p>Now edit your <code>win98.conf</code> config file.
 At the end of the file, in the [autoexec] section, add the following two lines:</p>
 </div>
 <div class="literalblock">
@@ -953,7 +964,7 @@ BOOT C:</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Save the config file, and at the command-prompt you can type the following to continue the installation process.
+<p>Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
 This is also the command you use, after the installation is finished, to start Windows 95 in DOSBox-X.</p>
 </div>
 <div class="literalblock">
@@ -967,16 +978,19 @@ This is also the command you use, after the installation is finished, to start W
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>After the installation is finished, you can start Windows 95 from the command-prompt with the following command:</p>
+<p>After the installation is finished, you can start Windows 95 from the command-prompt of your host PC, with the following command:</p>
 </div>
 <div class="literalblock">
 <div class="content">
 <pre>dosbox-x -conf win95.conf</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>You can optionally create a shortcut on your desktop to start Windows 95 directly.</p>
 </div>
 </div>
-<h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after Installation</h1>
+</div>
+<h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after installation</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
@@ -1030,7 +1044,7 @@ The option to load image files from the menu bar becomes unavailable the moment 
 <p>This is a known limitation that hopefully will be resolved in the near future.</p>
 </div>
 <div class="paragraph">
-<p>For now you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
+<p>For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1046,7 +1060,7 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
 <div class="openblock partintro">
 <div class="content">
-To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 adapter emulation in your <code>win95.conf</code> config file and select an appropriate back-end for the NE2000 emulation.
 </div>
 </div>
 <div class="sect1">
@@ -1064,19 +1078,19 @@ This has the advantage that DOSBox-X can support various legacy network protocol
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.</p>
 </div>
 <div class="paragraph">
-<p>However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
-In some cases this is not possible, such as:</p>
+<p>However, for this to work DOSBox-X needs to have very low-level access to your real network adapter.
+In some cases, this is not possible, such as:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).</p>
 </li>
 <li>
-<p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
+<p>Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.</p>
 </li>
 <li>
-<p>Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access</p>
+<p>Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.</p>
 </li>
 </ul>
 </div>
@@ -1095,7 +1109,7 @@ realnic=list</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+<p>The <code>list</code> value for <code>realnic=</code> will need to be replaced by a value representing your actual network adapter.
 See <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a> for more information.</p>
 </div>
 </div>
@@ -1111,13 +1125,13 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 <div class="ulist">
 <ul>
 <li>
-<p>For now it only works on Linux</p>
+<p>For now, it only works on Linux.</p>
 </li>
 <li>
-<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
+<p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).</p>
 </li>
 <li>
-<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+<p>It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
 </li>
 </ul>
 </div>
@@ -1136,7 +1150,7 @@ backend=slirp</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_setting_up_ne2000_networking_in_windows_95">Setting up NE2000 networking in Windows 95</h2>
+<h2 id="_setting_up_ne2000_networking">Setting up NE2000 networking</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_detection_during_installation">Detection during installation</h3>
@@ -1168,7 +1182,7 @@ Now in the "System Properties" dialogue, select the "Device Manager" tab.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Highlight the "NE2000 Compatible" entry, and click on the "Properties" tab and then click the "Set Configuration Manually" button.</p>
+<p>Highlight the "NE2000 Compatible" entry and click on the "Properties" tab and then click the "Set Configuration Manually" button.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1176,13 +1190,13 @@ Now in the "System Properties" dialogue, select the "Device Manager" tab.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Now you need to highlight the "Interrupt Request" entry, and click the "Change Setting&#8230;&#8203;" button. You can now change the IRQ to 10 to match the <code>nicirq=</code> value in your DOSBox-X config file.</p>
+<p>Now you need to highlight the "Interrupt Request" entry and click the "Change Setting&#8230;&#8203;" button. You can now change the IRQ to 10 to match the <code>nicirq=</code> value in your DOSBox-X config file.</p>
 </div>
 <div class="paragraph">
 <p>Next, highlight the "Input/Output Range" entry, and again click the "Change Setting&#8230;&#8203;" button. Now change the value to "0300 - 031F".</p>
 </div>
 <div class="paragraph">
-<p>Once your finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.</p>
+<p>Once you&#8217;re finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1191,7 +1205,7 @@ Now in the "System Properties" dialogue, select the "Device Manager" tab.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-By default Windows 95 only enables Novell&#8217;s IPX/SPX protocol.
+By default, Windows 95 only enables Novell&#8217;s IPX/SPX protocol.
 Most Windows 95 applications expect TCP/IP which you will need to manually enable in the Network settings.
 </td>
 </tr>
@@ -1223,7 +1237,7 @@ Again, simply click the "Next &gt;" button.</p>
 </div>
 <div class="paragraph">
 <p>If it detected new hardware, you should get this dialogue.
-You can click the "Details&#8230;&#8203;" button to see what it found, after which you can click on "Finish"</p>
+You can click the "Details&#8230;&#8203;" button to see what it found, after which you can click on "Finish".</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1246,7 +1260,7 @@ If you don&#8217;t know what to type, just type "WORKGROUP".</p>
 <p>You may also want to provide a more descriptive "Computer Name".</p>
 </div>
 <div class="paragraph">
-<p>Don&#8217;t close the dialogue just yet though, click on "Configuration" tab instead.</p>
+<p>Don&#8217;t close the dialogue just yet though, click on the "Configuration" tab instead.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1254,7 +1268,7 @@ If you don&#8217;t know what to type, just type "WORKGROUP".</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Highlight the "NE2000 Compatible" entry, and click the "Properties" button.</p>
+<p>Highlight the "NE2000 Compatible" entry and click the "Properties" button.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1271,7 +1285,7 @@ Then click "OK" to finish.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Lastly, while your in the Network settings dialogue, you may also want to add the TCP/IP protocol, which is not enabled by default on Windows 95.</p>
+<p>Lastly, while you&#8217;re in the Network settings dialogue, you may also want to add the TCP/IP protocol, which is not enabled by default on Windows 95.</p>
 </div>
 <div class="paragraph">
 <p>On the Configuration tab, click on "Add", then select "Protocol" and click again "Add&#8230;&#8203;"</p>
@@ -1299,19 +1313,19 @@ In the Network settings, you can optionally remove the "IPX/SPX-compatible Proto
 <div class="title">Note</div>
 </td>
 <td class="content">
-By default, TCP/IP will try to get it&#8217;s network configuration over DHCP, which should work in most cases.
+By default, TCP/IP will try to get its network configuration over DHCP, which should work in most cases.
 If you need to manually specify the settings, highlight "TCP/IP", and click the "Properties" button.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Once your finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
+<p>Once you&#8217;re finished, Click OK to close the Network settings window, and the TCP/IP driver will be installed, and Windows will prompt you to restart your computer.
 Confirm, and Windows 95 will reboot.
 After the reboot you should have working TCP/IP networking.</p>
 </div>
 <div class="paragraph">
-<p>If networking does not work, see <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a></p>
+<p>If networking does not work, see: <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a></p>
 </div>
 </div>
 </div>
@@ -1330,6 +1344,25 @@ This update however does not add support for 8MB video RAM, or wide-screen video
 If you installed Windows 95 OSR2 or later, you already have the latest video driver installed.</p>
 </div>
 <div class="paragraph">
+<p>The available video modes with the S3 Trio64 driver are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>4-bit colour (16): 640x480</p>
+</li>
+<li>
+<p>8-bit colour (256): 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200</p>
+</li>
+<li>
+<p>16-bit colour (65536): 640x480, 800x600 and 1024x768</p>
+</li>
+<li>
+<p>32-bit colour (16.7M): 640x480 and 800x600</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
 <p>A few enhancements have been made to the emulated S3 Trio64, compared to a real S3 Trio64:</p>
 </div>
 <div class="ulist">
@@ -1344,11 +1377,17 @@ If you installed Windows 95 OSR2 or later, you already have the latest video dri
 </div>
 <div class="paragraph">
 <p>However, these enhancements cannot be used in Windows 95 with the S3 video driver due to driver limitations.
-As such you will be limited to 640x480 in 32bit colour, 1024x768 in 16bit colour or 1280x1024 in 8bit (256) colour.</p>
+As such you will be limited to the above video modes with this driver.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_driver">VESA driver</h3>
+<div class="paragraph">
+<p>These restrictions can be overcome by switching to the <a href="https://bearwindows.zcm.com.au/vbe9x.htm">Universal VESA/VBE Video Display Driver (VBEMP)</a>.</p>
 </div>
 <div class="paragraph">
-<p>These restrictions can be overcome by switching to the <a href="https://bearwindows.zcm.com.au/vbe9x.htm">Universal VESA/VBE Video Display Driver (VBEMP)</a>.
-First add the following lines to your DOSBox-X config file in the [video] section:</p>
+<p>First add the following lines to your DOSBox-X config file in the [video] section:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1376,13 +1415,12 @@ Using the VBEMP driver does have a negative graphics performance impact, which w
 </table>
 </div>
 </div>
-</div>
 <h1 id="_emulated_sound_card" class="sect0">Emulated sound card</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
 <p>The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
-This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
+This is simply because the SB16 Vibra is an ISA PnP card, and therefore automatically detected by Windows.
 There is no other real advantage of using the emulated SB16 Vibra over the SB16.</p>
 </div>
 <div class="admonitionblock note">
@@ -1392,9 +1430,9 @@ There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 <div class="title">Note</div>
 </td>
 <td class="content">
-One often heard complaint of the real SB16 Vibra is the CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
-Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
+One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
+However, DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+Therefore, the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
 </td>
 </tr>
 </table>
@@ -1408,11 +1446,13 @@ Therefore the CQM sound quality issues with the real SB16 Vibra do not apply to 
 <h2 id="_enabling_general_midi">Enabling General MIDI</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows 95.
-Open the "Control Panel", and then double-click on "Multimedia".</p>
+<p>If you have a working DOSBox-X General MIDI setup, either emulated or real, you can use that in Windows 95.</p>
 </div>
 <div class="paragraph">
-<p>Now in "Multimedia Properties" on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.</p>
+<p>Go to "Start", "Settings" and open "Control Panel", and then double-click on "Multimedia".</p>
+</div>
+<div class="paragraph">
+<p>Now on the "MIDI" tab, change the "Single instrument" option to "MPU-401 Compatible", and click OK to close the window.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1420,14 +1460,14 @@ Open the "Control Panel", and then double-click on "Multimedia".</p>
 </div>
 </div>
 <div class="paragraph">
-<p>For more information about setting up MIDI support, see <a href="Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X">Guide: Setting up MIDI in DOSBox-X</a></p>
+<p>For more information about setting up MIDI support, see: <a href="Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X">Guide: Setting up MIDI in DOSBox-X</a></p>
 </div>
 </div>
 </div>
 <h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
 <div class="openblock partintro">
 <div class="content">
-To enable printing support in Windows 95, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
+To enable printing support in Windows 95, see: <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
 </div>
 </div>
 <h1 id="_3dfx_voodoo" class="sect0">3dfx Voodoo</h1>
@@ -1461,7 +1501,7 @@ There are however a few points you need to be aware of.</p>
 <ul>
 <li>
 <p>The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
-So if your using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper</p>
+So, if you&#8217;re using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper.</p>
 </li>
 <li>
 <p>The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue <a href="https://github.com/voyageur/openglide/issues/20">#20</a>).
@@ -1480,7 +1520,8 @@ glide=true</pre>
 </div>
 <div class="paragraph">
 <p>You will also need a specially patched <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a> which you can place in either the <code>C:\Windows\System</code> directory of Windows 95, or in the game directory.
-But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory. If so, you will have to remove this DLL file for glide pass-through to work.</p>
+But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory.
+If so, you will have to remove this DLL file for glide pass-through to work.</p>
 </div>
 <div class="paragraph">
 <p>For more detail on 3dfx Voodoo emulation, see the <a href="Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X">Guide: Setting up 3dfx Voodoo in DOSBox-X</a></p>
@@ -1515,7 +1556,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

@@ -665,6 +665,18 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 </li>
 </ul>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the <code><a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> program in DOSBox-X to convert a IBM DSKF file to a regular MFM Disk format.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -765,65 +777,77 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Disk type</th>
+<th class="tableblock halign-left valign-top">Sectors</th>
 <th class="tableblock halign-left valign-top">Capacity</th>
 <th class="tableblock halign-left valign-top">IMGMAKE option</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD (8 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">160KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_160</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" SSDD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">180KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_180</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD (10 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">200KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_200</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD (8 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">320KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_320</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" DSDD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">360KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_360</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD (10 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">400KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_400</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" HD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" HD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1200KB (1.2MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1200</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" DSDD (2DD)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">720KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_720</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.5" HD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>3.5" HD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1440KB (1.44MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1440 or -t fd</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" ED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2880KB (2.88MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_2880</p></td>
 </tr>
@@ -836,8 +860,8 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <div class="title">Note</div>
 </td>
 <td class="content">
-The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
-The 10-sector disks were used by the DEC Rainbow 100.
+Common PC disk types in bold. The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
+The 10-sector disks were used by the DEC Rainbow 100, and should likewise be avoided for compatibility reasons.
 </td>
 </tr>
 </table>
@@ -2067,6 +2091,18 @@ The <code>-t iso</code> or <code>-t cdrom</code> parameter is only needed with D
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the names of your CD/DVD images contain characters of foreign languages such as Russian, please make sure that the current DOS code page matches the language you use before mounting the images. If you decide to put such commands in the [autoexec] section of the config file, please also make sure the encoding of your config file matches your language when you save the config file.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</h3>
 <div class="paragraph">
@@ -2553,7 +2589,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

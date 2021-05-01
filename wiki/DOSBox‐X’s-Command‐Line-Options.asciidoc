@@ -50,7 +50,7 @@ Shows cycles count (FPS) on the DOSBox-X title bar.
 * **-showrt**
 +
 Shows emulation speed relative to realtime on the DOSBox-X title bar.
-* **-fullscreen**
+* **-fullscreen** or **-fs**
 +
 Starts DOSBox-X in full-screen mode.
 * **-savedir [path]**
@@ -65,6 +65,12 @@ Uses the default config settings of DOSBox-X (do not try to load default config 
 * **-defaultmapper**
 +
 Uses the default key mappings for DOSBox-X (do not try to load a mapper file such as mapper-dosbox-x.map).
+* **-promptfolder**
++
+Prompts for a folder which will become DOSBox-X's working directory when it starts.
+* **-nopromptfolder**
++
+Do not prompt for a folder to become the DOSBox-X working directory when it starts.
 * **-winrun**
 +
 Enables launching Windows programs to run on the host (such as the use of START command), long filenames support and Windows clipboard communications via the CLIP$ device (Windows version only).

@@ -474,6 +474,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#_windows_host_method_1">Windows host, method 1</a></li>
 <li><a href="#_windows_host_method_2">Windows host, method 2</a></li>
+<li><a href="#_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</a>
+<ul class="sectlevel2">
+<li><a href="#_windows_host_extended_solution_using_printfil">Windows host, extended solution using Printfil</a></li>
+</ul>
+</li>
 <li><a href="#_linux_host_2">Linux host</a></li>
 </ul>
 </li>
@@ -1382,8 +1387,30 @@ parallel1=file dev:lpt1</pre>
 parallel1=reallpt directlpt:378</pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Other alternatives are to install either <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (Open Source), or <a href="http://www.dosprn.com/">DOSPRN</a>, a Shareware application that specifically lists DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
+<p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (open-source), <a href="https://www.printfil.com/">Printfil</a>, or <a href="http://www.dosprn.com/">DOSPRN</a>. Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
+</div>
+<div class="sect2">
+<h3 id="_windows_host_extended_solution_using_printfil">Windows host, extended solution using Printfil</h3>
+<div class="paragraph">
+<p>According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications. You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.</p>
+</div>
+<div class="paragraph">
+<p>Printfil has implemented official support for integration with DOSBox-X since version 5.27. In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing. You can find the main features of Printfil in <a href="https://www.printfil.com/edesc.htm">its feature list page</a>. Once configured, there is no additional setup needed for printing support.</p>
+</div>
+<div class="paragraph">
+<p>You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window. Printfil will automatically detect DOSBox-X if installed, and ask whether to capture the selected port for DOSBox-X. If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions. Below is a screenshot of its configuration window.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Printfil_configuration_window.png" alt="The Printfil configuration window">
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1527,7 +1554,7 @@ parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-04-01 16:47:54 -0400
+Last updated 2021-05-01 02:59:11 -0400
 </div>
 </div>
 </body>

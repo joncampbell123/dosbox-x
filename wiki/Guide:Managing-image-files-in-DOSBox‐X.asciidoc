@@ -53,6 +53,8 @@ Some examples of diskette image files that DOSBox-X **does not** support:
 * Teledisk (.TD0)
 * Transcopy (.TC)
 
+NOTE: While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the ``link:http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe[LOADDSKF.EXE]`` program in DOSBox-X to convert a IBM DSKF file to a regular MFM Disk format.
+
 ## Creating diskette images
 NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image...".
@@ -90,22 +92,22 @@ If this is not the case, you can force a diskette type with the ``-t floppy`` pa
 Supported diskette sizes options:
 
 |===
-|Disk type|Capacity|IMGMAKE option
+|Disk type|Sectors|Capacity|IMGMAKE option
 
-|5.25" SSDD (8 sector)|160KB|-t fd_160
-|5.25" SSDD |180KB|-t fd_180
-|5.25" SSDD (10 sector)|200KB|-t fd_200
-|5.25" DSDD (8 sector)|320KB|-t fd_320
-|5.25" DSDD|360KB|-t fd_360
-|5.25" DSDD (10 sector)|400KB|-t fd_400
-|5.25" HD|1200KB (1.2MB)|-t fd_1200
-|3.5" DSDD (2DD)|720KB|-t fd_720
-|3.5" HD|1440KB (1.44MB)|-t fd_1440 or -t fd
-|3.5" ED|2880KB (2.88MB)|-t fd_2880
+|5.25" SSDD|8|160KB|-t fd_160
+|**5.25" SSDD**|9|180KB|-t fd_180
+|5.25" SSDD|10|200KB|-t fd_200
+|5.25" DSDD|8|320KB|-t fd_320
+|**5.25" DSDD**|9|360KB|-t fd_360
+|5.25" DSDD|10|400KB|-t fd_400
+|**5.25" HD**|9|1200KB (1.2MB)|-t fd_1200
+|3.5" DSDD (2DD)|9|720KB|-t fd_720
+|**3.5" HD**|9|1440KB (1.44MB)|-t fd_1440 or -t fd
+|3.5" ED|9|2880KB (2.88MB)|-t fd_2880
 |===
 
-NOTE: The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
-The 10-sector disks were used by the DEC Rainbow 100.
+NOTE: Common PC disk types in bold. The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
+The 10-sector disks were used by the DEC Rainbow 100, and should likewise be avoided for compatibility reasons.
 
 ## Mounting diskette images
 Mounting a diskette image in DOSBox-X is typically as simple as
@@ -579,6 +581,8 @@ imgmount D: cdrom.iso -t iso
 imgmount D: cdrom.iso -t cdrom
 ....
 NOTE: The ``-t iso`` or ``-t cdrom`` parameter is only needed with DOSBox-X when the extension is not .ISO, .CUE or .MDF.
+
+NOTE: If the names of your CD/DVD images contain characters of foreign languages such as Russian, please make sure that the current DOS code page matches the language you use before mounting the images. If you decide to put such commands in the [autoexec] section of the config file, please also make sure the encoding of your config file matches your language when you save the config file.
 
 ### Accessing a CD or DVD in real DOS
 With the integrated DOS that DOSBox-X provides, you do not need to worry about loading a CD-ROM driver and MSCDEX.

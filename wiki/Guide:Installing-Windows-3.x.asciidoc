@@ -12,38 +12,38 @@ toc::[]
 ## Editions this applies to
 
 * *Windows 3.0*
-** Supports up to 16MB RAM
-** Improved UI
-** Improved memory management (286+ only)
+** Supports up to 16MB RAM.
+** Improved UI.
+** Improved memory management (286+ only).
 * *Windows 3.0a*
-** Allows programs to call into real-mode when started in standard mode
-** Bug fixes for the installer to alleviate crashes
+** Allows programs to call into real-mode when started in standard mode.
+** Bug fixes for the installer to alleviate crashes.
 * *Windows 3.0a with Multimedia Extensions*
-** Adds Multimedia Extensions 1.0
-** Multimedia extensions do not support real mode (8086/8088 CPUs)
-** Adds support for recording and playing digital audio files
-** Adds support for MIDI devices
-** Adds support for screensavers
-** Adds support for analogue joysticks
-** Adds support for audio CD-ROMs
+** Adds Multimedia Extensions 1.0.
+** Multimedia extensions do not support real mode (8086/8088 CPUs).
+** Adds support for recording and playing digital audio files.
+** Adds support for MIDI devices.
+** Adds support for screensavers.
+** Adds support for analogue joysticks.
+** Adds support for audio CD-ROMs.
 * *Windows 3.1*
-** Supports up to 256MB RAM
-** Dropped support for real mode (8086/8088 CPUs)
-** Includes updated Multimedia Extensions
-** Adds Truetype
-** Adds optional 32-bit disk access (386 Enhanced Mode only)
-** Adds the Windows Registry
+** Supports up to 256MB RAM.
+** Dropped support for real mode (8086/8088 CPUs).
+** Includes updated Multimedia Extensions.
+** Adds TrueType font support.
+** Adds optional 32-bit disk access (386 Enhanced Mode only).
+** Adds the Windows Registry.
 * *Windows 3.11*
-** Bug fix release
+** Bug fix release.
 * *Windows for Workgroups 3.1*
-** Adds SMB file sharing (NBF or IPX protocols only)
-** Adds VSHARE.386
+** Adds SMB file sharing (NBF or IPX protocols only).
+** Adds VSHARE.386.
 * *Windows for Workgroups 3.11*
-** Adds 32-bit file redirectors
-** Drops support for standard mode (286 CPUs)
+** Adds 32-bit file redirectors.
+** Drops support for standard mode (286 CPUs).
 * *Windows for Workgroups 3.11a*
 * *Windows 3.2*
-** Chinese language release of Windows 3.1
+** Chinese language release of Windows 3.1.
 
 |===
 |Edition|Min CPU|Min RAM|Max RAM|Min HDD space|Min DOS
@@ -63,13 +63,14 @@ OEM versions may include and default to different drivers in SETUP for things li
 
 ## README.1ST
 
-There are already some guides to installing Windows 3.x in DOSBox, and those guides will also work with DOSBox-X. Some examples:
+There are already some guides to installing Windows 3.x in DOSBox, and those guides will also work with DOSBox-X.
+Some examples:
 
 * link:https://www.vogons.org/viewtopic.php?t=9405[Windows 3.1x DOSBox Guide] on Vogons by user Dominus
 * link:https://www.howtogeek.com/230359/how-to-install-windows-3.1-in-dosbox-set-up-drivers-and-play-16-bit-games/[How to Install Windows 3.1 in DOSBox, Set Up Drivers, and Play 16-bit Games] on How-To Geek
 * link:http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_install.html[Windows 3x on DOSBox guide] on sierrahelp.com
 
-This guide does not seek to replicate those pages. Instead this page will contain some install guidance and hints and tips not covered on those pages, or that are specific to DOSBox-X. It is not intended to be a comprehensive guide.
+This guide does not look to replicate those guides. Instead, this guide will have some install guidance and hints and tips not covered on those pages, or that are specific to DOSBox-X. It is not intended to be a comprehensive guide.
 
 ### Useful links
 
@@ -82,15 +83,19 @@ This guide does not seek to replicate those pages. Instead this page will contai
 * link:https://betawiki.net/wiki/Windows_3.1xp[BetaWiki: Windows 3.1x]
 
 ### General Notes
-* Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
+* Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode.
+From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)".
+But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects.
+It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
 
 ### Windows 3.0 specific notes
-* Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0
+* Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0.
 
 ### Windows 3.0a with Multimedia Extensions specific notes
-* This was available only to OEMs, as such they will be customized to the systems they shipped with. Examples are a OEM specific launcher, but also that the installer may default to specific video and audio options.
-* For versions distributed on CD, the installation can be started by going into the MWIN directory on the CD and running SETUP.EXE
-* Unlike regular Windows which installs by default to C:\WINDOWS this edition installs by default to C:\MWINDOWS
+* This edition was available only to OEMs (Original Equipment Manufacturers), as such Windows will be customized to the systems it was shipped with.
+Examples of such customization, are an OEM specific launcher, OEM specific applications, but also that the installer may default to custom audio and video options.
+* For versions distributed on CD, the installation can be started by going into the ``MWIN`` directory on the CD and running ``SETUP.EXE``.
+* Unlike regular Windows which installs by default to ``C:\WINDOWS`` this edition installs by default to ``C:\MWINDOWS``.
 
 # DOSBox-X config file
 It is recommended that you create a custom DOSBox-X config file for running Windows 3.x
@@ -101,8 +106,11 @@ autolock=true
 [dosbox]
 title=Windows 3.x
 memsize=16
-# uncomment the next line if you want want to use Windows 3.0
+# uncomment the next line if you want to use Windows 3.0
 #machine=svga_et4000
+
+[dos]
+hard drive data rate limit=0
 
 [cpu]
 cputype=pentium
@@ -110,13 +118,6 @@ core=normal
 
 [pci]
 voodoo=false
-
-[ne2000]
-# If you want networking in WfW (DOS HDD image only!), set ne2000=true.
-# This also requires that you set realnic= to a suitable value for your host PC
-ne2000=false
-nicirq=10
-realnic=list
 
 [ide, primary]
 int13fakeio=true
@@ -137,13 +138,16 @@ Copy the above config and save it as *win3x.conf*
 * If you want networking in *Windows for Workgroups*, you need to set ``ne2000=true`` and change the ``realnic=`` value to one suitable for your PC. See:
  link:Guide%3A-Setting-up-networking-in-DOSBox-X[Guide: Setting up networking] for more information.
 * There are Windows 3.0 and 3.1 drivers for the Tseng Lans ET3000 and ET4000 (``machine=svga_et3000`` and ``machine=svga_et4000`` respectively), but for the default ``machine=svga_s3`` (S3 Trio64) there are apparently only Windows 3.1 drivers.
-* The default S3 video option will offer the broadest range of resolutions and colour depths, but do require you to install the correct drivers.
+* The default S3 video option will offer the broadest range of resolutions and colour depths but do require you to install the correct drivers.
 
-# Preparing for Installation
-Most Windows 3.x versions were shipped on diskettes, requiring anywhere between 5 and 15 disks, depending on media-type and windows version. And while it is definitely possible to install Windows 3.x from diskette images in DOSBox, the process for this is rather tedious for large number of disks. As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory. This way there is no need to swap disks during the installation process.
+# Preparing for installation
+Practically all Windows 3.x versions were shipped on floppies, requiring anywhere between 5 and 15 disks, depending on media-type and windows version.
+And while it is possible to install Windows 3.x from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
+As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
+This way there is no need to swap disks during the installation process.
 
 ## Example of extracting files from disk images
-There are various ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
+There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.
 
 ....
@@ -162,8 +166,7 @@ IMGMOUNT A DISK05.IMG -U
 COPY A:\*.* C:\INSTALL
 IMGMOUNT A -U
 ....
-
-Your new INSTALL directory now contains the contents of all 5 disks.
+Your new INSTALL directory now holds the contents of all 5 disks in this example.
 
 ## Mounting an installation CD-ROM
 If you have a "Windows 3.0a Multimedia Edition" CD-ROM image, you can simply mount it in DOSBox-X, and run the SETUP program.
@@ -176,17 +179,16 @@ CD MWIN
 SETUP.EXE
 ....
 
-The installer is normally locate on the CD in the MWIN directory as SETUP.EXE
+The installer is normally found on the CD as ``\MWIN\SETUP.EXE``.
 
 # Installing in a mounted folder
 *Notes*
 
 * This method is the easiest, but has a few limitations:
-** will not allow for 32-bit disk IO with Windows 3.1x
-** will not allow for networking with Windows for Workgroups
-** will not allow for true SHARE support with Win32S
+** Will not allow for 32-bit disk IO with Windows 3.1x.
+** Will not allow for networking with Windows for Workgroups.
 
-Create a directory on your system that your going to use (mount) as your Windows 3.x C: drive.
+Create a directory on your system that you're going to use (mount) as your Windows 3.x C: drive.
 Valid examples:
 
 * For Windows hosts
@@ -196,13 +198,13 @@ Valid examples:
 ** /home/myuser/winroot
 ** /home/myuser/windows/win311
 
-Note: For Windows users, do *NOT* mount the root of your C: drive as the DOSBox C: drive! (e.g. ``MOUNT C C:\`` should NOT be done)
+NOTE: For users running Windows natively on their computer, do *NOT* mount the root of your C: drive as the DOSBox C: drive! (e.g., ``MOUNT C C:\`` should NOT be done), as it will cause confusion and potential conflicts between the host system C:\WINDOWS directory and that of Windows 3.x.
 
-Now create a directory underneath that, which will contain your Windows 3.x installation files.
-e.g. ``C:\users\myuser\win31\INSTALL`` or ``/home/myuser/winroot/INSTALL`` and copy the installation files into it.
+Now create a directory underneath that, which will hold your Windows 3.x installation files.
+e.g., ``C:\users\myuser\win31\INSTALL`` or ``/home/myuser/winroot/INSTALL`` and copy the installation files into it.
 
 You are now ready to start DOSBox-X from the command-line, using the newly created win3x.conf.
-This assumes that dosbox-x is in your path and win3x.conf is in your current directory.
+This assumes that the ``dosbox-x`` program is in your path and ``win3x.conf`` is in your current directory.
 ....
 dosbox-x -conf win3x.conf
 ....
@@ -215,14 +217,14 @@ SETUP
 ....
 Adjust the path for mounting the C: drive as needed.
 
-Note: if your path contains spaces, you need to enclose it in quotes. e.g. ``MOUNT C "C:\Users\John Doe\winroot"``
+NOTE: If your path has spaces in it, you need to enclose it in quotes. e.g., ``MOUNT C "C:\Users\John Doe\winroot"``
 
 The Windows installation will now take place.
 
-Once the installation process has finished, you will be asked if you want to start windows, or exit to DOS.
+Once the installation process has finished, you will be asked if you want to start windows or exit to DOS.
 Exit to DOS and type EXIT to close DOSBox-X.
 
-Now edit your win3x.conf config file and add the following lines into the [autoexec] section at the end of the file
+Now edit your win3x.conf config file and add the following lines into the [autoexec] section at the end of the file.
 
 ....
 MOUNT C /home/myuser/winroot
@@ -237,19 +239,20 @@ Adjust the path for mounting the C: drive as needed.
 
 # Install Windows 3.x into a DOS HDD image
 This method does not have any of the disadvantages listed above.
-But it brings with it a bit of additional inconvenience.
-For instance you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
+But it brings with it a bit of added inconvenience.
+For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
 You can also not mount a host directory in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
-Everything needs to be done using IMAGE files. And you cannot change image files once you boot a guest OS, not even from the menu bar.
+Everything needs to be done using IMAGE files.
+And you cannot change image files once you boot a guest OS, not even from the menu bar.
 
 The first step is to create a DOS HDD image, for which you can follow the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide].
-You need at least DOS 3.1 for Windows 3.0 and 3.1x, and DOS 3.3 for WfW.
-However it is recommended to use a newer version such as DOS 6.x
+You need at least DOS 3.1 for Windows 3.0 and 3.1x, and DOS 3.3 for Windows for Workgroups.
+However, it is recommended to use a newer version such as DOS 6.x
 
 Once you have a DOS HDD image, temporarily mount it in DOSBox-X to transfer your INSTALL folder into your DOS HDD image, together with any drivers and add-ons you might need (preferably already unzipped, such that you don't need to do that in DOS or Windows 3.x, as they lack support for that by default).
 
-Something along the lines of:
+Something like:
 
 ....
 IMGMOUNT C hdd.img
@@ -261,7 +264,7 @@ EXIT
 ....
 Adjust paths in the above example as needed.
 
-Now edit your win3x.conf config file and in the [autoexec] section at the end, add the following lines:
+Now edit your ``win3x.conf`` config file and in the ``[autoexec]`` section at the end, add the following lines:
 ....
 IMGMOUNT C hdd.img -reservecyl 1
 BOOT C:
@@ -273,7 +276,7 @@ Now start DOSBox-X with your win3x.conf config file from the command-line:
 dosbox-x -conf win3x.conf
 ....
 
-It should boot to the C: prompt, and you can start the installation process
+It should boot to the C: prompt, and you can start the installation process.
 ....
 CD INSTALL
 SETUP
@@ -288,42 +291,44 @@ After the installation is finished, you can start Windows 3.x from the command-p
 dosbox-x -conf win3x.conf
 ....
 
-# Steps to take after Installation
+You can optionally create a shortcut on your desktop to start Windows 3.x directly.
+
+# Steps to take after installation
 Once Windows 3.x is installed, here is some additional software you may want to install or update:
 
 * Updated Video and Audio drivers
 * Win32s 1.30c
 * Video for Windows 1.1e
 * WinG API 1.0
-* Quicktime 2.1.2
+* QuickTime 2.1.2
 * Adobe Type Manager 3.02
 
 # Enabling 32-bit File and Disk access
-* Introduced with Windows 3.1, *32-Bit Disk Access* allows Windows to bypass the 16-Bit BIOS
-* Introduced with Windows 3.11, *32-Bit File Access* allows Windows to bypass the 16-Bit DOS FAT code
+* Introduced with Windows 3.1, *32-Bit Disk Access* allows Windows to bypass the 16-Bit BIOS.
+* Introduced with Windows 3.11, *32-Bit File Access* allows Windows to bypass the 16-Bit DOS FAT code.
 
-Enabling these features means that Windows has to leave 32-bit protected mode less often, and should therefore, at least in theory, be faster.
-However, based on benchmarks, there is no advantage at this time to enabling these features in DOSBox-X, and it may actually reduce performance!
+Enabling these features means that Windows must leave 32-bit protected mode less often, and should therefore, at least in theory, be faster.
+However, based on benchmarks, there is no advantage at this time to enabling these features in DOSBox-X, and it may reduce performance!
 
-*32-Bit Disk Access* (also called FastDisk) uses the WDCTRL driver built into WIN386.EXE that is included with Windows 3.1x, which _should_ works in DOSBox-X if the following conditions are met:
+*32-Bit Disk Access* (also called FastDisk) uses the WDCTRL driver built into WIN386.EXE that is included with Windows 3.1x, which _should_ work in DOSBox-X if the following conditions are met:
 
-* You must use a real DOS in DOSBox-X
-* Your HDD image must have 1023 cylinders or less (max 504MB)
+* You must use a real DOS in DOSBox-X.
+* Your HDD image must have 1023 cylinders or less (max 504MB).
 ** When creating you harddisk image in DOSBox-X you may want to use ``IMGMAKE hdd.img -t hd_520``, which will give you exactly a 504MB HDD.
-* You can only have one HDD
-* You cannot have a CD-ROM as a slave on the same IDE controller as the HDD
-* You must have set ``int13fakeio=true`` and ``int13fakev86io=false`` in your DOSBox-X config file
-* You must mount your HDD image file with ``-reservecyl 1``
-* You must mount your HDD image file with device number 2, and not the drive letter (this is likely a bug in DOSBox-X)
+* You can only have one HDD.
+* You cannot have a CD-ROM as a slave on the same IDE controller as the HDD.
+* You must have set ``int13fakeio=true`` and ``int13fakev86io=false`` in your DOSBox-X config file.
+* You must mount your HDD image file with ``-reservecyl 1``.
+* You must mount your HDD image file with device number 2, and not the drive letter (this is likely a bug in DOSBox-X).
 * You must edit ``C:\WINDOWS\SYSTEM.INI`` and in the ``[386enh]`` section add the following 2 lines (preferably between the ``*pageswap`` and ``*biosxlat`` drivers):
 ** ``device=*int13``
 ** ``device=*wdctrl``
-* At the bottom of the ``[386enh]`` section add the line:
+* In the same file, at the bottom of the ``[386enh]`` section add the line:
 ** ``32BitDiskAccess=ON``
 
 See link:http://os2museum.com/wp/how-to-please-wdctrl/[How to please WDCTRL] for more background information.
 
-*32-Bit File Access* has no such requirements, and can be enabled seemingly on any system.
+*32-Bit File Access* has no such requirements and can be enabled seemingly on any system.
 
 To enable these features, open the "Main" folder, followed by "Control Panel".
 Now double-click on the "386" chip icon titled "Enhanced".
@@ -334,10 +339,10 @@ At the bottom there are options for "Use 32-Bit Disk Access" and "Use 32-Bit Fil
 If the 32-Bit Disk Access option is greyed out, it probably means your configuration is not compatible with the option.
 
 There are 3rd party 32-Bit Disk Access drivers which _may_ allow it to function on larger disks, but have not been tested in combination with DOSBox-X.
-Most 3rd party drivers only work in combination with specific hardware, but the Ontrack ontrackw.386 driver works in DOSBox-X, but seems to have similar restrictions.
+Most 3rd party drivers only work in combination with specific hardware. The Ontrack ``ontrackw.386`` driver does work in DOSBox-X but seems to have similar restrictions.
 
 # Enabling networking
-To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 adapter emulation in your ``win3x.conf`` config file and select an appropriate back-end for the NE2000 emulation.
 
 ## Enabling NE2000 in your DOSBox-X config file
 
@@ -349,12 +354,12 @@ The PCAP back-end uses something called "Promiscuous mode".
 This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
 
-However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
-In some cases this is not possible, such as:
+However, for this to work DOSBox-X needs to have very low-level access to your real network adapter.
+In some cases, this is not possible, such as:
 
-- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
-- Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
-- Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
+- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).
+- Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.
+- Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.
 
 To enable NE2000 emulation with the pcap back-end, add the following to your win3x.conf config file:
 
@@ -368,7 +373,7 @@ backend=pcap
 realnic=list
 ....
 
-The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+The ``list`` value for ``realnic=`` will need to be replaced by a value representing your actual network adapter.
 See link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X] for more information.
 
 ### backend=slirp
@@ -377,9 +382,9 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 
 But obviously, it has its own limitations.
 
-- For now it only works on Linux
-- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
-- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+- For now, it only works on Linux.
+- It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
+- It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 
 To enable NE2000 emulation with the slirp back-end, add the following to your win3x.conf config file:
 
@@ -390,13 +395,18 @@ nicirq=10
 backend=slirp
 ....
 
-## Setting up NE2000 networking in Windows for Workgroups
-This only applies to *Windows for Workgroups* (WfW). To enable networking functionality you will need to create a disk image with real DOS, and install WfW into that. You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default. For instance, if you install WfW inside DOSBox-X with networking support, your supposed to run ``C:\WINDOWS\NET START`` before starting Windows. This command will however return a ``Error 73: (null)`` if run from the DOSbox-X emulated DOS.
+## Setting up NE2000 networking
+This only applies to *Windows for Workgroups* (WfW).
+To enable networking functionality, you will need to create a disk image with real DOS and install WfW into that.
+You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default.
+
+For instance, if you install WfW inside DOSBox-X with networking support, you're supposed to run ``C:\WINDOWS\NET START`` before starting Windows.
+This command will however return an ``Error 73: (null)`` if run from the DOSbox-X emulated DOS.
 
 Windows for Workgroups by default only supports SMB networking over NBF (NetBIOS Frames aka NetBEUI) or IPX.
 There is no support by default for TCP/IP.
 
-There were 3rd party WinSock solutions, but those were meant for dial-up internet access, and are not specific to WfW.
+There were 3rd party WinSock solutions, but those were meant for dial-up internet access and are not specific to WfW.
 
 You can however install *Microsoft TCP/IP-32*, which was sold separately, to add TCP/IP support to WfW.
 
@@ -407,30 +417,30 @@ This needs to be run from DOS.
 
 Pay close attention during installation to the IRQ.
 The emulated SB16 in DOSBox-X defaults to IRQ7, while the SB16 driver package assumes IRQ5.
-So unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ during installation to IRQ7.
+So, unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ during installation to IRQ7.
 
 ## Enabling external MIDI in Windows 3.1x
-By default the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
-However DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), which sounds much better.
+By default, the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
+However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), which sounds much better.
 
 To set it up, first ensure the SB16 drivers are installed.
 Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".
 
 In Windows 3.1x go to "Control Panel", and open "MIDI Mapper.
 If there is no "MIDI Mapper" icon in "Control Panel", the Sound Blaster drivers were not installed.
-Select the "SB16 All MIDI" option from the drop-down menu, and press the "Close" button.
+Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" button.
 
 image::images/Windows:Windows_3.1_MIDI.png[Windows 3.1x MIDI]
 
 You should now be able to open the Windows 3.1x Media Player and playback ``C:\WINDOWS\CANYON.MID``.
 
 ## Enabling external MIDI in Windows 3.0a with MM Extensions
-The same can be accomplished with *Windows 3.0a with Multimedia Extensions*, but the "SB16 All MIDI" option will not be listed.
+The same can be carried out with *Windows 3.0a with Multimedia Extensions*, but the "SB16 All MIDI" option will not be listed.
 
 Instead in the "MIDI Mapper" dialogue box click on the "New..." button.
 You will be asked for a name and description.
 You can name it anything you like, for instance "SB16 Ext MIDI", and click the "OK" button.
-You do not have to enter anything for Description.
+You do not have to enter anything for the Description.
 
 image::images/Windows:Windows_3.0_MIDI_1.png[Windows 3.0a MIDI]
 
@@ -439,23 +449,23 @@ The only thing you want to change here is the "Port Name" to "SB MIDI Out" for a
 You may also notice that for each line the active checkbox gets checked, this is correct.
 Once finished click the "OK" button and confirm the save.
 
-image::images/Windows:Windows_3.0_MIDI_2.png[Windows 3.0a MIDI, 600]
+image::images/Windows:Windows_3.0_MIDI_2.png[Windows 3.0a MIDI]
 
 You should now be able to open the Windows 3.0a Media Player and playback ``C:\MWINDOWS\MMDATA\CANYON.MID``.
 
 # Enabling printing
-To enable printing support in Windows 3.x, see link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+To enable printing support in Windows 3.x, see: link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
 
 # Installing Win32s
-Win32s is a 32-bit application runtime environment for Windows 3.1x. Some games and applications require it.
+Win32s is a 32-bit application runtime environment for Windows 3.1x.
+Some games and applications require it.
 Win32s version 1.30c is the latest version.
 
-It installs and runs without problems. But be aware, that unless your running Windows 3.1x under real DOS, that DOSBox-X has an integrated fake SHARE.EXE function that is enabled by default.
-Win32s requires that SHARE.EXE is loaded, so your options are to either fake it, like DOSBox-X does by default, or install Windows 3.1x in real DOS in DOSBox-X.
+It installs and runs without problems in DOSBox-X.
+But be aware, that unless your running Windows 3.1x under real DOS, then DOSBox-X's integrated SHARE feature will be enabled by default which emulates most of the DOS SHARE.EXE functions.
+Win32s requires that SHARE.EXE is loaded, so your options are either to use the SHARE functions as implemented by DOSBox-X or install Windows 3.1x in real DOS in DOSBox-X.
 
-Do note, as the name implies, this FAKES that SHARE.EXE is running.
-This is not safe and can lead some applications that really need it to experience data corruption.
-Office 4.3, Visual C++ and Visual Basic are examples of programs that should not be run without real SHARE.EXE support.
+WARNING: While DOSBox-X's integrated SHARE feature was improved compared to that of vanilla DOSBox, it may not fully implement all of DOS SHARE.EXE functions, and as such may not be 100% safe for some applications.
 
 # Starting a Windows game from DOS
 If you want to silently start a Windows game, without seeing the Windows 3.x splash screen or program manager, and when you exit the game that it exits Windows, here are the steps to take:
@@ -468,7 +478,7 @@ You can then start the game from DOS simply by appending the Windows game execut
 WIN \path\to\game\game.exe
 ....
 
-This will prevent the Windows splash screen being shown, and will directly start the game without first going to the Program Manager (progman).
+This will prevent the Windows splash screen being shown and will directly start the game without first going to the Program Manager (progman).
 
 The second step you may want to take, is that when you exit the game, you also exit Windows 3.x. For this you need a 3rd party utility called "link:http://www.shdon.com/software/tools[RUNEXIT.EXE]", and place it in your PATH. Now simply start the game as follows:
 ....
@@ -477,5 +487,5 @@ WIN RUNEXIT \path\to\game\game.exe
 Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows. This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as link:http://members.quicknet.nl/blankendaalr/dbgl/[DBGL].
 
 # Outstanding issues
-** Using 32Bit Disk and File lowers performance
-** 32Bit Disk and File, requires mounting the HDD image using drive number
+** Using 32Bit Disk and File lowers performance.
+** 32Bit Disk and File, requires mounting the HDD image using drive number.

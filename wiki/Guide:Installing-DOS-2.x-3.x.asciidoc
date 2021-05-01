@@ -36,10 +36,14 @@ toc::[]
 ** First version to support HDDs up to 504MB (partitions still limited to 32MB)
 ** First version to support 3.5" 1.44MB disks (HD)
 
-## This applies to
-* Microsoft MS-DOS 3.21
-** First _packaged_ MS-DOS product available to OEMs
-* Microsoft MS-DOS 3.30
+## This guide applies to
+
+WARNING: DOSBox-X is a IBM PC emulator, and as such the official IBM DOS and later packaged Microsoft DOS versions are the most compatible.
+Many early IBM PC clone systems had various incompatibilities, and had custom OEM versions of DOS.
+Since DOSBox-X does not emulate the peculiarities of such early clone systems, there OEM DOS versions are also not supported.
+
+**IBM DOS editions**
+
 * IBM Personal Computer DOS 2.00
 * IBM Personal Computer DOS 2.10
 * IBM Personal Computer DOS 3.00
@@ -50,6 +54,12 @@ toc::[]
 ** Removed LINK.EXE, EXE2BIN.EXE, BASIC sample programs
 ** SELECT.COM enhanced with HDD support
 * IBM Personal Computer DOS 3.30
+
+**Microsoft DOS editions**
+
+* Microsoft MS-DOS 3.21
+** First _packaged_ MS-DOS product available to OEMs
+* Microsoft MS-DOS 3.30
 
 ## External links
 
