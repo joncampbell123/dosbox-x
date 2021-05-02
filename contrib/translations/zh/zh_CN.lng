@@ -1,7 +1,17 @@
 :DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936以直接支持中文显示和打印
+:DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
+:AUTOEXEC_CONFIGFILE_HELP
+Lines in this section will be run at startup.
+You can put your MOUNT lines here.
+.
+:CONFIGFILE_INTRO
+# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)
+# Lines starting with a # are comment lines and are ignored by DOSBox-X.
+# They are used to (briefly) document the effect of each option.
+# To write out ALL options, use command 'config -all' with -wc or -writeconf options.
+.
 :DRIVE
 驱动器
 .
@@ -23,24 +33,14 @@ IDE 位置
 :SWAP_SLOT
 交换点
 .
-:AUTOEXEC_CONFIGFILE_HELP
-Lines in this section will be run at startup.
-You can put your MOUNT lines here.
-.
-:CONFIGFILE_INTRO
-# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)
-# Lines starting with a # are comment lines and are ignored by DOSBox-X.
-# They are used to (briefly) document the effect of each option.
-# To write out ALL options, use command 'config -all' with -wc or -writeconf options.
-.
-:CONFIG_SUGGESTED_VALUES
-可能的值
+:EMPTY_SLOT
+空档
 .
 :SLOT
 存档
 .
-:EMPTY_SLOT
-空档
+:CONFIG_SUGGESTED_VALUES
+可能的值
 .
 :AUTO_CYCLE_MAX
 自动选择周期 [最大]
@@ -562,7 +562,7 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 [33;1m  -machine[0m 机器类型
 	启动 DOSBox-X 并模拟指定的机器类型. 合法值包括:
 	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
-	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (默认).
+	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (默认值).
 	机器类型将同时影响视频和可用声卡.
 
 .

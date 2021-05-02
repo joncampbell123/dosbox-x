@@ -11,11 +11,11 @@ Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas 
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
 .
-:SLOT
-Slot
-.
 :EMPTY_SLOT
 Slot vacío
+.
+:SLOT
+Slot
 .
 :AUTO_CYCLE_MAX
 Ciclos automáticos [máximo]

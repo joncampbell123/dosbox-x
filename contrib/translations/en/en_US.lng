@@ -2,6 +2,15 @@
 :DOSBOX-X:LANGUAGE:English
 :DOSBOX-X:CODEPAGE:437
 :DOSBOX-X:REMARK:
+:AUTOEXEC_CONFIGFILE_HELP
+Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
+.
+:CONFIGFILE_INTRO
+# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)◙# Lines starting with a # are comment lines and are ignored by DOSBox-X.◙# They are used to (briefly) document the effect of each option.◙# To write out ALL options, use command 'config -all' with -wc or -writeconf options.◙
+.
+:CONFIG_SUGGESTED_VALUES
+Possible values
+.
 :DRIVE
 Drive
 .
@@ -23,20 +32,11 @@ IDE position
 :SWAP_SLOT
 Swap slot
 .
-:AUTOEXEC_CONFIGFILE_HELP
-Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
-.
-:CONFIGFILE_INTRO
-# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)◙# Lines starting with a # are comment lines and are ignored by DOSBox-X.◙# They are used to (briefly) document the effect of each option.◙# To write out ALL options, use command 'config -all' with -wc or -writeconf options.◙
-.
-:CONFIG_SUGGESTED_VALUES
-Possible values
+:EMPTY_SLOT
+Empty slot
 .
 :SLOT
 Slot
-.
-:EMPTY_SLOT
-Empty slot
 .
 :AUTO_CYCLE_MAX
 Auto cycles [max]
@@ -81,30 +81,7 @@ Writing config file %s◙
 Written to language file %s◙
 .
 :PROGRAM_CONFIG_USAGE
-The DOSBox-X command-line configuration utility. Supported options:
--wc (or -writeconf) without parameter: Writes to primary loaded config file.
--wc (or -writeconf) with filename: Writes file to the config directory.
--wl (or -writelang) with filename: Writes the current language strings.
--wcp [filename] Writes file to program directory (dosbox-x.conf or filename).
--wcd Writes to the default config file in the config directory.
--all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.
--mod Use this with -wc, -wcp, or -wcd to write modified config options only.
--wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.
--bootconf (or -bc) reboots with specified config file (or primary loaded file).
--norem Use this with -wc, -wcp, or -wcd to not write config option remarks.
--l Lists DOSBox-X's configuration parameters.
--h, -help, -? Shows this help; add the word "sections" for a list of sections.
--h, -help, -? section / property Shows info on a specific section or property.
--axclear Clears the [autoexec] section.
--axadd [line] Adds a line to the [autoexec] section.
--axtype Prints the content of the [autoexec] section.
--avistart, -avistop Starts or stops AVI recording.
--securemode Enables secure mode where features like mounting will be disabled.
--startmapper Starts the DOSBox-X mapper editor.
--gui Starts the graphical configuration tool.
--get "section property" returns the value of the property.
--set "section property=value" sets the value of the property.
-
+The DOSBox-X command-line configuration utility. Supported options:◙-wc (or -writeconf) without parameter: Writes to primary loaded config file.◙-wc (or -writeconf) with filename: Writes file to the config directory.◙-wl (or -writelang) with filename: Writes the current language strings.◙-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).◙-wcd Writes to the default config file in the config directory.◙-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.◙-mod Use this with -wc, -wcp, or -wcd to write modified config options only.◙-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.◙-bootconf (or -bc) reboots with specified config file (or primary loaded file).◙-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.◙-l Lists DOSBox-X's configuration parameters.◙-h, -help, -? Shows this help; add the word "sections" for a list of sections.◙-h, -help, -? section / property Shows info on a specific section or property.◙-axclear Clears the [autoexec] section.◙-axadd [line] Adds a line to the [autoexec] section.◙-axtype Prints the content of the [autoexec] section.◙-avistart, -avistop Starts or stops AVI recording.◙-securemode Enables secure mode where features like mounting will be disabled.◙-startmapper Starts the DOSBox-X mapper editor.◙-gui Starts the graphical configuration tool.◙-get "section property" returns the value of the property.◙-set "section property=value" sets the value of the property.◙
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
 Purpose of property "%s" (contained in section "%s"):◙%s◙◙Possible Values: %s◙Default value: %s◙Current value: %s◙
@@ -146,7 +123,7 @@ Correct syntax: config -get "section property".◙
 ◙DOSBox-X was started with the following command line parameters:◙%s◙
 .
 :PROGRAM_CONFIG_MISSINGPARAM
-Missing parameter.
+Missing parameter.◙
 .
 :PROGRAM_MOUSE_INSTALL
 Installed at PS/2 port.◙
@@ -218,54 +195,10 @@ Illegal type %s◙
 Drive %c already mounted with %s◙
 .
 :PROGRAM_MOUNT_USAGE
-Mounts directories or drives in the host system as DOSBox-X drives.
-Usage: [34;1m[32;1mMOUNT[0m [37;1mdrive[0m [36;1mlocal_directory[0m [option][0m
- [37;1mdrive[0m            Drive letter where the directory or drive will be mounted.
- [36;1mlocal_directory[0m  Local directory or drive in the host system to be mounted.
- [option]         Option(s) for mounting. The following options are accepted:
- -t               Specify the drive type the mounted drive to behave as.
-                  Supported drive type: dir, floppy, cdrom, overlay
- (Note that 'overlay' redirects writes for mounted drive to another directory)
- -label [name]    Set the volume label name of the drive (all upper case)
- -ro              Mount the drive in read-only mode.
- -cd              Generate a list of local CD drive's "drive #" values.
- -usecd [drive #] For direct hardware emulation such as audio playback.
- -ioctl           Use lowest level hardware access (following -usecd option).
- -aspi            Use the installed ASPI layer (following -usecd option).
- -freesize [size] Specify the free disk space of drive in MB (KB for floppies).
- -nocachedir      Enable real-time update and do not cache the drive.
- -z drive         Move virtual drive Z: to a different letter.
- -o               Report the drive as: local, remote.
- -q               Quiet mode (no message output).
- -u               Unmount the drive.
- [32;1m-examples        Show some usage examples.[0m
-Type MOUNT with no parameters to display a list of mounted drives.
-
+Mounts directories or drives in the host system as DOSBox-X drives.◙Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directory←[0m [option]←[0m◙ ←[37;1mdrive←[0m            Drive letter where the directory or drive will be mounted.◙ ←[36;1mlocal_directory←[0m  Local directory or drive in the host system to be mounted.◙ [option]         Option(s) for mounting. The following options are accepted:◙ -t               Specify the drive type the mounted drive to behave as.◙                  Supported drive type: dir, floppy, cdrom, overlay◙ (Note that 'overlay' redirects writes for mounted drive to another directory)◙ -label [name]    Set the volume label name of the drive (all upper case)◙ -ro              Mount the drive in read-only mode.◙ -cd              Generate a list of local CD drive's "drive #" values.◙ -usecd [drive #] For direct hardware emulation such as audio playback.◙ -ioctl           Use lowest level hardware access (following -usecd option).◙ -aspi            Use the installed ASPI layer (following -usecd option).◙ -freesize [size] Specify the free disk space of drive in MB (KB for floppies).◙ -nocachedir      Enable real-time update and do not cache the drive.◙ -z drive         Move virtual drive Z: to a different letter.◙ -o               Report the drive as: local, remote.◙ -q               Quiet mode (no message output).◙ -u               Unmount the drive.◙ ←[32;1m-examples        Show some usage examples.←[0m◙Type MOUNT with no parameters to display a list of mounted drives.◙
 .
 :PROGRAM_MOUNT_EXAMPLE
-A basic example of MOUNT command:
-
-[32;1mMOUNT c %s[0m
-
-This makes the directory %s act as the C: drive inside DOSBox-X.
-The directory has to exist in the host system. If the directory contains
-space(s), be sure to properly quote the directory with double quotes,
-e.g. %s
-
-Some other usage examples of MOUNT:
-
-[32;1mMOUNT[0m                             - list all mounted drives
-[32;1mMOUNT -cd[0m                         - list all local CD drives
-[32;1mMOUNT d %s[0m            - mount the D: drive to the directory
-[32;1mMOUNT c %s -t cdrom[0m      - mount the C: drive as a CD-ROM drive
-[32;1mMOUNT c %s -ro[0m           - mount the C: drive in read-only mode
-[32;1mMOUNT c %s -label TEST[0m   - mount the C: drive with the label TEST
-[32;1mMOUNT c %s -nocachedir [0m  - mount C: without caching the drive
-[32;1mMOUNT c %s -freesize 128[0m - mount C: with 128MB free disk space
-[32;1mMOUNT c %s -u[0m            - force mount C: drive even if it's mounted
-[32;1mMOUNT c %s -t overlay[0m  - mount C: with overlay directory on top
-[32;1mMOUNT c -u[0m                        - unmount the C: drive
-
+A basic example of MOUNT command:◙◙←[32;1mMOUNT c %s←[0m◙◙This makes the directory %s act as the C: drive inside DOSBox-X.◙The directory has to exist in the host system. If the directory contains◙space(s), be sure to properly quote the directory with double quotes,◙e.g. %s◙◙Some other usage examples of MOUNT:◙◙←[32;1mMOUNT←[0m                             - list all mounted drives◙←[32;1mMOUNT -cd←[0m                         - list all local CD drives◙←[32;1mMOUNT d %s←[0m            - mount the D: drive to the directory◙←[32;1mMOUNT c %s -t cdrom←[0m      - mount the C: drive as a CD-ROM drive◙←[32;1mMOUNT c %s -ro←[0m           - mount the C: drive in read-only mode◙←[32;1mMOUNT c %s -label TEST←[0m   - mount the C: drive with the label TEST◙←[32;1mMOUNT c %s -nocachedir ←[0m  - mount C: without caching the drive◙←[32;1mMOUNT c %s -freesize 128←[0m - mount C: with 128MB free disk space◙←[32;1mMOUNT c %s -u←[0m            - force mount C: drive even if it's mounted◙←[32;1mMOUNT c %s -t overlay←[0m  - mount C: with overlay directory on top◙←[32;1mMOUNT c -u←[0m                        - unmount the C: drive◙
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
 Drive %c is not mounted.◙
@@ -319,27 +252,7 @@ Used memory freed.◙
 Memory allocation error.◙
 .
 :PROGRAM_LOADFIX_HELP
-Reduces the amount of available conventional or XMS/EMS memory.
-
-LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
-LOADFIX -f [-xms] [-ems]
-
-  -xms        Allocates memory from XMS rather than conventional memory
-  -ems        Allocates memory from EMS rather than conventional memory
-  -{ram}      Specifies the amount of memory to allocate in KB
-                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory
-  -a          Auto allocates enough memory to fill the lowest 64KB memory
-  -f (or -d)  Frees previously allocated memory
-  {program}   Runs the specified program
-  {options}   Program options (if any)
-
-Examples:
-  [32;1mLOADFIX game.exe[0m     Allocates 64KB of conventional memory and runs game.exe
-  [32;1mLOADFIX -a[0m           Auto-allocates enough memory conventional memory
-  [32;1mLOADFIX -128[0m         Allocates 128KB of conventional memory
-  [32;1mLOADFIX -xms[0m         Allocates 1MB of XMS memory
-  [32;1mLOADFIX -f[0m           Frees allocated conventional memory
-
+Reduces the amount of available conventional or XMS/EMS memory.◙◙LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]◙LOADFIX -f [-xms] [-ems]◙◙  -xms        Allocates memory from XMS rather than conventional memory◙  -ems        Allocates memory from EMS rather than conventional memory◙  -{ram}      Specifies the amount of memory to allocate in KB◙                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory◙  -a          Auto allocates enough memory to fill the lowest 64KB memory◙  -f (or -d)  Frees previously allocated memory◙  {program}   Runs the specified program◙  {options}   Program options (if any)◙◙Examples:◙  ←[32;1mLOADFIX game.exe←[0m     Allocates 64KB of conventional memory and runs game.exe◙  ←[32;1mLOADFIX -a←[0m           Auto-allocates enough memory conventional memory◙  ←[32;1mLOADFIX -128←[0m         Allocates 128KB of conventional memory◙  ←[32;1mLOADFIX -xms←[0m         Allocates 1MB of XMS memory◙  ←[32;1mLOADFIX -f←[0m           Frees allocated conventional memory◙
 .
 :MSCDEX_SUCCESS
 MSCDEX installed.◙
@@ -411,78 +324,16 @@ Quit
 ←[2J←[32;1mAn overview of the command line options you can give to DOSBox-X.←[0m◙Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.◙◙dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]◙         [-conf congfigfile] [-lang languagefile] [-machine machinetype]◙         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]◙         [-noconsole] [-c command] [-set <section property=value>]◙◙
 .
 :PROGRAM_INTRO_USAGE_1
-[33;1m  name[0m
-	If name is a directory it will mount that as the C: drive.
-	If name is an executable it will mount the directory of name
-	as the C: drive and execute name.
-
-[33;1m  -exit[0m
-	DOSBox-X will close itself when the DOS application name ends.
-
-[33;1m  -version[0m
-	Outputs version information and exit. Useful for frontends.
-
-[33;1m  -fastlaunch[0m
-	Enables fast launch mode (skip BIOS logo and welcome banner).
-
-[33;1m  -fullscreen[0m
-	Starts DOSBox-X in fullscreen mode.
-
+←[33;1m  name←[0m◙○If name is a directory it will mount that as the C: drive.◙○If name is an executable it will mount the directory of name◙○as the C: drive and execute name.◙◙←[33;1m  -exit←[0m◙○DOSBox-X will close itself when the DOS application name ends.◙◙←[33;1m  -version←[0m◙○Outputs version information and exit. Useful for frontends.◙◙←[33;1m  -fastlaunch←[0m◙○Enables fast launch mode (skip BIOS logo and welcome banner).◙◙←[33;1m  -fullscreen←[0m◙○Starts DOSBox-X in fullscreen mode.◙
 .
 :PROGRAM_INTRO_USAGE_2
-[33;1m  -conf[0m configfile
-	Start DOSBox-X with the options specified in configfile.
-	See the documentation for more details.
-
-[33;1m  -lang[0m languagefile
-	Start DOSBox-X using the language specified in languagefile.
-
-[33;1m  -noconsole[0m (Windows Only)
-	Start DOSBox-X without showing the console window. Output will
-	be redirected to stdout.txt and stderr.txt
-
-[33;1m  -machine[0m machinetype
-	Setup DOSBox-X to emulate a specific type of machine. Valid choices:
-	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
-	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).
-	The machinetype affects both the video card and available sound cards.
-
+←[33;1m  -conf←[0m configfile◙○Start DOSBox-X with the options specified in configfile.◙○See the documentation for more details.◙◙←[33;1m  -lang←[0m languagefile◙○Start DOSBox-X using the language specified in languagefile.◙◙←[33;1m  -noconsole←[0m (Windows Only)◙○Start DOSBox-X without showing the console window. Output will◙○be redirected to stdout.txt and stderr.txt◙◙←[33;1m  -machine←[0m machinetype◙○Setup DOSBox-X to emulate a specific type of machine. Valid choices:◙○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,◙○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).◙○The machinetype affects both the video card and available sound cards.◙
 .
 :PROGRAM_INTRO_USAGE_3
-[33;1m  -startmapper[0m
-	Enter the keymapper directly on startup. Useful for people with
-	keyboard problems.
-
-[33;1m  -noautoexec[0m
-	Skips the [autoexec] section of the loaded configuration file.
-
-[33;1m  -c[0m command
-	Runs the specified command before running name. Multiple commands
-	can be specified. Each command should start with -c, though.
-	A command can be: an Internal Program, a DOS command or an executable
-	on a mounted drive.
-
-[33;1m  -set[0m <section property=value>
-	Sets the config option (overriding the config file). Multiple options
-	can be specified. Each option should start with -set, though.
-
+←[33;1m  -startmapper←[0m◙○Enter the keymapper directly on startup. Useful for people with◙○keyboard problems.◙◙←[33;1m  -noautoexec←[0m◙○Skips the [autoexec] section of the loaded configuration file.◙◙←[33;1m  -c←[0m command◙○Runs the specified command before running name. Multiple commands◙○can be specified. Each command should start with -c, though.◙○A command can be: an Internal Program, a DOS command or an executable◙○on a mounted drive.◙◙←[33;1m  -set←[0m <section property=value>◙○Sets the config option (overriding the config file). Multiple options◙○can be specified. Each option should start with -set, though.◙
 .
 :PROGRAM_INTRO_INFO
-[32;1mInformation:[0m
-
-For information about basic mount, type [34;1mintro mount[0m
-For information about CD-ROM support, type [34;1mintro cdrom[0m
-For information about special keys, type [34;1mintro special[0m
-For information about usage, type [34;1mintro usage[0m
-
-For the latest version of DOSBox-X, go to its homepage:[34;1m
-
-[34;1mhttps://dosbox-x.com/[0m or [34;1mhttp://dosbox-x.software[0m
-
-For more information about DOSBox-X, please take a look at its Wiki:
-
-[34;1mhttps://dosbox-x.com/wiki[0m
-
+←[32;1mInformation:←[0m◙◙For information about basic mount, type ←[34;1mintro mount←[0m◙For information about CD-ROM support, type ←[34;1mintro cdrom←[0m◙For information about special keys, type ←[34;1mintro special←[0m◙For information about usage, type ←[34;1mintro usage←[0m◙◙For the latest version of DOSBox-X, go to its homepage:←[34;1m◙◙←[34;1mhttps://dosbox-x.com/←[0m or ←[34;1mhttp://dosbox-x.software←[0m◙◙For more information about DOSBox-X, please take a look at its Wiki:◙◙←[34;1mhttps://dosbox-x.com/wiki←[0m◙
 .
 :PROGRAM_INTRO_MOUNT_START
 ←[32;1mHere are some commands to get you started:←[0m◙Before you can use the files located on your own filesystem,◙you have to mount the directory containing the files.◙◙
@@ -503,30 +354,7 @@ c:\dosgames\←[37m is an example. Replace it with your own games directory.  �
 When the mount has successfully completed you can type ←[34;1mc:←[0m to go to your freshly◙mounted C: drive. Typing ←[34;1mdir←[0m there will show its contents. ←[34;1mcd←[0m will allow you to◙enter a directory (recognised by the ←[33;1m[]←[0m in a directory listing).◙You can run programs/files which end with ←[31m.exe .bat←[0m and ←[31m.com←[0m.◙
 .
 :PROGRAM_INTRO_CDROM
-[2J[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:[0m
-DOSBox-X provides CD-ROM emulation on several levels.
-
-The [33mbasic[0m level works on all CD-ROM drives and normal directories.
-It installs MSCDEX and marks the files read-only.
-Usually this is enough for most games:
-[34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   or   [34;1mmount d C:\example -t cdrom[0m
-If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:
-[34;1mmount d C:\example -t cdrom -label CDLABEL[0m
-
-The [33mnext[0m level adds some low-level support.
-Therefore only works on CD-ROM drives:
-[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
-
-The [33mlast[0m level of support depends on your Operating System:
-For [1mWindows 2000[0m, [1mWindows XP[0m and [1mLinux[0m:
-[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
-For [1mWindows 9x[0m with a ASPI layer installed:
-[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
-
-Replace [0;31mD:\[0m with the location of your CD-ROM.
-Replace the [33;1m0[0m in [34;1m-usecd [33m0[0m with the number reported for your CD-ROM if you type:
-[34;1mmount -cd[0m
-
+←[2J←[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:←[0m◙DOSBox-X provides CD-ROM emulation on several levels.◙◙The ←[33mbasic←[0m level works on all CD-ROM drives and normal directories.◙It installs MSCDEX and marks the files read-only.◙Usually this is enough for most games:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   or   ←[34;1mmount d C:\example -t cdrom←[0m◙If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:◙←[34;1mmount d C:\example -t cdrom -label CDLABEL←[0m◙◙The ←[33mnext←[0m level adds some low-level support.◙Therefore only works on CD-ROM drives:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m◙◙The ←[33mlast←[0m level of support depends on your Operating System:◙For ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m and ←[1mLinux←[0m:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m◙For ←[1mWindows 9x←[0m with a ASPI layer installed:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m◙◙Replace ←[0;31mD:\←[0m with the location of your CD-ROM.◙Replace the ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m with the number reported for your CD-ROM if you type:◙←[34;1mmount -cd←[0m◙
 .
 :PROGRAM_BOOT_NOT_EXIST
 Bootdisk file does not exist.  Failing.◙
@@ -538,29 +366,7 @@ Cannot open bootdisk file.  Failing.◙
 Image file is read-only! Boot in write-protected mode.◙
 .
 :PROGRAM_BOOT_PRINT_ERROR
-This command boots DOSBox-X from either a floppy or hard disk image.
-
-For this command, one can specify a succession of floppy disks swappable
-by the menu command, and drive: specifies the mounted drive to boot from.
-If no drive letter is specified, this defaults to boot from the A drive.
-If no parameter is specified, it will try to boot from the current drive.
-The only bootable drive letters are A, C, and D.  For booting from a hard
-drive (C or D), ensure the image is already mounted by [34;1mIMGMOUNT[0m command.
-
-The syntax of this command is one of the following:
-
-[34;1mBOOT [driveletter:][0m
-
-[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
-
-Note: An image file with a leading colon (:) will be booted in write-protected
-mode if the "leading colon write protect image" option is enabled.
-
-Examples:
-
-[32;1mBOOT A:[0m       - boot from drive A: if it is mounted and bootable.
-[32;1mBOOT :DOS.IMG[0m - boot from floppy image DOS.IMG in write-protected mode.
-
+This command boots DOSBox-X from either a floppy or hard disk image.◙◙For this command, one can specify a succession of floppy disks swappable◙by the menu command, and drive: specifies the mounted drive to boot from.◙If no drive letter is specified, this defaults to boot from the A drive.◙If no parameter is specified, it will try to boot from the current drive.◙The only bootable drive letters are A, C, and D.  For booting from a hard◙drive (C or D), ensure the image is already mounted by ←[34;1mIMGMOUNT←[0m command.◙◙The syntax of this command is one of the following:◙◙←[34;1mBOOT [driveletter:]←[0m◙◙←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m◙◙Note: An image file with a leading colon (:) will be booted in write-protected◙mode if the "leading colon write protect image" option is enabled.◙◙Examples:◙◙←[32;1mBOOT A:←[0m       - boot from drive A: if it is mounted and bootable.◙←[32;1mBOOT :DOS.IMG←[0m - boot from floppy image DOS.IMG in write-protected mode.◙
 .
 :PROGRAM_BOOT_UNABLE
 Unable to boot off of drive %c.◙
@@ -686,90 +492,16 @@ The image must be on a host, local or network drive.◙
 Using multiple files is only supported for cue/iso images.◙
 .
 :PROGRAM_IMGMOUNT_HELP
-Mounts floppy, hard drive and optical disc images.
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
-[32;1mIMGMOUNT[0m [37;1mdriveNum[0m [36;1mfile[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-t iso] [-fs iso]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
-[32;1mIMGMOUNT[0m [37;1mdrive[0m -t ram -size size
-[32;1mIMGMOUNT[0m -u [37;1mdrive|driveNum[0m (or [32;1mIMGMOUNT[0m [37;1mdrive|driveNum[0m [36;1mfile[0m [options] -u)
- [37;1mdrive[0m               Drive letter to mount the image at.
- [37;1mdriveNum[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.
- [36;1mfile[0m                Image filename(s), or [33;1mIMGMAKE.IMG[0m if not specified.
- -t iso              Image type is optical disc iso or cue / bin image.
- -t hdd              Image type is hard disk; VHD and HDI files are supported.
- -t floppy|ram       Image type is floppy drive|RAM drive.
- -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).
- -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.
- -fs none            Do not detect filesystem (auto-assumed for drive numbers).
- -reservecyl #       Report # number of cylinders less than actual in BIOS.
- -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.
- -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.
- -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.
- -ro                 Mount image(s) read-only (or leading ':' for read-only).
- -u                  Unmount the drive or drive number.
- [32;1m-examples           Show some usage examples.[0m
+Mounts floppy, hard drive and optical disc images.◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]◙←[32;1mIMGMOUNT←[0m ←[37;1mdriveNum←[0m ←[36;1mfile←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-t iso] [-fs iso]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size◙←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (or ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [options] -u)◙ ←[37;1mdrive←[0m               Drive letter to mount the image at.◙ ←[37;1mdriveNum←[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.◙ ←[36;1mfile←[0m                Image filename(s), or ←[33;1mIMGMAKE.IMG←[0m if not specified.◙ -t iso              Image type is optical disc iso or cue / bin image.◙ -t hdd              Image type is hard disk; VHD and HDI files are supported.◙ -t floppy|ram       Image type is floppy drive|RAM drive.◙ -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).◙ -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.◙ -fs none            Do not detect filesystem (auto-assumed for drive numbers).◙ -reservecyl #       Report # number of cylinders less than actual in BIOS.◙ -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.◙ -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.◙ -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.◙ -ro                 Mount image(s) read-only (or leading ':' for read-only).◙ -u                  Unmount the drive or drive number.◙ ←[32;1m-examples           Show some usage examples.←[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
-Some usage examples of IMGMOUNT:
-
-  [32;1mIMGMOUNT[0m                       - list mounted FAT/ISO drives & drive numbers
-  [32;1mIMGMOUNT C[0m                     - mount hard disk image [33;1mIMGMAKE.IMG[0m as C:
-  [32;1mIMGMOUNT C c:\image.img[0m        - mount hard disk image c:\image.img as C:
-  [32;1mIMGMOUNT D c:\files\game.iso[0m   - mount CD image c:\files\game.iso as D:
-  [32;1mIMGMOUNT D cdaudio.cue[0m         - mount cue file of a cue/bin pair as CD drive
-  [32;1mIMGMOUNT 0 dos.ima[0m             - mount floppy image dos.ima as drive number 0
-                                   ([33;1mBOOT A:[0m will boot from drive if bootable)
-  [32;1mIMGMOUNT A -ro dos.ima[0m         - mount floppy image dos.ima as A: read-only
-  [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - mount floppy images dsk1.img and dsk2.img as
-                                   A:, swappable via menu item "Swap floppy",
-                                   with dsk1.img read-only (but not dsk2.img)
-  [32;1mIMGMOUNT A -bootcd D[0m           - mount bootable floppy A: from CD drive D:
-  [32;1mIMGMOUNT C -t ram -size 10000[0m  - mount hard drive C: as a 10MB RAM drive
-  [32;1mIMGMOUNT C disk.img -u[0m         - force mount hard disk image disk.img as C:,
-                                   auto-unmount drive beforehand if necessary
-  [32;1mIMGMOUNT A -u[0m                  - unmount previously-mounted drive A:
-
+Some usage examples of IMGMOUNT:◙◙  ←[32;1mIMGMOUNT←[0m                       - list mounted FAT/ISO drives & drive numbers◙  ←[32;1mIMGMOUNT C←[0m                     - mount hard disk image ←[33;1mIMGMAKE.IMG←[0m as C:◙  ←[32;1mIMGMOUNT C c:\image.img←[0m        - mount hard disk image c:\image.img as C:◙  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - mount CD image c:\files\game.iso as D:◙  ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - mount cue file of a cue/bin pair as CD drive◙  ←[32;1mIMGMOUNT 0 dos.ima←[0m             - mount floppy image dos.ima as drive number 0◙                                   (←[33;1mBOOT A:←[0m will boot from drive if bootable)◙  ←[32;1mIMGMOUNT A -ro dos.ima←[0m         - mount floppy image dos.ima as A: read-only◙  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m  - mount floppy images dsk1.img and dsk2.img as◙                                   A:, swappable via menu item "Swap floppy",◙                                   with dsk1.img read-only (but not dsk2.img)◙  ←[32;1mIMGMOUNT A -bootcd D←[0m           - mount bootable floppy A: from CD drive D:◙  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - mount hard drive C: as a 10MB RAM drive◙  ←[32;1mIMGMOUNT C disk.img -u←[0m         - force mount hard disk image disk.img as C:,◙                                   auto-unmount drive beforehand if necessary◙  ←[32;1mIMGMOUNT A -u←[0m                  - unmount previously-mounted drive A:◙
 .
 :PROGRAM_IMGMAKE_SYNTAX
-Creates floppy or hard disk images.
-Usage: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #][0m
-  file: Image file to create (or [33;1mIMGMAKE.IMG[0m if not set) - [31;1mpath on the host[0m
-  -t: Type of image.
-    [33;1mFloppy disk templates[0m (names resolve to floppy sizes in KB or fd=fd_1440):
-     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    [33;1mHard disk templates:[0m
-     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
-     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    [33;1mCustom hard disk images:[0m hd (requires -size or -chs)
-  -size: Size of a custom hard disk image in MB.
-  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
-  -nofs: Add this parameter if a blank image should be created.
-  -force: Force to overwrite the existing image file.
-  -bat: Create a .bat file with the IMGMOUNT command required for this image.
-  -fat: FAT filesystem type (12, 16, or 32).
-  -spc: Sectors per cluster override. Must be a power of 2.
-  -fatcopies: Override number of FAT table copies.
-  -rootdir: Size of root directory in entries. Ignored for FAT32.
-  -source: drive letter - if specified the image is read from a floppy disk.
-  -retries: how often to retry when attempting to read a bad floppy disk(1-99).
-  [32;1m-examples: Show some usage examples.[0m
+Creates floppy or hard disk images.◙Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m◙  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #]←[0m◙  file: Image file to create (or ←[33;1mIMGMAKE.IMG←[0m if not set) - ←[31;1mpath on the host←[0m◙  -t: Type of image.◙    ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):◙     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880◙    ←[33;1mHard disk templates:←[0m◙     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image◙     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image◙     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)◙    ←[33;1mCustom hard disk images:←[0m hd (requires -size or -chs)◙  -size: Size of a custom hard disk image in MB.◙  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).◙  -nofs: Add this parameter if a blank image should be created.◙  -force: Force to overwrite the existing image file.◙  -bat: Create a .bat file with the IMGMOUNT command required for this image.◙  -fat: FAT filesystem type (12, 16, or 32).◙  -spc: Sectors per cluster override. Must be a power of 2.◙  -fatcopies: Override number of FAT table copies.◙  -rootdir: Size of root directory in entries. Ignored for FAT32.◙  -source: drive letter - if specified the image is read from a floppy disk.◙  -retries: how often to retry when attempting to read a bad floppy disk(1-99).◙  ←[32;1m-examples: Show some usage examples.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
-Some usage examples of IMGMAKE:
-
-  [32;1mIMGMAKE -t fd[0m                   - create a 1.44MB floppy image [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE -t fd_1440 -force[0m       - force to create a floppy image [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE dos.img -t fd_2880[0m      - create a 2.88MB floppy image named dos.img
-  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - create a 50MB HDD image c:\disk.img
-  [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - create a 520MB blank HDD image
-  [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - create a 2GB FAT32 HDD image
-  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - create a HDD image of specified CHS
-  [32;1mIMGMAKE c:\disk.img -source a[0m           - read image from physical drive A:
-
+Some usage examples of IMGMAKE:◙◙  ←[32;1mIMGMAKE -t fd←[0m                   - create a 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m◙  ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m◙  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img◙  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img◙  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image◙  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image◙  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - create a HDD image of specified CHS◙  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - read image from physical drive A:◙
 .
 :PROGRAM_IMGMAKE_FLREAD
 Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes◙◙
@@ -1129,26 +861,7 @@ CLS◙
 Displays a list of files and subdirectories in a directory.◙
 .
 :SHELL_CMD_DIR_HELP_LONG
-DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
-
-  [drive:][path][filename]
-              Specifies drive, directory, and/or files to list.
-  /W          Uses wide list format.
-  /B          Uses bare format (no heading information or summary).
-  /S          Displays files in specified directory and all subdirectories.
-  /P          Pauses after each screenful of information.
-  /A          Displays files with specified attributes.
-  attributes   D  Directories                R  Read-only files
-               H  Hidden files               A  Files ready for archiving
-               S  System files               -  Prefix meaning not
-  /O          List by files in sorted order.
-  sortorder    N  By name (alphabetic)       S  By size (smallest first)
-               E  By extension (alphabetic)  D  By date & time (earliest first)
-               G  Group directories first    -  Prefix to reverse order
-
-Switches may be preset in the DIRCMD environment variable.  Override
-preset switches by prefixing any switch with - (hyphen)--for example, /-W.
-
+DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]◙◙  [drive:][path][filename]◙              Specifies drive, directory, and/or files to list.◙  /W          Uses wide list format.◙  /B          Uses bare format (no heading information or summary).◙  /S          Displays files in specified directory and all subdirectories.◙  /P          Pauses after each screenful of information.◙  /A          Displays files with specified attributes.◙  attributes   D  Directories                R  Read-only files◙               H  Hidden files               A  Files ready for archiving◙               S  System files               -  Prefix meaning not◙  /O          List by files in sorted order.◙  sortorder    N  By name (alphabetic)       S  By size (smallest first)◙               E  By extension (alphabetic)  D  By date & time (earliest first)◙               G  Group directories first    -  Prefix to reverse order◙◙Switches may be preset in the DIRCMD environment variable.  Override◙preset switches by prefixing any switch with - (hyphen)--for example, /-W.◙
 .
 :SHELL_CMD_ECHO_HELP
 Displays messages, or turns command-echoing on or off.◙
@@ -1166,18 +879,7 @@ EXIT◙
 Shows DOSBox-X command help.◙
 .
 :SHELL_CMD_HELP_HELP_LONG
-HELP [/A or /ALL]
-HELP [command]
-
-   /A or /ALL   Lists all supported internal commands.
-   [command]    Shows help for the specified command.
-
-[0mE.g., [37;1mHELP COPY[0m or [37;1mCOPY /?[0m shows help information for COPY command.
-
-Note: External commands like [33;1mMOUNT[0m and [33;1mIMGMOUNT[0m are not listed by HELP [/A].
-      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).
-      Type [33;1mcommand /?[0m or [33;1mHELP command[0m for help information for that command.
-
+HELP [/A or /ALL]◙HELP [command]◙◙   /A or /ALL   Lists all supported internal commands.◙   [command]    Shows help for the specified command.◙◙←[0mE.g., ←[37;1mHELP COPY←[0m or ←[37;1mCOPY /?←[0m shows help information for COPY command.◙◙Note: External commands like ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m are not listed by HELP [/A].◙      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).◙      Type ←[33;1mcommand /?←[0m or ←[33;1mHELP command←[0m for help information for that command.◙
 .
 :SHELL_CMD_MKDIR_HELP
 Creates a directory.◙
@@ -1201,28 +903,7 @@ SET [variable=[string]]◙◙   variable     Specifies the environment-variable 
 Performs conditional processing in batch programs.◙
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL number command
-IF [NOT] string1==string2 command
-IF [NOT] EXIST filename command
-
-  NOT               Specifies that DOS should carry out
-                    the command only if the condition is false.
-
-  ERRORLEVEL number Specifies a true condition if the last program run
-                    returned an exit code equal to or greater than the number
-                    specified.
-
-  string1==string2  Specifies a true condition if the specified text strings
-                    match.
-
-  EXIST filename    Specifies a true condition if the specified filename
-                    exists.
-
-  command           Specifies the command to carry out if the condition is
-                    met.  Command can be followed by ELSE command which
-                    will execute the command after the ELSE keyword if the
-                    specified condition is FALSE
-
+IF [NOT] ERRORLEVEL number command◙IF [NOT] string1==string2 command◙IF [NOT] EXIST filename command◙◙  NOT               Specifies that DOS should carry out◙                    the command only if the condition is false.◙◙  ERRORLEVEL number Specifies a true condition if the last program run◙                    returned an exit code equal to or greater than the number◙                    specified.◙◙  string1==string2  Specifies a true condition if the specified text strings◙                    match.◙◙  EXIST filename    Specifies a true condition if the specified filename◙                    exists.◙◙  command           Specifies the command to carry out if the condition is◙                    met.  Command can be followed by ELSE command which◙                    will execute the command after the ELSE keyword if the◙                    specified condition is FALSE◙
 .
 :SHELL_CMD_GOTO_HELP
 Jumps to a labeled line in a batch program.◙
@@ -1270,37 +951,13 @@ RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]�
 Removes one or more files.◙
 .
 :SHELL_CMD_DELETE_HELP_LONG
-DEL [/P] [/F] [/Q] names
-ERASE [/P] [/F] [/Q] names
-
-  names         Specifies a list of one or more files or directories.
-                Wildcards may be used to delete multiple files. If a
-                directory is specified, all files within the directory
-                will be deleted.
-  /P            Prompts for confirmation before deleting one or more files.
-  /F            Force deleting of read-only files.
-  /Q            Quiet mode, do not ask if ok to delete on global wildcard.
-
+DEL [/P] [/F] [/Q] names◙ERASE [/P] [/F] [/Q] names◙◙  names         Specifies a list of one or more files or directories.◙                Wildcards may be used to delete multiple files. If a◙                directory is specified, all files within the directory◙                will be deleted.◙  /P            Prompts for confirmation before deleting one or more files.◙  /F            Force deleting of read-only files.◙  /Q            Quiet mode, do not ask if ok to delete on global wildcard.◙
 .
 :SHELL_CMD_COPY_HELP
 Copies one or more files.◙
 .
 :SHELL_CMD_COPY_HELP_LONG
-COPY [/Y | /-Y] source [+source [+ ...]] [destination]
-
-  source        Specifies the file or files to be copied.
-  destination   Specifies the directory and/or filename for the new file(s).
-  /Y            Suppresses prompting to confirm you want to overwrite an
-                existing destination file.
-  /-Y           Causes prompting to confirm you want to overwrite an
-                existing destination file.
-
-The switch /Y may be preset in the COPYCMD environment variable.
-This may be overridden with /-Y on the command line.
-
-To append files, specify a single file for destination, but multiple files
-for source (using wildcards or file1+file2+file3 format).
-
+COPY [/Y | /-Y] source [+source [+ ...]] [destination]◙◙  source        Specifies the file or files to be copied.◙  destination   Specifies the directory and/or filename for the new file(s).◙  /Y            Suppresses prompting to confirm you want to overwrite an◙                existing destination file.◙  /-Y           Causes prompting to confirm you want to overwrite an◙                existing destination file.◙◙The switch /Y may be preset in the COPYCMD environment variable.◙This may be overridden with /-Y on the command line.◙◙To append files, specify a single file for destination, but multiple files◙for source (using wildcards or file1+file2+file3 format).◙
 .
 :SHELL_CMD_CALL_HELP
 Starts a batch file from within another batch file.◙
@@ -1360,18 +1017,7 @@ VERIFY [ON | OFF]◙◙Type VERIFY without a parameter to display the current VE
 Displays or sets DOSBox-X's reported DOS version.◙
 .
 :SHELL_CMD_VER_HELP_LONG
-VER [/R]
-VER [SET] number or VER SET [major minor]
-
-  /R                 Display DOSBox-X's Git commit version and build date.
-  [SET] number       Set the specified number as the reported DOS version.
-  SET [major minor]  Set the reported DOS version in major and minor format.
-
-  [0mE.g., [37;1mVER 6.0[0m or [37;1mVER 7.1[0m sets the DOS version to 6.0 and 7.1, respectively.
-  On the other hand, [37;1mVER SET 7 1[0m sets the DOS version to 7.01 instead of 7.1.
-
-Type VER without parameters to display DOSBox-X and the reported DOS version.
-
+VER [/R]◙VER [SET] number or VER SET [major minor]◙◙  /R                 Display DOSBox-X's Git commit version and build date.◙  [SET] number       Set the specified number as the reported DOS version.◙  SET [major minor]  Set the reported DOS version in major and minor format.◙◙  ←[0mE.g., ←[37;1mVER 6.0←[0m or ←[37;1mVER 7.1←[0m sets the DOS version to 6.0 and 7.1, respectively.◙  On the other hand, ←[37;1mVER SET 7 1←[0m sets the DOS version to 7.01 instead of 7.1.◙◙Type VER without parameters to display DOSBox-X and the reported DOS version.◙
 .
 :SHELL_CMD_VER_VER
 DOSBox-X version %s (%s). Reported DOS version %d.%02d.◙
@@ -1389,28 +1035,7 @@ VOL [drive]◙
 Changes the command prompt.◙
 .
 :SHELL_CMD_PROMPT_HELP_LONG
-PROMPT [text]
-  text    Specifies a new command prompt.
-
-Prompt can be made up of normal characters and the following special codes:
-  $A   & (Ampersand)
-  $B   | (pipe)
-  $C   ( (Left parenthesis)
-  $D   Current date
-  $E   Escape code (ASCII code 27)
-  $F   ) (Right parenthesis)
-  $G   > (greater-than sign)
-  $H   Backspace (erases previous character)
-  $L   < (less-than sign)
-  $N   Current drive
-  $P   Current drive and path
-  $Q   = (equal sign)
-  $S     (space)
-  $T   Current time
-  $V   DOS version number
-  $_   Carriage return and linefeed
-  $$   $ (dollar sign)
-
+PROMPT [text]◙  text    Specifies a new command prompt.◙◙Prompt can be made up of normal characters and the following special codes:◙  $A   & (Ampersand)◙  $B   | (pipe)◙  $C   ( (Left parenthesis)◙  $D   Current date◙  $E   Escape code (ASCII code 27)◙  $F   ) (Right parenthesis)◙  $G   > (greater-than sign)◙  $H   Backspace (erases previous character)◙  $L   < (less-than sign)◙  $N   Current drive◙  $P   Current drive and path◙  $Q   = (equal sign)◙  $S     (space)◙  $T   Current time◙  $V   DOS version number◙  $_   Carriage return and linefeed◙  $$   $ (dollar sign)◙
 .
 :SHELL_CMD_ALIAS_HELP
 Defines or displays aliases.◙

@@ -1,6 +1,6 @@
 #define MyAppName "DOSBox-X"
 #define MyAppVersion "0.83.14"
-#define MyAppPublisher "joncampbell123"
+#define MyAppPublisher "joncampbell123 [DOSBox-X Team]"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
 #define MyAppBuildDate GetDateTimeString('yyyymmdd_hhnnss', '', '')
@@ -37,6 +37,8 @@ AlwaysShowDirOnReadyPage=yes
 AlwaysShowGroupOnReadyPage=yes
 ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=commandline
+UninstallDisplayName={#MyAppName} {#MyAppVersion}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 WizardSmallImageFile=..\..\icons\dosbox-x.bmp
 
@@ -145,39 +147,39 @@ Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 drawn.lnk"; Ch
 Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL2.lnk"; Check: IsWin64; Components: typical compact
 
 [Registry]
-Root: HKCU; Subkey: "Software\DOSBox-X"; Flags: uninsdeletekeyifempty
-Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -conf ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X\command"; ValueType: none; Check: not IsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\DOSBox-X"; Flags: uninsdeletekeyifempty
+Root: HKA; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -fastlaunch -defaultdir ""{app} "" ""%1"""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -conf ""%1"""; Check: WizardIsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
+Root: HKA; Subkey: "Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X\command"; ValueType: none; Check: not WizardIsTaskSelected('contextmenu'); Flags: deletekey
 
 [Run]
 Filename: "{app}\readme.txt"; Description: "View README.txt"; Flags: waituntilterminated runascurrentuser postinstall shellexec skipifsilent
@@ -244,7 +246,7 @@ begin
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
       PageBuild.CheckListBox.ItemEnabled[3] := False;
-    end
+    end;
     if IsARM64 then
       begin
         PageBuild.Values[2] := True;
@@ -291,12 +293,12 @@ begin
   HelpButton.Visible:=CurPageID=100;
   if (CurPageID=wpSelectDir) then
   begin
-    if (IsAdminLoggedOn or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{localappdata}\{#MyAppName}')) then
+    if (IsAdmin or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{localappdata}\{#MyAppName}')) then
     begin
       WizardForm.DirEdit.Text:=ExpandConstant('{commonappdata}\{#MyAppName}');
       MsgBox('You had previously installed DOSBox-X in a standard user directory, but you are currently running as an administrator or privileged user.' #13#13 'The installer will automatically change the default install directory.', mbConfirmation, MB_OK);
     end
-    else if not (IsAdminLoggedOn or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{pf}\{#MyAppName}')) then
+    else if not (IsAdmin or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{pf}\{#MyAppName}')) then
     begin
       WizardForm.DirEdit.Text:=ExpandConstant('{commonappdata}\{#MyAppName}');
       MsgBox('You had installed DOSBox-X in ' + ExpandConstant('{pf}\{#MyAppName}') + ' previously, but you are currently running as an unprivileged user.' #13#13 'The installer will automatically change the default install directory, or you might want to run the installer as an administrator instead.', mbConfirmation, MB_OK);
@@ -342,7 +344,7 @@ begin
         if (PageOutput.Values[2]) then
           msg:='TrueType font (TTF) / Direct3D output';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
-      end
+      end;
       if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
       begin
         Wizardform.ReadyMemo.Lines.Add('');
@@ -375,18 +377,18 @@ begin
     begin
       refname:='{app}\dosbox-x.reference.setup.conf';
     end
-    else if IsTaskSelected('commonoption') then
+    else if WizardIsTaskSelected('commonoption') then
     begin
        refname:='{app}\dosbox-x.reference.conf';
-    end
+    end;
     if not FileExists(ExpandConstant(refname)) then
     begin
       MsgBox('Cannot find the ' + Copy(refname, 7, 33) + ' file.', mbError, MB_OK);
       DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
       Exit;
-    end
+    end;
     refname:='{app}\dosbox-x.reference.full.conf';
-    if IsTaskSelected('commonoption') then
+    if WizardIsTaskSelected('commonoption') then
       refname:='{app}\dosbox-x.reference.conf';
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
@@ -411,9 +413,9 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
-      end
+      end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
       begin
         FileLines := TStringList.Create;
@@ -437,9 +439,9 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
-      end
+      end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3]) then
       begin
         FileLines := TStringList.Create;
@@ -467,7 +469,7 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end
     end
@@ -481,7 +483,7 @@ begin
       else
       begin
         res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
-      end
+      end;
       if (res = IDNO) then
       begin
         FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
@@ -505,7 +507,7 @@ begin
             vsection := True;
             break;
           end
-        end
+        end;
         section := '';
         for i := 0 to FileLinesnew.Count - 1 do
         begin
@@ -526,7 +528,7 @@ begin
                   if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') then
                   begin
                     break;
-                  end
+                  end;
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
                     if (Length(lineold)>0) or (FileLines.Count>0) then
@@ -536,7 +538,7 @@ begin
                   end
                   else if (Length(lineold)>0) and (Copy(lineold, 1, 1) <> '#') then
                     FileLines.add(lineold);
-                end
+                end;
                 break;
               end
             end
@@ -552,7 +554,7 @@ begin
             FileLinesave.add(FileLinesnew[i]);
             continue;
           end
-          else if not IsTaskSelected('commonoption') and (Copy(linenew, 1, 15) = '#DOSBOX-X-ADV:#') then
+          else if not WizardIsTaskSelected('commonoption') and (Copy(linenew, 1, 15) = '#DOSBOX-X-ADV:#') then
           begin
             Delete(linenew, 1, 14);
             FileLinesave.add(linenew);
@@ -569,7 +571,7 @@ begin
             begin
               Delete(linenew, 1, 14);
               adv := 1;
-            end
+            end;
             res := 0;
             linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
             for j := 0 to FileLines.Count - 1 do
@@ -578,22 +580,22 @@ begin
               if (Length(lineold)>0) and (Pos('=', lineold) > 1) and (CompareText(Trim(linetmp), Trim(Copy(lineold, 1, Pos('=', lineold) - 1))) = 0) then
               begin
                 res := 1;
-                if not ((adv = 1) and IsTaskSelected('commonoption') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = Trim(Copy(linenew, Pos('=', linenew) + 1, Length(linenew)))) or ((CompareText(Trim(linetmp), 'drive z hide files') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM')))) then
+                if not ((adv = 1) and WizardIsTaskSelected('commonoption') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = Trim(Copy(linenew, Pos('=', linenew) + 1, Length(linenew)))) or ((CompareText(Trim(linetmp), 'drive z hide files') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM')))) then
                   FileLinesave.add(linetmp + '= ' + Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))));
                 FileLines.Delete(j);
                 break;
               end
-            end
-            if (res = 0) and ((adv = 0) or not IsTaskSelected('commonoption')) then
+            end;
+            if (res = 0) and ((adv = 0) or not WizardIsTaskSelected('commonoption')) then
               FileLinesave.add(linenew);
           end
-        end
+        end;
         FileLinesave.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
         FileLinesold.free;
         FileLinesnew.free;
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf.old'));
       end
-    end
+    end;
     DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
   end;
 end;
@@ -637,7 +639,7 @@ begin
           dir:=dir+'ARM_Release';
         if (PageBuild.Values[3]) then
           dir:=dir+'ARM_Release_SDL2';
-      end
+      end;
     if (PageBuild.Values[4]) then
       dir:=dir+'mingw';
     if (PageBuild.Values[5]) then

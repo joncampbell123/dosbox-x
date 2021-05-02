@@ -127,6 +127,9 @@
     Under a Killing Moon". (Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
+  - Updated Windows installer to use the latest Inno
+    Setup 6, allowing features such as administrative
+    install mode via /ALLUSERS option. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4443: Improve detection of Paradise SVGA in some
     installers with additional signature.

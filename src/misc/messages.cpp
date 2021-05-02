@@ -115,8 +115,8 @@ void LoadMessageFile(const char * fname) {
 	}
     msgcodepage = 0;
     langname = langnote = "";
-	char linein[LINE_IN_MAXLEN];
-	char name[LINE_IN_MAXLEN], menu_name[LINE_IN_MAXLEN];
+	char linein[LINE_IN_MAXLEN+1024];
+	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN];
 	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
@@ -124,7 +124,7 @@ void LoadMessageFile(const char * fname) {
     bool res=true;
     int cp=dos.loaded_codepage;
     if (!dos.loaded_codepage) res=InitCodePage();
-	while(fgets(linein, LINE_IN_MAXLEN, mfile)!=0) {
+	while(fgets(linein, LINE_IN_MAXLEN+1024, mfile)!=0) {
 		/* Parse the read line */
 		/* First remove characters 10 and 13 from the line */
 		char * parser=linein;
