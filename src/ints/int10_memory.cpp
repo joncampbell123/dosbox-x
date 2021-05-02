@@ -184,6 +184,8 @@ void INT10_RemoveVGABIOS(void) { /* PC-98 does not have VGA BIOS */
 
 RealPt GetSystemBiosINT10Vector(void);
 
+extern bool VGA_BIOS_use_rom;
+
 void INT10_SetupRomMemory(void) {
 	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
 	if (VGA_BIOS_Size == 0) {
@@ -271,6 +273,40 @@ void INT10_SetupRomMemory(void) {
         // VGA BIOS copyright
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
+
+		if (IS_VGA_ARCH) {
+			// SVGA card-specific ROM signatures
+			switch(svgaCard) {
+			case SVGA_S3Trio:
+                if(!VGA_BIOS_use_rom) {
+                    // S3 ROM signature
+                    phys_writes(rom_base+0x003f, "S3 86C764", 10);
+                }
+				break;
+			case SVGA_TsengET4K:
+			case SVGA_TsengET3K:
+                if(!VGA_BIOS_use_rom) {
+                    // Tseng ROM signature
+                    phys_writes(rom_base+0x0075, " Tseng ", 8);
+                }
+				break;
+			case SVGA_ParadisePVGA1A:
+				phys_writeb(rom_base+0x0048,' ');
+				phys_writeb(rom_base+0x0049,'W');
+				phys_writeb(rom_base+0x004a,'E');
+				phys_writeb(rom_base+0x004b,'S');
+				phys_writeb(rom_base+0x004c,'T');
+				phys_writeb(rom_base+0x004d,'E');
+				phys_writeb(rom_base+0x004e,'R');
+				phys_writeb(rom_base+0x004f,'N');
+				phys_writeb(rom_base+0x0050,' ');
+				phys_writeb(rom_base+0x007d,'V');
+				phys_writeb(rom_base+0x007e,'G');
+				phys_writeb(rom_base+0x007f,'A');
+				phys_writeb(rom_base+0x0080,'=');
+				break;
+			}
+		}
 
 		// JMP to INT 10h in the system BIOS.
 		//
