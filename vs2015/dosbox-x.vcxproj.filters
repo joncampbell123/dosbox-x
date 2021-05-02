@@ -156,6 +156,9 @@
     <ClCompile Include="..\src\builtin\50_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\132_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\append_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>

@@ -36,6 +36,7 @@ extern struct BuiltinFileBlob bfb_EVAL_EXE;		// EVAL.EXE
 extern struct BuiltinFileBlob bfb_EVAL_HLP;		// EVAL.HLP
 extern struct BuiltinFileBlob bfb_28_COM;		// 28.COM
 extern struct BuiltinFileBlob bfb_28_COM_ega;	// 28.COM
+extern struct BuiltinFileBlob bfb_132_COM;		// 132.COM
 extern struct BuiltinFileBlob bfb_50_COM;		// 50.COM
 extern struct BuiltinFileBlob bfb_25_COM;		// 25.COM
 extern struct BuiltinFileBlob bfb_25_COM_ega;	// 25.COM

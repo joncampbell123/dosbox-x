@@ -69,7 +69,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
-DOS_Shell * first_shell = 0; 
+DOS_Shell * first_shell = 0;
 
 static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
@@ -78,7 +78,7 @@ static Bitu shellstop_handler(void) {
 static void SHELL_ProgramStart(Program * * make) {
 	*make = new DOS_Shell;
 }
-//Repeat it with the correct type, could do it in the function below, but this way it should be 
+//Repeat it with the correct type, could do it in the function below, but this way it should be
 //clear that if the above function is changed, this function might need a change as well.
 static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
@@ -321,7 +321,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	}
 	*lw=0;
 	return num;
-}	
+}
 
 void DOS_Shell::ParseLine(char * line) {
 	LOG(LOG_EXEC,LOG_DEBUG)("Parsing command line: %s",line);
@@ -330,7 +330,7 @@ void DOS_Shell::ParseLine(char * line) {
 	line = trim(line);
 
 	/* Do redirection and pipe checks */
-	
+
 	char * in  = 0;
 	char * out = 0;
 	char * toc = 0;
@@ -340,11 +340,11 @@ void DOS_Shell::ParseLine(char * line) {
 	bool append;
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
-	
+
     GetRedirection(line, &in, &out, &toc, &append);
 	if (in || out || toc) {
-		normalstdin  = (psp->GetFileHandle(0) != 0xff); 
-		normalstdout = (psp->GetFileHandle(1) != 0xff); 
+		normalstdin  = (psp->GetFileHandle(0) != 0xff);
+		normalstdout = (psp->GetFileHandle(1) != 0xff);
 	}
 	if (in) {
 		if(DOS_OpenFile(in,OPEN_READ,&dummy)) {	//Test if file exists
@@ -397,7 +397,7 @@ void DOS_Shell::ParseLine(char * line) {
 				fail=true;
 			status = DOS_OpenFileExtended(toc?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
 		}
-		
+
 		if(!status && normalstdout) {
 			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
 			if (!toc) {
@@ -820,7 +820,7 @@ public:
 			}
 
 			/* if "echo off" move it to the front of autoexec.bat */
-			if (echo_off)  { 
+			if (echo_off)  {
 				autoexec_echo.InstallBefore("@echo off");
 				if (*extra == '\r') extra++; //It can point to \0
 				if (*extra == '\n') extra++; //same
@@ -850,7 +850,7 @@ public:
 		bool command_found = false;
 		while (control->cmdline->FindCommand(dummy++,line) && !command_found) {
 			struct stat test;
-			if (line.length() > CROSS_LEN) continue; 
+			if (line.length() > CROSS_LEN) continue;
 			strcpy(buffer,line.c_str());
 			if (stat(buffer,&test)) {
 				if (getcwd(buffer,CROSS_LEN) == NULL) continue;
@@ -866,7 +866,7 @@ public:
 				command_found = true;
 			} else {
 				char* name = strrchr(buffer,CROSS_FILESPLIT);
-				if (!name) { //Only a filename 
+				if (!name) { //Only a filename
 					line = buffer;
 					if (getcwd(buffer,CROSS_LEN) == NULL) continue;
 					if (strlen(buffer) + line.length() + 1 > CROSS_LEN) continue;
@@ -909,7 +909,7 @@ public:
 		}
 
 		/* Combining -securemode, noautoexec and no parameters leaves you with a lovely Z:\. */
-		if ( !command_found ) { 
+		if ( !command_found ) {
 			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
 		}
 #else
@@ -925,7 +925,7 @@ public:
 };
 
 static AUTOEXEC* test = NULL;
-	
+
 static void AUTOEXEC_ShutDown(Section * sec) {
     (void)sec;//UNUSED
 	if (test != NULL) {
@@ -1684,6 +1684,9 @@ void SHELL_Init() {
 	/* don't register 50 unless VGA */
 	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
 
+	/* don't register 132 unless VGA */
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_132_COM);
+
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
 		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
@@ -1697,7 +1700,7 @@ void SHELL_Init() {
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
 	dos.psp(psp_seg);
-   
+
 	/* The start of the filetable in the psp must look like this:
 	 * 01 01 01 00 02
 	 * In order to achieve this: First open 2 files. Close the first and
@@ -1729,7 +1732,7 @@ void SHELL_Init() {
 	memset(&tail.buffer, 0, CTBUF);
 	strncpy(tail.buffer,init_line,CTBUF);
 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
-	
+
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,CTBUF+1));
 	dos.psp(psp_seg);

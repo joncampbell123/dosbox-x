@@ -30,7 +30,7 @@ CXXFLAGS =  -utf-8 -nologo -O2 -MT -EHsc -DNDEBUG -DWIN32 -D__WIN32__ -D_FILE_OF
 			-I$(DBX_PATH)/src/hardware/snd_pc98/sound/getsnd \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/x11 \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/cbus \
-			-I$(DBX_PATH)/src/libs/xBRZ 
+			-I$(DBX_PATH)/src/libs/xBRZ
 
 CFLAGS	=	-nologo -O2 -MT -DNDEBUG -DWIN32 -D_WIN32_WINNT=0x0501 -I. \
 			-Dmain=SDL_main -I$(SDLDIR)\include \
@@ -44,7 +44,7 @@ CFLAGS	=	-nologo -O2 -MT -DNDEBUG -DWIN32 -D_WIN32_WINNT=0x0501 -I. \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/generic \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/sound/getsnd \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/x11 \
-			-I$(DBX_PATH)/src/hardware/snd_pc98/cbus 
+			-I$(DBX_PATH)/src/hardware/snd_pc98/cbus
 
 LFLAGS	=	-nologo -SUBSYSTEM:Windows,"5.01"
 
@@ -60,6 +60,7 @@ OBJS	=	$(DBX_PATH)\src\dosbox.obj \
 			$(DBX_PATH)\src\builtin\25_com.obj \
 			$(DBX_PATH)\src\builtin\28_com.obj \
 			$(DBX_PATH)\src\builtin\50_com.obj \
+			$(DBX_PATH)\src\builtin\132_com.obj \
 			$(DBX_PATH)\src\builtin\append_exe.obj \
 			$(DBX_PATH)\src\builtin\buffers_com.obj \
 			$(DBX_PATH)\src\builtin\copy_exe.obj \
@@ -145,8 +146,8 @@ OBJS	=	$(DBX_PATH)\src\dosbox.obj \
 			$(DBX_PATH)\src\output\output_surface_sdl.obj \
 			$(DBX_PATH)\src\output\output_surface_sdl2.obj \
 			$(DBX_PATH)\src\output\output_tools.obj \
-			$(DBX_PATH)\src\output\output_tools_xbrz.obj			
-			
+			$(DBX_PATH)\src\output\output_tools_xbrz.obj
+
 OBJS2	= 	$(DBX_PATH)\src\hardware\8255.obj \
 			$(DBX_PATH)\src\hardware\adlib.obj \
 			$(DBX_PATH)\src\hardware\cmos.obj \
@@ -268,7 +269,7 @@ OBJS3	=	$(DBX_PATH)\src\hardware\mame\fmopl.obj \
 			$(DBX_PATH)\src\hardware\snd_pc98\sound\getsnd\getsnd.obj \
 			$(DBX_PATH)\src\hardware\snd_pc98\sound\getsnd\getwave.obj \
 			$(DBX_PATH)\src\hardware\snd_pc98\x11\dosio.obj
-			
+
 OBJS4	=	$(DBX_PATH)\src\ints\bios.obj \
 			$(DBX_PATH)\src\ints\bios_disk.obj \
 			$(DBX_PATH)\src\ints\bios_keyboard.obj \
@@ -323,7 +324,7 @@ OBJS_MT32 =	$(DBX_PATH)\src\libs\mt32\Analog.obj \
 			$(DBX_PATH)\src\libs\mt32\TVA.obj \
 			$(DBX_PATH)\src\libs\mt32\TVF.obj \
 			$(DBX_PATH)\src\libs\mt32\TVP.obj \
-			$(DBX_PATH)\src\libs\mt32\sha1\sha1.obj 
+			$(DBX_PATH)\src\libs\mt32\sha1\sha1.obj
 
 OBJS_D3D =	$(DBX_PATH)\src\output\direct3d\direct3d.obj \
 			$(DBX_PATH)\src\output\direct3d\hq2x_d3d.obj \
@@ -352,18 +353,18 @@ all: $(TARGET) $(SDLMAIN)
 
 $(TARGET):	$(OBJS) $(OBJS2) $(OBJS3) $(OBJS4)
 	$(LD) $(LFLAGS) -OUT:$@ $(OBJS) $(OBJS2) $(OBJS3) $(OBJS4) $(LIBS)
-	
+
 .c.obj:
 	$(CC) $(CFLAGS) -c -Fo$@ $<
 
 .cpp.obj:
 	$(CXX) $(CXXFLAGS) -c -Fo$@ $<
 
-.rc.res: 
-	$(WINDRES) -fo $@ $< 
-	
+.rc.res:
+	$(WINDRES) -fo $@ $<
+
 clean:
-	del $(TARGET) $(OBJS) 
+	del $(TARGET) $(OBJS)
 	del $(OBJS2)
 	del $(OBJS3)
 	del $(OBJS4)

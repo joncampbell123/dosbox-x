@@ -891,6 +891,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\builtin\25_com.cpp" />
     <ClCompile Include="..\src\builtin\28_com.cpp" />
     <ClCompile Include="..\src\builtin\50_com.cpp" />
+    <ClCompile Include="..\src\builtin\132_com.cpp" />
     <ClCompile Include="..\src\builtin\append_exe.cpp" />
     <ClCompile Include="..\src\builtin\buffers_com.cpp" />
     <ClCompile Include="..\src\builtin\copy_exe.cpp" />
