@@ -99,6 +99,10 @@ For 64-bit ARM-based macOS:
 
 The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
+If the macOS Gatekeeper claims that the program is damaged on your system, you should be able to get it work by running the following command once from the Terminal when you are in the ```dosbox-x``` or ```dosbox-x-sdl2``` directory:
+
+``xattr -cr dosbox-x.app``
+
 If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the command line rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
 
 For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
