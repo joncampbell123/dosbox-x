@@ -762,6 +762,10 @@ static const char *def_menu_help[] =
 
 extern bool is_paused;
 void DOSBox_SetSysMenu(void);
+#if defined(USE_TTF)
+void resetFontSize();
+bool TTF_using(void);
+#endif
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
 }
@@ -1736,6 +1740,9 @@ void DOSBox_SetMenu(void) {
         RENDER_CallBack( GFX_CallBackReset );
     }
 #endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
     DOSBox_SetSysMenu();
 }
 
@@ -1760,6 +1767,9 @@ void DOSBox_NoMenu(void) {
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
     RENDER_CallBack( GFX_CallBackReset );
 #endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
     DOSBox_SetSysMenu();
 }
 
@@ -1782,13 +1792,6 @@ void ToggleMenu(bool pressed) {
         menu.toggle=false;
         DOSBox_NoMenu();
     }
-#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (ttf.inUse) {
-       void resetFontSize();
-       resetFontSize();
-    }
-#endif
-
     DOSBox_SetSysMenu();
 }
 
@@ -1922,7 +1925,6 @@ void DOSBox_SetSysMenu(void) {
     }
 
 #if defined(USE_TTF)
-    bool TTF_using(void);
     {
         key="incsize";
         msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
