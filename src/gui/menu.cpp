@@ -720,6 +720,8 @@ static const char *def_menu_help_debug[] =
     "save_logas",
     "--",
     "debug_blankrefreshtest",
+    "debug_generatenmi",
+    "debug_int2fhook",
     "debug_pageflip",
     "debug_retracepoll",
     "--",

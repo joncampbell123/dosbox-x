@@ -11213,9 +11213,38 @@ bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
 
     BlankDisplay();
 
+#if defined(USE_TTF)
+    if (TTF_using()) resetFontSize();
+#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
+
+    return true;
+}
+
+bool generatenmi_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)xmenu;
+
+    CPU_Raise_NMI();
+
+    return true;
+}
+
+Bitu int2fdbg_hook_callback = 0;
+bool int2fhook_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)xmenu;
+
+#if C_DEBUG
+    if (int2fdbg_hook_callback == 0) {
+        void Int2fhook();
+        Int2fhook();
+        systemmessagebox("Success", "The INT 2Fh hook has been successfully set.", "ok","info", 1);
+    } else
+        systemmessagebox("Warning", "The INT 2Fh hook was already set up.", "ok","warning", 1);
 #endif
 
     return true;
@@ -13210,6 +13239,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_generatenmi").set_text("Generate NMI interrupt").set_callback_function(generatenmi_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_int2fhook").set_text("Hook INT 2Fh calls").set_callback_function(int2fhook_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
                         set_callback_function(dos_debug_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
