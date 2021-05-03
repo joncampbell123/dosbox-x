@@ -65,7 +65,7 @@ extern bool use_quick_reboot;
 extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
-bool direct_mouse_clipboard=false;
+bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -1869,8 +1869,8 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
-                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
+                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize ? SDL_WINDOW_MAXIMIZED : 0)
+                                      | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
@@ -5117,6 +5117,8 @@ static void GUI_StartUp() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     assert(section != NULL);
 
+    maximize = section->Get_bool("maximize");
+
     sdl.desktop.fullscreen=false;
     sdl.wait_on_error=section->Get_bool("waitonerror");
 
@@ -7755,6 +7757,10 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("What video system to use for output (openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("maximize",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
+    Pbool->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
@@ -13620,6 +13626,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             else
                 DOSBox_NoMenu();
+
+#if defined(WIN32) && !defined(C_SDL2)
+            if (maximize && !TTF_using()) ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
