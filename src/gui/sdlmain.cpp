@@ -704,6 +704,16 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     NULL
 };
 
+void MEM_A20_Enable(bool enabled);
+bool MEM_A20_Enabled(void);
+bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MEM_A20_Enable(!MEM_A20_Enabled());
+    mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
+    return true;
+}
+
 void GFX_ReleaseMouse();
 bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -12998,6 +13008,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("DOS");
 
             {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_a20gate").set_text("Enable A20 gate").
+                    set_callback_function(a20gate_on_menu_callback).check(MEM_A20_Enabled());
+            }
+
+            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMouseMenu");
                 item.set_text("Mouse emulation");
 
@@ -13529,7 +13544,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         extern bool Mouse_Vertical;
         extern bool Mouse_Drv;
 
-        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);	
+        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
 
 #ifdef C_OPENGL

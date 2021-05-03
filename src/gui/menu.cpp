@@ -500,12 +500,11 @@ static const char *def_menu_dos[] =
     "mapper_swapcd",
     "mapper_rescanall",
     "--",
-    "make_diskimage",
+    "enable_a20gate",
     "list_drivenum",
     "list_ideinfo",
-#if C_PRINTER || C_DEBUG
     "--",
-#endif
+    "make_diskimage",
 #if C_PRINTER
     "mapper_ejectpage",
 #endif
