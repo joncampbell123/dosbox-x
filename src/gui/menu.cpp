@@ -1218,10 +1218,10 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL) {
-            /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+            LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
             if (wcscmp(str, L""))
                 AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
-            else*/
+            else
                 AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
         }
     }
@@ -1231,10 +1231,10 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+        LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
         if (wcscmp(str, L""))
             AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
-        else*/
+        else
             AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
     }
     if (buffer != NULL) {delete[] buffer;buffer = NULL;}
@@ -1342,9 +1342,12 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
                 attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-                ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
-                    attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
-                    winConstructMenuText().c_str());
+                wchar_t* buffer = NULL;
+                LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+                if (wcscmp(str, L""))
+                    ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
+                else
+                    ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
             }
         }
     }
