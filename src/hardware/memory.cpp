@@ -1682,10 +1682,12 @@ public:
         else if (cmd->FindExist("ON")) {
             WriteOut("Enabling A20 gate...\n");
             MEM_A20_Enable(true);
+            if (!MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be enabled.\n");
         }
         else if (cmd->FindExist("OFF")) {
             WriteOut("Disabling A20 gate...\n");
             MEM_A20_Enable(false);
+            if (MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be disabled.\n");
         }
         else {
             WriteOut("A20 gate is currently %s.\n", MEM_A20_Enabled()?"ON":"OFF");

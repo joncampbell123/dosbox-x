@@ -1564,6 +1564,48 @@ public:
     }
 };
 
+extern double vga_force_refresh_rate;
+void SetRate(char *x);
+class SetRefreshRate : public GUI::ToplevelWindow {
+protected:
+    InputWithEnterKey *name;
+public:
+    SetRefreshRate(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
+        new GUI::Label(this, 5, 10, "Enter video refresh rate (0 = unlocked):");
+        name = new InputWithEnterKey(this, 5, 30, width - 10 - border_left - border_right);
+        name->set_trigger_target(this);
+        std::ostringstream str;
+        str << (vga_force_refresh_rate < 0 ? 0 : vga_force_refresh_rate);
+
+        std::string rates=str.str();
+        name->setText(rates.c_str());
+        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+        name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+        name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "OK") {
+            char *str = (char*)name->getText();
+            if (str == NULL || !strcmp(str, "0"))
+                vga_force_refresh_rate = -1;
+            else
+                SetRate(str);
+            if (vga_force_refresh_rate > 0)
+                LOG_MSG("Video refresh rate is locked to %.3f fps.",vga_force_refresh_rate);
+            else
+                LOG_MSG("Video refresh rate is unlocked.");
+        }
+        close();
+        if(shortcut) running=false;
+    }
+};
+
 class SetSensitivity : public GUI::ToplevelWindow {
 protected:
     InputWithEnterKey *name;
@@ -1582,7 +1624,6 @@ public:
         name->setText(cycles.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 300, 60, "Paste", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -2829,6 +2870,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
         case 29: {
             auto *np7 = new SetAutoSave(screen, 0, 0, "Auto-save settings...");
+            np7->raise();
+            } break;
+        case 30: {
+            auto *np7 = new SetRefreshRate(screen, 0, 0, "Set video refresh rate...");
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {

@@ -10358,8 +10358,32 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
     GUI_Shortcut(17);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
 #endif
+    return true;
+}
+
+bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(30);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
     return true;
 }
 
@@ -12845,6 +12869,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
                         set_callback_function(scaler_set_menu_callback);
                 }
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Refresh rate...").
+                    set_callback_function(refresh_rate_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");

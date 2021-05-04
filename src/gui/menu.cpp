@@ -448,6 +448,7 @@ static const char *def_menu_video[] =
     "mapper_resetsize",
 #endif
     "--",
+    "refresh_rate",
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
