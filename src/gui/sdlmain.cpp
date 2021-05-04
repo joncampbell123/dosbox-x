@@ -704,17 +704,41 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     NULL
 };
 
+void GFX_ReleaseMouse();
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
+#if !defined(HX_DOS)
+    bool fs=sdl.desktop.fullscreen;
+    if (fs) GFX_SwitchFullScreen();
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+    return ret;
+#else
+    return true;
+#endif
+}
+
 void MEM_A20_Enable(bool enabled);
 bool MEM_A20_Enabled(void);
 bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MEM_A20_Enable(!MEM_A20_Enabled());
-    mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
+    bool bef = MEM_A20_Enabled();
+    MEM_A20_Enable(!bef);
+    bool aft = MEM_A20_Enabled();
+    if (bef != aft)
+        mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
+    else {
+        std::string msg = "The A20 gate may be locked and cannot be "+std::string(bef?"disabled":"enabled")+".";
+        systemmessagebox("Warning",msg.c_str(),"ok", "info", 1);
+    }
     return true;
 }
 
-void GFX_ReleaseMouse();
 bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -1468,23 +1492,6 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
 bool warn_on_mem_write = false;
 
-void CPU_Snap_Back_To_Real_Mode();
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
-#if !defined(HX_DOS)
-    bool fs=sdl.desktop.fullscreen;
-    if (fs) GFX_SwitchFullScreen();
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    return ret;
-#else
-    return true;
-#endif
-}
 bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -1507,6 +1514,7 @@ bool CheckQuit(void) {
     return true;
 }
 
+void CPU_Snap_Back_To_Real_Mode();
 static void KillSwitch(bool pressed) {
     if (!pressed) return;
     if (!CheckQuit()) return;
