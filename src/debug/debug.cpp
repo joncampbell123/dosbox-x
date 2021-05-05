@@ -2937,6 +2937,19 @@ void win_code_ui_up(int count) {
 extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 #endif
 
+int32_t DEBUG_Run(int32_t amount,bool quickexit) {
+	skipFirstInstruction = true;
+	CPU_Cycles = amount;
+	int32_t ret = (*cpudecoder)();
+	if (quickexit) SetCodeWinStart();
+	else {
+		// ensure all breakpoints are activated
+		CBreakpoint::ActivateBreakpoints();
+		DOSBOX_SetNormalLoop();
+	}
+	return ret;
+}
+
 uint32_t DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	bool numberrun = false;
@@ -2970,12 +2983,8 @@ uint32_t DEBUG_CheckKeys(void) {
 	
 	if (key >='1' && key <='5' && strlen(codeViewData.inputStr) == 0) {
 		const int32_t v[] ={5,500,1000,5000,10000};
-		CPU_Cycles= v[key - '1'];
 
-		skipFirstInstruction = true;
-
-		ret = (*cpudecoder)();
-		SetCodeWinStart();
+		ret = DEBUG_Run(v[key - '1'],true);
 
 		/* Setup variables so we end up at the proper ret processing */
 		numberrun = true;
@@ -3208,27 +3217,16 @@ uint32_t DEBUG_CheckKeys(void) {
 
                 Bits DEBUG_NullCPUCore(void);
 
-				CPU_Cycles = 1;
                 inhibit_int_breakpoint = true;
-                if (cpudecoder == DEBUG_NullCPUCore)
+				ret = DEBUG_Run(1,false);
+                if(cpudecoder == DEBUG_NullCPUCore)
                     ret = -1; /* DEBUG_Loop() must exit */
-                else
-                    ret = (*cpudecoder)();
-
                 inhibit_int_breakpoint = false;
                 mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
                 mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
                 mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
-				skipFirstInstruction = true; // for heavy debugger
-				CPU_Cycles = 1;
-
-				// ensure all breakpoints are activated
-				CBreakpoint::ActivateBreakpoints();
-
 				skipDraw = true; // don't update screen after this instruction
-
-				DOSBOX_SetNormalLoop();
 				break;
 		case KEY_F(8):	// Toggle printable characters
 				showPrintable = !showPrintable;
@@ -3250,16 +3248,9 @@ uint32_t DEBUG_CheckKeys(void) {
 				if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
-                    skipFirstInstruction = true; // for heavy debugger
-					CPU_Cycles = 1;
-					ret=(*cpudecoder)();
+					ret = DEBUG_Run(1,false);
                     inhibit_int_breakpoint = false;
 					mustCompleteInstruction = false;
-
-					DOSBOX_SetNormalLoop();
-
-					// ensure all breakpoints are activated
-					CBreakpoint::ActivateBreakpoints();
 					skipDraw = true;
 					break;
 				}
@@ -3268,12 +3259,9 @@ uint32_t DEBUG_CheckKeys(void) {
 		case KEY_F(11):	// trace into
                 DrawRegistersUpdateOld();
 				exitLoop = false;
-				skipFirstInstruction = true; // for heavy debugger
 				mustCompleteInstruction = true;
-				CPU_Cycles = 1;
-				ret = (*cpudecoder)();
+				ret = DEBUG_Run(1,true);
 				mustCompleteInstruction = false;
-				SetCodeWinStart();
 				break;
         case 0x09: //TAB
                 void DBGUI_NextWindow(void);
