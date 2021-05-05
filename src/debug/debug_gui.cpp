@@ -958,12 +958,6 @@ void LOG::SetupConfigSection(void) {
 	Pstring->Set_help("file where the log messages will be saved to");
 	Pstring->SetBasic(true);
 
-    const char* debuggerrunopt[] = { "debugger", "normal", "watch", 0};
-	Pstring = sect->Add_string("debuggerrun",Property::Changeable::OnlyAtStart,"debugger");
-	Pstring->Set_help("The run mode when the DOSBox-X Debugger starts.");
-	Pstring->Set_values(debuggerrunopt);
-	Pstring->SetBasic(true);
-
 	char buf[64];
 	for (Bitu i = LOG_ALL + 1;i < LOG_MAX;i++) {
 		safe_strncpy(buf,loggrp[i].front, sizeof(buf));
@@ -981,5 +975,10 @@ void LOG::SetupConfigSection(void) {
 
     Pbool = sect->Add_bool("fileio",Property::Changeable::Always,false);
     Pbool->Set_help("Log file I/O through INT 21h");
-}
 
+	const char* debuggerrunopt[] = { "debugger", "normal", "watch", 0};
+	Pstring = sect->Add_string("debuggerrun",Property::Changeable::OnlyAtStart,"debugger");
+	Pstring->Set_help("The run mode when the DOSBox-X Debugger starts.");
+	Pstring->Set_values(debuggerrunopt);
+	Pstring->SetBasic(true);
+}

@@ -1887,10 +1887,9 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize ? SDL_WINDOW_MAXIMIZED : 0)
+                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize && !TTF_using()? SDL_WINDOW_MAXIMIZED : 0)
                                       | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
-        if (GFX_IsFullscreen() && maximize) window_was_maximized = true;
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
@@ -13764,10 +13763,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBox_NoMenu();
 
 #if defined(WIN32) && !defined(C_SDL2)
-            if (maximize && !TTF_using()) {
-                ShowWindow(GetHWND(), SW_MAXIMIZE);
-                if (GFX_IsFullscreen()) window_was_maximized = true;
-            }
+            if (maximize && !TTF_using() && !GFX_IsFullscreen()) ShowWindow(GetHWND(), SW_MAXIMIZE);
 #endif
         }
 

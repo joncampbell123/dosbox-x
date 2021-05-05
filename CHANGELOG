@@ -1,5 +1,22 @@
 0.83.14
-  - 
+  - Added "Refresh rate..." menu option (under "Video")
+    to set the video refresh rate. (Wengier)
+  - Added "Enable A20 gate" menu option (under "DOS")
+    to enable or disable the A20 gate. (Wengier)
+  - Added "maximize" config option in [sdl] section to
+    automatically maximize the DOSBox-X window at start
+    (SDL2 and Windows SDL1 builds only). (Wengier)
+  - Added "debuggerrun" config option in [log] section
+    to set the run mode when DOSBox-X Debugger starts.
+    You can now also switch them from the menu ("Help"
+    => "Debugging options" => "Debugger option: ..."),
+    including "debugger", "normal" & "watch". (Wengier)
+  - Added menu options "Generate NMI interrupt" & "Hook
+    INT 2Fh calls" ("Help" => "Debugging options") for
+    more debugging options. (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4443: Improve detection of Paradise SVGA in some
+    installers with additional signature.
 0.83.13
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
@@ -151,8 +168,6 @@
   - Integrated SVN commits (Allofich)
     - r4436, r4437: Rewrite store integer instructions
     to check if the result fits.(vogons 78127)
-    - r4443: Improve detection of Paradise SVGA in some
-    installers with additional signature.
     - r4447: Attribute Controller port alias on EGA
     machine. Fixes EGA display of older Super Pac-Man
     release.
