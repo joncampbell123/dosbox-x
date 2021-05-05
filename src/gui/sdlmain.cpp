@@ -1890,6 +1890,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize ? SDL_WINDOW_MAXIMIZED : 0)
                                       | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+        if (GFX_IsFullscreen() && maximize) window_was_maximized = true;
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
@@ -10890,14 +10891,63 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 }
 
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     sdl.wait_on_error = !sdl.wait_on_error;
     mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
-#endif
     return true;
 }
+
+#if C_DEBUG
+extern bool tohide;
+extern int debugrunmode, debuggerrun;
+void DEBUG_Enable_Handler(bool pressed);
+bool IsDebuggerActive(void), IsDebuggerRunwatch(void), IsDebuggerRunNormal(void);
+bool debugger_rundebug_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=0;
+    mainMenu.get_item("debugger_rundebug").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+
+bool debugger_runnormal_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=1;
+    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+
+bool debugger_runwatch_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=2;
+    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+#endif
 
 bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -13254,10 +13304,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
 #endif
 #if C_DEBUG
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"save_logas").set_text("Save logging as...").set_callback_function(save_logas_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+
+                debugrunmode = debuggerrun;
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_rundebug").set_text("Debugger option: Run debugger").set_callback_function(debugger_rundebug_menu_callback).check(debugrunmode==0);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runnormal").set_text("Debugger option: Run normal").set_callback_function(debugger_runnormal_menu_callback).check(debugrunmode==1);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runwatch").set_text("Debugger option: Run watch").set_callback_function(debugger_runwatch_menu_callback).check(debugrunmode==2);
 #endif
             }
 
@@ -13709,7 +13764,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBox_NoMenu();
 
 #if defined(WIN32) && !defined(C_SDL2)
-            if (maximize && !TTF_using()) ShowWindow(GetHWND(), SW_MAXIMIZE);
+            if (maximize && !TTF_using()) {
+                ShowWindow(GetHWND(), SW_MAXIMIZE);
+                if (GFX_IsFullscreen()) window_was_maximized = true;
+            }
 #endif
         }
 

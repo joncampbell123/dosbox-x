@@ -712,12 +712,9 @@ static const char *def_menu_help_debug[] =
 {
 #if C_DEBUG
     "mapper_debugger",
-#endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
-    "show_console",
-#endif
-#if C_DEBUG
-    "save_logas",
+    "debugger_rundebug",
+    "debugger_runnormal",
+    "debugger_runwatch",
     "--",
     "debug_blankrefreshtest",
     "debug_generatenmi",
@@ -725,7 +722,13 @@ static const char *def_menu_help_debug[] =
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+#endif
+#if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "show_console",
     "wait_on_error",
+#endif
+#if C_DEBUG
+    "save_logas",
     "debug_logint21",
     "debug_logfileio",
 #endif

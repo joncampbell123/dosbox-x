@@ -3617,20 +3617,26 @@ void DOS_Shell::CMD_ADDKEY(char * args){
  }
 
 #if C_DEBUG
+extern bool tohide;
 bool debugger_break_on_exec = false;
-
+void DEBUG_Enable_Handler(bool pressed);
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
     while (*args == ' ') args++;
 	std::string argv=std::string(args);
 	args=StripArg(args);
 	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
-    debugger_break_on_exec = true;
-    if (!strcmp(args,"-?")) {
+    if (!*args) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+        return;
+    } else if (!strcmp(args,"-?")) {
 		args[0]='/';
 		HELP("DEBUGBOX");
 		return;
 	}
+    debugger_break_on_exec = true;
     DoCommand((char *)argv.c_str());
     debugger_break_on_exec = false;
 }

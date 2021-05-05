@@ -152,6 +152,9 @@ static void DrawVariables(void);
 static void LogDOSKernMem(void);
 static void LogBIOSMem(void);
 
+extern int debuggerrun;
+int debugrunmode=0;
+bool runnormal=false;
 bool inhibit_int_breakpoint=false;
 
 void DEBUG_DrawInput(void) {
@@ -286,6 +289,10 @@ bool IsDebuggerActive(void) {
 
 bool IsDebuggerRunwatch(void) {
     return debug_running;
+}
+
+bool IsDebuggerRunNormal(void) {
+    return runnormal;
 }
 
 static void SetColor(Bitu test) {
@@ -1822,7 +1829,8 @@ bool ParseCommand(char* str) {
 
     if (command == "RUN") {
         DrawRegistersUpdateOld();
-        debugging=false;
+        debugging = false;
+        runnormal = true;
 
         logBuffSuppressConsole = false;
         if (logBuffSuppressConsoleNeedUpdate) {
@@ -1843,7 +1851,9 @@ bool ParseCommand(char* str) {
         DEBUG_DrawScreen();
 
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
         return true;
@@ -1851,6 +1861,10 @@ bool ParseCommand(char* str) {
 
     if (command == "RUNWATCH") {
         debug_running = true;
+        runnormal = false;
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
         DEBUG_DrawScreen();
         return true;
     }
@@ -2023,7 +2037,9 @@ bool ParseCommand(char* str) {
 		CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip-1);
 		debugging = false;
 		DrawCode();
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		CPU_HW_Interrupt(intNr);
 		return true;
@@ -3200,7 +3216,9 @@ uint32_t DEBUG_CheckKeys(void) {
                     ret = (*cpudecoder)();
 
                 inhibit_int_breakpoint = false;
-                mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+                mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+                mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+                mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
 				skipFirstInstruction = true; // for heavy debugger
 				CPU_Cycles = 1;
@@ -3386,7 +3404,9 @@ Bitu DEBUG_Loop(void) {
                 DEBUG_RefreshPage(0);
             }
 
-			mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
             DOSBOX_SetNormalLoop();
             DrawRegistersUpdateOld();
             return 0;
@@ -3424,17 +3444,29 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
+bool tohide=true;
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed || control->opt_display2)
 		return;
 
-#if defined(WIN32)
     if (hidedebugger) {
-        ShowWindow(GetConsoleWindow(), SW_SHOW);
         hidedebugger=false;
-    }
+#if defined(WIN32)
+        ShowWindow(GetConsoleWindow(), SW_SHOW);
 #endif
+    } else if (tohide && (runnormal||debug_running||debugging)) {
+        hidedebugger=true;
+#if defined(WIN32)
+        ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
+        debugrunmode=debuggerrun;
+        mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(debugrunmode==0).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(debugrunmode==1).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(debugrunmode==2).refresh_item(mainMenu);
+        if (runnormal) return;
+    }
 
     /* this command is now a toggle! */
     /* However this should break back into the debugger if RUNWATCH is active */
@@ -3443,16 +3475,11 @@ void DEBUG_Enable_Handler(bool pressed) {
         DrawRegistersUpdateOld();
         SetCodeWinStart();
         DEBUG_DrawScreen();
-        return;
+        if (tohide&&!debugging) return;
     }
-    else if (debugging) {
+    if (debugging) {
         DrawRegistersUpdateOld();
         debugging=false;
-#if defined(WIN32)
-        hidedebugger=true;
-        ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
-
         logBuffSuppressConsole = false;
         if (logBuffSuppressConsoleNeedUpdate) {
             logBuffSuppressConsoleNeedUpdate = false;
@@ -3463,10 +3490,9 @@ void DEBUG_Enable_Handler(bool pressed) {
         DEBUG_DrawScreen();
 
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
-        return;
+        if (tohide) return;
     }
 
 	static bool showhelp=false;
@@ -3498,7 +3524,7 @@ void DEBUG_Enable_Handler(bool pressed) {
     LoopHandler *ol = DOSBOX_GetLoop();
     if (ol != DEBUG_Loop) old_loop = ol;
 
-	debugging=true;
+    debugging=true;
     debug_running=false;
     check_rescroll=true;
     DrawRegistersUpdateOld();
@@ -3508,12 +3534,15 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-	if(!showhelp) { 
+	if (!showhelp) {
 		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
 	KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
+    runnormal = false;
+    if (debugrunmode==1) ParseCommand("RUN");
+    else if (debugrunmode==2) ParseCommand("RUNWATCH");
 }
 
 void DEBUG_DrawScreen(void) {
@@ -4217,14 +4246,16 @@ void DEBUG_Init() {
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
 	/* Add some keyhandlers */
+	MAPPER_AddHandler(DEBUG_Enable_Handler,
 	#if defined(MACOSX)
-		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
+		// MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
 		// which is not easy to input on a modern mac laptop
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_f12,MMOD2,"debugger","Show debugger", &item);
+		MK_f12
 	#else
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Show debugger",&item);
+		MK_pause
 	#endif
-	item->set_text("Show debugger");
+        ,MMOD2,"debugger","Show debugger",&item);
+	item->set_text("Start DOSBox-X Debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
