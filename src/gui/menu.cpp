@@ -448,6 +448,7 @@ static const char *def_menu_video[] =
     "mapper_resetsize",
 #endif
     "--",
+    "refresh_rate",
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
@@ -500,12 +501,11 @@ static const char *def_menu_dos[] =
     "mapper_swapcd",
     "mapper_rescanall",
     "--",
-    "make_diskimage",
+    "enable_a20gate",
     "list_drivenum",
     "list_ideinfo",
-#if C_PRINTER || C_DEBUG
     "--",
-#endif
+    "make_diskimage",
 #if C_PRINTER
     "mapper_ejectpage",
 #endif
@@ -712,18 +712,23 @@ static const char *def_menu_help_debug[] =
 {
 #if C_DEBUG
     "mapper_debugger",
-#endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
-    "show_console",
-#endif
-#if C_DEBUG
-    "save_logas",
+    "debugger_rundebug",
+    "debugger_runnormal",
+    "debugger_runwatch",
     "--",
     "debug_blankrefreshtest",
+    "debug_generatenmi",
+    "debug_int2fhook",
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+#endif
+#if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "show_console",
     "wait_on_error",
+#endif
+#if C_DEBUG
+    "save_logas",
     "debug_logint21",
     "debug_logfileio",
 #endif
@@ -760,6 +765,10 @@ static const char *def_menu_help[] =
 
 extern bool is_paused;
 void DOSBox_SetSysMenu(void);
+#if defined(USE_TTF)
+void resetFontSize();
+bool TTF_using(void);
+#endif
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
 }
@@ -1218,10 +1227,10 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL) {
-            /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+            LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
             if (wcscmp(str, L""))
                 AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
-            else*/
+            else
                 AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
         }
     }
@@ -1231,10 +1240,10 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        /*LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+        LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
         if (wcscmp(str, L""))
             AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
-        else*/
+        else
             AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
     }
     if (buffer != NULL) {delete[] buffer;buffer = NULL;}
@@ -1342,9 +1351,12 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
                 attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-                ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
-                    attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
-                    winConstructMenuText().c_str());
+                wchar_t* buffer = NULL;
+                LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+                if (wcscmp(str, L""))
+                    ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
+                else
+                    ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
             }
         }
     }
@@ -1731,6 +1743,9 @@ void DOSBox_SetMenu(void) {
         RENDER_CallBack( GFX_CallBackReset );
     }
 #endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
     DOSBox_SetSysMenu();
 }
 
@@ -1755,6 +1770,9 @@ void DOSBox_NoMenu(void) {
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
     RENDER_CallBack( GFX_CallBackReset );
 #endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
     DOSBox_SetSysMenu();
 }
 
@@ -1777,13 +1795,6 @@ void ToggleMenu(bool pressed) {
         menu.toggle=false;
         DOSBox_NoMenu();
     }
-#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (ttf.inUse) {
-       void resetFontSize();
-       resetFontSize();
-    }
-#endif
-
     DOSBox_SetSysMenu();
 }
 
@@ -1917,7 +1928,6 @@ void DOSBox_SetSysMenu(void) {
     }
 
 #if defined(USE_TTF)
-    bool TTF_using(void);
     {
         key="incsize";
         msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");

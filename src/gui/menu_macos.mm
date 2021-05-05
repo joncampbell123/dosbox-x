@@ -416,7 +416,7 @@ void osx_init_dock_menu(void) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Mapper"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Mapper editor"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionMapper:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];
@@ -424,7 +424,7 @@ void osx_init_dock_menu(void) {
     }
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Configuration GUI"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Configuration tool"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionCfgGUI:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];
@@ -438,7 +438,7 @@ void osx_init_dock_menu(void) {
     }
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Pause"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Pause emulation"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionPause:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];

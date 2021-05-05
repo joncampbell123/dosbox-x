@@ -22,6 +22,7 @@
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "mem.h"
+#include "menu.h"
 #include "inout.h"
 #include "setup.h"
 #include "paging.h"
@@ -1101,8 +1102,10 @@ void MEM_A20_Enable(bool enabled) {
     if (memory.a20.enabled != enabled)
         LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
-    if (a20_guest_changeable || a20_fake_changeable)
+    if (a20_guest_changeable || a20_fake_changeable) {
         memory.a20.enabled = enabled;
+        mainMenu.get_item("enable_a20gate").check(enabled).refresh_item(mainMenu);
+    }
 
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {
         if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
@@ -1679,10 +1682,12 @@ public:
         else if (cmd->FindExist("ON")) {
             WriteOut("Enabling A20 gate...\n");
             MEM_A20_Enable(true);
+            if (!MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be enabled.\n");
         }
         else if (cmd->FindExist("OFF")) {
             WriteOut("Disabling A20 gate...\n");
             MEM_A20_Enable(false);
+            if (MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be disabled.\n");
         }
         else {
             WriteOut("A20 gate is currently %s.\n", MEM_A20_Enabled()?"ON":"OFF");
@@ -1920,6 +1925,7 @@ void A20Gate_OnReset(Section *sec) {
 void A20Gate_OverrideOn(Section *sec) {
     (void)sec;//UNUSED
     memory.a20.enabled = 1;
+    mainMenu.get_item("enable_a20gate").check(true).refresh_item(mainMenu);
     a20_fake_changeable = false;
     a20_guest_changeable = true;
 }
@@ -1971,6 +1977,7 @@ void A20Gate_TakeUserSetting(Section *sec) {
         LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
         a20_guest_changeable = true;
     }
+    mainMenu.get_item("enable_a20gate").check(memory.a20.enabled).refresh_item(mainMenu);
 }
 
 void Init_A20_Gate() {

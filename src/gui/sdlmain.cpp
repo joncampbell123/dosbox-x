@@ -65,7 +65,7 @@ extern bool use_quick_reboot;
 extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
-bool direct_mouse_clipboard=false;
+bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -705,6 +705,40 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
 };
 
 void GFX_ReleaseMouse();
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
+#if !defined(HX_DOS)
+    bool fs=sdl.desktop.fullscreen;
+    if (fs) GFX_SwitchFullScreen();
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+    return ret;
+#else
+    return true;
+#endif
+}
+
+void MEM_A20_Enable(bool enabled);
+bool MEM_A20_Enabled(void);
+bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    bool bef = MEM_A20_Enabled();
+    MEM_A20_Enable(!bef);
+    bool aft = MEM_A20_Enabled();
+    if (bef != aft)
+        mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
+    else {
+        std::string msg = "The A20 gate may be locked and cannot be "+std::string(bef?"disabled":"enabled")+".";
+        systemmessagebox("Warning",msg.c_str(),"ok", "info", 1);
+    }
+    return true;
+}
+
 bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -1458,23 +1492,6 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
 bool warn_on_mem_write = false;
 
-void CPU_Snap_Back_To_Real_Mode();
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
-#if !defined(HX_DOS)
-    bool fs=sdl.desktop.fullscreen;
-    if (fs) GFX_SwitchFullScreen();
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    return ret;
-#else
-    return true;
-#endif
-}
 bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -1497,6 +1514,7 @@ bool CheckQuit(void) {
     return true;
 }
 
+void CPU_Snap_Back_To_Real_Mode();
 static void KillSwitch(bool pressed) {
     if (!pressed) return;
     if (!CheckQuit()) return;
@@ -1869,9 +1887,10 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
-                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
+                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize ? SDL_WINDOW_MAXIMIZED : 0)
+                                      | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+        if (GFX_IsFullscreen() && maximize) window_was_maximized = true;
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
@@ -5117,6 +5136,8 @@ static void GUI_StartUp() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     assert(section != NULL);
 
+    maximize = section->Get_bool("maximize");
+
     sdl.desktop.fullscreen=false;
     sdl.wait_on_error=section->Get_bool("waitonerror");
 
@@ -7756,6 +7777,10 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
+    Pbool = sdl_sec->Add_bool("maximize",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
+    Pbool->SetBasic(true);
+
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
     Pbool->SetBasic(true);
@@ -10334,8 +10359,32 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
     GUI_Shortcut(17);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
 #endif
+    return true;
+}
+
+bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(30);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
     return true;
 }
 
@@ -10842,14 +10891,63 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 }
 
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     sdl.wait_on_error = !sdl.wait_on_error;
     mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
-#endif
     return true;
 }
+
+#if C_DEBUG
+extern bool tohide;
+extern int debugrunmode, debuggerrun;
+void DEBUG_Enable_Handler(bool pressed);
+bool IsDebuggerActive(void), IsDebuggerRunwatch(void), IsDebuggerRunNormal(void);
+bool debugger_rundebug_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=0;
+    mainMenu.get_item("debugger_rundebug").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+
+bool debugger_runnormal_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=1;
+    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+
+bool debugger_runwatch_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    debugrunmode=2;
+    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
+    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+    }
+    return true;
+}
+#endif
 
 bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -11207,9 +11305,38 @@ bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
 
     BlankDisplay();
 
+#if defined(USE_TTF)
+    if (TTF_using()) resetFontSize();
+#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
+
+    return true;
+}
+
+bool generatenmi_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)xmenu;
+
+    CPU_Raise_NMI();
+
+    return true;
+}
+
+Bitu int2fdbg_hook_callback = 0;
+bool int2fhook_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)xmenu;
+
+#if C_DEBUG
+    if (int2fdbg_hook_callback == 0) {
+        void Int2fhook();
+        Int2fhook();
+        systemmessagebox("Success", "The INT 2Fh hook has been successfully set.", "ok","info", 1);
+    } else
+        systemmessagebox("Warning", "The INT 2Fh hook was already set up.", "ok","warning", 1);
 #endif
 
     return true;
@@ -12792,6 +12919,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
                         set_callback_function(scaler_set_menu_callback);
                 }
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Refresh rate...").
+                    set_callback_function(refresh_rate_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");
@@ -12961,6 +13091,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMenu");
             item.set_text("DOS");
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_a20gate").set_text("Enable A20 gate").
+                    set_callback_function(a20gate_on_menu_callback).check(MEM_A20_Enabled());
+            }
 
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMouseMenu");
@@ -13169,10 +13304,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
 #endif
 #if C_DEBUG
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"save_logas").set_text("Save logging as...").set_callback_function(save_logas_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+
+                debugrunmode = debuggerrun;
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_rundebug").set_text("Debugger option: Run debugger").set_callback_function(debugger_rundebug_menu_callback).check(debugrunmode==0);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runnormal").set_text("Debugger option: Run normal").set_callback_function(debugger_runnormal_menu_callback).check(debugrunmode==1);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runwatch").set_text("Debugger option: Run watch").set_callback_function(debugger_runwatch_menu_callback).check(debugrunmode==2);
 #endif
             }
 
@@ -13204,6 +13344,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_generatenmi").set_text("Generate NMI interrupt").set_callback_function(generatenmi_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_int2fhook").set_text("Hook INT 2Fh calls").set_callback_function(int2fhook_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
                         set_callback_function(dos_debug_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
@@ -13492,7 +13634,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         extern bool Mouse_Vertical;
         extern bool Mouse_Drv;
 
-        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);	
+        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
 
 #ifdef C_OPENGL
@@ -13620,6 +13762,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             else
                 DOSBox_NoMenu();
+
+#if defined(WIN32) && !defined(C_SDL2)
+            if (maximize && !TTF_using()) {
+                ShowWindow(GetHWND(), SW_MAXIMIZE);
+                if (GFX_IsFullscreen()) window_was_maximized = true;
+            }
+#endif
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU

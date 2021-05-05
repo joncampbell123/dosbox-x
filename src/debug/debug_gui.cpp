@@ -53,6 +53,8 @@ static bool do_LOG_stderr = false;
 bool logBuffSuppressConsole = false;
 bool logBuffSuppressConsoleNeedUpdate = false;
 
+int debuggerrun = 0;
+
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
@@ -854,6 +856,14 @@ void LOG::Init() {
 		debuglog=0;
 	}
 
+	const char* debugstr = sect->Get_string("debuggerrun");
+    if (debugstr!=NULL && !strcasecmp(debugstr, "normal"))
+        debuggerrun = 1;
+    else if (debugstr!=NULL && !strcasecmp(debugstr, "watch"))
+        debuggerrun = 2;
+    else
+        debuggerrun = 0;
+
     log_int21 = sect->Get_bool("int21") || control->opt_logint21;
     log_fileio = sect->Get_bool("fileio") || control->opt_logfileio;
 
@@ -947,6 +957,13 @@ void LOG::SetupConfigSection(void) {
 	Prop_string* Pstring = sect->Add_string("logfile",Property::Changeable::Always,"");
 	Pstring->Set_help("file where the log messages will be saved to");
 	Pstring->SetBasic(true);
+
+    const char* debuggerrunopt[] = { "debugger", "normal", "watch", 0};
+	Pstring = sect->Add_string("debuggerrun",Property::Changeable::OnlyAtStart,"debugger");
+	Pstring->Set_help("The run mode when the DOSBox-X Debugger starts.");
+	Pstring->Set_values(debuggerrunopt);
+	Pstring->SetBasic(true);
+
 	char buf[64];
 	for (Bitu i = LOG_ALL + 1;i < LOG_MAX;i++) {
 		safe_strncpy(buf,loggrp[i].front, sizeof(buf));

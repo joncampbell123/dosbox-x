@@ -1429,6 +1429,7 @@ void DOSBOX_SetupConfigSections(void) {
               "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
               "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
               "  on_fake                      Lock A20 gate on but allow bit to toggle");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"

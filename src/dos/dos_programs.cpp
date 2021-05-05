@@ -5966,6 +5966,7 @@ public:
 			WriteOut("Generates a non-maskable interrupt (NMI).\n\nNMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
             return;
 		}
+        WriteOut("Generating a non-maskable interrupt (NMI)...\n");
         CPU_Raise_NMI();
     }
 };
@@ -6644,13 +6645,14 @@ static void SETCOLOR_ProgramStart(Program * * make) {
 #endif
 
 #if C_DEBUG
+extern Bitu int2fdbg_hook_callback;
 class INT2FDBG : public Program {
 public:
     void Run(void);
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n";
+            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n\nType INT2FDBG without a parameter to show the current hook status.\n";
         WriteOut(msg);
 	}
 };
@@ -6659,6 +6661,14 @@ void INT2FDBG::Run()
 {
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
+
+    if (!cmd->GetCount()) {
+        if (int2fdbg_hook_callback == 0)
+            WriteOut("INT 2Fh hook has not been set.\n");
+        else
+            WriteOut("INT 2Fh hook has already been set.\n");
+        return;
+    }
 
 	// Usage
 	if (!cmd->GetCount() || cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
