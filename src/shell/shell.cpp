@@ -1036,12 +1036,22 @@ void drivezRegister(std::string path, std::string dir) {
         }
 #endif
     }
+    int res;
     long f_size;
     uint8_t *f_data;
+    struct stat temp_stat;
+    const struct tm* ltime;
     for (std::string name: names) {
         if (!name.size()) continue;
         if (name.back()=='/' && dir=="/") {
+            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
             VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            fztime = fzdate = 0;
             drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
             continue;
         }
@@ -1055,10 +1065,8 @@ void drivezRegister(std::string path, std::string dir) {
         f_data = NULL;
 
         if (f != NULL) {
-            struct stat temp_stat;
-            fstat(fileno(f),&temp_stat);
-            const struct tm* ltime;
-            if((ltime=localtime(&temp_stat.st_mtime))!=0) {
+            res=fstat(fileno(f),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
