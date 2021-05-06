@@ -353,8 +353,12 @@ bool Virtual_Drive::MakeDir(const char * dir) {
 }
 
 bool Virtual_Drive::TestDir(const char * dir) {
-	if (!dir[0]) return true;		//only valid dir is the empty dir
-    for (unsigned int i=1; i<vfpos; i++) if (!strcasecmp(vfsnames[i], dir)||!strcasecmp(vfnames[i], dir)) return true;
+	if (!dir[0]) return true;		//root directory
+	const VFILE_Block* cur_file = first_file;
+	while (cur_file) {
+		if (cur_file->isdir&&(!strcasecmp(cur_file->name, dir)||!strcasecmp(cur_file->lname, dir))) return true;
+		cur_file=cur_file->next;
+	}
 	return false;
 }
 

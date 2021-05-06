@@ -1114,6 +1114,7 @@ void SHELL_Init() {
 									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
+	MSG_Add("SHELL_CMD_MKDIR_EXIST","Directory already exists - %s\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");

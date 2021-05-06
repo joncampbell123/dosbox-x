@@ -1358,7 +1358,7 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		return;
 	}
 	if (!DOS_MakeDir(args)) {
-		WriteOut(MSG_Get("SHELL_CMD_MKDIR_ERROR"),args);
+		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_MKDIR_EXIST":"SHELL_CMD_MKDIR_ERROR"),args);
 	}
 }
 
