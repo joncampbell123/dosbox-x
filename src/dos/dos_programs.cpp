@@ -176,6 +176,7 @@ void DetachFromBios(imageDisk* image) {
     }
 }
 
+extern std::string hidefiles;
 extern int swapInDisksSpecificDrive;
 extern bool dos_kernel_disabled, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
@@ -7625,56 +7626,67 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
 
+    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
+    hidefiles = dos_section->Get_string("drive z hide files");
+
     /*regular setup*/
-    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart);
+    VFILE_Register("BIN", 0, 0, "/");
+    VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("SYSTEM", 0, 0, "/");
+
+    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
+#if defined(WIN32) && !defined(HX_DOS)
+    if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
+#endif
+
+    void CGASNOW_ProgramStart(Program * * make), VFRCRATE_ProgramStart(Program * * make);
+    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
 
     if (!IS_PC98_ARCH)
-        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart);
+        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
 
-    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart);
-    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
-    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
 #if C_DEBUG
-    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart);
+    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
 #endif
 
     if (!IS_PC98_ARCH) {
-        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
-        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
-        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
 #if defined(USE_TTF)
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart);
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/DOS/");
 #endif
 	}
 
-    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
-    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
-    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart);
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart);
-    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
+    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
 #if defined C_DEBUG
-    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
-    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
+    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
 #endif
-    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
-    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart);
 
     if (IS_VGA_ARCH && svgaCard != SVGA_None)
-        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart);
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
 
     if (IS_PC98_ARCH)
-        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
+        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
 
-    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
-    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
-#if defined(WIN32) && !defined(HX_DOS)
-    if (startcmd)
-        PROGRAMS_MakeFile("START.COM", START_ProgramStart);
-#endif
-    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart);
-    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
+    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 }

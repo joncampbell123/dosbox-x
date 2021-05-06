@@ -35,13 +35,15 @@ struct VFILE_Block {
 	uint32_t size;
 	uint16_t date;
 	uint16_t time;
+	unsigned int onpos;
+	bool isdir;
 	bool hidden;
 	VFILE_Block * next;
 };
 
 #define MAX_VFILES 500
-unsigned int vfpos=0;
-char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
+unsigned int vfpos=1, lfn_id[256];
+char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII],ondirs[MAX_VFILES][CROSS_LEN];
 static VFILE_Block * first_file, * lfn_search[256];
 
 extern int lfn_filefind_handle;
@@ -144,28 +146,45 @@ void VFILE_Shutdown(void) {
 		delete first_file;
 		first_file = n;
 	}
-    vfpos=0;
+    vfpos=1;
 }
 
-void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
-	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (uint32_t)b.length);
+void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b, const char *dir) {
+	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (uint32_t)b.length, dir);
 }
 
-void VFILE_Register(const char * name,uint8_t * data,uint32_t size) {
+void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *dir) {
     if (vfpos>=MAX_VFILES) return;
     std::istringstream in(hidefiles);
     bool hidden=false;
+    bool isdir=!strcmp(dir,"/")||!strcmp(name,".")||!strcmp(name,"..");
+    unsigned int onpos=0;
+    char fullname[CROSS_LEN];
+    if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
+        for (unsigned int i=1; i<vfpos; i++)
+            if (!strcasecmp((std::string(vfsnames[i])+"/").c_str(), dir+1)||!strcasecmp((std::string(vfnames[i])+"/").c_str(), dir+1)) {
+                onpos=i;
+                break;
+            }
+    }
     if (in)	for (std::string file; in >> file; ) {
-        if (!strcasecmp(name,file.c_str())||!strcasecmp(("\""+std::string(name)+"\"").c_str(),file.c_str()))
+        if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
+            strncpy(fullname, dir+1, strlen(dir)-2);
+            *(fullname+strlen(dir)-2)=0;
+            strcat(fullname, "\\");
+            strcat(fullname, name);
+        } else
+            strcpy(fullname, name);
+        if (!strcasecmp(fullname,file.c_str())||!strcasecmp(("\""+std::string(fullname)+"\"").c_str(),file.c_str()))
             return;
-        if (!strcasecmp(("/"+std::string(name)).c_str(),file.c_str())||!strcasecmp(("/\""+std::string(name)+"\"").c_str(),file.c_str())) {
+        if (!strcasecmp(("/"+std::string(fullname)).c_str(),file.c_str())||!strcasecmp(("/\""+std::string(fullname)+"\"").c_str(),file.c_str())) {
             hidden=true;
             break;
         }
     }
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0)) return;
+		if (onpos==cur_file->onpos&&(strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0))) return;
 		cur_file=cur_file->next;
 	}
     strcpy(vfnames[vfpos],name);
@@ -179,6 +198,8 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size) {
 	new_file->size=size;
 	new_file->date=DOS_PackDate(2002,10,1);
 	new_file->time=DOS_PackTime(12,34,56);
+	new_file->onpos=onpos;
+	new_file->isdir=isdir;
 	new_file->hidden=hidden;
 	new_file->next=first_file;
 	first_file=new_file;
@@ -270,7 +291,7 @@ uint16_t Virtual_File::GetInformation(void) {
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
-	for (int i=0; i<256; i++) lfn_search[i] = 0;
+	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = 0;}
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = section->Get_string("drive z hide files");
 }
@@ -280,8 +301,12 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
 /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
-		/* We have a match */
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
+			/* We have a match */
 			*file=new Virtual_File(cur_file->data,cur_file->size);
 			(*file)->flags=flags;
 			return true;
@@ -295,13 +320,18 @@ bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t attr
     (void)file;//UNUSED
     (void)name;//UNUSED
     (void)attributes;//UNUSED
+	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
 
 bool Virtual_Drive::FileUnlink(const char * name) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
@@ -312,24 +342,31 @@ bool Virtual_Drive::FileUnlink(const char * name) {
 
 bool Virtual_Drive::RemoveDir(const char * dir) {
     (void)dir;//UNUSED
+	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
 
 bool Virtual_Drive::MakeDir(const char * dir) {
     (void)dir;//UNUSED
+	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
 
 bool Virtual_Drive::TestDir(const char * dir) {
 	if (!dir[0]) return true;		//only valid dir is the empty dir
+    for (unsigned int i=1; i<vfpos; i++) if (!strcasecmp(vfsnames[i], dir)||!strcasecmp(vfnames[i], dir)) return true;
 	return false;
 }
 
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
-			stat_block->attr=cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE;
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
+			stat_block->attr=cur_file->isdir?DOS_ATTR_DIRECTORY:(cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);
 			stat_block->size=cur_file->size;
 			stat_block->date=DOS_PackDate(2002,10,1);
 			stat_block->time=DOS_PackTime(12,34,56);
@@ -343,18 +380,32 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 bool Virtual_Drive::FileExists(const char* name){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) return true;
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))
+            return true;
 		cur_file=cur_file->next;
 	}
 	return false;
 }
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
-    (void)_dir;//UNUSED
-	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
+    unsigned int onpos=0;
+    if (*_dir) for (unsigned int i=1; i<vfpos; i++) {
+        if (!strcasecmp(vfsnames[i], _dir)||!strcasecmp(vfnames[i], _dir)) {
+            onpos=i;
+            break;
+        }
+    }
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
+		dta.SetDirID(onpos);
 		search_file=first_file;
-	else
+	} else {
+		lfn_id[lfn_filefind_handle]=onpos;
 		lfn_search[lfn_filefind_handle]=first_file;
+	}
 	uint8_t attr;char pattern[CROSS_LEN];
     dta.GetSearchParams(attr,pattern,uselfn);
 	if (attr == DOS_ATTR_VOLUME) {
@@ -365,6 +416,11 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
+	} else if ((attr & DOS_ATTR_DIRECTORY) && onpos>0) {
+		if (WildFileCmp("..",pattern)) {
+			dta.SetResult("..","..",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+			return true;
+		}
 	}
 	return FindNext(dta);
 }
@@ -372,10 +428,12 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	uint8_t attr;char pattern[CROSS_LEN];
 	dta.GetSearchParams(attr,pattern,uselfn);
+    unsigned int pos=lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
+
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
-			if (WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern)) {
-				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);
+			if (pos==search_file->onpos&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
+				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->isdir?DOS_ATTR_DIRECTORY:(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				search_file=search_file->next;
 				return true;
 			}
@@ -383,28 +441,47 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 		}
 	else
 		while (lfn_search[lfn_filefind_handle]) {
-			if (WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern)) {
-				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);
+			if (pos==lfn_search[lfn_filefind_handle]->onpos&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
+				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?DOS_ATTR_DIRECTORY:(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
 			}
 			lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 		}
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+		lfn_id[lfn_filefind_handle]=0;
+		lfn_search[lfn_filefind_handle]=0;
+	}
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
 }
 
 bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
-    (void)name;
-    (void)attr;
+    const VFILE_Block* cur_file = first_file;
+	while (cur_file) {
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+		cur_file=cur_file->next;
+	}
+	DOS_SetError(DOSERR_FILE_NOT_FOUND);
 	return false;
 }
 
 bool Virtual_Drive::GetFileAttr(const char * name,uint16_t * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) { 
-			*attr = cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE;	//Maybe readonly ?
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
+			*attr = cur_file->isdir?DOS_ATTR_DIRECTORY:(cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);	//Maybe readonly ?
 			return true;
 		}
 		cur_file=cur_file->next;
@@ -435,7 +512,11 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
     (void)newname;//UNUSED
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(oldname,cur_file->name)==0||(uselfn&&strcasecmp(oldname,cur_file->lname)==0)) {
+		unsigned int onpos=cur_file->onpos;
+		if (strcasecmp(oldname,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
+            strcasecmp(oldname,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
+            strcasecmp(oldname,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
+            strcasecmp(oldname,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}

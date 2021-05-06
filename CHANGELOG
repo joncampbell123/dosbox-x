@@ -1,4 +1,8 @@
 0.83.14
+  - Added support for directories on the Z drive, so
+    there is no need to put all files/programs on the
+    root directory of Z drive any more. Only one-level
+    directories are currently supported. (WEngier)
   - Added "Refresh rate..." menu option (under "Video")
     to set the video refresh rate. (Wengier)
   - Added "Enable A20 gate" menu option (under "DOS")
@@ -10,7 +14,9 @@
     to set the run mode when DOSBox-X Debugger starts.
     You can now also switch them from the menu ("Help"
     => "Debugging options" => "Debugger option: ..."),
-    including "debugger", "normal" & "watch". (Wengier)
+    including "debugger", "normal" & "watch". Also, the
+    built-in DEBUGBOX command without a parameter will
+    start the DOSBox-X debugger. (Wengier)
   - Added menu options "Generate NMI interrupt" & "Hook
     INT 2Fh calls" ("Help" => "Debugging options") for
     more debugging options. (Wengier)

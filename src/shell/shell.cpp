@@ -520,6 +520,12 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN";
+static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
+static char const * const prompt_string="PROMPT=$P$G";
+static char const * const full_name="Z:\\COMMAND.COM";
+static char const * const init_line="/INIT AUTOEXEC.BAT";
+
 bool shellrun=false;
 void DOS_Shell::Run(void) {
 	shellrun=true;
@@ -666,6 +672,9 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
+        std::string line;
+        GetEnvStr("PATH",line);
+		if (line=="PATH=Z:\\") DoCommand((char *)("SET "+std::string(path_string)).c_str());
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
 			strcat(config_data, (char *)section->Get_string("rem"));
@@ -995,13 +1004,68 @@ static Bitu INT2E_Handler(void) {
 	return CBRET_NONE;
 }
 
-static char const * const path_string="PATH=Z:\\";
-static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
-static char const * const prompt_string="PROMPT=$P$G";
-static char const * const full_name="Z:\\COMMAND.COM";
-static char const * const init_line="/INIT AUTOEXEC.BAT";
-
 extern unsigned int dosbox_shell_env_size;
+
+void drivezRegister(std::string path, std::string dir) {
+    char exePath[CROSS_LEN];
+    std::vector<std::string> names;
+    if (path.size()) {
+#if defined(WIN32)
+        WIN32_FIND_DATA fd;
+        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
+        if(hFind != INVALID_HANDLE_VALUE) {
+            do {
+                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                    names.push_back(fd.cFileName);
+                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
+                    names.push_back(std::string(fd.cFileName)+"/");
+            } while(::FindNextFile(hFind, &fd));
+            ::FindClose(hFind);
+        }
+#else
+        struct dirent *dir;
+        DIR *d = opendir(path.c_str());
+        if (d)
+        {
+            while ((dir = readdir(d)) != NULL)
+              if (dir->d_type==DT_REG)
+                names.push_back(dir->d_name);
+              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
+                names.push_back(std::string(dir->d_name)+"/");
+            closedir(d);
+        }
+#endif
+    }
+    long f_size;
+    uint8_t *f_data;
+    for (std::string name: names) {
+        if (!name.size()) continue;
+        if (name.back()=='/' && dir=="/") {
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            continue;
+        }
+        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
+        if (f == NULL) {
+            strcpy(exePath, GetDOSBoxXPath().c_str());
+            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
+            f = fopen(exePath, "rb");
+        }
+        f_size = 0;
+        f_data = NULL;
+
+        if(f != NULL) {
+            fseek(f, 0, SEEK_END);
+            f_size=ftell(f);
+            f_data=(uint8_t*)malloc(f_size);
+            fseek(f, 0, SEEK_SET);
+            fread(f_data, sizeof(char), f_size, f);
+            fclose(f);
+        }
+
+        if(f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+    }
+}
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
@@ -1561,8 +1625,6 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
     std::string dirname="drivez";
     std::string path = ".";
     path += CROSS_FILESPLIT;
@@ -1584,115 +1646,73 @@ void SHELL_Init() {
                 path = "";
         }
     }
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-                    names.push_back(fd.cFileName);
-                }
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG) names.push_back(dir->d_name);
-            closedir(d);
-        }
-#endif
-    }
-    long f_size;
-    uint8_t *f_data;
-    for (std::string name: names) {
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
 
-        if(f != NULL) {
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
+    drivezRegister(path, "/");
 
-        if(f_data) VFILE_Register(name.c_str(), f_data, f_size);
-    }
-
-	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
     if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
 
 		if (IS_VGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/BIN/");
 		else if (IS_EGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/BIN/");
 		else
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/BIN/");
 	}
-	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/BIN/");
 	else if (IS_EGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/BIN/");
 
 	/* don't register 50 unless VGA */
-	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/BIN/");
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
 	/* DSXMENU.EXE */
 	if (IS_PC98_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
-	else
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+	else {
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+    }
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
