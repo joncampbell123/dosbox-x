@@ -153,6 +153,7 @@ void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b, const char *
 	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (uint32_t)b.length, dir);
 }
 
+uint16_t fztime=0, fzdate=0;
 void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *dir) {
     if (vfpos>=MAX_VFILES) return;
     std::istringstream in(hidefiles);
@@ -204,8 +205,8 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
     vfpos++;
 	new_file->data=data;
 	new_file->size=size;
-	new_file->date=DOS_PackDate(2002,10,1);
-	new_file->time=DOS_PackTime(12,34,56);
+	new_file->date=fztime||fzdate?fzdate:DOS_PackDate(2002,10,1);
+	new_file->time=fztime||fzdate?fztime:DOS_PackTime(12,34,56);
 	new_file->onpos=onpos;
 	new_file->isdir=isdir;
 	new_file->hidden=hidden;

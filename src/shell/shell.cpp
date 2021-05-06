@@ -1005,7 +1005,7 @@ static Bitu INT2E_Handler(void) {
 }
 
 extern unsigned int dosbox_shell_env_size;
-
+extern uint16_t fztime, fzdate;
 void drivezRegister(std::string path, std::string dir) {
     char exePath[CROSS_LEN];
     std::vector<std::string> names;
@@ -1054,7 +1054,14 @@ void drivezRegister(std::string path, std::string dir) {
         f_size = 0;
         f_data = NULL;
 
-        if(f != NULL) {
+        if (f != NULL) {
+            struct stat temp_stat;
+            fstat(fileno(f),&temp_stat);
+            const struct tm* ltime;
+            if((ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
             fseek(f, 0, SEEK_END);
             f_size=ftell(f);
             f_data=(uint8_t*)malloc(f_size);
@@ -1062,8 +1069,8 @@ void drivezRegister(std::string path, std::string dir) {
             fread(f_data, sizeof(char), f_size, f);
             fclose(f);
         }
-
-        if(f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        fztime = fzdate = 0;
     }
 }
 
