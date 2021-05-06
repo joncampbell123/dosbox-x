@@ -520,7 +520,7 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
-static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN";
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN;Z:\\DEBUG";
 static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
@@ -644,6 +644,7 @@ void DOS_Shell::Run(void) {
 						}
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
+							if (!strcmp(cmd, "set path")&&vstr=="Z:\\") vstr=path_string+5;
 							ResolvePath(vstr);
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
@@ -652,7 +653,7 @@ void DOS_Shell::Run(void) {
 							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
-							if (!DOS_FileExists(name)) {
+							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
@@ -674,7 +675,6 @@ void DOS_Shell::Run(void) {
 		}
         std::string line;
         GetEnvStr("PATH",line);
-		if (line=="PATH=Z:\\") DoCommand((char *)("SET "+std::string(path_string)).c_str());
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
 			strcat(config_data, (char *)section->Get_string("rem"));
@@ -871,7 +871,7 @@ public:
 			if (test.st_mode & S_IFDIR) {
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
-				if(secure) autoexec[14].Install("z:\\config.com -securemode");
+				if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 				command_found = true;
 			} else {
 				char* name = strrchr(buffer,CROSS_FILESPLIT);
@@ -893,7 +893,7 @@ public:
 				strcpy(orig,name);
 				upcase(name);
 				if(strstr(name,".BAT") != 0) {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					/* BATch files are called else exit will not work */
 					autoexec[15].Install(std::string("CALL ") + name);
 					if(addexit) autoexec[16].Install("exit");
@@ -906,10 +906,10 @@ public:
 					/* securemode gets a different number from the previous branches! */
 					autoexec[14].Install(std::string("IMGMOUNT D \"") + orig + std::string("\" -t iso"));
 					//autoexec[16].Install("D:");
-					if(secure) autoexec[15].Install("z:\\config.com -securemode");
+					if(secure) autoexec[15].Install("z:\\system\\config.com -securemode");
 					/* Makes no sense to exit here */
 				} else {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					autoexec[15].Install(name);
 					if(addexit) autoexec[16].Install("exit");
 				}
@@ -919,10 +919,10 @@ public:
 
 		/* Combining -securemode, noautoexec and no parameters leaves you with a lovely Z:\. */
 		if ( !command_found ) { 
-			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
+			if ( secure ) autoexec[12].Install("z:\\system\\config.com -securemode");
 		}
 #else
-		if (secure) autoexec[i++].Install("z:\\config.com -securemode");
+		if (secure) autoexec[i++].Install("z:\\system\\config.com -securemode");
 #endif
 
 		if (addexit) autoexec[i++].Install("exit");

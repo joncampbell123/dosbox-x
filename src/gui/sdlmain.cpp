@@ -9382,12 +9382,12 @@ bool VM_Boot_DOSBox_Kernel() {
         /* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
         /* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */
         /* TODO: When we emulate executing AUTOEXEC.BAT between INIT_SHELL_READY and AUTOEXEC_BAT_DONE, can we make a fake MSCDEX.EXE within drive Z:\
-         *       and auto-add a Z:\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
+         *       and auto-add a Z:\DOS\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
         void MSCDEX_Startup(Section* sec);
         MSCDEX_Startup(NULL);
 
         /* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
-        /* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
+        /* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z: drive as well? */
         void MOUSE_Startup(Section *sec);
         MOUSE_Startup(NULL);
 
