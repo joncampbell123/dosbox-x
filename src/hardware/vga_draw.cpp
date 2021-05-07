@@ -3659,7 +3659,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     // NTS: To be moved
     if (autosave_second>0&&enable_autosave) {
         uint32_t ticksNew=GetTicks();
-        if (ticksNew-ticksPrev>autosave_second*1000) {
+        if (ticksNew-ticksPrev>(unsigned int)autosave_second*1000) {
             auto_save_state=true;
             int index=0;
             for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;

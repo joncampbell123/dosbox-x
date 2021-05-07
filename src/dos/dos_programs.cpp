@@ -7002,7 +7002,7 @@ public:
         }
         else if (cmd->GetCount())
         {
-            for (int i=1; i<=cmd->GetCount(); i++) {
+            for (unsigned int i=1; i<=cmd->GetCount(); i++) {
                 cmd->FindCommand(i,temp_line);
                 uint8_t drive;
                 char fullname[DOS_PATHLENGTH], flagfile[CROSS_LEN];
