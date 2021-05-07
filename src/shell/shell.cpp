@@ -1699,13 +1699,13 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_OPTION_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
 		VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
