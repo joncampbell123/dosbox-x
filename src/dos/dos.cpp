@@ -1633,7 +1633,8 @@ static Bitu DOS_21Handler(void) {
                         }
 #endif
                     CALLBACK_SCF(false);
-                } else if (dos.errorcode==77) {
+                }
+                else if (dos.errorcode==77) {
 					DOS_BreakAction();
 					if (!DOS_BreakTest()) {
 						dos.echo = false;
