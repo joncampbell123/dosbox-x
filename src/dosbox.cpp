@@ -2444,12 +2444,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
     Pmulti_remain->Set_help(
-        "Amount of instructions DOSBox-X tries to emulate each millisecond.\n"
+        "Number of instructions DOSBox-X tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"
         "Cycles can be set in 3 ways:\n"
         "  'auto'          tries to guess what a game needs.\n"
         "                  It usually works, but can fail for certain games.\n"
-        "  'fixed #number' will set a fixed amount of cycles. This is what you usually\n"
+        "  'fixed #number' will set a fixed number of cycles. This is what you usually\n"
         "                  need if 'auto' fails (Example: fixed 4000).\n"
         "  'max'           will allocate as much cycles as your computer is able to\n"
         "                  handle.");
