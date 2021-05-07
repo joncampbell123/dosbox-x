@@ -2861,8 +2861,12 @@ bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
 	last_action=WRITE;
 	if (*size==0) {
 		if (PHYSFS_tell(fhandle) == 0) {
-			PHYSFS_close(PHYSFS_openWrite(pname));
-			//LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+            if (PHYSFS_close(PHYSFS_openWrite(pname))) {
+                //LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+                return true;
+            }
+            else
+                return false;
 		} else {
 			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,PHYSFS_tell(fhandle));
 			return false;
