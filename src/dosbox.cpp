@@ -1429,6 +1429,7 @@ void DOSBOX_SetupConfigSections(void) {
               "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
               "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
               "  on_fake                      Lock A20 gate on but allow bit to toggle");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
@@ -2443,12 +2444,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
     Pmulti_remain->Set_help(
-        "Amount of instructions DOSBox-X tries to emulate each millisecond.\n"
+        "Number of instructions DOSBox-X tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"
         "Cycles can be set in 3 ways:\n"
         "  'auto'          tries to guess what a game needs.\n"
         "                  It usually works, but can fail for certain games.\n"
-        "  'fixed #number' will set a fixed amount of cycles. This is what you usually\n"
+        "  'fixed #number' will set a fixed number of cycles. This is what you usually\n"
         "                  need if 'auto' fails (Example: fixed 4000).\n"
         "  'max'           will allocate as much cycles as your computer is able to\n"
         "                  handle.");
@@ -3648,9 +3649,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
-    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/A20GATE.COM /BIOSTEST.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /INT2FDBG.COM /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM");
-    Pstring->Set_help("The files listed here (separated by space) will be either hidden or removed from the Z drive.\n"
-                      "Files with leading forward slashs (e.g. \"/A20GATE.COM\") will be hidden files (DIR /A will list them).");
+    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/BIN\\25.COM /BIN\\28.COM /BIN\\50.COM");
+    Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
+                      "Files with leading forward slashs (e.g. \"/4HELP.EXE\") will become hidden files (DIR /A will list them).");
 
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");

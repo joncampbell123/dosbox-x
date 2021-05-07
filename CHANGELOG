@@ -1,3 +1,28 @@
+0.83.14
+  - Added support for directories on the Z drive, so
+    there is no need to put all files/programs on the
+    root directory of Z drive any more. Only one-level
+    directories are currently supported. (WEngier)
+  - Added "Refresh rate..." menu option (under "Video")
+    to set the video refresh rate. (Wengier)
+  - Added "Enable A20 gate" menu option (under "DOS")
+    to enable or disable the A20 gate. (Wengier)
+  - Added "maximize" config option in [sdl] section to
+    automatically maximize the DOSBox-X window at start
+    (SDL2 and Windows SDL1 builds only). (Wengier)
+  - Added "debuggerrun" config option in [log] section
+    to set the run mode when DOSBox-X Debugger starts.
+    You can now also switch them from the menu ("Help"
+    => "Debugging options" => "Debugger option: ..."),
+    including "debugger", "normal" & "watch". Also, the
+    built-in DEBUGBOX command without a parameter will
+    start the DOSBox-X debugger. (Wengier)
+  - Added menu options "Generate NMI interrupt" & "Hook
+    INT 2Fh calls" ("Help" => "Debugging options") for
+    more debugging options. (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4443: Improve detection of Paradise SVGA in some
+    installers with additional signature.
 0.83.13
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
@@ -7,7 +32,8 @@
     config file (e.g. to resolve tildes only by setting
     to "tilde", or disable all path resolving). (Wengier)
   - System menu text in Windows builds now match the text
-    in the drop-down menus to be translatable. (Wengier)
+    in the drop-down menus to be translatable by language
+    files and is compatible with Unicode. (Wengier)
   - The error "Access Denied" is returned instead of
     "File not found" for files opened exclusively in
     another program on mounted local drives. (Wengier)
@@ -105,6 +131,8 @@
   - Fixed MOUNT and IMGMOUNT commands unable to mount
     directories or image files that contain non-ASCII
     characters in the code page on Windows. (Wengier)
+  - Fixed CapsLock may not work properly in Windows
+    SDL1 builds when -fs option is used. (Wengier)
   - Fixed the cycle information on the title bar when
     the Turbo mode is enabled. (Wengier)
   - Fixed that some games using the DOS4GW Extender

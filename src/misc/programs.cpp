@@ -102,7 +102,7 @@ void PROGRAMS_Shutdown(void) {
 	internal_progs.clear();
 }
 
-void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
+void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *dir) {
 	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
 	uint8_t *comdata;
@@ -124,7 +124,7 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
 	ipe->comsize = size;
 	ipe->comdata = comdata;
 	internal_progs.push_back(ipe);
-	VFILE_Register(name,ipe->comdata,ipe->comsize);
+	VFILE_Register(name,ipe->comdata,ipe->comsize,dir);
 }
 
 static Bitu PROGRAMS_Handler(void) {
@@ -1499,7 +1499,7 @@ static void CONFIG_ProgramStart(Program * * make) {
 }
 
 void PROGRAMS_DOS_Boot(Section *) {
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart);
+	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
 }
 
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism
@@ -1542,9 +1542,9 @@ void PROGRAMS_Init() {
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
 		"-avistart, -avistop Starts or stops AVI recording.\n"\
-		"-startmapper Starts the mapper editor.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-startmapper Starts the DOSBox-X mapper editor.\n"\
 		"-gui Starts the graphical configuration tool.\n"
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n");

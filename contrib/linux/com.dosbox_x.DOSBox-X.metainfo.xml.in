@@ -10,7 +10,7 @@
     <category>Emulation</category>
   </categories>
   <releases>
-          <release version="@PACKAGE_VERSION@" date="2021-4-30"/>
+          <release version="@PACKAGE_VERSION@" date="2021-5-3"/>
   </releases>
   <screenshots>
 	  <screenshot type="default">
@@ -76,7 +76,7 @@ DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation op
 		<li>Built-in graphical configuration tool</li>
 		<li>Save and load state with support for save files and up to 100 save slots</li>
 		<li>More DOS commands, and ability to add your own programs to the virtual Z: drive</li>
-		<li>Support for clipboard copy & paste and scalable TrueType fonts (TTF)</li>
+		<li>Support for clipboard copy &amp; paste and scalable TrueType fonts (TTF)</li>
 		<li>Various output options, including output scaling (such as pixel-perfect scaling) and OpenGL shaders</li>
 	</ul>
 	With the help of DOSBox-X, you can run plenty of the old classics that don't run on your new computer!
