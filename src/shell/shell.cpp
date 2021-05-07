@@ -521,7 +521,7 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
-static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG";
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
 static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
@@ -654,7 +654,7 @@ void DOS_Shell::Run(void) {
 							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
-							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())) {
+							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str())) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
@@ -1834,7 +1834,7 @@ void SHELL_Run() {
             tmp=trim(shell);
             name=StripArg(tmp);
             upcase(name);
-            if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str()))) {
+            if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
                 strreplace(name,'/','\\');
                 altshell=true;
             }

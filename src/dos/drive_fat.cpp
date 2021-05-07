@@ -2180,8 +2180,10 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 bool fatDrive::FileExists(const char *name) {
     direntry fileEntry = {};
 	uint32_t dummy1, dummy2;
-	if(!getFileDirEntry(name, &fileEntry, &dummy1, &dummy2)) return false;
-	return true;
+	uint16_t save_errorcode = dos.errorcode;
+	bool found = getFileDirEntry(name, &fileEntry, &dummy1, &dummy2);
+	dos.errorcode = save_errorcode;
+	return found;
 }
 
 bool fatDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {

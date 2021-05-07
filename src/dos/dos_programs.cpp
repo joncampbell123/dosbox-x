@@ -7664,17 +7664,15 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
 #if defined(USE_TTF)
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
 #endif
 	}
 
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
 #if defined C_DEBUG
     PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
@@ -7688,7 +7686,9 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 }
