@@ -403,6 +403,7 @@ static Bitu Normal_Loop(void) {
         dosbox_allow_nonrecursive_page_fault = saved_allow;
 	}
 	catch (const GuestGenFaultException& gpf) {
+        (void)gpf;//UNUSED
 		Bitu FillFlags(void);
 
 		ret = 0;
