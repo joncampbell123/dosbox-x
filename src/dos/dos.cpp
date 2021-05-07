@@ -1620,7 +1620,8 @@ static Bitu DOS_21Handler(void) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
                             WPvga512CHMcheck = true;
-                        } else if (WPvga512CHMcheck) {
+                        }
+                        else if (WPvga512CHMcheck) {
                             if (WP5chars) {
                                 memmove(dos_copybuf+2, dos_copybuf, toread);
                                 *(uint16_t*)dos_copybuf = WP5chars;
