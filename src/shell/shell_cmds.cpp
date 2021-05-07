@@ -1266,7 +1266,7 @@ void DOS_Shell::CMD_PUSHD(char * args) {
             WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"),args);
         }
     } else {
-        for (int i=olddrives.size()-1; i>=0; i--)
+        for (int i=(int)(olddrives.size()-1); i>=0; i--)
             if (olddrives.at(i)>='A'&&olddrives.at(i)<='Z')
                 WriteOut("%c:\\%s\n",olddrives.at(i),olddirs.at(i).c_str());
     }

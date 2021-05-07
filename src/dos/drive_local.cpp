@@ -1479,7 +1479,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
                         if (diff<0&&(-diff)>*_free_clusters)
                             *_free_clusters=0;
                         else
-                            *_free_clusters += diff;
+                            *_free_clusters += (uint16_t)diff;
                     }
 					if (*_total_clusters<*_free_clusters) {
 						if (*_free_clusters>65525)
@@ -2248,7 +2248,7 @@ PHYSFS_sint64 PHYSFS_fileLength(const char *name) {
 
 /* Need to strip "/.." components and transform '\\' to '/' for physfs */
 static char *normalize(char * name, const char *basedir) {
-	int last = strlen(name)-1;
+	int last = (int)(strlen(name)-1);
 	strreplace(name,'\\','/');
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (last > 0 && name[last] == '.' && name[last-1] == '/') name[last-1] = 0;
@@ -2258,7 +2258,7 @@ static char *normalize(char * name, const char *basedir) {
 		if (slash) *slash = 0;
 	}
 	if (strlen(basedir) > strlen(name)) { strcpy(name,basedir); strreplace(name,'\\','/'); }
-	last = strlen(name)-1;
+	last = (int)(strlen(name)-1);
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (name[0] == 0) name[0] = '/';
 	//LOG_MSG("File access: %s",name);
@@ -2468,7 +2468,7 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 		if((lastdir == newname) && !strchr(dir+(((dir[0]|0x20) >= 'a' && (dir[0]|0x20) <= 'z')?2:0),':')) {
 			// If the first parameter is a directory, the next one has to be the archive file,
 			// do not confuse it with basedir if trailing : is not there!
-			int tmp = strlen(dir)-1;
+			int tmp = (int)(strlen(dir)-1);
 			dir[tmp++] = ':';
 			dir[tmp++] = CROSS_FILESPLIT;
 			dir[tmp] = '\0';
@@ -2936,7 +2936,7 @@ bool physfsFile::prepareWrite() {
 		PHYSFS_sint64 size;
 		PHYSFS_seek(fhandle, 0);
 		while ((size = PHYSFS_read(fhandle,buffer,1,65536)) > 0) {
-			if (PHYSFS_write(whandle,buffer,1,size) != size) {
+			if (PHYSFS_write(whandle,buffer,1,(PHYSFS_uint32)size) != size) {
 				LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
 				PHYSFS_close(whandle);
 				return false;

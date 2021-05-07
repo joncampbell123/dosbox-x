@@ -1122,7 +1122,7 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 
 	std::string str;
 	uint16_t base = serial_baseaddr[id];
-	if(cmd->FindStringBegin("base:",str,true)) base = strtol(str.c_str(), NULL, 16);
+	if(cmd->FindStringBegin("base:",str,true)) base = (uint16_t)strtol(str.c_str(), NULL, 16);
 	irq = serial_defaultirq[id];
 	getBituSubstring("irq:",&irq, cmd);
 	if (irq < 2 || irq > 15) irq = serial_defaultirq[id];

@@ -468,8 +468,8 @@ std::string GetNewStr(const char *str) {
     if (str&&dos.loaded_codepage!=437) {
         char *temp = NULL;
         wchar_t* wstr = NULL;
-        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, NULL, 0);
-        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, wstr, reqsize)==reqsize) {
+        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), NULL, 0);
+        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), wstr, reqsize)==reqsize) {
             reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
             if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
                 newstr = std::string(temp);
@@ -3730,7 +3730,7 @@ void LOADFIX::Run(void)
             /* EMS allocates in 16kb increments */
             kb = (kb + 15u) & (~15u);
 
-            err = EMM_AllocateMemory(kb/16u/*16KB pages*/,/*&*/handle,false);
+            err = EMM_AllocateMemory((uint16_t)(kb/16u)/*16KB pages*/,/*&*/handle,false);
             if (err == 0) {
                 WriteOut("EMS block allocated (%uKB)\n",kb);
                 LOADFIX_ems_handles.push_back(handle);
@@ -6963,7 +6963,7 @@ int flagged_restore(char* zip)
             uint16_t handle, size;
             if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
                 for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
-                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:((uint64_t)fileSize-UINT16_MAX*i);
+                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:(uint16_t)((uint64_t)fileSize-UINT16_MAX*i);
                     DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
                 }
                 DOS_CloseFile(handle);

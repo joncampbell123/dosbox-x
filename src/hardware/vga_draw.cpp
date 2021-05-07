@@ -3668,13 +3668,13 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if (autosave_end[index]>autosave_last[index]&&autosave_last[index]>=autosave_start[index]) autosave_last[index]++;
                     else autosave_last[index]=autosave_start[index];
                 } else autosave_last[index]=autosave_start[index];
-                int state = GetGameState_Run();
+                int state = (int)GetGameState_Run();
                 SetGameState_Run(autosave_last[index]-1);
                 SaveGameState_Run();
                 SetGameState_Run(state);
             } else if (!autosave_start[index]) {
                 SaveGameState_Run();
-                autosave_last[index]=GetGameState_Run()+1;
+                autosave_last[index]=(int)(GetGameState_Run()+1);
             }
             auto_save_state=false;
             ticksPrev=ticksNew;

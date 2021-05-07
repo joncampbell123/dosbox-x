@@ -89,7 +89,7 @@ public:
 		Bits index=1+(end>>DYN_HASH_SHIFT);
 		bool is_current_block=false;
 		uint32_t ip_point=SegPhys(cs)+reg_eip;
-		ip_point=(PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff);
+		ip_point=(uint32_t)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
 		while (index>=0) {
 			Bitu map=0;
 			for (Bitu count=start;count<=end;count++) map+=write_map[count];
