@@ -307,7 +307,11 @@ Virtual_Drive::Virtual_Drive() {
 
 
 bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
-/* Scan through the internal list of files */
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+    /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		unsigned int onpos=cur_file->onpos;
@@ -334,7 +338,11 @@ bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t attr
 }
 
 bool Virtual_Drive::FileUnlink(const char * name) {
-    const VFILE_Block* cur_file = first_file;
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+	const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		unsigned int onpos=cur_file->onpos;
 		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
@@ -470,7 +478,11 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 }
 
 bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
-    const VFILE_Block* cur_file = first_file;
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return true;
+	}
+	const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		unsigned int onpos=cur_file->onpos;
 		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
@@ -487,7 +499,11 @@ bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
 }
 
 bool Virtual_Drive::GetFileAttr(const char * name,uint16_t * attr) {
-    const VFILE_Block* cur_file = first_file;
+	if (*name == 0) {
+		*attr=DOS_ATTR_DIRECTORY;
+		return true;
+	}
+	const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		unsigned int onpos=cur_file->onpos;
 		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
@@ -522,7 +538,10 @@ HANDLE Virtual_Drive::CreateOpenFile(const char* name) {
 #endif
 
 bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
-    (void)newname;//UNUSED
+	if (*oldname == 0 || *newname == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		unsigned int onpos=cur_file->onpos;
