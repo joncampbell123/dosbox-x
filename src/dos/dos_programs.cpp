@@ -58,6 +58,7 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
+#include <VersionHelpers.h>
 # if defined(__MINGW32__)
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
@@ -1208,11 +1209,7 @@ public:
                 } else {
 #if defined (WIN32)
                     // Check OS
-                    OSVERSIONINFO osi;
-                    osi.dwOSVersionInfoSize = sizeof(osi);
-                    GetVersionEx(&osi);
-                    if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>5)) {
-                        // Vista/above
+                    if (IsWindowsVistaOrGreater()) {
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
                     } else {
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
