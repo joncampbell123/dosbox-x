@@ -195,7 +195,6 @@ extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
-extern std::string                  hidefiles;
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
@@ -545,7 +544,7 @@ public:
     }
 };
 
-static void VFRCRATE_ProgramStart(Program * * make) {
+void VFRCRATE_ProgramStart(Program * * make) {
     *make=new VFRCRATE;
 }
 
@@ -583,7 +582,7 @@ public:
     }
 };
 
-static void CGASNOW_ProgramStart(Program * * make) {
+void CGASNOW_ProgramStart(Program * * make) {
     *make=new CGASNOW;
 }
 
@@ -1057,13 +1056,6 @@ void VGA_Reset(Section*) {
     }
 
     vsync.period = (1000.0F)/vsyncrate;
-
-    // TODO: Code to remove programs added by PROGRAMS_MakeFile
-
-    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
-    hidefiles = dos_section->Get_string("drive z hide files");
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
-    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 
     if (IS_PC98_ARCH) {
         void VGA_OnEnterPC98(Section *sec);

@@ -913,7 +913,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
 			}
 			if (!strcmp(temp, "config")) {
 				if (everything&&!used1) {
-					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
+					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN;Z:\\DEBUG");
 					fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
 					fprintf(outfile, "%-11s = %s\n", "set temp", "");
 				}

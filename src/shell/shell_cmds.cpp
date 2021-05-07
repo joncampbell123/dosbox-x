@@ -67,7 +67,7 @@ SHELL_Cmd cmd_list[]={
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-//{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DELTREE.EXE) instead of shell command
+//{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DOS\DELTREE.EXE) instead of shell command
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
@@ -78,7 +78,7 @@ SHELL_Cmd cmd_list[]={
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
-//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\LS.COM) instead of shell command
+//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\BIN\LS.COM) instead of shell command
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
@@ -104,10 +104,10 @@ SHELL_Cmd cmd_list[]={
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
-//{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\INT2FDBG.COM) instead of shell command
+//{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\DEBUG\INT2FDBG.COM) instead of shell command
 #endif
 // Advanced commands specific to DOSBox-X
-//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\ADDKEY.COM) instead of shell command
+//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 {0,0,0,0}
 };
@@ -163,7 +163,7 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		if(val != NO_SUCH_PROPERTY) WriteOut("%s\n",val.c_str());
 		return true;
 	}
-	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
+	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\system\\config -set ");
 	if (line != NULL) {
 		line=trim(line);
 		if (*line=='=') line=trim(++line);
@@ -1358,7 +1358,7 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		return;
 	}
 	if (!DOS_MakeDir(args)) {
-		WriteOut(MSG_Get("SHELL_CMD_MKDIR_ERROR"),args);
+		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_MKDIR_EXIST":"SHELL_CMD_MKDIR_ERROR"),args);
 	}
 }
 

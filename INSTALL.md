@@ -28,6 +28,8 @@ Windows installers for the previous DOSBox-X versions are also available from:
 * [dosbox-x-windows-0.83.12-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.12/dosbox-x-windows-0.83.12-setup.exe) (version 0.83.12)
 * [dosbox-x-windows-0.83.11-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.11/dosbox-x-windows-0.83.11-setup.exe) (version 0.83.11)
 
+If you see the message "Windows Defender SmartScreen prevented an unrecognized app from starting", you can solve it by clicking "More info" and then "Run anyway".
+
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
 Apart from the Windows installers, you can find six zip packages (three before 0.83.13) for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32 and Win64 respectively). For the current DOSBox-X version 0.83.13, these portable builds are separately available from:

@@ -102,7 +102,7 @@ void PROGRAMS_Shutdown(void) {
 	internal_progs.clear();
 }
 
-void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
+void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *dir) {
 	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
 	uint8_t *comdata;
@@ -124,7 +124,7 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
 	ipe->comsize = size;
 	ipe->comdata = comdata;
 	internal_progs.push_back(ipe);
-	VFILE_Register(name,ipe->comdata,ipe->comsize);
+	VFILE_Register(name,ipe->comdata,ipe->comsize,dir);
 }
 
 static Bitu PROGRAMS_Handler(void) {
@@ -1499,7 +1499,7 @@ static void CONFIG_ProgramStart(Program * * make) {
 }
 
 void PROGRAMS_DOS_Boot(Section *) {
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart);
+	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
 }
 
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism
