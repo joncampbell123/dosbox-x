@@ -429,8 +429,11 @@ static void cache_closeblock(void) {
 	Bitu written=cache.pos-block->cache.start;
 	if (written>block->cache.size) {
 		if (!block->cache.next) {
-			if (written > block->cache.size + CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",written-block->cache.size);	
-		} else E_Exit("CacheBlock overrun 2 written %d size %d",written,block->cache.size);	
+			if (written > block->cache.size + CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",(int)(written-block->cache.size));
+        }
+        else {
+            E_Exit("CacheBlock overrun 2 written %d size %d", (int)written, (int)block->cache.size);
+        }
 	} else {
 		Bitu new_size;
 		Bitu left=block->cache.size-written;
