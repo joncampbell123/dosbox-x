@@ -67,7 +67,7 @@ SHELL_Cmd cmd_list[]={
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-//{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DELTREE.EXE) instead of shell command
+//{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DOS\DELTREE.EXE) instead of shell command
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
@@ -78,7 +78,7 @@ SHELL_Cmd cmd_list[]={
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
-//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\LS.COM) instead of shell command
+//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\BIN\LS.COM) instead of shell command
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
@@ -104,10 +104,10 @@ SHELL_Cmd cmd_list[]={
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
-//{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\INT2FDBG.COM) instead of shell command
+//{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\DEBUG\INT2FDBG.COM) instead of shell command
 #endif
 // Advanced commands specific to DOSBox-X
-//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\ADDKEY.COM) instead of shell command
+//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 {0,0,0,0}
 };
@@ -163,7 +163,7 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		if(val != NO_SUCH_PROPERTY) WriteOut("%s\n",val.c_str());
 		return true;
 	}
-	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
+	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\system\\config -set ");
 	if (line != NULL) {
 		line=trim(line);
 		if (*line=='=') line=trim(++line);
@@ -271,8 +271,7 @@ __do_command_begin:
 	}
 
 #if C_DEBUG
-Bitu int2fdbg_hook_callback = 0;
-
+extern Bitu int2fdbg_hook_callback;
 static Bitu INT2FDBG_Handler(void) {
 	if (reg_ax == 0x1605) { /* Windows init broadcast */
 		int patience = 500;
@@ -347,6 +346,35 @@ static Bitu INT2FDBG_Handler(void) {
 	return CBRET_NONE;
 }
 
+void Int2fhook() {
+    uint32_t old_int2Fh;
+    PhysPt w;
+
+    int2fdbg_hook_callback = CALLBACK_Allocate();
+    CALLBACK_Setup(int2fdbg_hook_callback,&INT2FDBG_Handler,CB_IRET,"INT 2Fh DBG callback");
+
+    /* record old vector, set our new vector */
+    old_int2Fh = RealGetVec(0x2f);
+    w = CALLBACK_PhysPointer(int2fdbg_hook_callback);
+    RealSetVec(0x2f,CALLBACK_RealPointer(int2fdbg_hook_callback));
+
+    /* overwrite the callback with code to chain the call down, then invoke our callback on the way back up: */
+
+    /* first, chain to the previous INT 15h handler */
+    phys_writeb(w++,(uint8_t)0x9C);					//PUSHF
+    phys_writeb(w++,(uint8_t)0x9A);					//CALL FAR <address>
+    phys_writew(w,(uint16_t)(old_int2Fh&0xFFFF)); w += 2;		//offset
+    phys_writew(w,(uint16_t)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
+
+    /* then, having returned from it, invoke our callback */
+    phys_writeb(w++,(uint8_t)0xFE);					//GRP 4
+    phys_writeb(w++,(uint8_t)0x38);					//Extra Callback instruction
+    phys_writew(w,(uint16_t)int2fdbg_hook_callback); w += 2;		//The immediate word
+
+    /* return */
+    phys_writeb(w++,(uint8_t)0xCF);					//IRET
+}
+
 /* NTS: I know I could just modify the DOS kernel's INT 2Fh code to receive the init call,
  *      the problem is that at that point, the registers do not yet contain anything interesting.
  *      all the interesting results of the call are added by TSRs on the way back UP the call
@@ -360,41 +388,12 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
 		if (int2fdbg_hook_callback == 0) {
-			uint32_t old_int2Fh;
-			PhysPt w;
-
-			int2fdbg_hook_callback = CALLBACK_Allocate();
-			CALLBACK_Setup(int2fdbg_hook_callback,&INT2FDBG_Handler,CB_IRET,"INT 2Fh DBG callback");
-
-			/* record old vector, set our new vector */
-			old_int2Fh = RealGetVec(0x2f);
-			w = CALLBACK_PhysPointer(int2fdbg_hook_callback);
-			RealSetVec(0x2f,CALLBACK_RealPointer(int2fdbg_hook_callback));
-
-			/* overwrite the callback with code to chain the call down, then invoke our callback on the way back up: */
-
-			/* first, chain to the previous INT 15h handler */
-			phys_writeb(w++,(uint8_t)0x9C);					//PUSHF
-			phys_writeb(w++,(uint8_t)0x9A);					//CALL FAR <address>
-			phys_writew(w,(uint16_t)(old_int2Fh&0xFFFF)); w += 2;		//offset
-			phys_writew(w,(uint16_t)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
-
-			/* then, having returned from it, invoke our callback */
-			phys_writeb(w++,(uint8_t)0xFE);					//GRP 4
-			phys_writeb(w++,(uint8_t)0x38);					//Extra Callback instruction
-			phys_writew(w,(uint16_t)int2fdbg_hook_callback); w += 2;		//The immediate word
-
-			/* return */
-			phys_writeb(w++,(uint8_t)0xCF);					//IRET
-
+			Int2fhook();
 			LOG_MSG("INT 2Fh debugging hook set\n");
-			WriteOut("INT 2Fh hook set\n");
-		}
-		else {
-			WriteOut("INT 2Fh hook already setup\n");
-		}
-	}
-	else if (*args)
+			WriteOut("INT 2Fh hook has been set.\n");
+		} else
+			WriteOut("INT 2Fh hook was already set up.\n");
+	} else if (*args)
 		WriteOut("Invalid parameter - %s\n", args);
 }
 #endif
@@ -1359,7 +1358,7 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		return;
 	}
 	if (!DOS_MakeDir(args)) {
-		WriteOut(MSG_Get("SHELL_CMD_MKDIR_ERROR"),args);
+		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_MKDIR_EXIST":"SHELL_CMD_MKDIR_ERROR"),args);
 	}
 }
 
@@ -3618,20 +3617,26 @@ void DOS_Shell::CMD_ADDKEY(char * args){
  }
 
 #if C_DEBUG
+extern bool tohide;
 bool debugger_break_on_exec = false;
-
+void DEBUG_Enable_Handler(bool pressed);
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
     while (*args == ' ') args++;
 	std::string argv=std::string(args);
 	args=StripArg(args);
 	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
-    debugger_break_on_exec = true;
-    if (!strcmp(args,"-?")) {
+    if (!*args) {
+        tohide=false;
+        DEBUG_Enable_Handler(true);
+        tohide=true;
+        return;
+    } else if (!strcmp(args,"-?")) {
 		args[0]='/';
 		HELP("DEBUGBOX");
 		return;
 	}
+    debugger_break_on_exec = true;
     DoCommand((char *)argv.c_str());
     debugger_break_on_exec = false;
 }
@@ -3969,7 +3974,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 }
 
 #if defined(USE_TTF)
-int setTTFCodePage();
+int setTTFCodePage(void);
 void toSetCodePage(DOS_Shell *shell, int newCP) {
     if (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874) {
 		dos.loaded_codepage = newCP;

@@ -1159,7 +1159,7 @@ void MIXER_Controls_Init() {
 }
 
 void MIXER_DOS_Boot(Section *) {
-    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
+    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart,"/SYSTEM/");
 }
 
 void MIXER_Init() {

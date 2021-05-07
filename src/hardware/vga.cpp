@@ -195,7 +195,6 @@ extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
-extern std::string                  hidefiles;
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
@@ -484,6 +483,40 @@ void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
     }
 }
 
+void SetRate(char *x) {
+    if (!strncasecmp(x,"off",3))
+        vga_force_refresh_rate = -1;
+    else if (!strncasecmp(x,"ntsc",4))
+        vga_force_refresh_rate = 60000.0/1001;
+    else if (!strncasecmp(x,"pal",3))
+        vga_force_refresh_rate = 50;
+    else if (strchr(x,'.'))
+        vga_force_refresh_rate = atof(x);
+    else {
+        /* fraction */
+        int major = -1,minor = 0;
+        major = strtol(x,&x,0);
+        if (*x == '/' || *x == ':') {
+            x++; minor = strtol(x,NULL,0);
+        }
+
+        if (major > 0) {
+            vga_force_refresh_rate = (double)major;
+            if (minor > 1) vga_force_refresh_rate /= minor;
+        }
+    }
+
+    VGA_SetupHandlers();
+    VGA_StartResize();
+}
+
+#if defined(USE_TTF)
+void resetFontSize();
+static void resetSize(Bitu /*val*/) {
+    resetFontSize();
+}
+#endif
+
 class VFRCRATE : public Program {
 public:
     void Run(void) {
@@ -498,43 +531,20 @@ public:
 			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n");
 			return;
 		}
-        if (cmd->FindString("SET",temp_line,false)) {
-            char *x = (char*)temp_line.c_str();
-
-            if (!strncasecmp(x,"off",3))
-                vga_force_refresh_rate = -1;
-            else if (!strncasecmp(x,"ntsc",4))
-                vga_force_refresh_rate = 60000.0/1001;
-            else if (!strncasecmp(x,"pal",3))
-                vga_force_refresh_rate = 50;
-            else if (strchr(x,'.'))
-                vga_force_refresh_rate = atof(x);
-            else {
-                /* fraction */
-                int major = -1,minor = 0;
-                major = strtol(x,&x,0);
-                if (*x == '/' || *x == ':') {
-                    x++; minor = strtol(x,NULL,0);
-                }
-
-                if (major > 0) {
-                    vga_force_refresh_rate = (double)major;
-                    if (minor > 1) vga_force_refresh_rate /= minor;
-                }
-            }
-
-            VGA_SetupHandlers();
-            VGA_StartResize();
-        }
-
+        if (cmd->FindString("SET",temp_line,false))
+            SetRate((char *)temp_line.c_str());
+#if defined(USE_TTF)
+        bool TTF_using();
+        if (TTF_using()) PIC_AddEvent(&resetSize, 1);
+#endif
         if (vga_force_refresh_rate > 0)
-            WriteOut("Locked to %.3f fps\n",vga_force_refresh_rate);
+            WriteOut("Video refresh rate is locked to %.3f fps\n",vga_force_refresh_rate);
         else
-            WriteOut("Unlocked\n");
+            WriteOut("Video refresh rate is unlocked.\n");
     }
 };
 
-static void VFRCRATE_ProgramStart(Program * * make) {
+void VFRCRATE_ProgramStart(Program * * make) {
     *make=new VFRCRATE;
 }
 
@@ -572,7 +582,7 @@ public:
     }
 };
 
-static void CGASNOW_ProgramStart(Program * * make) {
+void CGASNOW_ProgramStart(Program * * make) {
     *make=new CGASNOW;
 }
 
@@ -1046,13 +1056,6 @@ void VGA_Reset(Section*) {
     }
 
     vsync.period = (1000.0F)/vsyncrate;
-
-    // TODO: Code to remove programs added by PROGRAMS_MakeFile
-
-    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
-    hidefiles = dos_section->Get_string("drive z hide files");
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
-    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 
     if (IS_PC98_ARCH) {
         void VGA_OnEnterPC98(Section *sec);

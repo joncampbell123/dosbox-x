@@ -520,6 +520,12 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN;Z:\\DEBUG";
+static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
+static char const * const prompt_string="PROMPT=$P$G";
+static char const * const full_name="Z:\\COMMAND.COM";
+static char const * const init_line="/INIT AUTOEXEC.BAT";
+
 bool shellrun=false;
 void DOS_Shell::Run(void) {
 	shellrun=true;
@@ -638,6 +644,7 @@ void DOS_Shell::Run(void) {
 						}
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
+							if (!strcmp(cmd, "set path")&&vstr=="Z:\\") vstr=path_string+5;
 							ResolvePath(vstr);
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
@@ -646,7 +653,7 @@ void DOS_Shell::Run(void) {
 							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
-							if (!DOS_FileExists(name)) {
+							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
@@ -666,6 +673,8 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
+        std::string line;
+        GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
 			strcat(config_data, (char *)section->Get_string("rem"));
@@ -862,7 +871,7 @@ public:
 			if (test.st_mode & S_IFDIR) {
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
-				if(secure) autoexec[14].Install("z:\\config.com -securemode");
+				if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 				command_found = true;
 			} else {
 				char* name = strrchr(buffer,CROSS_FILESPLIT);
@@ -884,7 +893,7 @@ public:
 				strcpy(orig,name);
 				upcase(name);
 				if(strstr(name,".BAT") != 0) {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					/* BATch files are called else exit will not work */
 					autoexec[15].Install(std::string("CALL ") + name);
 					if(addexit) autoexec[16].Install("exit");
@@ -897,10 +906,10 @@ public:
 					/* securemode gets a different number from the previous branches! */
 					autoexec[14].Install(std::string("IMGMOUNT D \"") + orig + std::string("\" -t iso"));
 					//autoexec[16].Install("D:");
-					if(secure) autoexec[15].Install("z:\\config.com -securemode");
+					if(secure) autoexec[15].Install("z:\\system\\config.com -securemode");
 					/* Makes no sense to exit here */
 				} else {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					autoexec[15].Install(name);
 					if(addexit) autoexec[16].Install("exit");
 				}
@@ -910,10 +919,10 @@ public:
 
 		/* Combining -securemode, noautoexec and no parameters leaves you with a lovely Z:\. */
 		if ( !command_found ) {
-			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
+			if ( secure ) autoexec[12].Install("z:\\system\\config.com -securemode");
 		}
 #else
-		if (secure) autoexec[i++].Install("z:\\config.com -securemode");
+		if (secure) autoexec[i++].Install("z:\\system\\config.com -securemode");
 #endif
 
 		if (addexit) autoexec[i++].Install("exit");
@@ -995,13 +1004,83 @@ static Bitu INT2E_Handler(void) {
 	return CBRET_NONE;
 }
 
-static char const * const path_string="PATH=Z:\\";
-static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
-static char const * const prompt_string="PROMPT=$P$G";
-static char const * const full_name="Z:\\COMMAND.COM";
-static char const * const init_line="/INIT AUTOEXEC.BAT";
-
 extern unsigned int dosbox_shell_env_size;
+extern uint16_t fztime, fzdate;
+void drivezRegister(std::string path, std::string dir) {
+    char exePath[CROSS_LEN];
+    std::vector<std::string> names;
+    if (path.size()) {
+#if defined(WIN32)
+        WIN32_FIND_DATA fd;
+        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
+        if(hFind != INVALID_HANDLE_VALUE) {
+            do {
+                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                    names.push_back(fd.cFileName);
+                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
+                    names.push_back(std::string(fd.cFileName)+"/");
+            } while(::FindNextFile(hFind, &fd));
+            ::FindClose(hFind);
+        }
+#else
+        struct dirent *dir;
+        DIR *d = opendir(path.c_str());
+        if (d)
+        {
+            while ((dir = readdir(d)) != NULL)
+              if (dir->d_type==DT_REG)
+                names.push_back(dir->d_name);
+              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
+                names.push_back(std::string(dir->d_name)+"/");
+            closedir(d);
+        }
+#endif
+    }
+    int res;
+    long f_size;
+    uint8_t *f_data;
+    struct stat temp_stat;
+    const struct tm* ltime;
+    for (std::string name: names) {
+        if (!name.size()) continue;
+        if (name.back()=='/' && dir=="/") {
+            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            fztime = fzdate = 0;
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            continue;
+        }
+        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
+        if (f == NULL) {
+            strcpy(exePath, GetDOSBoxXPath().c_str());
+            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
+            f = fopen(exePath, "rb");
+        }
+        f_size = 0;
+        f_data = NULL;
+
+        if (f != NULL) {
+            res=fstat(fileno(f),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            fseek(f, 0, SEEK_END);
+            f_size=ftell(f);
+            f_data=(uint8_t*)malloc(f_size);
+            fseek(f, 0, SEEK_SET);
+            fread(f_data, sizeof(char), f_size, f);
+            fclose(f);
+        }
+        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        fztime = fzdate = 0;
+    }
+}
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
@@ -1050,6 +1129,7 @@ void SHELL_Init() {
 									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
+	MSG_Add("SHELL_CMD_MKDIR_EXIST","Directory already exists - %s\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
@@ -1446,7 +1526,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 #if C_DEBUG
-	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\nType DEBUGBOX without a parameter to start the debugger.\n");
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
 #endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C    Executes the specified command and returns.\n  /K    Executes the specified command and continues running.\n  /P    Loads a permanent copy of the command shell.\n  /INIT Initializes the command shell.\n");
@@ -1561,8 +1641,6 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
     std::string dirname="drivez";
     std::string path = ".";
     path += CROSS_FILESPLIT;
@@ -1584,118 +1662,76 @@ void SHELL_Init() {
                 path = "";
         }
     }
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-                    names.push_back(fd.cFileName);
-                }
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG) names.push_back(dir->d_name);
-            closedir(d);
-        }
-#endif
-    }
-    long f_size;
-    uint8_t *f_data;
-    for (std::string name: names) {
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
 
-        if(f != NULL) {
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
+    drivezRegister(path, "/");
 
-        if(f_data) VFILE_Register(name.c_str(), f_data, f_size);
-    }
-
-	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
     if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
 
 		if (IS_VGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/BIN/");
 		else if (IS_EGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/BIN/");
 		else
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/BIN/");
 	}
-	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/BIN/");
 	else if (IS_EGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/BIN/");
 
 	/* don't register 50 unless VGA */
-	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/BIN/");
 
 	/* don't register 132 unless VGA */
 	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_132_COM);
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
 	/* DSXMENU.EXE */
 	if (IS_PC98_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
-	else
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+	else {
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+    }
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
