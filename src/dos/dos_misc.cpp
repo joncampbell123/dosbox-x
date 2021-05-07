@@ -260,7 +260,7 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
-		if (!control->SecureMode() && (reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A || reg_sp >= 0xFF7A && reg_sp <= 0xFF8F && mem_readw(SegPhys(ss)+reg_sp) == reg_sp + 21)) // Hack for DOSCLIP
+		if (!control->SecureMode() && ((reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A) || (reg_sp >= 0xFF7A && reg_sp <= 0xFF8F && mem_readw(SegPhys(ss)+reg_sp) == reg_sp + 21))) // Hack for DOSCLIP
 			reg_ax = 0x301;
         return true;
 	case 0x1605:	/* Windows init broadcast */
