@@ -214,11 +214,20 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
 	first_file=new_file;
 }
 
-void VFILE_Remove(const char *name) {
+void VFILE_Remove(const char *name,const char *dir = "") {
+    unsigned int onpos=0;
+    if (*dir) {
+        for (unsigned int i=1; i<vfpos; i++)
+            if (!strcasecmp(vfsnames[i], dir)||!strcasecmp(vfnames[i], dir)) {
+                onpos=i;
+                break;
+            }
+        if (onpos==0) return;
+    }
 	VFILE_Block * chan=first_file;
 	VFILE_Block * * where=&first_file;
 	while (chan) {
-		if (strcmp(name,chan->name) == 0) {
+		if (onpos==chan->onpos && (strcmp(name,chan->name) == 0 || strcmp(name,chan->lname) == 0)) {
 			*where = chan->next;
 			if(chan == first_file) first_file = chan->next;
 			delete chan;

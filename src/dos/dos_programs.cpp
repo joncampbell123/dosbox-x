@@ -7630,10 +7630,12 @@ void DOS_SetupPrograms(void) {
     hidefiles = dos_section->Get_string("drive z hide files");
 
     /*regular setup*/
-    VFILE_Register("BIN", 0, 0, "/");
-    VFILE_Register("DOS", 0, 0, "/");
-    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("TEXTUTIL", 0, 0, "/");
     VFILE_Register("SYSTEM", 0, 0, "/");
+    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("BIN", 0, 0, "/");
+    VFILE_Register("4DOS", 0, 0, "/");
 
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
