@@ -2940,7 +2940,7 @@ extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 	skipFirstInstruction = true;
 	CPU_Cycles = amount;
-	int32_t ret = (*cpudecoder)();
+	int32_t ret = (int32_t)(*cpudecoder)();
 	if (quickexit) SetCodeWinStart();
 	else {
 		// ensure all breakpoints are activated

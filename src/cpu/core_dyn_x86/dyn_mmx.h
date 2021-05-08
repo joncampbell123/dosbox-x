@@ -23,7 +23,7 @@ static void MMX_STORE_64(PhysPt addr) {
 
 // add simple instruction (that operates only with mm regs)
 static void dyn_mmx_simple(Bitu op, uint8_t modrm) {
-	cache_addw(0x0F | (op << 8)); cache_addb(modrm);
+	cache_addw((uint16_t)(0x0F | (op << 8))); cache_addb(modrm);
 }
 
 // same but with imm8 also
@@ -37,7 +37,7 @@ static void dyn_mmx_mem(Bitu op, Bitu reg=decode.modrm.reg, void* mem=&mmxtmp) {
 	cache_addb(0x05|(reg<<3));
 	cache_addd((uint32_t)(mem));
 #else // X86_64
-	opcode(reg).setabsaddr(mem).Emit16(0x0F | (op << 8));
+	opcode((int)reg).setabsaddr(mem).Emit16((uint16_t)(0x0F | (op << 8)));
 #endif
 }
 
@@ -77,7 +77,7 @@ static void dyn_mmx_op(Bitu op) {
 	} else {
         //if ((op == 0x71) || (op == 0x72) || (op == 0x73)) decode_fetchb_imm(imm);
         //dyn_call_function_pagefault_check((void*)&gen_mmx_op, "%I%I%I", op, decode.modrm.val, imm);
-		dyn_mmx_simple(op, decode.modrm.val);
+		dyn_mmx_simple(op, (uint8_t)decode.modrm.val);
     }
 }
 
@@ -86,7 +86,7 @@ static void dyn_mmx_shift_imm8(uint8_t op) {
 	dyn_get_modrm();
 	Bitu imm; decode_fetchb_imm(imm);
 
-	dyn_mmx_simple_imm8(op, decode.modrm.val, imm);
+	dyn_mmx_simple_imm8(op, (uint8_t)decode.modrm.val, (uint8_t)imm);
 }
 
 // 0x6E - MOVD mm, r/m32
@@ -124,7 +124,7 @@ static void dyn_mmx_movq_pqqq() {
 	}
 	else {
 		// movq mm, mm
-		dyn_mmx_simple(0x6F, decode.modrm.val);
+		dyn_mmx_simple(0x6F, (uint8_t)decode.modrm.val);
 	}
 }
 
@@ -163,7 +163,7 @@ static void dyn_mmx_movq_qqpq() {
 	}
 	else {
 		// movq mm, mm
-		dyn_mmx_simple(0x7F, decode.modrm.val);
+		dyn_mmx_simple(0x7F, (uint8_t)decode.modrm.val);
 	}
 }
 

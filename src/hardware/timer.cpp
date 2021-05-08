@@ -329,7 +329,7 @@ static void PIT0_Event(Bitu /*val*/) {
 }
 
 uint32_t PIT0_GetAssignedCounter(void) {
-    return pit[0].cntr;
+    return (uint32_t)pit[0].cntr;
 }
 
 static bool counter_output(Bitu counter) {

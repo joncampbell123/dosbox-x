@@ -1551,7 +1551,7 @@ static Bitu DOS_21Handler(void) {
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
 #if defined(USE_TTF)
                 if (ttf.inUse&&wpType==1) {
-                    int len = strlen(name1);
+                    int len = (int)strlen(name1);
                     if (len > 10 && !strcmp(name1+len-11, "\\VGA512.CHM"))  // Test for VGA512.CHM
                         WPvga512CHMhandle = reg_ax;							// Save handle
                 }

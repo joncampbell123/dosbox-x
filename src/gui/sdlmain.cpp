@@ -4495,7 +4495,7 @@ void GFX_EndTextLines(bool force=false) {
     // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16 && blinkCursor) {	// Draw cursor?
-		int newPos = vga.draw.cursor.address>>1;
+		int newPos = (int)(vga.draw.cursor.address>>1);
 		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
@@ -8494,7 +8494,7 @@ void PasteClipboard(bool bPressed) {
 #if defined (WIN32)
 void CopyClipboard(int all) {
 	uint16_t len=0;
-	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
+	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));

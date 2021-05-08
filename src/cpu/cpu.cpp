@@ -1019,7 +1019,7 @@ doexception:
 
 void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
   cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
-  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,oldeip);
+  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,(uint32_t)oldeip);
 }
 
 #include <stack>
