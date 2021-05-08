@@ -191,7 +191,8 @@ bool getClipboard() {
     unsigned int extra = 0;
     unsigned char head, last=13;
     for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-	if (clipAscii = (uint8_t *)malloc(strPasteBuffer.length()+extra))
+    clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
+    if (clipAscii)
         while (strPasteBuffer.length()) {
             head = strPasteBuffer[0];
             if (head == 10 && last != 13) clipAscii[clipSize++] = 13;

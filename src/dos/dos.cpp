@@ -1620,7 +1620,8 @@ static Bitu DOS_21Handler(void) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
                             WPvga512CHMcheck = true;
-                        } else if (WPvga512CHMcheck) {
+                        }
+                        else if (WPvga512CHMcheck) {
                             if (WP5chars) {
                                 memmove(dos_copybuf+2, dos_copybuf, toread);
                                 *(uint16_t*)dos_copybuf = WP5chars;
@@ -1633,7 +1634,8 @@ static Bitu DOS_21Handler(void) {
                         }
 #endif
                     CALLBACK_SCF(false);
-                } else if (dos.errorcode==77) {
+                }
+                else if (dos.errorcode==77) {
 					DOS_BreakAction();
 					if (!DOS_BreakTest()) {
 						dos.echo = false;
@@ -4185,7 +4187,7 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
                             if (reg_dh == 0 && s != NULL) for (int j=0; j<8-i; j++) c[o++] = ' ';
                             break;
                         }
-                        while (name1[j]&&name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*') j++;
+                        while (name1[j]&&(name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*')) j++;
                         c[o++] = toupper(name1[j]);
                         i++;
                 }
@@ -4195,7 +4197,7 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
                         j=0;
                         for (i=0;i<3;i++) {
                                 if (*(s+i+j) == 0) break;
-                                while (*(s+i+j)&&*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*') j++;
+                                while (*(s+i+j)&&(*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*')) j++;
                                 c[o++] = toupper(*(s+i+j));
                         }
                 }

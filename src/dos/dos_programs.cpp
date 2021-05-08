@@ -5871,7 +5871,7 @@ void MODE::Run(void) {
         if (cmd->FindStringBegin("cols=", temp_line,false)) cols=atoi(temp_line.c_str()); else cols=COLS;
         if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
         bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
-        if (optr&&!optd||optd&&!optr) {
+        if ((optr&&!optd)||(optd&&!optr)) {
             WriteOut("Rate and delay must be specified together\n");
             return;
         }
@@ -6597,7 +6597,7 @@ void SETCOLOR::Run()
 				WriteOut(CurMode->mode==3?"MONO mode status => inactive (video mode 3)\n":"Failed to change MONO mode\n");
 			} else
 				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
-		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||i>0&&i<16) {
+		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||(i>0&&i<16)) {
 			if (p==NULL) {
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;

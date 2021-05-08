@@ -1696,7 +1696,7 @@ public:
                 if (autosave_start[i]<-1) autosave_start[i]=-1;
                 autosave_end[i] = atoi(end[i]->getText());
                 if (autosave_end[i]<autosave_start[i]) autosave_end[i]=0;
-                if (autosave_start[i]>1&&autosave_start[i]<=100&&autosave_last[i]<autosave_start[i]||autosave_last[i]>(autosave_end[i]>=autosave_start[i]&&autosave_end[i]<=100?autosave_end[i]:autosave_start[i])) autosave_last[i]=-1;
+                if ((autosave_start[i]>1&&autosave_start[i]<=100&&autosave_last[i]<autosave_start[i])||(autosave_last[i]>(autosave_end[i]>=autosave_start[i]&&autosave_end[i]<=100?autosave_end[i]:autosave_start[i]))) autosave_last[i]=-1;
             }
             if (!mainMenu.get_item("enable_autosave").is_enabled()&&autosave_second) enable_autosave = autosave_second>0;
             if (autosave_second<0) autosave_second=-autosave_second;
