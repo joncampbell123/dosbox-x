@@ -49,7 +49,8 @@ static bool first_run=true;
 extern bool use_quick_reboot, mountwarning;
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool enable_config_as_shell_commands;
-extern bool dos_shell_running_program, addovl;
+extern bool dos_shell_running_program;
+extern bool addovl, addipx;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -93,7 +94,7 @@ static char autoexec_data[AUTOEXEC_SIZE] = { 0 };
 static std::list<std::string> autoexec_strings;
 typedef std::list<std::string>::iterator auto_it;
 
-void VFILE_Remove(const char *name);
+void VFILE_Remove(const char *name,const char *dir="");
 
 #if defined(WIN32)
 void MountAllDrives(Program * program) {
@@ -520,7 +521,7 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
-static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\DOS;Z:\\BIN;Z:\\DEBUG";
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
 static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
@@ -653,7 +654,7 @@ void DOS_Shell::Run(void) {
 							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
-							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())) {
+							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str())) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
@@ -702,7 +703,7 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
-		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
+		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
     }
     else if (!optInit) {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
@@ -1006,6 +1007,7 @@ static Bitu INT2E_Handler(void) {
 
 extern unsigned int dosbox_shell_env_size;
 extern uint16_t fztime, fzdate;
+void IPXNET_ProgramStart(Program * * make);
 void drivezRegister(std::string path, std::string dir) {
     char exePath[CROSS_LEN];
     std::vector<std::string> names;
@@ -1109,7 +1111,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
-	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
+	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, and the specified directory cannot be found.\nFor accessing a mounted drive, change to the drive with a syntax like \033[31mC:\033[0m.\n");
 	MSG_Add("SHELL_CMD_DATE_HELP","Displays or changes the internal date.\n");
 	MSG_Add("SHELL_CMD_DATE_ERROR","The specified date is not correct.\n");
 	MSG_Add("SHELL_CMD_DATE_DAYS","3SunMonTueWedThuFriSat"); // "2SoMoDiMiDoFrSa"
@@ -1676,7 +1678,10 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
-    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
+#if C_IPX
+	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
+#endif
+	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
@@ -1693,28 +1698,44 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
-		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
-
-		if (IS_VGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/BIN/");
-		else if (IS_EGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/BIN/");
-		else
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_OPTION_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X60_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X50_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X43_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X25_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X60_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X50_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X43_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X25_COM, "/TEXTUTIL/");
 	}
+
+	/* don't register 50 unless VGA */
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
 	else if (IS_EGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
 
-	/* don't register 50 unless VGA */
-	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/BIN/");
+    if (IS_VGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
+    else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
+    else if (!IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
@@ -1813,7 +1834,7 @@ void SHELL_Run() {
             tmp=trim(shell);
             name=StripArg(tmp);
             upcase(name);
-            if (*name&&DOS_FileExists(name)) {
+            if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
                 strreplace(name,'/','\\');
                 altshell=true;
             }
@@ -1831,7 +1852,7 @@ void SHELL_Run() {
         if (!strlen(tmp)) {
             char *p=strrchr(name, '\\');
             if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
-            else if (!strcasecmp(p==NULL?name:p+1, "4DOS.COM") || !strcasecmp(name, "Z:4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
+            else if (!strcasecmp(p==NULL?name:p+1, "4DOS\\4DOS.COM") || !strcasecmp(name, "Z:4DOS\\4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
         }
 		first_shell->Execute(name, tmp);
 		return;

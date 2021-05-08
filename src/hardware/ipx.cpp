@@ -1056,7 +1056,7 @@ public:
 	}
 };
 
-static void IPXNET_ProgramStart(Program * * make) {
+void IPXNET_ProgramStart(Program * * make) {
 	*make=new IPXNET;
 }
 
@@ -1082,7 +1082,8 @@ Bitu IPX_ESRHandler(void) {
 	return CBRET_NONE;
 }
 
-void VFILE_Remove(const char *name);
+bool addipx = false;
+void VFILE_Remove(const char *name,const char *dir = "");
 
 // FIXME: VS2015 doesn't seem to like class IPX::dospage
 static uint16_t dospage;
@@ -1097,6 +1098,7 @@ private:
 public:
 	IPX(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
+		addipx = false;
 		ipx_init = false;
 		if(!section->Get_bool("ipx")) return;
 		if(!SDLNetInited) {
@@ -1162,8 +1164,7 @@ public:
 		RealSetVec(0x73,ESRRoutineBase,old_73_vector);	// IRQ11
 		IO_WriteB(0xa1,IO_ReadB(0xa1)&(~8));			// enable IRQ11
 
-		PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart);
-
+		addipx = true;
 		ipx_init = true;
 	}
 
@@ -1187,7 +1188,7 @@ public:
 		for(uint8_t i = 0;i < 32;i++)
 			phys_writeb(phyDospage+i,(uint8_t)0x00);
 
-		VFILE_Remove("IPXNET.COM");
+		if (addipx) VFILE_Remove("IPXNET.COM","SYSTEM");
 	}
 };
 

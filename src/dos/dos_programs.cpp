@@ -7630,16 +7630,18 @@ void DOS_SetupPrograms(void) {
     hidefiles = dos_section->Get_string("drive z hide files");
 
     /*regular setup*/
-    VFILE_Register("BIN", 0, 0, "/");
-    VFILE_Register("DOS", 0, 0, "/");
-    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("TEXTUTIL", 0, 0, "/");
     VFILE_Register("SYSTEM", 0, 0, "/");
+    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("BIN", 0, 0, "/");
+    VFILE_Register("4DOS", 0, 0, "/");
 
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
 #if defined(WIN32) && !defined(HX_DOS)
@@ -7650,43 +7652,40 @@ void DOS_SetupPrograms(void) {
     if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/DEBUG/");
     PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
 
+    if (IS_VGA_ARCH && svgaCard != SVGA_None)
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+
     if (!IS_PC98_ARCH)
         PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
-
-#if C_DEBUG
-    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
-#endif
 
     if (!IS_PC98_ARCH) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
 #if defined(USE_TTF)
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
 #endif
 	}
 
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
 #if defined C_DEBUG
-    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
 #endif
-
-    if (IS_VGA_ARCH && svgaCard != SVGA_None)
-        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
 
     if (IS_PC98_ARCH)
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 }

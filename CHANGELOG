@@ -2,7 +2,12 @@
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
     root directory of Z drive any more. Only one-level
-    directories are currently supported. (WEngier)
+    directories are currently supported. There are now
+    six directories on the Z drive by default, namely
+    4DOS, BIN, DEBUG, DOS, SYSTEM, TEXTUTIL. Most files
+    that previously appeared on the root directory of
+    Z drive are now categorized into directories, with
+    addition of some files/programs. (Wengier)
   - Added "Refresh rate..." menu option (under "Video")
     to set the video refresh rate. (Wengier)
   - Added "Enable A20 gate" menu option (under "DOS")
