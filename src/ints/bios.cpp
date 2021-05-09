@@ -7095,9 +7095,6 @@ int oldcols = 0, oldlins = 0;
 void showBIOSSetup(const char* card, int x, int y) {
     reg_eax = 3;        // 80x25 text
     CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
-#endif
     if (machine == MCH_PC98) {
         for (unsigned int i=0;i < (80*400);i++) {
             mem_writeb(0xA8000+i,0);        // B
@@ -7121,9 +7118,16 @@ void showBIOSSetup(const char* card, int x, int y) {
         reg_eax = 0x0600u;
         reg_ebx = 0x1e00u;
         reg_ecx = 0x0000u;
-        reg_edx = 0x184Fu;
+        reg_edx =
+#if defined(USE_TTF)
+        TTF_using()?(ttf.lins-1)*0x100+(ttf.cols-1):
+#endif
+        0x184Fu;
         CALLBACK_RunRealInt(0x10);
     }
+#if defined(USE_TTF)
+    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
+#endif
     char title[]="                               BIOS Setup Utility                               ";
     char *p=machine == MCH_PC98?title+2:title;
     BIOS_Int10RightJustifiedPrint(x,y,p);
