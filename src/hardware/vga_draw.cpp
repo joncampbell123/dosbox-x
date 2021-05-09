@@ -3659,7 +3659,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     // NTS: To be moved
     if (autosave_second>0&&enable_autosave) {
         uint32_t ticksNew=GetTicks();
-        if (ticksNew-ticksPrev>autosave_second*1000) {
+        if (ticksNew-ticksPrev>(unsigned int)autosave_second*1000) {
             auto_save_state=true;
             int index=0;
             for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
@@ -3668,13 +3668,13 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if (autosave_end[index]>autosave_last[index]&&autosave_last[index]>=autosave_start[index]) autosave_last[index]++;
                     else autosave_last[index]=autosave_start[index];
                 } else autosave_last[index]=autosave_start[index];
-                int state = GetGameState_Run();
+                int state = (int)GetGameState_Run();
                 SetGameState_Run(autosave_last[index]-1);
                 SaveGameState_Run();
                 SetGameState_Run(state);
             } else if (!autosave_start[index]) {
                 SaveGameState_Run();
-                autosave_last[index]=GetGameState_Run()+1;
+                autosave_last[index]=(int)(GetGameState_Run()+1);
             }
             auto_save_state=false;
             ticksPrev=ticksNew;

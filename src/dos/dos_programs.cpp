@@ -58,6 +58,7 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
+#include <VersionHelpers.h>
 # if defined(__MINGW32__)
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
@@ -468,8 +469,8 @@ std::string GetNewStr(const char *str) {
     if (str&&dos.loaded_codepage!=437) {
         char *temp = NULL;
         wchar_t* wstr = NULL;
-        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, NULL, 0);
-        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, wstr, reqsize)==reqsize) {
+        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), NULL, 0);
+        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), wstr, reqsize)==reqsize) {
             reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
             if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
                 newstr = std::string(temp);
@@ -1208,11 +1209,7 @@ public:
                 } else {
 #if defined (WIN32)
                     // Check OS
-                    OSVERSIONINFO osi;
-                    osi.dwOSVersionInfoSize = sizeof(osi);
-                    GetVersionEx(&osi);
-                    if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>5)) {
-                        // Vista/above
+                    if (IsWindowsVistaOrGreater()) {
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
                     } else {
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
@@ -3730,7 +3727,7 @@ void LOADFIX::Run(void)
             /* EMS allocates in 16kb increments */
             kb = (kb + 15u) & (~15u);
 
-            err = EMM_AllocateMemory(kb/16u/*16KB pages*/,/*&*/handle,false);
+            err = EMM_AllocateMemory((uint16_t)(kb/16u)/*16KB pages*/,/*&*/handle,false);
             if (err == 0) {
                 WriteOut("EMS block allocated (%uKB)\n",kb);
                 LOADFIX_ems_handles.push_back(handle);
@@ -5874,7 +5871,7 @@ void MODE::Run(void) {
         if (cmd->FindStringBegin("cols=", temp_line,false)) cols=atoi(temp_line.c_str()); else cols=COLS;
         if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
         bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
-        if (optr&&!optd||optd&&!optr) {
+        if ((optr&&!optd)||(optd&&!optr)) {
             WriteOut("Rate and delay must be specified together\n");
             return;
         }
@@ -6633,7 +6630,7 @@ void SETCOLOR::Run()
 				WriteOut(CurMode->mode==3?"MONO mode status => inactive (video mode 3)\n":"Failed to change MONO mode\n");
 			} else
 				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
-		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||i>0&&i<16) {
+		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||(i>0&&i<16)) {
 			if (p==NULL) {
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
@@ -6996,7 +6993,7 @@ int flagged_restore(char* zip)
             uint16_t handle, size;
             if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
                 for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
-                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:((uint64_t)fileSize-UINT16_MAX*i);
+                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:(uint16_t)((uint64_t)fileSize-UINT16_MAX*i);
                     DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
                 }
                 DOS_CloseFile(handle);
@@ -7038,7 +7035,7 @@ public:
         }
         else if (cmd->GetCount())
         {
-            for (int i=1; i<=cmd->GetCount(); i++) {
+            for (unsigned int i=1; i<=cmd->GetCount(); i++) {
                 cmd->FindCommand(i,temp_line);
                 uint8_t drive;
                 char fullname[DOS_PATHLENGTH], flagfile[CROSS_LEN];

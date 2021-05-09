@@ -1358,8 +1358,8 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				 * (initial output window before scaling - 1) is the lower 16 bits.
 				 *
 				 * K2 is signed 2's complement */
-				vga.s3.streams.ssctl_k1_hscale = val & regmask;
-				vga.s3.streams.ssctl_k2_hscale = (val >> 16u) & regmask;
+				vga.s3.streams.ssctl_k1_hscale = (uint16_t)(val & regmask);
+				vga.s3.streams.ssctl_k2_hscale = (uint16_t)((val >> 16u) & regmask);
 				if (vga.s3.streams.ssctl_k2_hscale &  ((regmask+1u)>>1u))   /* (0x7FF+1)>>1 = 0x400 */
 					vga.s3.streams.ssctl_k2_hscale -= (regmask+1u);         /* (0x7FF+1)    = 0x800 */
 			}

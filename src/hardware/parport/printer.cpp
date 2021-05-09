@@ -2291,7 +2291,7 @@ void PRINTER_Init()
             unsigned int devnum;
             if (1!=sscanf(device.c_str(),"%u",&devnum)) devnum=-2;
             prtlist = "Printer Device List\n-------------------------------------------------------------\n";
-            for (int i=1; i < dwReturned; i++) {
+            for (unsigned int i=1; i < dwReturned; i++) {
                 if(devnum>0&&i==devnum) device=pInfo[i].pName;
                 prtlist+=(i<10?"0":"")+std::to_string(i)+" "+pInfo[i].pName+"\n";
             }

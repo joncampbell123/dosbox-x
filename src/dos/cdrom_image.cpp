@@ -240,7 +240,7 @@ bool CDROM_Interface_Image::AudioFile::seek(int64_t offset)
 
 	// Convert the byte-offset to a time offset (milliseconds)
 	const bool result = Sound_Seek(sample, lround(offset/176.4f));
-	audio_pos = result ? offset : UINT32_MAX;
+	audio_pos = result ? (uint32_t)offset : UINT32_MAX;
 
 	#ifdef DEBUG
 	const auto end = std::chrono::steady_clock::now();
@@ -372,21 +372,21 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer,int64_t offset, int co
         } else {
             // read new hunk
             bool error = true;
-            hunk_thread_func(this->chd, needed_hunk, this->hunk_buffer, &error);
+            hunk_thread_func(this->chd, (int)needed_hunk, this->hunk_buffer, &error);
             if (error) {
                 return false;
             }
         }
 #endif
 
-        this->hunk_buffer_index = needed_hunk;
+        this->hunk_buffer_index = (int)needed_hunk;
 
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
         // prefetch: let our thread decode the next hunk
         if (hunk_thread) delete this->hunk_thread;
         this->hunk_thread = new std::thread(
             [this, needed_hunk]() {
-                hunk_thread_func(this->chd, needed_hunk + 1, this->hunk_buffer_next, &this->hunk_thread_error);
+                hunk_thread_func(this->chd, (int)(needed_hunk + 1), this->hunk_buffer_next, &this->hunk_thread_error);
             }
         );
 #endif
@@ -954,7 +954,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 		return false;
 	}
     int64_t len=track.file->getLength();
-	track.length = len / track.sectorSize;
+	track.length = (int)(len / track.sectorSize);
 	// LOG_MSG("LoadIsoFile: %s, track 1, 0x40, sectorSize=%d, mode2=%s", filename, track.sectorSize, track.mode2 ? "true":"false");
 
 	tracks.push_back(track);
@@ -1307,7 +1307,7 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	} else {
 		if (!prev.length) {
 			int64_t tmp = prev.file->getLength() - prev.skip;
-			prev.length = tmp / prev.sectorSize;
+			prev.length = (int)(tmp / prev.sectorSize);
 			if (tmp % prev.sectorSize != 0) prev.length++; // padding
 		}
 		curr.start += prev.start + prev.length + currPregap;

@@ -108,8 +108,8 @@ static void PPScale (
     int    sx, sy, orig_w, orig_h, min_w, min_h;
     double par, par_sq;
 
-    orig_w = min_w = render.src.width;
-    orig_h = min_h = render.src.height;
+    orig_w = min_w = (int)render.src.width;
+    orig_h = min_h = (int)render.src.height;
 
     par = ( double) orig_w / orig_h * 3 / 4;
     /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */

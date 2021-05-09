@@ -89,7 +89,7 @@ public:
 		Bits index=1+(end>>DYN_HASH_SHIFT);
 		bool is_current_block=false;
 		uint32_t ip_point=SegPhys(cs)+reg_eip;
-		ip_point=(PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff);
+		ip_point=(uint32_t)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
 		while (index>=0) {
 			Bitu map=0;
 			for (Bitu count=start;count<=end;count++) map+=write_map[count];
@@ -429,8 +429,11 @@ static void cache_closeblock(void) {
 	Bitu written=cache.pos-block->cache.start;
 	if (written>block->cache.size) {
 		if (!block->cache.next) {
-			if (written > block->cache.size + CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",written-block->cache.size);	
-		} else E_Exit("CacheBlock overrun 2 written %d size %d",written,block->cache.size);	
+			if (written > block->cache.size + CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",(int)(written-block->cache.size));
+        }
+        else {
+            E_Exit("CacheBlock overrun 2 written %d size %d", (int)written, (int)block->cache.size);
+        }
 	} else {
 		Bitu new_size;
 		Bitu left=block->cache.size-written;
