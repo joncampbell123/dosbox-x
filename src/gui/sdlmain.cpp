@@ -3440,18 +3440,6 @@ bool setColors(const char *colorArray, int n) {
 	return true;
 }
 
-bool readTTFStyle(unsigned long size, void* font, FILE * fh) {
-    size = ftell(fh);
-    if(size != -1L) {
-        font = malloc((size_t)size);
-        if(font && !fseek(fh, 0, SEEK_SET) && fread(font, 1, (size_t)size, fh) == (size_t)size) {
-            fclose(fh);
-            return true;
-        }
-    }
-    return false;
-}
-
 std::string failName="";
 bool readTTF(const char *fName, bool bold, bool ital) {
 	FILE * ttf_fh = NULL;
@@ -3535,28 +3523,17 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             ttf_fh = fopen(ttfPath, "rb");
         }
     }
-    if(ttf_fh) {
-        if(!fseek(ttf_fh, 0, SEEK_END))
-        {
-            if(bold && ital) {
-                if(readTTFStyle(ttfSizebi, ttfFontbi, ttf_fh))
-                    return true;
-            }
-            else if(bold && !ital) {
-                if(readTTFStyle(ttfSizeb, ttfFontb, ttf_fh))
-                    return true;
-            }
-            else if(!bold && ital) {
-                if(readTTFStyle(ttfSizei, ttfFonti, ttf_fh))
-                    return true;
-            }
-            else {
-                if(readTTFStyle(ttfSize, ttfFont, ttf_fh))
-                    return true;
-            }
-        }
-        fclose(ttf_fh);
-    }
+    if (ttf_fh) {
+		if (!fseek(ttf_fh, 0, SEEK_END))
+			if (((bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))) = ftell(ttf_fh)) != -1L)
+				if ((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))) = malloc((size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))))
+					if (!fseek(ttf_fh, 0, SEEK_SET))
+						if (fread((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))), 1, (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))), ttf_fh) == (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))) {
+							fclose(ttf_fh);
+							return true;
+						}
+		fclose(ttf_fh);
+	}
     if (!failName.size()||failName.compare(fName)) {
         failName=std::string(fName);
         std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");

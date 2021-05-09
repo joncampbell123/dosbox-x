@@ -9,6 +9,7 @@
 #include "menu.h"
 #include "shell.h"
 #include "cross.h"
+#include "render.h"
 #include "mapper.h"
 #include "control.h"
 #include "logging.h"
@@ -45,7 +46,7 @@ bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
 void refresh_slots(void);
-void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
+void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void), resetFontSize(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 namespace
 {
@@ -190,6 +191,9 @@ void LoadGameState(bool pressed) {
     {
         LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
         SaveState::instance().load(currentSlot);
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
     }
     catch (const SaveState::Error& err)
     {
