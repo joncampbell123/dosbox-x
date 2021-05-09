@@ -90,7 +90,7 @@ bool qmount = false;
 bool nowarn = false;
 extern bool mountfro[26], mountiro[26];
 
-void DOS_EnableDriveMenu(char drv);
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
 #if defined(OS2)

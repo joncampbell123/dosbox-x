@@ -8,7 +8,8 @@
     that previously appeared on the root directory of
     Z drive are now categorized into directories, with
     addition of some files/programs, such as additional
-    4DOS files and TITLE command. (Wengier)
+    4DOS files, text utilties in TEXTUTIL directory and
+    TITLE command to change window title. (Wengier)
   - Added "Restart DOSBox-X with config file..." menu
     option to start DOSBox-X with the specified config
     file automatically from the menu. (Wengier)
