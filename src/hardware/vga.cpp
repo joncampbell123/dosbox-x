@@ -520,15 +520,16 @@ static void resetSize(Bitu /*val*/) {
 class VFRCRATE : public Program {
 public:
     void Run(void) {
-        WriteOut("Locks or unlocks the video refresh rate.\n\n");
         if (cmd->FindExist("/?", false)) {
+			WriteOut("Locks or unlocks the video refresh rate.\n\n");
 			WriteOut("VFRCRATE [SET [OFF|PAL|NTSC|rate]\n");
 			WriteOut("  SET OFF   Unlock the refresh rate\n");
 			WriteOut("  SET PAL   Lock to PAL frame rate\n");
 			WriteOut("  SET NTSC  Lock to NTSC frame rate\n");
 			WriteOut("  SET rate  Lock to integer frame rate, e.g. 15\n");
 			WriteOut("  SET rate  Lock to decimal frame rate, e.g. 29.97\n");
-			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n");
+			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n\n");
+			WriteOut("Type VFRCRATE without a parameter to show the current status.\n");
 			return;
 		}
         if (cmd->FindString("SET",temp_line,false))
@@ -538,7 +539,7 @@ public:
         if (TTF_using()) PIC_AddEvent(&resetSize, 1);
 #endif
         if (vga_force_refresh_rate > 0)
-            WriteOut("Video refresh rate is locked to %.3f fps\n",vga_force_refresh_rate);
+            WriteOut("Video refresh rate is locked to %.3f fps.\n",vga_force_refresh_rate);
         else
             WriteOut("Video refresh rate is unlocked.\n");
     }
@@ -559,8 +560,16 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) {
+        if (cmd->FindExist("/?", false)) {
+			WriteOut("Turns CGA snow emulation on or off.\n\n");
+			WriteOut("CGASNOW [ON|OFF]\n");
+			WriteOut("  ON   Turns on CGA snow emulation.\n");
+			WriteOut("  OFF  Turns off CGA snow emulation.\n\n");
+			WriteOut("Type CGASNOW without a parameter to show the current status.\n");
+			return;
+		}
         if(cmd->FindExist("ON")) {
-            WriteOut("CGA snow enabled\n");
+            WriteOut("CGA snow enabled.\n");
             enableCGASnow = 1;
             if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
                 VGA_SetupHandlers();
@@ -568,7 +577,7 @@ public:
             }
         }
         else if(cmd->FindExist("OFF")) {
-            WriteOut("CGA snow disabled\n");
+            WriteOut("CGA snow disabled.\n");
             enableCGASnow = 0;
             if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
                 VGA_SetupHandlers();
@@ -576,8 +585,7 @@ public:
             }
         }
         else {
-            WriteOut("CGA snow currently %s\n",
-                enableCGASnow ? "enabled" : "disabled");
+            WriteOut("CGA snow is currently %s.\n", enableCGASnow ? "enabled" : "disabled");
         }
     }
 };

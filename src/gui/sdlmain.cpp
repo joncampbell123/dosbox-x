@@ -3440,18 +3440,6 @@ bool setColors(const char *colorArray, int n) {
 	return true;
 }
 
-bool readTTFStyle(unsigned long size, void* font, FILE * fh) {
-    size = ftell(fh);
-    if(size != -1L) {
-        font = malloc((size_t)size);
-        if(font && !fseek(fh, 0, SEEK_SET) && fread(font, 1, (size_t)size, fh) == (size_t)size) {
-            fclose(fh);
-            return true;
-        }
-    }
-    return false;
-}
-
 std::string failName="";
 bool readTTF(const char *fName, bool bold, bool ital) {
 	FILE * ttf_fh = NULL;
@@ -3535,28 +3523,17 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             ttf_fh = fopen(ttfPath, "rb");
         }
     }
-    if(ttf_fh) {
-        if(!fseek(ttf_fh, 0, SEEK_END))
-        {
-            if(bold && ital) {
-                if(readTTFStyle(ttfSizebi, ttfFontbi, ttf_fh))
-                    return true;
-            }
-            else if(bold && !ital) {
-                if(readTTFStyle(ttfSizeb, ttfFontb, ttf_fh))
-                    return true;
-            }
-            else if(!bold && ital) {
-                if(readTTFStyle(ttfSizei, ttfFonti, ttf_fh))
-                    return true;
-            }
-            else {
-                if(readTTFStyle(ttfSize, ttfFont, ttf_fh))
-                    return true;
-            }
-        }
-        fclose(ttf_fh);
-    }
+    if (ttf_fh) {
+		if (!fseek(ttf_fh, 0, SEEK_END))
+			if (((bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))) = ftell(ttf_fh)) != -1L)
+				if ((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))) = malloc((size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))))
+					if (!fseek(ttf_fh, 0, SEEK_SET))
+						if (fread((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))), 1, (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))), ttf_fh) == (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))) {
+							fclose(ttf_fh);
+							return true;
+						}
+		fclose(ttf_fh);
+	}
     if (!failName.size()||failName.compare(fName)) {
         failName=std::string(fName);
         std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
@@ -3694,6 +3671,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
 
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
+        if (fsize&&!IS_PC98_ARCH&&!IS_EGAVGA_ARCH) ttf.lins = 25;
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
             if (ttf.cols<1) ttf.cols=80;
             if (ttf.lins<1) ttf.lins=25;
@@ -3706,7 +3684,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
                 c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             if (ttf.lins<1||ttf.cols<1)	{
                 if (ttf.cols<1)
@@ -3732,7 +3710,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 }
                 if (!IS_PC98_ARCH) {
                     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-                    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
+                    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
                 }
             }
             firstset=false;
@@ -3743,7 +3721,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
                 c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             ttf.cols=c;
             ttf.lins=r;
@@ -5352,7 +5330,7 @@ static void GUI_StartUp() {
 
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","Quit from DOSBox-X", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
-    item->set_text("Quit");
+    item->set_text("Quit from DOSBox-X");
 #endif
 
     MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
@@ -6263,7 +6241,7 @@ void ClipKeySelect(int sym) {
         if (sym==SDLK_LEFT && (selmark?selecol:selscol)>0) (selmark?selecol:selscol)--;
         else if (sym==SDLK_RIGHT && (selmark?selecol:selscol)<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
         else if (sym==SDLK_UP && (selmark?selerow:selsrow)>0) (selmark?selerow:selsrow)--;
-        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS))) (selmark?selerow:selsrow)++;
+        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24))) (selmark?selerow:selsrow)++;
         Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, true);
     }
 }
@@ -10328,6 +10306,42 @@ void Load_mapper_file() {
 #endif
 }
 
+void Restart_config_file() {
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
+    assert(section != NULL);
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.conf","*.CONF"};
+    const char *lFilterDescription = "DOSBox-X config files (*.map)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select config file",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+            void RebootConfig(std::string filename, bool confirm=false);
+            RebootConfig(name, true);
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
+}
+
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10542,7 +10556,7 @@ bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     if (CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
         return true;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
-        const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
+        const auto rows = (IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS):24);
         const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
         INT10_ScrollWindow(0, 0, rows, static_cast<uint8_t>(cols), -rows, 0x7, 0xff);
         INT10_SetCursorPos(0, 0, 0);
@@ -10569,8 +10583,10 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     uint16_t oldax=reg_ax, oldbx=reg_bx;
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
+    if (IS_PC98_ARCH||machine==MCH_CGA||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)) {
+        systemmessagebox("Warning", "High intensity is not supported for the current video mode.", "ok","warning", 1);
         return true;
+    }
     if (!strcmp(mname, "text_background"))
         reg_bl = 0;
     else
@@ -10646,7 +10662,7 @@ void ttf_setlines(int cols, int lins) {
     firstset=true;
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
+    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
     vga.draw.address_add = ttf.cols * 2;
 }
 #endif
@@ -11370,6 +11386,13 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
     GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
+    return true;
+}
+
+bool restartconf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+    Restart_config_file();
     return true;
 }
 
@@ -13527,6 +13550,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);

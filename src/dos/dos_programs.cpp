@@ -90,7 +90,7 @@ bool qmount = false;
 bool nowarn = false;
 extern bool mountfro[26], mountiro[26];
 
-void DOS_EnableDriveMenu(char drv);
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
 #if defined(OS2)
@@ -177,7 +177,7 @@ void DetachFromBios(imageDisk* image) {
     }
 }
 
-extern std::string hidefiles;
+extern std::string hidefiles, dosbox_title;
 extern int swapInDisksSpecificDrive;
 extern bool dos_kernel_disabled, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
@@ -5860,7 +5860,7 @@ void MODE::Run(void) {
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
         if (IS_PC98_ARCH) return;
         int LINES = 25, COLS = 80;
-        LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
         COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (cmd->GetCount()<2) {
             WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
@@ -6454,6 +6454,39 @@ void TREE::Run()
 
 static void TREE_ProgramStart(Program * * make) {
     *make=new TREE;
+}
+
+class TITLE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Sets the window title for the DOSBox-X window.\n\n"
+           "TITLE [string]\n\n"
+           "  string       Specifies the title for the DOSBox-X window.\n";
+        WriteOut(msg);
+	}
+};
+
+void TITLE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+    dosbox_title=trim(args);
+    SetVal("dosbox", "title", dosbox_title);
+    GFX_SetTitle(-1,-1,-1,false);
+}
+
+static void TITLE_ProgramStart(Program * * make) {
+    *make=new TITLE;
 }
 
 class COLOR : public Program {
@@ -7665,6 +7698,7 @@ void DOS_SetupPrograms(void) {
 	}
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");

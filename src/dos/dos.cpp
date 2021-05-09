@@ -1008,7 +1008,11 @@ static Bitu DOS_21Handler(void) {
             break;  
         case 0x0e:      /* Select Default Drive */
             DOS_SetDefaultDrive(reg_dl);
-            reg_al=DOS_DRIVES;
+            {
+                int drive=maxdrive>=1&&maxdrive<=26?maxdrive:1;
+                for (uint16_t i=drive;i<DOS_DRIVES;i++) if (Drives[i]) drive=i+1;
+                reg_al=drive;
+            }
             break;
         case 0x0f:      /* Open File using FCB */
             if(DOS_FCBOpen(SegValue(ds),reg_dx)){

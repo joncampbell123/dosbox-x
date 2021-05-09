@@ -7,7 +7,15 @@
     4DOS, BIN, DEBUG, DOS, SYSTEM, TEXTUTIL. Most files
     that previously appeared on the root directory of
     Z drive are now categorized into directories, with
-    addition of some files/programs. (Wengier)
+    addition of some files/programs, such as additional
+    4DOS files, text utilties in TEXTUTIL directory and
+    TITLE command to change window title. (Wengier)
+  - The return value of AL in Int21/AX=0Eh is no longer
+    fixed. The game Jurassic Park may run after moving
+    Z drive to a different letter (e.g. E:). (Wengier)
+  - Added "Restart DOSBox-X with config file..." menu
+    option to start DOSBox-X with the specified config
+    file automatically from the menu. (Wengier)
   - Added "Refresh rate..." menu option (under "Video")
     to set the video refresh rate. (Wengier)
   - Added "Enable A20 gate" menu option (under "DOS")
@@ -25,6 +33,8 @@
   - Added menu options "Generate NMI interrupt" & "Hook
     INT 2Fh calls" ("Help" => "Debugging options") for
     more debugging options. (Wengier)
+  - Fixed issues related to screen dimensions in TTF
+    output in CGA/EGA modes since 0.83.12. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4443: Improve detection of Paradise SVGA in some
     installers with additional signature.

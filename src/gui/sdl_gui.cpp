@@ -127,7 +127,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 #if defined(WIN32)
         ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
 #else
-        system((exepath+" "+para).c_str());
+        system((exepath+" "+para+ " &").c_str());
 #endif
         throw(0);
     }
