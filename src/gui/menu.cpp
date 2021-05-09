@@ -135,8 +135,7 @@ static const char *def_menu_main[] =
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "--",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "restartconf",
     "mapper_shutdown",
 #endif
     NULL

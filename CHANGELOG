@@ -7,7 +7,11 @@
     4DOS, BIN, DEBUG, DOS, SYSTEM, TEXTUTIL. Most files
     that previously appeared on the root directory of
     Z drive are now categorized into directories, with
-    addition of some files/programs. (Wengier)
+    addition of some files/programs, such as additional
+    4DOS files and TITLE command. (Wengier)
+  - Added "Restart DOSBox-X with config file..." menu
+    option to start DOSBox-X with the specified config
+    file automatically from the menu. (Wengier)
   - Added "Refresh rate..." menu option (under "Video")
     to set the video refresh rate. (Wengier)
   - Added "Enable A20 gate" menu option (under "DOS")

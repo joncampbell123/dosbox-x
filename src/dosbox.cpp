@@ -1814,7 +1814,8 @@ void DOSBOX_SetupConfigSections(void) {
             "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
 
     Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
+    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode.\n"
+                    "This parameter is also changeable from the builtin CGASNOW command in CGA mode.");
 
     /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
     Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);

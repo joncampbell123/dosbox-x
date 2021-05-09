@@ -176,7 +176,7 @@ void DetachFromBios(imageDisk* image) {
     }
 }
 
-extern std::string hidefiles;
+extern std::string hidefiles, dosbox_title;
 extern int swapInDisksSpecificDrive;
 extern bool dos_kernel_disabled, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
@@ -6459,6 +6459,39 @@ static void TREE_ProgramStart(Program * * make) {
     *make=new TREE;
 }
 
+class TITLE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Sets the window title for the DOSBox-X window.\n\n"
+           "TITLE [string]\n\n"
+           "  string       Specifies the title for the DOSBox-X window.\n";
+        WriteOut(msg);
+	}
+};
+
+void TITLE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+    dosbox_title=trim(args);
+    SetVal("dosbox", "title", dosbox_title);
+    GFX_SetTitle(-1,-1,-1,false);
+}
+
+static void TITLE_ProgramStart(Program * * make) {
+    *make=new TITLE;
+}
+
 class COLOR : public Program {
 public:
     void Run(void);
@@ -7668,6 +7701,7 @@ void DOS_SetupPrograms(void) {
 	}
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
