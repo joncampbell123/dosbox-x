@@ -1027,6 +1027,7 @@ void DOSBOX_RealInit() {
 
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
+    else if (!IS_EGAVGA_ARCH) ttf.lins = 25;
 #endif
 
     // TODO: should be parsed by motherboard emulation

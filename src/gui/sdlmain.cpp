@@ -3683,7 +3683,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
                 c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             if (ttf.lins<1||ttf.cols<1)	{
                 if (ttf.cols<1)
@@ -3709,7 +3709,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 }
                 if (!IS_PC98_ARCH) {
                     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-                    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
+                    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
                 }
             }
             firstset=false;
@@ -3720,7 +3720,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
                 c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             ttf.cols=c;
             ttf.lins=r;
@@ -6240,7 +6240,7 @@ void ClipKeySelect(int sym) {
         if (sym==SDLK_LEFT && (selmark?selecol:selscol)>0) (selmark?selecol:selscol)--;
         else if (sym==SDLK_RIGHT && (selmark?selecol:selscol)<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
         else if (sym==SDLK_UP && (selmark?selerow:selsrow)>0) (selmark?selerow:selsrow)--;
-        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS))) (selmark?selerow:selsrow)++;
+        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24))) (selmark?selerow:selsrow)++;
         Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, true);
     }
 }
@@ -10555,7 +10555,7 @@ bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     if (CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
         return true;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
-        const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
+        const auto rows = (IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS):24);
         const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
         INT10_ScrollWindow(0, 0, rows, static_cast<uint8_t>(cols), -rows, 0x7, 0xff);
         INT10_SetCursorPos(0, 0, 0);
@@ -10661,7 +10661,7 @@ void ttf_setlines(int cols, int lins) {
     firstset=true;
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
+    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
     vga.draw.address_add = ttf.cols * 2;
 }
 #endif

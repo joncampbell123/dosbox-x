@@ -610,7 +610,7 @@ size_t GetPauseCount() {
 	if (IS_PC98_ARCH)
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	else
-		rows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+		rows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
 	return (rows > 3u) ? (rows - 3u) : 22u;
 }
 
@@ -2689,7 +2689,7 @@ void DOS_Shell::CMD_MORE(char * args) {
 		LINES=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 		COLS=80;
 	} else {
-		LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+		LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
 		COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 	}
 	LINES--;

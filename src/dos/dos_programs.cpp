@@ -5860,7 +5860,7 @@ void MODE::Run(void) {
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
         if (IS_PC98_ARCH) return;
         int LINES = 25, COLS = 80;
-        LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
         COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (cmd->GetCount()<2) {
             WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
