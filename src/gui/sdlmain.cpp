@@ -3671,6 +3671,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
 
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
+        if (fsize&&!IS_PC98_ARCH&&!IS_EGAVGA_ARCH) ttf.lins = 25;
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
             if (ttf.cols<1) ttf.cols=80;
             if (ttf.lins<1) ttf.lins=25;

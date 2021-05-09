@@ -7095,6 +7095,9 @@ int oldcols = 0, oldlins = 0;
 void showBIOSSetup(const char* card, int x, int y) {
     reg_eax = 3;        // 80x25 text
     CALLBACK_RunRealInt(0x10);
+#if defined(USE_TTF)
+    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
+#endif
     if (machine == MCH_PC98) {
         for (unsigned int i=0;i < (80*400);i++) {
             mem_writeb(0xA8000+i,0);        // B
@@ -8562,6 +8565,16 @@ private:
         GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
         bool textsplash = section->Get_bool("disable graphical splash");
+#if defined(USE_TTF)
+        if (TTF_using()) {
+            textsplash = true;
+            if (ttf.cols != 80 || ttf.lins != 25) {
+                oldcols = ttf.cols;
+                oldlins = ttf.lins;
+            } else
+                oldcols = oldlins = 0;
+        }
+#endif
         char logostr[8][30];
         strcpy(logostr[0], "+-------------------+");
         strcpy(logostr[1], "|    Welcome  To    |");
@@ -8577,17 +8590,6 @@ private:
         , SDL_STRING);
         sprintf(logostr[6], "|  Version %7s  |", VERSION);
         strcpy(logostr[7], "+-------------------+");
-#if defined(USE_TTF)
-        if (TTF_using()) {
-            textsplash = true;
-            if (ttf.cols != 80 || ttf.lins != 25) {
-                oldcols = ttf.cols;
-                oldlins = ttf.lins;
-                ttf_setlines(80, 25);
-            } else
-                oldcols = oldlins = 0;
-        }
-#endif
 startfunction:
         int logo_x,logo_y,x=2,y=2,rowheight=8;
         logo_y = 2;
@@ -8695,6 +8697,10 @@ startfunction:
             // TODO: For CGA, PCjr, and Tandy, we could render a 4-color CGA version of the same logo.
             //       And for MDA/Hercules, we could render a monochromatic ASCII art version.
         }
+
+#if defined(USE_TTF)
+        if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
+#endif
 
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
@@ -9086,9 +9092,6 @@ startfunction:
         }
 #endif
 
-#if defined(USE_TTF)
-        if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
-#endif
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
             CALLBACK_RunRealInt(0x18);
@@ -9117,6 +9120,12 @@ startfunction:
             reg_eax = 3;
             CALLBACK_RunRealInt(0x10);
         }
+#if defined(USE_TTF)
+        if (TTF_using() && oldcols>0 && oldlins>0) {
+            ttf_setlines(oldcols, oldlins);
+            oldcols = oldlins = 0;
+        }
+#endif
 
         return CBRET_NONE;
     }

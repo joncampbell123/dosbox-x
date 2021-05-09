@@ -30,6 +30,8 @@
   - Added menu options "Generate NMI interrupt" & "Hook
     INT 2Fh calls" ("Help" => "Debugging options") for
     more debugging options. (Wengier)
+  - Fixed issues related to screen dimensions in TTF
+    output in CGA/EGA modes since 0.83.12. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4443: Improve detection of Paradise SVGA in some
     installers with additional signature.
