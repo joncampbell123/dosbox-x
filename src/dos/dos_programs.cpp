@@ -480,6 +480,47 @@ std::string GetNewStr(const char *str) {
     return newstr;
 }
 
+void MenuBrowseCDImage(char drive, int num) {
+	if(control->SecureMode()) {
+#if !defined(HX_DOS)
+        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
+		return;
+	}
+
+    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
+#if !defined(HX_DOS)
+        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
+        if (!tinyfd_messageBox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
+#endif
+    } else
+        return;
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    char const * lTheOpenFileName;
+    std::string files="", fname="";
+    const char *lFilterPatterns[] = {"*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS"};
+    const char *lFilterDescription = "CD image files (*.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins)";
+    lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","",14,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        uint8_t mediaid = 0xF8;
+        int error = -1;
+        qmount = true;
+        DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+        qmount = false;
+        if (error) {
+            tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
+            return;
+        }
+        DriveManager::ChangeDisk(drive-'A', newDrive);
+	}
+	chdir( Temp_CurrentDir );
+#endif
+}
+
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string str(1, drive);
 	std::string drive_warn;

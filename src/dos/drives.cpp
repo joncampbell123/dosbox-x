@@ -271,6 +271,18 @@ void DriveManager::AppendDisk(int drive, DOS_Drive* disk) {
 	driveInfos[drive].disks.push_back(disk);
 }
 
+void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
+    DriveInfo& driveInfo = driveInfos[drive];
+    if (Drives[drive]==NULL||!driveInfo.disks.size()) return;
+    strcpy(disk->curdir,driveInfo.disks[driveInfo.currentDisk]->curdir);
+    disk->Activate();
+    disk->UpdateDPB(currentDrive);
+    driveInfo.disks[driveInfo.currentDisk] = disk;
+    Drives[drive] = disk;
+    Drives[drive]->EmptyCache();
+    Drives[drive]->MediaChange();
+}
+
 void DriveManager::InitializeDrive(int drive) {
 	currentDrive = drive;
 	DriveInfo& driveInfo = driveInfos[currentDrive];

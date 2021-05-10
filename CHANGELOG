@@ -13,6 +13,10 @@
   - The return value of AL in Int21/AX=0Eh is no longer
     fixed. The game Jurassic Park may run after moving
     Z drive to a different letter (e.g. E:). (Wengier)
+  - Added "Change current CD image..." menu option to
+    change the currently active ISO/CUE image(s) on CD
+    drives. This makes it possible to change active CD
+    images while guest systems are running. (Wengier)
   - Added "Restart DOSBox-X with config file..." menu
     option to start DOSBox-X with the specified config
     file automatically from the menu. (Wengier)

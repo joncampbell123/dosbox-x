@@ -492,19 +492,19 @@ static const char *def_menu_dos[] =
     "DOSWinMenu",
 #endif
     "--",
+    "enable_a20gate",
     "quick_reboot",
     "sync_host_datetime",
     "shell_config_commands",
     "--",
     "mapper_swapimg",
     "mapper_swapcd",
-    "mapper_rescanall",
+    "change_currentcd",
+    "make_diskimage",
     "--",
-    "enable_a20gate",
     "list_drivenum",
     "list_ideinfo",
-    "--",
-    "make_diskimage",
+    "mapper_rescanall",
 #if C_PRINTER
     "mapper_ejectpage",
 #endif

@@ -495,12 +495,13 @@ CDROM_Interface_Image::~CDROM_Interface_Image()
 	}
 }
 
+extern bool qmount;
 bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 {
 	(void)forceCD;//UNUSED
 	const bool result = LoadCueSheet(path) || LoadIsoFile(path) || LoadChdFile(path);
-	if (!result) {
-		// print error message on dosbox console
+	if (!result && !qmount) {
+		// print error message on dosbox-x console
 		char buf[MAX_LINE_LENGTH];
 		snprintf(buf, MAX_LINE_LENGTH, "Could not load image file: %s\r\n", path);
 		uint16_t size = (uint16_t)strlen(buf);
