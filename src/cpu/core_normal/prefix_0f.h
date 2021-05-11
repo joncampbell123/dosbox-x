@@ -400,6 +400,7 @@
 				SETFLAGBIT(CF,(*earw & mask));
 			} else {
 				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				if (!TEST_PREFIX_ADDR) FixEA16;
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
@@ -431,6 +432,7 @@
 				*earw|=mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				if (!TEST_PREFIX_ADDR) FixEA16;
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old | mask);
@@ -526,6 +528,7 @@
 				*earw&= ~mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				if (!TEST_PREFIX_ADDR) FixEA16;
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old & ~mask);
@@ -625,6 +628,7 @@
 				*earw^=mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				if (!TEST_PREFIX_ADDR) FixEA16;
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old ^ mask);
