@@ -775,7 +775,7 @@ bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
-void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num), MenuBrowseFDImage(char drive, int num);
+void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num), MenuBrowseFDImage(char drive, int num, int type);
 bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -806,7 +806,7 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
     for (unsigned int idrive=0; idrive<2; idrive++) {
         fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
         if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
-        MenuBrowseFDImage('A'+idrive, ++num);
+        MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
     }
     if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
     MAPPER_ReleaseAllKeys();

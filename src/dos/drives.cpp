@@ -265,6 +265,9 @@ const char * DOS_Drive::GetInfo(void) {
 }
 
 // static members variables
+extern int32_t swapPosition;
+extern int swapInDisksSpecificDrive;
+extern bool dos_kernel_disabled;
 int DriveManager::currentDrive;
 DriveManager::DriveInfo DriveManager::driveInfos[26];
 
@@ -279,16 +282,39 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     disk->Activate();
     disk->UpdateDPB(currentDrive);
     driveInfo.disks[driveInfo.currentDisk] = disk;
+    fatDrive *old = dynamic_cast<fatDrive*>(Drives[drive]);
     Drives[drive] = disk;
     Drives[drive]->EmptyCache();
     Drives[drive]->MediaChange();
     fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
-    if (drive<2 && imageDiskList[drive] && fdp && fdp->loadedDisk) {
-        imageDiskList[drive]->Release();
-        imageDiskList[drive] = fdp->loadedDisk;
-        imageDiskList[drive]->Addref();
-        imageDiskChange[drive] = true;
+    if (drive<2 && fdp && fdp->loadedDisk) {
+        if (imageDiskList[drive]) {
+            imageDiskList[drive]->Release();
+            imageDiskList[drive] = fdp->loadedDisk;
+            imageDiskList[drive]->Addref();
+            imageDiskChange[drive] = true;
+        }
+        if (swapInDisksSpecificDrive == drive && diskSwap[swapPosition]) {
+            diskSwap[swapPosition]->Release();
+            diskSwap[swapPosition] = fdp->loadedDisk;
+            diskSwap[swapPosition]->Addref();
+        }
+        if (!dos_kernel_disabled) {
+            char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+            RealPt save_dta = dos.dta();
+            dos.dta(dos.tables.tempdta);
+            DOS_DTA dta(dos.dta());
+            char root[7] = {(char)('A'+drive),':','\\','*','.','*',0};
+            bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+            if (ret) {
+                dta.GetResult(name,lname,size,date,time,attr);
+                DOS_FindNext();
+            } else name[0] = 0;
+            dos.dta(save_dta);
+        }
     }
+    if (old) old->UnMount();
 }
 
 void DriveManager::InitializeDrive(int drive) {

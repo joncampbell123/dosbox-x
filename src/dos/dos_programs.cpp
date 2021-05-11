@@ -521,7 +521,7 @@ void MenuBrowseCDImage(char drive, int num) {
 #endif
 }
 
-void MenuBrowseFDImage(char drive, int num) {
+void MenuBrowseFDImage(char drive, int num, int type) {
 	if(control->SecureMode()) {
 #if !defined(HX_DOS)
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
@@ -531,7 +531,8 @@ void MenuBrowseFDImage(char drive, int num) {
 
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9)) {
 #if !defined(HX_DOS)
-        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the floppy disk image now?";
+        std::string image = type==1?"El Torito floppy image":(type==2?"RAM floppy image":Drives[drive-'A']->GetInfo()+9);
+        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+image+"\n\nDo you want to change the floppy disk image now?";
         if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
