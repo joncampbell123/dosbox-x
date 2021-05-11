@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "dos_system.h"
+#include "bios_disk.h"
 #include "drives.h"
 #include "setup.h"
 #include "mapper.h"
@@ -281,6 +282,13 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     Drives[drive] = disk;
     Drives[drive]->EmptyCache();
     Drives[drive]->MediaChange();
+    fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+    if (drive<2 && imageDiskList[drive] && fdp && fdp->loadedDisk) {
+        imageDiskList[drive]->Release();
+        imageDiskList[drive] = fdp->loadedDisk;
+        imageDiskList[drive]->Addref();
+        imageDiskChange[drive] = true;
+    }
 }
 
 void DriveManager::InitializeDrive(int drive) {

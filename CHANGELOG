@@ -17,7 +17,7 @@
     Z drive to a different letter (e.g. E:). (Wengier)
   - Added "Change current floppy image..." and "Change
     current CD image..." menu options to change the
-    currently active floppy disk images on drive A: and
+    currently active floppy disk image(s) on drive A: &
     B: and ISO/CUE image(s) on CD drives respectively.
     This makes it possible to change the active floppy
     disk and/or CD images while a guest system (e.g.
