@@ -115,6 +115,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "zipfile.h"
 #include "shell.h"
 #include "glidedef.h"
+#include "bios_disk.h"
 #include "inout.h"
 #include "../dos/cdrom.h"
 #include "../dos/drives.h"
@@ -774,7 +775,7 @@ bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
-void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num);
+void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num), MenuBrowseFDImage(char drive, int num);
 bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -784,12 +785,30 @@ bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
-    for (unsigned int idrive=0; idrive<DOS_DRIVES; idrive++) {
+    for (unsigned int idrive=2; idrive<DOS_DRIVES; idrive++) {
         if (dos_kernel_disabled && std::find(v.begin(), v.end(), idrive) == v.end()) continue;
         if (dynamic_cast<const isoDrive*>(Drives[idrive]) == NULL) continue;
         MenuBrowseCDImage('A'+idrive, ++num);
     }
     if (!num) tinyfd_messageBox("Error","No CD drive is currently available.","ok","error", 1);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
+
+bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    int num=0;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+    for (unsigned int idrive=0; idrive<2; idrive++) {
+        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
+        if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
+        MenuBrowseFDImage('A'+idrive, ++num);
+    }
+    if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -13210,6 +13229,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(a20gate_on_menu_callback).check(MEM_A20_Enabled());
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentcd").set_text("Change current CD image...").
                     set_callback_function(change_currentcd_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentfd").set_text("Change current floppy image...").
+                    set_callback_function(change_currentfd_menu_callback);
             }
 
             {
