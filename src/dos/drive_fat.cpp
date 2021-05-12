@@ -1668,16 +1668,26 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
             }
         }
 
-        bootbuffer.bpb.v.BPB_BytsPerSec = var_read(&bootbuffer.bpb.v.BPB_BytsPerSec);
-        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read(&bootbuffer.bpb.v.BPB_RsvdSecCnt);
-        bootbuffer.bpb.v.BPB_RootEntCnt = var_read(&bootbuffer.bpb.v.BPB_RootEntCnt);
-        bootbuffer.bpb.v.BPB_TotSec16 = var_read(&bootbuffer.bpb.v.BPB_TotSec16);
-        bootbuffer.bpb.v.BPB_FATSz16 = var_read(&bootbuffer.bpb.v.BPB_FATSz16);
-        bootbuffer.bpb.v.BPB_SecPerTrk = var_read(&bootbuffer.bpb.v.BPB_SecPerTrk);
-        bootbuffer.bpb.v.BPB_NumHeads = var_read(&bootbuffer.bpb.v.BPB_NumHeads);
-        bootbuffer.bpb.v.BPB_HiddSec = var_read(&bootbuffer.bpb.v.BPB_HiddSec);
-        bootbuffer.bpb.v.BPB_TotSec32 = var_read(&bootbuffer.bpb.v.BPB_TotSec32);
-        bootbuffer.bpb.v.BPB_VolID = var_read(&bootbuffer.bpb.v.BPB_VolID);
+        void* var = &bootbuffer.bpb.v.BPB_BytsPerSec;
+        bootbuffer.bpb.v.BPB_BytsPerSec = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RsvdSecCnt;
+        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RootEntCnt;
+        bootbuffer.bpb.v.BPB_RootEntCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec16;
+        bootbuffer.bpb.v.BPB_TotSec16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_FATSz16;
+        bootbuffer.bpb.v.BPB_FATSz16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_SecPerTrk;
+        bootbuffer.bpb.v.BPB_SecPerTrk = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_NumHeads;
+        bootbuffer.bpb.v.BPB_NumHeads = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_HiddSec;
+        bootbuffer.bpb.v.BPB_HiddSec = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec32;
+        bootbuffer.bpb.v.BPB_TotSec32 = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_VolID;
+        bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
 
         if (!is_hdd) {
             /* Identify floppy format */
