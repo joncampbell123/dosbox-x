@@ -2339,14 +2339,22 @@ uint8_t fatDrive::Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) {
 
 static void copyDirEntry(const direntry *src, direntry *dst) {
 	memcpy(dst, src, 14); // single byte fields
-	var_write(&dst->crtTime, src->crtTime);
-	var_write(&dst->crtDate, src->crtDate);
-	var_write(&dst->accessDate, src->accessDate);
-	var_write(&dst->hiFirstClust, src->hiFirstClust);
-	var_write(&dst->modTime, src->modTime);
-	var_write(&dst->modDate, src->modDate);
-	var_write(&dst->loFirstClust, src->loFirstClust);
-	var_write(&dst->entrysize, src->entrysize);
+    void* var = &dst->crtTime;
+	var_write((uint16_t*)var, src->crtTime);
+    var = &dst->crtDate;
+	var_write((uint16_t*)var, src->crtDate);
+    var = &dst->accessDate;
+	var_write((uint16_t*)var, src->accessDate);
+    var = &dst->hiFirstClust;
+	var_write((uint16_t*)var, src->hiFirstClust);
+    var = &dst->modTime;
+	var_write((uint16_t*)var, src->modTime);
+    var = &dst->modDate;
+	var_write((uint16_t*)var, src->modDate);
+    var = &dst->loFirstClust;
+	var_write((uint16_t*)var, src->loFirstClust);
+    var = &dst->entrysize;
+	var_write((uint32_t*)var, src->entrysize);
 }
 
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
