@@ -10,9 +10,25 @@
     addition of some files/programs, such as additional
     4DOS files, text utilties in TEXTUTIL directory and
     TITLE command to change window title. (Wengier)
+  - CHCP command in the Truetype font (TTF) output now
+    allows code page 932, 936, 949, and 950 to display
+    Chinese, Japanese and Korean characters and file
+    names with DBCS support enabled in non-PC98 mode.
+    By default DOSBox-X will enable auto-detection for
+    box-drawing characters, and this can be disabled by
+    the new option "ttf.autoboxdraw=false". (Wengier)
+  - Command-line option -fastlaunch will now suppress
+    messages by "automountall=true" option. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer
     fixed. The game Jurassic Park may run after moving
     Z drive to a different letter (e.g. E:). (Wengier)
+  - Added "Change current floppy image..." and "Change
+    current CD image..." menu options to change the
+    currently active floppy disk image(s) on drive A: &
+    B: and ISO/CUE image(s) on CD drives respectively.
+    This makes it possible to change the active floppy
+    disk and/or CD images while a guest system (e.g.
+    Windows 9x) is currently running. (Wengier)
   - Added "Restart DOSBox-X with config file..." menu
     option to start DOSBox-X with the specified config
     file automatically from the menu. (Wengier)

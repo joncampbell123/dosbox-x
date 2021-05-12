@@ -64,6 +64,7 @@ extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
+bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
@@ -114,8 +115,10 @@ void GFX_OpenGLRedrawScreen(void);
 #include "zipfile.h"
 #include "shell.h"
 #include "glidedef.h"
+#include "bios_disk.h"
 #include "inout.h"
 #include "../dos/cdrom.h"
+#include "../dos/drives.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
 #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
@@ -267,6 +270,7 @@ void d3d_init(void);
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
+void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();
 void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight);
 int GetNumScreen();
 extern SHELL_Cmd cmd_list[];
@@ -287,6 +291,7 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
+bool autoboxdraw = true;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -329,7 +334,6 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 }
 #endif
 extern int dos_clipboard_device_access;
-extern bool dos_kernel_disabled;
 extern bool sync_time, manualtime;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive, resolveopt;
@@ -398,7 +402,12 @@ bool drive_mounthd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseFolder(drive+'A', "LOCAL");
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -420,7 +429,12 @@ bool drive_mountcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseFolder(drive+'A', "CDROM");
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -442,7 +456,12 @@ bool drive_mountfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseFolder(drive+'A', "FLOPPY");
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -475,7 +494,12 @@ bool drive_mountarc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseImageFile(drive+'A', true, false, false);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -497,7 +521,12 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseImageFile(drive+'A', false, false, false);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -519,7 +548,12 @@ bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseImageFile(drive+'A', false, false, true);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -551,7 +585,12 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
     MenuBrowseImageFile(drive+'A', false, true, false);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -630,7 +669,6 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
 }
 
 int statusdrive=-1;
-void MAPPER_ReleaseAllKeys();
 bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -704,7 +742,6 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     NULL
 };
 
-void GFX_ReleaseMouse();
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
     bool fs=sdl.desktop.fullscreen;
@@ -736,6 +773,45 @@ bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
         std::string msg = "The A20 gate may be locked and cannot be "+std::string(bef?"disabled":"enabled")+".";
         systemmessagebox("Warning",msg.c_str(),"ok", "info", 1);
     }
+    return true;
+}
+
+void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num), MenuBrowseFDImage(char drive, int num, int type);
+bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    std::vector<int> v = {};
+    if (dos_kernel_disabled) Get_IDECD_drives(v);
+    int num=0;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+    for (unsigned int idrive=2; idrive<DOS_DRIVES; idrive++) {
+        if (dos_kernel_disabled && std::find(v.begin(), v.end(), idrive) == v.end()) continue;
+        if (dynamic_cast<const isoDrive*>(Drives[idrive]) == NULL) continue;
+        MenuBrowseCDImage('A'+idrive, ++num);
+    }
+    if (!num) tinyfd_messageBox("Error","No CD drive is currently available.","ok","error", 1);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
+
+bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    int num=0;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+    for (unsigned int idrive=0; idrive<2; idrive++) {
+        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
+        if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
+        MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
+    }
+    if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
     return true;
 }
 
@@ -1051,7 +1127,6 @@ Bitu time_limit_ms = 0;
 
 extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
-extern bool dos_kernel_disabled;
 bool guest_machine_power_on = false;
 
 std::string custom_savedir, savefilename = "";
@@ -1266,7 +1341,6 @@ double                      rtdelta = 0;
 bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
 bool                        fullscreen_switch = true;
-bool                        dos_kernel_disabled = true;
 bool                        startup_state_numlock = false; // Global for keyboard initialisation
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
@@ -3440,6 +3514,18 @@ bool setColors(const char *colorArray, int n) {
 	return true;
 }
 
+bool readTTFStyle(unsigned long& size, void*& font, FILE * fh) {
+    size = ftell(fh);
+    if (size != -1L) {
+        font = malloc((size_t)size);
+        if (font && !fseek(fh, 0, SEEK_SET) && fread(font, 1, (size_t)size, fh) == (size_t)size) {
+            fclose(fh);
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string failName="";
 bool readTTF(const char *fName, bool bold, bool ital) {
 	FILE * ttf_fh = NULL;
@@ -3524,16 +3610,18 @@ bool readTTF(const char *fName, bool bold, bool ital) {
         }
     }
     if (ttf_fh) {
-		if (!fseek(ttf_fh, 0, SEEK_END))
-			if (((bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))) = ftell(ttf_fh)) != -1L)
-				if ((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))) = malloc((size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))))
-					if (!fseek(ttf_fh, 0, SEEK_SET))
-						if (fread((bold&&ital?ttfFontbi:(bold&&!ital?ttfFontb:(!bold&&ital?ttfFonti:ttfFont))), 1, (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize))), ttf_fh) == (size_t)(bold&&ital?ttfSizebi:(bold&&!ital?ttfSizeb:(!bold&&ital?ttfSizei:ttfSize)))) {
-							fclose(ttf_fh);
-							return true;
-						}
-		fclose(ttf_fh);
-	}
+        if (!fseek(ttf_fh, 0, SEEK_END)) {
+            if (bold && ital && readTTFStyle(ttfSizebi, ttfFontbi, ttf_fh))
+                return true;
+            else if (bold && !ital && readTTFStyle(ttfSizeb, ttfFontb, ttf_fh))
+                return true;
+            else if (!bold && ital && readTTFStyle(ttfSizei, ttfFonti, ttf_fh))
+                return true;
+            else if (readTTFStyle(ttfSize, ttfFont, ttf_fh))
+                return true;
+        }
+        fclose(ttf_fh);
+    }
     if (!failName.size()||failName.compare(fName)) {
         failName=std::string(fName);
         std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
@@ -3649,6 +3737,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         showital = render_section->Get_bool("ttf.italic");
         showline = render_section->Get_bool("ttf.underline");
         showsout = render_section->Get_bool("ttf.strikeout");
+        autoboxdraw = render_section->Get_bool("ttf.autoboxdraw");
         const char *outputstr=render_section->Get_string("ttf.outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))
@@ -4893,8 +4982,10 @@ static const uint16_t cpMap_PC98[256] = {
 };
 
 extern int eurAscii;
+extern bool enable_dbcs_tables;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
+    int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
         static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
@@ -4902,7 +4993,6 @@ int setTTFCodePage() {
         return 0;
     }
 
-    int cp = dos.loaded_codepage;
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
         char text[2];
@@ -4912,7 +5002,9 @@ int setTTFCodePage() {
             text[1]=0;
             uname[0]=0;
             uname[1]=0;
+            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
             CodePageGuestToHostUint16(uname,text);
+            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
         uint16_t unimap;
@@ -7720,8 +7812,14 @@ void GFX_Events() {
 	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
-    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
+    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was 20 - good for WP51; Wengier: changed to 30 for better compatibility
+        int len = strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
+#if defined(USE_TTF)
+        bool isDBCSCP();
+        if (len > strPasteBuffer.length() && TTF_using() && isDBCSCP()) resetFontSize();
+#endif
+    }
 }
 
 void Null_Init(Section *sec);
@@ -13138,8 +13236,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("DOS");
 
             {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_a20gate").set_text("Enable A20 gate").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_a20gate").set_text("Enable A20 gate").
                     set_callback_function(a20gate_on_menu_callback).check(MEM_A20_Enabled());
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentcd").set_text("Change current CD image...").
+                    set_callback_function(change_currentcd_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentfd").set_text("Change current floppy image...").
+                    set_callback_function(change_currentfd_menu_callback);
             }
 
             {

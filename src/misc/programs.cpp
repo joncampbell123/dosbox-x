@@ -562,7 +562,7 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program, bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
 
 void CONFIG::Run(void) {
@@ -1362,7 +1362,7 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
                             } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
-                                if (section->Get_bool("automountall")) MountAllDrives(this);
+                                if (section->Get_bool("automountall")) MountAllDrives(this, false);
                             } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
                                 clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {

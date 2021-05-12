@@ -50,7 +50,7 @@
 
 extern bool log_int21;
 extern bool log_fileio;
-extern bool enable_share_exe;
+extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
 extern char *dos_clipboard_device_name;
 
@@ -65,8 +65,8 @@ int sdrive = 0;
  * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
-
-bool shiftjis_lead_byte(int c);
+extern uint8_t lead[6];
+bool shiftjis_lead_byte(int c), isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -87,6 +87,12 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
 	char names[LFN_NAMELENGTH];
 	strcpy(names,name);
 	char * name_int = names;
@@ -130,7 +136,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 			else if (c==' ') continue; /* should be separator */
 		}
 		upname[w++]=(char)c;
-        if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isDBCSLB(c, lead))) && r<DOS_PATHLENGTH) {
             /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
             upname[w++]=name_int[r++];
         }
@@ -1245,6 +1251,12 @@ static bool isvalid(const char in){
 #define PARSE_RET_BADDRIVE      0xff
 
 uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string, uint8_t *change) {
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
     const char* string_begin = string;
 	uint8_t ret=0;
 	if (!(parser & PARSE_DFLT_DRIVE)) {
@@ -1311,7 +1323,7 @@ uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string,
 	/* Copy the name */	
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=(char)nc;
                 string++;
@@ -1349,7 +1361,7 @@ checkext:
 	hasext=true;finished=false;fill=' ';index=0;
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=(char)nc;
                 string++;

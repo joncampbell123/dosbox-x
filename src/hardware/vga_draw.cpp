@@ -127,7 +127,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -3192,10 +3192,28 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+uint8_t lead[6];
 uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern const char* RunningProgram;
+
+bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
+    return (c1 == 196 && c2 == 196 && c3 == 196 && (c4 == 180 || c4 == 182 || c4 == 183 || c4 == 189 || c4 == 191 || c4 == 193 || c4 == 194 || c4 == 196 || c4 == 197 || c4 == 208 || c4 == 210 || c4 == 215 || c4 == 217)) ||
+    ((c1 == 192 || c1 == 193 || c1 == 194 || c1 == 195 || c1 == 196 || c1 == 197 || c1 == 199 || c1 == 208 || c1 == 210 || c1 == 211 || c1 == 214 || c1 == 215 || c1 == 218) && c2 == 196 && c3 == 196 && c4 == 196) ||
+    (c1 == 205 && c2 == 205 && c3 == 205 && (c4 == 181 || c4 == 184 || c4 == 185 || c4 == 187 || c4 == 188 || c4 == 189 || c4 == 190 || c4 == 202 || c4 == 203 || c4 == 205 || c4 == 207 || c4 == 209 || c4 == 216)) ||
+    ((c1 == 198 || c1 == 200 || c1 == 201 || c1 == 202 || c1 == 203 || c1 == 204 || c1 == 205 || c1 == 206 || c1 == 207 || c1 == 209 || c1 == 212 || c1 == 213 || c1 == 216) && c2 == 205 && c3 == 205 && c4 == 205) ||
+    (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) ||
+    (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220);
+}
+
+bool isDBCSCP() {
+    return !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+}
+
+bool isDBCSLB(uint8_t chr, uint8_t* lead) {
+    return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
+}
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
@@ -3690,11 +3708,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
+        uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
             const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
-            uint16_t uname[4];
 
             // TTF output only looks at VGA emulation state for cursor status,
             // which PC-98 mode does not update.
@@ -3804,15 +3822,48 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
+            bool dbw=false, bd[txtMaxCols];
+            for (int i=0; i<6; i++) lead[i] = 0;
+            if (isDBCSCP())
+                for (int i=0; i<6; i++) {
+                    lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+                    if (lead[i] == 0) break;
+                }
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     for (Bitu col=0;col < ttf.cols;col++) {
+                        dbw=false;
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
+                        if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+2) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
+                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else
+                                    boxdefault=true;
+                            }
+                            if (boxdefault) {
+                                char text[3];
+                                text[0]=(*draw).chr & 0xFF;
+                                text[1]=*(vidmem+2) & 0xFF;
+                                text[2]=0;
+                                uname[0]=0;
+                                uname[1]=0;
+                                CodePageGuestToHostUint16(uname,text);
+                                if (uname[0]!=0&&uname[1]==0) {
+                                    (*draw).chr=uname[0];
+                                    (*draw).doublewide=1;
+                                    (*draw).unicode=1;
+                                    dbw=true;
+                                }
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
@@ -3831,10 +3882,35 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             } else {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
-                        (*draw).chr = *vidmem;
+                        (*draw).chr = *vidmem & 0xFF;
+                        if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+1) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
+                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else
+                                    boxdefault=true;
+                            }
+                            if (boxdefault) {
+                                char text[3];
+                                text[0]=(*draw).chr & 0xFF;
+                                text[1]=*(vidmem+1) & 0xFF;
+                                text[2]=0;
+                                uname[0]=0;
+                                uname[1]=0;
+                                CodePageGuestToHostUint16(uname,text);
+                                if (uname[0]!=0&&uname[1]==0) {
+                                    (*draw).chr=uname[0];
+                                    (*draw).doublewide=1;
+                                    (*draw).unicode=1;
+                                    dbw=true;
+                                }
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
                         Bitu background = attr >> 4;

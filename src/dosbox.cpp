@@ -2359,6 +2359,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
+	Pbool = secprop->Add_bool("ttf.autoboxdraw", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will auto-enable ASCII box drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.");
+
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
@@ -3941,8 +3944,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable DBCS table.\n"
-            "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.\n");
+    Pbool->Set_help("Enable DBCS table and Chinese, Japanese, Korean support for the TrueType font (TTF) output.\n"
+            "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable filename char table");

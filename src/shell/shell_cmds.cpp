@@ -3975,12 +3975,15 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 
 #if defined(USE_TTF)
 int setTTFCodePage(void);
+void runRescan(const char *str), SetupDBCSTable();
 void toSetCodePage(DOS_Shell *shell, int newCP) {
-    if (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874) {
+    if (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950) {
 		dos.loaded_codepage = newCP;
 		int missing = setTTFCodePage();
 		shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
         if (missing > 0) shell->WriteOut("Characters not defined in TTF font: %d\n", missing);
+        SetupDBCSTable();
+        runRescan("-A -Q");
     } else
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
 }

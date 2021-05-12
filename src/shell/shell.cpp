@@ -97,7 +97,7 @@ typedef std::list<std::string>::iterator auto_it;
 void VFILE_Remove(const char *name,const char *dir="");
 
 #if defined(WIN32)
-void MountAllDrives(Program * program) {
+void MountAllDrives(Program * program, bool quiet) {
     uint32_t drives = GetLogicalDrives();
     char name[4]="A:\\";
     for (int i=0; i<25; i++) {
@@ -106,7 +106,7 @@ void MountAllDrives(Program * program) {
             name[0]='A'+i;
             int type=GetDriveType(name);
             if (type!=DRIVE_NO_ROOT_DIR) {
-                program->WriteOut("Mounting %c: => %s..\n", name[0], name);
+                if (!quiet) program->WriteOut("Mounting %c: => %s..\n", name[0], name);
                 char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
                 name[2]=' ';
                 strcpy(mountstring,name);
@@ -114,8 +114,8 @@ void MountAllDrives(Program * program) {
                 strcat(mountstring,name);
                 strcat(mountstring," -Q");
                 runMount(mountstring);
-                if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
-                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+                if (!Drives[i] && !quiet) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
+                else if(mountwarning && !quiet && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
             }
         }
     }
@@ -686,7 +686,7 @@ void DOS_Shell::Run(void) {
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
-			if (sec->Get_bool("automountall")) MountAllDrives(this);
+			if (sec->Get_bool("automountall")) MountAllDrives(this, control->opt_fastlaunch);
 		}
 #endif
 		strcpy(i4dos_data, "");
@@ -1514,7 +1514,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");

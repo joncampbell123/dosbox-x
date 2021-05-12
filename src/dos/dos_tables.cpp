@@ -207,6 +207,39 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
     return PhysMake(dos.tables.dpb,dos_drive*dos.tables.dpb_size);
 }
 
+void SetupDBCSTable() {
+    if (enable_dbcs_tables) {
+        if (!dos.tables.dbcs) dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
+
+        // write a valid table, or else Windows 3.1 is unhappy.
+        // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
+        if (IS_PC98_ARCH || dos.loaded_codepage == 932) {   // Japanese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair 1
+            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0x9F);
+            mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);  // low/high DBCS pair 2
+            mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFC);
+            mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
+        } else if (dos.loaded_codepage == 936) {            // Simplified Chinese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0xA1);  // low/high DBCS pair
+            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
+            mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
+        } else if (dos.loaded_codepage == 949) {            // Korean
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair
+            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
+            mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
+        } else if (dos.loaded_codepage == 950) {            // Traditional Chinese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair
+            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
+            mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
+        } else {
+            mem_writed(Real2Phys(dos.tables.dbcs),0);       //empty table
+        }
+    }
+    else {
+        dos.tables.dbcs=0;
+    }
+}
+
 void DOS_SetupTables(void) {
 	uint16_t seg;uint16_t i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
@@ -237,28 +270,9 @@ void DOS_SetupTables(void) {
 	real_writed(seg,0x00,0x005c3a43);
 	dos_infoblock.SetCurDirStruct(RealMake(seg,0));
 
-
-
     /* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-    if (enable_dbcs_tables) {
-        dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
+    SetupDBCSTable();
 
-        if (IS_PC98_ARCH) {
-            // write a valid table, or else Windows 3.1 is unhappy.
-            // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair 1
-            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0x9F);
-            mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);  // low/high DBCS pair 2
-            mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFC);
-            mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
-        }
-        else {
-            mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
-        }
-    }
-    else {
-        dos.tables.dbcs=0;
-    }
 	/* FILENAME CHARACTER TABLE */
 	if (enable_filenamechar) {
 		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);

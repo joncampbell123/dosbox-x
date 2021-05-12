@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #include "cross.h"
 #include "support.h"
+#include "dos_inc.h"
 #include <string>
 #include <limits.h>
 #include <stdlib.h>
@@ -225,6 +226,7 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 #if defined (WIN32)
 typedef wchar_t host_cnv_char_t;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
+extern bool isDBCSCP();
 
 /* does the filename fit the 8.3 format? */
 static bool is_filename_8by3w(const wchar_t* fname) {
@@ -235,7 +237,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     i=0;
     while (*fname != 0 && *fname != L'.') {
 		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++; 
 	}
     if (i > 8) return false;
@@ -246,7 +248,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     i=0;
     while (*fname != 0 && *fname != L'.') {
 		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++;
 	}
     if (i > 3) return false;

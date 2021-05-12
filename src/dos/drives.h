@@ -36,6 +36,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom);
 class DriveManager {
 public:
 	static void AppendDisk(int drive, DOS_Drive* disk);
+	static void ChangeDisk(int drive, DOS_Drive* disk);
 	static void InitializeDrive(int drive);
 	static int UnmountDrive(int drive);
 	static char * GetDrivePosition(int drive);
