@@ -54,7 +54,7 @@
   - Integrated SVN commits (Allofich)
     - r4443: Improve detection of Paradise SVGA in some
     installers with additional signature.
-    - Improve bittest instructions to wrap more
+    - r4453: Improve bittest instructions to wrap more
     correctly. 
     - r4454: Enable A20 routines in BIOS.
 0.83.13
