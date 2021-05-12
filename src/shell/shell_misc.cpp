@@ -437,7 +437,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||IS_PC98_ARCH&&line[str_index-1]>32)&&line[str_index-2]<0) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0) {
                     backone();
                     str_index --;
                     MoveCaretBackwards();
@@ -495,7 +495,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||IS_PC98_ARCH&&line[str_index+1]>32)) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32)) {
                     outc((uint8_t)line[str_index++]);
                 }
                 if (str_index < str_len) {
@@ -589,7 +589,7 @@ void DOS_Shell::InputCommand(char * line) {
                 {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||IS_PC98_ARCH&&line[str_index+1]>32))
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -633,7 +633,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 {
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||IS_PC98_ARCH&&line[str_index-1]>32)&&line[str_index-2]<0)
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
