@@ -3941,7 +3941,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable DBCS table.\n"
+    Pbool->Set_help("Enable DBCS table (Chinese, Japanese, Korean support).\n"
             "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.\n");
 
     Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);

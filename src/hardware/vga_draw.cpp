@@ -3831,7 +3831,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             uname[1]=0;
                             CodePageGuestToHostUint16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
-                                LOG_MSG("uname[0] %X\n", uname[0]);
                                 (*draw).chr=uname[0];
                                 (*draw).doublewide=1;
                                 (*draw).unicode=1;
