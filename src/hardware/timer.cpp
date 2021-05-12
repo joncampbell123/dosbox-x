@@ -219,7 +219,6 @@ struct PIT_Block {
                 if (new_mode) return false;
                 if (res.cycle != 0u/*index > delay*/) return true;
                 else return false;
-                break;
             case 2:
                 if (new_mode) return true;
                 return res.counter != 0;
