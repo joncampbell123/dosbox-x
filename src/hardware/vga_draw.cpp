@@ -127,7 +127,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -3690,11 +3690,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
+        uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
             const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
-            uint16_t uname[4];
 
             // TTF output only looks at VGA emulation state for cursor status,
             // which PC-98 mode does not update.
@@ -3804,15 +3804,40 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
+            bool dbw=false;
+            uint8_t lead[6];
+            for (int i=0; i<6; i++) lead[i] = 0;
+            if (enable_dbcs_tables && (dos.loaded_codepage==932 || dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950))
+                for (int i=0; i<6; i++) {
+                    lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+                    if (lead[i] == 0) break;
+                }
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
                     for (Bitu col=0;col < ttf.cols;col++) {
+                        dbw=false;
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
+                        if (col<ttf.cols-1 && (lead[0]>=0x80 && lead[1] > lead[0] && (*draw).chr >= lead[0] && (*draw).chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && (*draw).chr >= lead[2] && (*draw).chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && (*draw).chr >= lead[4] && (*draw).chr <= lead[5]) && *(vidmem+2) >= 0x40) {
+                            char text[3];
+                            text[0]=(*draw).chr & 0xFF;
+                            text[1]=*(vidmem+2) & 0xFF;
+                            text[2]=0;
+                            uname[0]=0;
+                            uname[1]=0;
+                            CodePageGuestToHostUint16(uname,text);
+                            if (uname[0]!=0&&uname[1]==0) {
+                                LOG_MSG("uname[0] %X\n", uname[0]);
+                                (*draw).chr=uname[0];
+                                (*draw).doublewide=1;
+                                (*draw).unicode=1;
+                                dbw=true;
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
@@ -3834,7 +3859,22 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
-                        (*draw).chr = *vidmem;
+                        (*draw).chr = *vidmem & 0xFF;
+                        if (col<ttf.cols-1 && (lead[0]>=0x80 && lead[1] > lead[0] && (*draw).chr >= lead[0] && (*draw).chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && (*draw).chr >= lead[2] && (*draw).chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && (*draw).chr >= lead[4] && (*draw).chr <= lead[5]) && *(vidmem+1) >= 0x40) {
+                            char text[3];
+                            text[0]=(*draw).chr & 0xFF;
+                            text[1]=*(vidmem+1) & 0xFF;
+                            text[2]=0;
+                            uname[0]=0;
+                            uname[1]=0;
+                            CodePageGuestToHostUint16(uname,text);
+                            if (uname[0]!=0&&uname[1]==0) {
+                                (*draw).chr=uname[0];
+                                (*draw).doublewide=1;
+                                (*draw).unicode=1;
+                                dbw=true;
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
                         Bitu background = attr >> 4;

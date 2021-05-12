@@ -4980,16 +4980,17 @@ static const uint16_t cpMap_PC98[256] = {
 };
 
 extern int eurAscii;
+extern bool enable_dbcs_tables;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
-    if (IS_PC98_ARCH) {
+    int cp = dos.loaded_codepage;
+    if (IS_PC98_ARCH || (cp == 932 && enable_dbcs_tables)) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
         static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
         memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
         return 0;
     }
 
-    int cp = dos.loaded_codepage;
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
         char text[2];

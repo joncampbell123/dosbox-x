@@ -125,7 +125,7 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
-extern bool rsize, force_sfn, enable_share_exe;
+extern bool rsize, force_sfn, enable_share_exe, enable_dbcs_tables;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
@@ -1092,7 +1092,7 @@ again:
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
-        if (IS_PC98_ARCH)
+        if (IS_PC98_ARCH || (dos.loaded_codepage == 932 && enable_dbcs_tables))
             shiftjis_upcase(find_name);
         else
             upcase(find_name);

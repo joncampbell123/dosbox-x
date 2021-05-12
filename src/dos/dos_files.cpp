@@ -50,7 +50,7 @@
 
 extern bool log_int21;
 extern bool log_fileio;
-extern bool enable_share_exe;
+extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
 extern char *dos_clipboard_device_name;
 
@@ -130,7 +130,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 			else if (c==' ') continue; /* should be separator */
 		}
 		upname[w++]=(char)c;
-        if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+        if ((IS_PC98_ARCH || (dos.loaded_codepage == 932 && enable_dbcs_tables)) && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
             /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
             upname[w++]=name_int[r++];
         }
@@ -1311,7 +1311,7 @@ uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string,
 	/* Copy the name */	
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH || (dos.loaded_codepage == 932 && enable_dbcs_tables)) && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=(char)nc;
                 string++;
@@ -1349,7 +1349,7 @@ checkext:
 	hasext=true;finished=false;fill=' ';index=0;
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH || (dos.loaded_codepage == 932 && enable_dbcs_tables)) && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=(char)nc;
                 string++;

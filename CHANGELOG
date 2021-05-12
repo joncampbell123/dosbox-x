@@ -10,6 +10,9 @@
     addition of some files/programs, such as additional
     4DOS files, text utilties in TEXTUTIL directory and
     TITLE command to change window title. (Wengier)
+  - CHCP command in the Truetype font (TTF) output now
+    allows code page 932 for display Japanese filenames
+    when DBCS is enabled in non-PC98 mode. (Wengier)
   - Command-line option -fastlaunch will now suppress
     messages by "automountall=true" option. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer
