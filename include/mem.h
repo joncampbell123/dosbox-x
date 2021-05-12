@@ -145,7 +145,7 @@ static INLINE void host_writeq(HostPt const off,const uint64_t val) {
 
 
 static INLINE void var_write(uint8_t * const var, const uint8_t val) {
-    host_writeb((HostPt)var, val);
+    host_writeb(var, val);
 }
 
 static INLINE void var_write(uint16_t * const var, const uint16_t val) {
@@ -219,32 +219,32 @@ void mem_strcpy(PhysPt dest,PhysPt src);
 /* The folowing functions are all shortcuts to the above functions using physical addressing */
 
 static inline constexpr PhysPt PhysMake(const uint16_t seg,const uint16_t off) {
-    return ((PhysPt)seg << (PhysPt)4U) + (PhysPt)off;
+    return ((PhysPt)seg << 4U) + (PhysPt)off;
 }
 
 static inline constexpr uint16_t RealSeg(const RealPt pt) {
-    return (uint16_t)((RealPt)pt >> (RealPt)16U);
+    return (uint16_t)(pt >> 16U);
 }
 
 static inline constexpr uint16_t RealOff(const RealPt pt) {
-    return (uint16_t)((RealPt)pt & (RealPt)0xffffu);
+    return (uint16_t)(pt & 0xffffu);
 }
 
 static inline constexpr PhysPt Real2Phys(const RealPt pt) {
-    return (PhysPt)(((PhysPt)RealSeg(pt) << (PhysPt)4U) + (PhysPt)RealOff(pt));
+    return (((PhysPt)RealSeg(pt) << 4U) + (PhysPt)RealOff(pt));
 }
 
 static inline constexpr RealPt RealMake(const uint16_t seg,const uint16_t off) {
-    return (RealPt)(((RealPt)seg << (RealPt)16U) + (RealPt)off);
+    return (((RealPt)seg << 16U) + (RealPt)off);
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
 static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
-    return RealMake((uint16_t)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(uint16_t)((PhysPt)phys & (PhysPt)0xFFFFU));
+    return RealMake((uint16_t)((phys >> 4U) & 0xF000U),(uint16_t)(phys & 0xFFFFU));
 }
 
 static inline constexpr PhysPt RealVecAddress(const uint8_t vec) {
-    return (PhysPt)((unsigned int)vec << 2U);
+    return ((unsigned int)vec << 2U);
 }
 
 
@@ -274,7 +274,7 @@ static INLINE RealPt RealGetVec(const uint8_t vec) {
 }
 
 static INLINE void RealSetVec(const uint8_t vec,const RealPt pt) {
-    mem_writed(RealVecAddress(vec),(uint32_t)pt);
+    mem_writed(RealVecAddress(vec),pt);
 }
 
 static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
