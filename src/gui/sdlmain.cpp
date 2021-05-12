@@ -5002,9 +5002,9 @@ int setTTFCodePage() {
             text[1]=0;
             uname[0]=0;
             uname[1]=0;
-            if ((cp == 932 || cp == 936 || cp == 949 || cp == 950) && enable_dbcs_tables) dos.loaded_codepage = 437;
+            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
             CodePageGuestToHostUint16(uname,text);
-            if ((cp == 932 || cp == 936 || cp == 949 || cp == 950) && enable_dbcs_tables) dos.loaded_codepage = cp;
+            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
         uint16_t unimap;
