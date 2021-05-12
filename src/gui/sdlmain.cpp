@@ -7808,8 +7808,13 @@ void GFX_Events() {
 	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
-    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
+    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was %2, %20 is good for WP51
+        int len = strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
+#if defined(USE_TTF)
+        if (len > strPasteBuffer.length() && TTF_using() && !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables) resetFontSize();
+#endif
+    }
 }
 
 void Null_Init(Section *sec);
