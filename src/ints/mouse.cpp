@@ -116,7 +116,7 @@ struct button_event {
     uint8_t buttons;
 };
 
-extern bool enable_slave_pic, enable_dbcs_tables;
+extern bool enable_slave_pic;
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
 uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
@@ -717,6 +717,7 @@ uint8_t Mouse_GetButtonState(void) {
 #if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 #include "render.h"
 char text[5000];
+extern bool isDBCSCP();
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
 	uint16_t result=0, len=0;
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -809,12 +810,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 		r2=t;
 	}
 #if defined(USE_TTF)
-    if (ttf.inUse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||(dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950)&&enable_dbcs_tables)) {
+    if (ttf.inUse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP())) {
         ttf_cell *newAC = newAttrChar;
         for (int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||((IS_PC98_ARCH||((dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950)&&enable_dbcs_tables))&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
+                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP())&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[x].selected = select?1:0;
             newAC += ttf.cols;
         }

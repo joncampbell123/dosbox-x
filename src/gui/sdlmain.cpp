@@ -7816,7 +7816,8 @@ void GFX_Events() {
         int len = strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
 #if defined(USE_TTF)
-        if (len > strPasteBuffer.length() && TTF_using() && !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables) resetFontSize();
+        bool isDBCSCP();
+        if (len > strPasteBuffer.length() && TTF_using() && isDBCSCP()) resetFontSize();
 #endif
     }
 }

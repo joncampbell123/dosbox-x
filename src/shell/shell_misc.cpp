@@ -290,6 +290,8 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     return true;
 }
 
+extern uint8_t lead[6];
+extern bool isDBCSCP();
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
@@ -302,6 +304,12 @@ void DOS_Shell::InputCommand(char * line) {
     inshell = true;
     input_eof = false;
 	line[0] = '\0';
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
 
 	std::list<std::string>::iterator it_history = l_history.begin(), it_completion = l_completion.begin();
 
@@ -429,7 +437,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||IS_PC98_ARCH&&line[str_index-1]>32)&&line[str_index-2]<0) {
                     backone();
                     str_index --;
                     MoveCaretBackwards();
@@ -487,7 +495,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32)) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||IS_PC98_ARCH&&line[str_index+1]>32)) {
                     outc((uint8_t)line[str_index++]);
                 }
                 if (str_index < str_len) {
@@ -581,7 +589,7 @@ void DOS_Shell::InputCommand(char * line) {
                 {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32))
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||IS_PC98_ARCH&&line[str_index+1]>32))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -625,7 +633,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 {
                     int k=1;
-                    if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0)
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||IS_PC98_ARCH&&line[str_index-1]>32)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {

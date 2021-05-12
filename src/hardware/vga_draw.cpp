@@ -3192,6 +3192,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+uint8_t lead[6];
 uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -3204,6 +3205,14 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     ((c1 == 198 || c1 == 200 || c1 == 201 || c1 == 202 || c1 == 203 || c1 == 204 || c1 == 205 || c1 == 206 || c1 == 207 || c1 == 209 || c1 == 212 || c1 == 213 || c1 == 216) && c2 == 205 && c3 == 205 && c4 == 205))
         return true;
     return false;
+}
+
+bool isDBCSCP() {
+    return !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+}
+
+bool isDBCSLB(uint8_t chr, uint8_t* lead) {
+    return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
@@ -3814,9 +3823,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
             bool dbw=false, bd[txtMaxCols];
-            uint8_t lead[6];
             for (int i=0; i<6; i++) lead[i] = 0;
-            if (enable_dbcs_tables && (dos.loaded_codepage==932 || dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950))
+            if (isDBCSCP())
                 for (int i=0; i<6; i++) {
                     lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
                     if (lead[i] == 0) break;
@@ -3832,7 +3840,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
-                        if (col<ttf.cols-1 && (lead[0]>=0x80 && lead[1] > lead[0] && (*draw).chr >= lead[0] && (*draw).chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && (*draw).chr >= lead[2] && (*draw).chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && (*draw).chr >= lead[4] && (*draw).chr <= lead[5]) && *(vidmem+2) >= 0x40) {
+                        if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+2) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -3879,7 +3887,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
-                        if (col<ttf.cols-1 && (lead[0]>=0x80 && lead[1] > lead[0] && (*draw).chr >= lead[0] && (*draw).chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && (*draw).chr >= lead[2] && (*draw).chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && (*draw).chr >= lead[4] && (*draw).chr <= lead[5]) && *(vidmem+1) >= 0x40) {
+                        if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+1) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
