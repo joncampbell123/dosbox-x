@@ -13,7 +13,10 @@
   - CHCP command in the Truetype font (TTF) output now
     allows code page 932, 936, 949, and 950 to display
     Chinese, Japanese and Korean characters and file
-    names with DBCS enabled in non-PC98 mode. (Wengier)
+    names with DBCS support enabled in non-PC98 mode.
+    By default DOSBox-X will enable auto-detection for
+    box-drawing characters, and this can be disabled by
+    the new option "ttf.autoboxdraw=false". (Wengier)
   - Command-line option -fastlaunch will now suppress
     messages by "automountall=true" option. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer

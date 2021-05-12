@@ -291,6 +291,7 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
+bool autoboxdraw = true;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -3736,6 +3737,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         showital = render_section->Get_bool("ttf.italic");
         showline = render_section->Get_bool("ttf.underline");
         showsout = render_section->Get_bool("ttf.strikeout");
+        autoboxdraw = render_section->Get_bool("ttf.autoboxdraw");
         const char *outputstr=render_section->Get_string("ttf.outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))
@@ -4984,7 +4986,7 @@ extern bool enable_dbcs_tables;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
-    if (IS_PC98_ARCH || (cp == 932 && enable_dbcs_tables)) {
+    if (IS_PC98_ARCH) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
         static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
         memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
@@ -5000,7 +5002,9 @@ int setTTFCodePage() {
             text[1]=0;
             uname[0]=0;
             uname[1]=0;
+            if ((cp == 932 || cp == 936 || cp == 949 || cp == 950) && enable_dbcs_tables) dos.loaded_codepage = 437;
             CodePageGuestToHostUint16(uname,text);
+            if ((cp == 932 || cp == 936 || cp == 949 || cp == 950) && enable_dbcs_tables) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
         uint16_t unimap;
@@ -7808,7 +7812,7 @@ void GFX_Events() {
 	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
-    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was %2, %20 is good for WP51
+    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was 20 - good for WP51; Wengier: changed to 30 for better compatibility
         int len = strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
 #if defined(USE_TTF)
