@@ -1619,7 +1619,7 @@ static Bitu DOS_21Handler(void) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
-                    if (ttf.inUse && reg_bx == WPvga512CHMhandle)
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle){
                         if (toread == 26 || toread == 2) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
@@ -1636,6 +1636,7 @@ static Bitu DOS_21Handler(void) {
                             WPvga512CHMhandle = -1;
                             WPvga512CHMcheck = false;
                         }
+                    }
 #endif
                     CALLBACK_SCF(false);
                 }
