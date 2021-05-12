@@ -277,7 +277,7 @@ void DriveManager::AppendDisk(int drive, DOS_Drive* disk) {
 
 void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     DriveInfo& driveInfo = driveInfos[drive];
-    if (Drives[drive]==NULL||!driveInfo.disks.size()) return;
+    if (Drives[drive]==NULL||disk==NULL||!driveInfo.disks.size()) return;
     strcpy(disk->curdir,driveInfo.disks[driveInfo.currentDisk]->curdir);
     disk->Activate();
     disk->UpdateDPB(currentDrive);
