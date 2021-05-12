@@ -5751,7 +5751,33 @@ static Bitu INT15_Handler(void) {
     }
     switch (reg_ah) {
     case 0x06:
-        LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unkown Function 6 (Amstrad?)");
+        LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unknown Function 6 (Amstrad?)");
+        break;
+    case 0x24:      //A20 stuff
+        switch (reg_al) {
+        case 0: //Disable a20
+            MEM_A20_Enable(false);
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);             //clear on success
+            break;
+        case 1: //Enable a20
+            MEM_A20_Enable( true );
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);             //clear on success
+            break;
+        case 2: //Query a20
+            reg_al = MEM_A20_Enabled() ? 0x1 : 0x0;
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);
+            break;
+        case 3: //Get a20 support
+            reg_bx = 0x3;       //Bitmask, keyboard and 0x92
+            reg_ah = 0;         //call successful
+            CALLBACK_SCF(false);
+            break;
+        default:
+            goto unhandled;
+        }
         break;
     case 0xC0:  /* Get Configuration*/
         CPU_SetSegGeneral(es,biosConfigSeg);
@@ -6550,6 +6576,7 @@ static Bitu INT15_Handler(void) {
                 }
                 break;
             default:
+            unhandled:
                 LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ah=E8, al=%2X",reg_al);
                 reg_ah=0x86;
                 CALLBACK_SCF(true);

@@ -1627,7 +1627,7 @@ static Bitu DOS_21Handler(void) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
-                    if (ttf.inUse && reg_bx == WPvga512CHMhandle)
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle){
                         if (toread == 26 || toread == 2) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
@@ -1644,6 +1644,7 @@ static Bitu DOS_21Handler(void) {
                             WPvga512CHMhandle = -1;
                             WPvga512CHMcheck = false;
                         }
+                    }
 #endif
                     CALLBACK_SCF(false);
                 }
@@ -2519,7 +2520,7 @@ static Bitu DOS_21Handler(void) {
 					info->available_allocation_units = freec?freec:free_clusters;
 					info->total_allocation_units = totalc?totalc:total_clusters;
 					MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
-					delete(info);
+					delete info;
 					reg_ax=0;
 					CALLBACK_SCF(false);
 				}

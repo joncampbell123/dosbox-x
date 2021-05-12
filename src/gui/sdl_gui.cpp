@@ -2485,7 +2485,7 @@ public:
             else if (helpcmd=="RD") helpcmd="RMDIR";
             else if (helpcmd=="REN") helpcmd="RENAME";
             std::string helpinfo=std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP").c_str()))+"\n"+std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP_LONG").c_str()));
-            std::istringstream in(str_replace(str_replace(str_replace(str_replace((char *)helpinfo.c_str(), "%%", "%"), "\033[0m", ""), "\033[33;1m", ""), "\033[37;1m", ""));
+            std::istringstream in(str_replace(str_replace(str_replace(str_replace((char *)helpinfo.c_str(), (char*)"%%", (char*)"%"), (char*)"\033[0m", (char*)""), (char*)"\033[33;1m", (char*)""), (char*)"\033[37;1m", (char*)""));
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
