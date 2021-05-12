@@ -1514,7 +1514,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874,932\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");

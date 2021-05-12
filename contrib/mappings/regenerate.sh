@@ -18,4 +18,6 @@
 ./sb2u.pl cp872_to_unicode <CP872.TXT >../../include/cp872_uni.h || exit 1
 ./sb2u.pl cp874_to_unicode <CP874.TXT >../../include/cp874_uni.h || exit 1
 ./sjis2u.pl cp932_to_unicode <CP932.TXT >../../include/cp932_uni.h || exit 1
-
+./sjis2u.pl cp936_to_unicode <CP936.TXT >../../include/cp936_uni.h || exit 1
+./sjis2u.pl cp949_to_unicode <CP949.TXT >../../include/cp949_uni.h || exit 1
+./sjis2u.pl cp950_to_unicode <CP950.TXT >../../include/cp950_uni.h || exit 1

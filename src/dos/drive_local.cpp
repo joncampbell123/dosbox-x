@@ -87,6 +87,9 @@
 #include "cp872_uni.h"
 #include "cp874_uni.h"
 #include "cp932_uni.h"
+#include "cp936_uni.h"
+#include "cp949_uni.h"
+#include "cp950_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
@@ -199,7 +202,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS_uint16(uint16_t *d/*CROSS_
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -229,7 +232,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -414,6 +417,12 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default:
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
@@ -467,6 +476,12 @@ bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default: // Otherwise just use code page 437
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
     }
@@ -514,6 +529,12 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default:
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */

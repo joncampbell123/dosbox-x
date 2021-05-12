@@ -70,7 +70,7 @@ for ($y=0;$y < 65536;$y += $pagesize) {
     }
 }
 
-print "/* double-byte SHIFT-JIS charset to unicode. 0x0000 means no mapping */\n";
+print "/* DBCS (double-byte) charset to unicode. 0x0000 means no mapping */\n";
 print "/* hi = (code >> 6) */\n";
 print "/* lo = code & 0x3F */\n";
 print "/* rawoff = $arrayname"."_hitbl[hi] */\n";
