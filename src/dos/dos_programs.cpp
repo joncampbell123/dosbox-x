@@ -3360,7 +3360,6 @@ restart_int:
                     break;
                 default:
                     abort();
-                    break;
             }
 
             /* FAT32 increases reserved area to at least 7. Microsoft likes to use 32 */
@@ -3469,7 +3468,7 @@ restart_int:
                         case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * (512u / fat_copies)) / 3u) * 2u) + 2u; break;
                         case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 2u)       + 2u; break;
                         case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 4u)       + 2u; break;
-                        default:    abort(); break;
+                        default:    abort();
                     }
 
                     while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
@@ -7183,7 +7182,6 @@ public:
             }
             return;
         }
-        return;
     }
     void printHelp()
     {

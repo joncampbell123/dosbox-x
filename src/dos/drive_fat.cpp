@@ -1130,7 +1130,6 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 			break;
 		default:
 			abort();
-			break;
 	}
 
 	while (1) {
@@ -1668,16 +1667,26 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
             }
         }
 
-        bootbuffer.bpb.v.BPB_BytsPerSec = var_read(&bootbuffer.bpb.v.BPB_BytsPerSec);
-        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read(&bootbuffer.bpb.v.BPB_RsvdSecCnt);
-        bootbuffer.bpb.v.BPB_RootEntCnt = var_read(&bootbuffer.bpb.v.BPB_RootEntCnt);
-        bootbuffer.bpb.v.BPB_TotSec16 = var_read(&bootbuffer.bpb.v.BPB_TotSec16);
-        bootbuffer.bpb.v.BPB_FATSz16 = var_read(&bootbuffer.bpb.v.BPB_FATSz16);
-        bootbuffer.bpb.v.BPB_SecPerTrk = var_read(&bootbuffer.bpb.v.BPB_SecPerTrk);
-        bootbuffer.bpb.v.BPB_NumHeads = var_read(&bootbuffer.bpb.v.BPB_NumHeads);
-        bootbuffer.bpb.v.BPB_HiddSec = var_read(&bootbuffer.bpb.v.BPB_HiddSec);
-        bootbuffer.bpb.v.BPB_TotSec32 = var_read(&bootbuffer.bpb.v.BPB_TotSec32);
-        bootbuffer.bpb.v.BPB_VolID = var_read(&bootbuffer.bpb.v.BPB_VolID);
+        void* var = &bootbuffer.bpb.v.BPB_BytsPerSec;
+        bootbuffer.bpb.v.BPB_BytsPerSec = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RsvdSecCnt;
+        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RootEntCnt;
+        bootbuffer.bpb.v.BPB_RootEntCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec16;
+        bootbuffer.bpb.v.BPB_TotSec16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_FATSz16;
+        bootbuffer.bpb.v.BPB_FATSz16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_SecPerTrk;
+        bootbuffer.bpb.v.BPB_SecPerTrk = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_NumHeads;
+        bootbuffer.bpb.v.BPB_NumHeads = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_HiddSec;
+        bootbuffer.bpb.v.BPB_HiddSec = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec32;
+        bootbuffer.bpb.v.BPB_TotSec32 = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_VolID;
+        bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
 
         if (!is_hdd) {
             /* Identify floppy format */
@@ -2329,14 +2338,22 @@ uint8_t fatDrive::Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) {
 
 static void copyDirEntry(const direntry *src, direntry *dst) {
 	memcpy(dst, src, 14); // single byte fields
-	var_write(&dst->crtTime, src->crtTime);
-	var_write(&dst->crtDate, src->crtDate);
-	var_write(&dst->accessDate, src->accessDate);
-	var_write(&dst->hiFirstClust, src->hiFirstClust);
-	var_write(&dst->modTime, src->modTime);
-	var_write(&dst->modDate, src->modDate);
-	var_write(&dst->loFirstClust, src->loFirstClust);
-	var_write(&dst->entrysize, src->entrysize);
+    void* var = &dst->crtTime;
+	var_write((uint16_t*)var, src->crtTime);
+    var = &dst->crtDate;
+	var_write((uint16_t*)var, src->crtDate);
+    var = &dst->accessDate;
+	var_write((uint16_t*)var, src->accessDate);
+    var = &dst->hiFirstClust;
+	var_write((uint16_t*)var, src->hiFirstClust);
+    var = &dst->modTime;
+	var_write((uint16_t*)var, src->modTime);
+    var = &dst->modDate;
+	var_write((uint16_t*)var, src->modDate);
+    var = &dst->loFirstClust;
+	var_write((uint16_t*)var, src->loFirstClust);
+    var = &dst->entrysize;
+	var_write((uint32_t*)var, src->entrysize);
 }
 
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {

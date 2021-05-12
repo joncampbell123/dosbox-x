@@ -5632,7 +5632,7 @@ static void GUI_StartUp() {
         SDL_putenv(pos);
 #endif
     } else
-        putenv("SDL_VIDEO_CENTERED=center");
+        putenv((char*)"SDL_VIDEO_CENTERED=center");
 #endif
 
 /* Initialize screen for first time */
@@ -10612,7 +10612,7 @@ bool toOutput(const char *what) {
 #endif
         }
 #if !defined(C_SDL2)
-        putenv("SDL_VIDEO_CENTERED=center");
+        putenv((char*)"SDL_VIDEO_CENTERED=center");
 #endif
         firstset=false;
         change_output(10);
