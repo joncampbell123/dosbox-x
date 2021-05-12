@@ -134,7 +134,6 @@ bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track,
 		FRAMES_TO_MSF((unsigned int)cd->cur_frame+cd->track[track].offset,&absPos.min,&absPos.sec,&absPos.fr);
 	}
 	return CD_INDRIVE(SDL_CDStatus(cd));		
-    return false;
 }
 
 bool CDROM_Interface_SDL::GetAudioStatus(bool& playing, bool& pause){
