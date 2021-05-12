@@ -2512,7 +2512,7 @@ static Bitu DOS_21Handler(void) {
 					info->available_allocation_units = freec?freec:free_clusters;
 					info->total_allocation_units = totalc?totalc:total_clusters;
 					MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
-					delete(info);
+					delete info;
 					reg_ax=0;
 					CALLBACK_SCF(false);
 				}
