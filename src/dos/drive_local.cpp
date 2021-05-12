@@ -423,8 +423,6 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             }
             return String_HOST_TO_ASCII(d,s);
     }
-
-    return false;
 }
 
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -470,8 +468,6 @@ bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN
         default: // Otherwise just use code page 437
             return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
     }
-
-    return false;
 }
 
 bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -523,8 +519,6 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             }
             return String_ASCII_TO_HOST(d,s);
     }
-
-    return false;
 }
 
 host_cnv_char_t *CodePageGuestToHost(const char *s) {

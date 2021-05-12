@@ -1130,7 +1130,6 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 			break;
 		default:
 			abort();
-			break;
 	}
 
 	while (1) {
