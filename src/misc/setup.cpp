@@ -849,7 +849,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                         fprintf(outfile, "%s%s:", prefix, MSG_Get("CONFIG_SUGGESTED_VALUES"));
                         std::vector<Value>::const_iterator it = values.begin();
                         while (it != values.end()) {
-                            if ((*it).ToString() != "%u") { //Hack hack hack. else we need to modify GetValues, but that one is const...
+                            if ((*it).ToString() != "%u" && (strcmp(temp, "config") || p->propname != "numlock" || (*it).ToString() != "")) { //Hack hack hack. else we need to modify GetValues, but that one is const...
                                 if (it != values.begin()) fputs(",", outfile);
                                 fprintf(outfile, " %s", (*it).ToString().c_str());
                             }

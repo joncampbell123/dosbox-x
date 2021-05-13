@@ -917,9 +917,9 @@ public:
                     if (pv[k].ToString() =="%u")
                         propvalues += MSG_Get("PROGRAM_CONFIG_HLP_POSINT");
                     else propvalues += pv[k].ToString();
-                    if ((k+1) < pv.size()) propvalues += ", ";
+                    if ((k+1) < pv.size() && (title != "Config" || p->propname != "numlock" || pv[k+1].ToString() != "")) propvalues += ", ";
                 }
-                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+(propvalues==""?"":"\nPossible values: \033[32m"+propvalues+"\033[0m")+"\nDefault value: \033[32m"+p->Get_Default_Value().ToString()+"\033[0m\n\n";
+                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+(propvalues==""?"":"\nPossible values: \033[32m"+propvalues+"\033[0m")+(p->Get_Default_Value().ToString().size()?"\nDefault value: \033[32m"+p->Get_Default_Value().ToString():"")+"\033[0m\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);

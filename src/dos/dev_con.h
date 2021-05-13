@@ -763,8 +763,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	return true;
 }
 
+extern bool ctrlbrk;
 bool log_dev_con = false;
 std::string log_dev_con_str;
+bool DOS_BreakTest(bool print);
+void DOS_BreakAction();
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
     uint16_t count=0;
@@ -779,6 +782,15 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
     }
 
     while (*size>count) {
+        if (ctrlbrk && !inshell) {
+            ctrlbrk=false;
+            DOS_BreakAction();
+            if (!DOS_BreakTest(false)) {
+                Output('^');Output('C');Output('\r');Output('\n');
+                dos.errorcode=77;
+                return false;
+            }
+        }
         if (log_dev_con) {
             if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
                 LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());

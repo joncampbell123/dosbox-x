@@ -818,7 +818,7 @@ void CONFIG::Run(void) {
 							if (pv[k].ToString() =="%u")
 								propvalues += MSG_Get("PROGRAM_CONFIG_HLP_POSINT");
 							else propvalues += pv[k].ToString();
-							if ((k+1) < pv.size()) propvalues += ", ";
+							if ((k+1) < pv.size() && (strcmp(pvars[0].c_str(), "config") || p->propname != "numlock" || pv[k+1].ToString() != "")) propvalues += ", ";
 						}
 
 						WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_PROPHLP"),

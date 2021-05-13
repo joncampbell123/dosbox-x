@@ -1142,18 +1142,21 @@ const char* DOS_GetLoadedLayout(void) {
 	return NULL;
 }
 
+void SetupDBCSTable();
 class DOS_KeyboardLayout: public Module_base {
 public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
         const Section_prop* section = static_cast<Section_prop*>(configuration);
+		const char * layoutname=section->Get_string("keyboardlayout");
 		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
+        int tocp=!strcmp(layoutname, "jp")?932:(!strcmp(layoutname, "ko")?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")?936:(!strcmp(layoutname, "us")?437:0))));
+        if (tocp) layoutname="us";
+
 #if defined(USE_TTF)
         if (TTF_using()) setTTFCodePage(); else
 #endif
         DOSBox_SetSysMenu();
 		loaded_layout=new keyboard_layout();
-
-		const char * layoutname=section->Get_string("keyboardlayout");
 
 		Bits wants_dos_codepage = -1;
 		if (!strncmp(layoutname,"auto",4)) {
@@ -1379,6 +1382,14 @@ public:
 				LOG_MSG("DOS keyboard layout loaded with main language code %s for layout %s",lcode,layoutname);
 			}
 		}
+        if (tocp && !IS_PC98_ARCH) {
+            dos.loaded_codepage=tocp;
+            SetupDBCSTable();
+#if defined(USE_TTF)
+            if (TTF_using()) setTTFCodePage(); else
+#endif
+            DOSBox_SetSysMenu();
+        }
 	}
 
 	~DOS_KeyboardLayout(){

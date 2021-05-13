@@ -88,7 +88,7 @@ bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool mountfro[26], mountiro[26];
+extern bool inshell, mountfro[26], mountiro[26];
 
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
@@ -5844,6 +5844,7 @@ void runImgmount(const char *str) {
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
+void SetupDBCSTable();
 
 class KEYB : public Program {
 public:
@@ -5851,25 +5852,28 @@ public:
 };
 
 void KEYB::Run(void) {
-    // codepage 949 start
-    std::string temp_codepage;
-    temp_codepage="949";
-    if (cmd->FindString("ko",temp_codepage,false)) {
-        dos.loaded_codepage=949;
-        const char* layout_name = DOS_GetLoadedLayout();
-        WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
-        return;
-    }
-    // codepage 949 end
     if (cmd->FindCommand(1,temp_line)) {
         if (cmd->FindString("?",temp_line,false)) {
             WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
         } else {
             /* first parameter is layout ID */
             Bitu keyb_error=0;
-            std::string cp_string;
+            std::string cp_string="";
             int32_t tried_cp = -1;
-            if (cmd->FindCommand(2,cp_string)) {
+            cmd->FindCommand(2,cp_string);
+            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:((!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950)||!cp_string.size()&&dos.loaded_codepage==950)?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zh")?936:0)));
+            if (tocp && !IS_PC98_ARCH) {
+                dos.loaded_codepage=tocp;
+                const char* layout_name = DOS_GetLoadedLayout();
+                if (layout_name==NULL)
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO"),dos.loaded_codepage);
+                else
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
+                SetupDBCSTable();
+                runRescan("-A -Q");
+                return;
+            }
+            if (cp_string.size()) {
                 /* second parameter is codepage number */
                 tried_cp=atoi(cp_string.c_str());
                 char cp_file_name[256];
@@ -6178,14 +6182,16 @@ public:
             uint8_t c,ans=0;
             uint16_t s;
 
+            inshell = true;
             do {
                 WriteOut("Delete the volume label (Y/N)? ");
                 s = 1;
                 DOS_ReadFile(STDIN,&c,&s);
                 WriteOut("\n");
-                if (s != 1) return;
+                if (s != 1 || c == 3) {inshell=false;return;}
                 ans = uint8_t(tolower(char(c)));
             } while (!(ans == 'y' || ans == 'n'));
+            inshell = false;
 
             if (ans != 'y') return;
         }
@@ -6939,13 +6945,14 @@ public:
             BOOL ret;
             int count=0;
             ctrlbrk=false;
+            inshell=true;
             do {
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
                 CALLBACK_Idle();
                 if (ctrlbrk) {
                     uint8_t c;uint16_t n=1;
                     DOS_ReadFile (STDIN,&c,&n);
-                    if (c == 3) WriteOut("^C\n");
+                    if (c == 3) WriteOut("^C\r\n");
                     EndStartProcess();
                     exitCode=0;
                     break;
@@ -6954,6 +6961,7 @@ public:
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
+            inshell=false;
         }
         DOS_SetError(ErrorCode);
     }

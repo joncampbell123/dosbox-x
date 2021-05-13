@@ -95,6 +95,8 @@ static std::list<std::string> autoexec_strings;
 typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name,const char *dir="");
+void runRescan(const char *str), DOSBox_SetSysMenu(void);
+void SetupDBCSTable(), toSetCodePage(DOS_Shell *shell, int newCP);
 
 #if defined(WIN32)
 void MountAllDrives(Program * program, bool quiet) {
@@ -606,13 +608,20 @@ void DOS_Shell::Run(void) {
 				country = atoi(trim(countrystr));
 				int newCP = atoi(trim(r+1));
 				*r=',';
+                if (!IS_PC98_ARCH) {
 #if defined(USE_TTF)
-                if (ttf.inUse && !IS_PC98_ARCH) {
-                    void toSetCodePage(DOS_Shell *shell, int newCP);
-                    if (newCP) toSetCodePage(this, newCP);
-                    else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
-                }
+                    if (ttf.inUse) {
+                        if (newCP) toSetCodePage(this, newCP);
+                        else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                    } else
 #endif
+                    if (newCP==932||newCP==936||newCP==949||newCP==950) {
+                        dos.loaded_codepage=newCP;
+                        SetupDBCSTable();
+                        runRescan("-A -Q");
+                        DOSBox_SetSysMenu();
+                    }
+                }
             }
 			if (country>0) {
 				countryNo = country;
