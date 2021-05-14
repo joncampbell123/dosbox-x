@@ -22,9 +22,10 @@
     layout names for setting code pages. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
-  - Added menu options "Show TTF blinking cursor" and
-    "CJK box-drawing symbol detection" under "Video" =>
-    "TTF options" to toggle the options. (Wengier)
+  - Added menu options "Display TTF blinking cursor"
+    and "Auto-detect CJK box-drawing symbols" under
+    "Video" => "TTF options" menu group to toggle the
+    TTF options ttf.blinkc & ttf.autoboxdraw. (Wengier)
   - Command-line option -fastlaunch will now suppress
     messages by "automountall=true" option. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer
