@@ -3825,7 +3825,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
-            bool dbw, bd[txtMaxCols];
+            bool dbw, dex, bd[txtMaxCols];
             for (int i=0; i<6; i++) lead[i] = 0;
             if (isDBCSCP())
                 for (int i=0; i<6; i++) {
@@ -3836,17 +3836,20 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
-                    dbw=false;
+                    dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
-                        if (dbw) {
+                        if (dex) {
+                            (*draw).chr = ' ';
+                            dbw=dex=false;
+                        } else if (dbw) {
                             (*draw).skipped = 1;
-                            dbw = false;
-                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+2) >= 0x40) {
+                            dbw=dex=false;
+                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -3867,6 +3870,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).doublewide=1;
                                     (*draw).unicode=1;
                                     dbw=true;
+                                    dex=false;
+                                } else {
+                                    (*draw).chr=' ';
+                                    dbw=false;
+                                    dex=true;
                                 }
                             }
                         }
@@ -3889,15 +3897,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
-                    dbw=false;
+                    dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
-                        if (dbw) {
+                        if (dex) {
+                            (*draw).chr = ' ';
+                            dbw=dex=false;
+                        } else if (dbw) {
                             (*draw).skipped = 1;
-                            dbw = false;
-                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && *(vidmem+1) >= 0x40) {
+                            dbw=dex=false;
+                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
@@ -3918,6 +3929,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).doublewide=1;
                                     (*draw).unicode=1;
                                     dbw=true;
+                                    dex=false;
+                                } else {
+                                    (*draw).chr=' ';
+                                    dbw=false;
+                                    dex=true;
                                 }
                             }
                         }
