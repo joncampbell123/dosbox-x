@@ -283,7 +283,6 @@ unsigned int sendkeymap=0;
 std::string strPasteBuffer = "";
 ScreenSizeInfo          screen_size_info;
 
-
 #if defined(USE_TTF)
 Render_ttf ttf;
 bool char512 = true;
@@ -291,6 +290,7 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
+bool dbcs_sbcs=true;
 bool autoboxdraw = true;
 int outputswitch = -1;
 int wpType = 0;
@@ -300,7 +300,7 @@ bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq;
+extern bool resetreq, enable_dbcs_tables;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
@@ -4009,7 +4009,8 @@ void change_output(int output) {
     mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
     mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH).check(autoboxdraw).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw).refresh_item(mainMenu);
 #endif
 
     if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
@@ -10855,6 +10856,15 @@ bool ttf_blinking_cursor_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     return true;
 }
 
+bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    dbcs_sbcs=!dbcs_sbcs;
+    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
+
 bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -13179,10 +13189,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
                 item.set_text("TTF options");
 
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
-                    set_callback_function(ttf_blinking_cursor_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("Auto-detect CJK box-drawing symbols").
-                    set_callback_function(ttf_auto_boxdraw_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -13199,6 +13205,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_wp_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpxy").set_text("TTF word processor: XyWrite").
                     set_callback_function(ttf_wp_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
+                    set_callback_function(ttf_blinking_cursor_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch DBCS/SBCS mode").
+                    set_callback_function(ttf_dbcs_sbcs_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("CJK: Auto-detect box-drawing symbols").
+                    set_callback_function(ttf_auto_boxdraw_callback);
             }
 #endif
             {
@@ -13795,7 +13807,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2);
         mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3);
         mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor);
-        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH).check(autoboxdraw);
+        mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(dbcs_sbcs);
+        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw);
 #endif
 
         mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);

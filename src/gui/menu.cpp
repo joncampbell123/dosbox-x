@@ -367,6 +367,7 @@ static const char *def_menu_video_ttf[] =
     "ttf_wpxy",
     "--",
     "ttf_blinkc",
+    "ttf_dbcs_sbcs",
     "ttf_autoboxdraw",
     NULL
 };

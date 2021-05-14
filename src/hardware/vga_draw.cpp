@@ -127,7 +127,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave, enable_dbcs_tables, autoboxdraw;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -3852,7 +3852,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -3911,7 +3911,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
