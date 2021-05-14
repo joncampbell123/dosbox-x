@@ -267,7 +267,7 @@ static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
-bool TTF_using(void);
+bool TTF_using(void), isDBCSCP();
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
 void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();
@@ -7819,7 +7819,6 @@ void GFX_Events() {
         int len = strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
 #if defined(USE_TTF)
-        bool isDBCSCP();
         if (len > strPasteBuffer.length() && TTF_using() && isDBCSCP()) resetFontSize();
 #endif
     }
@@ -10859,6 +10858,10 @@ bool ttf_blinking_cursor_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return true;
+    }
     dbcs_sbcs=!dbcs_sbcs;
     mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
     resetFontSize();
@@ -10868,6 +10871,10 @@ bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
 bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return true;
+    }
     autoboxdraw=!autoboxdraw;
     mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
     resetFontSize();
