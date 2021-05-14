@@ -1497,7 +1497,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				uint8_t c;uint16_t n=1;
 				DOS_ReadFile(STDIN,&c,&n);
-				if (c==3) {shell->WriteOut("^C\r\n");return false;}
+				if (c==3) return false;
 				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 			}
 		}
@@ -1584,7 +1584,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 							shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 							uint8_t c;uint16_t n=1;
 							DOS_ReadFile(STDIN,&c,&n);
-							if (c==3) {shell->WriteOut("^C\r\n");return false;}
+							if (c==3) return false;
 							if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 						}
 					}
@@ -1634,7 +1634,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				uint8_t c;uint16_t n=1;
 				DOS_ReadFile(STDIN,&c,&n);
-				if (c==3) {shell->WriteOut("^C\r\n");return false;}
+				if (c==3) return false;
 				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 			}
 		}
