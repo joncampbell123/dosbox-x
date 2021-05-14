@@ -10837,6 +10837,31 @@ bool setlines(const char *mname) {
 }
 
 #if defined(USE_TTF)
+int oldblinkc=-1;
+bool ttf_blinking_cursor_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (blinkCursor>-1) {
+        oldblinkc=blinkCursor;
+        blinkCursor=-1;
+        mainMenu.get_item("ttf_blinkc").check(false).refresh_item(mainMenu);
+    } else {
+        blinkCursor=oldblinkc>-1?oldblinkc:(IS_PC98_ARCH?6:4);
+        mainMenu.get_item("ttf_blinkc").check(true).refresh_item(mainMenu);
+    }
+    resetFontSize();
+    return true;
+}
+
+bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    autoboxdraw=!autoboxdraw;
+    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
+
 bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
@@ -13152,6 +13177,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
                 item.set_text("TTF options");
 
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Show TTF blinking cursor").
+                    set_callback_function(ttf_blinking_cursor_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("CJK box-drawing symbol detection").
+                    set_callback_function(ttf_auto_boxdraw_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -13755,6 +13784,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(USE_TTF)
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
+        mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor);
+        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()).check(autoboxdraw);
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);
