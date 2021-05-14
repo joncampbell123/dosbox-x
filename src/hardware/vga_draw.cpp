@@ -3203,10 +3203,11 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     ((c1 == 192 || c1 == 193 || c1 == 194 || c1 == 195 || c1 == 196 || c1 == 197 || c1 == 199 || c1 == 208 || c1 == 210 || c1 == 211 || c1 == 214 || c1 == 215 || c1 == 218) && c2 == 196 && c3 == 196 && c4 == 196) ||
     (c1 == 205 && c2 == 205 && c3 == 205 && (c4 == 181 || c4 == 184 || c4 == 185 || c4 == 187 || c4 == 188 || c4 == 189 || c4 == 190 || c4 == 202 || c4 == 203 || c4 == 205 || c4 == 207 || c4 == 209 || c4 == 216)) ||
     ((c1 == 198 || c1 == 200 || c1 == 201 || c1 == 202 || c1 == 203 || c1 == 204 || c1 == 205 || c1 == 206 || c1 == 207 || c1 == 209 || c1 == 212 || c1 == 213 || c1 == 216) && c2 == 205 && c3 == 205 && c4 == 205) ||
-    (c1 == 176 && c2 == 176 && c3 == 176 && c4 == 176) || (c1 == 197 && c2 == 197 && c3 == 197 && c4 == 197) ||
-    (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) ||
-    (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
-    (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) ||
+    (c1 == 176 && c2 == 176 && c3 == 176 && c4 == 176) || (c1 == 177 && c2 == 177 && c3 == 177 && c4 == 177) || (c1 == 178 && c2 == 178 && c3 == 178 && c4 == 178) ||
+    (c1 == 193 && c2 == 193 && c3 == 193 && c4 == 193) || (c1 == 194 && c2 == 194 && c3 == 194 && c4 == 194) || (c1 == 197 && c2 == 197 && c3 == 197 && c4 == 197) ||
+    (c1 == 202 && c2 == 202 && c3 == 202 && c4 == 202) || (c1 == 203 && c2 == 203 && c3 == 203 && c4 == 203) || (c1 == 206 && c2 == 206 && c3 == 206 && c4 == 206) ||
+    (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
+    (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220);
 }
 
@@ -3851,10 +3852,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             dbw=dex=false;
                         } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
-                            if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
+                            if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else
+                                else if (!bd[col])
                                     boxdefault=true;
                             }
                             if (boxdefault) {
@@ -3910,10 +3911,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             dbw=dex=false;
                         } else if (col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
-                            if (!boxdefault && col<ttf.cols-3 && !bd[col]) {
+                            if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else
+                                else if (!bd[col])
                                     boxdefault=true;
                             }
                             if (boxdefault) {
