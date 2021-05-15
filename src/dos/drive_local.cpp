@@ -2367,7 +2367,14 @@ bool physfsDrive::FileExists(const char* name) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 	normalize(newname,basedir);
-	return PHYSFS_exists(newname) && !PHYSFS_isDirectory(newname);
+    bool result = PHYSFS_exists(newname);
+    if(result) {
+        PHYSFS_Stat statbuf;
+        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+        result = (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY);
+    }
+
+	return result;
 }
 
 bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
@@ -2377,7 +2384,9 @@ bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) 
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 	normalize(newname,basedir);
-	time_t mytime = PHYSFS_getLastModTime(newname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
@@ -2402,20 +2411,25 @@ bool physfsDrive::isdir(const char *name) {
 	char myname[CROSS_LEN];
 	strcpy(myname,name);
 	normalize(myname,basedir);
-	return PHYSFS_isDirectory(myname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), false);
+    return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
 }
 
 void *physfsDrive::opendir(const char *name) {
 	char myname[CROSS_LEN];
 	strcpy(myname,name);
 	normalize(myname,basedir);
-	if (!PHYSFS_isDirectory(myname)) return NULL;
-
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), NULL);
+    if(statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return NULL;
 	struct opendirinfo *oinfo = (struct opendirinfo *)malloc(sizeof(struct opendirinfo));
 	strcpy(oinfo->dir, myname);
 	oinfo->files = PHYSFS_enumerateFiles(myname);
 	if (oinfo->files == NULL) {
-		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,PHYSFS_getLastError());
+        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,errorMessage);
 		free(oinfo);
 		return NULL;
 	}
@@ -2489,8 +2503,11 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 			dir[tmp] = '\0';
 		}
 		if (*lastdir) {
-            if (PHYSFS_mount(lastdir,mp,true) == 0)
-                LOG_MSG("PHYSFS couldn't mount '%s': %s",lastdir,PHYSFS_getLastError());
+            if(PHYSFS_mount(lastdir, mp, true) == 0) {
+                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+                LOG_MSG("PHYSFS couldn't mount '%s': %s", lastdir, errorMessage);
+            }
             else {
                 if (mountarc.size()) mountarc+=", ";
                 mountarc+= lastdir;
@@ -2542,8 +2559,8 @@ bool physfsDrive::setOverlaydir(const char * name) {
 			PHYSFS_setWriteDir(oldwrite);
         return false;
 	} else {
-        if (oldwrite) PHYSFS_removeFromSearchPath(oldwrite);
-        PHYSFS_addToSearchPath(newname, 1);
+        if (oldwrite) PHYSFS_unmount(oldwrite);
+        PHYSFS_mount(newname, NULL, 1);
         dirCache.EmptyCache();
     }
 	if (oldwrite) free((char *)oldwrite);
@@ -2607,14 +2624,18 @@ bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attrib
 	char *slash = strrchr(newname,'/');
 	if (slash && slash != newname) {
 		*slash = 0;
-		if (!PHYSFS_isDirectory(newname)) return false;
+        PHYSFS_Stat statbuf;
+        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+		if (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return false;
 		PHYSFS_mkdir(newname);
 		*slash = '/';
 	}
 
 	PHYSFS_file * hand=PHYSFS_openWrite(newname);
 	if (!hand){
-		LOG_MSG("Warning: file creation failed: %s (%s)",newname,PHYSFS_getLastError());
+        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+		LOG_MSG("Warning: file creation failed: %s (%s)",newname,errorMessage);
 		return false;
 	}
 
@@ -2662,7 +2683,9 @@ bool physfsDrive::RemoveDir(const char * dir) {
 	CROSS_FILENAME(newdir);
 	dirCache.ExpandName(newdir);
 	normalize(newdir,basedir);
-	if (PHYSFS_isDirectory(newdir) && PHYSFS_delete(newdir)) {
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
+	if ((statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) && PHYSFS_delete(newdir)) {
 		CROSS_FILENAME(newdir);
 		dirCache.DeleteEntry(newdir,true);
 		dirCache.EmptyCache();
@@ -2697,7 +2720,9 @@ bool physfsDrive::TestDir(const char * dir) {
 	CROSS_FILENAME(newdir);
 	dirCache.ExpandName(newdir);
 	normalize(newdir,basedir);
-	return (PHYSFS_isDirectory(newdir));
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
+	return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
 }
 
 bool physfsDrive::Rename(const char * oldname,const char * newname) {
@@ -2751,7 +2776,10 @@ bool physfsDrive::GetFileAttr(const char * name,uint16_t * attr) {
 	*attr = 0;
 	if (!PHYSFS_exists(newname)) return false;
 	*attr=DOS_ATTR_ARCHIVE;
-	if (PHYSFS_isDirectory(newname)) *attr|=DOS_ATTR_DIRECTORY;
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+    if(statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY)
+        *attr |= DOS_ATTR_DIRECTORY;
     return true;
 }
 
@@ -2806,7 +2834,9 @@ again:
 	dirCache.ExpandName(lfull_name);
 	normalize(lfull_name,basedir);
 
-	if (PHYSFS_isDirectory(lfull_name)) find_attr=DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE;
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(lfull_name, &statbuf), false);
+	if (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) find_attr=DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE;
 	else find_attr=DOS_ATTR_ARCHIVE;
 	if (~srch_attr & find_attr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM)) goto again;
 
@@ -2814,7 +2844,7 @@ again:
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
 	uint16_t find_date,find_time;uint32_t find_size;
 	find_size=(uint32_t)PHYSFS_fileLength(lfull_name);
-	time_t mytime = PHYSFS_getLastModTime(lfull_name);
+    time_t mytime = statbuf.modtime;
 	struct tm *time;
 	if((time=localtime(&mytime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
@@ -2861,7 +2891,7 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 	}
 	if (last_action==WRITE) prepareRead();
 	last_action=READ;
-	PHYSFS_sint64 mysize = PHYSFS_read(fhandle,data,1,(PHYSFS_uint64)*size);
+    const PHYSFS_sint64 mysize = PHYSFS_readBytes(fhandle, data, *size);
 	//LOG_MSG("Read %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
 	*size = (uint16_t)mysize;
 	return true;
@@ -2948,15 +2978,19 @@ bool physfsFile::prepareWrite() {
 		//LOG_MSG("COW",pname,PHYSFS_tell(fhandle));
 		PHYSFS_file *whandle = PHYSFS_openWrite(pname);
 		if (whandle == NULL) {
-			LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+            const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+            const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+			LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
 			return false;
 		}
 		char buffer[65536];
 		PHYSFS_sint64 size;
 		PHYSFS_seek(fhandle, 0);
-		while ((size = PHYSFS_read(fhandle,buffer,1,65536)) > 0) {
-			if (PHYSFS_write(whandle,buffer,1,(PHYSFS_uint32)size) != size) {
-				LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+		while ((size = PHYSFS_readBytes(fhandle,buffer,65536)) > 0) {
+			if (PHYSFS_writeBytes(whandle, buffer, size) != size) {
+                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+				LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
 				PHYSFS_close(whandle);
 				return false;
 			}
@@ -2994,7 +3028,9 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
 	fhandle=handle;
 	info=devinfo;
 	strcpy(pname,physname);
-	time_t mytime = PHYSFS_getLastModTime(pname);
+    PHYSFS_Stat statbuf;
+    if(!PHYSFS_stat(pname, &statbuf)) return;
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
@@ -3015,7 +3051,9 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
 
 bool physfsFile::UpdateDateTimeFromHost(void) {
 	if(!open) return false;
-	time_t mytime = PHYSFS_getLastModTime(pname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(pname, &statbuf), false);
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
