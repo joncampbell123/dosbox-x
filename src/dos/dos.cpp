@@ -437,6 +437,10 @@ Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &cs,Bitu &ip);
 
+#define DOSNAMEBUF 256
+char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
+//! \brief Is a DOS program running ? (set by INT21 4B/4C)
+bool dos_program_running = false;
 bool DOS_BreakINT23InProgress = false;
 
 void DOS_PrintCBreak() {
@@ -446,14 +450,14 @@ void DOS_PrintCBreak() {
 	DOS_WriteFile(STDOUT,(uint8_t*)nl,&n);
 }
 
-bool DOS_BreakTest() {
+bool DOS_BreakTest(bool print=true) {
 	if (DOS_BreakFlag) {
 		bool terminate = true;
 		bool terminint23 = false;
 		Bitu segv,offv;
 
 		/* print ^C on the console */
-		DOS_PrintCBreak();
+		if (print) DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
         DOS_BreakConioFlag = false;
@@ -511,6 +515,8 @@ bool DOS_BreakTest() {
 		if (terminate) {
 			LOG_MSG("Note: DOS break terminating program\n");
 			DOS_Terminate(dos.psp(),false,0);
+			*appname=0;
+			*appargs=0;
 			return false;
 		}
 		else if (terminint23) {
@@ -564,9 +570,6 @@ void DOS_BreakAction() {
  * --J.C. */
 bool disk_io_unmask_irq0 = true;
 
-//! \brief Is a DOS program running ? (set by INT21 4B/4C)
-bool dos_program_running = false;
-
 void XMS_DOS_LocalA20EnableIfNotEnabled(void);
 void XMS_DOS_LocalA20EnableIfNotEnabled_XMSCALL(void);
 
@@ -583,9 +586,6 @@ typedef struct {
 	UINT32 total_allocation_units;
 	UINT8 reserved[8];
 } ext_space_info_t;
-
-#define DOSNAMEBUF 256
-char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
 
 #if defined (WIN32) && !defined(HX_DOS)
 intptr_t hret=0;
@@ -807,6 +807,8 @@ static Bitu DOS_21Handler(void) {
 
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x01:      /* Read character from STDIN, with echo */
             {   
@@ -912,7 +914,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x09:      /* Write string to STDOUT */
-            {   
+            {
                 uint8_t c;uint16_t n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
                 std::string str="";
@@ -1397,6 +1399,8 @@ static Bitu DOS_21Handler(void) {
             DOS_Terminate(dos.psp(),true,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x32: /* Get drive parameter block for specific drive */
             {   /* Officially a dpb should be returned as well. The disk detection part is implemented */

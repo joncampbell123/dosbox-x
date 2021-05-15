@@ -46,6 +46,7 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
+extern bool ctrlbrk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
@@ -55,6 +56,7 @@ void DOS_Shell::ShowPrompt(void) {
 	DOS_GetCurrentDir(0,dir,uselfn);
 	std::string line;
 	const char * promptstr = "\0";
+    inshell = true;
 
 	if(GetEnvStr("PROMPT",line)) {
 		std::string::size_type idx = line.find('=');
@@ -94,7 +96,7 @@ void DOS_Shell::ShowPrompt(void) {
 				WriteOut("%2d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
 				break;
 			}
-			case 'V': WriteOut("DOSBox version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
+			case 'V': WriteOut("DOSBox-X version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
 			case '$': WriteOut("$"); break;
 			case '_': WriteOut("\n"); break;
 			case 'M': break;
@@ -102,6 +104,7 @@ void DOS_Shell::ShowPrompt(void) {
 		}
 		promptstr++;
 	}
+    inshell = false;
 }
 
 static void outc(uint8_t c) {
@@ -662,10 +665,8 @@ void DOS_Shell::InputCommand(char * line) {
                 outc('\n');
                 break;
             case '': // FAKE CTRL-C
-                outc(94); outc('C');
                 *line = 0;      // reset the line.
                 if (l_completion.size()) l_completion.clear(); //reset the completion list.
-                if(!echo) outc('\n');
                 size = 0;       // stop the next loop
                 str_len = 0;    // prevent multiple adds of the same line
                 DOS_BreakFlag = false; // clear break flag so the next program doesn't get hit with it
@@ -724,7 +725,7 @@ void DOS_Shell::InputCommand(char * line) {
                         w_count = p_count = 0;
                         uint8_t c;uint16_t n=1;
                         DOS_ReadFile(STDIN,&c,&n);
-                        if (c==3) {WriteOut("^C");break;}
+                        if (c==3) {ctrlbrk=false;WriteOut("^C\r\n");break;}
                         if (c==0) DOS_ReadFile(STDIN,&c,&n);
                     }
                 }
@@ -1033,7 +1034,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
@@ -1043,11 +1044,11 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
-			case 0x3: WriteOut("^C\n");return true;
+			case 0x3: return true;
 			case 0xD: WriteOut("\n"); goto first_1;
 			case '\t': case 0x08: goto first_2;
 			default:
@@ -1056,7 +1057,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n");goto first_1;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 				goto first_2;

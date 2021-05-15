@@ -16,7 +16,18 @@
     names with DBCS support enabled in non-PC98 mode.
     By default DOSBox-X will enable auto-detection for
     box-drawing characters, and this can be disabled by
-    the new option "ttf.autoboxdraw=false". (Wengier)
+    setting new option "ttf.autoboxdraw" to "false".
+    KEYB command (and the keyboardlayout config option)
+    also accept "jp", "ko", "cn", "tw", "hk", "zh" as
+    layout names for setting code pages. (Wengier)
+  - Improved handling of Ctrl+C/Ctrl+Break for shell-
+    based DOS programs. (Wengier)
+  - Added menu options "Display TTF blinking cursor"
+    and "CJK: Auto-detect box-drawing symbols" under
+    "Video" => "TTF options" menu group to toggle the
+    TTF options ttf.blinkc and ttf.autoboxdraw, also a
+    menu option "CJK: Switch DBCS/SBCS mode" to toggle
+    between DBCS and SBCS modes temporarily. (Wengier)
   - Command-line option -fastlaunch will now suppress
     messages by "automountall=true" option. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer
