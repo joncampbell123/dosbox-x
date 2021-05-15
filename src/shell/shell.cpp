@@ -530,35 +530,7 @@ static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
 bool shellrun=false;
-void DOS_Shell::Run(void) {
-	shellrun=true;
-	char input_line[CMD_MAXLINE] = {0};
-	std::string line;
-	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
-	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);
-	if (optP) perm=true;
-	if (optC||optK) {
-		input_line[CMD_MAXLINE-1u] = 0;
-		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
-		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
-		if (sep) *sep = 0;
-		DOS_Shell temp;
-		temp.echo = echo;
-		temp.exec=true;
-		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
-		temp.RunInternal();				// exits when no bf is found.
-		temp.exec=false;
-		if (!optK||(!perm&&temp.exit)) {
-            shellrun=false;
-            return;
-        }
-	} else if (cmd->FindStringRemain("/?",line)) {
-		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
-		shellrun=false;
-		return;
-	}
-
-    bool optInit=cmd->FindString("/INIT",line,true);
+void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
@@ -654,8 +626,13 @@ void DOS_Shell::Run(void) {
 						}
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
-							if (!strcmp(cmd, "set path")&&vstr=="Z:\\") vstr=path_string+5;
 							ResolvePath(vstr);
+							if (!strcmp(cmd, "set path")) {
+								if (vstr=="Z:\\"||vstr=="z:\\")
+									vstr=path_string+5;
+								else if (vstr.size()>3&&(vstr.substr(0, 4)=="Z:\\;"||vstr.substr(0, 4)=="z:\\;")&&vstr.substr(4).find("Z:\\")==std::string::npos&&vstr.substr(4).find("z:\\")==std::string::npos)
+									vstr=vstr.substr(0, 3)+std::string(path_string+8)+vstr.substr(3);
+							}
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							vstr=std::string(val);
@@ -664,7 +641,7 @@ void DOS_Shell::Run(void) {
 							char *name=StripArg(tmp);
 							if (!*name) continue;
 							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str())) {
-								WriteOut("The following file is missing or corrupted: %s\n", name);
+								WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
 								continue;
 							}
 							if (!strcasecmp(cmd, "install"))
@@ -714,9 +691,39 @@ void DOS_Shell::Run(void) {
 		}
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
     }
-    else if (!optInit) {
+}
+
+void DOS_Shell::Run(void) {
+	shellrun=true;
+	char input_line[CMD_MAXLINE] = {0};
+	std::string line;
+	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
+	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);
+	if (optP) perm=true;
+	if (optC||optK) {
+		input_line[CMD_MAXLINE-1u] = 0;
+		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
+		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
+		if (sep) *sep = 0;
+		DOS_Shell temp;
+		temp.echo = echo;
+		temp.exec=true;
+		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
+		temp.RunInternal();				// exits when no bf is found.
+		temp.exec=false;
+		if (!optK||(!perm&&temp.exit)) {
+            shellrun=false;
+            return;
+        }
+	} else if (cmd->FindStringRemain("/?",line)) {
+		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
+		shellrun=false;
+		return;
+	}
+
+    bool optInit=cmd->FindString("/INIT",line,true);
+    if (this != first_shell && !optInit)
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
-    }
 
 	if (optInit) {
 		input_line[CMD_MAXLINE-1u] = 0;
@@ -1117,6 +1124,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
+	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
@@ -1837,6 +1845,8 @@ void SHELL_Run() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
     bool altshell=false;
     char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
+    SHELL_ProgramStart_First_shell(&first_shell);
+    first_shell->Prepare();
     if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
         char *shell = (char *)section->Get_string("shell");
         if (strlen(shell)) {
@@ -1846,17 +1856,14 @@ void SHELL_Run() {
             if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
                 strreplace(name,'/','\\');
                 altshell=true;
-            }
+            } else if (*name)
+                first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
         }
     }
-	SHELL_ProgramStart_First_shell(&first_shell);
 
 	i4dos=false;
 	if (altshell) {
         if (strstr(name, "4DOS.COM")) i4dos=true;
-        first_shell->perm=false;
-        first_shell->exit=true;
-        first_shell->Run();
         first_shell->SetEnv("COMSPEC",name);
         if (!strlen(tmp)) {
             char *p=strrchr(name, '\\');
