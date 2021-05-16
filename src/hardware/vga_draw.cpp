@@ -3195,7 +3195,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
 uint8_t lead[6];
 uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern const char* RunningProgram;
 
 // Wengier: Auto-detect box-drawing characters in CJK mode for TTF output
@@ -3765,7 +3765,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             text[2]=0;
                             uname[0]=0;
                             uname[1]=0;
-                            CodePageGuestToHostUint16(uname,text);
+                            CodePageGuestToHostUTF16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
                                 (*draw).chr=uname[0];
                                 (*draw).doublewide=1;
@@ -3867,7 +3867,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
-                                CodePageGuestToHostUint16(uname,text);
+                                CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).doublewide=1;
@@ -3926,7 +3926,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
-                                CodePageGuestToHostUint16(uname,text);
+                                CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).doublewide=1;

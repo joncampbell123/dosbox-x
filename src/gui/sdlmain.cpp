@@ -295,7 +295,7 @@ bool autoboxdraw = true;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
-int wpBG = -1;
+int wpBG = -1, wpFG = 7;
 bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
@@ -3470,6 +3470,7 @@ void setVGADAC() {
     }
 }
 
+/* NTS: EGA/VGA etc have at least 16 DOS colors. Check also CGA etc. */
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
     if (!colorChanged)
@@ -3727,6 +3728,8 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
         }
         wpBG = render_section->Get_int("ttf.wpbg");
+        wpFG = render_section->Get_int("ttf.wpfg");
+        if (wpFG<0) wpFG = 7;
         winPerc = render_section->Get_int("ttf.winperc");
         if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
@@ -4394,17 +4397,17 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     else if (wpType == 1) {															// WordPerfect
         if (showital && colorFG == 0xe && (colorBG&15) == (wpBG > -1 ? wpBG : 1)) {
             style = TTF_STYLE_ITALIC;
-            colorFG = 7;
+            colorFG = wpFG;
         }
-        else if (showline && (colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7) {
+        else if (showline && (colorFG == 1 || colorFG == wpFG+8) && (colorBG&15) == 7) {
             style = TTF_STYLE_UNDERLINE;
             colorBG = wpBG > -1 ? wpBG : 1;
-            colorFG = colorFG == 1 ? 7 : 0xf;
+            colorFG = colorFG == 1 ? wpFG : (wpFG+8);
         }
         else if (showsout && colorFG == 0 && (colorBG&15) == 3) {
             style = TTF_STYLE_STRIKETHROUGH;
             colorBG = wpBG > -1 ? wpBG : 1;
-            colorFG = 7;
+            colorFG = wpFG;
         }
     } else if (wpType == 2) {														// WordStar
         if (colorBG&8) {
@@ -4424,18 +4427,18 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
                 style |= TTF_STYLE_UNDERLINE;
                 colorBG = wpBG > -1 ? wpBG : 1;
             }
-            colorFG = colorFG == 10 ? 7:15;
+            colorFG = colorFG == 10 ? wpFG : (wpFG+8);
         }
         else if (showline && (colorFG == 3 || colorFG == 0xb)) {
             style = TTF_STYLE_UNDERLINE;
-            colorFG = colorFG == 3 ? 7:15;
+            colorFG = colorFG == 3 ? wpFG : (wpFG+8);
         }
         else if (!showsout || colorBG != 4)
             style = TTF_STYLE_NORMAL;
         if (showsout && colorBG == 4 && colorFG != 12 && colorFG != 13) {
             style |= TTF_STYLE_STRIKETHROUGH;
             colorBG = wpBG > -1 ? wpBG : (wpVersion < 4 ? 0 : 1);
-            if (colorFG != 15) colorFG = 7;
+            if (colorFG != wpFG+8) colorFG = wpFG;
         }
     }
     if (char512 && wpType == 1) {
@@ -4444,9 +4447,9 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
             colorFG &= 7;
         }
     }
-    if (showbold && (colorFG == 15 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
+    if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
         if (!(style&TTF_STYLE_ITALIC)) style |= TTF_STYLE_BOLD;
-        colorFG = 7;
+        colorFG = wpFG;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);
@@ -4986,7 +4989,7 @@ static const uint16_t cpMap_PC98[256] = {
 
 extern int eurAscii;
 extern bool enable_dbcs_tables;
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
@@ -5006,7 +5009,7 @@ int setTTFCodePage() {
             uname[0]=0;
             uname[1]=0;
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
-            CodePageGuestToHostUint16(uname,text);
+            CodePageGuestToHostUTF16(uname,text);
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
         }
@@ -5503,9 +5506,6 @@ static void GUI_StartUp() {
         sdl.mouse.emulation = MOUSE_EMULATION_INTEGRATION;
     else if (emulation == "never")
         sdl.mouse.emulation = MOUSE_EMULATION_NEVER;
-
-    /* Setup Mouse correctly if fullscreen */
-    if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
 #if C_XBRZ
     // initialize xBRZ parameters and check output type for compatibility
@@ -10886,15 +10886,19 @@ bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     const char *mname = menuitem->get_name().c_str();
     if (!strcmp(mname, "ttf_showbold")) {
         showbold=!showbold;
+        SetVal("render", "ttf.bold", showbold?"true":"false");
         mainMenu.get_item(mname).check(showbold).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showital")) {
         showital=!showital;
+        SetVal("render", "ttf.italic", showital?"true":"false");
         mainMenu.get_item(mname).check(showital).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showline")) {
         showline=!showline;
+        SetVal("render", "ttf.underline", showline?"true":"false");
         mainMenu.get_item(mname).check(showline).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showsout")) {
         showsout=!showsout;
+        SetVal("render", "ttf.strikeout", showsout?"true":"false");
         mainMenu.get_item(mname).check(showsout).refresh_item(mainMenu);
     } else
         return true;
@@ -10906,12 +10910,16 @@ bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     if (!strcmp(mname, "ttf_wpno")) {
+        SetVal("render", "ttf.wp", "");
         wpType=0;
     } else if (!strcmp(mname, "ttf_wpwp")) {
+        SetVal("render", "ttf.wp", "wp");
         wpType=1;
     } else if (!strcmp(mname, "ttf_wpws")) {
+        SetVal("render", "ttf.wp", "ws");
         wpType=2;
     } else if (!strcmp(mname, "ttf_wpxy")) {
+        SetVal("render", "ttf.wp", "xy");
         wpType=3;
     } else
         return true;
@@ -13577,6 +13585,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
                 //only switch if not already in fullscreen
                 if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+
+                /* Setup Mouse correctly if fullscreen */
+                if(sdl.desktop.fullscreen) GFX_CaptureMouse();
             }
 
             // Shows menu bar (window)

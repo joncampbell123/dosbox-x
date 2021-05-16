@@ -99,6 +99,7 @@ public:
 	DOS_Shell();
 	virtual ~DOS_Shell();
 
+	void Prepare(void);
     /*! \brief      Program entry point, when the command is run
      */
 	void Run(void);

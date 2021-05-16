@@ -30,7 +30,7 @@
 #include <string>
 using namespace std;
 
-
+bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -85,9 +85,17 @@ void LoadMessageFile(const char * fname) {
 	}
 	char linein[LINE_IN_MAXLEN];
 	char name[LINE_IN_MAXLEN], menu_name[LINE_IN_MAXLEN];
-	char string[LINE_IN_MAXLEN*10];
+	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
+    int cp=dos.loaded_codepage;
+    if (!dos.loaded_codepage) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+        if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
+            char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+            if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
+        }
+    }
 	while(fgets(linein, LINE_IN_MAXLEN, mfile)!=0) {
 		/* Parse the read line */
 		/* First remove characters 10 and 13 from the line */
@@ -123,12 +131,16 @@ void LoadMessageFile(const char * fname) {
             else if (strlen(menu_name)&&mainMenu.item_exists(menu_name))
                 mainMenu.get_item(menu_name).set_text(string);
 		} else {
-		/* Normal string to be added */
-			strcat(string,linein);
+			/* Normal string to be added */
+            if (!CodePageHostToGuestUTF8(temp,linein))
+                strcat(string,linein);
+            else
+                strcat(string,temp);
 			strcat(string,"\n");
 		}
 	}
 	fclose(mfile);
+    dos.loaded_codepage=cp;
 }
 
 const char * MSG_Get(char const * msg) {
@@ -141,12 +153,15 @@ const char * MSG_Get(char const * msg) {
 	return msg;
 }
 
-
 bool MSG_Write(const char * location) {
+    char temp[4096];
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
-		fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
+        if (!CodePageGuestToHostUTF8(temp,(*tel).val.c_str()))
+            fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
+        else
+            fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),temp);
 	}
 	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
 	for (auto &id : master_list) {
@@ -156,7 +171,10 @@ bool MSG_Write(const char * location) {
                 std::size_t found = text.find(":");
                 if (found!=std::string::npos) text = text.substr(0, found);
             }
-            fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+            if (!CodePageGuestToHostUTF8(temp,text.c_str()))
+                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+            else
+                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),temp);
         }
 	}
 	fclose(out);

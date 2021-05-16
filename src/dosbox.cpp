@@ -1160,9 +1160,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
     const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
-    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
+    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
-    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
+    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", 0 };
     const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", 0 };
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
@@ -2339,8 +2339,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
+    Pint->SetMinMax(-1,15);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
-                   "Use the DOS color number (0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+                   "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+
+	Pint = secprop->Add_int("ttf.wpfg", Property::Changeable::Always, 7);
+    Pint->SetMinMax(-1,7);
+    Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
 
 	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
@@ -2863,7 +2869,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
     Pint->Set_values(irqssb);
-    Pint->Set_help("The IRQ number of the Sound Blaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
+    Pint->Set_help("The IRQ number of the Sound Blaster (usually 5 or 7, depending on the sound card type and the game).\n"
+            "Set to 0 for the default setting of the sound card, or set to -1 to start DOSBox-X with the IRQ unassigned.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
