@@ -3502,6 +3502,12 @@ public:
 
         sb.dsp.command_aliases=section->Get_bool("dsp command aliases");
 
+        Find_Type_And_Opl(section,sb.type,oplmode);
+        if (sb.hw.irq == 0) {
+            std::string GetSBtype(), sbtype=GetSBtype();
+            sb.hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||IS_PC98_ARCH?5:7;
+        }
+
         /* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
          * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option
          * is needed for Public NMI "jump" demo in order for music to continue playing. */
@@ -3525,7 +3531,6 @@ public:
             sb.mixer.stereo=true;
         }
 
-        Find_Type_And_Opl(section,sb.type,oplmode);
         bool isCMSpassthrough = false;
 
         switch (oplmode) {
@@ -3866,16 +3871,16 @@ std::string GetSBbase() {
     return ss.str();
 }
 
-Bitu GetSBirq() {
-    return sb.hw.irq;
+std::string GetSBirq() {
+    return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
 }
 
-uint8_t GetSBldma() {
-    return sb.hw.dma8;
+std::string GetSBldma() {
+    return sb.hw.dma8==0xff?"None":std::to_string(sb.hw.dma8);
 }
 
-uint8_t GetSBhdma() {
-    return sb.hw.dma16;
+std::string GetSBhdma() {
+    return sb.hw.dma16==0xff?"None":std::to_string(sb.hw.dma16);
 }
 
 extern void HWOPL_Cleanup();

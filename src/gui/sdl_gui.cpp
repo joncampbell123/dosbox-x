@@ -1874,9 +1874,7 @@ public:
     }
 };
 
-std::string GetSBtype(), GetSBbase();
-Bitu GetSBirq();
-uint8_t GetSBldma(), GetSBhdma();
+std::string GetSBtype(), GetSBbase(), GetSBirq(), GetSBldma(), GetSBhdma();
 
 class ShowSBInfo : public GUI::ToplevelWindow {
 protected:
@@ -1884,7 +1882,7 @@ protected:
 public:
     ShowSBInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 320, 230, title) {
-            std::string sbinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+std::to_string(GetSBirq())+"\nSound Blaster Low DMA: "+std::to_string((unsigned int)GetSBldma())+"\nSound Blaster High DMA: "+std::to_string((unsigned int)GetSBhdma());
+            std::string sbinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+GetSBirq()+"\nSound Blaster Low DMA: "+GetSBldma()+"\nSound Blaster High DMA: "+GetSBhdma();
             std::istringstream in(sbinfo.c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
