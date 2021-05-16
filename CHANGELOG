@@ -24,6 +24,10 @@
     KEYB command (and the keyboardlayout config option)
     also accept "jp", "ko", "cn", "tw", "hk", "zh" as
     layout names for setting code pages. (Wengier)
+  - Added "ttf.wpfg" config option in [render] section
+    which can optionally specify a foreground color
+    (0-7) for the TTF output, similar to "ttf.wpbg" for
+    the background color in the TTF output. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
   - Added menu options "Display TTF blinking cursor"

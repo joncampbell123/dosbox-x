@@ -2339,8 +2339,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
+    Pint->SetMinMax(-1,15);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
-                   "Use the DOS color number (0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+                   "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+
+	Pint = secprop->Add_int("ttf.wpfg", Property::Changeable::Always, 7);
+    Pint->SetMinMax(-1,7);
+    Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
 
 	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
