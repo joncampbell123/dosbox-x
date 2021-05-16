@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 uint32_t retrowave_protocol_serial_packed_length(uint32_t len_in) {
-	return ceil((double)len_in * 8 / 7) + 2;
+	return (uint32_t)(ceil((double)len_in * 8 / 7) + 2);
 }
 
 uint32_t retrowave_protocol_serial_pack(const void *_buf_in, uint32_t len_in, void *_buf_out) {

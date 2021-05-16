@@ -7813,7 +7813,7 @@ void GFX_Events() {
 
     static Bitu iPasteTicker = 0;
     if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was 20 - good for WP51; Wengier: changed to 30 for better compatibility
-        int len = strPasteBuffer.length();
+        int len = (int)strPasteBuffer.length();
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
 #if defined(USE_TTF)
         if (len > strPasteBuffer.length() && TTF_using() && isDBCSCP()) resetFontSize();

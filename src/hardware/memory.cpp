@@ -1148,7 +1148,7 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
-    *val=(uint16_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
+    *val=(uint16_t)(rval1 | (rval2 << 8));
     return false;
 }
 
@@ -1158,7 +1158,7 @@ bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     if (mem_readb_checked(address+1, &rval2)) return true;
     if (mem_readb_checked(address+2, &rval3)) return true;
     if (mem_readb_checked(address+3, &rval4)) return true;
-    *val=(uint32_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
+    *val=(uint32_t)(rval1 | (rval2 << 8) | (rval3 << 16) | (rval4 << 24));
     return false;
 }
 
