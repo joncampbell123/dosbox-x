@@ -6743,6 +6743,34 @@ static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
 
+bool setVGAColor(const char *colorArray, int i) {
+    if (!IS_VGA_ARCH||!CurMode) return false;
+    const char * nextRGB = colorArray;
+    int rgbVal[4] = {-1,-1,-1,-1};
+    if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {
+        for (int i = 0; i< 3; i++) {
+            if (rgbVal[i] < 0 || rgbVal[i] > 255)
+                return false;
+        }
+    } else if (sscanf(nextRGB, " #%6x", &rgbVal[3]) == 1) {
+        if (rgbVal[3] < 0)
+            return false;
+        for (int i = 0; i < 3; i++) {
+            rgbVal[2-i] = rgbVal[3]&255;
+            rgbVal[3] >>= 8;
+        }
+    } else
+        return false;
+    IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+    IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+    uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
+    IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[0]*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[1]*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[2]*63/255);
+    return true;
+}
+
 #if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
@@ -6808,9 +6836,14 @@ void SETCOLOR::Run()
 				value[127]=0;
 			} else
 				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
-            if (!ttf.inUse)
-				WriteOut("Changing color scheme is only supported for the TrueType font output.\n");
-			else if (setColors(value,i)) {
+			if (!ttf.inUse) {
+                if (!IS_VGA_ARCH)
+                    WriteOut("Changing color scheme is not supported for the current video mode.\n");
+                else if (setVGAColor(value, i))
+                    WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                else
+                    WriteOut("Invalid color value - %s\n",value);
+			} else if (setColors(value,i)) {
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
