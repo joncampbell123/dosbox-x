@@ -5504,9 +5504,6 @@ static void GUI_StartUp() {
     else if (emulation == "never")
         sdl.mouse.emulation = MOUSE_EMULATION_NEVER;
 
-    /* Setup Mouse correctly if fullscreen */
-    if(sdl.desktop.fullscreen) GFX_CaptureMouse();
-
 #if C_XBRZ
     // initialize xBRZ parameters and check output type for compatibility
     xBRZ_Initialize();
@@ -13577,6 +13574,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
                 //only switch if not already in fullscreen
                 if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+
+                /* Setup Mouse correctly if fullscreen */
+                if(sdl.desktop.fullscreen) GFX_CaptureMouse();
             }
 
             // Shows menu bar (window)
