@@ -4989,7 +4989,7 @@ static const uint16_t cpMap_PC98[256] = {
 
 extern int eurAscii;
 extern bool enable_dbcs_tables;
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
@@ -5009,7 +5009,7 @@ int setTTFCodePage() {
             uname[0]=0;
             uname[1]=0;
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
-            CodePageGuestToHostUint16(uname,text);
+            CodePageGuestToHostUTF16(uname,text);
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
         }

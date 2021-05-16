@@ -132,7 +132,7 @@ extern bool rsize, force_sfn, enable_share_exe, isDBCSCP();
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
-bool String_ASCII_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -149,7 +149,7 @@ bool String_ASCII_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_L
     return true;
 }
 
-bool String_ASCII_TO_HOST_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const char* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -167,7 +167,7 @@ bool String_ASCII_TO_HOST_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
     return true;
 }
 
-template <class MT> bool String_SBCS_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -185,7 +185,7 @@ template <class MT> bool String_SBCS_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,con
     return true;
 }
 
-template <class MT> bool String_SBCS_TO_HOST_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const char* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -205,7 +205,7 @@ template <class MT> bool String_SBCS_TO_HOST_utf8(char *d/*CROSS_LEN*/,const cha
 }
 
 /* needed for Wengier's TTF output and PC-98 mode */
-template <class MT> bool String_DBCS_TO_HOST_CJK_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -235,7 +235,7 @@ template <class MT> bool String_DBCS_TO_HOST_CJK_uint16(uint16_t *d/*CROSS_LEN*/
     return true;
 }
 
-template <class MT> bool String_DBCS_TO_HOST_CJK_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const char* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
@@ -266,11 +266,11 @@ template <class MT> bool String_DBCS_TO_HOST_CJK_utf8(char *d/*CROSS_LEN*/,const
     return true;
 }
 
-template <class MT> bool String_DBCS_TO_HOST_CJK(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> bool String_DBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
 #if defined(host_cnv_use_wchar)
-    return String_DBCS_TO_HOST_CJK_uint16((uint16_t *)d, s, hitbl, rawtbl, rawtbl_max);
+    return String_DBCS_TO_HOST_UTF16((uint16_t *)d, s, hitbl, rawtbl, rawtbl_max);
 #else
-    return String_DBCS_TO_HOST_CJK_utf8((char *)d, s, hitbl, rawtbl, rawtbl_max);
+    return String_DBCS_TO_HOST_UTF8((char *)d, s, hitbl, rawtbl, rawtbl_max);
 #endif
 }
 
@@ -301,7 +301,7 @@ template <class MT> int DBCS_CJK_From_Host_Find(int c,const MT *hitbl,const MT *
     return -1;
 }
 
-template <class MT> bool String_HOST_TO_DBCS_CJK_uint16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -330,7 +330,7 @@ template <class MT> bool String_HOST_TO_DBCS_CJK_uint16(char *d/*CROSS_LEN*/,con
     return true;
 }
 
-template <class MT> bool String_HOST_TO_DBCS_CJK_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const char *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -360,7 +360,7 @@ template <class MT> bool String_HOST_TO_DBCS_CJK_utf8(char *d/*CROSS_LEN*/,const
     return true;
 }
 
-template <class MT> bool String_HOST_TO_SBCS_uint16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+template <class MT> bool String_HOST_TO_SBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -382,7 +382,7 @@ template <class MT> bool String_HOST_TO_SBCS_uint16(char *d/*CROSS_LEN*/,const u
     return true;
 }
 
-template <class MT> bool String_HOST_TO_SBCS_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+template <class MT> bool String_HOST_TO_SBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const char *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -405,7 +405,7 @@ template <class MT> bool String_HOST_TO_SBCS_utf8(char *d/*CROSS_LEN*/,const cha
     return true;
 }
 
-bool String_HOST_TO_ASCII_uint16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+bool String_HOST_TO_ASCII_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -426,7 +426,7 @@ bool String_HOST_TO_ASCII_uint16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_L
     return true;
 }
 
-bool String_HOST_TO_ASCII_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const char *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
@@ -450,241 +450,241 @@ bool String_HOST_TO_ASCII_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 
 bool cpwarn_once = false;
 
-bool CodePageHostToGuestUint16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_HOST_TO_DBCS_CJK_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         case 936:
-            return String_HOST_TO_DBCS_CJK_uint16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
         case 949:
-            return String_HOST_TO_DBCS_CJK_uint16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
-            return String_HOST_TO_DBCS_CJK_uint16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
             }
             if (dos.loaded_codepage>=800)
-                return String_HOST_TO_SBCS_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+                return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             else
-                return String_HOST_TO_ASCII_uint16(d,s);
+                return String_HOST_TO_ASCII_UTF16(d,s);
     }
 }
 
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_HOST_TO_DBCS_CJK_utf8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         case 936:
-            return String_HOST_TO_DBCS_CJK_utf8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
         case 949:
-            return String_HOST_TO_DBCS_CJK_utf8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
-            return String_HOST_TO_DBCS_CJK_utf8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
             }
             if (dos.loaded_codepage>=800)
-                return String_HOST_TO_SBCS_utf8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+                return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             else
-                return String_HOST_TO_ASCII_utf8(d,s);
+                return String_HOST_TO_ASCII_UTF8(d,s);
     }
 }
 
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_DBCS_TO_HOST_CJK_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         case 936:
-            return String_DBCS_TO_HOST_CJK_uint16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
         case 949:
-            return String_DBCS_TO_HOST_CJK_uint16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
-            return String_DBCS_TO_HOST_CJK_uint16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
             }
             if (dos.loaded_codepage>=800)
-                return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+                return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             else
-                return String_ASCII_TO_HOST_uint16(d,s);
+                return String_ASCII_TO_HOST_UTF16(d,s);
     }
 }
 
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_DBCS_TO_HOST_CJK_utf8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         case 936:
-            return String_DBCS_TO_HOST_CJK_utf8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
         case 949:
-            return String_DBCS_TO_HOST_CJK_utf8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
-            return String_DBCS_TO_HOST_CJK_utf8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
             }
             if (dos.loaded_codepage>=800)
-                return String_SBCS_TO_HOST_utf8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+                return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             else
-                return String_ASCII_TO_HOST_utf8(d,s);
+                return String_ASCII_TO_HOST_UTF8(d,s);
     }
 }
 
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
 #if defined(host_cnv_use_wchar)
-    if (!CodePageGuestToHostUint16((uint16_t *)cpcnv_temp,s))
+    if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s))
 #else
     if (!CodePageGuestToHostUTF8((char *)cpcnv_temp,s))
 #endif
@@ -695,7 +695,7 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
-    if (!CodePageHostToGuestUint16((char *)cpcnv_temp,(uint16_t *)s))
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp,(char *)s))
 #endif
@@ -706,7 +706,7 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
-    if (!CodePageHostToGuestUint16((char *)cpcnv_ltemp,(uint16_t *)s))
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_ltemp,(char *)s))
 #endif
