@@ -3470,6 +3470,7 @@ void setVGADAC() {
     }
 }
 
+/* NTS: EGA/VGA etc have at least 16 DOS colors. Check also CGA etc. */
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
     if (!colorChanged)

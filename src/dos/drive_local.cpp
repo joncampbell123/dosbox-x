@@ -172,8 +172,8 @@ template <class MT> bool String_SBCS_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,con
     return true;
 }
 
-template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const host_cnv_char_t* df = d + CROSS_LEN - 1;
+template <class MT> bool String_SBCS_TO_HOST_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const char* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
@@ -181,18 +181,22 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
         if (ic >= map_max) return false; // non-representable
         MT wc = map[ic]; // output: unicode character
 
-#if defined(host_cnv_use_wchar)
-        *d++ = (host_cnv_char_t)wc;
-#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
-#endif
     }
 
     assert(d <= df);
     *d = 0;
 
     return true;
+}
+
+template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+#if defined(host_cnv_use_wchar)
+    return String_SBCS_TO_HOST_uint16((uint16_t *)d, s, map, map_max);
+#else
+    return String_SBCS_TO_HOST_utf8((char *)d, s, map, map_max);
+#endif
 }
 
 /* needed for Wengier's TTF output and PC-98 mode */
@@ -226,8 +230,8 @@ template <class MT> bool String_DBCS_TO_HOST_CJK_uint16(uint16_t *d/*CROSS_LEN*/
     return true;
 }
 
-template <class MT> bool String_DBCS_TO_HOST_CJK(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const host_cnv_char_t* df = d + CROSS_LEN - 1;
+template <class MT> bool String_DBCS_TO_HOST_CJK_utf8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const char* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
@@ -247,18 +251,22 @@ template <class MT> bool String_DBCS_TO_HOST_CJK(host_cnv_char_t *d/*CROSS_LEN*/
         if (wc == 0x0000)
             return false;
 
-#if defined(host_cnv_use_wchar)
-        *d++ = (host_cnv_char_t)wc;
-#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
-#endif
     }
 
     assert(d <= df);
     *d = 0;
 
     return true;
+}
+
+template <class MT> bool String_DBCS_TO_HOST_CJK(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+#if defined(host_cnv_use_wchar)
+    return String_DBCS_TO_HOST_CJK_uint16((uint16_t *)d, s, hitbl, rawtbl, rawtbl_max);
+#else
+    return String_DBCS_TO_HOST_CJK_utf8((char *)d, s, hitbl, rawtbl, rawtbl_max);
+#endif
 }
 
 // TODO: This is SLOW. Optimize.
