@@ -1868,7 +1868,7 @@ void SHELL_Run() {
         if (!strlen(tmp)) {
             char *p=strrchr(name, '\\');
             if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
-            else if (!strcasecmp(p==NULL?name:p+1, "4DOS\\4DOS.COM") || !strcasecmp(name, "Z:4DOS\\4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
+            else if (!strcasecmp(p==NULL?name:p+1, "4DOS.COM") || !strcasecmp(name, "Z:4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
         }
 		first_shell->Execute(name, tmp);
 		return;
