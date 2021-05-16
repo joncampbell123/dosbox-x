@@ -356,7 +356,7 @@ void DOS_Shell::ParseLine(char * line) {
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
 		} else
-			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File open error - %s\n"), in);
+			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
 	}
 	bool fail=false;
 	char pipetmp[270];
@@ -404,7 +404,7 @@ void DOS_Shell::ParseLine(char * line) {
 		if(!status && normalstdout) {
 			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
 			if (!toc) {
-				WriteOut(!*out?"File creation error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File creation error - %s\n"), out);
+				WriteOut(!*out?"File creation error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File creation error - %s\n"), out);
 				DOS_CloseFile(1);
 				DOS_OpenFile("nul", OPEN_READWRITE, &dummy);
 			}
