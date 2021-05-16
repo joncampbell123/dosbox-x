@@ -36,6 +36,9 @@
     TTF options ttf.blinkc and ttf.autoboxdraw, also a
     menu option "CJK: Switch DBCS/SBCS mode" to toggle
     between DBCS and SBCS modes temporarily. (Wengier)
+  - Support for UTF-8 encoded language files. Specify
+    a DOS code page with "country" option in [config]
+    section of the config file. (Wengier)
   - Cleaned up some messages that involve box-drawing
     characters (such as the welcome banner) for easier
     translations to certain languages. (Wengier)
