@@ -1,14 +1,3 @@
-:NE2000_CONFIGFILE_HELP
-macaddr -- The physical address the emulator will use on your network.
-           If you have multiple DOSBox-Xes running on your network,
-           this has to be changed. Modify the last three number blocks.
-           I.e. AC:DE:48:88:99:AB.
-realnic -- Specifies which of your network interfaces is used.
-           Write 'list' here to see the list of devices from the Help
-           menu ('List network interfaces') or from the Status Window.
-           Then make your choice and put either the interface number
-           (e.g. 2) or a part of your adapters name (e.g. VIA here).
-.
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -58,6 +47,12 @@ DOSBox-X %s configuration directory:
 
 
 .
+:PROGRAM_CONFIG_WORKDIR
+DOSBox-X's working directory: 
+%s
+
+
+.
 :PROGRAM_CONFIG_FILE_ERROR
 
 Can't open file %s
@@ -79,16 +74,16 @@ The DOSBox-X command-line configuration utility. Supported options:
 -wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.
 -bootconf (or -bc) reboots with specified config file (or primary loaded file).
 -norem Use this with -wc, -wcp, or -wcd to not write config option remarks.
--gui Starts DOSBox-X's graphical configuration tool.
--l Lists DOSBox-X configuration parameters.
--h, -help, -? sections / sectionname / propertyname
- Without parameters, displays this help screen. Add "sections" for a list of
- sections. For info about a specific section or property add its name behind.
+-l Lists DOSBox-X's configuration parameters.
+-h, -help, -? Shows this help; add the word "sections" for a list of sections.
+-h, -help, -? section / property Shows info on a specific section or property.
 -axclear Clears the [autoexec] section.
 -axadd [line] Adds a line to the [autoexec] section.
 -axtype Prints the content of the [autoexec] section.
--securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be
- disabled as well as the ability to create config and language files.
+-avistart, -avistop Starts or stops AVI recording.
+-securemode Enables secure mode where features like mounting will be disabled.
+-startmapper Starts the DOSBox-X mapper editor.
+-gui Starts the graphical configuration tool.
 -get "section property" returns the value of the property.
 -set "section property=value" sets the value of the property.
 
@@ -153,6 +148,7 @@ Correct syntax: config -get "section property".
 
 DOSBox-X was started with the following command line parameters:
 %s
+
 .
 :PROGRAM_CONFIG_MISSINGPARAM
 Missing parameter.
@@ -234,7 +230,7 @@ No drive available
 
 .
 :PROGRAM_MOUNT_ERROR_1
-Directory %s doesn't exist.
+Directory %s does not exist.
 
 .
 :PROGRAM_MOUNT_ERROR_2
@@ -373,14 +369,15 @@ Memory allocation error.
 :PROGRAM_LOADFIX_HELP
 Reduces the amount of available conventional or XMS memory.
 
-LOADFIX [-xms] [-{ram}] [{program}] [{options}]
-LOADFIX -f [-xms]
+LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
+LOADFIX -f [-xms] [-ems]
 
   -xms        Allocates memory from XMS rather than conventional memory
+  -ems        Allocates memory from EMS rather than conventional memory
   -{ram}      Specifies the amount of memory to allocate in KB
                  Defaults to 64kb for conventional memory; 1MB for XMS memory
   -a          Auto allocates enough memory to fill the lowest 64KB memory
-  -f          Frees previously allocated memory
+  -f (or -d)  Frees previously allocated memory
   {program}   Runs the specified program
   {options}   Program options (if any)
 
@@ -442,11 +439,7 @@ DOSBox-X creates a shell for you which looks just like the plain DOS.
 
 .
 :PROGRAM_INTRO_MENU_UP
-[44m[K[0m
-[44m[K[1m[1m							 DOSBox-X Introduction [0m
-[44m[K[1m[1m ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ[0m
-[44m[K[0m
-
+DOSBox-X Introduction
 .
 :PROGRAM_INTRO_MENU_BASIC
 Basic mount
@@ -581,21 +574,17 @@ you have to mount the directory containing the files.
 
 
 .
-:PROGRAM_INTRO_MOUNT_WINDOWS
-[44;1mษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
-บ [32mmount c c:\dosgames\[37m will create a C drive with c:\dosgames as contents.บ
-บ                                                                         บ
-บ [32mc:\dosgames\[37m is an example. Replace it with your own games directory.  [37m บ
-ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ[0m
-
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+[32mmount c c:\dosgames\[37m will create a C drive with c:\dosgames as contents.
 .
-:PROGRAM_INTRO_MOUNT_OTHER
-[44;1mษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
-บ [32mmount c ~/dosgames[37m will create a C drive with ~/dosgames as contents.บ
-บ                                                                      บ
-บ [32m~/dosgames[37m is an example. Replace it with your own games directory.[37m  บ
-ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ[0m
-
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+c:\dosgames\[37m is an example. Replace it with your own games directory.  [37m 
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+[32mmount c ~/dosgames[37m will create a C drive with ~/dosgames as contents.
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+[32m~/dosgames[37m is an example. Replace it with your own games directory.[37m  
 .
 :PROGRAM_INTRO_MOUNT_END
 When the mount has successfully completed you can type [34;1mc:[0m to go to your freshly
@@ -934,7 +923,7 @@ Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
 
 .
 :PROGRAM_IMGMAKE_FLREAD2
-Û =good, ฑ =good after retries, ! =CRC error, x =sector not found, ? =unknown
+%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
 
 
 .
@@ -1074,6 +1063,10 @@ Invalid switch - %s
 Required parameter missing.
 
 .
+:SHELL_MISSING_FILE
+The following file is missing or corrupted: %s
+
+.
 :SHELL_CMD_CHDIR_ERROR
 Invalid directory - %s
 
@@ -1088,7 +1081,8 @@ Try [31mcd %s[0m or properly quote them with quotation marks.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
-You are still on drive Z:, change to a mounted drive with [31mC:[0m.
+You are still on drive Z:, and the specified directory cannot be found.
+For accessing a mounted drive, change to the drive with a syntax like [31mC:[0m.
 
 .
 :SHELL_CMD_DATE_HELP
@@ -1138,6 +1132,10 @@ TIME [[/T] [/H] | time]
   time:       New time to set
   /T:         Display simple time
   /H:         Synchronize with host
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Directory already exists - %s
 
 .
 :SHELL_CMD_MKDIR_ERROR
@@ -1198,6 +1196,10 @@ No label supplied to GOTO command.
 .
 :SHELL_CMD_GOTO_LABEL_NOT_FOUND
 GOTO: Label %s not found.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Access denied - %s
 
 .
 :SHELL_CMD_FILE_NOT_FOUND
@@ -1308,34 +1310,43 @@ The specified drive or path is invalid.
 SUBST: There is an error in your command line.
 
 .
-:SHELL_STARTUP_BEGIN
-[44;1mษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป[0m[44;1mบ [32mWelcome to DOSBox-X ! [33m%*s[37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ [36mGetting started with DOSBox-X:                                              [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ Type [32mHELP[37m to see the list of shell commands, [32mINTRO[37m for a brief introduction. บ[0m[44;1mบ You may also complete various tasks in DOSBox-X through the [33mdrop-down menus[37m. บ[0m
+:SHELL_STARTUP_TITLE
+[32mWelcome to DOSBox-X ! [33m%*s[37m
 .
-:SHELL_STARTUP_BEGIN2
-[44;1mบ [32mExample[37m: Try select the [33mTrueType font[37m or [33mOpenGL pixel-perfect[37m output option. บ[0m
+:SHELL_STARTUP_HEAD1
+[36mGetting started with DOSBox-X:                                              [37m
 .
-:SHELL_STARTUP_BEGIN3
-[44;1mบ                                                                              บ[0m[44;1mบ [36mUseful default shortcuts:                                                   [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ - switch between windowed and full-screen mode with key combination [31mF11 [37m+ [31mF[37m [37m บ[0m[44;1mบ - launch [33mConfiguration Tool[37m using [31mF11 [37m+ [31mC[37m[37m, and [33mMapper Editor[37m using [31mF11 [37m+ [31mM[37m  [37m บ[0m[44;1mบ - increase or decrease the emulation speed with [31mF11 [37m+ [31mPlus[37m[37m or [31mF11 [37m+ [31mMinus[37m   [37m บ[0m
+:SHELL_STARTUP_TEXT1
+Type [32mHELP[37m to see the list of shell commands, [32mINTRO[37m for a brief introduction.
+You can also complete various tasks in DOSBox-X through the [33mdrop-down menus[37m.
+[32mExample[37m: Try select the [33mTrueType font[37m or [33mOpenGL pixel-perfect[37m output option.
+.
+:SHELL_STARTUP_HEAD2
+[36mUseful default shortcuts:                                                   [37m
+.
+:SHELL_STARTUP_TEXT2
+- switch between windowed and full-screen mode with key combination [31mF11 [37m+ [31mF[37m [37m
+- launch [33mConfiguration Tool[37m using [31mF11 [37m+ [31mC[37m[37m, and [33mMapper Editor[37m using [31mF11 [37m+ [31mM[37m  [37m
+- increase or decrease the emulation speed with [31mF11 [37m+ [31mPlus[37m[37m or [31mF11 [37m+ [31mMinus[37m   [37m
 .
 :SHELL_STARTUP_CGA
-[44;1mบ Composite CGA mode is supported. Use [31mCtrl+F8[37m to set composite output ON/OFF. บ[0m[44;1mบ Use [31mCtrl+Shift+[F7/F8][37m to change hue; [31mCtrl+F7[37m selects early/late CGA model.  บ[0m[44;1mบ                                                                              บ[0m
-.
-:SHELL_STARTUP_PC98
-บ DOSBox-X is now running in NEC PC-98 emulation mode.               บ
-บ [31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.[37m        บ
-
+Composite CGA mode is supported. Use [31mCtrl+F8[37m to set composite output ON/OFF.
+Use [31mCtrl+Shift+[F7/F8][37m to change hue; [31mCtrl+F7[37m selects early/late CGA model. 
 .
 :SHELL_STARTUP_HERC
-[44;1mบ Use Ctrl+F7 to cycle through white, amber, and green monochrome color.       บ[0m[44;1mบ Use Ctrl+F8 to toggle horizontal blending (only in graphics mode).           บ[0m[44;1mบ                                                                              บ[0m
+Use [31mCtrl+F7[37m to cycle through white, amber, and green monochrome color.      
+Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
 .
-:SHELL_STARTUP_DEBUG
-[44;1mบ                                                                              บ[0m
+:SHELL_STARTUP_HEAD3
+[36mDOSBox-X project on the web:                                                [37m
 .
-:SHELL_STARTUP_EMPTY
-[44;1mบ                                                                              บ[0m
+:SHELL_STARTUP_TEXT3
+[32mHomepage of project[37m: [33mhttps://dosbox-x.com/           [36mComplete DOS emulations[37m
+[32mUser guides on Wiki[37m: [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x and 9x[37m
+[32mIssue or suggestion[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m
 .
-:SHELL_STARTUP_END
-[44;1mบ [36mDOSBox-X project on the web:                                                [37m บ[0m[44;1mบ                                                                              บ[0m[44;1mบ [32mHomepage of project[37m: [33mhttps://dosbox-x.com/           [36mComplete DOS emulations[37m บ[0m[44;1mบ [32mUser guides on Wiki[37m: [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x and 9x[37m บ[0m[44;1mบ [32mIssue or suggestion[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m บ[0m[44;1mศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ[0m[1m[32mHAVE FUN WITH DOSBox-X !                                                       [0m
+:SHELL_STARTUP_LAST
+[32mHAVE FUN WITH DOSBox-X !                                                       [0m
 
 .
 :SHELL_CMD_BREAK_HELP
@@ -1428,7 +1439,7 @@ HELP [command]
    /A or /ALL   Lists all supported internal commands.
    [command]    Shows help for the specified command.
 
-E.g., [37;1mHELP COPY[0m or [37;1mCOPY /?[0m shows help infomration for COPY command.
+[0mE.g., [37;1mHELP COPY[0m or [37;1mCOPY /?[0m shows help information for COPY command.
 
 Note: External commands like [33;1mMOUNT[0m and [33;1mIMGMOUNT[0m are not listed by HELP [/A].
       These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).
@@ -1570,7 +1581,8 @@ REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
 
 Note that you can not specify a new drive or path for your destination.
 
-Wildcards are supported for files, e.g. [37;1mREN *.TXT *.BAK[0m renames all text files.
+Wildcards (* and ?) are supported for files. For example, the following command
+renames all text files: [37;1mREN *.TXT *.BAK[0m
 
 .
 :SHELL_CMD_DELETE_HELP
@@ -1665,14 +1677,15 @@ Displays or changes file attributes.
 :SHELL_CMD_ATTRIB_HELP_LONG
 ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
 
-  +	Sets an attribute.
-  -	Clears an attribute.
-  R	Read-only file attribute.
-  A	Archive file attribute.
-  S	System file attribute.
-  H	Hidden file attribute.
-  [drive:][path][filename] Specifies file(s) for ATTRIB to process.
-  /S Processes files in all directories in the specified path.
+  +   Sets an attribute.
+  -   Clears an attribute.
+  R   Read-only file attribute.
+  A   Archive file attribute.
+  S   System file attribute.
+  H   Hidden file attribute.
+  [drive:][path][filename]
+      Specifies file(s) or directory for ATTRIB to process.
+  /S  Processes files in all directories in the specified path.
 
 .
 :SHELL_CMD_PATH_HELP
@@ -1730,7 +1743,7 @@ VER [SET] number or VER SET [major minor]
   [SET] number       Set the specified number as the reported DOS version.
   SET [major minor]  Set the reported DOS version in major and minor format.
 
-  E.g., [37;1mVER 6.0[0m or [37;1mVER 7.1[0m sets the DOS version to 6.0 and 7.1, respectively.
+  [0mE.g., [37;1mVER 6.0[0m or [37;1mVER 7.1[0m sets the DOS version to 6.0 and 7.1, respectively.
   On the other hand, [37;1mVER SET 7 1[0m sets the DOS version to 7.01 instead of 7.1.
 
 Type VER without parameters to display DOSBox-X and the reported DOS version.
@@ -1803,6 +1816,8 @@ CHCP [nnn]
 Supported code pages for changing in the TrueType font output:
 437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
 
+Also double-byte code pages including 932, 936, 949, and 950.
+
 .
 :SHELL_CMD_CHCP_ACTIVE
 Active code page: %d
@@ -1863,6 +1878,7 @@ It will start video or audio capture, run program, and then automatically stop c
 .
 :SHELL_CMD_DEBUGBOX_HELP
 Runs program and breaks into debugger at entry point.
+Type DEBUGBOX without a parameter to start the debugger.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
@@ -1893,13 +1909,10 @@ Load mapper file...
 Quick launch program...
 .
 :MENU:mapper_shutdown
-Quit
+Quit from DOSBox-X
 .
 :MENU:mapper_capmouse
 Capture mouse
-.
-:MENU:mapper_fullscr
-Toggle fullscreen
 .
 :MENU:mapper_fastedit
 Quick edit: copy on select and paste text
@@ -1916,17 +1929,29 @@ Stop clipboard pasting
 :MENU:mapper_pause
 Pause emulation
 .
+:MENU:mapper_pauseints
+Pause with interrupts enabled
+.
 :MENU:mapper_gui
 Configuration tool
+.
+:MENU:mapper_mapper
+Mapper editor
+.
+:MENU:mapper_fullscr
+Toggle fullscreen
 .
 :MENU:mapper_resetsize
 Reset window size
 .
-:MENU:mapper_ttf_incsize
+:MENU:mapper_incsize
 Increase TTF font size
 .
-:MENU:mapper_ttf_decsize
+:MENU:mapper_decsize
 Decrease TTF font size
+.
+:MENU:mapper_togmenu
+Hide/show menu bar
 .
 :MENU:MainMenu
 Main
@@ -2141,6 +2166,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:refresh_rate
+Refresh rate...
+.
 :MENU:VideoOutputMenu
 Output
 .
@@ -2285,6 +2313,15 @@ TTF word processor: WordStar
 :MENU:ttf_wpxy
 TTF word processor: XyWrite
 .
+:MENU:ttf_blinkc
+Display TTF blinking cursor
+.
+:MENU:ttf_dbcs_sbcs
+CJK: Switch DBCS/SBCS mode
+.
+:MENU:ttf_autoboxdraw
+CJK: Auto-detect box-drawing symbols
+.
 :MENU:VideoPC98Menu
 PC-98 options
 .
@@ -2347,6 +2384,15 @@ Show MIDI device configuration
 .
 :MENU:DOSMenu
 DOS
+.
+:MENU:enable_a20gate
+Enable A20 gate
+.
+:MENU:change_currentcd
+Change current CD image...
+.
+:MENU:change_currentfd
+Change current floppy image...
 .
 :MENU:DOSMouseMenu
 Mouse emulation
@@ -3629,6 +3675,18 @@ Show logging console
 :MENU:wait_on_error
 Console wait on error
 .
+:MENU:save_logas
+Save logging as...
+.
+:MENU:debugger_rundebug
+Debugger option: Run debugger
+.
+:MENU:debugger_runnormal
+Debugger option: Run normal
+.
+:MENU:debugger_runwatch
+Debugger option: Run watch
+.
 :MENU:HelpCommandMenu
 DOS commands
 .
@@ -3761,14 +3819,17 @@ Debugging options
 :MENU:debug_blankrefreshtest
 Refresh test (blank display)
 .
+:MENU:debug_generatenmi
+Generate NMI interrupt
+.
+:MENU:debug_int2fhook
+Hook INT 2Fh calls
+.
 :MENU:debug_logint21
 Log INT 21h calls
 .
 :MENU:debug_logfileio
 Log file I/O
-.
-:MENU:mapper_mapper
-Mapper editor
 .
 :MENU:mapper_speedlock
 Toggle Speedlock
@@ -3803,12 +3864,6 @@ Select previous slot
 :MENU:mapper_nextslot
 Select next slot
 .
-:MENU:mapper_togmenu
-Hide/show menu bar
-.
-:MENU:mapper_pauseints
-Pause with interrupts enabled
-.
 :MENU:mapper_decfskip
 Decrease frameskip
 .
@@ -3837,7 +3892,7 @@ Record video to AVI
 Take screenshot
 .
 :MENU:mapper_debugger
-Show debugger
+Start DOSBox-X Debugger
 .
 :MENU:mapper_volup
 Increase volume
@@ -3946,6 +4001,9 @@ Mapper-defined
 .
 :MENU:showdetails
 Show FPS and RT speed in title bar
+.
+:MENU:restartconf
+Restart DOSBox-X with config file...
 .
 :MENU:auto_lock_mouse
 Autolock mouse
