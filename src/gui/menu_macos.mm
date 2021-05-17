@@ -20,8 +20,8 @@
 @end
 
 #if !defined(C_SDL2)
-extern "C" void* sdl1_hax_stock_osx_menu(void);
-extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
+extern "C" void* sdl1_hax_stock_macosx_menu(void);
+extern "C" void sdl1_hax_stock_macosx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
 
@@ -109,7 +109,7 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 	else {
 #if !defined(C_SDL2)
 		/* switch back to the menu SDL 1.x made */
-		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_osx_menu())];
+		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_macosx_menu())];
 #endif
 	}
 }
@@ -165,7 +165,7 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	[appMenu release];
 #else
     /* Re-use the application menu from SDL1 */
-    sdl1_hax_stock_osx_menu_additem((NSMenu*)nsMenu);
+    sdl1_hax_stock_macosx_menu_additem((NSMenu*)nsMenu);
 #endif
 }
 
@@ -177,7 +177,7 @@ extern bool GUI_IsRunning(void);
 
 static DOSBoxMenu *altMenu = NULL;
 
-void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
+void menu_macosx_set_menuobj(DOSBoxMenu *new_altMenu) {
     if (new_altMenu != NULL && new_altMenu != &mainMenu)
         altMenu = new_altMenu;
     else
@@ -241,7 +241,7 @@ void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
 
 bool has_touch_bar_support = false;
 
-bool osx_detect_nstouchbar(void) {
+bool macosx_detect_nstouchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
 #else
@@ -358,7 +358,7 @@ extern void ext_signal_host_key(bool enable);
 @end
 #endif
 
-void osx_reload_touchbar(void) {
+void macosx_reload_touchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
     NSWindow *wnd = nil;
 
@@ -373,7 +373,7 @@ void osx_reload_touchbar(void) {
 }
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
-NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
+NSTouchBar* macosx_on_make_touch_bar(NSWindow *wnd) {
     (void)wnd;
 
     NSTouchBar* touchBar = [[NSTouchBar alloc] init];
@@ -423,11 +423,11 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
 }
 #endif
 
-void osx_init_touchbar(void) {
+void macosx_init_touchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 # if !defined(C_SDL2)
     if (has_touch_bar_support)
-        sdl1_hax_make_touch_bar_set_callback(osx_on_make_touch_bar);
+        sdl1_hax_make_touch_bar_set_callback(macosx_on_make_touch_bar);
 # endif
 #endif
 }
@@ -436,7 +436,7 @@ void osx_init_touchbar(void) {
 extern "C" void sdl1_hax_set_dock_menu(NSMenu *menu);
 #endif
 
-void osx_init_dock_menu(void) {
+void macosx_init_dock_menu(void) {
 #if !defined(C_SDL2)
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 
