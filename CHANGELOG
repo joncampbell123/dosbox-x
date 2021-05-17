@@ -43,7 +43,7 @@
     a DOS code page with "country" option in [config]
     section of the config file. The Windows SDL1 menu
     and the macOS menu are now also compatible with
-    Unicode language files. (Wengier)
+    Unicode language files and characters. (Wengier)
   - Cleaned up some messages that involve box-drawing
     characters (such as the welcome banner) for easier
     translations to certain languages. (Wengier)
@@ -86,8 +86,11 @@
   - Added menu options "Generate NMI interrupt" & "Hook
     INT 2Fh calls" ("Help" => "Debugging options") for
     more debugging options. (Wengier)
-  - Fixed mouse not automatically captured as DOSBox-X
-    starts with the setting fullscreen=true. (Wengier)
+  - Fixed the mouse not automatically captured when
+    DOSBox-X starts with the settings fullscreen=true
+    and autolock=true. (Wengier)
+  - Fixed keys may not work after loading a saved state
+    for the game Buck Rogers. (Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
   - Integrated SVN commits (Allofich)
