@@ -1252,7 +1252,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
     Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
-    Pstring->Set_help("Select another language file.");
+    Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or DOS code page.\n"
+                      "Set the code page with the \"country\" setting in [config] section, e.g. country=34,858");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
@@ -4261,7 +4262,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("The country code for date/time formats and optionally the code page for TTF output.");
+    Pstring->Set_help("The country code for date/time formats and code page for TTF output and language files.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
