@@ -1854,7 +1854,7 @@ protected:
 public:
     ShowMixerInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 350, 270, title) {
-            std::string mixerinfo();
+            extern std::string mixerinfo();
             std::istringstream in(mixerinfo().c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
@@ -1915,7 +1915,7 @@ public:
                 else if (name=="fluidsynth") name="FluidSynth";
                 else name[0]=toupper(name[0]);
             }
-            std::string getoplmode(), getoplemu();
+            extern std::string getoplmode(), getoplemu();
             std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+"\nMIDI soundfont file / ROM path:\n"+sffile+"\nOPL mode: "+getoplmode()+"\nOPL emulation: "+getoplemu();
             std::istringstream in(midiinfo.c_str());
             int r=0;
@@ -2082,7 +2082,7 @@ protected:
 public:
     ShowIDEInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 300, 210, title) {
-            std::string GetIDEInfo();
+            extern std::string GetIDEInfo();
             std::istringstream in(GetIDEInfo().c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {

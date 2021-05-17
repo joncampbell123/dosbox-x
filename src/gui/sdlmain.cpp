@@ -267,7 +267,8 @@ static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
-bool TTF_using(void), isDBCSCP();
+bool TTF_using(void);
+extern bool isDBCSCP();
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
 void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();
