@@ -266,14 +266,6 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     return true;
 }
 
-template <class MT> bool String_DBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-#if defined(host_cnv_use_wchar)
-    return String_DBCS_TO_HOST_UTF16((uint16_t *)d, s, hitbl, rawtbl, rawtbl_max);
-#else
-    return String_DBCS_TO_HOST_UTF8((char *)d, s, hitbl, rawtbl, rawtbl_max);
-#endif
-}
-
 // TODO: This is SLOW. Optimize.
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
     for (size_t i=0;i < map_max;i++) {
@@ -285,7 +277,7 @@ template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map
 }
 
 // TODO: This is SLOW. Optimize.
-template <class MT> int DBCS_CJK_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> int DBCS_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     for (size_t h=0;h < 1024;h++) {
         MT ofs = hitbl[h];
 
@@ -309,7 +301,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
         int ic;
         ic = (int)(*s++);
 
-        int oc = DBCS_CJK_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
 
@@ -339,7 +331,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
 
-        int oc = DBCS_CJK_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
 
