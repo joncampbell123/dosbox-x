@@ -3069,7 +3069,7 @@ bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
 			return false;
 		}
 	} else {
-		PHYSFS_sint64 mysize = PHYSFS_write(fhandle,data,1,(PHYSFS_uint64)*size);
+		PHYSFS_sint64 mysize = PHYSFS_writeBytes(fhandle, data, *size);
 		//LOG_MSG("Wrote %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
 		*size = (uint16_t)mysize;
 		return true;
