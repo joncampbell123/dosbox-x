@@ -12862,6 +12862,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				dpi_aware_enable = false;
 #elif defined(WIN32) && !defined(HX_DOS)
 				dpi_aware_enable = true;
+#if !defined(C_SDL2)
+                if (!control->opt_fullscreen && !static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))
+#endif
+                {
 				UINT dpi=0;
 				HMODULE __user32 = GetModuleHandle("USER32.DLL");
 				if (__user32) {
@@ -12880,6 +12884,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					}
 				}
 				if (dpi&&dpi/96>1) dpi_aware_enable = false;
+                }
 #else
 				dpi_aware_enable = true;
 #endif
@@ -13587,7 +13592,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 
                 /* Setup Mouse correctly if fullscreen */
-                if(sdl.desktop.fullscreen) GFX_CaptureMouse();
+                if(sdl.desktop.fullscreen&&sdl.mouse.autoenable) GFX_CaptureMouse();
             }
 
             // Shows menu bar (window)

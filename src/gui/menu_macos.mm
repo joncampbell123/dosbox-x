@@ -25,6 +25,10 @@ extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
 
+char tempstr[4096];
+void InitCodePage();
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
 void GetClipboard(std::string* result) {
 	NSPasteboard* pb = [NSPasteboard generalPasteboard];
 	NSString* text = [pb stringForType:NSPasteboardTypeString];
@@ -62,7 +66,14 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 		}
 
 		{
-			NSString *title = [[NSString alloc] initWithUTF8String:ft.c_str()];
+			NSString *title;
+            int cp = dos.loaded_codepage;
+            if (!dos.loaded_codepage) InitCodePage();
+            if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
+                title = [[NSString alloc] initWithUTF8String:tempstr];
+            else
+                title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",ft.c_str()]];
+            dos.loaded_codepage = cp;
 			[ns_item setTitle:title];
 			[title release];
 		}
@@ -72,7 +83,14 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 }
 
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {
-	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    if (!dos.loaded_codepage) InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
 	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
 	[title release];
 	[menu setAutoenablesItems:NO];
@@ -105,7 +123,14 @@ void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
 }
 
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
-	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    if (!dos.loaded_codepage) InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
 	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:@selector(DOSBoxXMenuAction:) keyEquivalent:@""];
 	[title release];
 	return (void*)item;
