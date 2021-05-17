@@ -41,7 +41,9 @@
     between DBCS and SBCS modes temporarily. (Wengier)
   - Support for UTF-8 encoded language files. Specify
     a DOS code page with "country" option in [config]
-    section of the config file. (Wengier)
+    section of the config file. The Windows SDL1 menu
+    and the macOS menu are now also compatible with
+    Unicode language files and characters. (Wengier)
   - Cleaned up some messages that involve box-drawing
     characters (such as the welcome banner) for easier
     translations to certain languages. (Wengier)
@@ -51,6 +53,9 @@
     config file will use the default IRQ number for the
     sound card type. Also fixed "irq=-1", "dma=-1" and
     "hdma=-1" not working as desired. (Wengier)
+  - Option "dpi aware=auto" now defaults to "true" when
+    full-screen mode is requested when DOSBox-X starts
+    in Windows SDL1 builds. (Wengier)
   - The return value of AL in Int21/AX=0Eh is no longer
     fixed. The game Jurassic Park may run after moving
     Z drive to a different letter (e.g. E:). (Wengier)
@@ -81,8 +86,11 @@
   - Added menu options "Generate NMI interrupt" & "Hook
     INT 2Fh calls" ("Help" => "Debugging options") for
     more debugging options. (Wengier)
-  - Fixed mouse not automatically captured as DOSBox-X
-    starts with the setting fullscreen=true. (Wengier)
+  - Fixed the mouse not automatically captured when
+    DOSBox-X starts with the settings fullscreen=true
+    and autolock=true. (Wengier)
+  - Fixed keys may not work after loading a saved state
+    for the game Buck Rogers. (Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
   - Integrated SVN commits (Allofich)

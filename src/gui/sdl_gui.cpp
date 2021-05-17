@@ -110,6 +110,10 @@ void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
 
+#if defined(MACOSX)
+void                        macosx_reload_touchbar(void);
+#endif
+
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
 	"64"
@@ -448,8 +452,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     running = true;
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
     return screen;
@@ -465,8 +468,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #endif
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
 #if defined(C_SDL2)

@@ -1704,9 +1704,9 @@ void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
     void sdl_hax_macosx_setmenu(void *nsMenu);
-    void menu_osx_set_menuobj(DOSBoxMenu *altMenu);
+    void menu_macosx_set_menuobj(DOSBoxMenu *altMenu);
     sdl_hax_macosx_setmenu(altMenu.getNsMenu());
-    menu_osx_set_menuobj(&altMenu);
+    menu_macosx_set_menuobj(&altMenu);
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if(!menu.gui) return;

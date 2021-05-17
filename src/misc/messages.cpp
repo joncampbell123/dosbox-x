@@ -68,6 +68,18 @@ void MSG_Replace(const char * _name, const char* _val) {
 	Lang.push_back(MessageBlock(_name,_val));
 }
 
+void InitCodePage() {
+    if (IS_PC98_ARCH)
+        dos.loaded_codepage=932;
+    else if (!dos.loaded_codepage) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+        if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
+            char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+            if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
+        }
+    }
+}
+
 void LoadMessageFile(const char * fname) {
 	if (!fname) return;
 	if(*fname=='\0') return;//empty string=no languagefile
@@ -89,13 +101,7 @@ void LoadMessageFile(const char * fname) {
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
     int cp=dos.loaded_codepage;
-    if (!dos.loaded_codepage) {
-        Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-        if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
-            char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
-            if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
-        }
-    }
+    if (!dos.loaded_codepage) InitCodePage();
 	while(fgets(linein, LINE_IN_MAXLEN, mfile)!=0) {
 		/* Parse the read line */
 		/* First remove characters 10 and 13 from the line */

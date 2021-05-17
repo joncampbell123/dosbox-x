@@ -257,8 +257,8 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #ifdef MACOSX
 #include <CoreGraphics/CoreGraphics.h>
 extern bool has_touch_bar_support;
-bool osx_detect_nstouchbar(void);
-void osx_init_touchbar(void);
+bool macosx_detect_nstouchbar(void);
+void macosx_init_touchbar(void);
 void GetClipboard(std::string* result);
 bool SetClipboard(std::string value);
 #endif
@@ -12863,6 +12863,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				dpi_aware_enable = false;
 #elif defined(WIN32) && !defined(HX_DOS)
 				dpi_aware_enable = true;
+#if !defined(C_SDL2)
+                if (!control->opt_fullscreen && !static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))
+#endif
+                {
 				UINT dpi=0;
 				HMODULE __user32 = GetModuleHandle("USER32.DLL");
 				if (__user32) {
@@ -12881,6 +12885,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					}
 				}
 				if (dpi&&dpi/96>1) dpi_aware_enable = false;
+                }
 #else
 				dpi_aware_enable = true;
 #endif
@@ -12901,14 +12906,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
 #ifdef MACOSX
-        osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
+        macosx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
         if (has_touch_bar_support) {
             LOG_MSG("macOS: NSTouchBar support detected in system");
-            osx_init_touchbar();
+            macosx_init_touchbar();
         }
 
-        extern void osx_init_dock_menu(void);
-        osx_init_dock_menu();
+        extern void macosx_init_dock_menu(void);
+        macosx_init_dock_menu();
 
         void qz_set_match_monitor_cb(void);
         qz_set_match_monitor_cb();
@@ -13588,7 +13593,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 
                 /* Setup Mouse correctly if fullscreen */
-                if(sdl.desktop.fullscreen) GFX_CaptureMouse();
+                if(sdl.desktop.fullscreen&&sdl.mouse.autoenable) GFX_CaptureMouse();
             }
 
             // Shows menu bar (window)
