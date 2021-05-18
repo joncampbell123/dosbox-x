@@ -742,6 +742,7 @@ static const char *def_menu_help_debug[] =
 #endif
 #if C_DEBUG
     "save_logas",
+    "--",
     "debug_logint21",
     "debug_logfileio",
 #endif
