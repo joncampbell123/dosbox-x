@@ -4262,10 +4262,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("The country code for date/time formats and code page for TTF output and language files.");
+    Pstring->Set_help("Country code for date/time formats and optionally code page for TTF output and language files.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
-	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
+	Pstring->Set_help("The maximum drive letter (A-Z) that can be accessed by programs.");
     Pstring->Set_values(driveletters);
     Pstring->SetBasic(true);
 
