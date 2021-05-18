@@ -92,6 +92,8 @@
     and autolock=true. (Wengier)
   - Fixed keys may not work after loading a saved state
     for the game Buck Rogers. (Wengier)
+  - Fixed Windows detection for the game "Tex Murphy:
+    Under a Killing Moon". (Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
   - Integrated SVN commits (Allofich)
