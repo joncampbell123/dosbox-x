@@ -2409,7 +2409,7 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 
-void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
+void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
 
     if (x < 0 || y < 0 ||
@@ -2437,7 +2437,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     }
     else {
         unsigned char *scan, *bmp;
-        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0) {
+        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
             PhysPt font16pt=Real2Phys(int10.rom.font_16);
             uint8_t font[fontHeight];
             for (int i=0; i<fontHeight; i++) font[i]=phys_readb(font16pt+c*fontHeight+i);
@@ -2481,7 +2481,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     }
 }
 
-void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
+void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
 
     if (x < 0 || y < 0 ||
@@ -2509,7 +2509,7 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
     }
     else { 
         unsigned char *scan, *bmp;
-        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0) {
+        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
             PhysPt font16pt=Real2Phys(int10.rom.font_16);
             uint8_t font[fontHeight];
             for (int i=0; i<fontHeight; i++) font[i]=phys_readb(font16pt+c*fontHeight+i);
@@ -2563,7 +2563,7 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
     }
 }
 
-void MenuDrawText(int x,int y,const char *text,Bitu color) {
+void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
 #if C_OPENGL
     if (OpenGL_using()) {
         glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
@@ -2586,9 +2586,9 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 
     while (*text != 0) {
         if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color);
+            MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color,check);
         else
-            MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
+            MenuDrawTextChar(x,y,(unsigned char)(*text++),color,check);
 
         x += (int)mainMenu.fontCharWidth;
     }
@@ -2647,7 +2647,7 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     if (checkBox.w != 0 && checkBox.h != 0) {
         const char *str = status.checked ? "\xFB" : " ";
 
-        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor);
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor, true);
     }
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
