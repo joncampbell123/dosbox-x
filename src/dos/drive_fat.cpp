@@ -1252,7 +1252,7 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 			return;
 		}
 		filesize = (uint32_t)(qcow2_header.size / 1024L);
-		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (uint8_t *)fname, filesize, bytesector, (filesize > 2880));
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, fname, filesize, bytesector, (filesize > 2880));
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
@@ -1268,22 +1268,22 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
         if (ext != NULL && !strcasecmp(ext, ".d88")) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskD88(diskfile, (uint8_t *)fname, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskD88(diskfile, fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskVFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskVFD(diskfile, fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880), 0);
+            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 0);
         }
         else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880), 1);
+            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 1);
         }
         else {
             fseeko64(diskfile, 0L, SEEK_END);

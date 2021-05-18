@@ -1436,7 +1436,7 @@ uint8_t imageDiskVFD::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskVFD::imageDiskVFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
+imageDiskVFD::imageDiskVFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
     (void)isHardDisk;//UNUSED
     unsigned char tmp[16];
 
@@ -1451,7 +1451,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, b
     diskimg = imgFile;
 
     if (imgName != NULL)
-        diskname = (const char*)imgName;
+        diskname = imgName;
 
     // NOTES:
     // 
@@ -1759,7 +1759,7 @@ uint8_t imageDiskD88::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskD88::imageDiskD88(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_D88) {
+imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_D88) {
     (void)isHardDisk;//UNUSED
     D88HEAD head;
 
@@ -1780,7 +1780,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, b
     diskimg = imgFile;
 
     if (imgName != NULL)
-        diskname = (const char*)imgName;
+        diskname = imgName;
 
     // NOTES:
     // 
@@ -2055,7 +2055,7 @@ uint8_t imageDiskNFD::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskNFD::imageDiskNFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk, unsigned int revision) : imageDisk(ID_NFD) {
+imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk, unsigned int revision) : imageDisk(ID_NFD) {
     (void)isHardDisk;//UNUSED
     union {
         NFDHDR head;
@@ -2077,7 +2077,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, b
     diskimg = imgFile;
 
     if (imgName != NULL)
-        diskname = (const char*)imgName;
+        diskname = imgName;
 
     // NOTES:
     // 
