@@ -105,6 +105,9 @@ static const char *def_menu__toplevel[] =
 #endif
     "DriveMenu",
     "HelpMenu",
+#if C_DEBUG
+    "DebugMenu",
+#endif
     NULL
 };
 
@@ -712,11 +715,16 @@ static const char *def_menu_drive[] =
 static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
 char help_command_temp[MENU_HELP_COMMAND_MAX][30];
 
-/* help output debug ("HelpDebugMenu") */
+/* help debug ("DebugMenu" or "HelpDebugMenu") */
+#if C_DEBUG
+static const char *def_menu_debug[] =
+#else
 static const char *def_menu_help_debug[] =
+#endif
 {
 #if C_DEBUG
     "mapper_debugger",
+    "--",
     "debugger_rundebug",
     "debugger_runnormal",
     "debugger_runwatch",
@@ -758,7 +766,7 @@ static const char *def_menu_help[] =
 #if C_PRINTER && defined(WIN32)
     "help_prt",
 #endif
-#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
 #if C_PCAP || C_PRINTER && defined(WIN32) || C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
@@ -1627,7 +1635,10 @@ void ConstructMenu(void) {
     /* help DOS command menu */
     ConstructSubMenu(mainMenu.get_item("HelpCommandMenu").get_master_id(), def_menu_help_command);
 
-#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if C_DEBUG
+    /* debug menu */
+    ConstructSubMenu(mainMenu.get_item("DebugMenu").get_master_id(), def_menu_debug);
+#elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     /* help debug menu */
     ConstructSubMenu(mainMenu.get_item("HelpDebugMenu").get_master_id(), def_menu_help_debug);
 #endif

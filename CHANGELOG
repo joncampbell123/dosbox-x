@@ -79,14 +79,16 @@
     (SDL2 and Windows SDL1 builds only). (Wengier)
   - Added "debuggerrun" config option in [log] section
     to set the run mode when DOSBox-X Debugger starts.
-    You can now also switch them from the menu ("Help"
-    => "Debugging options" => "Debugger option: ..."),
-    including "debugger", "normal" & "watch". Also, the
-    built-in DEBUGBOX command without a parameter will
-    start the DOSBox-X debugger. (Wengier)
-  - Added menu options "Generate NMI interrupt" & "Hook
-    INT 2Fh calls" ("Help" => "Debugging options") for
-    more debugging options. (Wengier)
+    You can now also switch them from the menu ("Debug"
+    => "Debugger option: ..."), including "debugger",
+    "normal" and "watch", the later two corresponding
+    to debugger commands "RUN" and "RUNWATCH". Also,
+    the built-in DEBUGBOX command without a parameter
+    will start the DOSBox-X debugger. (Wengier)
+  - "Debug" menu is now a top-level menu for debugging
+    builds. Also added more debugging options including
+    "Generate NMI interrupt" and "Hook INT 2Fh calls"
+    under this menu. (Wengier)
   - Fixed the mouse not automatically captured when
     DOSBox-X starts with the settings fullscreen=true
     and autolock=true. (Wengier)

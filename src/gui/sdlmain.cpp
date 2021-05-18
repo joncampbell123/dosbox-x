@@ -13572,9 +13572,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
 
             {
+#if C_DEBUG
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DebugMenu");
+
+                item.set_text("Debug");
+#else
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
 
                 item.set_text("Debugging options");
+#endif
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
