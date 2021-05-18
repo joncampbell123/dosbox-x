@@ -792,7 +792,9 @@ bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
         if (dynamic_cast<const isoDrive*>(Drives[idrive]) == NULL) continue;
         MenuBrowseCDImage('A'+idrive, ++num);
     }
+#if !defined(HX_DOS)
     if (!num) tinyfd_messageBox("Error","No CD drive is currently available.","ok","error", 1);
+#endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -810,7 +812,9 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
         if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
         MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
     }
+#if !defined(HX_DOS)
     if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
+#endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -2440,7 +2444,12 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
         if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
             PhysPt font16pt=Real2Phys(int10.rom.font_16);
             uint8_t font[fontHeight];
-            for (int i=0; i<fontHeight; i++) font[i]=phys_readb(font16pt+c*fontHeight+i);
+            for (int i=0; i<fontHeight; i++) {
+                font[i]=phys_readb(font16pt+c*fontHeight+i);
+#if defined(__MINGW32__)
+                LOG_MSG(NULL); // MinGW seems to need this for some reason
+#endif
+            }
             bmp = (unsigned char*)font;
         } else
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
@@ -2512,7 +2521,12 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
         if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
             PhysPt font16pt=Real2Phys(int10.rom.font_16);
             uint8_t font[fontHeight];
-            for (int i=0; i<fontHeight; i++) font[i]=phys_readb(font16pt+c*fontHeight+i);
+            for (int i=0; i<fontHeight; i++) {
+                font[i]=phys_readb(font16pt+c*fontHeight+i);
+#if defined(__MINGW32__)
+                LOG_MSG(NULL); // MinGW seems to need this for some reason
+#endif
+            }
             bmp = (unsigned char*)font;
         } else
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);

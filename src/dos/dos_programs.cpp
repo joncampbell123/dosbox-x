@@ -58,7 +58,6 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
-#include <VersionHelpers.h>
 # if defined(__MINGW32__)
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
@@ -410,7 +409,6 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	if(type==DRIVE_CDROM) {
 		int id, major, minor;
 		DOSBox_CheckOS(id, major, minor);
-
 		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
 			// Vista/above
 			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
@@ -1290,8 +1288,10 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_SDL, num);
                 } else {
 #if defined (WIN32)
-                    // Check OS
-                    if (IsWindowsVistaOrGreater()) {
+                    int id, major, minor;
+                    DOSBox_CheckOS(id, major, minor);
+                    if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
+                        // Vista/above
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
                     } else {
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);

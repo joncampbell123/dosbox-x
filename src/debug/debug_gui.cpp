@@ -644,6 +644,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
+    if (format==NULL) return;
     in_debug_showmsg = true;
 
     // in case of runaway error from the CPU core, user responsiveness can be helpful
