@@ -8,13 +8,13 @@
     that previously appeared on the root directory of
     Z drive are now categorized into directories, with
     addition of some files/programs, such as additional
-    4DOS files, text utilties in TEXTUTIL directory and
-    TITLE command to change window title. (Wengier)
+    4DOS files, text utilities in TEXTUTIL directory
+    and TITLE command to change window title. (Wengier)
   - You can now specify a command shell located on a
     mounted local drive via SHELL= command in [config]
     section of config file after the drive is properly
-    mounted via INSTALL= command. (WEngier)
-  - CHCP command in the Truetype font (TTF) output now
+    mounted via INSTALL= command. (Wengier)
+  - CHCP command in the TrueType font (TTF) output now
     allows code page 932, 936, 949, and 950 to display
     Chinese, Japanese and Korean characters and file
     names with DBCS support enabled in non-PC98 mode.
