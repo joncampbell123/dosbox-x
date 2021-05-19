@@ -18,16 +18,19 @@
     allows code page 932, 936, 949, and 950 to display
     Chinese, Japanese and Korean characters and file
     names with DBCS support enabled in non-PC98 mode.
-    By default DOSBox-X will enable auto-detection for
-    box-drawing characters, and this can be disabled by
-    setting new option "ttf.autoboxdraw" to "false".
-    KEYB command (and the keyboardlayout config option)
-    also accept "jp", "ko", "cn", "tw", "hk", "zh" as
-    layout names for setting code pages. (Wengier)
+    By default DOSBox-X will enable DBCS characters and
+    auto-detection for box-drawing characters in these
+    code pages, and these can be disabled by setting
+    new options "ttf.autodbcs" and "ttf.autoboxdraw" to
+    "false". KEYB command (and "keyboardlayout" config
+    option) also accept "jp", "ko", "cn", "tw", "hk",
+    "zh" as key layout names for code pages. (Wengier)
   - Added support for printing Chinese/Japanese/Korean
     DBCS (double-byte) characters when these code pages
-    are active, which can be disabled by setting option
-    "printdbcs=false" in [printer] section. (Wengier)
+    are active, which by default ("auto") is enabled for
+    the TTF output, but can be enable or disabled for
+    all outputs by setting option "printdbcs" to "true"
+    or "false" in [printer] section. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)
@@ -41,10 +44,11 @@
     for printing too when using TTF output. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
-  - Added menu options "Display TTF blinking cursor"
-    and "CJK: Auto-detect box-drawing symbols" under
-    "Video" => "TTF options" menu group to toggle the
-    TTF options ttf.blinkc and ttf.autoboxdraw, also a
+  - Added menu options "Display TTF blinking cursor",
+    "CJK: Switch DBCS/SBCS mode", and "CJK: Auto-detect
+    box-drawing symbols" under "Video" => "TTF options"
+    menu group to toggle the TTF options ttf.blinkc,
+    ttf.autodbcs and ttf.autoboxdraw, also a
     menu option "CJK: Switch DBCS/SBCS mode" to toggle
     between DBCS and SBCS modes temporarily. (Wengier)
   - Support for UTF-8 encoded language files. Specify

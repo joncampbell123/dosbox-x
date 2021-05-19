@@ -3767,6 +3767,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         showline = render_section->Get_bool("ttf.underline");
         showsout = render_section->Get_bool("ttf.strikeout");
         printfont = render_section->Get_bool("ttf.printfont");
+        dbcs_sbcs = render_section->Get_bool("ttf.autodbcs");
         autoboxdraw = render_section->Get_bool("ttf.autoboxdraw");
         const char *outputstr=render_section->Get_string("ttf.outputswitch");
 #if C_DIRECT3D

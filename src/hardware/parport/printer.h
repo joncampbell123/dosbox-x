@@ -94,7 +94,7 @@ public:
 	void getPrinterContext();
 
 	// Process one character sent to virtual printer
-	void printChar(uint8_t ch);
+	void printChar(uint8_t ch, int box = -1);
 
 	// Hard Reset (like switching printer off and on)
 	void resetPrinterHard();
