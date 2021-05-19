@@ -5065,7 +5065,11 @@ int setTTFCodePage() {
 }
 
 FT_Face GetTTFFace() {
-    return ttf.inUse && ttf.SDL_font ? ttf.SDL_font->face : NULL;
+    if (ttf.inUse && ttfFont && ttfSize) {
+        TTF_Font *font = TTF_OpenFontRW(SDL_RWFromConstMem(ttfFont, (int)ttfSize), 1, ttf.pointsize);
+        return font?font->face:NULL;
+    } else
+        return NULL;
 }
 
 void GFX_SelectFontByPoints(int ptsize) {
@@ -13273,7 +13277,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
                     set_callback_function(ttf_blinking_cursor_callback);
 #if C_PRINTER
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_printfont").set_text("Use active TTF font for printing").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_printfont").set_text("Use current TTF font for printing").
                     set_callback_function(ttf_print_font_callback);
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch between DBCS/SBCS modes").

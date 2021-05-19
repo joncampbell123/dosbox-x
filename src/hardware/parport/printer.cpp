@@ -1793,9 +1793,6 @@ void CPrinter::doAction(const char *fname) {
 
 void CPrinter::outputPage() 
 {
-#if defined(USE_TTF)
-	resetFontSize();
-#endif
 	char fname[200];
 
 	if (strcasecmp(output, "printer") == 0)
