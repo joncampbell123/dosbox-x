@@ -1346,7 +1346,8 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								char *ver = (char *)section->Get_string("ver");
+                                char ver[5];
+                                strcpy(ver, section->Get_string("ver"));
 								if (!*ver) {
 									dos.version.minor=0;
 									dos.version.major=5;

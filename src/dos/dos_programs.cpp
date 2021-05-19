@@ -1646,7 +1646,7 @@ private:
 
         localDrive* ldp=0;
 		bool readonly=wpcolon&&strlen(filename)>1&&filename[0]==':';
-        if (!DOS_MakeName(const_cast<char*>(readonly?filename+1:filename),fullname,&drive)) return NULL;
+        if (!DOS_MakeName(readonly?filename+1:filename,fullname,&drive)) return NULL;
 
         try {       
             ldp=dynamic_cast<localDrive*>(Drives[drive]);
@@ -1985,16 +1985,16 @@ public:
                     const char *ext = strrchr(temp_line.c_str(),'.'), *fname=readonly?temp_line.c_str()+1:temp_line.c_str();
 
                     if (ext != NULL && !strcasecmp(ext, ".d88")) {
-                        newDiskSwap[i] = new imageDiskD88(usefile, (uint8_t *)fname, floppysize, false);
+                        newDiskSwap[i] = new imageDiskD88(usefile, fname, floppysize, false);
                     }
                     else if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
-                        newDiskSwap[i] = new imageDiskVFD(usefile, (uint8_t *)fname, floppysize, false);
+                        newDiskSwap[i] = new imageDiskVFD(usefile, fname, floppysize, false);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (uint8_t *)fname, floppysize, false, 0);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 0);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (uint8_t *)fname, floppysize, false, 1);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
                     }
                     else {
                         newDiskSwap[i] = new imageDisk(usefile, fname, floppysize, false);
@@ -2624,7 +2624,7 @@ public:
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
         localDrive* ldp=0;
-        if (!DOS_MakeName((char *)temp_line.c_str(),fullname,&drive)) return;
+        if (!DOS_MakeName(temp_line.c_str(),fullname,&drive)) return;
 
         try {
             /* try to read ROM file into buffer */
@@ -2705,7 +2705,7 @@ public:
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
         localDrive* ldp = 0;
-        if (!DOS_MakeName((char*)temp_line.c_str(), fullname, &drive)) return;
+        if (!DOS_MakeName(temp_line.c_str(), fullname, &drive)) return;
 
         try {
             /* try to read ROM file into buffer */
@@ -4866,10 +4866,13 @@ private:
             if (commandLine.size()>4 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\') && commandLine.back()=='\'')
                 commandLine = commandLine.substr(1, commandLine.size()-2);
             else if (!paths.size() && commandLine.size()>3 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\')) {
-                std::string line=trim((char *)cmd->GetRawCmdline().c_str());
+                char temp[256];
+                strcpy(temp, cmd->GetRawCmdline().c_str());
+                std::string line=trim(temp);
                 std::size_t space=line.find(' ');
                 if (space!=std::string::npos) {
-                    line=trim((char *)line.substr(space).c_str());
+                    strcpy(temp, line.substr(space).c_str());
+                    line=trim(temp);
                     std::size_t found=line.back()=='\''?line.find_last_of('\''):line.rfind("' ");
                     if (found!=std::string::npos&&found>2) {
                         commandLine=line.substr(1, found-1);
@@ -5295,28 +5298,28 @@ private:
                                 break;
                             }
                             case imageDiskVHD::ERROR_OPENING: 
-                                errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING"); break;
+                                errorMessage = MSG_Get("VHD_ERROR_OPENING"); break;
                             case imageDiskVHD::INVALID_DATA: 
-                                errorMessage = (char*)MSG_Get("VHD_INVALID_DATA"); break;
+                                errorMessage = MSG_Get("VHD_INVALID_DATA"); break;
                             case imageDiskVHD::UNSUPPORTED_TYPE: 
-                                errorMessage = (char*)MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
+                                errorMessage = MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
                             case imageDiskVHD::ERROR_OPENING_PARENT: 
-                                errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
+                                errorMessage = MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
                             case imageDiskVHD::PARENT_INVALID_DATA: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATA"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_DATA"); break;
                             case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
                             case imageDiskVHD::PARENT_INVALID_MATCH: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
                             case imageDiskVHD::PARENT_INVALID_DATE: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATE"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_DATE"); break;
                             default: break;
                             }
                         }
                     }
                 }
                 if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
-                    errorMessage = (char*)("Unable to detect geometry\n");
+                    errorMessage = "Unable to detect geometry\n";
                 }
             }
 
@@ -5335,7 +5338,7 @@ private:
                 imgDisks.push_back(newDrive);
 				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
                 if (!fdrive->created_successfully) {
-                    errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+                    errorMessage = MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 					if (fdrive->req_ver_major>0) {
 						static char ver_msg[150];
 						sprintf(ver_msg, "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
@@ -5802,7 +5805,7 @@ private:
             sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
             imagesize = (uint32_t)(qcow2_header.size / 1024L);
             setbuf(newDisk, NULL);
-            newImage = new QCow2Disk(qcow2_header, newDisk, (uint8_t *)fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+            newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
         }
         else {
             char tmp[256];
@@ -5821,28 +5824,28 @@ private:
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskD88(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
+                newImage = new imageDiskD88(newDisk, fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskVFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
+                newImage = new imageDiskVFD(newDisk, fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 0);
+                newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 0);
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 1);
+                newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 1);
             }
             else {
                 fseeko64(newDisk, 0L, SEEK_END);

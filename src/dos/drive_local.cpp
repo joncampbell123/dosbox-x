@@ -687,7 +687,7 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
-    if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(uint16_t *)s))
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp,(char *)s))
 #endif
@@ -698,7 +698,7 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
-    if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(uint16_t *)s))
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_ltemp,(char *)s))
 #endif
@@ -3651,8 +3651,10 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 	else {
 		f = fopen_wrap(newname,mode);
 	}
-	//Check if a directories are part of the name:
-	char* dir = strrchr((char *)dos_filename,'\\');
+	//Check if a directory is part of the name:
+    char temp[256];
+    strcpy(temp, dos_filename);
+	char* dir = strrchr(temp,'\\');
 	if (!f && dir && *dir) {
 		if (logoverlay) LOG_MSG("Overlay: warning creating a file inside a directory %s",dos_filename);
 		//ensure they exist, else make them in the overlay if they exist in the original....

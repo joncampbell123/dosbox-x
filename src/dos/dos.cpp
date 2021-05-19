@@ -447,7 +447,7 @@ void DOS_PrintCBreak() {
 	/* print ^C <newline> */
 	uint16_t n = 4;
 	const char *nl = "^C\r\n";
-	DOS_WriteFile(STDOUT,(uint8_t*)nl,&n);
+	DOS_WriteFile(STDOUT,(const uint8_t*)nl,&n);
 }
 
 bool DOS_BreakTest(bool print=true) {
@@ -2998,7 +2998,9 @@ public:
 			maxfcb = (int)config_section->Get_int("fcbs");
 			if (maxfcb<1) maxfcb=1;
 			else if (maxfcb>255) maxfcb=255;
-			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
+            char dosopt[50];
+            strcpy(dosopt, config_section->Get_string("dos"));
+			char *r=strchr(dosopt, ',');
 			if (r==NULL) {
 				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
 				else if (!strcasecmp(trim(dosopt), "low")) dos_in_hma=false;
@@ -3012,16 +3014,16 @@ public:
 				if (!strcasecmp(trim(r+1), "umb")) dos_umb=true;
 				else if (!strcasecmp(trim(r+1), "noumb")) dos_umb=false;
 			}
-			char *lastdrive = (char *)config_section->Get_string("lastdrive");
+			const char *lastdrive = config_section->Get_string("lastdrive");
 			if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 				maxdrive=lastdrive[0]-'a'+1;
-			char *dosbreak = (char *)config_section->Get_string("break");
+			const char *dosbreak = config_section->Get_string("break");
 			if (!strcasecmp(dosbreak, "on"))
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
 #if defined(WIN32)
-			char *numlock = (char *)config_section->Get_string("numlock");
+			const char *numlock = config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
 #endif
@@ -3058,9 +3060,10 @@ public:
         }
         startcmd = section->Get_bool("startcmd");
         startincon = section->Get_string("startincon");
-        char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
+        const char *dos_clipboard_device_enable = section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
-		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
+        char temp[9];
+		dos_clipboard_device_name = strcpy(temp, section->Get_string("dos clipboard device name"));
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
@@ -3075,7 +3078,7 @@ public:
 					break;
 				}
 			}
-			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
+			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):strcpy(dos_clipboard_device_name,dos_clipboard_device_default);
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
             std::string text=mainMenu.get_item("clipboard_device").get_text();
             std::size_t found = text.find(":");
@@ -3423,7 +3426,8 @@ public:
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
-		char *ver = (char *)section->Get_string("ver");
+        char ver[5];
+        strcpy(ver, section->Get_string("ver"));
 		if (*ver) {
 			if (set_ver(ver)) {
 				/* warn about unusual version numbers */
