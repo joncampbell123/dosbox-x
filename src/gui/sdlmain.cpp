@@ -316,7 +316,8 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
-static int prev_sline = -1, blinkCursor = -1;
+int blinkCursor = -1;
+static int prev_sline = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
 bool colorChanged = false, justChanged = false;
@@ -3660,7 +3661,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
 void SetBlinkRate(Section_prop* section) {
     const char * blinkCstr = section->Get_string("ttf.blinkc");
     unsigned int num=-1;
-    if (!strcasecmp(blinkCstr, "false")) blinkCursor = -1;
+    if (!strcasecmp(blinkCstr, "false")||!strcmp(blinkCstr, "-1")) blinkCursor = -1;
     else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=7) blinkCursor = num;
     else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
 }
@@ -4039,7 +4040,7 @@ void change_output(int output) {
     mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor>-1).refresh_item(mainMenu);
 #if C_PRINTER
     mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
 #endif
@@ -13889,7 +13890,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1);
         mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2);
         mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3);
-        mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor);
+        mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor>-1);
 #if C_PRINTER
         mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
 #endif
