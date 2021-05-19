@@ -2366,13 +2366,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
+	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
+    Pbool->SetBasic(true);
+
 	Pbool = secprop->Add_bool("ttf.autoboxdraw", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)");
-
-	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
-    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
