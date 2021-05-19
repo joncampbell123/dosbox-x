@@ -970,14 +970,14 @@ void Null_Init(Section *sec);
 
 void AddExitFunction(SectionFunction func,const char *name,bool canchange) {
     /* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
-    exitfunctions.push_front(Function_wrapper(func,canchange,name));
+    exitfunctions.emplace_front(Function_wrapper(func,canchange,name));
 }
 
 void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange) {
     assert(event < VM_EVENT_MAX);
 
     /* NTS: First In First Out order */
-    vm_event_functions[event].push_back(Function_wrapper(func,canchange,name));
+    vm_event_functions[event].emplace_back(Function_wrapper(func,canchange,name));
 }
 
 const char *VM_EVENT_string[VM_EVENT_MAX] = {
@@ -1073,7 +1073,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     if (!in) return false;
     const char * settings_type;
     settings_type = (configfiles.size() == 0)? "primary":"additional";
-    configfiles.push_back(configfilename);
+    configfiles.emplace_back(configfilename);
 
     LOG(LOG_MISC,LOG_NORMAL)("Loading %s settings from config file %s", settings_type,configfilename);
 
@@ -1527,7 +1527,7 @@ CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) 
         if (!raw_cmdline.empty()) raw_cmdline += " ";
         raw_cmdline += argv[i];
 
-        cmds.push_back(argv[i]);
+        cmds.emplace_back(argv[i]);
         i++;
     }
 }

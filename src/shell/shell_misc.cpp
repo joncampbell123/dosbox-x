@@ -274,14 +274,14 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
         if (strcmp(name, ".") && strcmp(name, "..")) {
             if (dir_only) { //Handle the dir only case different (line starts with cd)
-                if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
+                if(att & DOS_ATTR_DIRECTORY) l_completion.emplace_back(qlname);
             } else {
                 const char *ext = strrchr(name, '.'); // file extension
                 if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
-                    // we add executables to the a seperate list and place that list infront of the normal files
-                    executable.push_front(qlname);
+                    // we add executables to a separate list and place that list in front of the normal files
+                    executable.emplace_front(qlname);
                 else
-                    l_completion.push_back(qlname);
+                    l_completion.emplace_back(qlname);
             }
         }
         res=DOS_FindNext();
@@ -534,7 +534,7 @@ void DOS_Shell::InputCommand(char * line) {
                 // store current command in history if we are at beginning
                 if (it_history == l_history.begin() && !current_hist) {
                     current_hist=true;
-                    l_history.push_front(line);
+                    l_history.emplace_front(line);
                 }
 
                 // ensure we're at end to handle all cases
@@ -836,7 +836,7 @@ void DOS_Shell::InputCommand(char * line) {
 
 	// add command line to history. Win95 behavior with DOSKey suggests
 	// that the original string is preserved, not the expanded string.
-	l_history.push_front(line); it_history = l_history.begin();
+	l_history.emplace_front(line); it_history = l_history.begin();
 	if (l_completion.size()) l_completion.clear();
 
 	/* DOS %variable% substitution */

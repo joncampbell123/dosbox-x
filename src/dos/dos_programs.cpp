@@ -548,7 +548,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     if (lTheOpenFileName) {
         uint8_t mediaid = 0xF0;
         std::vector<std::string> options;
-        if (mountiro[drive-'A']) options.push_back("readonly");
+        if (mountiro[drive-'A']) options.emplace_back("readonly");
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
         if (!newDrive->created_successfully) {
             tinyfd_messageBox("Error","Could not mount the selected floppy disk image.","ok","error", 1);

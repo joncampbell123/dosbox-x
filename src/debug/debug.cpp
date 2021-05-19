@@ -3273,7 +3273,7 @@ uint32_t DEBUG_CheckKeys(void) {
                     if(ParseCommand(codeViewData.inputStr)) {
                         char* cmd = ltrim(codeViewData.inputStr);
                         if (histBuff.empty() || *--histBuff.end()!=cmd)
-                            histBuff.push_back(cmd);
+                            histBuff.emplace_back(cmd);
                         if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
                         histBuffPos = histBuff.end();
                         ClearInputLine();
