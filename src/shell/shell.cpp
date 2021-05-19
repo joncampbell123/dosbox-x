@@ -45,11 +45,8 @@
 #endif
 #include "build_timestamp.h"
 
-static bool first_run=true;
-extern bool use_quick_reboot, mountwarning;
 extern bool startcmd, startwait, startquiet, winautorun;
-extern bool enable_config_as_shell_commands;
-extern bool dos_shell_running_program;
+extern bool dos_shell_running_program, mountwarning;
 extern bool addovl, addipx;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
@@ -1756,27 +1753,6 @@ void SHELL_Init() {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,CTBUF+1));
 	dos.psp(psp_seg);
-
-    /* settings */
-    if (first_run) {
-        const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
-		use_quick_reboot = section->Get_bool("quick reboot");
-		enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
-		startwait = section->Get_bool("startwait");
-		startquiet = section->Get_bool("startquiet");
-		winautorun=startcmd;
-		first_run=false;
-    }
-#if !defined(HX_DOS)
-    mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
-#endif
-	mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
-	mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
-#if defined(WIN32) && !defined(HX_DOS)
-    mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
-#endif
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT

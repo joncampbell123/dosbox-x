@@ -48,6 +48,8 @@
 #include <unistd.h>
 #endif
 
+static bool first_run=true;
+extern bool use_quick_reboot, enable_config_as_shell_commands;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
@@ -3446,6 +3448,28 @@ public:
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
         update_dos_ems_menu();
 
+        /* settings */
+        if (first_run) {
+            const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+            use_quick_reboot = section->Get_bool("quick reboot");
+            enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+            startwait = section->Get_bool("startwait");
+            startquiet = section->Get_bool("startquiet");
+            winautorun=startcmd;
+            first_run=false;
+        }
+#if !defined(HX_DOS)
+        mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
+#endif
+        mainMenu.get_item("enable_a20gate").enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
+        mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+#if defined(WIN32) && !defined(HX_DOS)
+        mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
+#endif
+
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
             PC98_InitDefFuncRow();
@@ -3478,6 +3502,7 @@ public:
 		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("enable_a20gate").enable(false).refresh_item(mainMenu);
 #if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
