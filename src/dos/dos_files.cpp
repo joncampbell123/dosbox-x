@@ -917,7 +917,7 @@ bool DOS_UnlinkFile(char const * const name) {
 				strcpy(temp, dir);
 				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
 				strcat(temp, find_name);
-				cdirs.push_back(std::string(temp));
+				cdirs.emplace_back(std::string(temp));
 			}
 		} while ((ret=DOS_FindNext())==true);
 		lfn_filefind_handle=fbak;

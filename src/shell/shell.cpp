@@ -1072,7 +1072,7 @@ void drivezRegister(std::string path, std::string dir) {
         if(hFind != INVALID_HANDLE_VALUE) {
             do {
                 if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-                    names.push_back(fd.cFileName);
+                    names.emplace_back(fd.cFileName);
                 else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
                     names.push_back(std::string(fd.cFileName)+"/");
             } while(::FindNextFile(hFind, &fd));

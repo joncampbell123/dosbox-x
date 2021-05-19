@@ -53,7 +53,7 @@ void MSG_Add(const char * _name, const char* _val) {
 		}
 	}
 	/* if the message doesn't exist add it */
-	Lang.push_back(MessageBlock(_name,_val));
+	Lang.emplace_back(MessageBlock(_name,_val));
 }
 
 void MSG_Replace(const char * _name, const char* _val) {
@@ -65,7 +65,7 @@ void MSG_Replace(const char * _name, const char* _val) {
 		}
 	}
 	/* Even if the message doesn't exist add it */
-	Lang.push_back(MessageBlock(_name,_val));
+	Lang.emplace_back(MessageBlock(_name,_val));
 }
 
 void InitCodePage() {

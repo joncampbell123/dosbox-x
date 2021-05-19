@@ -701,7 +701,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
                         fdir=true;
                         strcat(spath, name);
                         strcat(spath, "\\*.*");
-                        cdirs.push_back(std::string(spath));
+                        cdirs.emplace_back(std::string(spath));
                     }
                 } else {
                     if (!optY&&first) {
@@ -780,7 +780,7 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	tdirs.clear();
-	tdirs.push_back(std::string(args));
+	tdirs.emplace_back(std::string(args));
 	bool first=true, found=false;
     ctrlbrk=false;
     inshell=true;
@@ -880,7 +880,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
                     if (strcmp(name, ".")&&strcmp(name, "..")) {
                         strcat(spath, name);
                         strcat(spath, "\\*.*");
-                        cdirs.push_back(std::string(spath));
+                        cdirs.emplace_back(std::string(spath));
                         found=true;
                     }
                 } else if (optF) {
@@ -942,7 +942,7 @@ void DOS_Shell::CMD_TREE(char * args) {
     ctrlbrk=false;
     inshell=true;
 	tdirs.clear();
-	tdirs.push_back(std::string(buffer));
+	tdirs.emplace_back(std::string(buffer));
 	while (!tdirs.empty()) {
 		if (!doTree(this, (char *)tdirs.begin()->c_str(), dta, optA, optF)) break;
 		tdirs.erase(tdirs.begin());
@@ -1190,9 +1190,9 @@ void DOS_Shell::CMD_RENAME(char * args){
 				strcpy(targs, dir_source);
 				if (uselfn) removeChar(targs, '\"');
 				strcat(targs, arg2);
-				sources.push_back(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs);
-				sources.push_back(uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs);
-				sources.push_back(strlen(sargs)>2&&sargs[0]=='.'&&sargs[1]=='\\'?sargs+2:sargs);
+				sources.emplace_back(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs);
+				sources.emplace_back(uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs);
+				sources.emplace_back(strlen(sargs)>2&&sargs[0]=='.'&&sargs[1]=='\\'?sargs+2:sargs);
 			}
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		} while ( DOS_FindNext() );
@@ -1270,7 +1270,7 @@ void DOS_Shell::CMD_PUSHD(char * args) {
         if (strlen(args)>1 && args[1]==':') DOS_SetDefaultDrive(toupper(args[0])-'A');
         if (DOS_ChangeDir(sargs)) {
             olddrives.push_back(drive);
-            olddirs.push_back(std::string(dir));
+            olddirs.emplace_back(std::string(dir));
         } else {
             if (strlen(args)>1 && args[1]==':') DOS_SetDefaultDrive(drive-'A');
             WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"),args);
@@ -1854,7 +1854,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	dirs.clear();
-	dirs.push_back(std::string(args));
+	dirs.emplace_back(std::string(args));
 	inshell=true;
 	while (!dirs.empty()) {
 		ctrlbrk=false;
@@ -3252,7 +3252,7 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	adirs.clear();
-	adirs.push_back(std::string(args));
+	adirs.emplace_back(std::string(args));
 	bool found=false;
 	inshell=true;
 	while (!adirs.empty()) {

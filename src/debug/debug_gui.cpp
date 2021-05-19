@@ -492,7 +492,7 @@ static void MakeSubWindows(void) {
 
             /* add height to the window */
             yheight[wndi] += (unsigned int)expand_by;
-            outy += (int)expand_by;
+            outy += expand_by;
             wndi++;
 
             /* move the others down */
@@ -695,7 +695,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 		logBuffPos=logBuff.end();
 		DEBUG_RefreshPage(0);
 	}
-	logBuff.push_back(buf);
+	logBuff.emplace_back(buf);
 	if (logBuff.size() > MAX_LOG_BUFFER) {
         logBuffHasDiscarded = true;
         if (logBuffPos == logBuff.begin()) ++logBuffPos; /* keep the iterator valid */

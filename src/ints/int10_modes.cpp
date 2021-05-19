@@ -927,7 +927,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	else if(CurMode->hdispend==80) syncwidth = 0xc;
 	else syncwidth = 0x6;
 	
-	IO_WriteW(crtc_base,(uint16_t)(0x03 | (syncwidth) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x03 | syncwidth << 8));
 	////Vertical total
 	IO_WriteW(crtc_base,(uint16_t)(0x04 | (CurMode->vtotal) << 8));
 	//Vertical total adjust, 6 for cga,hercules,tandy
@@ -1052,7 +1052,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
             if (CurMode->mode == 2 || CurMode->mode == 3)
                 mcga_mode |= 0x80;
 
-            IO_WriteW(crtc_base,0x10 | (mcga_mode) << 8);
+            IO_WriteW(crtc_base,0x10 | mcga_mode << 8);
         }
 		break;
 	case MCH_TANDY:

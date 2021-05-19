@@ -495,7 +495,7 @@ public:
 	CBreakpoint(void);
 	void					SetAddress		(uint16_t seg, uint32_t off)	{ location = (PhysPt)GetAddress(seg,off); type = BKPNT_PHYSICAL; segment = seg; offset = off; };
 	void					SetAddress		(PhysPt adr)				{ location = adr; type = BKPNT_PHYSICAL; };
-	void					SetInt			(uint8_t _intNr, uint16_t ah, uint16_t al)	{ intNr = _intNr, ahValue = ah; alValue = al; type = BKPNT_INTERRUPT; };
+	void					SetInt			(uint8_t _intNr, uint16_t ah, uint16_t al)	{ intNr = _intNr; ahValue = ah; alValue = al; type = BKPNT_INTERRUPT; };
 	void					SetOnce			(bool _once)				{ once = _once; };
 	void					SetType			(EBreakpoint _type)			{ type = _type; };
 	void					SetValue		(uint8_t value)				{ ahValue = value; };
@@ -1216,7 +1216,7 @@ static void DrawCode(void) {
 		return;
 
 	uint32_t disEIP = codeViewData.useEIP;
-	char dline[200];Bitu size;Bitu c;
+	char dline[200];Bitu size;
 	static char line20[21] = "                    ";
     int w,h;
 
@@ -1276,7 +1276,7 @@ static void DrawCode(void) {
 		if (drawsize>10) { toolarge = true; drawsize = 9; }
  
         if (start != mem_no_address) {
-            for (c=0;c<drawsize;c++) {
+            for (Bitu c=0;c<drawsize;c++) {
                 uint8_t value;
                 if (!mem_readb_checked((PhysPt)(start+c),&value)) {
                     wattrset (dbg.win_code,0);
@@ -3273,7 +3273,7 @@ uint32_t DEBUG_CheckKeys(void) {
                     if(ParseCommand(codeViewData.inputStr)) {
                         char* cmd = ltrim(codeViewData.inputStr);
                         if (histBuff.empty() || *--histBuff.end()!=cmd)
-                            histBuff.push_back(cmd);
+                            histBuff.emplace_back(cmd);
                         if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
                         histBuffPos = histBuff.end();
                         ClearInputLine();
@@ -3881,12 +3881,12 @@ void LogPages(char* selname) {
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
 			for (unsigned int i=0; i<0xfffff; i++) {
-				Bitu table_addr=((Bitu)paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
+				Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
 				X86PageEntry table;
 				table.load=phys_readd((PhysPt)table_addr);
 				if (table.block.p) {
 					X86PageEntry entry;
-                    PhysPt entry_addr=((PhysPt)table.block.base<<12u)+(i & 0x3ffu)* 4u;
+                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
 					entry.load=phys_readd(entry_addr);
 					if (entry.block.p) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",

@@ -4091,25 +4091,25 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 		char dir_name[CROSS_LEN], dir_sname[CROSS_LEN];
 		bool is_directory;
 		if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-			if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(dir_name);
+			if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
 			else if (is_directory) {
-				dirnames.push_back(dir_name);
+				dirnames.emplace_back(dir_name);
 				if (!strlen(dir_sname)) {
 					strcpy(dir_sname, dir_name);
 					upcase(dir_sname);
 				}
-				dirnames.push_back(dir_sname);
-			} else filenames.push_back(dir_name);
+				dirnames.emplace_back(dir_sname);
+			} else filenames.emplace_back(dir_name);
 			while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
-				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(dir_name);
+				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
 				else if (is_directory) {
-					dirnames.push_back(dir_name);
+					dirnames.emplace_back(dir_name);
 					if (!strlen(dir_sname)) {
 						strcpy(dir_sname, dir_name);
 						upcase(dir_sname);
 					}
-					dirnames.push_back(dir_sname);
-				} else filenames.push_back(dir_name);
+					dirnames.emplace_back(dir_sname);
+				} else filenames.emplace_back(dir_name);
 			}
 		}
 		closedir(dirp);
@@ -4199,7 +4199,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 			//upcase(dosname);  //Should not be really needed, as uppercase in the overlay is a requirement...
 			CROSS_DOSFILENAME(dosname);
 			if (logoverlay) LOG_MSG("update cache add dosname %s",dosname);
-			DOSnames_cache.push_back(dosname);
+			DOSnames_cache.emplace_back(dosname);
 		}
 	}
 
@@ -4709,7 +4709,7 @@ void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 	else
 		strcat(tname,temp_name);
 	if (!is_deleted_file(tname)) {
-		deleted_files_in_base.push_back(tname);
+		deleted_files_in_base.emplace_back(tname);
 		if (create_on_disk) add_special_file_to_disk(tname, "DEL");
 	}
 }
@@ -4836,8 +4836,8 @@ void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (logoverlay) LOG_MSG("Adding name to overlay_only_dir_cache %s",name);
 	if (!is_dir_only_in_overlay(name)) {
-		DOSdirs_cache.push_back(name);
-		DOSdirs_cache.push_back(sname);
+		DOSdirs_cache.emplace_back(name);
+		DOSdirs_cache.emplace_back(sname);
 	}
 }
 
@@ -4889,7 +4889,7 @@ void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (!is_deleted_path(name)) {
-		deleted_paths_in_base.push_back(name);
+		deleted_paths_in_base.emplace_back(name);
 		//Add it to deleted files as well, so it gets skipped in FindNext. 
 		//Maybe revise that.
 		if (create_on_disk) add_special_file_to_disk(name,"RMD");

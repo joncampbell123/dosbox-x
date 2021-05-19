@@ -67,7 +67,7 @@ public:
     std::vector<std::string> startup_params;
     std::vector<std::string> configfiles;
     Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
-        startup_params.push_back(cmdline->GetFileName());
+        startup_params.emplace_back(cmdline->GetFileName());
         cmdline->FillVector(startup_params);
         opt_exit = false;
         opt_debug = false;
