@@ -6774,13 +6774,14 @@ bool setVGAColor(const char *colorArray, int i) {
     return true;
 }
 
-#if defined(USE_TTF)
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+#if defined(USE_TTF)
 extern alt_rgb altBGR1[16];
 extern bool colorChanged;
 bool setColors(const char *colorArray, int n);
 void resetFontSize();
+#endif
 
 class SETCOLOR : public Program {
 public:
@@ -6823,10 +6824,14 @@ void SETCOLOR::Run()
 				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
 		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||(i>0&&i<16)) {
 			if (p==NULL) {
+#if defined(USE_TTF)
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
                 WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+#else
+                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+#endif
             }
 		} else {
 			WriteOut("Invalid color number - %s\n", trim(args));
@@ -6839,13 +6844,16 @@ void SETCOLOR::Run()
 				value[127]=0;
 			} else
 				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
+#if defined(USE_TTF)
 			if (!ttf.inUse) {
+#endif
                 if (!IS_VGA_ARCH)
                     WriteOut("Changing color scheme is not supported for the current video mode.\n");
                 else if (setVGAColor(value, i))
                     WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
                 else
                     WriteOut("Invalid color value - %s\n",value);
+#if defined(USE_TTF)
 			} else if (setColors(value,i)) {
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
@@ -6854,14 +6862,19 @@ void SETCOLOR::Run()
 				resetFontSize();
 			} else
 				WriteOut("Invalid color value - %s\n",value);
+#endif
 			}
 	} else {
 		WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
 		for (int i = 0; i < 16; i++) {
+#if defined(USE_TTF)
             altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
             altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
             altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
 			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+#else
+			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+#endif
         }
 	}
 }
@@ -6869,7 +6882,6 @@ void SETCOLOR::Run()
 static void SETCOLOR_ProgramStart(Program * * make) {
     *make=new SETCOLOR;
 }
-#endif
 
 #if C_DEBUG
 extern Bitu int2fdbg_hook_callback;
@@ -7813,9 +7825,7 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
-#if defined(USE_TTF)
         PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
-#endif
 	}
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");

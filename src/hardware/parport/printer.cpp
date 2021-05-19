@@ -1336,10 +1336,18 @@ void CPrinter::printChar(uint8_t ch, int box)
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
-    if ((printdbcs==1 || (printdbcs==-1 && TTF_using() && dbcs_sbcs)) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
+    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+#if defined(USE_TTF)
+    && dbcs_sbcs
+#endif
+    )) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
         uint32_t tick = GetTicks();
         if (box!=0 && last3 && last2 && lastchar && lasttick && (tick-lasttick<50||tick-lasttick<printer_timout)) {
-            if (autoboxdraw&&ch>=176&&ch<=223&&CheckBoxDrawing(last3, last2, lastchar, ch)) {
+            if (ch>=176&&ch<=223
+#if defined(USE_TTF)
+            && autoboxdraw
+#endif
+            && CheckBoxDrawing(last3, last2, lastchar, ch)) {
                 ll=lastchar;
                 if (box3) {
                     lastchar=0;
@@ -1379,7 +1387,11 @@ void CPrinter::printChar(uint8_t ch, int box)
                 return;
             }
         } else if (box!=0 && box2 && last2 && lastchar && lasttick && (tick-lasttick<50||tick-lasttick<printer_timout)) {
-            if (autoboxdraw&&ch>=176&&ch<=223) {
+            if (ch>=176&&ch<=223
+#if defined(USE_TTF)
+            && autoboxdraw
+#endif
+                ) {
                 box2=false;
                 box3=true;
                 last3=last2;
@@ -1411,7 +1423,11 @@ void CPrinter::printChar(uint8_t ch, int box)
                 last3=last2=0;
             }
         } else if (lastlead && ch>=0x40 && lastchar && lasttick && (tick-lasttick<50||tick-lasttick<printer_timout)) {
-            if (autoboxdraw&&box!=0&&lastchar>=176&&lastchar<=223&&ch>=176&&ch<=223) {
+            if (box!=0&&lastchar>=176&&lastchar<=223&&ch>=176&&ch<=223
+#if defined(USE_TTF)
+            && autoboxdraw
+#endif
+            ) {
                 box2=true;
                 box3=false;
                 last3=0;
