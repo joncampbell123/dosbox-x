@@ -24,6 +24,10 @@
     KEYB command (and the keyboardlayout config option)
     also accept "jp", "ko", "cn", "tw", "hk", "zh" as
     layout names for setting code pages. (Wengier)
+  - Added support for printing Chinese/Japanese/Korean
+    DBCS (double-byte) characters when these code pages
+    are active, which can be disabled by setting option
+    "printdbcs=false" in [printer] section. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)
@@ -31,6 +35,10 @@
     which can optionally specify a foreground color
     (0-7) for the TTF output, similar to "ttf.wpbg" for
     the background color in the TTF output. (Wengier)
+  - Added "ttf.printfont" config option in [render]
+    section which when set to true (default) will force
+    to use the current TrueType font (set via ttf.font)
+    for printing too when using TTF output. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
   - Added menu options "Display TTF blinking cursor"

@@ -291,7 +291,8 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
-bool dbcs_sbcs=true;
+bool dbcs_sbcs = true;
+bool printfont = true;
 bool autoboxdraw = true;
 int outputswitch = -1;
 int wpType = 0;
@@ -3765,6 +3766,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         showital = render_section->Get_bool("ttf.italic");
         showline = render_section->Get_bool("ttf.underline");
         showsout = render_section->Get_bool("ttf.strikeout");
+        printfont = render_section->Get_bool("ttf.printfont");
         autoboxdraw = render_section->Get_bool("ttf.autoboxdraw");
         const char *outputstr=render_section->Get_string("ttf.outputswitch");
 #if C_DIRECT3D
@@ -4037,6 +4039,9 @@ void change_output(int output) {
     mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
     mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor).refresh_item(mainMenu);
+#if C_PRINTER
+    mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
+#endif
     mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw).refresh_item(mainMenu);
     mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw).refresh_item(mainMenu);
 #endif
@@ -5057,6 +5062,10 @@ int setTTFCodePage() {
         return notMapped;
     } else
         return -1;
+}
+
+FT_Face GetTTFFace() {
+    return ttf.inUse && ttf.SDL_font ? ttf.SDL_font->face : NULL;
 }
 
 void GFX_SelectFontByPoints(int ptsize) {
@@ -10905,6 +10914,18 @@ bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     return true;
 }
 
+#if C_PRINTER
+void UpdateDefaultPrinterFont();
+bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    printfont=!printfont;
+    mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
+    UpdateDefaultPrinterFont();
+    return true;
+}
+#endif
+
 bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
@@ -13251,7 +13272,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_wp_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
                     set_callback_function(ttf_blinking_cursor_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch DBCS/SBCS mode").
+#if C_PRINTER
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_printfont").set_text("Use active TTF font for printing").
+                    set_callback_function(ttf_print_font_callback);
+#endif
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch between DBCS/SBCS modes").
                     set_callback_function(ttf_dbcs_sbcs_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("CJK: Auto-detect box-drawing symbols").
                     set_callback_function(ttf_auto_boxdraw_callback);
@@ -13860,6 +13885,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2);
         mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3);
         mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor);
+#if C_PRINTER
+        mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
+#endif
         mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(dbcs_sbcs);
         mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw);
 #endif

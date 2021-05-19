@@ -2370,6 +2370,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)");
 
+	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
+    Pstring->SetBasic(true);
+
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
@@ -3616,6 +3620,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("openerror", Property::Changeable::WhenIdle, "");
     Pstring->Set_help("Start the specified program to open the output file if an error had occurred.");
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("printdbcs", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X will print Chinese/Japnese/Korean double-byte characters when these code pages are active.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("shellhide", Property::Changeable::WhenIdle, false);
     Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows platform.");
