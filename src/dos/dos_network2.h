@@ -33,7 +33,7 @@ August 8 2005		cyberwalker
 
 extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
- bool	Network_IsNetworkResource(char * filename)
+ bool	Network_IsNetworkResource(const char * filename)
 {
 	if(strlen(filename)>1)
 			return (filename[0]=='\\' && filename[1]=='\\');
@@ -48,7 +48,7 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 }//bool	Network_IsNetworkFile(uint16_t entry)
 
 
- bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
+ bool	Network_OpenFile(const char * filename,uint8_t flags,uint16_t * entry)
 {
 	int oflag=_O_BINARY;
 	int shflag=0;
@@ -155,7 +155,7 @@ int _nhandle;
 }//bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 
 
- bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
+ bool	Network_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount)
 {
 		uint16_t towrite=*amount;
 		uint32_t handle=RealHandle(entry);

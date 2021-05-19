@@ -486,7 +486,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	return false;
 }
 
-bool DOS_FindFirst(char * search,uint16_t attr,bool fcb_findfirst) {
+bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
 	uint8_t drive;char fullsearch[DOS_PATHLENGTH];
@@ -583,7 +583,7 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 	return ret;
 }
 
-bool DOS_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
+bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_WriteFile(entry,data,amount);
@@ -746,8 +746,8 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsNetworkResource(const_cast<char *>(name)))
-		return Network_OpenFile(const_cast<char *>(name),flags,entry);
+	if(Network_IsNetworkResource(name))
+		return Network_OpenFile(name,flags,entry);
 #endif
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
@@ -908,7 +908,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		std::string pfull=std::string(spath)+std::string(pattern);
 		int fbak=lfn_filefind_handle;
 		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
-		bool ret=DOS_FindFirst((char *)((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
+		bool ret=DOS_FindFirst(((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
 		if (ret) do {
 			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
 			uint16_t find_date,find_time;uint32_t find_size;uint8_t find_attr;

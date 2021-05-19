@@ -26,7 +26,7 @@
 #include "support.h"
 #include "control.h"
 
-bool wild_match(char *haystack, char *needle) {
+bool wild_match(const char *haystack, char *needle) {
 	size_t max, i;
     for (; *needle != '\0'; ++needle) {
         switch (*needle) {
@@ -100,7 +100,7 @@ bool WildFileCmp(const char * file, const char * wild)
 			if (!wild_match(file_name, wild_name)) return false;
 			goto checkext;
 		} else
-			return wild_match((char *)file, wild_name);
+			return wild_match(file, wild_name);
 	} else {
 		r=0;
 		while (r<8) {
@@ -179,7 +179,7 @@ bool LWildFileCmp(const char * file, const char * wild)
 			if (!wild_match(file_name, wild_name)) return false;
 			goto checkext;
 		} else
-			return wild_match((char *)file, wild_name);
+			return wild_match(file, wild_name);
 	} else {
 		r=0;
 		while (r<size) {
