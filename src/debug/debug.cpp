@@ -1216,7 +1216,7 @@ static void DrawCode(void) {
 		return;
 
 	uint32_t disEIP = codeViewData.useEIP;
-	char dline[200];Bitu size;Bitu c;
+	char dline[200];Bitu size;
 	static char line20[21] = "                    ";
     int w,h;
 
@@ -1276,7 +1276,7 @@ static void DrawCode(void) {
 		if (drawsize>10) { toolarge = true; drawsize = 9; }
  
         if (start != mem_no_address) {
-            for (c=0;c<drawsize;c++) {
+            for (Bitu c=0;c<drawsize;c++) {
                 uint8_t value;
                 if (!mem_readb_checked((PhysPt)(start+c),&value)) {
                     wattrset (dbg.win_code,0);
