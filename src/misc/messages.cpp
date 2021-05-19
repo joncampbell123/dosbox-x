@@ -69,15 +69,14 @@ void MSG_Replace(const char * _name, const char* _val) {
 }
 
 void InitCodePage() {
-    if (IS_PC98_ARCH)
-        dos.loaded_codepage=932;
-    else if (!dos.loaded_codepage) {
+    if (!dos.loaded_codepage) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-        if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
+        if (!dos.loaded_codepage && section!=NULL) {
             char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
             if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
         }
     }
+    if (!dos.loaded_codepage) dos.loaded_codepage = IS_PC98_ARCH?932:437;
 }
 
 void LoadMessageFile(const char * fname) {

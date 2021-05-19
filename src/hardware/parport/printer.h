@@ -89,6 +89,7 @@ public:
 
 	CPrinter (uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput);
 	virtual ~CPrinter();
+	FT_Face curFont = NULL;					// The font currently used to render characters
 
 	void getPrinterContext();
 
@@ -97,6 +98,9 @@ public:
 
 	// Hard Reset (like switching printer off and on)
 	void resetPrinterHard();
+
+	// Reload font. Must be called after changing dpi, style or cpi
+	void updateFont();
 
 	// Set Autofeed value 
 	void setAutofeed(bool feed);
@@ -128,9 +132,6 @@ private:
 
 	// Resets the printer to the factory settings
 	void resetPrinter();
-
-	// Reload font. Must be called after changing dpi, style or cpi
-	void updateFont();
 
 	// Clears page. If save is true, saves the current page to a bitmap
 	void newPage(bool save, bool resetx);
@@ -169,7 +170,6 @@ private:
 	FT_Library FTlib;					// FreeType2 library used to render the characters
 
 	SDL_Surface* page;					// Surface representing the current page
-	FT_Face curFont = NULL;					// The font currently used to render characters
 	uint8_t color = 0;
 
 	double curX = 0, curY = 0;					// Position of the print head (in inch)

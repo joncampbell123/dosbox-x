@@ -370,6 +370,9 @@ static const char *def_menu_video_ttf[] =
     "ttf_wpxy",
     "--",
     "ttf_blinkc",
+#if C_PRINTER
+    "ttf_printfont",
+#endif
     "ttf_dbcs_sbcs",
     "ttf_autoboxdraw",
     NULL
@@ -742,6 +745,7 @@ static const char *def_menu_help_debug[] =
 #endif
 #if C_DEBUG
     "save_logas",
+    "--",
     "debug_logint21",
     "debug_logfileio",
 #endif
@@ -1172,11 +1176,12 @@ void* DOSBoxMenu::getNsMenu(void) const {
 #if defined(WIN32) && !defined(HX_DOS)
 LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     LPWSTR ret = def;
-    int reqsize = 0, cp = dos.loaded_codepage?dos.loaded_codepage:(IS_PC98_ARCH?932:0);
+    int reqsize = 0, cp = dos.loaded_codepage;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-    if (!dos.loaded_codepage && !IS_PC98_ARCH && section!=NULL) {
+    if (!dos.loaded_codepage && section!=NULL) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
         if (r!=NULL && *(r+1)) cp = atoi(trim(r+1));
+        if (!cp && IS_PC98_ARCH) cp = 932;
     }
     uint16_t len=(uint16_t)str.size();
     if (cp) {

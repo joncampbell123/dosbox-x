@@ -275,6 +275,7 @@ const CHARMAP charmap[] = {
 	{437, cp437Map},
 	{737, cp737Map},
 	{775, cp775Map},
+	{808, cp866Map},
 	{850, cp850Map},
 	{852, cp852Map},
 	{855, cp855Map},
@@ -285,6 +286,7 @@ const CHARMAP charmap[] = {
 	{864, cp864Map},
 	{865, cp865Map},
 	{866, cp866Map},
+	{872, cp855Map},
 	{0, NULL},
 };
 

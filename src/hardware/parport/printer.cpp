@@ -29,10 +29,15 @@
 #include "printer_charmaps.h"
 #include "control.h"
 #include "pic.h" // for timeout
+#include "timer.h"
 #include "render.h"
+#include "dos_inc.h"
 
 #if defined(USE_TTF)
 extern unsigned char DOSBoxTTFbi[48868];
+extern bool printfont;
+extern void resetFontSize();
+extern FT_Face GetTTFFace();
 #endif
 extern void GFX_CaptureMouse(void);
 extern bool mouselocked;
@@ -50,8 +55,16 @@ static std::string document_path;
 static std::string font_path;
 static std::string device;
 static char confoutputDevice[50];
-static bool confmultipageOutput, shellhide;
+static bool confmultipageOutput;
+static bool printdbcs, shellhide;
 static std::string actstd, acterr;
+
+void UpdateDefaultPrinterFont() {
+    if (defaultPrinter!=NULL) {
+        defaultPrinter->curFont = NULL;
+        defaultPrinter->updateFont();
+    }
+}
 
 void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID, SDL_Palette* pal)
 {
@@ -173,6 +186,9 @@ void CPrinter::resetPrinterHard()
 	resetPrinter();
 }
 
+static bool lastlead = false;
+static uint8_t lastchar = 0;
+static uint32_t lasttick = 0;
 void CPrinter::resetPrinter()
 {
 		color = COLOR_BLACK;
@@ -196,7 +212,7 @@ void CPrinter::resetPrinter()
 		densy = 2;
 		densz = 3;
 		charTables[0] = 0; // Italics
-		charTables[1] = charTables[2] = charTables[3] = 437;
+		charTables[1] = charTables[2] = charTables[3] = dos.loaded_codepage;
 		definedUnit = -1;
 		multipoint = false;
 		multiPointSize = 0.0;
@@ -205,6 +221,9 @@ void CPrinter::resetPrinter()
 		msb = 255;
 		numPrintAsChar = 0;
 		LQtypeFace = courier;
+		lasttick = 0;
+		lastchar = 0;
+		lastlead = false;
 
 		selectCodepage(charTables[curCharTable]);
 
@@ -234,11 +253,18 @@ CPrinter::~CPrinter(void)
 #endif
 }
 
+extern uint16_t cpMap[512];
+extern bool TTF_using(void);
 void CPrinter::selectCodepage(uint16_t cp)
 {
 	const uint16_t* mapToUse = NULL;
 
 	Bitu i = 0;
+#if defined(USE_TTF)
+    if (TTF_using() && dos.loaded_codepage == cp)
+        mapToUse = cpMap;
+    else
+#endif
 	while(charmap[i].codepage!=0)
     {
 		if(charmap[i].codepage==cp)
@@ -262,6 +288,12 @@ void CPrinter::updateFont()
 {
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
+
+#if defined(USE_TTF)
+    if (TTF_using()&&printfont) curFont = GetTTFFace();
+    if (curFont == NULL)
+#endif
+    {
 
 	std::string fontName, basedir = font_path;
     if (basedir.back()!='\\' && basedir.back()!='/')
@@ -362,6 +394,7 @@ void CPrinter::updateFont()
             curFont = NULL;
         }
 	}
+    }
 
 	double horizPoints = 10.5;
 	double vertPoints = 10.5;
@@ -1293,8 +1326,47 @@ void CPrinter::newPage(bool save, bool resetx)
 	}*/
 }
 
+extern bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern uint8_t lead[6];
 void CPrinter::printChar(uint8_t ch)
 {
+    bool dbcs=false;
+    uint16_t dbchar = 0;
+    if (printdbcs && (IS_PC98_ARCH || isDBCSCP())) {
+        uint32_t tick = GetTicks();
+        if (lastlead && ch>=0x40 && lastchar && lasttick && (tick-lasttick<100||tick-lasttick<printer_timout)) {
+            dbcs=true;
+            lastlead=false;
+            lasttick=0;
+        } else {
+            for (int i=0; i<6; i++) lead[i] = 0;
+            for (int i=0; i<6; i++) {
+                lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+                if (lead[i] == 0) break;
+            }
+            lastlead=isDBCSLB(ch, lead);
+            if (lastlead) {
+                lasttick=GetTicks();
+                lastchar=ch;
+                return;
+            } else
+                lasttick=0;
+        }
+    }
+    if (dbcs) {
+        char text[3];
+        uint16_t uname[4];
+        text[0]=lastchar;
+        text[1]=ch;
+        text[2]=0;
+        uname[0]=0;
+        uname[1]=0;
+        CodePageGuestToHostUTF16(uname,text);
+        if (uname[0]!=0&&uname[1]==0)
+            dbchar=uname[0];
+    }
+    lastchar=0;
+
 	charRead = true;
 	if (page == NULL) return;
 
@@ -1320,7 +1392,7 @@ void CPrinter::printChar(uint8_t ch)
 	if(ch == 0x1) ch = 0x20;
 	
 	// Find the glyph for the char to render
-	FT_UInt index = FT_Get_Char_Index(curFont, curMap[ch]);
+	FT_UInt index = FT_Get_Char_Index(curFont, dbchar?dbchar:curMap[ch]);
 	
 	// Load the glyph 
 	FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);
@@ -1361,7 +1433,7 @@ void CPrinter::printChar(uint8_t ch)
 
 	// advance the cursor to the right
 	double x_advance;
-	if (style &	STYLE_PROP)
+	if ((style & STYLE_PROP) || dbcs)
 		x_advance = (double)((double)(curFont->glyph->advance.x) / (double)(dpi * 64));
 	else
     {
@@ -1761,7 +1833,12 @@ void CPrinter::outputPage()
 			docinfo.lpszDatatype = NULL;
 			docinfo.fwType = 0;
 
-			StartDoc(printerDC, &docinfo);
+			if (StartDoc(printerDC, &docinfo)<=0) {
+                LOG_MSG("PRINTER: Cannot start print.");
+                DeleteObject(bitmap);
+                DeleteDC(memHDC);
+                return;
+            }
 			multiPageCounter = 1;
 		}
 
@@ -2261,6 +2338,7 @@ void PRINTER_Init()
 	else timeout_dirty = false;
 	strcpy(&confoutputDevice[0], section->Get_string("printoutput"));
 	confmultipageOutput = section->Get_bool("multipage");
+	printdbcs = section->Get_bool("printdbcs");
 	shellhide = section->Get_bool("shellhide");
 	actstd = section->Get_string("openwith");
     ResolvePath(actstd);
