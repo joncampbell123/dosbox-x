@@ -360,7 +360,7 @@ private:
     }
 
 	static void Real_INT10_TeletypeOutput(uint8_t xChar,uint8_t xAttr) {
-        if (IS_PC98_ARCH) {
+        if (IS_PC98_ARCH && (real_readb(0x60, 0x8A) == 1)) {
             if (con_sjis.take(xChar)) {
                 BIOS_NCOLS;
                 uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -536,7 +536,7 @@ private:
 			break;
 		default:
 			//* Draw the actual Character
-            if (IS_PC98_ARCH) {
+            if (IS_PC98_ARCH && (real_readb(0x60, 0x8A) == 1)) {
                 if (con_sjis.take(chr)) {
                     BIOS_NCOLS;
                     unsigned char cw = con_sjis.doublewide ? 2 : 1;

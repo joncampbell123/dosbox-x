@@ -1219,6 +1219,7 @@ void INT10_Startup(Section *sec) {
          * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
          */
 
+        real_writeb(0x60,0x8A,1); /* kanji/graph mode */
         real_writeb(0x60,0x8C,' '); /* function row mode 2 indicator */
 
         /* number of text rows on the screen.
