@@ -3955,10 +3955,6 @@ void DOSBOX_SetupConfigSections(void) {
         "probe the AUX port directly and depend on this BIOS interface exclusively\n"
         "for PS/2 mouse support. In other cases there is no harm in leaving this enabled");
 
-    Pbool = secprop->Add_bool("usesystemcursor",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Use the mouse cursor of the host system instead of drawing a DOS mouse cursor. Activated when the mouse is not captured.");
-    Pbool->SetBasic(true);
-
     /* bugfix for Yodel "mayday" demo */
     /* TODO: Set this option to default to "true" if it turns out most BIOSes unmask the IRQ during INT 15h AH=86 WAIT */
     Pbool = secprop->Add_bool("int15 wait force unmask irq",Property::Changeable::OnlyAtStart,true);

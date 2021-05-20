@@ -31,7 +31,7 @@
     the TTF output, but can be enable or disabled for
     all outputs by setting option "printdbcs" to "true"
     or "false" in [printer] section. (Wengier)
-  - Added the "usesystemcursor" config option (in [dos]
+  - Added the "usesystemcursor" config option (in [sdl]
     section) which when set to true will use host system
     mouse cursor instead of drawing a DOS mouse cursor
     when the mouse is not locked. (Wengier)

@@ -51,10 +51,10 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
+extern bool usesystemcursor;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
-bool usesystemcursor=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
 bool en_int33_hide_if_intsub=false;
@@ -1800,8 +1800,6 @@ void MOUSE_Startup(Section *sec) {
         Mouse_SetSensitivity(50,50,50);
         return;
     }
-
-    usesystemcursor = section->Get_bool("usesystemcursor");
 
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 

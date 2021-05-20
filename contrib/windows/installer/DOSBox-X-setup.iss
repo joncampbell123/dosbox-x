@@ -602,7 +602,7 @@ begin
       if FileExists(ExpandConstant('{app}\dosbox-x.conf.old')) then
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf.old'));
       msg:='Do you want to keep the configuration file dosbox-x.conf?';
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO) then
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (IsVerySilent() or (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO)) then
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf'));
     end
   end;

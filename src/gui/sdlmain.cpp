@@ -64,6 +64,7 @@ extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
+bool usesystemcursor = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool maximize = false, direct_mouse_clipboard=false;
@@ -5546,6 +5547,8 @@ static void GUI_StartUp() {
     else if (emulation == "never")
         sdl.mouse.emulation = MOUSE_EMULATION_NEVER;
 
+    usesystemcursor = section->Get_bool("usesystemcursor");
+
 #if C_XBRZ
     // initialize xBRZ parameters and check output type for compatibility
     xBRZ_Initialize();
@@ -7854,13 +7857,8 @@ void GFX_Events() {
 	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
-    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) { // emendelson: was 20 - good for WP51; Wengier: changed to 30 for better compatibility
-        int len = (int)strPasteBuffer.length();
+    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was 20 - good for WP51; Wengier: changed to 30 for better compatibility
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
-#if defined(USE_TTF)
-        if (len > strPasteBuffer.length() && TTF_using() && isDBCSCP()) resetFontSize();
-#endif
-    }
 }
 
 void Null_Init(Section *sec);
@@ -7971,6 +7969,10 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("Enable this setting to bypass your operating system's mouse acceleration and sensitivity settings.\n"
         "This works in fullscreen or when the mouse is captured in window mode (SDL2 builds only).");
 #endif
+
+    Pbool = sdl_sec->Add_bool("usesystemcursor",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Use the mouse cursor of the host system instead of drawing a DOS mouse cursor. Activated when the mouse is not locked.");
+    Pbool->SetBasic(true);
 
     const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
     Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
