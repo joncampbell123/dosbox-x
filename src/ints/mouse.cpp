@@ -23,7 +23,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #include "dosbox.h"
 #include "callback.h"
 #include "mem.h"
@@ -38,6 +37,7 @@
 #include "support.h"
 #include "setup.h"
 #include "control.h"
+#include "SDL.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -50,9 +50,11 @@ void bios_enable_ps2();
 void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
+extern bool MOUSE_IsLocked();
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
+bool usesystemcursor=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
 bool en_int33_hide_if_intsub=false;
@@ -498,6 +500,10 @@ void RestoreCursorBackground() {
 
 void DrawCursor() {
     if (mouse.hidden || mouse.inhibit_draw) return;
+    if (usesystemcursor&&!MOUSE_IsLocked()) {
+        SDL_ShowCursor(SDL_ENABLE);
+        return;
+    }
     INT10_SetCurMode();
     // In Textmode ?
     if (CurMode->type==M_TEXT) {
@@ -1188,6 +1194,7 @@ static Bitu INT33_Handler(void) {
             else RestoreCursorBackgroundText();
             if (mouse.hidden == 0) mouse.hidden_at = PIC_FullIndex();
             mouse.hidden++;
+            if (usesystemcursor&&!MOUSE_IsLocked()) SDL_ShowCursor(SDL_DISABLE);
         }
         break;
     case 0x03:  /* Return position and Button Status */
@@ -1386,7 +1393,6 @@ static Bitu INT33_Handler(void) {
         break;
     case 0x0b:  /* Read Motion Data */
         {
-            extern bool MOUSE_IsLocked();
             const auto locked = MOUSE_IsLocked();
             reg_cx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_x : 0);
             reg_dx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_y : 0);
@@ -1794,6 +1800,8 @@ void MOUSE_Startup(Section *sec) {
         Mouse_SetSensitivity(50,50,50);
         return;
     }
+
+    usesystemcursor = section->Get_bool("usesystemcursor");
 
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 

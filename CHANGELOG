@@ -31,6 +31,10 @@
     the TTF output, but can be enable or disabled for
     all outputs by setting option "printdbcs" to "true"
     or "false" in [printer] section. (Wengier)
+  - Added the "usesystemcursor" config option (in [dos]
+    section) which when set to true will use host system
+    mouse cursor instead of drawing a DOS mouse cursor
+    when the mouse is not locked. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)

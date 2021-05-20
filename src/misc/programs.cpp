@@ -1357,7 +1357,7 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
 								EMS_DoShutDown();
 								EMS_Startup(NULL);
-                                update_dos_ems_menu();
+								update_dos_ems_menu();
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
