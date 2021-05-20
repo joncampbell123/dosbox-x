@@ -518,6 +518,7 @@ static const char *def_menu_dos[] =
     "--",
     "mapper_rescanall",
 #if C_PRINTER
+    "print_textscreen",
     "mapper_ejectpage",
 #endif
     NULL

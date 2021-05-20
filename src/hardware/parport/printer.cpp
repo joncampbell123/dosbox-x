@@ -32,6 +32,7 @@
 #include "timer.h"
 #include "render.h"
 #include "dos_inc.h"
+#include "../../ints/int10.h"
 
 #if defined(USE_TTF)
 extern unsigned char DOSBoxTTFbi[48868];
@@ -1440,6 +1441,15 @@ void CPrinter::printChar(uint8_t ch, int box)
             dbcs=true;
             lastlead=false;
             lasttick=0;
+        } else if (lastlead && ch<0x40 && lastchar && lasttick) {
+            if (box!=0) {
+                box2=box3=false;
+                last3=last2=0;
+            }
+            ll=lastchar;
+            lastlead=false;
+            lastchar=lasttick=0;
+            printChar(ll, 1);
         } else {
             if (box!=0) box2=box3=false;
             for (int i=0; i<6; i++) lead[i] = 0;
@@ -1447,7 +1457,7 @@ void CPrinter::printChar(uint8_t ch, int box)
                 lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
                 if (lead[i] == 0) break;
             }
-            lastlead=isDBCSLB(ch, lead);
+            lastlead=box==1?0:isDBCSLB(ch, lead);
             if (lastlead) {
                 lastchar=ch;
                 lasttick=GetTicks();
@@ -2369,6 +2379,13 @@ static void FormFeed(bool pressed)
 		}
 }
 
+const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen);
+void PrintScreen(const char *text, uint16_t len)
+{
+    if (!defaultPrinter) defaultPrinter = new CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
+    for (int i=0; i<len; i++) defaultPrinter->printChar(text[i]);
+    FormFeed(true);
+}
 
 static void PRINTER_EventHandler(Bitu param)
 {

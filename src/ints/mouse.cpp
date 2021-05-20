@@ -720,8 +720,6 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
-#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
-#include "render.h"
 char text[5000];
 extern bool isDBCSCP();
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
@@ -788,6 +786,8 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 	return text;
 }
 
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
+#include "render.h"
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
     uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);

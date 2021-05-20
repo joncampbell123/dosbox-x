@@ -48,6 +48,9 @@
     for printing too when using TTF output. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
+  - Added menu option "Print text screen" (under "DOS")
+    to print current DOS text screen, if the printer
+    feature has been enabled. (Wengier)
   - Added menu options "Display TTF blinking cursor",
     "CJK: Switch DBCS/SBCS mode", and "CJK: Auto-detect
     box-drawing symbols" under "Video" => "TTF options"
