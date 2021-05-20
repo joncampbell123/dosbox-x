@@ -10346,6 +10346,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 #endif
 
 #ifdef USE_TTF
+void UpdateDefaultPrinterFont();
 void ttf_reset() {
     OUTPUT_TTF_Select(2);
     resetFontSize();
@@ -10383,8 +10384,10 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 
         if (*name) {
             SetVal("render", "ttf.font", name);
-            void ttf_reset(void);
             ttf_reset();
+#if C_PRINTER
+            if (TTF_using() && printfont) UpdateDefaultPrinterFont();
+#endif
         }
     }
     chdir( Temp_CurrentDir );
@@ -10921,7 +10924,6 @@ bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
 }
 
 #if C_PRINTER
-void UpdateDefaultPrinterFont();
 bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
