@@ -1813,6 +1813,30 @@ void CPrinter::printBitGraph(uint8_t ch)
 
 void CPrinter::formFeed()
 {
+    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+#if defined(USE_TTF)
+    && dbcs_sbcs
+#endif
+    )) && (IS_PC98_ARCH || isDBCSCP()) && lastchar>=0x80) {
+        uint8_t ll=lastchar;
+        lastchar=0;
+        if (last3 && last2) {
+            printChar(last3, last3>=176&&last3<=223&&last2>=176&&last2<=223?1:0);
+            lastchar=last3;
+            printChar(last2, last3>=176&&last3<=223&&last2>=176&&last2<=223?1:0);
+            lastchar=last2;
+            printChar(ll, 1);
+        } else if (last2) {
+            printChar(last2, 0);
+            lastchar=last2;
+            printChar(ll, 0);
+        } else
+            printChar(lastchar, 1);
+    }
+    lastchar=lasttick=0;
+    last2=last3=0;
+    box2=box3=false;
+
 	// Don't output blank pages
 	newPage(!isBlank(), true);
 	finishMultipage();

@@ -52,7 +52,7 @@ extern bool log_int21;
 extern bool log_fileio;
 extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
-extern char *dos_clipboard_device_name;
+extern const char *dos_clipboard_device_name;
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;

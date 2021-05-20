@@ -4866,13 +4866,12 @@ private:
             if (commandLine.size()>4 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\') && commandLine.back()=='\'')
                 commandLine = commandLine.substr(1, commandLine.size()-2);
             else if (!paths.size() && commandLine.size()>3 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\')) {
-                char temp[256];
-                strcpy(temp, cmd->GetRawCmdline().c_str());
-                std::string line=trim(temp);
+                std::string line=cmd->GetRawCmdline();
+                trim(line);
                 std::size_t space=line.find(' ');
                 if (space!=std::string::npos) {
-                    strcpy(temp, line.substr(space).c_str());
-                    line=trim(temp);
+                    line=line.substr(space);
+                    trim(line);
                     std::size_t found=line.back()=='\''?line.find_last_of('\''):line.rfind("' ");
                     if (found!=std::string::npos&&found>2) {
                         commandLine=line.substr(1, found-1);

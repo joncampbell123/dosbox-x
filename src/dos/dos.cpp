@@ -120,7 +120,7 @@ int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
-char *dos_clipboard_device_name;
+const char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
 int maxfcb=100;
@@ -3000,9 +3000,7 @@ public:
 			maxfcb = (int)config_section->Get_int("fcbs");
 			if (maxfcb<1) maxfcb=1;
 			else if (maxfcb>255) maxfcb=255;
-            char dosopt[50];
-            strcpy(dosopt, config_section->Get_string("dos"));
-			char *r=strchr(dosopt, ',');
+			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
 			if (r==NULL) {
 				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
 				else if (!strcasecmp(trim(dosopt), "low")) dos_in_hma=false;
@@ -3064,8 +3062,7 @@ public:
         startincon = section->Get_string("startincon");
         const char *dos_clipboard_device_enable = section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
-        char temp[9];
-		dos_clipboard_device_name = strcpy(temp, section->Get_string("dos clipboard device name"));
+		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
@@ -3075,12 +3072,12 @@ public:
 			if (!*dos_clipboard_device_name||strlen(dos_clipboard_device_name)>8||!strcasecmp(dos_clipboard_device_name, "con")||!strcasecmp(dos_clipboard_device_name, "nul")||!strcasecmp(dos_clipboard_device_name, "prn"))
 				valid=false;
 			else for (unsigned int i=0; i<strlen(ch); i++) {
-				if (strchr(dos_clipboard_device_name, *(ch+i))!=NULL) {
+				if (strchr((char *)dos_clipboard_device_name, *(ch+i))!=NULL) {
 					valid=false;
 					break;
 				}
 			}
-			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):strcpy(dos_clipboard_device_name,dos_clipboard_device_default);
+			dos_clipboard_device_name=valid?upcase((char *)dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
             std::string text=mainMenu.get_item("clipboard_device").get_text();
             std::size_t found = text.find(":");
@@ -3428,10 +3425,9 @@ public:
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
-        char ver[5];
-        strcpy(ver, section->Get_string("ver"));
+        const char *ver = section->Get_string("ver");
 		if (*ver) {
-			if (set_ver(ver)) {
+			if (set_ver((char *)ver)) {
 				/* warn about unusual version numbers */
 				if (dos.version.major >= 10 && dos.version.major <= 30) {
 					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "

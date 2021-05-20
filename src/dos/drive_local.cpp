@@ -3652,9 +3652,7 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 		f = fopen_wrap(newname,mode);
 	}
 	//Check if a directory is part of the name:
-    char temp[256];
-    strcpy(temp, dos_filename);
-	char* dir = strrchr(temp,'\\');
+	char* dir = strrchr((char *)dos_filename,'\\');
 	if (!f && dir && *dir) {
 		if (logoverlay) LOG_MSG("Overlay: warning creating a file inside a directory %s",dos_filename);
 		//ensure they exist, else make them in the overlay if they exist in the original....

@@ -34,7 +34,7 @@
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
-extern char * dos_clipboard_device_name;
+extern const char * dos_clipboard_device_name;
 
 class device_NUL : public DOS_Device {
 public:
