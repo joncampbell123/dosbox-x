@@ -5148,8 +5148,8 @@ static Bitu INTDC_PC98_Handler(void) {
                  * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code)
                  *
                  * NTS: Reverse engineering INT DCh shows it sets both 71Dh and 73Ch as below */
-                mem_writeb(0x71D,reg_dl);   /* 60:11D */
-                mem_writeb(0x73C,reg_dx);   /* 60:13C */
+                real_writeb(0x60,0x11D,reg_dl);
+                real_writeb(0x60,0x13C,reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 DL=X-coord DH=Y-coord set cursor position */

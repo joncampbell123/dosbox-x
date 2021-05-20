@@ -778,7 +778,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 
     if (IS_PC98_ARCH) {
         ansi.enabled = true; // ANSI is enabled at all times
-        ansi.attr = mem_readb(0x71D); // 60:11D
+        ansi.attr = real_readb(0x60,0x11D);
     }
 
     while (*size>count) {
@@ -917,7 +917,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                         case 5: // show/hide cursor
                             void PC98_show_cursor(bool show);
                             PC98_show_cursor(data[count] == 'l');
-                            mem_writeb(0x71B,data[count] == 'l' ? 0x01 : 0x00); /* 60:11B cursor display state */
+                            real_writeb(0x60,0x11B,data[count] == 'l' ? 0x01 : 0x00); /* cursor display state */
                             break;
                         default:
                             LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled esc [ > %d %c",ansi.data[0],data[count]);
@@ -1022,7 +1022,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                                 break;
                         }
                     }
-                    if (IS_PC98_ARCH) mem_writeb(0x71D,ansi.attr); // 60:11D
+                    if (IS_PC98_ARCH) real_writeb(0x60,0x11D,ansi.attr);
                     ClearAnsi();
                     break;
                 case 'f':
