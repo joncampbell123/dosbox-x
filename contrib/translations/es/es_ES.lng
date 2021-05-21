@@ -1,3 +1,6 @@
+:DOSBOX-X-VERSION
+0.83.14
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
 .
@@ -7,8 +10,20 @@ Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas 
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
 .
+:SLOT
+Slot
+.
 :EMPTY_SLOT
 Slot vacío
+.
+:AUTO_CYCLE_MAX
+Ciclos automáticos [máximo]
+.
+:AUTO_CYCLE_AUTO
+Ciclos automáticos [auto]
+.
+:AUTO_CYCLE_OFF
+Ciclos automáticos [inactivo]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 No existe tal sección o propiedad.◙
@@ -3435,9 +3450,6 @@ Bajar volumen de grabación
 .
 :MENU:mapper_sendkey_mapper
 Enviar tecla especial
-.
-:MENU:mapper_cycauto
-Ciclos automáticos [máximo]
 .
 :MENU:mapper_cycledown
 Bajar ciclos

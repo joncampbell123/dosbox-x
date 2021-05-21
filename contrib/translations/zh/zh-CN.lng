@@ -1,0 +1,4008 @@
+:DOSBOX-X-VERSION
+0.83.14
+.
+:AUTOEXEC_CONFIGFILE_HELP
+Lines in this section will be run at startup.
+You can put your MOUNT lines here.
+.
+:CONFIGFILE_INTRO
+# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)
+# Lines starting with a # are comment lines and are ignored by DOSBox-X.
+# They are used to (briefly) document the effect of each option.
+# To write out ALL options, use command 'config -all' with -wc or -writeconf options.
+.
+:CONFIG_SUGGESTED_VALUES
+Possible values
+.
+:SLOT
+存档
+.
+:EMPTY_SLOT
+空档
+.
+:AUTO_CYCLE_MAX
+自动选择周期 [最大]
+.
+:AUTO_CYCLE_AUTO
+自动选择周期 [自动]
+.
+:AUTO_CYCLE_OFF
+自动选择周期 [关闭]
+.
+:PROGRAM_CONFIG_PROPERTY_ERROR
+No such section or property.
+
+.
+:PROGRAM_CONFIG_NO_PROPERTY
+There is no property %s in section %s.
+
+.
+:PROGRAM_CONFIG_SET_SYNTAX
+The syntax for -set option is incorrect.
+
+.
+:PROGRAM_CONFIG_NOCONFIGFILE
+No config file loaded!
+
+.
+:PROGRAM_CONFIG_PRIMARY_CONF
+Primary config file: 
+%s
+
+.
+:PROGRAM_CONFIG_ADDITIONAL_CONF
+Additional config files:
+
+.
+:PROGRAM_CONFIG_CONFDIR
+DOSBox-X %s configuration directory: 
+%s
+
+
+.
+:PROGRAM_CONFIG_WORKDIR
+DOSBox-X's working directory: 
+%s
+
+
+.
+:PROGRAM_CONFIG_FILE_ERROR
+
+Can't open file %s
+
+.
+:PROGRAM_CONFIG_FILE_WHICH
+Writing config file %s
+
+.
+:PROGRAM_CONFIG_USAGE
+The DOSBox-X command-line configuration utility. Supported options:
+-wc (or -writeconf) without parameter: Writes to primary loaded config file.
+-wc (or -writeconf) with filename: Writes file to the config directory.
+-wl (or -writelang) with filename: Writes the current language strings.
+-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).
+-wcd Writes to the default config file in the config directory.
+-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.
+-
+.
+:PROGRAM_CONFIG_HLP_PROPHLP
+Purpose of property "%s" (contained in section "%s"):
+%s
+
+Possible Values: %s
+Default value: %s
+Current value: %s
+
+.
+:PROGRAM_CONFIG_HLP_LINEHLP
+Purpose of section "%s":
+%s
+Current value:
+%s
+
+.
+:PROGRAM_CONFIG_HLP_NOCHANGE
+This property cannot be changed at runtime.
+
+.
+:PROGRAM_CONFIG_HLP_POSINT
+positive integer
+.
+:PROGRAM_CONFIG_HLP_SECTHLP
+Section %s contains the following properties:
+
+.
+:PROGRAM_CONFIG_HLP_SECTLIST
+DOSBox-X configuration contains the following sections:
+
+
+.
+:PROGRAM_CONFIG_SECURE_ON
+Switched to secure mode.
+
+.
+:PROGRAM_CONFIG_SECURE_DISALLOW
+This operation is not permitted in secure mode.
+
+.
+:PROGRAM_CONFIG_SECTION_ERROR
+Section %s doesn't exist.
+
+.
+:PROGRAM_CONFIG_VALUE_ERROR
+"%s" is not a valid value for property %s.
+
+.
+:PROGRAM_CONFIG_PROPERTY_DUPLICATE
+There may be other sections with the same property name.
+
+.
+:PROGRAM_CONFIG_GET_SYNTAX
+Correct syntax: config -get "section property".
+
+.
+:PROGRAM_CONFIG_PRINT_STARTUP
+
+DOSBox-X was started with the following command line parameters:
+%s
+
+.
+:PROGRAM_CONFIG_MISSINGPARAM
+Missing parameter.
+.
+:PROGRAM_MOUSE_INSTALL
+Installed at PS/2 port.
+
+.
+:PROGRAM_MOUSE_VERTICAL
+Reverse Y-axis enabled.
+
+.
+:PROGRAM_MOUSE_VERTICAL_BACK
+Reverse Y-axis disabled.
+
+.
+:PROGRAM_MOUSE_UNINSTALL
+Driver successfully unloaded...
+
+.
+:PROGRAM_MOUSE_ERROR
+Already installed at PS/2 port.
+
+.
+:PROGRAM_MOUSE_NOINSTALLED
+Driver is not installed.
+
+.
+:PROGRAM_MOUSE_HELP
+Turns on/off mouse.
+
+MOUSE [/?] [/U] [/V]
+  /U: Uninstall
+  /V: Reverse Y-axis
+
+.
+:PROGRAM_MOUNT_CDROMS_FOUND
+CDROMs found: %d
+
+.
+:PROGRAM_MOUNT_STATUS_FORMAT
+%-5s  %-58s %-12s
+
+.
+:PROGRAM_MOUNT_STATUS_ELTORITO
+Drive %c is mounted as El Torito floppy drive
+
+.
+:PROGRAM_MOUNT_STATUS_RAMDRIVE
+Drive %c is mounted as RAM drive
+
+.
+:PROGRAM_MOUNT_STATUS_2
+Drive %c is mounted as %s
+
+.
+:PROGRAM_MOUNT_STATUS_1
+The currently mounted drives are:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_FORMAT
+%-5s  %-47s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
+%-12s  %-40s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_2
+The currently mounted drive numbers are:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_1
+The currently mounted FAT/ISO drives are:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NONE
+No drive available
+
+.
+:PROGRAM_MOUNT_ERROR_1
+Directory %s does not exist.
+
+.
+:PROGRAM_MOUNT_ERROR_2
+%s is not a directory
+
+.
+:PROGRAM_MOUNT_IMGMOUNT
+To mount image files, use the [34;1mIMGMOUNT[0m command, not the [34;1mMOUNT[0m command.
+
+.
+:PROGRAM_MOUNT_ILL_TYPE
+Illegal type %s
+
+.
+:PROGRAM_MOUNT_ALREADY_MOUNTED
+Drive %c already mounted with %s
+
+.
+:PROGRAM_MOUNT_USAGE
+Mounts directories or drives in the host system as DOSBox-X drives.
+Usage: [34;1m[32;1mMOUNT[0m [37;1mdrive[0m [36;1mlocal_directory[0m [option][0m
+ [37;1mdrive[0m            Drive letter where the directory or drive will be mounted.
+ [36;1mlocal_directory[0m  Local directory or drive in the host system to be mounted.
+ [option]         Option(s) for mounting. The following options are accepted:
+ -t               Specify the drive type the mounted drive to behave as.
+                  Supported 
+.
+:PROGRAM_MOUNT_EXAMPLE
+A basic example of MOUNT command:
+
+[32;1mMOUNT c %s[0m
+
+This makes the directory %s act as the C: drive inside DOSBox-X.
+The directory has to exist in the host system. If the directory contains
+space(s), be sure to properly quote the directory with double quotes,
+e.g. %s
+
+Some other usage examples of MOUNT:
+
+[32;1mMOUNT[0m                             - list all mounted drives
+[32;1mMOUNT -cd[0m                         - list all local CD drives
+[32;1mMOUNT d %s[0m            - mount the D: drive to
+.
+:PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
+Drive %c is not mounted.
+
+.
+:PROGRAM_MOUNT_UMOUNT_SUCCESS
+Drive %c has successfully been removed.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
+Drive number %c has successfully been removed.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
+Virtual Drives can not be unMOUNTed.
+
+.
+:PROGRAM_MOUNT_WARNING_WIN
+Warning: Mounting C:\ is not recommended.
+
+.
+:PROGRAM_MOUNT_WARNING_OTHER
+Warning: Mounting / is not recommended.
+
+.
+:PROGRAM_MOUNT_PHYSFS_ERROR
+Failed to mount the PhysFS drive.
+
+.
+:PROGRAM_MOUNT_OVERLAY_NO_BASE
+Please MOUNT a normal directory first before adding an overlay on top.
+
+.
+:PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
+The overlay is NOT compatible with the drive that is specified.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+The overlay directory can not be the same as underlying drive.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+An error occurred when trying to create an overlay drive.
+
+.
+:PROGRAM_MOUNT_OVERLAY_STATUS
+Overlay %s on drive %c mounted.
+
+.
+:PROGRAM_LOADFIX_ALLOC
+%d kb allocated.
+
+.
+:PROGRAM_LOADFIX_DEALLOC
+%d kb freed.
+
+.
+:PROGRAM_LOADFIX_DEALLOCALL
+Used memory freed.
+
+.
+:PROGRAM_LOADFIX_ERROR
+Memory allocation error.
+
+.
+:PROGRAM_LOADFIX_HELP
+Reduces the amount of available conventional or XMS memory.
+
+LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        Allocates memory from XMS rather than conventional memory
+  -ems        Allocates memory from EMS rather than conventional memory
+  -{ram}      Specifies the amount of memory to allocate in KB
+                 Defaults to 64kb for conventional memory; 1MB for XMS memory
+  -a          Auto allocates enough memory to fill the lowest 64KB memory
+  -f (or -
+.
+:MSCDEX_SUCCESS
+MSCDEX installed.
+
+.
+:MSCDEX_ERROR_MULTIPLE_CDROMS
+MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.
+
+.
+:MSCDEX_ERROR_NOT_SUPPORTED
+MSCDEX: Failure: Not yet supported.
+
+.
+:MSCDEX_ERROR_PATH
+MSCDEX: Specified location is not a CD-ROM drive.
+
+.
+:MSCDEX_ERROR_OPEN
+MSCDEX: Failure: Invalid file or unable to open.
+
+.
+:MSCDEX_TOO_MANY_DRIVES
+MSCDEX: Failure: Too many CD-ROM drives (max: 5). MSCDEX Installation failed.
+
+.
+:MSCDEX_LIMITED_SUPPORT
+MSCDEX: Mounted subdirectory: limited support.
+
+.
+:MSCDEX_INVALID_FILEFORMAT
+MSCDEX: Failure: File is either no ISO/CUE image or contains errors.
+
+.
+:MSCDEX_UNKNOWN_ERROR
+MSCDEX: Failure: Unknown error.
+
+.
+:PROGRAM_RESCAN_SUCCESS
+Drive cache cleared.
+
+.
+:PROGRAM_INTRO
+[2J[32;1mWelcome to DOSBox-X[0m, an open-source x86 emulator with sound and graphics.
+DOSBox-X creates a shell for you which looks just like the plain DOS.
+
+[31;1mDOSBox-X will stop/exit without a warning if an error occurred![0m
+
+
+
+.
+:PROGRAM_INTRO_MENU_UP
+DOSBox-X Introduction
+.
+:PROGRAM_INTRO_MENU_BASIC
+Basic mount
+.
+:PROGRAM_INTRO_MENU_CDROM
+CD-ROM support
+.
+:PROGRAM_INTRO_MENU_USAGE
+Usage
+.
+:PROGRAM_INTRO_MENU_INFO
+Information
+.
+:PROGRAM_INTRO_MENU_QUIT
+Quit
+.
+:PROGRAM_INTRO_MENU_BASIC_HELP
+
+[1m   [1m[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.[0m
+
+.
+:PROGRAM_INTRO_MENU_CDROM_HELP
+
+[1m   [1m[KTo mount your CD-ROM in DOSBox-X, you need to specify additional options
+   when mounting the CD-ROM.[0m
+
+.
+:PROGRAM_INTRO_MENU_USAGE_HELP
+
+[1m   [1m[KAn overview of the command line options you can give to DOSBox-X.[0m
+
+.
+:PROGRAM_INTRO_MENU_INFO_HELP
+
+[1m   [1m[KHow to get more information about DOSBox-X.[0m
+
+.
+:PROGRAM_INTRO_MENU_QUIT_HELP
+
+[1m   [1m[KExit from Intro.[0m
+
+.
+:PROGRAM_INTRO_USAGE_TOP
+[2J[32;1mAn overview of the command line options you can give to DOSBox-X.[0m
+Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.
+
+dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf congfigfile] [-lang languagefile] [-machine machinetype]
+         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
+         [-noconsole] [-c command] [-set <section property=value>]
+
+
+.
+:PROGRAM_INTRO_USAGE_1
+[33;1m  name[0m
+	If name is a directory it will mount that as the C: drive.
+	If name is an executable it will mount the directory of name
+	as the C: drive and execute name.
+
+[33;1m  -exit[0m
+	DOSBox-X will close itself when the DOS application name ends.
+
+[33;1m  -version[0m
+	Outputs version information and exit. Useful for frontends.
+
+[33;1m  -fastlaunch[0m
+	Enables fast launch mode (skip BIOS logo and welcome banner).
+
+[33;1m  -fullscreen[0m
+	Starts DOSBox-X in fullscreen mode.
+
+.
+:PROGRAM_INTRO_USAGE_2
+[33;1m  -conf[0m configfile
+	Start DOSBox-X with the options specified in configfile.
+	See the documentation for more details.
+
+[33;1m  -lang[0m languagefile
+	Start DOSBox-X using the language specified in languagefile.
+
+[33;1m  -noconsole[0m (Windows Only)
+	Start DOSBox-X without showing the console window. Output will
+	be redirected to stdout.txt and stderr.txt
+
+[33;1m  -machine[0m machinetype
+	Setup DOSBox-X to emulate a specific type of machine. Valid choices:
+	hercules, cga, cga_mono, mcga, md
+.
+:PROGRAM_INTRO_USAGE_3
+[33;1m  -startmapper[0m
+	Enter the keymapper directly on startup. Useful for people with
+	keyboard problems.
+
+[33;1m  -noautoexec[0m
+	Skips the [autoexec] section of the loaded configuration file.
+
+[33;1m  -c[0m command
+	Runs the specified command before running name. Multiple commands
+	can be specified. Each command should start with -c, though.
+	A command can be: an Internal Program, a DOS command or an executable
+	on a mounted drive.
+
+[33;1m  -set[0m <section property=value>
+	Sets the config opt
+.
+:PROGRAM_INTRO_INFO
+[32;1mInformation:[0m
+
+For information about basic mount, type [34;1mintro mount[0m
+For information about CD-ROM support, type [34;1mintro cdrom[0m
+For information about special keys, type [34;1mintro special[0m
+For information about usage, type [34;1mintro usage[0m
+
+For the latest version of DOSBox-X, go to its GitHub site:[34;1m
+
+[34;1mhttps://github.com/joncampbell123/dosbox-x[0m
+
+For more information about DOSBox-X, please take a look at its Wiki:
+
+[34;1mhttps://dosbox-x.com/wiki[0m
+
+.
+:PROGRAM_INTRO_MOUNT_START
+[32;1mHere are some commands to get you started:[0m
+Before you can use the files located on your own filesystem,
+you have to mount the directory containing the files.
+
+
+.
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+[32mmount c c:\dosgames\[37m will create a C drive with c:\dosgames as contents.
+.
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+c:\dosgames\[37m is an example. Replace it with your own games directory.  [37m 
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+[32mmount c ~/dosgames[37m will create a C drive with ~/dosgames as contents.
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+[32m~/dosgames[37m is an example. Replace it with your own games directory.[37m  
+.
+:PROGRAM_INTRO_MOUNT_END
+When the mount has successfully completed you can type [34;1mc:[0m to go to your freshly
+mounted C: drive. Typing [34;1mdir[0m there will show its contents. [34;1mcd[0m will allow you to
+enter a directory (recognised by the [33;1m[][0m in a directory listing).
+You can run programs/files which end with [31m.exe .bat[0m and [31m.com[0m.
+
+.
+:PROGRAM_INTRO_CDROM
+[2J[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:[0m
+DOSBox-X provides CD-ROM emulation on several levels.
+
+The [33mbasic[0m level works on all CD-ROM drives and normal directories.
+It installs MSCDEX and marks the files read-only.
+Usually this is enough for most games:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   or   [34;1mmount d C:\example -t cdrom[0m
+If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:
+[34;1mmount d C:\example -t cdrom -label CDLABEL[0m
+
+.
+:PROGRAM_BOOT_NOT_EXIST
+Bootdisk file does not exist.  Failing.
+
+.
+:PROGRAM_BOOT_NOT_OPEN
+Cannot open bootdisk file.  Failing.
+
+.
+:PROGRAM_BOOT_WRITE_PROTECTED
+Image file is read-only! Boot in write-protected mode.
+
+.
+:PROGRAM_BOOT_PRINT_ERROR
+This command boots DOSBox-X from either a floppy or hard disk image.
+
+For this command, one can specify a succession of floppy disks swappable
+by the menu command, and drive: specifies the mounted drive to boot from.
+If no drive letter is specified, this defaults to boot from the A drive.
+If no parameter is specified, it will try to boot from the current drive.
+The only bootable drive letters are A, C, and D.  For booting from a hard
+drive (C or D), ensure the image is already mounted by [34;1mIMGMOUNT[0
+.
+:PROGRAM_BOOT_UNABLE
+Unable to boot off of drive %c.
+
+.
+:PROGRAM_BOOT_IMAGE_OPEN
+Opening image file: %s
+
+.
+:PROGRAM_BOOT_IMAGE_NOT_OPEN
+Cannot open %s
+
+.
+:PROGRAM_BOOT_CART_WO_PCJR
+PCjr cartridge found, but machine is not PCjr
+.
+:PROGRAM_BOOT_CART_LIST_CMDS
+Available PCjr cartridge commandos:%s
+.
+:PROGRAM_BOOT_CART_NO_CMDS
+No PCjr cartridge commandos found
+.
+:PROGRAM_LOADROM_HELP
+Loads the specified ROM image file.
+
+LOADROM ROM_file
+
+.
+:PROGRAM_LOADROM_SPECIFY_FILE
+Must specify ROM file to load.
+
+.
+:PROGRAM_LOADROM_CANT_OPEN
+ROM file not accessible.
+
+.
+:PROGRAM_LOADROM_TOO_LARGE
+ROM file too large.
+
+.
+:PROGRAM_LOADROM_INCOMPATIBLE
+Video BIOS not supported by machine type.
+
+.
+:PROGRAM_LOADROM_UNRECOGNIZED
+ROM file not recognized.
+
+.
+:PROGRAM_LOADROM_BASIC_LOADED
+BASIC ROM loaded.
+
+.
+:PROGRAM_BIOSTEST_HELP
+Boots into a BIOS image for running CPU tester BIOS.
+
+BIOSTEST image_file
+
+.
+:VHD_ERROR_OPENING
+Could not open the specified VHD file.
+
+.
+:VHD_INVALID_DATA
+The specified VHD file is corrupt and cannot be opened.
+
+.
+:VHD_UNSUPPORTED_TYPE
+The specified VHD file is of an unsupported type.
+
+.
+:VHD_ERROR_OPENING_PARENT
+The parent of the specified VHD file could not be found.
+
+.
+:VHD_PARENT_INVALID_DATA
+The parent of the specified VHD file is corrupt and cannot be opened.
+
+.
+:VHD_PARENT_UNSUPPORTED_TYPE
+The parent of the specified VHD file is of an unsupported type.
+
+.
+:VHD_PARENT_INVALID_MATCH
+The parent of the specified VHD file does not contain the expected identifier.
+
+.
+:VHD_PARENT_INVALID_DATE
+The parent of the specified VHD file has been changed and cannot be loaded.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_DRIVE
+Must specify drive letter to mount image at.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY2
+Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY
+For [33mCD-ROM[0m images:   [34;1mIMGMOUNT drive-letter location-of-image -t iso[0m
+
+For [33mhardrive[0m images: Must specify drive geometry for hard drives:
+bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.
+[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl[0m
+
+.
+:PROGRAM_IMGMOUNT_INVALID_IMAGE
+Could not load image file.
+Check that the path is correct and the image is accessible.
+
+.
+:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
+Dynamic VHD files are not supported.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_GEOMETRY
+Could not extract drive geometry from image.
+Use parameter -size bps,spc,hpc,cyl to specify the geometry.
+
+.
+:PROGRAM_IMGMOUNT_AUTODET_VALUES
+Image geometry auto detection: -size %u,%u,%u,%u
+
+.
+:PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
+Type "%s" is unsupported. Specify "hdd" or "floppy" or "iso".
+
+.
+:PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
+Format "%s" is unsupported. Specify "fat" or "iso" or "none".
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_FILE
+Must specify image file(s) to mount.
+
+.
+:PROGRAM_IMGMOUNT_FILE_NOT_FOUND
+Image file not found.
+
+.
+:PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
+Image file not found: IMGMAKE.IMG.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT
+To mount directories, use the [34;1mMOUNT[0m command, not the [34;1mIMGMOUNT[0m command.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED
+Drive already mounted at that letter.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
+Drive number %d already mounted.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE
+Cannot create drive from file.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
+Cannot create PhysFS drive.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT_NUMBER
+Drive number %d mounted as %s
+
+.
+:PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
+The image must be on a host, local or network drive.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
+Using multiple files is only supported for cue/iso images.
+
+.
+:PROGRAM_IMGMOUNT_HELP
+Mounts floppy, hard drive and optical disc images.
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+[32;1mIMGMOUNT[0m [37;1mdriveNum[0m [36;1mfile[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-t iso] [-fs iso]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [-t floppy] -bootcd cdDrive (or -e
+.
+:PROGRAM_IMGMOUNT_EXAMPLE
+Some usage examples of IMGMOUNT:
+
+  [32;1mIMGMOUNT[0m                       - list mounted FAT/ISO drives & drive numbers
+  [32;1mIMGMOUNT C[0m                     - mount hard disk image [33;1mIMGMAKE.IMG[0m as C:
+  [32;1mIMGMOUNT C c:\image.img[0m        - mount hard disk image c:\image.img as C:
+  [32;1mIMGMOUNT D c:\files\game.iso[0m   - mount CD image c:\files\game.iso as D:
+  [32;1mIMGMOUNT D cdaudio.cue[0m         - mount cue file of a cue/bin pair as CD drive
+  [32;1mIMGMOUNT 0 dos.ima
+.
+:PROGRAM_IMGMAKE_SYNTAX
+Creates floppy or hard disk images.
+Usage: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-r retries][0m
+  file: Image file to create (or [33;1mIMGMAKE.IMG[0m if not set) - [31;1mpath on the host[0m
+  -t: Type of image.
+    [33;1mFloppy disk templates[0m (names resolve to floppy sizes in KB or fd=fd_1440):
+     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
+    [3
+.
+:PROGRAM_IMGMAKE_EXAMPLE
+Some usage examples of IMGMAKE:
+
+  [32;1mIMGMAKE -t fd[0m                   - create a 1.44MB floppy image [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE -t fd_1440 -force[0m       - force to create a floppy image [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE dos.img -t fd_2880[0m      - create a 2.88MB floppy image named dos.img
+  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - create a 50MB HDD image c:\disk.img
+  [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - create a 520MB blank HDD image
+  [32;1mIM
+.
+:PROGRAM_IMGMAKE_FLREAD
+Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
+
+
+.
+:PROGRAM_IMGMAKE_FILE_EXISTS
+The file "%s" already exists. You can specify "-force" to overwrite.
+
+.
+:PROGRAM_IMGMAKE_CANNOT_WRITE
+The file "%s" cannot be opened for writing.
+
+.
+:PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
+Not enough space availible for the image file. Need %u bytes.
+
+.
+:PROGRAM_IMGMAKE_PRINT_CHS
+Creating image file "%s" with %u cylinders, %u heads and %u sectors
+
+.
+:PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
+Unable to read floppy.
+.
+:PROGRAM_KEYB_INFO
+Codepage %i has been loaded
+
+.
+:PROGRAM_KEYB_INFO_LAYOUT
+Codepage %i has been loaded for layout %s
+
+.
+:PROGRAM_KEYB_SHOWHELP
+Configures a keyboard for a specific language.
+
+KEYB [keyboard layout ID [codepage number [codepage file]]]
+
+Some examples:
+  [32;1mKEYB[0m          Display currently loaded codepage.
+  [32;1mKEYB sp[0m       Load the Spanish (SP) layout, use an appropriate codepage.
+  [32;1mKEYB sp 850[0m   Load the Spanish (SP) layout, use codepage 850.
+  [32;1mKEYB sp 850 mycp.cpi[0m Same as above, but use file mycp.cpi.
+
+.
+:PROGRAM_KEYB_NOERROR
+Keyboard layout %s loaded for codepage %i
+
+.
+:PROGRAM_KEYB_FILENOTFOUND
+Keyboard file %s not found
+
+
+.
+:PROGRAM_KEYB_INVALIDFILE
+Keyboard file %s invalid
+
+.
+:PROGRAM_KEYB_LAYOUTNOTFOUND
+No layout in %s for codepage %i
+
+.
+:PROGRAM_KEYB_INVCPFILE
+None or invalid codepage file for layout %s
+
+
+.
+:PROGRAM_MODE_USAGE
+Configures system devices.
+
+[34;1mMODE[0m display-type       :display-type codes are [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
+[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)
+
+.
+:PROGRAM_MODE_INVALID_PARAMETERS
+Invalid parameter(s).
+
+.
+:SHELL_CMD_TREE_ERROR
+No subdirectories exist
+
+.
+:SHELL_CMD_VOL_TREE
+Directory PATH listing for Volume %s
+
+.
+:SHELL_CMD_VOL_DRIVE
+
+ Volume in drive %c 
+.
+:SHELL_CMD_VOL_DRIVEERROR
+Cannot find the drive specified
+
+.
+:SHELL_CMD_VOL_SERIAL
+ Volume Serial Number is 
+.
+:SHELL_CMD_VOL_SERIAL_NOLABEL
+has no label
+
+.
+:SHELL_CMD_VOL_SERIAL_LABEL
+is %s
+
+.
+:SHELL_ILLEGAL_PATH
+Path not found
+
+.
+:SHELL_ILLEGAL_DRIVE
+Invalid drive specification
+
+.
+:SHELL_CMD_HELP
+If you want a list of all supported internal commands type [33;1mHELP /ALL[0m.
+You can also find external commands on the Z: drive as programs.
+A short list of the most often used commands:
+
+.
+:SHELL_CMD_ECHO_ON
+ECHO is on.
+
+.
+:SHELL_CMD_ECHO_OFF
+ECHO is off.
+
+.
+:SHELL_ILLEGAL_CONTROL_CHARACTER
+Unexpected control character: Dec %03u and Hex %#04x.
+
+.
+:SHELL_ILLEGAL_SWITCH
+Invalid switch - %s
+
+.
+:SHELL_MISSING_PARAMETER
+Required parameter missing.
+
+.
+:SHELL_MISSING_FILE
+The following file is missing or corrupted: %s
+
+.
+:SHELL_CMD_CHDIR_ERROR
+Invalid directory - %s
+
+.
+:SHELL_CMD_CHDIR_HINT
+Hint: To change to different drive type [31m%c:[0m
+
+.
+:SHELL_CMD_CHDIR_HINT_2
+directoryname contains unquoted spaces.
+Try [31mcd %s[0m or properly quote them with quotation marks.
+
+.
+:SHELL_CMD_CHDIR_HINT_3
+You are still on drive Z:, and the specified directory cannot be found.
+For accessing a mounted drive, change to the drive with a syntax like [31mC:[0m.
+
+.
+:SHELL_CMD_DATE_HELP
+Displays or changes the internal date.
+
+.
+:SHELL_CMD_DATE_ERROR
+The specified date is not correct.
+
+.
+:SHELL_CMD_DATE_DAYS
+3SunMonTueWedThuFriSat
+.
+:SHELL_CMD_DATE_NOW
+Current date: 
+.
+:SHELL_CMD_DATE_SETHLP
+Type 'date %s' to change.
+
+.
+:SHELL_CMD_DATE_HELP_LONG
+DATE [[/T] [/H] [/S] | date]
+  date:       New date to set
+  /S:         Permanently use host time and date as DOS time
+  /F:         Switch back to DOSBox-X internal time (opposite of /S)
+  /T:         Only display date
+  /H:         Synchronize with host
+
+.
+:SHELL_CMD_TIME_HELP
+Displays or changes the internal time.
+
+.
+:SHELL_CMD_TIME_ERROR
+The specified time is not correct.
+
+.
+:SHELL_CMD_TIME_NOW
+Current time: 
+.
+:SHELL_CMD_TIME_SETHLP
+Type 'time %s' to change.
+
+.
+:SHELL_CMD_TIME_HELP_LONG
+TIME [[/T] [/H] | time]
+  time:       New time to set
+  /T:         Display simple time
+  /H:         Synchronize with host
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Directory already exists - %s
+
+.
+:SHELL_CMD_MKDIR_ERROR
+Unable to create directory - %s
+
+.
+:SHELL_CMD_RMDIR_ERROR
+Invalid path, not directory, or directory not empty - %s
+
+.
+:SHELL_CMD_RENAME_ERROR
+Unable to rename - %s
+
+.
+:SHELL_CMD_ATTRIB_GET_ERROR
+Unable to get attributes: %s
+
+.
+:SHELL_CMD_ATTRIB_SET_ERROR
+Unable to set attributes: %s
+
+.
+:SHELL_CMD_DEL_ERROR
+Unable to delete - %s
+
+.
+:SHELL_CMD_DEL_SURE
+All files in directory will be deleted!
+Are you sure [Y/N]?
+.
+:SHELL_SYNTAXERROR
+Syntax error
+
+.
+:SHELL_CMD_SET_NOT_SET
+Environment variable %s not defined.
+
+.
+:SHELL_CMD_SET_OUT_OF_SPACE
+Not enough environment space left.
+
+.
+:SHELL_CMD_IF_EXIST_MISSING_FILENAME
+IF EXIST: Missing filename.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
+IF ERRORLEVEL: Missing number.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
+IF ERRORLEVEL: Invalid number.
+
+.
+:SHELL_CMD_GOTO_MISSING_LABEL
+No label supplied to GOTO command.
+
+.
+:SHELL_CMD_GOTO_LABEL_NOT_FOUND
+GOTO: Label %s not found.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Access denied - %s
+
+.
+:SHELL_CMD_FILE_NOT_FOUND
+File not found - %s
+
+.
+:SHELL_CMD_FILE_EXISTS
+File %s already exists.
+
+.
+:SHELL_CMD_DIR_INTRO
+ Directory of %s
+
+
+.
+:SHELL_CMD_DIR_BYTES_USED
+%5d File(s) %17s Bytes
+
+.
+:SHELL_CMD_DIR_BYTES_FREE
+%5d Dir(s)  %17s Bytes free
+
+.
+:SHELL_CMD_DIR_FILES_LISTED
+Total files listed:
+
+.
+:SHELL_EXECUTE_DRIVE_NOT_FOUND
+Drive %c does not exist!
+You must [31mmount[0m it first. Type [1;33mintro[0m or [1;33mintro mount[0m for more information.
+
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_CDROM
+Do you want to give DOSBox-X access to your real CD-ROM drive %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
+Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
+Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
+Do you want to give DOSBox-X access to your real network drive %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED
+Do you really want to give DOSBox-X access to everything
+on your real hard drive %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
+Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?
+.
+:SHELL_EXECUTE_ILLEGAL_COMMAND
+Bad command or filename - "%s"
+
+.
+:SHELL_CMD_PAUSE
+Press any key to continue . . .
+
+.
+:SHELL_CMD_PAUSE_HELP
+Waits for one keystroke to continue.
+
+.
+:SHELL_CMD_PAUSE_HELP_LONG
+PAUSE
+
+.
+:SHELL_CMD_COPY_FAILURE
+Copy failure - %s
+
+.
+:SHELL_CMD_COPY_SUCCESS
+   %d File(s) copied.
+
+.
+:SHELL_CMD_COPY_CONFIRM
+Overwrite %s (Yes/No/All)?
+.
+:SHELL_CMD_COPY_NOSPACE
+Insufficient disk space - %s
+
+.
+:SHELL_CMD_COPY_ERROR
+Copy error - %s
+
+.
+:SHELL_CMD_SUBST_DRIVE_LIST
+The currently mounted local drives are:
+
+.
+:SHELL_CMD_SUBST_NO_REMOVE
+Unable to remove, drive not in use.
+
+.
+:SHELL_CMD_SUBST_IN_USE
+Target drive is already in use.
+
+.
+:SHELL_CMD_SUBST_NOT_LOCAL
+It is only possible to use SUBST on local drives.
+
+.
+:SHELL_CMD_SUBST_INVALID_PATH
+The specified drive or path is invalid.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: There is an error in your command line.
+
+.
+:SHELL_STARTUP_TITLE
+欢迎使用 DOSBox-X !
+.
+:SHELL_STARTUP_HEAD1
+[36m轻松上手 DOSBox-X:                                                          [37m
+.
+:SHELL_STARTUP_TEXT1
+输入 [32mHELP[37m 命令查看DOS命令列表, 或输入 [32mINTRO[37m 命令进入 DOSBox-X 的简短介绍。  
+您亦可以通过 DOSBox-X 所带的[33m下拉式菜单[37m来完成 DOSBox-X 的各种操作和功能。    
+.
+:SHELL_STARTUP_EXAMPLE
+[32m举例[37m: 您可以试着选择 [33mTrueType Font[37m 或者 [33mOpenGL pixel-perfect[37m 输出选项。     
+.
+:SHELL_STARTUP_HEAD2
+[36m常用的默认快捷方式:                                                         [37m
+.
+:SHELL_STARTUP_TEXT2
+- 切换窗口和全屏模式： [31mF11 [37m+ [31mF[37m [37m                                             
+- 打开 [33m配置工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m按键编辑[37m: [31mF11 [37m+ [31mM[37m  [37m                             
+- 提高或降低模拟速度： [31mF11 [37m+ [31m加号[37m[37m 或 [31mF11 [37m+ [31m减号[37m   [37m                          
+.
+:SHELL_STARTUP_CGA
+Composite CGA mode is supported. Use [31mCtrl+F8[37m to set composite output ON/OFF.
+Use [31mCtrl+Shift+[F7/F8][37m to change hue; [31mCtrl+F7[37m selects early/late CGA model. 
+.
+:SHELL_STARTUP_HERC
+Use [31mCtrl+F7[37m to cycle through white, amber, and green monochrome color.      
+Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
+.
+:SHELL_STARTUP_HEAD3
+[36mDOSBox-X 项目在线:                                                          [37m
+.
+:SHELL_STARTUP_TEXT3
+[32m项目主页[37m: [33mhttps://dosbox-x.com/                  [36mDOSBox-X提供完整的 DOS 模拟[37m
+[32m用户指南[37m: [33mhttps://dosbox-x.com/wiki[32m              [36m包括 DOS, Windows 3.x 和 9x[37m
+[32m寻求帮助[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
+.
+:SHELL_STARTUP_LAST
+祝您愉快使用 DOSBox-X !
+.
+:SHELL_CMD_BREAK_HELP
+Sets or clears extended CTRL+C checking.
+
+.
+:SHELL_CMD_BREAK_HELP_LONG
+BREAK [ON | OFF]
+
+Type BREAK without a parameter to display the current BREAK setting.
+
+.
+:SHELL_CMD_CHDIR_HELP
+Displays or changes the current directory.
+
+.
+:SHELL_CMD_CHDIR_HELP_LONG
+CHDIR [drive:][path]
+CHDIR [..]
+CD [drive:][path]
+CD [..]
+
+  ..   Specifies that you want to change to the parent directory.
+
+Type CD drive: to display the current directory in the specified drive.
+Type CD without parameters to display the current drive and directory.
+
+.
+:SHELL_CMD_CLS_HELP
+Clears screen.
+
+.
+:SHELL_CMD_CLS_HELP_LONG
+CLS
+
+.
+:SHELL_CMD_DIR_HELP
+Displays a list of files and subdirectories in a directory.
+
+.
+:SHELL_CMD_DIR_HELP_LONG
+DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [drive:][path][filename]
+              Specifies drive, directory, and/or files to list.
+  /W          Uses wide list format.
+  /B          Uses bare format (no heading information or summary).
+  /S          Displays files in specified directory and all subdirectories.
+  /P          Pauses after each screenful of information.
+  /A          Displays files with specified attributes.
+  attributes   D  Directories               
+.
+:SHELL_CMD_ECHO_HELP
+Displays messages, or turns command-echoing on or off.
+
+.
+:SHELL_CMD_ECHO_HELP_LONG
+  ECHO [ON | OFF]
+  ECHO [message]
+
+Type ECHO without parameters to display the current echo setting.
+
+.
+:SHELL_CMD_EXIT_HELP
+Exits from the command shell.
+
+.
+:SHELL_CMD_EXIT_HELP_LONG
+EXIT
+
+.
+:SHELL_CMD_HELP_HELP
+Shows DOSBox-X command help.
+
+.
+:SHELL_CMD_HELP_HELP_LONG
+HELP [/A or /ALL]
+HELP [command]
+
+   /A or /ALL   Lists all supported internal commands.
+   [command]    Shows help for the specified command.
+
+[0mE.g., [37;1mHELP COPY[0m or [37;1mCOPY /?[0m shows help information for COPY command.
+
+Note: External commands like [33;1mMOUNT[0m and [33;1mIMGMOUNT[0m are not listed by HELP [/A].
+      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).
+      Type [33;1mcommand /?[0m or [33;1mHELP command[0m for help information for that com
+.
+:SHELL_CMD_MKDIR_HELP
+Creates a directory.
+
+.
+:SHELL_CMD_MKDIR_HELP_LONG
+MKDIR [drive:][path]
+MD [drive:][path]
+
+.
+:SHELL_CMD_RMDIR_HELP
+Removes a directory.
+
+.
+:SHELL_CMD_RMDIR_HELP_LONG
+RMDIR [drive:][path]
+RD [drive:][path]
+
+.
+:SHELL_CMD_SET_HELP
+Displays or changes environment variables.
+
+.
+:SHELL_CMD_SET_HELP_LONG
+SET [variable=[string]]
+
+   variable     Specifies the environment-variable name.
+   string       Specifies a series of characters to assign to the variable.
+
+* If no string is specified, the variable is removed from the environment.
+
+Type SET without parameters to display the current environment variables.
+
+.
+:SHELL_CMD_IF_HELP
+Performs conditional processing in batch programs.
+
+.
+:SHELL_CMD_IF_HELP_LONG
+IF [NOT] ERRORLEVEL number command
+IF [NOT] string1==string2 command
+IF [NOT] EXIST filename command
+
+  NOT               Specifies that DOS should carry out
+                    the command only if the condition is false.
+
+  ERRORLEVEL number Specifies a true condition if the last program run
+                    returned an exit code equal to or greater than the number
+                    specified.
+
+  string1==string2  Specifies a true condition if the specified text strings
+                    match.
+
+  
+.
+:SHELL_CMD_GOTO_HELP
+Jumps to a labeled line in a batch program.
+
+.
+:SHELL_CMD_GOTO_HELP_LONG
+GOTO label
+
+   label   Specifies a text string used in the batch program as a label.
+
+You type a label on a line by itself, beginning with a colon.
+
+.
+:SHELL_CMD_SHIFT_HELP
+Changes the position of replaceable parameters in a batch file.
+
+.
+:SHELL_CMD_SHIFT_HELP_LONG
+SHIFT
+
+.
+:SHELL_CMD_FOR_HELP
+Runs a specified command for each file in a set of files.
+
+.
+:SHELL_CMD_FOR_HELP_LONG
+FOR %%variable IN (set) DO command [command-parameters]
+
+  %%variable  Specifies a replaceable parameter.
+  (set)      Specifies a set of one or more files. Wildcards may be used.
+  command    Specifies the command to carry out for each file.
+  command-parameters
+             Specifies parameters or switches for the specified command.
+
+To use the command in a batch program, specify %%%%variable instead of %%variable.
+
+.
+:SHELL_CMD_LFNFOR_HELP
+Enables or disables long filenames when processing FOR wildcards.
+
+.
+:SHELL_CMD_LFNFOR_HELP_LONG
+LFNFOR [ON | OFF]
+
+Type LFNFOR without a parameter to display the current LFNFOR setting.
+
+This command is only useful if LFN support is currently enabled.
+
+.
+:SHELL_CMD_TYPE_HELP
+Displays the contents of a text-file.
+
+.
+:SHELL_CMD_TYPE_HELP_LONG
+TYPE [drive:][path][filename]
+
+.
+:SHELL_CMD_REM_HELP
+Adds comments in a batch file.
+
+.
+:SHELL_CMD_REM_HELP_LONG
+REM [comment]
+
+.
+:SHELL_CMD_RENAME_HELP
+Renames a file/directory or files.
+
+.
+:SHELL_CMD_RENAME_HELP_LONG
+RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+
+Note that you can not specify a new drive or path for your destination.
+
+Wildcards (* and ?) are supported for files. For example, the following command
+renames all text files: [37;1mREN *.TXT *.BAK[0m
+
+.
+:SHELL_CMD_DELETE_HELP
+Removes one or more files.
+
+.
+:SHELL_CMD_DELETE_HELP_LONG
+DEL [/P] [/F] [/Q] names
+ERASE [/P] [/F] [/Q] names
+
+  names         Specifies a list of one or more files or directories.
+                Wildcards may be used to delete multiple files. If a
+                directory is specified, all files within the directory
+                will be deleted.
+  /P            Prompts for confirmation before deleting one or more files.
+  /F            Force deleting of read-only files.
+  /Q            Quiet mode, do not ask if ok to delete on global wildcard.
+
+.
+:SHELL_CMD_COPY_HELP
+Copies one or more files.
+
+.
+:SHELL_CMD_COPY_HELP_LONG
+COPY [/Y | /-Y] source [+source [+ ...]] [destination]
+
+  source        Specifies the file or files to be copied.
+  destination   Specifies the directory and/or filename for the new file(s).
+  /Y            Suppresses prompting to confirm you want to overwrite an
+                existing destination file.
+  /-Y           Causes prompting to confirm you want to overwrite an
+                existing destination file.
+
+The switch /Y may be preset in the COPYCMD environment variable.
+This may be overridden wit
+.
+:SHELL_CMD_CALL_HELP
+Starts a batch file from within another batch file.
+
+.
+:SHELL_CMD_CALL_HELP_LONG
+CALL [drive:][path]filename [batch-parameters]
+
+batch-parameters   Specifies any command-line information required by
+                   the batch program.
+
+.
+:SHELL_CMD_SUBST_HELP
+Assigns an internal directory to a drive.
+
+.
+:SHELL_CMD_SUBST_HELP_LONG
+SUBST [drive1: [drive2:]path]
+SUBST drive1: /D
+
+  drive1:       Specifies a drive to which you want to assign a path.
+  [drive2:]path Specifies a mounted local drive and path you want to assign to.
+  /D            Deletes a mounted or substituted drive.
+
+Type SUBST with no parameters to display a list of mounted local drives.
+
+.
+:SHELL_CMD_LOADHIGH_HELP
+Loads a program into upper memory (requires XMS and UMB memory).
+
+.
+:SHELL_CMD_LOADHIGH_HELP_LONG
+LH              [drive1:][path]filename [parameters]
+LOADHIGH        [drive1:][path]filename [parameters]
+
+.
+:SHELL_CMD_CHOICE_HELP
+Waits for a keypress and sets ERRORLEVEL.
+
+.
+:SHELL_CMD_CHOICE_HELP_LONG
+CHOICE [/C:choices] [/N] [/S] text
+  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
+  /N  -  Do not display the choices at end of prompt.
+  /S  -  Enables case-sensitive choices to be selected.
+  text  -  The text to display as a prompt.
+
+.
+:SHELL_CMD_ATTRIB_HELP
+Displays or changes file attributes.
+
+.
+:SHELL_CMD_ATTRIB_HELP_LONG
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
+
+  +   Sets an attribute.
+  -   Clears an attribute.
+  R   Read-only file attribute.
+  A   Archive file attribute.
+  S   System file attribute.
+  H   Hidden file attribute.
+  [drive:][path][filename]
+      Specifies file(s) or directory for ATTRIB to process.
+  /S  Processes files in all directories in the specified path.
+
+.
+:SHELL_CMD_PATH_HELP
+Displays or sets a search path for executable files.
+
+.
+:SHELL_CMD_PATH_HELP_LONG
+PATH [[drive:]path[;...][;%PATH%]
+PATH ;
+
+Type PATH ; to clear all search path settings.
+Type PATH without parameters to display the current path.
+
+.
+:SHELL_CMD_PUSHD_HELP
+Stores the current directory for use by the POPD command, then
+changes to the specified directory.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [path]
+
+path        Specifies the directory to make the current directory.
+
+Type PUSHD with no parameters to display currently stored directories.
+
+.
+:SHELL_CMD_POPD_HELP
+Changes to the directory stored by the PUSHD command.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
+:SHELL_CMD_VERIFY_HELP
+Controls whether to verify files are written correctly to a disk.
+
+.
+:SHELL_CMD_VERIFY_HELP_LONG
+VERIFY [ON | OFF]
+
+Type VERIFY without a parameter to display the current VERIFY setting.
+
+.
+:SHELL_CMD_VER_HELP
+Displays or sets DOSBox-X's reported DOS version.
+
+.
+:SHELL_CMD_VER_HELP_LONG
+VER [/R]
+VER [SET] number or VER SET [major minor]
+
+  /R                 Display DOSBox-X's Git commit version and build date.
+  [SET] number       Set the specified number as the reported DOS version.
+  SET [major minor]  Set the reported DOS version in major and minor format.
+
+  [0mE.g., [37;1mVER 6.0[0m or [37;1mVER 7.1[0m sets the DOS version to 6.0 and 7.1, respectively.
+  On the other hand, [37;1mVER SET 7 1[0m sets the DOS version to 7.01 instead of 7.1.
+
+Type VER without parameters to displa
+.
+:SHELL_CMD_VER_VER
+DOSBox-X version %s (%s). Reported DOS version %d.%02d.
+
+.
+:SHELL_CMD_VER_INVALID
+The specified DOS version is not correct.
+
+.
+:SHELL_CMD_VOL_HELP
+Displays the disk volume label and serial number, if they exist.
+
+.
+:SHELL_CMD_VOL_HELP_LONG
+VOL [drive]
+
+.
+:SHELL_CMD_PROMPT_HELP
+Changes the command prompt.
+
+.
+:SHELL_CMD_PROMPT_HELP_LONG
+PROMPT [text]
+  text    Specifies a new command prompt.
+
+Prompt can be made up of normal characters and the following special codes:
+  $A   & (Ampersand)
+  $B   | (pipe)
+  $C   ( (Left parenthesis)
+  $D   Current date
+  $E   Escape code (ASCII code 27)
+  $F   ) (Right parenthesis)
+  $G   > (greater-than sign)
+  $H   Backspace (erases previous character)
+  $L   < (less-than sign)
+  $N   Current drive
+  $P   Current drive and path
+  $Q   = (equal sign)
+  $S     (space)
+  $T   Current time
+  $V   DOS version 
+.
+:SHELL_CMD_ALIAS_HELP
+Defines or displays aliases.
+
+.
+:SHELL_CMD_ALIAS_HELP_LONG
+ALIAS [name[=value] ... ]
+
+Type ALIAS without parameters to display the list of aliases in the form:
+`ALIAS NAME = VALUE'
+
+.
+:SHELL_CMD_CHCP_HELP
+Displays or changes the current DOS code page.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn]
+
+  nnn   Specifies a code page number.
+
+Supported code pages for changing in the TrueType font output:
+437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+
+Also double-byte code pages including 932, 936, 949, and 950.
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+活动的代码页: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Invalid code page number - %s
+
+.
+:SHELL_CMD_COUNTRY_HELP
+Displays or changes the current country.
+
+.
+:SHELL_CMD_COUNTRY_HELP_LONG
+COUNTRY [nnn] 
+
+  nnn   Specifies a country code.
+
+Date and time formats will be affacted by the specified country code.
+
+.
+:SHELL_CMD_CTTY_HELP
+Changes the terminal device used to control the system.
+
+.
+:SHELL_CMD_CTTY_HELP_LONG
+CTTY device
+  device        The terminal device to use, such as CON.
+
+.
+:SHELL_CMD_MORE_HELP
+Displays output one screen at a time.
+
+.
+:SHELL_CMD_MORE_HELP_LONG
+MORE [drive:][path][filename]
+MORE < [drive:][path]filename
+command-name | MORE [drive:][path][filename]
+
+.
+:SHELL_CMD_TRUENAME_HELP
+Finds the fully-expanded name for a file.
+
+.
+:SHELL_CMD_TRUENAME_HELP_LONG
+TRUENAME file
+
+.
+:SHELL_CMD_DXCAPTURE_HELP
+Runs program with video or audio capture.
+
+.
+:SHELL_CMD_DXCAPTURE_HELP_LONG
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+
+It will start video or audio capture, run program, and then automatically stop capture when the program exits.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP
+Runs program and breaks into debugger at entry point.
+Type DEBUGBOX without a parameter to start the debugger.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP_LONG
+DEBUGBOX [command] [options]
+
+.
+:SHELL_CMD_COMMAND_HELP
+Starts the DOSBox-X command shell.
+
+The following options are accepted:
+
+  /C    Executes the specified command and returns.
+  /K    Executes the specified command and continues running.
+  /P    Loads a permanent copy of the command shell.
+  /INIT Initializes the command shell.
+
+.
+:SHELL_STARTUP_HEAD1_PC98
+[36mGetting Started with DOSBox-X:[37m                                    
+.
+:SHELL_STARTUP_TEXT1_PC98
+Type [32mHELP[37m for shell commands, and [32mINTRO[37m for a short introduction. 
+You could also complete various tasks through the [33mdrop-down menus[37m.
+.
+:SHELL_STARTUP_EXAMPLE_PC98
+[32mExample[37m: Try select [33mTrueType font[37m or [33mOpenGL perfect[37m output option.
+.
+:SHELL_STARTUP_TEXT2_PC98
+To launch the [33mConfiguration Tool[37m, use [31mhost+C[37m. Host key is [32mF11[37m.    
+To activate the [33mMapper Editor[37m for key assignments, use [31mhost+M[37m.    
+To switch between windowed and full-screen mode, use [31mhost+F[37m.      
+To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[37m.   
+.
+:SHELL_STARTUP_INFO_PC98
+[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.[37m     
+[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.[37m       
+.
+:SHELL_STARTUP_TEXT3_PC98
+[32mDOSBox-X project [33mhttps://dosbox-x.com/     [36mComplete DOS emulations[37m
+[32mDOSBox-X guide   [33mhttps://dosbox-x.com/wiki[37m [36mDOS, Windows 3.x and 9x[37m
+[32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
+.
+:SHELL_STARTUP_CGA_MONO
+Use [31mCtrl+F7[37m to cycle through green, amber, and white monochrome color,      
+and [31mCtrl+F8[37m to change contrast/brightness settings.                         
+.
+:MENU:mapper_reset
+重新开始模拟
+.
+:MENU:mapper_reboot
+重启DOS系统
+.
+:MENU:mapper_loadmap
+加载按键配置文件...
+.
+:MENU:mapper_quickrun
+快速启动程序...
+.
+:MENU:mapper_shutdown
+退出 DOSBox-X
+.
+:MENU:mapper_capmouse
+捕捉鼠标
+.
+:MENU:mapper_fastedit
+快速编辑: 选择后复制或粘贴文本
+.
+:MENU:mapper_copyall
+复制DOS屏幕上的所有文本
+.
+:MENU:mapper_paste
+从剪贴板中复制
+.
+:MENU:mapper_pasteend
+停止剪贴板复制
+.
+:MENU:mapper_pause
+暂停模拟
+.
+:MENU:mapper_pauseints
+暂停并保持中断
+.
+:MENU:mapper_gui
+配置工具
+.
+:MENU:mapper_mapper
+按键编辑
+.
+:MENU:mapper_fullscr
+切换全屏模式
+.
+:MENU:mapper_resetsize
+重置屏幕大小
+.
+:MENU:mapper_incsize
+增加 TTF 字体大小
+.
+:MENU:mapper_decsize
+减少 TTF 字体大小
+.
+:MENU:mapper_togmenu
+隐藏/显示下拉菜单
+.
+:MENU:MainMenu
+主菜单
+.
+:MENU:MainSendKey
+输入特殊键
+.
+:MENU:MainHostKey
+选择主机按键
+.
+:MENU:WheelToArrow
+鼠标滑轮动作转换
+.
+:MENU:SharedClipboard
+剪贴板功能
+.
+:MENU:CpuMenu
+CPU
+.
+:MENU:CpuCoreMenu
+CPU 内核
+.
+:MENU:CpuTypeMenu
+CPU 类型
+.
+:MENU:CpuSpeedMenu
+模拟 CPU 速度
+.
+:MENU:cpu88-4
+8088 XT 4.77MHz (~240 cycles)
+.
+:MENU:cpu286-8
+286 8MHz (~750 cycles)
+.
+:MENU:cpu286-12
+286 12MHz (~1510 cycles)
+.
+:MENU:cpu286-25
+286 25MHz (~3300 cycles)
+.
+:MENU:cpu386-25
+386DX 25MHz (~4595 cycles)
+.
+:MENU:cpu386-33
+386DX 33MHz (~6075 cycles)
+.
+:MENU:cpu486-33
+486DX 33MHz (~12010 cycles)
+.
+:MENU:cpu486-66
+486DX2 66MHz (~23880 cycles)
+.
+:MENU:cpu486-100
+486DX4 100MHz (~33445 cycles)
+.
+:MENU:cpu486-133
+486DX5 133MHz (~47810 cycles)
+.
+:MENU:cpu586-60
+Pentium 60MHz (~31545 cycles)
+.
+:MENU:cpu586-66
+Pentium 66MHz (~35620 cycles)
+.
+:MENU:cpu586-75
+Pentium 75MHz (~43500 cycles)
+.
+:MENU:cpu586-90
+Pentium 90MHz (~52000 cycles)
+.
+:MENU:cpu586-100
+Pentium 100MHz (~60000 cycles)
+.
+:MENU:cpu586-120
+Pentium 120MHz (~74000 cycles)
+.
+:MENU:cpu586-133
+Pentium 133MHz (~80000 cycles)
+.
+:MENU:cpu586-166
+Pentium 166MHz MMX (~97240 cycles)
+.
+:MENU:VideoMenu
+视频
+.
+:MENU:VideoFrameskipMenu
+跳帧
+.
+:MENU:frameskip_0
+关闭
+.
+:MENU:frameskip_1
+1 帧
+.
+:MENU:frameskip_2
+2 帧
+.
+:MENU:frameskip_3
+3 帧
+.
+:MENU:frameskip_4
+4 帧
+.
+:MENU:frameskip_5
+5 帧
+.
+:MENU:frameskip_6
+6 帧
+.
+:MENU:frameskip_7
+7 帧
+.
+:MENU:frameskip_8
+8 帧
+.
+:MENU:frameskip_9
+9 帧
+.
+:MENU:frameskip_10
+10 帧
+.
+:MENU:VideoScalerMenu
+缩放器
+.
+:MENU:scaler_forced
+强制使用绽放器
+.
+:MENU:scaler_set_none
+None
+.
+:MENU:scaler_set_normal2x
+Normal 2X
+.
+:MENU:scaler_set_normal3x
+Normal 3X
+.
+:MENU:scaler_set_normal4x
+Normal 4X
+.
+:MENU:scaler_set_normal5x
+Normal 5X
+.
+:MENU:scaler_set_hardware_none
+Hardware None
+.
+:MENU:scaler_set_hardware2x
+Hardware 2X
+.
+:MENU:scaler_set_hardware3x
+Hardware 3X
+.
+:MENU:scaler_set_hardware4x
+Hardware 4X
+.
+:MENU:scaler_set_hardware5x
+Hardware 5X
+.
+:MENU:scaler_set_gray
+Grayscale
+.
+:MENU:scaler_set_gray2x
+Grayscale 2X
+.
+:MENU:scaler_set_tv2x
+TV 2X
+.
+:MENU:scaler_set_tv3x
+TV 3X
+.
+:MENU:scaler_set_scan2x
+Scan 2X
+.
+:MENU:scaler_set_scan3x
+Scan 3X
+.
+:MENU:scaler_set_rgb2x
+RGB 2X
+.
+:MENU:scaler_set_rgb3x
+RGB 3X
+.
+:MENU:scaler_set_advmame2x
+Advanced MAME 2X
+.
+:MENU:scaler_set_advmame3x
+Advanced MAME 3X
+.
+:MENU:scaler_set_hq2x
+HQ 2X
+.
+:MENU:scaler_set_hq3x
+HQ 3X
+.
+:MENU:scaler_set_advinterp2x
+Advanced Interpolation 2X
+.
+:MENU:scaler_set_advinterp3x
+Advanced Interpolation 3X
+.
+:MENU:scaler_set_2xsai
+2xSai
+.
+:MENU:scaler_set_super2xsai
+Super2xSai
+.
+:MENU:scaler_set_supereagle
+SuperEagle
+.
+:MENU:scaler_set_xbrz
+xBRZ
+.
+:MENU:scaler_set_xbrz_bilinear
+xBRZ Bilinear
+.
+:MENU:refresh_rate
+调整刷新率...
+.
+:MENU:VideoOutputMenu
+输出
+.
+:MENU:output_surface
+Surface
+.
+:MENU:output_direct3d
+Direct3D
+.
+:MENU:output_opengl
+OpenGL
+.
+:MENU:output_openglnb
+OpenGL nearest
+.
+:MENU:output_openglpp
+OpenGL perfect
+.
+:MENU:output_ttf
+TrueType font
+.
+:MENU:doublescan
+Doublescan
+.
+:MENU:VideoVsyncMenu
+垂直同步
+.
+:MENU:vsync_on
+打开
+.
+:MENU:vsync_force
+强制
+.
+:MENU:vsync_host
+主机
+.
+:MENU:vsync_off
+关闭
+.
+:MENU:vsync_set_syncrate
+设置同步速率
+.
+:MENU:VideoOverscanMenu
+过扫描
+.
+:MENU:overscan_0
+关闭
+.
+:MENU:overscan_1
+1
+.
+:MENU:overscan_2
+2
+.
+:MENU:overscan_3
+3
+.
+:MENU:overscan_4
+4
+.
+:MENU:overscan_5
+5
+.
+:MENU:overscan_6
+6
+.
+:MENU:overscan_7
+7
+.
+:MENU:overscan_8
+8
+.
+:MENU:overscan_9
+9
+.
+:MENU:overscan_10
+10
+.
+:MENU:VideoTextmodeMenu
+文本模式
+.
+:MENU:clear_screen
+清屏
+.
+:MENU:vga_9widetext
+允许9像素宽字体
+.
+:MENU:text_background
+高强度文本: 背景色
+.
+:MENU:text_blinking
+高强度文本: 闪烁文字
+.
+:MENU:line_80x25
+屏幕: 80 列 x 25 行
+.
+:MENU:line_80x43
+屏幕: 80 列 x 43 行
+.
+:MENU:line_80x50
+屏幕: 80 列 x 50 行
+.
+:MENU:line_80x60
+屏幕: 80 列 x 60 行
+.
+:MENU:line_132x25
+屏幕: 132 列 x 25 行
+.
+:MENU:line_132x43
+屏幕: 132 列 x 43 行
+.
+:MENU:line_132x50
+屏幕: 132 列 x 50 行
+.
+:MENU:line_132x60
+屏幕: 132 列 x 60 行
+.
+:MENU:VideoTTFMenu
+TTF 选项
+.
+:MENU:ttf_showbold
+使用 TTF 显示粗体文字
+.
+:MENU:ttf_showital
+使用 TTF 显示斜体文字
+.
+:MENU:ttf_showline
+使用 TTF 显示下划线文字
+.
+:MENU:ttf_showsout
+使用 TTF 显示删除线文字
+.
+:MENU:ttf_wpno
+TTF 字处理软件: 无
+.
+:MENU:ttf_wpwp
+TTF 字处理软件: WordPerfect
+.
+:MENU:ttf_wpws
+TTF 字处理软件: WordStar
+.
+:MENU:ttf_wpxy
+TTF 字处理软件: XyWrite
+.
+:MENU:ttf_blinkc
+显示 TTF 闪烁光标
+.
+:MENU:ttf_printfont
+使用当前 TTF 字体进行打印
+.
+:MENU:ttf_dbcs_sbcs
+中日韩: 切换双字节/单字节模式
+.
+:MENU:ttf_autoboxdraw
+中日韩: 自动检测制表符
+.
+:MENU:VideoPC98Menu
+PC-98 选项
+.
+:MENU:pc98_5mhz_gdc
+5MHz GDC clock
+.
+:MENU:pc98_allow_200scanline
+允许200行扫描线效果
+.
+:MENU:pc98_allow_4partitions
+允许图像层4个显示分区
+.
+:MENU:pc98_enable_egc
+启用 EGC
+.
+:MENU:pc98_enable_grcg
+启用 GRCG
+.
+:MENU:pc98_enable_analog
+启用模拟显示
+.
+:MENU:pc98_enable_analog256
+模拟256色显示
+.
+:MENU:pc98_enable_188user
+启用188+用户CG单元
+.
+:MENU:pc98_clear_text
+清除文本层
+.
+:MENU:pc98_clear_graphics
+清除图像层
+.
+:MENU:load_d3d_shader
+选择 Direct3D 像素着色文件...
+.
+:MENU:load_glsl_shader
+选择 OpenGL (GLSL) 着色文件...
+.
+:MENU:load_ttf_font
+选择 TTF 文件...
+.
+:MENU:SoundMenu
+声音
+.
+:MENU:mixer_swapstereo
+交换立体声
+.
+:MENU:mixer_mute
+静音
+.
+:MENU:mixer_info
+显示混音器音量
+.
+:MENU:sb_info
+显示声卡配置
+.
+:MENU:midi_info
+显示 MIDI 设备配置
+.
+:MENU:DOSMenu
+DOS
+.
+:MENU:enable_a20gate
+启用 A20 门
+.
+:MENU:change_currentcd
+改变当前光盘镜像...
+.
+:MENU:change_currentfd
+改变当前软盘镜像...
+.
+:MENU:DOSMouseMenu
+鼠标模拟
+.
+:MENU:dos_mouse_enable_int33
+内部模拟
+.
+:MENU:dos_mouse_y_axis_reverse
+反转Y轴
+.
+:MENU:dos_mouse_sensitivity
+敏感度
+.
+:MENU:DOSVerMenu
+报告的 DOS 版本
+.
+:MENU:dos_ver_330
+3.30
+.
+:MENU:dos_ver_500
+5.00
+.
+:MENU:dos_ver_622
+6.22
+.
+:MENU:dos_ver_710
+7.10
+.
+:MENU:dos_ver_edit
+编辑
+.
+:MENU:DOSLFNMenu
+长文件名支持
+.
+:MENU:dos_lfn_auto
+自动根据 DOS 版本
+.
+:MENU:dos_lfn_enable
+启用长文件名模拟
+.
+:MENU:dos_lfn_disable
+禁用长文件名模拟
+.
+:MENU:DOSPC98Menu
+PC-98 PIT 主时钟
+.
+:MENU:dos_pc98_pit_4mhz
+4MHz/8MHz PIT 主时钟
+.
+:MENU:dos_pc98_pit_5mhz
+5MHz/10MHz PIT 主时钟
+.
+:MENU:DOSEMSMenu
+EMS 内存
+.
+:MENU:dos_ems_true
+启用 EMS 内存模拟
+.
+:MENU:dos_ems_board
+EMS 板模拟
+.
+:MENU:dos_ems_emm386
+EMM386 模拟
+.
+:MENU:dos_ems_false
+禁用 EMS 内存模拟
+.
+:MENU:DOSWinMenu
+Windows 主机系统程序
+.
+:MENU:dos_win_autorun
+自动在 Windows 主机中运行
+.
+:MENU:dos_win_wait
+等待应用程序 (如果可能)
+.
+:MENU:dos_win_quiet
+安静模式 - 无启动信息
+.
+:MENU:CaptureMenu
+捕捉
+.
+:MENU:CaptureFormatMenu
+捕捉格式
+.
+:MENU:capture_fmt_avi_zmbv
+AVI + ZMBV
+.
+:MENU:capture_fmt_mpegts_h264
+MPEG-TS + H.264
+.
+:MENU:saveoptionmenu
+保存/加载选项
+.
+:MENU:saveslotmenu
+选择存档
+.
+:MENU:enable_autosave
+启用自动保存功能
+.
+:MENU:noremark_savestate
+存档时不输入注释
+.
+:MENU:force_loadstate
+读档时不显示警告
+.
+:MENU:removestate
+删除存档
+.
+:MENU:refreshslot
+刷新显示状态
+.
+:MENU:lastautosaveslot
+选择上次保存的存档
+.
+:MENU:usesavefile
+使用存档文件
+.
+:MENU:autosavecfg
+设置自动保存...
+.
+:MENU:browsesavefile
+选择存档文件...
+.
+:MENU:current_page
+当前页: 1/10
+.
+:MENU:prev_page
+上一页
+.
+:MENU:next_page
+下一页
+.
+:MENU:first_page
+切换到第一页
+.
+:MENU:last_page
+切换到最后一页
+.
+:MENU:DriveMenu
+驱动器
+.
+:MENU:DriveA
+A
+.
+:MENU:drive_A_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_A_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_A_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_A_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_A_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_A_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_A_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_A_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_A_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_A_unmount
+卸载驱动器
+.
+:MENU:drive_A_rescan
+刷新驱动器
+.
+:MENU:drive_A_swap
+交换镜像文件
+.
+:MENU:drive_A_info
+驱动器信息
+.
+:MENU:drive_A_boot
+从该驱动器启动
+.
+:MENU:drive_A_bootimg
+从磁盘镜像启动
+.
+:MENU:DriveB
+B
+.
+:MENU:drive_B_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_B_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_B_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_B_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_B_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_B_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_B_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_B_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_B_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_B_unmount
+卸载驱动器
+.
+:MENU:drive_B_rescan
+刷新驱动器
+.
+:MENU:drive_B_swap
+交换镜像文件
+.
+:MENU:drive_B_info
+驱动器信息
+.
+:MENU:DriveC
+C
+.
+:MENU:drive_C_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_C_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_C_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_C_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_C_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_C_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_C_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_C_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_C_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_C_unmount
+卸载驱动器
+.
+:MENU:drive_C_rescan
+刷新驱动器
+.
+:MENU:drive_C_swap
+交换镜像文件
+.
+:MENU:drive_C_info
+驱动器信息
+.
+:MENU:drive_C_boot
+从该驱动器启动
+.
+:MENU:drive_C_bootimg
+从磁盘镜像启动
+.
+:MENU:DriveD
+D
+.
+:MENU:drive_D_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_D_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_D_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_D_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_D_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_D_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_D_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_D_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_D_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_D_unmount
+卸载驱动器
+.
+:MENU:drive_D_rescan
+刷新驱动器
+.
+:MENU:drive_D_swap
+交换镜像文件
+.
+:MENU:drive_D_info
+驱动器信息
+.
+:MENU:drive_D_boot
+从该驱动器启动
+.
+:MENU:drive_D_bootimg
+从磁盘镜像启动
+.
+:MENU:DriveE
+E
+.
+:MENU:drive_E_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_E_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_E_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_E_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_E_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_E_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_E_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_E_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_E_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_E_unmount
+卸载驱动器
+.
+:MENU:drive_E_rescan
+刷新驱动器
+.
+:MENU:drive_E_swap
+交换镜像文件
+.
+:MENU:drive_E_info
+驱动器信息
+.
+:MENU:DriveF
+F
+.
+:MENU:drive_F_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_F_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_F_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_F_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_F_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_F_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_F_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_F_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_F_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_F_unmount
+卸载驱动器
+.
+:MENU:drive_F_rescan
+刷新驱动器
+.
+:MENU:drive_F_swap
+交换镜像文件
+.
+:MENU:drive_F_info
+驱动器信息
+.
+:MENU:DriveG
+G
+.
+:MENU:drive_G_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_G_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_G_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_G_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_G_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_G_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_G_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_G_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_G_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_G_unmount
+卸载驱动器
+.
+:MENU:drive_G_rescan
+刷新驱动器
+.
+:MENU:drive_G_swap
+交换镜像文件
+.
+:MENU:drive_G_info
+驱动器信息
+.
+:MENU:DriveH
+H
+.
+:MENU:drive_H_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_H_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_H_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_H_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_H_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_H_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_H_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_H_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_H_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_H_unmount
+卸载驱动器
+.
+:MENU:drive_H_rescan
+刷新驱动器
+.
+:MENU:drive_H_swap
+交换镜像文件
+.
+:MENU:drive_H_info
+驱动器信息
+.
+:MENU:DriveI
+I
+.
+:MENU:drive_I_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_I_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_I_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_I_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_I_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_I_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_I_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_I_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_I_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_I_unmount
+卸载驱动器
+.
+:MENU:drive_I_rescan
+刷新驱动器
+.
+:MENU:drive_I_swap
+交换镜像文件
+.
+:MENU:drive_I_info
+驱动器信息
+.
+:MENU:DriveJ
+J
+.
+:MENU:drive_J_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_J_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_J_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_J_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_J_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_J_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_J_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_J_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_J_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_J_unmount
+卸载驱动器
+.
+:MENU:drive_J_rescan
+刷新驱动器
+.
+:MENU:drive_J_swap
+交换镜像文件
+.
+:MENU:drive_J_info
+驱动器信息
+.
+:MENU:DriveK
+K
+.
+:MENU:drive_K_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_K_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_K_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_K_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_K_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_K_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_K_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_K_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_K_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_K_unmount
+卸载驱动器
+.
+:MENU:drive_K_rescan
+刷新驱动器
+.
+:MENU:drive_K_swap
+交换镜像文件
+.
+:MENU:drive_K_info
+驱动器信息
+.
+:MENU:DriveL
+L
+.
+:MENU:drive_L_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_L_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_L_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_L_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_L_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_L_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_L_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_L_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_L_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_L_unmount
+卸载驱动器
+.
+:MENU:drive_L_rescan
+刷新驱动器
+.
+:MENU:drive_L_swap
+交换镜像文件
+.
+:MENU:drive_L_info
+驱动器信息
+.
+:MENU:DriveM
+M
+.
+:MENU:drive_M_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_M_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_M_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_M_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_M_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_M_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_M_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_M_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_M_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_M_unmount
+卸载驱动器
+.
+:MENU:drive_M_rescan
+刷新驱动器
+.
+:MENU:drive_M_swap
+交换镜像文件
+.
+:MENU:drive_M_info
+驱动器信息
+.
+:MENU:DriveN
+N
+.
+:MENU:drive_N_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_N_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_N_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_N_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_N_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_N_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_N_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_N_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_N_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_N_unmount
+卸载驱动器
+.
+:MENU:drive_N_rescan
+刷新驱动器
+.
+:MENU:drive_N_swap
+交换镜像文件
+.
+:MENU:drive_N_info
+驱动器信息
+.
+:MENU:DriveO
+O
+.
+:MENU:drive_O_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_O_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_O_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_O_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_O_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_O_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_O_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_O_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_O_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_O_unmount
+卸载驱动器
+.
+:MENU:drive_O_rescan
+刷新驱动器
+.
+:MENU:drive_O_swap
+交换镜像文件
+.
+:MENU:drive_O_info
+驱动器信息
+.
+:MENU:DriveP
+P
+.
+:MENU:drive_P_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_P_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_P_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_P_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_P_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_P_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_P_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_P_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_P_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_P_unmount
+卸载驱动器
+.
+:MENU:drive_P_rescan
+刷新驱动器
+.
+:MENU:drive_P_swap
+交换镜像文件
+.
+:MENU:drive_P_info
+驱动器信息
+.
+:MENU:DriveQ
+Q
+.
+:MENU:drive_Q_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_Q_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_Q_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_Q_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_Q_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_Q_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_Q_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_Q_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_Q_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_Q_unmount
+卸载驱动器
+.
+:MENU:drive_Q_rescan
+刷新驱动器
+.
+:MENU:drive_Q_swap
+交换镜像文件
+.
+:MENU:drive_Q_info
+驱动器信息
+.
+:MENU:DriveR
+R
+.
+:MENU:drive_R_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_R_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_R_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_R_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_R_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_R_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_R_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_R_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_R_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_R_unmount
+卸载驱动器
+.
+:MENU:drive_R_rescan
+刷新驱动器
+.
+:MENU:drive_R_swap
+交换镜像文件
+.
+:MENU:drive_R_info
+驱动器信息
+.
+:MENU:DriveS
+S
+.
+:MENU:drive_S_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_S_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_S_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_S_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_S_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_S_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_S_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_S_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_S_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_S_unmount
+卸载驱动器
+.
+:MENU:drive_S_rescan
+刷新驱动器
+.
+:MENU:drive_S_swap
+交换镜像文件
+.
+:MENU:drive_S_info
+驱动器信息
+.
+:MENU:DriveT
+T
+.
+:MENU:drive_T_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_T_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_T_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_T_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_T_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_T_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_T_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_T_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_T_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_T_unmount
+卸载驱动器
+.
+:MENU:drive_T_rescan
+刷新驱动器
+.
+:MENU:drive_T_swap
+交换镜像文件
+.
+:MENU:drive_T_info
+驱动器信息
+.
+:MENU:DriveU
+U
+.
+:MENU:drive_U_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_U_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_U_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_U_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_U_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_U_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_U_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_U_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_U_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_U_unmount
+卸载驱动器
+.
+:MENU:drive_U_rescan
+刷新驱动器
+.
+:MENU:drive_U_swap
+交换镜像文件
+.
+:MENU:drive_U_info
+驱动器信息
+.
+:MENU:DriveV
+V
+.
+:MENU:drive_V_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_V_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_V_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_V_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_V_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_V_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_V_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_V_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_V_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_V_unmount
+卸载驱动器
+.
+:MENU:drive_V_rescan
+刷新驱动器
+.
+:MENU:drive_V_swap
+交换镜像文件
+.
+:MENU:drive_V_info
+驱动器信息
+.
+:MENU:DriveW
+W
+.
+:MENU:drive_W_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_W_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_W_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_W_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_W_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_W_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_W_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_W_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_W_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_W_unmount
+卸载驱动器
+.
+:MENU:drive_W_rescan
+刷新驱动器
+.
+:MENU:drive_W_swap
+交换镜像文件
+.
+:MENU:drive_W_info
+驱动器信息
+.
+:MENU:DriveX
+X
+.
+:MENU:drive_X_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_X_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_X_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_X_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_X_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_X_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_X_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_X_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_X_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_X_unmount
+卸载驱动器
+.
+:MENU:drive_X_rescan
+刷新驱动器
+.
+:MENU:drive_X_swap
+交换镜像文件
+.
+:MENU:drive_X_info
+驱动器信息
+.
+:MENU:DriveY
+Y
+.
+:MENU:drive_Y_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_Y_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_Y_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_Y_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_Y_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_Y_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_Y_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_Y_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_Y_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_Y_unmount
+卸载驱动器
+.
+:MENU:drive_Y_rescan
+刷新驱动器
+.
+:MENU:drive_Y_swap
+交换镜像文件
+.
+:MENU:drive_Y_info
+驱动器信息
+.
+:MENU:DriveZ
+Z
+.
+:MENU:drive_Z_mountauto
+自动挂载 Windows 驱动器
+.
+:MENU:drive_Z_mounthd
+挂载文件夹为硬盘驱动器
+.
+:MENU:drive_Z_mountcd
+挂载文件夹为光盘驱动器
+.
+:MENU:drive_Z_mountfd
+挂载文件夹为软盘驱动器
+.
+:MENU:drive_Z_mountfro
+选项: 只读方式挂载文件夹
+.
+:MENU:drive_Z_mountarc
+挂载压缩文档 (ZIP/7Z)
+.
+:MENU:drive_Z_mountimg
+挂载磁盘或光盘镜像文件
+.
+:MENU:drive_Z_mountimgs
+挂载多个磁盘或光盘镜像文件
+.
+:MENU:drive_Z_mountiro
+选项: 只读方式挂载镜像文件
+.
+:MENU:drive_Z_unmount
+卸载驱动器
+.
+:MENU:drive_Z_rescan
+刷新驱动器
+.
+:MENU:drive_Z_swap
+交换镜像文件
+.
+:MENU:drive_Z_info
+驱动器信息
+.
+:MENU:HelpMenu
+帮助
+.
+:MENU:help_intro
+DOSBox-X 介绍
+.
+:MENU:help_homepage
+DOSBox-X 主页
+.
+:MENU:help_wiki
+DOSBox-X 用户指南
+.
+:MENU:help_issue
+DOSBox-X 支持
+.
+:MENU:help_nic
+网络接口列表
+.
+:MENU:help_prt
+打印机列表
+.
+:MENU:help_about
+关于 DOSBox-X
+.
+:MENU:show_console
+显示记录控制台
+.
+:MENU:wait_on_error
+控制台遇到错误时等待
+.
+:MENU:save_logas
+保存记录为...
+.
+:MENU:debugger_rundebug
+调试器选项: 运行调试器
+.
+:MENU:debugger_runnormal
+调试器选项: 正常运行方式
+.
+:MENU:debugger_runwatch
+调试器选项: 监视运行方式
+.
+:MENU:HelpCommandMenu
+DOS 命令
+.
+:MENU:command_DIR
+DIR
+.
+:MENU:command_CD
+CD
+.
+:MENU:command_CLS
+CLS
+.
+:MENU:command_COPY
+COPY
+.
+:MENU:command_DATE
+DATE
+.
+:MENU:command_DEL
+DEL
+.
+:MENU:command_ECHO
+ECHO
+.
+:MENU:command_EXIT
+EXIT
+.
+:MENU:command_MD
+MD
+.
+:MENU:command_PROMPT
+PROMPT
+.
+:MENU:command_RD
+RD
+.
+:MENU:command_REN
+REN
+.
+:MENU:command_TIME
+TIME
+.
+:MENU:command_TYPE
+TYPE
+.
+:MENU:command_VER
+VER
+.
+:MENU:command_VOL
+VOL
+.
+:MENU:command_ALIAS
+ALIAS
+.
+:MENU:command_ATTRIB
+ATTRIB
+.
+:MENU:command_BREAK
+BREAK
+.
+:MENU:command_CALL
+CALL
+.
+:MENU:command_CHOICE
+CHOICE
+.
+:MENU:command_CHCP
+CHCP
+.
+:MENU:command_COUNTRY
+COUNTRY
+.
+:MENU:command_CTTY
+CTTY
+.
+:MENU:command_FOR
+FOR
+.
+:MENU:command_GOTO
+GOTO
+.
+:MENU:command_HELP
+HELP
+.
+:MENU:command_IF
+IF
+.
+:MENU:command_LFNFOR
+LFNFOR
+.
+:MENU:command_LH
+LH
+.
+:MENU:command_MORE
+MORE
+.
+:MENU:command_PATH
+PATH
+.
+:MENU:command_PAUSE
+PAUSE
+.
+:MENU:command_REM
+REM
+.
+:MENU:command_SET
+SET
+.
+:MENU:command_SHIFT
+SHIFT
+.
+:MENU:command_SUBST
+SUBST
+.
+:MENU:command_VERIFY
+VERIFY
+.
+:MENU:command_PUSHD
+PUSHD
+.
+:MENU:command_POPD
+POPD
+.
+:MENU:command_TRUENAME
+TRUENAME
+.
+:MENU:DebugMenu
+调试
+.
+:MENU:debug_blankrefreshtest
+刷新测试 (空白显示)
+.
+:MENU:debug_generatenmi
+产生 NMI 中断
+.
+:MENU:debug_int2fhook
+钩住 INT 2F 中断
+.
+:MENU:debug_logint21
+记录 INT 21 调用
+.
+:MENU:debug_logfileio
+记录文件输入输出
+.
+:MENU:mapper_speedlock
+Toggle Speedlock
+.
+:MENU:mapper_speedlock2
+加速/快进模式
+.
+:MENU:mapper_speednorm
+正常速度
+.
+:MENU:mapper_speedup
+加快速度
+.
+:MENU:mapper_slowdown
+降低速度
+.
+:MENU:mapper_editcycles
+编辑 CPU 周期
+.
+:MENU:mapper_savestate
+保存存档
+.
+:MENU:mapper_loadstate
+加载存档
+.
+:MENU:mapper_showstate
+显示存档信息
+.
+:MENU:mapper_prevslot
+选择上一个存档
+.
+:MENU:mapper_nextslot
+选择下一个存档
+.
+:MENU:mapper_decfskip
+减少跳帧
+.
+:MENU:mapper_incfskip
+增加跳帧
+.
+:MENU:mapper_aspratio
+长宽比适合模式
+.
+:MENU:mapper_recwave
+录制音频到 WAV
+.
+:MENU:mapper_recmtwave
+录制音频到多轨 AVI
+.
+:MENU:mapper_caprawmidi
+录制 MIDI 输出
+.
+:MENU:mapper_caprawopl
+录制 FM (OPL) 输出
+.
+:MENU:mapper_video
+录制视频到 AVI
+.
+:MENU:mapper_scrshot
+捕捉屏幕快照
+.
+:MENU:mapper_debugger
+启动 DOSBox-X 调试器
+.
+:MENU:mapper_volup
+提高音量
+.
+:MENU:mapper_voldown
+降低音量
+.
+:MENU:mapper_recvolup
+提高录音音量
+.
+:MENU:mapper_recvoldown
+降低录音音量
+.
+:MENU:mapper_sendkey_mapper
+输入特殊键
+.
+:MENU:mapper_cycledown
+减少 CPU 周期
+.
+:MENU:mapper_cycleup
+增加 CPU 周期
+.
+:MENU:mapper_normal
+正常内核
+.
+:MENU:mapper_dynamic
+动态内核 (dynamic_x86)
+.
+:MENU:mapper_simple
+简单内核
+.
+:MENU:mapper_full
+完全内核
+.
+:MENU:cputype_auto
+自动
+.
+:MENU:cputype_8086
+8086
+.
+:MENU:cputype_8086_prefetch
+8086 with prefetch
+.
+:MENU:cputype_80186
+80186
+.
+:MENU:cputype_80186_prefetch
+80186 with prefetch
+.
+:MENU:cputype_286
+286
+.
+:MENU:cputype_286_prefetch
+286 with prefetch
+.
+:MENU:cputype_386
+386
+.
+:MENU:cputype_386_prefetch
+386 with prefetch
+.
+:MENU:cputype_486old
+486 (old)
+.
+:MENU:cputype_486old_prefetch
+486 (old) with prefetch
+.
+:MENU:cputype_486
+486
+.
+:MENU:cputype_486_prefetch
+486 with prefetch
+.
+:MENU:cputype_pentium
+奔腾
+.
+:MENU:cputype_pentium_mmx
+奔腾 MMX
+.
+:MENU:cputype_ppro_slow
+奔腾 Pro
+.
+:MENU:debug_pageflip
+页面翻转调试行
+.
+:MENU:debug_retracepoll
+追溯轮询调试行
+.
+:MENU:mapper_swapimg
+交换软盘镜像
+.
+:MENU:mapper_swapcd
+交换光盘镜像
+.
+:MENU:mapper_ejectpage
+发送打印机换页符
+.
+:MENU:mapper_rescanall
+刷新所有驱动器
+.
+:MENU:hostkey_mapper
+按键编辑中设定
+.
+:MENU:showdetails
+标题栏上显示速度
+.
+:MENU:restartconf
+重启 DOSBox-X 并调用指定配置文件...
+.
+:MENU:auto_lock_mouse
+自动锁定鼠标
+.
+:MENU:clipboard_right
+通过按鼠标右键
+.
+:MENU:clipboard_middle
+通过按鼠标中键
+.
+:MENU:clipboard_arrows
+通过按方向键 (Home=开始, End=结束)
+.
+:MENU:screen_to_clipboard
+复制 DOS 屏幕上的所有文字
+.
+:MENU:clipboard_device
+启用 DOS 剪贴板设备存取
+.
+:MENU:clipboard_dosapi
+启用 DOS 剪贴板应用程序 API
+.
+:MENU:clipboard_biospaste
+使用 BIOS 功能进行剪贴板粘贴
+.
+:MENU:sendkey_winlogo
+输入 LOGO 键
+.
+:MENU:sendkey_winmenu
+输入 MENU 键
+.
+:MENU:sendkey_alttab
+输入 Alt+Tab
+.
+:MENU:sendkey_ctrlesc
+输入 Ctrl+Esc
+.
+:MENU:sendkey_ctrlbreak
+输入 Ctrl+Break
+.
+:MENU:sendkey_cad
+输入 Ctrl+Alt+Del
+.
+:MENU:hostkey_ctrlalt
+Ctrl+Alt
+.
+:MENU:hostkey_ctrlshift
+Ctrl+Shift
+.
+:MENU:hostkey_altshift
+Alt+Shift
+.
+:MENU:sendkey_mapper_winlogo
+Mapper "输入特殊键": logo key
+.
+:MENU:sendkey_mapper_winmenu
+Mapper "输入特殊键": menu key
+.
+:MENU:sendkey_mapper_alttab
+Mapper "输入特殊键": Alt+Tab
+.
+:MENU:sendkey_mapper_ctrlesc
+Mapper "输入特殊键": Ctrl+Esc
+.
+:MENU:sendkey_mapper_ctrlbreak
+Mapper "输入特殊键": Ctrl+Break
+.
+:MENU:sendkey_mapper_cad
+Mapper "输入特殊键": Ctrl+Alt+Del
+.
+:MENU:wheel_updown
+转换为上下箭头
+.
+:MENU:wheel_leftright
+转换为左右箭头
+.
+:MENU:wheel_pageupdown
+转换为 PgUp/PgDn 键
+.
+:MENU:wheel_none
+不进行转换
+.
+:MENU:wheel_guest
+启动客户系统时亦启用
+.
+:MENU:doublebuf
+双重缓冲 (全屏幕)
+.
+:MENU:alwaysontop
+总在最前
+.
+:MENU:highdpienable
+启用高 DPI 模式
+.
+:MENU:sync_host_datetime
+同步主机日期/时间
+.
+:MENU:shell_config_commands
+配置选项作为命令
+.
+:MENU:quick_reboot
+启用快速重启
+.
+:MENU:make_diskimage
+创建空白磁盘镜像...
+.
+:MENU:list_drivenum
+显示已配置的驱动器号
+.
+:MENU:list_ideinfo
+显示 IDE 驱动器状态
+.
+:MENU:print_textscreen
+打印 DOS 屏幕文字
+.
+:MENU:pc98_use_uskb
+使用美式键盘布局
+.

@@ -1,3 +1,6 @@
+:DOSBOX-X-VERSION
+0.83.14
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
 .
@@ -7,8 +10,20 @@ Lines in this section will be run at startup.◙You can put your MOUNT lines her
 :CONFIG_SUGGESTED_VALUES
 Possible values
 .
+:SLOT
+Slot
+.
 :EMPTY_SLOT
 Empty slot
+.
+:AUTO_CYCLE_MAX
+Auto cycles [max]
+.
+:AUTO_CYCLE_AUTO
+Auto cycles [auto]
+.
+:AUTO_CYCLE_OFF
+Auto cycles [off]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 No such section or property.◙
@@ -1849,11 +1864,14 @@ TTF word processor: XyWrite
 :MENU:ttf_blinkc
 Display TTF blinking cursor
 .
+:MENU:ttf_printfont
+Use current TTF font for printing
+.
 :MENU:ttf_dbcs_sbcs
-CJK: Switch DBCS/SBCS mode
+CJK: Switch between DBCS/SBCS modes
 .
 :MENU:ttf_autoboxdraw
-CJK: Auto-detect box-drawing symbols
+CJK: Auto-detect box-drawing characters
 .
 :MENU:VideoPC98Menu
 PC-98 options
@@ -3442,9 +3460,6 @@ Decrease recording volume
 :MENU:mapper_sendkey_mapper
 Send special key
 .
-:MENU:mapper_cycauto
-Auto cycles [max]
-.
 :MENU:mapper_cycledown
 Decrement cycles
 .
@@ -3648,6 +3663,9 @@ Show mounted drive numbers
 .
 :MENU:list_ideinfo
 Show IDE disk or CD status
+.
+:MENU:print_textscreen
+Print DOS text screen
 .
 :MENU:pc98_use_uskb
 Use US keyboard layout

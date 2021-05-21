@@ -4288,6 +4288,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
+    MSG_Add("DOSBOX-X-VERSION",VERSION);
     MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
         "Lines in this section will be run at startup.\n"
         "You can put your MOUNT lines here.\n"
@@ -4298,7 +4299,11 @@ void DOSBOX_SetupConfigSections(void) {
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+    MSG_Add("SLOT","Slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
+    MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
+    MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
+    MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
 }
 
 extern void POD_Save_Sdlmain( std::ostream& stream );
