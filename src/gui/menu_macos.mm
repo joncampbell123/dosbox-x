@@ -26,8 +26,7 @@ extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
 
 char tempstr[4096];
-void InitCodePage();
-bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool InitCodePage(), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 void GetClipboard(std::string* result) {
 	NSPasteboard* pb = [NSPasteboard generalPasteboard];

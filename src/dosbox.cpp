@@ -1252,8 +1252,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
     Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
-    Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or DOS code page.\n"
-                      "Set the code page with the \"country\" setting in [config] section, e.g. country=34,858");
+    Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or a DOS code page.\n"
+                      "You can set code page either in the language file or with \"country\" setting in [config] section.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
@@ -4288,7 +4288,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
-    MSG_Add("DOSBOX-X-VERSION",VERSION);
     MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
         "Lines in this section will be run at startup.\n"
         "You can put your MOUNT lines here.\n"

@@ -31,8 +31,9 @@
 using namespace std;
 
 extern bool dos_kernel_disabled, force_conversion;
-bool morelen = false;
+bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+int msgcodepage = 0;
 void menu_update_autocycle(void);
 
 #define LINE_IN_MAXLEN 2048
@@ -71,7 +72,7 @@ void MSG_Replace(const char * _name, const char* _val) {
 	Lang.emplace_back(MessageBlock(_name,_val));
 }
 
-void InitCodePage() {
+bool InitCodePage() {
     if (!dos.loaded_codepage) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
         if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL) {
@@ -79,7 +80,15 @@ void InitCodePage() {
             if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
         }
     }
-    if (!dos.loaded_codepage) dos.loaded_codepage = IS_PC98_ARCH?932:437;
+    if (dos.loaded_codepage)
+        return true;
+    else if (msgcodepage>0) {
+        dos.loaded_codepage = msgcodepage;
+        return true;
+    } else {
+        dos.loaded_codepage = IS_PC98_ARCH?932:437;
+        return false;
+    }
 }
 
 void LoadMessageFile(const char * fname) {
@@ -88,6 +97,7 @@ void LoadMessageFile(const char * fname) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
 
+    msgcodepage = 0;
 	FILE * mfile=fopen(fname,"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
@@ -102,8 +112,9 @@ void LoadMessageFile(const char * fname) {
 	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
+    bool res=true;
     int cp=dos.loaded_codepage;
-    if (!dos.loaded_codepage) InitCodePage();
+    if (!dos.loaded_codepage) res=InitCodePage();
 	while(fgets(linein, LINE_IN_MAXLEN, mfile)!=0) {
 		/* Parse the read line */
 		/* First remove characters 10 and 13 from the line */
@@ -121,7 +132,21 @@ void LoadMessageFile(const char * fname) {
 		/* New string name */
 		if (linein[0]==':') {
             string[0]=0;
-            if (!strncasecmp(linein+1, "MENU:", 5)) {
+            if (!strncasecmp(linein+1, "DOSBOX-X:", 9)) {
+                char *p = linein+10;
+                char *r = strchr(p, ':');
+                if (*p && r!=NULL && r>p) {
+                    *r=0;
+                    if (!strcmp(p, "CODEPAGE")) {
+                        int c = atoi(r+1);
+                        if (!res && c>0 && isSupportedCP(c)) {
+                            msgcodepage = c;
+                            dos.loaded_codepage = c;
+                        }
+                    }
+                    *r=':';
+                }
+            } else if (!strncasecmp(linein+1, "MENU:", 5)) {
                 *name=0;
                 strcpy(menu_name,linein+6);
             } else {
@@ -166,6 +191,8 @@ bool MSG_Write(const char * location) {
     char temp[4096];
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
+	fprintf(out,":DOSBOX-X:VERSION:%s\n",VERSION);
+	if (dos.loaded_codepage) fprintf(out,":DOSBOX-X:CODEPAGE:%d\n",dos.loaded_codepage);
 	morelen=true;
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
         if (!CodePageGuestToHostUTF8(temp,(*tel).val.c_str()))

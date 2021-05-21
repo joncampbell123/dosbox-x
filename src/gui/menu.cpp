@@ -74,7 +74,7 @@ DOSBoxMenu                                          mainMenu;
 
 extern const char*                                  drive_opts[][2];
 extern const char*                                  scaler_menu_opts[][2];
-extern int                                          NonUserResizeCounter;
+extern int                                          NonUserResizeCounter, msgcodepage;
 
 extern bool                                         force_conversion;
 extern bool                                         dos_kernel_disabled;
@@ -1186,6 +1186,7 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
         if (!cp && IS_PC98_ARCH) cp = 932;
     }
     uint16_t len=(uint16_t)str.size();
+    if (!cp && msgcodepage>0) cp=msgcodepage;
     if (cp) {
         if (cp==808) cp=866;
         else if (cp==872) cp=855;

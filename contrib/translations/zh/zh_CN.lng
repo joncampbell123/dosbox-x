@@ -1,6 +1,5 @@
-:DOSBOX-X-VERSION
-0.83.14
-.
+:DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:CODEPAGE:936
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.

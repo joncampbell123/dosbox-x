@@ -1457,7 +1457,7 @@ public:
 class SaveDialog : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
-    GUI::Button * closeButton = NULL;
+    GUI::Button *saveButton = NULL, *closeButton = NULL;
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 620, 160 + GUI::titlebar_y_stop, title) {
@@ -1475,7 +1475,7 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, "Save all (including advanced) config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
         (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
@@ -1519,6 +1519,11 @@ public:
     virtual bool keyUp(const GUI::Key &key) {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
+        if (key.special == GUI::Key::Enter) {
+            saveButton->executeAction();
+            return true;
+        }
+
         if (key.special == GUI::Key::Escape) {
             closeButton->executeAction();
             return true;
@@ -1531,14 +1536,14 @@ public:
 class SaveLangDialog : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
-    GUI::Button * closeButton = NULL;
+    GUI::Button *saveButton = NULL, *closeButton = NULL;
 public:
     SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter filename for language file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         name->setText("messages.txt");
-        (new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
@@ -1555,6 +1560,11 @@ public:
 
     virtual bool keyUp(const GUI::Key &key) {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Enter) {
+            saveButton->executeAction();
+            return true;
+        }
 
         if (key.special == GUI::Key::Escape) {
             closeButton->executeAction();

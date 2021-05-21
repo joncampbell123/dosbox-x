@@ -3986,11 +3986,15 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
+bool isSupportedCP(int newCP) {
+    return newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950;
+}
+
 #if defined(USE_TTF)
 int setTTFCodePage(void);
 void runRescan(const char *str), MSG_Init(), SetupDBCSTable(), DOSBox_SetSysMenu();
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
-    if (newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950) {
+    if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;
 		int missing = setTTFCodePage();
         if (opt==-1) {
