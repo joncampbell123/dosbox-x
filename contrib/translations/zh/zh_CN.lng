@@ -967,16 +967,16 @@ Some examples:
 
 .
 :PROGRAM_KEYB_NOERROR
-Keyboard layout %s loaded for codepage %i
+键盘布局 %s 已加载作为代码页 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found
+键盘文件 %s 未找到
 
 
 .
 :PROGRAM_KEYB_INVALIDFILE
-Keyboard file %s invalid
+键盘文件 %s 非法
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
@@ -989,7 +989,7 @@ None or invalid codepage file for layout %s
 
 .
 :PROGRAM_MODE_USAGE
-Configures system devices.
+配置系统设备.
 
 [34;1mMODE[0m display-type       :display-type codes are [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
 [34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
@@ -1096,7 +1096,7 @@ ECHO状态为关.
 
 .
 :SHELL_CMD_DATE_DAYS
-3SunMonTueWedThuFriSat
+6星期日星期一星期二星期三星期四星期五星期六
 .
 :SHELL_CMD_DATE_NOW
 当前日期: 
@@ -1333,12 +1333,12 @@ SUBST: 命令行参数错误.
 - 提高或降低模拟速度： [31mF11 [37m+ [31m加号[37m[37m 或 [31mF11 [37m+ [31m减号[37m   [37m                          
 .
 :SHELL_STARTUP_CGA
-Composite CGA mode is supported. Use [31mCtrl+F8[37m to set composite output ON/OFF.
-Use [31mCtrl+Shift+[F7/F8][37m to change hue; [31mCtrl+F7[37m selects early/late CGA model. 
+支持 CGA 合成模式. 按 [31mCtrl+F8[37m 键启用或禁用合成输出.                         
+按 [31mCtrl+Shift+[F7/F8][37m 改变色度; 按 [31mCtrl+F7[37m 选择早期/晚期 CGA 型号.          
 .
 :SHELL_STARTUP_HERC
-Use [31mCtrl+F7[37m to cycle through white, amber, and green monochrome color.      
-Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
+按 [31mCtrl+F7[37m 键在单色间切换： 白色、琥珀色、绿色.                             
+按 [31mCtrl+F8[37m 键切换水平混合 (仅图形模式).                                     
 .
 :SHELL_STARTUP_HEAD3
 [36mDOSBox-X 项目在线:                                                          [37m

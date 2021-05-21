@@ -2840,7 +2840,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	const char* datestring = MSG_Get("SHELL_CMD_DATE_DAYS");
 	uint32_t length;
 	char day[6] = {0};
-	if(sscanf(datestring,"%u",&length) && (length<5) && (strlen(datestring)==((size_t)length*7+1))) {
+	if(sscanf(datestring,"%u",&length) && (length<7) && (strlen(datestring)==((size_t)length*7+1))) {
 		// date string appears valid
 		for(uint32_t i = 0; i < length; i++) day[i] = datestring[reg_al*length+1+i];
 	}
