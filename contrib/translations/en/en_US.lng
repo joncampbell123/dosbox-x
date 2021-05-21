@@ -809,9 +809,6 @@ Directory PATH listing for Volume %s◙
 :SHELL_CMD_VOL_DRIVE
 ◙ Volume in drive %c 
 .
-:SHELL_CMD_VOL_DRIVEERROR
-Cannot find the drive specified◙
-.
 :SHELL_CMD_VOL_SERIAL
  Volume Serial Number is 
 .
@@ -829,6 +826,12 @@ Invalid drive specification◙
 .
 :SHELL_CMD_HELP
 If you want a list of all supported internal commands type ←[33;1mHELP /ALL←[0m.◙You can also find external commands on the Z: drive as programs.◙A short list of the most often used commands:◙
+.
+:SHELL_CMD_HELP_END1
+External commands such as ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m can be found on the Z: drive.◙
+.
+:SHELL_CMD_HELP_END2
+Type ←[33;1mHELP command←[0m or ←[33;1mcommand /?←[0m for help information for the specified command.◙
 .
 :SHELL_CMD_ECHO_ON
 ECHO is on.◙
@@ -1402,6 +1405,9 @@ CHCP [nnn]◙◙  nnn   Specifies a code page number.◙◙Supported code pages 
 :SHELL_CMD_CHCP_ACTIVE
 Active code page: %d◙
 .
+:SHELL_CMD_CHCP_MISSING
+Characters not defined in TTF font: %d◙
+.
 :SHELL_CMD_CHCP_INVALID
 Invalid code page number - %s◙
 .
@@ -1436,10 +1442,10 @@ Runs program with video or audio capture.◙
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]◙◙It will start video or audio capture, run program, and then automatically stop capture when the program exits.◙
 .
 :SHELL_CMD_DEBUGBOX_HELP
-Runs program and breaks into debugger at entry point.◙Type DEBUGBOX without a parameter to start the debugger.◙
+Runs program and breaks into debugger at entry point.◙
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [command] [options]◙
+DEBUGBOX [command] [options]◙◙Type DEBUGBOX without a parameter to start the debugger.◙
 .
 :SHELL_CMD_COMMAND_HELP
 Starts the DOSBox-X command shell.◙◙The following options are accepted:◙◙  /C    Executes the specified command and returns.◙  /K    Executes the specified command and continues running.◙  /P    Loads a permanent copy of the command shell.◙  /INIT Initializes the command shell.◙

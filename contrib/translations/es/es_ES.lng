@@ -806,9 +806,6 @@ Listado de directorios incluidos en PATH del volumen %s◙
 :SHELL_CMD_VOL_DRIVE
 ◙ Volumen de unidad %c 
 .
-:SHELL_CMD_VOL_DRIVEERROR
-No se puede encontrar la unidad especificada◙
-.
 :SHELL_CMD_VOL_SERIAL
  Número de serie del volumen: 
 .
@@ -1433,10 +1430,10 @@ Ejecuta un programa con captura de video o audio.◙
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [orden] [opciones]◙◙Iniciará la captura de video o audio, ejecutará un programa, y al cerrarse detendrá la captura.◙
 .
 :SHELL_CMD_DEBUGBOX_HELP
-Ejecuta el programa y entra en el depurador en el punto de entrada.◙Teclea DEBUGBOX sin parámetros para iniciar el depurador.◙
+Ejecuta el programa y entra en el depurador en el punto de entrada.◙
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [orden] [opciones]◙
+DEBUGBOX [orden] [opciones]◙◙Teclea DEBUGBOX sin parámetros para iniciar el depurador.◙
 .
 :SHELL_CMD_COMMAND_HELP
 Inicia un shell de comandos de DOSBox-X.◙◙Se aceptan las siguientes opciones:◙◙  /C    Ejecuta el comando indicado y retorna.◙  /K    Ejecuta el comando especificado y continua la ejecución.◙  /P    Carga una copia permanente del shell de comandos.◙  /INIT Inicializa el shell de comandos.◙

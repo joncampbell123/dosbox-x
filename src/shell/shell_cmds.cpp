@@ -987,13 +987,13 @@ void DOS_Shell::CMD_HELP(char * args){
 		cmd_index++;
 	}
 	if (optall&&show)
-		WriteOut("External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
+		WriteOut(MSG_Get("SHELL_CMD_HELP_END1"));
 	else if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
 		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"||argc=="ZIP"||argc=="UNZIP"?"":" /?")).c_str());
 	}
 	if (!*args&&show)
-		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
+		WriteOut(MSG_Get("SHELL_CMD_HELP_END2"));
 }
 
 void removeChar(char *str, char c) {
@@ -3370,7 +3370,7 @@ void DOS_Shell::CMD_VOL(char *args){
 			char * c; c = strchr(args,':'); *c = '\0';
 			if (Drives[drive2-'A']) drive = drive2 - 'A';
 			else {
-				WriteOut(MSG_Get("SHELL_CMD_VOL_DRIVEERROR"));
+				WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
 				return;
 			}
 			break;
@@ -3999,7 +3999,7 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         }
         if (opt<1) {
             shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
-            if (missing > 0) shell->WriteOut("Characters not defined in TTF font: %d\n", missing);
+            if (missing > 0) shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
         }
         SetupDBCSTable();
         runRescan("-A -Q");

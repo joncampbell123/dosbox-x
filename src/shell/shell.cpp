@@ -1150,13 +1150,14 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TREE_ERROR", "No subdirectories exist\n");
 	MSG_Add("SHELL_CMD_VOL_TREE", "Directory PATH listing for Volume %s\n");
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
-	MSG_Add("SHELL_CMD_VOL_DRIVEERROR","Cannot find the drive specified\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
 	MSG_Add("SHELL_ILLEGAL_PATH","Path not found\n");
 	MSG_Add("SHELL_ILLEGAL_DRIVE","Invalid drive specification\n");
 	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported internal commands type \033[33;1mHELP /ALL\033[0m.\nYou can also find external commands on the Z: drive as programs.\nA short list of the most often used commands:\n");
+	MSG_Add("SHELL_CMD_HELP_END1","External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
+	MSG_Add("SHELL_CMD_HELP_END2","Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
@@ -1479,6 +1480,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
+	MSG_Add("SHELL_CMD_CHCP_MISSING", "Characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
@@ -1491,8 +1493,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 #if C_DEBUG
-	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\nType DEBUGBOX without a parameter to start the debugger.\n");
-	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n\nType DEBUGBOX without a parameter to start the debugger.\n");
 #endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C    Executes the specified command and returns.\n  /K    Executes the specified command and continues running.\n  /P    Loads a permanent copy of the command shell.\n  /INIT Initializes the command shell.\n");
 
