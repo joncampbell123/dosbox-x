@@ -123,6 +123,8 @@
     - r4453: Improve bittest instructions to wrap more
     correctly. 
     - r4454: Enable A20 routines in BIOS.
+    - r4456: The numeric keypad can now be used to
+    navigate the debugger when Num Lock is off.
 0.83.13
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
