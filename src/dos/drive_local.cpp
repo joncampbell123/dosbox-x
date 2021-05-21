@@ -128,7 +128,7 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
-extern bool rsize, force_sfn, enable_share_exe, isDBCSCP();
+extern bool rsize, morelen, force_sfn, enable_share_exe, isDBCSCP();
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
@@ -186,8 +186,8 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 }
 
 template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const char* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
@@ -236,8 +236,8 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 }
 
 template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const char* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
@@ -419,8 +419,8 @@ bool String_HOST_TO_ASCII_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LE
 }
 
 bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-    const char *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;

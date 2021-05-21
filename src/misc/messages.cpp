@@ -31,6 +31,7 @@
 using namespace std;
 
 extern bool dos_kernel_disabled, force_conversion;
+bool morelen = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void menu_update_autocycle(void);
 
@@ -165,6 +166,7 @@ bool MSG_Write(const char * location) {
     char temp[4096];
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
+	morelen=true;
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
         if (!CodePageGuestToHostUTF8(temp,(*tel).val.c_str()))
             fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
@@ -185,6 +187,7 @@ bool MSG_Write(const char * location) {
                 fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),temp);
         }
 	}
+	morelen=false;
 	fclose(out);
 	return true;
 }
