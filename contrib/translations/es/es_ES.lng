@@ -3343,7 +3343,7 @@ POPD
 :MENU:command_TRUENAME
 TRUENAME
 .
-:MENU:HelpDebugMenu
+:MENU:DebugMenu
 Depurador
 .
 :MENU:debug_blankrefreshtest
