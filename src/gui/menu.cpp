@@ -76,6 +76,7 @@ extern const char*                                  drive_opts[][2];
 extern const char*                                  scaler_menu_opts[][2];
 extern int                                          NonUserResizeCounter;
 
+extern bool                                         force_conversion;
 extern bool                                         dos_kernel_disabled;
 extern bool                                         dos_shell_running_program;
 extern SHELL_Cmd                                    cmd_list[];
@@ -515,8 +516,8 @@ static const char *def_menu_dos[] =
     "make_diskimage",
     "list_drivenum",
     "list_ideinfo",
-    "--",
     "mapper_rescanall",
+    "--",
 #if C_PRINTER
     "print_textscreen",
     "mapper_ejectpage",
@@ -1179,7 +1180,7 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     LPWSTR ret = def;
     int reqsize = 0, cp = dos.loaded_codepage;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-    if (!dos.loaded_codepage && section!=NULL) {
+    if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
         if (r!=NULL && *(r+1)) cp = atoi(trim(r+1));
         if (!cp && IS_PC98_ARCH) cp = 932;
@@ -1703,7 +1704,7 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
         static char name[9];
         mcb.GetFileName(name);
         if (strlen(name)) {
-            LOG_MSG("GUI: Exit %s running in DOSBox, and then try again.",name);
+            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name);
             return;
         }
     }

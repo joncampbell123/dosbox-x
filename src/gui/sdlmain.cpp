@@ -13846,7 +13846,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_ideinfo").set_text("Show IDE disk or CD status").set_callback_function(list_ideinfo_menu_callback);
 #if C_PRINTER
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"print_textscreen").set_text("Print text screen").set_callback_function(print_screen_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"print_textscreen").set_text("Print DOS text screen").set_callback_function(print_screen_menu_callback);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
         MSG_Init();
@@ -13885,10 +13885,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool MENU_get_mute(void);
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
-        mainMenu.get_item("scaler_forced").check(render.scale.forced);
+        mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
 
-        mainMenu.get_item("debug_logint21").check(log_int21);
-        mainMenu.get_item("debug_logfileio").check(log_fileio);
+        mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
+        mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);
 
         mainMenu.get_item("sync_host_datetime").enable(!IS_PC98_ARCH);
         mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);

@@ -66,6 +66,7 @@ bool has_Init_MemHandles = false;
 bool has_Init_MemoryAccessArray = false;
 
 extern Bitu rombios_minimum_location;
+extern bool force_conversion;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
@@ -1104,7 +1105,9 @@ void MEM_A20_Enable(bool enabled) {
 
     if (a20_guest_changeable || a20_fake_changeable) {
         memory.a20.enabled = enabled;
+        force_conversion = true;
         mainMenu.get_item("enable_a20gate").check(enabled).refresh_item(mainMenu);
+        force_conversion = false;
     }
 
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {

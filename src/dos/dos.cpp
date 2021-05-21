@@ -113,6 +113,7 @@ bool enable_dbcs_tables = true;
 bool enable_share_exe = true;
 bool enable_filenamechar = true;
 bool enable_network_redirector = true;
+bool force_conversion = false;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
@@ -3454,9 +3455,11 @@ public:
             winautorun=startcmd;
             first_run=false;
         }
+        force_conversion=true;
 #if !defined(HX_DOS)
         mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 #endif
+        mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
         mainMenu.get_item("enable_a20gate").enable(true).refresh_item(mainMenu);
         mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
         mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
@@ -3465,6 +3468,7 @@ public:
         mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
 #endif
+        force_conversion=false;
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3483,8 +3487,9 @@ public:
 			EndStartProcess();
 			EndRunProcess();
 		}
-        mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
-        mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
+		force_conversion=true;
+		mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
@@ -3502,9 +3507,11 @@ public:
 #if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
+		mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
+		force_conversion=false;
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();
@@ -3603,7 +3610,6 @@ void DOS_DoShutDown() {
 
     DOS_Casemap_Free();
 
-    mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
@@ -3631,7 +3637,6 @@ void DOS_Startup(Section* sec) {
 		test = new DOS(control->GetSection("dos"));
 	}
 
-    mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
