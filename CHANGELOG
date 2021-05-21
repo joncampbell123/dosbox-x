@@ -35,6 +35,10 @@
     section) which when set to true will use host system
     mouse cursor instead of drawing a DOS mouse cursor
     when the mouse is not locked. (Wengier)
+  - When opening "Save..." or "Save Language File..."
+    dialogs in the Configuration Tool, the new diaglogs
+    will now automatically be in focus, and pressing ESC
+    key will close these dialogs. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)
@@ -55,9 +59,8 @@
     "CJK: Switch DBCS/SBCS mode", and "CJK: Auto-detect
     box-drawing symbols" under "Video" => "TTF options"
     menu group to toggle the TTF options ttf.blinkc,
-    ttf.autodbcs and ttf.autoboxdraw, also a
-    menu option "CJK: Switch DBCS/SBCS mode" to toggle
-    between DBCS and SBCS modes temporarily. (Wengier)
+    ttf.autodbcs and ttf.autoboxdraw found in [render]
+    section of the config file. (Wengier)
   - Support for UTF-8 encoded language files. Specify
     a DOS code page with "country" option in [config]
     section of the config file. Windows SDL1 menu and

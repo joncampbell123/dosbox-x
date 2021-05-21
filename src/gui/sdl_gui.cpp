@@ -1457,6 +1457,7 @@ public:
 class SaveDialog : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
+    GUI::Button * closeButton = NULL;
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 620, 160 + GUI::titlebar_y_stop, title) {
@@ -1476,8 +1477,11 @@ public:
         saveall->setChecked(section->Get_bool("show advanced options"));
         (new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
         (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);
-        (new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+        name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+        name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1511,11 +1515,23 @@ public:
         close();
         if(shortcut) running=false;
     }
+
+    virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
 };
 
 class SaveLangDialog : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
+    GUI::Button * closeButton = NULL;
 public:
     SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
@@ -1523,8 +1539,11 @@ public:
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         name->setText("messages.txt");
         (new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+        name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+        name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1532,6 +1551,17 @@ public:
         if (arg == "OK") MSG_Write(name->getText());
         close();
         if(shortcut) running=false;
+    }
+
+    virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
     }
 };
 
@@ -2663,9 +2693,11 @@ public:
             //new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>640?(parent->getWidth()-640)/2:0, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
         } else if (arg == "Save...") {
-            new SaveDialog(getScreen(), 50, 100, "Save Configuration...");
+            auto *np = new SaveDialog(getScreen(), 50, 100, "Save Configuration...");
+            np->raise();
         } else if (arg == "Save Language File...") {
-            new SaveLangDialog(getScreen(), 90, 100, "Save Language File...");
+            auto *np = new SaveLangDialog(getScreen(), 90, 100, "Save Language File...");
+            np->raise();
         } else {
             return ToplevelWindow::actionExecuted(b, arg);
         }
@@ -2746,9 +2778,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             new GUI::MessageBox2(screen, 200, 150, 280, "", "");
             running=false;
             break;
-        case 1:
-            new SaveDialog(screen, 90, 100, "Save Configuration...");
-            break;
+        case 1: {
+            auto *np = new SaveDialog(screen, 90, 100, "Save Configuration...");
+            np->raise();
+            } break;
         case 2: {
             sec = control->GetSection("sdl");
             section=static_cast<Section_prop *>(sec); 
@@ -2784,9 +2817,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             section=static_cast<Section_prop *>(sec); 
             new SectionEditor(screen,50,30,section);
             break;
-        case 9:
-            new SaveLangDialog(screen, 90, 100, "Save Language File...");
-            break;
+        case 9: {
+            auto *np = new SaveLangDialog(screen, 90, 100, "Save Language File...");
+            np->raise();
+            } break;
         case 10: {
             auto *np = new ConfigurationWindow(screen, 40, 10, configString);
             np->raise();
