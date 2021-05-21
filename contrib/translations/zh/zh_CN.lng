@@ -12,7 +12,7 @@ You can put your MOUNT lines here.
 # To write out ALL options, use command 'config -all' with -wc or -writeconf options.
 .
 :CONFIG_SUGGESTED_VALUES
-可能的选项
+可能的值
 .
 :SLOT
 存档
@@ -83,37 +83,53 @@ The DOSBox-X command-line configuration utility. Supported options:
 -wcp [filename] Writes file to program directory (dosbox-x.conf or filename).
 -wcd Writes to the default config file in the config directory.
 -all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.
--
+-mod Use this with -wc, -wcp, or -wcd to write modified config options only.
+-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.
+-bootconf (or -bc) reboots with specified config file (or primary loaded file).
+-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.
+-l Lists DOSBox-X's configuration parameters.
+-h, -help, -? Shows this help; add the word "sections" for a list of sections.
+-h, -help, -? section / property Shows info on a specific section or property.
+-axclear Clears the [autoexec] section.
+-axadd [line] Adds a line to the [autoexec] section.
+-axtype Prints the content of the [autoexec] section.
+-avistart, -avistop Starts or stops AVI recording.
+-securemode Enables secure mode where features like mounting will be disabled.
+-startmapper Starts the DOSBox-X mapper editor.
+-gui Starts the graphical configuration tool.
+-get "section property" returns the value of the property.
+-set "section property=value" sets the value of the property.
+
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
-Purpose of property "%s" (contained in section "%s"):
+属性 "%s" 的目的 (包含在 "%s" 段落中):
 %s
 
-Possible Values: %s
+可能的值: %s
 默认值: %s
 当前值: %s
 
 .
 :PROGRAM_CONFIG_HLP_LINEHLP
-Purpose of section "%s":
+段落 "%s" 的目的:
 %s
-Current value:
+当前值:
 %s
 
 .
 :PROGRAM_CONFIG_HLP_NOCHANGE
-This property cannot be changed at runtime.
+该属性不能在运行时改变.
 
 .
 :PROGRAM_CONFIG_HLP_POSINT
 positive integer
 .
 :PROGRAM_CONFIG_HLP_SECTHLP
-Section %s contains the following properties:
+段落 %s 包含以下属性:
 
 .
 :PROGRAM_CONFIG_HLP_SECTLIST
-DOSBox-X configuration contains the following sections:
+DOSBox-X 配置文件包含以下段落:
 
 
 .
@@ -134,7 +150,7 @@ This operation is not permitted in secure mode.
 
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
-There may be other sections with the same property name.
+可能有其它段落包含同样的属性名称.
 
 .
 :PROGRAM_CONFIG_GET_SYNTAX
@@ -639,15 +655,15 @@ Examples:
 
 .
 :PROGRAM_BOOT_UNABLE
-Unable to boot off of drive %c.
+无法从驱动器 %c 启动.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
-Opening image file: %s
+正在打开镜像文件: %s
 
 .
 :PROGRAM_BOOT_IMAGE_NOT_OPEN
-Cannot open %s
+无法打开 %s
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
@@ -732,7 +748,7 @@ The parent of the specified VHD file has been changed and cannot be loaded.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).
+必须指定驱动器号 (0 to %d) 来挂载镜像文件 (0,1=fda,fdb;2,3=hda,hdb).
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY
@@ -798,7 +814,7 @@ Format "%s" is unsupported. Specify "fat" or "iso" or "none".
 
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
-Cannot create PhysFS drive.
+无法创建 PhysFS 驱动器.
 
 .
 :PROGRAM_IMGMOUNT_MOUNT_NUMBER
@@ -981,15 +997,15 @@ Configures system devices.
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-Invalid parameter(s).
+非法参数.
 
 .
 :SHELL_CMD_TREE_ERROR
-No subdirectories exist
+不存在子目录
 
 .
 :SHELL_CMD_VOL_TREE
-Directory PATH listing for Volume %s
+所列目录的卷标名为 %s
 
 .
 :SHELL_CMD_VOL_DRIVE
@@ -1062,8 +1078,8 @@ ECHO状态为关.
 
 .
 :SHELL_CMD_CHDIR_HINT_2
-directoryname contains unquoted spaces.
-Try [31mcd %s[0m or properly quote them with quotation marks.
+目录名包含未用引号包含的空格.
+试试 [31mcd %s[0m 或用引号包含住空格.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
@@ -1724,11 +1740,11 @@ Type VER without parameters to display DOSBox-X and the reported DOS version.
 
 .
 :SHELL_CMD_VER_VER
-DOSBox-X version %s (%s). Reported DOS version %d.%02d.
+DOSBox-X 版本 %s (%s). 报告的 DOS 版本 %d.%02d.
 
 .
 :SHELL_CMD_VER_INVALID
-The specified DOS version is not correct.
+指定的 DOS 版本不正确.
 
 .
 :SHELL_CMD_VOL_HELP
@@ -1802,7 +1818,7 @@ TTF 字体中未定义的字符数: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-Invalid code page number - %s
+非法代码页 - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
