@@ -77,6 +77,7 @@ private:
 		bool sci;
         bool equcurp;       // ????? ESC = Y X      cursor pos    (not sure if PC-98 specific or general to DOS ANSI.SYS)
         bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
+        bool pc98rparen;    // PC-98 ESC ) ...
 		bool enabled;
 		uint8_t attr;         // machine-specific
 		uint8_t data[NUMBER_ANSI_DATA];
@@ -841,6 +842,18 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
             }
         }
 
+        if(ansi.pc98rparen){
+            /* PC-98: change between graph and kanji modes */
+            if(data[count] == '3' || data[count] == '0'){
+                bool new_mode = (data[count] == '0');
+                void pc98_set_char_mode(bool mode);
+                pc98_set_char_mode(new_mode);
+            }
+            ClearAnsi();
+            count++;
+            continue;
+        }
+
         if(!ansi.sci){
 
             switch(data[count]){
@@ -860,6 +873,15 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                     }
                     else {
                         LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                        ClearAnsi();
+                    }
+                    break;
+                case ')':/* PC-98 kanji/graph mode */
+                    if (IS_PC98_ARCH) {
+                        ansi.pc98rparen = true;
+                    }
+                    else {
+                        LOG(LOG_IOCTL, LOG_NORMAL)("ANSI: unknown char %c after a esc", data[count]); /*prob () */
                         ClearAnsi();
                     }
                     break;
@@ -1273,6 +1295,7 @@ device_CON::device_CON() {
 
 void device_CON::ClearAnsi(void){
 	for(uint8_t i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+    ansi.pc98rparen = false;
     ansi.pc98rab=false;
     ansi.equcurp=false;
 	ansi.esc=false;
