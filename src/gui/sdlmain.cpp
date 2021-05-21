@@ -13634,7 +13634,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #else
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
 
-                item.set_text("Debugging options");
+                item.set_text("Logging console");
 #endif
 
                 {

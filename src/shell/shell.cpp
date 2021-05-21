@@ -93,7 +93,7 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name,const char *dir="");
 void runRescan(const char *str), DOSBox_SetSysMenu(void);
-void SetupDBCSTable(), toSetCodePage(DOS_Shell *shell, int newCP);
+void SetupDBCSTable(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 
 #if defined(WIN32)
 void MountAllDrives(Program * program, bool quiet) {
@@ -621,7 +621,7 @@ void DOS_Shell::Prepare(void) {
                 if (!IS_PC98_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
-                        if (newCP) toSetCodePage(this, newCP);
+                        if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
                         else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
