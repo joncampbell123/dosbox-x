@@ -1176,18 +1176,22 @@ void* DOSBoxMenu::getNsMenu(void) const {
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
+bool isSupportedCP(int newCP);
 LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     LPWSTR ret = def;
     int reqsize = 0, cp = dos.loaded_codepage;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
     if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
-        if (r!=NULL && *(r+1)) cp = atoi(trim(r+1));
-        if (!cp && IS_PC98_ARCH) cp = 932;
+        if (r!=NULL && *(r+1)) {
+            cp = atoi(trim(r+1));
+            if ((cp<1 || !isSupportedCP(cp)) && msgcodepage>0) cp = msgcodepage;
+        } else if (msgcodepage>0)
+            cp = msgcodepage;
+        if ((cp<1 || !isSupportedCP(cp)) && IS_PC98_ARCH) cp = 932;
     }
     uint16_t len=(uint16_t)str.size();
-    if (!cp && msgcodepage>0) cp=msgcodepage;
-    if (cp) {
+    if (cp>0) {
         if (cp==808) cp=866;
         else if (cp==872) cp=855;
         reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);

@@ -73,22 +73,28 @@ void MSG_Replace(const char * _name, const char* _val) {
 }
 
 bool InitCodePage() {
-    if (!dos.loaded_codepage) {
+    if (!dos.loaded_codepage || dos_kernel_disabled || force_conversion) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-        if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL) {
+        if (section!=NULL) {
             char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
-            if (r!=NULL && *(r+1)) dos.loaded_codepage = atoi(trim(r+1));
+            if (r!=NULL && *(r+1)) {
+                int cp = atoi(trim(r+1));
+                if (cp>0 && isSupportedCP(cp)) {
+                    dos.loaded_codepage = cp;
+                    return true;
+                }
+            }
+        }
+        if (msgcodepage>0) {
+            dos.loaded_codepage = msgcodepage;
+            return true;
         }
     }
-    if (dos.loaded_codepage)
-        return true;
-    else if (msgcodepage>0) {
-        dos.loaded_codepage = msgcodepage;
-        return true;
-    } else {
+    if (!dos.loaded_codepage) {
         dos.loaded_codepage = IS_PC98_ARCH?932:437;
         return false;
-    }
+    } else
+        return true;
 }
 
 void LoadMessageFile(const char * fname) {
