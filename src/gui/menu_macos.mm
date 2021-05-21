@@ -67,7 +67,7 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 		{
 			NSString *title;
             int cp = dos.loaded_codepage;
-            if (!dos.loaded_codepage) InitCodePage();
+            InitCodePage();
             if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
                 title = [[NSString alloc] initWithUTF8String:tempstr];
             else
@@ -84,7 +84,7 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {
 	NSString *title;
     int cp = dos.loaded_codepage;
-    if (!dos.loaded_codepage) InitCodePage();
+    InitCodePage();
     if (CodePageGuestToHostUTF8(tempstr,initWithText))
         title = [[NSString alloc] initWithUTF8String:tempstr];
     else
@@ -124,7 +124,7 @@ void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
 	NSString *title;
     int cp = dos.loaded_codepage;
-    if (!dos.loaded_codepage) InitCodePage();
+    InitCodePage();
     if (CodePageGuestToHostUTF8(tempstr,initWithText))
         title = [[NSString alloc] initWithUTF8String:tempstr];
     else
@@ -482,7 +482,7 @@ extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *d
 
 int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd);
 
-void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
+void macosx_GetWindowDPI(ScreenSizeInfo &info) {
     NSWindow *wnd = nil;
 
     info.clear();
@@ -586,7 +586,7 @@ void qz_set_match_monitor_cb(void) {
 // malfunctions occur in the Cocoa framework (at least in Big Sur).
 // You can quit the SDL Video subsystem and reinitialize later
 // after this function is done.
-std::string MacOSX_prompt_folder(const char *default_folder) {
+std::string macosx_prompt_folder(const char *default_folder) {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     NSModalResponse r;
     std::string res;
@@ -620,7 +620,7 @@ std::string MacOSX_prompt_folder(const char *default_folder) {
     return res;
 }
 
-void MacOSX_alert(const char *title, const char *message) {
+void macosx_alert(const char *title, const char *message) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
     [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
@@ -628,7 +628,7 @@ void MacOSX_alert(const char *title, const char *message) {
     [alert runModal];
 }
 
-int MacOSX_yesnocancel(const char *title, const char *message) {
+int macosx_yesnocancel(const char *title, const char *message) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert addButtonWithTitle:@"Yes"];
     [alert addButtonWithTitle:@"No"];

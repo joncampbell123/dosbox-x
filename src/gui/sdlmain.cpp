@@ -260,6 +260,10 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 extern bool has_touch_bar_support;
 bool macosx_detect_nstouchbar(void);
 void macosx_init_touchbar(void);
+void macosx_GetWindowDPI(ScreenSizeInfo &info);
+void macosx_alert(const char *title, const char *message);
+int macosx_yesnocancel(const char *title, const char *message);
+std::string macosx_prompt_folder(const char *default_folder);
 void GetClipboard(std::string* result);
 bool SetClipboard(std::string value);
 #endif
@@ -1327,8 +1331,7 @@ void UpdateWindowDimensions(void)
     UpdateWindowMaximized((fl & SDL_WINDOW_MAXIMIZED) != 0);
 #endif
 #if defined(MACOSX)
-    void MacOSX_GetWindowDPI(ScreenSizeInfo &info);
-    MacOSX_GetWindowDPI(/*&*/screen_size_info);
+    macosx_GetWindowDPI(/*&*/screen_size_info);
 #endif
 #if defined(WIN32)
     // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
@@ -12056,12 +12059,6 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-#if defined(MACOSX)
-std::string MacOSX_prompt_folder(const char *default_folder);
-void MacOSX_alert(const char *title, const char *message);
-int MacOSX_yesnocancel(const char *title, const char *message);
-#endif
-
 void DISP2_Init(uint8_t color);
 //extern void UI_Init(void);
 void grGlideShutdown(void);
@@ -12345,7 +12342,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                   or any other part of the macOS desktop? */
         if (control->opt_promptfolder > 0) {
 #if defined(MACOSX)
-            /* NTS: Do NOT call MacOSX_prompt_folder() to show a modal NSOpenPanel without
+            /* NTS: Do NOT call macosx_prompt_folder() to show a modal NSOpenPanel without
                first initializing the SDL video subsystem. SDL1 must initialize
                the Cocoa NS objects first, or else strange things happen, like
                DOSBox-X as an NSWindow with no apparent icon in the task manager,
@@ -12362,13 +12359,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 default_folder = NULL;
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
 #if defined(MACOSX)
-            std::string path = MacOSX_prompt_folder(default_folder);
+            std::string path = macosx_prompt_folder(default_folder);
             if (path.empty()) {
-                MacOSX_alert("Exit from DOSBox-X", "You have not selected a valid path. Please try again.");
+                macosx_alert("Exit from DOSBox-X", "You have not selected a valid path. Please try again.");
                 fprintf(stderr,"No path chosen by user, exiting\n");
                 return 1;
             } else if (workdiropt == "default") {
-                int ans=MacOSX_yesnocancel("DOSBox-X working directory", confirmstr);
+                int ans=macosx_yesnocancel("DOSBox-X working directory", confirmstr);
                 if (ans == 1000) {workdirsave=1;workdirsaveas=path;}
                 else if (ans == 1001) workdirsave=2;
             }
