@@ -114,6 +114,8 @@
     builds. Also added more debugging options including
     "Generate NMI interrupt" and "Hook INT 2Fh calls"
     under this menu. (Wengier)
+  - Fixed /S and /F option (date/time-synchronization
+    ON/OFF) of DATE command not working. (Wengier)
   - Fixed the mouse not automatically captured when
     DOSBox-X starts with the settings fullscreen=true
     and autolock=true. (Wengier)

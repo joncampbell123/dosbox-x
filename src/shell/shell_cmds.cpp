@@ -2818,6 +2818,16 @@ void DOS_Shell::CMD_DATE(char * args) {
 		CALLBACK_RunRealInt(0x21);
 		if (sync_time) {manualtime=false;mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);}
 		return;
+	} else if(ScanCMDBool(args,"S")) {
+		sync_time=true;
+		manualtime=false;
+		mainMenu.get_item("sync_host_datetime").check(true).refresh_item(mainMenu);
+		return;
+	} else if(ScanCMDBool(args,"F")) {
+		sync_time=false;
+		manualtime=false;
+		mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);
+		return;
 	}
 	// check if a date was passed in command line
 	char c=dos.tables.country[11], c1, c2;
@@ -2865,9 +2875,10 @@ void DOS_Shell::CMD_DATE(char * args) {
 		if (week < 0) week = (week + 7) % 7;
 
 		const char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-		WriteOut("%s %s\n",my_week[week],FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
+		if (!dateonly) WriteOut("%s ", my_week[week]);
 	} else
-		WriteOut("%s %s\n",day, FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
+		if (!dateonly) WriteOut("%s ", day);
+	WriteOut("%s\n",FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
 	if(!dateonly) {
 		char format[11];
 		sprintf(format, dos.tables.country[0]==1?"DD%cMM%cYYYY":(dos.tables.country[0]==2?"YYYY%cMM%cDD":"MM%cDD%cYYYY"), c, c);
@@ -2931,7 +2942,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		reg_ch= // hours
 */
 	if(timeonly) {
-		WriteOut("%2u:%02u\n",reg_ch,reg_cl);
+		WriteOut("%u:%02u:%02u\n",reg_ch,reg_cl,reg_dh);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_NOW"));
 		WriteOut("%s\n", FormatTime(reg_ch,reg_cl,reg_dh,reg_dl));

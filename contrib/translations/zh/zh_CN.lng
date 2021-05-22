@@ -1,7 +1,7 @@
 :DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:REMARK:建议使用ＴＴＦ输出选项和代码页936以直接支持中文显示和打印
+:DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -619,15 +619,15 @@ Replace the [33;1m0[0m in [34;1m-usecd [33m0[0m with the number reported fo
 
 .
 :PROGRAM_BOOT_NOT_EXIST
-Bootdisk file does not exist.  Failing.
+失败: 启动盘文件不存在.
 
 .
 :PROGRAM_BOOT_NOT_OPEN
-Cannot open bootdisk file.  Failing.
+失败: 无法打开启动盘文件.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image file is read-only! Boot in write-protected mode.
+镜像文件处于只读状态! 将以写保护方式启动.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
@@ -917,42 +917,42 @@ Some usage examples of IMGMAKE:
 
 .
 :PROGRAM_IMGMAKE_FLREAD
-Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+磁盘参数: %d 个柱面, %d 个磁头, %d 个扇区, %d 千字节
 
 
 .
 :PROGRAM_IMGMAKE_FLREAD2
-%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
+%s =良好, %s =重试后良好, ! =CRC 错误, x =扇区找不到, ? =未知
 
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
-The file "%s" already exists. You can specify "-force" to overwrite.
+文件 "%s" 已存在. 您可以指定 "-force" 选项进行覆盖.
 
 .
 :PROGRAM_IMGMAKE_CANNOT_WRITE
-The file "%s" cannot be opened for writing.
+文件 "%s" 无法打开以写入.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Not enough space availible for the image file. Need %u bytes.
+没有足够的空间生成镜像文件. 需要 %u 字节.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-Creating image file "%s" with %u cylinders, %u heads and %u sectors
+创建镜像文件 "%s" 包含 %u 个柱面, %u 个磁头和 %u 个扇区
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
 
 
-Unable to read floppy.
+无法读取软盘.
 .
 :PROGRAM_KEYB_INFO
-Codepage %i has been loaded
+代码页 %i 已加载
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-Codepage %i has been loaded for layout %s
+代码页 %i 已为键盘布局 %s 加载
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -963,7 +963,7 @@ KEYB [keyboard layout ID [codepage number [codepage file]]]
 Some examples:
   [32;1mKEYB[0m          Display currently loaded codepage.
   [32;1mKEYB sp[0m       Load the Spanish (SP) layout, use an appropriate codepage.
-  [32;1mKEYB sp 850[0m   Load the Spanish (SP) layout, use codepage 850.
+    [32;1mKEYB sp 850[0m   Load the Spanish (SP) layout, use codepage 850.
   [32;1mKEYB sp 850 mycp.cpi[0m Same as above, but use file mycp.cpi.
 
 .
@@ -985,7 +985,7 @@ Some examples:
 
 .
 :PROGRAM_KEYB_INVCPFILE
-None or invalid codepage file for layout %s
+作为键盘布局 %s 的代码页文件不存在或无效
 
 
 .
@@ -1107,12 +1107,12 @@ ECHO状态为关.
 
 .
 :SHELL_CMD_DATE_HELP_LONG
-DATE [[/T] [/H] [/S] | date]
-  date:       New date to set
-  /S:         Permanently use host time and date as DOS time
-  /F:         Switch back to DOSBox-X internal time (opposite of /S)
-  /T:         Only display date
-  /H:         Synchronize with host
+DATE [[/T] [/H] [/S] | 日期]
+  日期:       要设定的新日期
+  /S:         DOS日期和时间永久与主机日期和时间同步
+  /F:         切换为DOSBox-X内部日期和时间 (与/S相反)
+  /T:         只显示日期
+  /H:         与主机同步
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1131,10 +1131,10 @@ DATE [[/T] [/H] [/S] | date]
 
 .
 :SHELL_CMD_TIME_HELP_LONG
-TIME [[/T] [/H] | time]
-  time:       New time to set
-  /T:         Display simple time
-  /H:         Synchronize with host
+TIME [[/T] [/H] | 时间]
+  时间:       要设定的新时间
+  /T:         简洁显示时间
+  /H:         与主机同步
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1418,9 +1418,9 @@ preset switches by prefixing any switch with - (hyphen)--for example, /-W.
 .
 :SHELL_CMD_ECHO_HELP_LONG
   ECHO [ON | OFF]
-  ECHO [message]
+  ECHO [消息]
 
-Type ECHO without parameters to display the current echo setting.
+输入不带参数的 ECHO 将显示当前命令回显状态.
 
 .
 :SHELL_CMD_EXIT_HELP
@@ -2006,58 +2006,58 @@ CPU 类型
 模拟 CPU 速度
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz (~240 cycles)
+8088 XT 4.77MHz (~240 周期)
 .
 :MENU:cpu286-8
-286 8MHz (~750 cycles)
+286 8MHz (~750 周期)
 .
 :MENU:cpu286-12
-286 12MHz (~1510 cycles)
+286 12MHz (~1510 周期)
 .
 :MENU:cpu286-25
-286 25MHz (~3300 cycles)
+286 25MHz (~3300 周期)
 .
 :MENU:cpu386-25
-386DX 25MHz (~4595 cycles)
+386DX 25MHz (~4595 周期)
 .
 :MENU:cpu386-33
-386DX 33MHz (~6075 cycles)
+386DX 33MHz (~6075 周期)
 .
 :MENU:cpu486-33
-486DX 33MHz (~12010 cycles)
+486DX 33MHz (~12010 周期)
 .
 :MENU:cpu486-66
-486DX2 66MHz (~23880 cycles)
+486DX2 66MHz (~23880 周期)
 .
 :MENU:cpu486-100
-486DX4 100MHz (~33445 cycles)
+486DX4 100MHz (~33445 周期)
 .
 :MENU:cpu486-133
-486DX5 133MHz (~47810 cycles)
+486DX5 133MHz (~47810 周期)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycles)
+Pentium 60MHz (~31545 周期)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 cycles)
+Pentium 66MHz (~35620 周期)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycles)
+Pentium 75MHz (~43500 周期)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycles)
+Pentium 90MHz (~52000 周期)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycles)
+Pentium 100MHz (~60000 周期)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycles)
+Pentium 120MHz (~74000 周期)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycles)
+Pentium 133MHz (~80000 周期)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycles)
+Pentium 166MHz MMX (~97240 周期)
 .
 :MENU:VideoMenu
 视频
@@ -2213,10 +2213,10 @@ OpenGL nearest
 OpenGL perfect
 .
 :MENU:output_ttf
-TrueType font
+TTF
 .
 :MENU:doublescan
-Doublescan
+双重扫描
 .
 :MENU:VideoVsyncMenu
 垂直同步
