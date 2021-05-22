@@ -60,7 +60,7 @@ You can put your MOUNT lines here.
 
 .
 :PROGRAM_CONFIG_SET_SYNTAX
-The syntax for -set option is incorrect.
+选项 -set 的语法不正确.
 
 .
 :PROGRAM_CONFIG_NOCONFIGFILE
@@ -97,30 +97,34 @@ DOSBox-X 的工作目录:
 写入配置文件 %s
 
 .
+:PROGRAM_LANGUAGE_FILE_WHICH
+已写入语言文件 %s
+
+.
 :PROGRAM_CONFIG_USAGE
-The DOSBox-X command-line configuration utility. Supported options:
--wc (or -writeconf) without parameter: Writes to primary loaded config file.
--wc (or -writeconf) with filename: Writes file to the config directory.
--wl (or -writelang) with filename: Writes the current language strings.
--wcp [filename] Writes file to program directory (dosbox-x.conf or filename).
--wcd Writes to the default config file in the config directory.
--all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.
--mod Use this with -wc, -wcp, or -wcd to write modified config options only.
--wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.
--bootconf (or -bc) reboots with specified config file (or primary loaded file).
--norem Use this with -wc, -wcp, or -wcd to not write config option remarks.
--l Lists DOSBox-X's configuration parameters.
--h, -help, -? Shows this help; add the word "sections" for a list of sections.
--h, -help, -? section / property Shows info on a specific section or property.
--axclear Clears the [autoexec] section.
--axadd [line] Adds a line to the [autoexec] section.
--axtype Prints the content of the [autoexec] section.
--avistart, -avistop Starts or stops AVI recording.
--securemode Enables secure mode where features like mounting will be disabled.
--startmapper Starts the DOSBox-X mapper editor.
--gui Starts the graphical configuration tool.
--get "section property" returns the value of the property.
--set "section property=value" sets the value of the property.
+DOSBox-X 命令行配置工具. 支持的选项为:
+-wc (或 -writeconf) 不带参数: 写入加载的主配置文件.
+-wc (或 -writeconf) 加文件名: 写入配置目录中的配置文件.
+-wl (或 -writelang) 加文件名: 将文字写入语言文件.
+-wcp [文件名] 将配置文件写入程序目录 (dosbox-x.conf 或指定文件名).
+-wcd 写入配置目录中的默认配置文件.
+-all 与 -wc, -wcp, 或 -wcd 一起使用以写入所有配置选项至配置文件.
+-mod 与 -wc, -wcp, 或 -wcd 一起使用以写入修改过的选项至配置文件.
+-wcboot, -wcpboot, 或 -wcdboot 将在写入配置文件后自动重启 DOSBox-X.
+-bootconf (或 -bc) 重启 DOSBox-X 并加载指定的配置文件 (或加载的主配置文件).
+-norem 与 -wc, -wcp, 或 -wcd 一起使用时不写入配置文件的注释.
+-l 列出 DOSBox-X 的配置参数.
+-h, -help, -? 显示此帮助; 加入 "sections" 一词以显示段落列表.
+-h, -help, -? 段落 / 属性 显示指定段落或属性的信息.
+-axclear 清除 [autoexec] 段落.
+-axadd [行] 加入指定行至 [autoexec] 段落.
+-axtype 显示 [autoexec] 段落中的内容.
+-avistart, -avistop 开始或结束记录 AVI.
+-securemode 启用安全模式, 将禁用挂载驱动器等功能.
+-startmapper 启动 DOSBox-X 的按键配置工具.
+-gui 启动图形界面的配置工具.
+-get "段落 属性" 返回指定属性的值.
+-set "段落 属性=值" 设置指定属性的值.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
@@ -285,53 +289,52 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_USAGE
-Mounts directories or drives in the host system as DOSBox-X drives.
-Usage: [34;1m[32;1mMOUNT[0m [37;1mdrive[0m [36;1mlocal_directory[0m [option][0m
- [37;1mdrive[0m            Drive letter where the directory or drive will be mounted.
- [36;1mlocal_directory[0m  Local directory or drive in the host system to be mounted.
- [option]         Option(s) for mounting. The following options are accepted:
- -t               Specify the drive type the mounted drive to behave as.
-                  Supported drive type: dir, floppy, cdrom, overlay
- (Note that 'overlay' redirects writes for mounted drive to another directory)
- -label [name]    Set the volume label name of the drive (all upper case)
- -ro              Mount the drive in read-only mode.
- -cd              Generate a list of local CD drive's "drive #" values.
- -usecd [drive #] For direct hardware emulation such as audio playback.
- -ioctl           Use lowest level hardware access (following -usecd option).
- -aspi            Use the installed ASPI layer (following -usecd option).
- -freesize [size] Specify the free disk space of drive in MB (KB for floppies).
- -nocachedir      Enable real-time update and do not cache the drive.
- -z drive         Move virtual drive Z: to a different letter.
- -o               Report the drive as: local, remote.
- -q               Quiet mode (no message output).
- -u               Unmount the drive.
- [32;1m-examples        Show some usage examples.[0m
-Type MOUNT with no parameters to display a list of mounted drives.
+挂载主机系统中的目录或驱动器为 DOSBox-X 驱动器.
+用法: [34;1m[32;1mMOUNT[0m [37;1m驱动器[0m [36;1m主机目录[0m [选项][0m
+ [37;1m驱动器[0m            主机目录或驱动器将被挂载的盘符.
+ [36;1m主机目录[0m          主机系统中要被挂载的目录或驱动器.
+ [选项]            挂载选项. 支持以下选项:
+ -t                指定所挂载驱动器的显现类型.
+                   支持的驱动器类型为: dir, floppy, cdrom, overlay
+                   (其中 'overlay' 将重定向挂载驱动器中的写操作至另一个目录)
+ -label [名称]     设置驱动器的标签名称 (全部大写)
+ -ro               以只读方式挂载驱动器.
+ -cd               显示包含光驱号的主机光驱列表.
+ -usecd [驱动器号] 支持直接硬件模拟比如 CD 音频播放.
+ -ioctl            使用最低级别的硬件访问 (与 -usecd 选项一起使用).
+ -aspi             使用已安装的 ASPI 层 (与 -usecd 选项一起使用).
+ -freesize [大小]  指定驱动器中的剩余磁盘工间 (单位: MB, 或软盘: KB).
+ -nocachedir       启用即时更新而不使用驱动器缓存.
+ -z 驱动器         将虚拟驱动器 Z: 移动到另一个盘符.
+ -o                将驱动器报告为: local, remote.
+ -q                安静模式 (不显示消息).
+ -u                卸载驱动器.
+ [32;1m-examples         显示用法举例.[0m
+输入不带参数的 MOUNT 命令将显示已挂载的驱动器列表.
 
 .
 :PROGRAM_MOUNT_EXAMPLE
-A basic example of MOUNT command:
+一个 MOUNT 命令的基本例子:
 
 [32;1mMOUNT c %s[0m
 
-This makes the directory %s act as the C: drive inside DOSBox-X.
-The directory has to exist in the host system. If the directory contains
-space(s), be sure to properly quote the directory with double quotes,
-e.g. %s
+此命令将主机目录 %s 呈现为 DOSBox-X 中的 C 盘驱动器.
+此目录必须在主机系统中存在. 如果目录包含空格, 请将它用双引号包含起来.
+例如: %s
 
-Some other usage examples of MOUNT:
+更多 MOUNT 命令的使用举例:
 
-[32;1mMOUNT[0m                             - list all mounted drives
-[32;1mMOUNT -cd[0m                         - list all local CD drives
-[32;1mMOUNT d %s[0m            - mount the D: drive to the directory
-[32;1mMOUNT c %s -t cdrom[0m      - mount the C: drive as a CD-ROM drive
-[32;1mMOUNT c %s -ro[0m           - mount the C: drive in read-only mode
-[32;1mMOUNT c %s -label TEST[0m   - mount the C: drive with the label TEST
-[32;1mMOUNT c %s -nocachedir [0m  - mount C: without caching the drive
-[32;1mMOUNT c %s -freesize 128[0m - mount C: with 128MB free disk space
-[32;1mMOUNT c %s -u[0m            - force mount C: drive even if it's mounted
-[32;1mMOUNT c %s -t overlay[0m  - mount C: with overlay directory on top
-[32;1mMOUNT c -u[0m                        - unmount the C: drive
+[32;1mMOUNT[0m                             - 列出所有已挂载的驱动器
+[32;1mMOUNT -cd[0m                         - 列出本机所有光盘驱动器
+[32;1mMOUNT d %s[0m            - 将驱动器 D 挂载为指定目录
+[32;1mMOUNT c %s -t cdrom[0m      - 将驱动器 C: 以光驱方式挂载为指定目录
+[32;1mMOUNT c %s -ro[0m           - 将驱动器 C: 以只读方式挂载
+[32;1mMOUNT c %s -label TEST[0m   - 挂载驱动器 C: 并给予标签 TEST
+[32;1mMOUNT c %s -nocachedir [0m  - 挂载驱动器 C: 且不使用驱动器缓存
+[32;1mMOUNT c %s -freesize 128[0m - 挂载驱动器 C: 并报告剩余磁盘空间为 128MB
+[32;1mMOUNT c %s -u[0m            - 强制挂载驱动器 C: 即使之前已挂载
+[32;1mMOUNT c %s -t overlay[0m  - 将覆盖目录作用于已挂载的驱动器 C:
+[32;1mMOUNT c -u[0m                        - 卸载驱动器 C:
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
@@ -477,175 +480,172 @@ DOSBox-X 创建一个 DOS 环境让您仿佛正在使用原本的 DOS 系统.
        DOSBox-X 介绍
 .
 :PROGRAM_INTRO_MENU_BASIC
-基本挂载
+基本挂载 
 .
 :PROGRAM_INTRO_MENU_CDROM
-光驱支持
+光驱支持 
 .
 :PROGRAM_INTRO_MENU_USAGE
-使用
+使用 
 .
 :PROGRAM_INTRO_MENU_INFO
-信息
+信息 
 .
 :PROGRAM_INTRO_MENU_QUIT
-退出
+退出 
 .
 :PROGRAM_INTRO_MENU_BASIC_HELP
 
-[1m   [1m[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.[0m
+[1m   [1m[KMOUNT 允许您将连接真实硬件与 DOSBox-X 的虚拟电脑连接起来.[0m
 
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
 
-[1m   [1m[KTo mount your CD-ROM in DOSBox-X, you need to specify additional options
-   when mounting the CD-ROM.[0m
+[1m   [1m[K如果在 DOSBox-X 中挂载光盘, 您需要在挂载它们时指定更多的选项.[0m
 
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
 
-[1m   [1m[KAn overview of the command line options you can give to DOSBox-X.[0m
+[1m   [1m[K您可以提供给 DOSBox-X 的命令行参数概述.[0m
 
 .
 :PROGRAM_INTRO_MENU_INFO_HELP
 
-[1m   [1m[KHow to get more information about DOSBox-X.[0m
+[1m   [1m[K怎样获得关于 DOSBox-X 的更多信息.[0m
 
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
 
-[1m   [1m[KExit from Intro.[0m
+[1m   [1m[K退出 DOSBox-X 介绍.[0m
 
 .
 :PROGRAM_INTRO_USAGE_TOP
-[2J[32;1mAn overview of the command line options you can give to DOSBox-X.[0m
-Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.
+[2J[32;1m这儿提供您可以提供给 DOSBox-X 的命令行参数的概述.[0m
+Windows 用户必须打开 cmd.exe 或者编辑 DOSBox-X.exe 的快捷方式以使用它们.
 
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
-         [-conf congfigfile] [-lang languagefile] [-machine machinetype]
-         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-conf 配置文件] [-lang 语言文件] [-machine 机器类型]
+         [-startmapper] [-noautoexec] [-scaler 缩放器 | -forcescaler 缩放器]
+         [-noconsole] [-c 命令] [-set <段落 属性=值>]
 
 
 .
 :PROGRAM_INTRO_USAGE_1
-[33;1m  name[0m
-	If name is a directory it will mount that as the C: drive.
-	If name is an executable it will mount the directory of name
-	as the C: drive and execute name.
+[33;1m  名称[0m
+	如果指定的名称为目录将自动挂载为驱动器 C:.
+	如果指定的名称为可执行文件将自动将其所在的目录挂载为 C: 并执行该程序.
 
 [33;1m  -exit[0m
-	DOSBox-X will close itself when the DOS application name ends.
+	当 DOS 程序运行结束后 DOSBox-X 将自动关闭自身.
 
 [33;1m  -version[0m
-	Outputs version information and exit. Useful for frontends.
+	输出版本信息并退出. 特别对于前台程序有用.
 
 [33;1m  -fastlaunch[0m
-	Enables fast launch mode (skip BIOS logo and welcome banner).
+	启动快速启动方式 (跳过 BIOS 和欢迎屏幕).
 
 [33;1m  -fullscreen[0m
-	Starts DOSBox-X in fullscreen mode.
+	以全屏幕方式启动 DOSBox-X.
 
 .
 :PROGRAM_INTRO_USAGE_2
-[33;1m  -conf[0m configfile
-	Start DOSBox-X with the options specified in configfile.
-	See the documentation for more details.
+[33;1m  -conf[0m 配置文件
+	以指定配置文件中的设置启动 DOSBox-X.
+	查看帮助文档取得更详细信息.
 
-[33;1m  -lang[0m languagefile
-	Start DOSBox-X using the language specified in languagefile.
+[33;1m  -lang[0m 语言文件
+	以指定的语言文件启动 DOSBox-X.
 
-[33;1m  -noconsole[0m (Windows Only)
-	Start DOSBox-X without showing the console window. Output will
-	be redirected to stdout.txt and stderr.txt
+[33;1m  -noconsole[0m (仅 Windows)
+	不显示控制台窗口. 输出将重定向到 stdout.txt 及 stderr.txt.
 
-[33;1m  -machine[0m machinetype
-	Setup DOSBox-X to emulate a specific type of machine. Valid choices:
-	hercules, cga, cga_mono, mcga, md
+[33;1m  -machine[0m 机器类型
+	启动 DOSBox-X 并模拟指定的机器类型. 合法值包括:
+	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (默认).
+	机器类型将同时影响视频和可用声卡.
+
 .
 :PROGRAM_INTRO_USAGE_3
 [33;1m  -startmapper[0m
-	Enter the keymapper directly on startup. Useful for people with
-	keyboard problems.
+	启动后直接进入按键编辑. 特别适用于出现键盘问题的用户.
 
 [33;1m  -noautoexec[0m
-	Skips the [autoexec] section of the loaded configuration file.
+	跳过调入的配置文件中的 [autoexec] 段落.
 
-[33;1m  -c[0m command
-	Runs the specified command before running name. Multiple commands
-	can be specified. Each command should start with -c, though.
-	A command can be: an Internal Program, a DOS command or an executable
-	on a mounted drive.
+[33;1m  -c[0m 命令
+	在启动程序前先执行指定的命令. 可以用多个 -c 参数指定多个命令.
+	命令可以为内部程序, DOS 命令或且已挂载驱动器中的可执行文件.
 
-[33;1m  -set[0m <section property=value>
-	Sets the config opt
+[33;1m  -set[0m <段落 属性=值>
+	强制设置配置选项 (覆盖配置文件中相应的选项).
+	可以用多个 -set 参数指定多个选项.
+
 .
 :PROGRAM_INTRO_INFO
-[32;1mInformation:[0m
+[32;1m信息:[0m
 
-For information about basic mount, type [34;1mintro mount[0m
-For information about CD-ROM support, type [34;1mintro cdrom[0m
-For information about special keys, type [34;1mintro special[0m
-For information about usage, type [34;1mintro usage[0m
+关于基本挂载的信息, 请输入 [34;1mintro mount[0m
+关于光驱支持的信息, 请输入 [34;1mintro cdrom[0m
+关于特殊按键的信息, 请输入 [34;1mintro special[0m
+关于使用的信息, 请输入 [34;1mintro usage[0m
 
-For the latest version of DOSBox-X, go to its homepage:[34;1m
+关于最新版本的 DOSBox-X, 请访问其主页:[34;1m
 
-[34;1mhttps://dosbox-x.com/[0m or \033[34;1mhttp://dosbox-x.software\033[0m
+[34;1mhttps://dosbox-x.com/[0m 或 [34;1mhttp://dosbox-x.software[0m
 
-For more information about DOSBox-X, please take a look at its Wiki:
+关于 DOSBox-X 的更多信息, 请访问其 Wiki 系统:
 
 [34;1mhttps://dosbox-x.com/wiki[0m
 
 .
 :PROGRAM_INTRO_MOUNT_START
-[32;1mHere are some commands to get you started:[0m
-Before you can use the files located on your own filesystem,
-you have to mount the directory containing the files.
+[32;1m以下为帮助您上手的一些命令:[0m
+您必须先将包含文件的目录挂载为驱动器以使用里面的文件.
 
 
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-[32mmount c c:\dosgames\[37m will create a C drive with c:\dosgames as contents.
+[32mmount c c:\dosgames\[37m 将创建驱动器 C: 并包含 c:\dosgames 中的内容.       
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\[37m is an example. Replace it with your own games directory.  [37m 
+c:\dosgames\[37m 为一个例子. 您可以将其替换为您自己的游戏目录.             [37m 
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-[32mmount c ~/dosgames[37m will create a C drive with ~/dosgames as contents.
+[32mmount c ~/dosgames[37m 将创建驱动器 C: 并包含 ~/dosgames 中的内容.          
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-[32m~/dosgames[37m is an example. Replace it with your own games directory.[37m  
+[32m~/dosgames[37m 为一个例子. 您可以将其替换为您自己的游戏目录.               [37m 
 .
 :PROGRAM_INTRO_MOUNT_END
-When the mount has successfully completed you can type [34;1mc:[0m to go to your freshly
-mounted C: drive. Typing [34;1mdir[0m there will show its contents. [34;1mcd[0m will allow you to
-enter a directory (recognised by the [33;1m[][0m in a directory listing).
-You can run programs/files which end with [31m.exe .bat[0m and [31m.com[0m.
+当挂载成功后您可以输入 [34;1mc:[0m 命令进入您刚挂载的驱动器 C:.
+输入 [34;1mdir[0m 命令将显示其中的内容. [34;1mcd[0m 命令将允许您进入一个目录 (驱动器列表
+中以 [33;1m[][0m 标识). 您可以运行以 [31m.exe .bat[0m 及 [31m.com[0m 结尾的程序及文件.
 
 .
 :PROGRAM_INTRO_CDROM
-[2J[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:[0m
-DOSBox-X provides CD-ROM emulation on several levels.
+[2J[32;1m如何在 DOSBox-X 中挂载真实/虚拟光驱:[0m
+DOSBox-X 提供多层次的光驱模拟.
 
-The [33mbasic[0m level works on all CD-ROM drives and normal directories.
-It installs MSCDEX and marks the files read-only.
-Usually this is enough for most games:
-[34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   or   [34;1mmount d C:\example -t cdrom[0m
-If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:
+[33m基本层次[0m支持所有光驱及普通目录.
+它将安装 MSCDEX 并将文件标识为只读.
+这对于大部分游戏通常已经足够:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   或   [34;1mmount d C:\example -t cdrom[0m
+如果不行的话您可以需要让 DOSBox-X 给予光驱特定的标签:
 [34;1mmount d C:\example -t cdrom -label CDLABEL[0m
 
-The [33mnext[0m level adds some low-level support.
-Therefore only works on CD-ROM drives:
+[33m中间层次[0m加入一些底层支持.
+故它仅支持光驱 (非普通目录):
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
 
-The [33mlast[0m level of support depends on your Operating System:
-For [1mWindows 2000[0m, [1mWindows XP[0m and [1mLinux[0m:
+[33m最后层次[0m将依赖于您所用的操作系统:
+对于 [1mWindows 2000[0m, [1mWindows XP[0m 及 [1mLinux[0m:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
-For [1mWindows 9x[0m with a ASPI layer installed:
+对于 [1mWindows 9x[0m 并安装有 ASPI 层:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
 
-Replace [0;31mD:\[0m with the location of your CD-ROM.
-Replace the [33;1m0[0m in [34;1m-usecd [33m0[0m with the number reported for your CD-ROM if you type:
+将 [0;31mD:\[0m 替换为您的光驱所在盘符.
+替换 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 为当您输入以下命令时显示的光驱号:
 [34;1mmount -cd[0m
 
 .
@@ -662,28 +662,27 @@ Replace the [33;1m0[0m in [34;1m-usecd [33m0[0m with the number reported fo
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
-This command boots DOSBox-X from either a floppy or hard disk image.
+此命令将使 DOSBox-X 从软盘或硬盘镜像中启动.
 
-For this command, one can specify a succession of floppy disks swappable
-by the menu command, and drive: specifies the mounted drive to boot from.
-If no drive letter is specified, this defaults to boot from the A drive.
-If no parameter is specified, it will try to boot from the current drive.
-The only bootable drive letters are A, C, and D.  For booting from a hard
-drive (C or D), ensure the image is already mounted by [34;1mIMGMOUNT[0m command.
+您可以在此命令中使用多个软盘镜像文件, 并可通过菜单选项进行交换.
+"驱动器:"将从指定的已挂载的驱动器启动. 如果没有指定驱动器盘符,
+将默认从驱动器 A： 启动. 如果没有指定参数将试着从当前驱动器启动.
+只支持从以下驱动器盘符中启动: A:, C:, 以及 D:. 如果要从硬盘驱动
+器 (C: 或 D:) 中启动, 请保证镜像文件已用 [34;1mIMGMOUNT[0m 命令挂载.
 
-The syntax of this command is one of the following:
+此命令的语法为如下之一:
 
-[34;1mBOOT [driveletter:][0m
+[34;1mBOOT [驱动器盘符:][0m
 
-[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
+[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 驱动器盘符][0m
 
-Note: An image file with a leading colon (:) will be booted in write-protected
-mode if the "leading colon write protect image" option is enabled.
+说明: 如果镜像文件以冒号 (:) 开头将以写保护方式启动, 如果以下配置选项已启用:
+leading colon write protect image = true
 
-Examples:
+举例:
 
-[32;1mBOOT A:[0m       - boot from drive A: if it is mounted and bootable.
-[32;1mBOOT :DOS.IMG[0m - boot from floppy image DOS.IMG in write-protected mode.
+[32;1mBOOT A:[0m       - 从驱动器 A: 启动, 如果该驱动器已挂载并能启动.
+[32;1mBOOT :DOS.IMG[0m - 以写保护模式从软盘镜像文件 DOS.IMG 启动.
 
 .
 :PROGRAM_BOOT_UNABLE
@@ -699,7 +698,7 @@ Examples:
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-PCjr cartridge found, but machine is not PCjr
+找到 PCjr 卡带, 但机器类型并非 PCjr
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
 Available PCjr cartridge commandos:%s
@@ -708,71 +707,71 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-Loads the specified ROM image file.
+调用指定的 ROM 镜像文件.
 
-LOADROM ROM_file
+LOADROM 镜像文件
 
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
-Must specify ROM file to load.
+必须指定要调入的 ROM 文件.
 
 .
 :PROGRAM_LOADROM_CANT_OPEN
-ROM file not accessible.
+ROM 文件无法存取.
 
 .
 :PROGRAM_LOADROM_TOO_LARGE
-ROM file too large.
+ROM 文件太大.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Video BIOS not supported by machine type.
+此机器类型不支持视频 BIOS.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
-ROM file not recognized.
+ROM 文件无法识别.
 
 .
 :PROGRAM_LOADROM_BASIC_LOADED
-BASIC ROM loaded.
+BASIC ROM 已调入.
 
 .
 :PROGRAM_BIOSTEST_HELP
-Boots into a BIOS image for running CPU tester BIOS.
+启动指定的 BIOS 镜像文件以运行 CPU 测试 BIOS.
 
-BIOSTEST image_file
+BIOSTEST 镜像文件
 
 .
 :VHD_ERROR_OPENING
-Could not open the specified VHD file.
+无法打开指定的 VHD 文件.
 
 .
 :VHD_INVALID_DATA
-The specified VHD file is corrupt and cannot be opened.
+指定的 VHD 文件已损坏而无法打开.
 
 .
 :VHD_UNSUPPORTED_TYPE
-The specified VHD file is of an unsupported type.
+指定的 VHD 文件属于未支持的类型.
 
 .
 :VHD_ERROR_OPENING_PARENT
-The parent of the specified VHD file could not be found.
+指定的 VHD 文件的父文件无法找到.
 
 .
 :VHD_PARENT_INVALID_DATA
-The parent of the specified VHD file is corrupt and cannot be opened.
+指定的 VHD 文件的父文件已损坏而无法打开.
 
 .
 :VHD_PARENT_UNSUPPORTED_TYPE
-The parent of the specified VHD file is of an unsupported type.
+指定的 VHD 文件的父文件属于未支持的类型.
 
 .
 :VHD_PARENT_INVALID_MATCH
-The parent of the specified VHD file does not contain the expected identifier.
+指定的 VHD 文件的父文件不包含所需的标识.
 
 .
 :VHD_PARENT_INVALID_DATE
-The parent of the specified VHD file has been changed and cannot be loaded.
+指定的 VHD 文件的父文件已改变而无法打开.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
@@ -781,14 +780,6 @@ The parent of the specified VHD file has been changed and cannot be loaded.
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
 必须指定驱动器号 (0 to %d) 来挂载镜像文件 (0,1=fda,fdb;2,3=hda,hdb).
-
-.
-:PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY
-For [33mCD-ROM[0m images:   [34;1mIMGMOUNT drive-letter location-of-image -t iso[0m
-
-For [33mhardrive[0m images: Must specify drive geometry for hard drives:
-bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.
-[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl[0m
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
@@ -862,89 +853,89 @@ bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.
 
 .
 :PROGRAM_IMGMOUNT_HELP
-Mounts floppy, hard drive and optical disc images.
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
-[32;1mIMGMOUNT[0m [37;1mdriveNum[0m [36;1mfile[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-t iso] [-fs iso]
-[32;1mIMGMOUNT[0m [37;1mdrive[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
-[32;1mIMGMOUNT[0m [37;1mdrive[0m -t ram -size size
-[32;1mIMGMOUNT[0m -u [37;1mdrive|driveNum[0m (or [32;1mIMGMOUNT[0m [37;1mdrive|driveNum[0m [36;1mfile[0m [options] -u)
- [37;1mdrive[0m               Drive letter to mount the image at.
- [37;1mdriveNum[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.
- [36;1mfile[0m                Image filename(s), or [33;1mIMGMAKE.IMG[0m if not specified.
- -t iso              Image type is optical disc iso or cue / bin image.
- -t hdd              Image type is hard disk; VHD and HDI files are supported.
- -t floppy|ram       Image type is floppy drive|RAM drive.
- -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).
- -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.
- -fs none            Do not detect filesystem (auto-assumed for drive numbers).
- -reservecyl #       Report # number of cylinders less than actual in BIOS.
- -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.
- -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.
- -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.
- -ro                 Mount image(s) read-only (or leading ':' for read-only).
- -u                  Unmount the drive or drive number.
- [32;1m-examples           Show some usage examples.[0m
+挂载软盘, 硬盘或光盘镜像文件.
+[32;1mIMGMOUNT[0m [37;1m驱动器[0m [36;1m文件[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+[32;1mIMGMOUNT[0m [37;1m驱动器[0m [36;1m文件[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 控制器]
+[32;1mIMGMOUNT[0m [37;1m驱动器号[0m [36;1m文件[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+[32;1mIMGMOUNT[0m [37;1m驱动器[0m [36;1m文件[0m [-t iso] [-fs iso]
+[32;1mIMGMOUNT[0m [37;1m驱动器[0m [-t floppy] -bootcd 光驱盘符 (或 -el-torito 光驱盘符)
+[32;1mIMGMOUNT[0m [37;1m驱动器[0m -t ram -size 大小
+[32;1mIMGMOUNT[0m -u [37;1m驱动器|驱动器号[0m (or [32;1mIMGMOUNT[0m [37;1m驱动器|驱动器号[0m [36;1m文件[0m [选项] -u)
+ [37;1m驱动器[0m               镜像文件所要挂载的驱动器盘符.
+ [37;1m驱动器号[0m            所要挂载的驱动器号, 其中 0-1 为软驱, 2-5 为硬驱.
+ [36;1m文件[0m                镜像文件名, 如果未指定将使用 [33;1mIMGMAKE.IMG[0m.
+ -t iso              镜像文件类型为光盘.
+ -t hdd              镜像文件类型为硬盘; 支持 VHD 及 HDI 镜像文件.
+ -t floppy|ram       镜像文件类型为软盘或内存驱动器.
+ -fs iso             文件系统为 ISO 9660 (自动假设为 .iso/.cue 文件).
+ -fs fat             文件系统为 FAT - 支持 FAT12, FAT16 及 FAT32.
+ -fs none            不检测文件系统 (提供驱动器号时自动假设).
+ -reservecyl #       在 BIOS 中报告使用比实际更少的驻面数目.
+ -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以挂载驱动器.
+ -size size|ss,s,h,c 指定大小 (单位: KB), 或扇区数和 CHS 参数.
+ -bootcd 光驱盘符    指定加载启动软盘镜像所用的光盘驱动器盘符.
+ -ro                 以只读方式挂载镜像文件 (或用':'前缀表示只读).
+ -u                  卸载驱动器或驱动器号.
+ [32;1m-examples           显示用法举例.[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
-Some usage examples of IMGMOUNT:
+一些关于 IMGMOUNT 命令的举例:
 
-  [32;1mIMGMOUNT[0m                       - list mounted FAT/ISO drives & drive numbers
-  [32;1mIMGMOUNT C[0m                     - mount hard disk image [33;1mIMGMAKE.IMG[0m as C:
-  [32;1mIMGMOUNT C c:\image.img[0m        - mount hard disk image c:\image.img as C:
-  [32;1mIMGMOUNT D c:\files\game.iso[0m   - mount CD image c:\files\game.iso as D:
-  [32;1mIMGMOUNT D cdaudio.cue[0m         - mount cue file of a cue/bin pair as CD drive
-  [32;1mIMGMOUNT 0 dos.ima[0m             - mount floppy image dos.ima as drive number 0
-                                   ([33;1mBOOT A:[0m will boot from drive if bootable)
-  [32;1mIMGMOUNT A -ro dos.ima[0m         - mount floppy image dos.ima as A: read-only
-  [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - mount floppy images dsk1.img and dsk2.img as
-                                   A:, swappable via menu item "Swap floppy",
-                                   with dsk1.img read-only (but not dsk2.img)
-  [32;1mIMGMOUNT A -bootcd D[0m           - mount bootable floppy A: from CD drive D:
-  [32;1mIMGMOUNT C -t ram -size 10000[0m  - mount hard drive C: as a 10MB RAM drive
-  [32;1mIMGMOUNT C disk.img -u[0m         - force mount hard disk image disk.img as C:,
-                                   auto-unmount drive beforehand if necessary
-  [32;1mIMGMOUNT A -u[0m                  - unmount previously-mounted drive A:
+  [32;1mIMGMOUNT[0m                       - 列出已挂载的 FAT/ISO 驱动器和驱动器号
+  [32;1mIMGMOUNT C[0m                     - 将硬盘镜像文件 [33;1mIMGMAKE.IMG[0m 挂载为驱动器 C:
+  [32;1mIMGMOUNT C c:\image.img[0m        - 将硬盘镜像文件 c:\image.img 挂载为驱动器 C:
+  [32;1mIMGMOUNT D c:\files\game.iso[0m   - 将光盘镜像文件 c:\files\game.iso 挂载为 D:
+  [32;1mIMGMOUNT D cdaudio.cue[0m         - 将 cue/bin 配对中的 cue 文件挂载为光驱 D:
+  [32;1mIMGMOUNT 0 dos.ima[0m             - 将软盘镜像文件 dos.ima 挂载为驱动器号 0
+                                   ([33;1mBOOT A:[0m 将从该驱动器中启动, 如果能启动)
+  [32;1mIMGMOUNT A -ro dos.ima[0m         - 将软盘镜像 dos.ima 以只读方式挂载为驱动器 A:
+  [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - 将软盘镜像文件 dsk1.img 和 dsk2.img 挂载为
+                                   驱动器 A:, 可在菜单中用 "交换软盘镜像" 选项
+                                   进行交换, 其中 dsk1.img 镜像文件为只读
+  [32;1mIMGMOUNT A -bootcd D[0m           - 从光驱 D: 中挂载启动软盘镜像为驱动器 A:
+  [32;1mIMGMOUNT C -t ram -size 10000[0m  - 将硬盘驱动器 C: 挂载为 10MB 内存驱动器
+  [32;1mIMGMOUNT C disk.img -u[0m         - 强制将硬盘文件镜像 disk.img 挂载为驱动器 C:,
+                                   如果之前驱动器已挂载则将自动卸载
+  [32;1mIMGMOUNT A -u[0m                  - 卸载之前已挂载的驱动器 A:
 
 .
 :PROGRAM_IMGMAKE_SYNTAX
-Creates floppy or hard disk images.
-Usage: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-r retries][0m
-  file: Image file to create (or [33;1mIMGMAKE.IMG[0m if not set) - [31;1mpath on the host[0m
-  -t: Type of image.
-    [33;1mFloppy disk templates[0m (names resolve to floppy sizes in KB or fd=fd_1440):
+创建软盘或硬盘镜像文件.
+用法: [34;1mIMGMAKE [文件] [-t 类型] [[-size 大小] | [-chs 参数]] [-spc] [-nofs][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 源盘符] [-retries #][0m
+  文件: 要创建的镜像文件 (如未指定将使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路径为主机系统路径t[0m
+  -t: 镜像文件类型.
+    [33;1m软盘模板[0m (名称为以 KB 为单位的软盘大小或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    [33;1mHard disk templates:[0m
-     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
-     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    [33;1mCustom hard disk images:[0m hd (requires -size or -chs)
-  -size: Size of a custom hard disk image in MB.
-  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
-  -nofs: Add this parameter if a blank image should be created.
-  -force: Force to overwrite the existing image file.
-  -bat: Create a .bat file with the IMGMOUNT command required for this image.
-  -fat: FAT filesystem type (12, 16, or 32).
-  -spc: Sectors per cluster override. Must be a power of 2.
-  -fatcopies: Override number of FAT table copies.
-  -rootdir: Size of root directory in entries. Ignored for FAT32.
-  -source: drive letter - if specified the image is read from a floppy disk.
-  -retries: how often to retry when attempting to read a bad floppy disk(1-99).
-  [32;1m-examples: Show some usage examples.[0m
+    [33;1m硬盘模板:[0m
+     hd_250: 250MB 镜像文件, hd_520: 520MB 镜像文件, hd_1gig: 1GB 镜像文件
+     hd_2gig: 2GB 镜像文件, hd_4gig: 4GB 镜像文件, hd_8gig: 8GB 镜像文件
+     hd_st251: 40MB 镜像文件, hd_st225: 20MB 镜像文件 (旧驱动器参数)
+    [33;1m自定义硬盘镜像文件:[0m hd (需要 -size 或 -chs 选项)
+  -size: 自定义硬盘镜像文件大小 (单位: MB).
+  -chs: CHS 磁盘参数: 驻面(1-1023),磁头(1-255),扇区(1-63).
+  -nofs: 如果想创建空白镜像文件请加入此参数.
+  -force: 强制覆盖已存在的镜像文件.
+  -bat: 创建一个包含 IMGMOUNT 命令的批处理文件以挂载此镜像文件.
+  -fat: FAT 文件系统类型 (12, 16, 或 32).
+  -spc: 强制使用此每个簇所包含的扇区数值. 必须为 2 的指数.
+  -fatcopies: 强制使用此数量的 FAT 表副本.
+  -rootdir: 根目录下的记录数. FAT32 文件系统将忽略此参数.
+  -source: 驱动器盘符 - 如果指定此参数镜像文件该从软盘驱动器中读取.
+  -retries: 当试图从坏软盘中读取时所需的重试次数 (1-99).
+  [32;1m-examples: 显示用法举例.[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
-Some usage examples of IMGMAKE:
+一些关于 IMGMAKE 命令的举例:
 
-  [32;1mIMGMAKE -t fd[0m                   - create a 1.44MB floppy image [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE -t fd_1440 -force[0m       - force to create a floppy image [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE dos.img -t fd_2880[0m      - create a 2.88MB floppy image named dos.img
-  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - create a 50MB HDD image c:\disk.img
-  [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - create a 520MB blank HDD image
-  [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - create a 2GB FAT32 HDD image
-  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - create a HDD image of specified CHS
-  [32;1mIMGMAKE c:\disk.img -source a[0m           - read image from physical drive A:
+  [32;1mIMGMAKE -t fd[0m                   - 创建 1.44MB 软盘镜像文件 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE -t fd_1440 -force[0m       - 强制创建软盘镜像文件 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE dos.img -t fd_2880[0m      - 创建 2.88MB 软盘镜像文件 dos.img
+  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 创建 50MB 硬盘镜像文件 c:\disk.img
+  [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - 创建 520MB 空白硬盘镜像文件
+  [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 创建 2GB FAT32 硬盘镜像文件
+  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 以指定的 CHS 参数创建硬盘镜像文件
+  [32;1mIMGMAKE c:\disk.img -source a[0m           - 从物理驱动器 A: 中读取镜像
 
 .
 :PROGRAM_IMGMAKE_FLREAD
@@ -1086,7 +1077,7 @@ ECHO状态为关.
 
 .
 :SHELL_ILLEGAL_CONTROL_CHARACTER
-未预期的控制字符: Dec %03u - Hex %#04x.
+未预期的控制字符: 10进制 %03u - 16进制 %#04x.
 
 .
 :SHELL_ILLEGAL_SWITCH

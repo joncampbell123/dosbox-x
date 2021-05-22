@@ -1,5 +1,5 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.13"
+#define MyAppVersion "0.83.14"
 #define MyAppPublisher "joncampbell123"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
@@ -145,6 +145,9 @@ Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 drawn.lnk"; Ch
 Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL2.lnk"; Check: IsWin64; Components: typical compact
 
 [Registry]
+Root: HKCU; Subkey: "Software\DOSBox-X"; Flags: uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey

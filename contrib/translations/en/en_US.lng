@@ -77,6 +77,9 @@ DOSBox-X's working directory: ◙%s◙◙
 :PROGRAM_CONFIG_FILE_WHICH
 Writing config file %s◙
 .
+:PROGRAM_LANGUAGE_FILE_WHICH
+Written to language file %s◙
+.
 :PROGRAM_CONFIG_USAGE
 The DOSBox-X command-line configuration utility. Supported options:
 -wc (or -writeconf) without parameter: Writes to primary loaded config file.
@@ -474,7 +477,7 @@ For information about usage, type [34;1mintro usage[0m
 
 For the latest version of DOSBox-X, go to its homepage:[34;1m
 
-[34;1mhttps://dosbox-x.com/[0m or \033[34;1mhttp://dosbox-x.software\033[0m
+[34;1mhttps://dosbox-x.com/[0m or [34;1mhttp://dosbox-x.software[0m
 
 For more information about DOSBox-X, please take a look at its Wiki:
 
@@ -631,9 +634,6 @@ Must specify drive letter to mount image at.◙
 :PROGRAM_IMGMOUNT_SPECIFY2
 Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).◙
 .
-:PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY
-For ←[33mCD-ROM←[0m images:   ←[34;1mIMGMOUNT drive-letter location-of-image -t iso←[0m◙◙For ←[33mhardrive←[0m images: Must specify drive geometry for hard drives:◙bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.◙←[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl←[0m◙
-.
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 Could not load image file.◙Check that the path is correct and the image is accessible.◙
 .
@@ -735,7 +735,7 @@ Some usage examples of IMGMOUNT:
 :PROGRAM_IMGMAKE_SYNTAX
 Creates floppy or hard disk images.
 Usage: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-r retries][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #][0m
   file: Image file to create (or [33;1mIMGMAKE.IMG[0m if not set) - [31;1mpath on the host[0m
   -t: Type of image.
     [33;1mFloppy disk templates[0m (names resolve to floppy sizes in KB or fd=fd_1440):

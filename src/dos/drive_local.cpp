@@ -150,8 +150,8 @@ bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
 }
 
 bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-    const char* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
@@ -186,8 +186,8 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 }
 
 template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
-	const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
@@ -236,8 +236,8 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 }
 
 template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
-	const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
@@ -323,8 +323,8 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
 }
 
 template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const char *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -375,8 +375,8 @@ template <class MT> bool String_HOST_TO_SBCS_UTF16(char *d/*CROSS_LEN*/,const ui
 }
 
 template <class MT> bool String_HOST_TO_SBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const char *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -419,8 +419,8 @@ bool String_HOST_TO_ASCII_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LE
 }
 
 bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-    const char *sf = s + CROSS_LEN * (morelen?5:1) - 1;
-    const char* df = d + CROSS_LEN * (morelen?5:1) - 1;
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;

@@ -4142,6 +4142,7 @@ basic:
         do switch (c) {
             case 0x48|0x80: menuname="QUIT"; goto menufirst; // Up
             case 0x50|0x80: menuname="CDROM"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut("\033[2J");
                 WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -4158,6 +4159,7 @@ cdrom:
         do switch (c) {
             case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
             case 0x50|0x80: menuname="USAGE"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
                 DOS_ReadFile (STDIN,&c,&n);
@@ -4171,6 +4173,7 @@ usage:
         do switch (c) {
             case 0x48|0x80: menuname="CDROM"; goto menufirst; // Down
             case 0x50|0x80: menuname="INFO"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 DisplayUsage();
                 goto menufirst;
@@ -4183,6 +4186,7 @@ info:
         do switch (c) {
             case 0x48|0x80: menuname="USAGE"; goto menufirst; // Up
             case 0x50|0x80: menuname="QUIT"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut("\033[2J");
                 WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -7628,12 +7632,12 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_DRIVE","Must specify drive letter to mount image at.\n");
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");
-    MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
+    /*MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
         "For \033[33mCD-ROM\033[0m images:   \033[34;1mIMGMOUNT drive-letter location-of-image -t iso\033[0m\n"
         "\n"
         "For \033[33mhardrive\033[0m images: Must specify drive geometry for hard drives:\n"
         "bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.\n"
-        "\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");
+        "\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");*/
     MSG_Add("PROGRAM_IMGMOUNT_INVALID_IMAGE","Could not load image file.\n"
         "Check that the path is correct and the image is accessible.\n");
     MSG_Add("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED", "Dynamic VHD files are not supported.\n");
@@ -7709,7 +7713,7 @@ void DOS_SetupPrograms(void) {
         "Usage: \033[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\033[0m\n"
         "  \033[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
-        " [-source source] [-r retries]"
+        " [-source source] [-retries #]"
 #endif
         "\033[0m\n"
         "  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"

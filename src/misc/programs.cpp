@@ -1502,13 +1502,19 @@ void CONFIG::Run(void) {
 			// Who knows which kind of file we would overwrite.
 			if (securemode_check()) return;
 			if (pvars.size() < 1) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_MISSINGPARAM"));
-				return;
-			}
-			if (!MSG_Write(pvars[0].c_str(), NULL)) {
+				if (control->opt_lang == "") {
+					WriteOut(MSG_Get("PROGRAM_CONFIG_MISSINGPARAM"));
+					return;
+				} else if (!MSG_Write(control->opt_lang.c_str(), NULL)) {
+					WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),control->opt_lang.c_str());
+					return;
+				} else
+					WriteOut(MSG_Get("PROGRAM_LANGUAGE_FILE_WHICH"),control->opt_lang.c_str());
+			} else if (!MSG_Write(pvars[0].c_str(), NULL)) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),pvars[0].c_str());
 				return;
-			}
+			} else
+				WriteOut(MSG_Get("PROGRAM_LANGUAGE_FILE_WHICH"),pvars[0].c_str());
 			break;
 
 		case P_SECURE:
@@ -1556,6 +1562,7 @@ void PROGRAMS_Init() {
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
+	MSG_Add("PROGRAM_LANGUAGE_FILE_WHICH","Written to language file %s\n");
 	
 	// help
 	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n"\
@@ -1598,5 +1605,5 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
 	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s\n");
-	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");
+	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.\n");
 }

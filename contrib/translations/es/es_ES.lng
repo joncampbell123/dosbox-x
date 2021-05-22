@@ -451,7 +451,7 @@ Para información de uso, teclee ←[34;1mintro usage←[0m
 
 Para la última versión de DOSBox-X, visita el web:←[34;1m
 
-←[34;1mhttps://dosbox-x.com/←[0m o \033[34;1mhttp://dosbox-x.software\033[0m
+←[34;1mhttps://dosbox-x.com/←[0m o ←[34;1mhttp://dosbox-x.software←[0m
 
 Para más información sobre DOSBox-X, visita nuestra Wiki:
 
@@ -608,9 +608,6 @@ Debes indicar la letra de la unidad en donde montar la imagen.◙
 :PROGRAM_IMGMOUNT_SPECIFY2
 Debes indicar el número de unidad (0 a %d) para montar la imagen en (0,1=fda,fdb;2,3=hda,hdb)◙
 .
-:PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY
-Para imagenes ←[33mCD-ROM←[0m:   ←[34;1mIMGMOUNT letra-unidad ubicacion-imagen -t iso ←[0m◙◙Para imagenes de ←[33mdisco duro←[0m: Debes especificar la geometria de la imagen para los discos duros:◙bytes_por_sector, sectores_por_cilindro, cabezas_por_cilindro, número_cilindros.◙←[34;1mIMGMOUNT letra-unidad ubicacion-imagen -size bps,spc,hpc,cyl←[0m◙
-.
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 No se pudo cargar archivo imagen.◙Verifica que la ruta sea correcta y la imagen sea accesible.◙
 .
@@ -712,7 +709,7 @@ Algunos ejemplos de uso de IMGMOUNT:
 :PROGRAM_IMGMAKE_SYNTAX
 Crea imagenes de disquete o disco duro.
 Uso:◙←[34;1mIMGMAKE [archivo] [-t tipo] [[-size tamaño] | [-chs geometria]] [-spc] [-nofs]←[0m
-  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source] [-r reintentos]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source] [-retries #]←[0m
   file: archivo a crear (←[33;1mIMGMAKE.IMG←[0m por defecto) ←[31;1mruta de anfitrión ←[0m
   -t: Tipo de imagen.
     ←[33;1mPlantillas de disquetes:←[0m (Nombres generados por tamaño en KB o fd=fd_1440)
