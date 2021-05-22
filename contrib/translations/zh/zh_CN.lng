@@ -2,6 +2,27 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
 :DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936以直接支持中文显示和打印
+:DRIVE
+驱动器
+.
+:TYPE
+类型
+.
+:LABEL
+标签
+.
+:DRIVE_NUMBER
+驱动器号
+.
+:DISK_NAME
+磁盘名称
+.
+:IDE_POSITION
+IDE 位置
+.
+:SWAP_SLOT
+交换点
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -2037,28 +2058,28 @@ CPU 类型
 486DX5 133MHz (~47810 周期)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 周期)
+奔腾 60MHz (~31545 周期)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 周期)
+奔腾 66MHz (~35620 周期)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 周期)
+奔腾 75MHz (~43500 周期)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 周期)
+奔腾 90MHz (~52000 周期)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 周期)
+奔腾 100MHz (~60000 周期)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 周期)
+奔腾 120MHz (~74000 周期)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 周期)
+奔腾 133MHz (~80000 周期)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 周期)
+奔腾 166MHz MMX (~97240 周期)
 .
 :MENU:VideoMenu
 视频
@@ -2355,7 +2376,7 @@ TTF 字处理软件: XyWrite
 PC-98 选项
 .
 :MENU:pc98_5mhz_gdc
-5MHz GDC clock
+5MHz GDC 时钟
 .
 :MENU:pc98_allow_200scanline
 允许200行扫描线效果
@@ -3963,37 +3984,37 @@ Toggle Speedlock
 8086
 .
 :MENU:cputype_8086_prefetch
-8086 with prefetch
+8086 (带预取)
 .
 :MENU:cputype_80186
 80186
 .
 :MENU:cputype_80186_prefetch
-80186 with prefetch
+80186 (带预取)
 .
 :MENU:cputype_286
 286
 .
 :MENU:cputype_286_prefetch
-286 with prefetch
+286 (带预取)
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386 with prefetch
+386 (带预取)
 .
 :MENU:cputype_486old
-486 (old)
+486 (老式)
 .
 :MENU:cputype_486old_prefetch
-486 (old) with prefetch
+486 (老式, 带预取)
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486 with prefetch
+486 (带预取)
 .
 :MENU:cputype_pentium
 奔腾

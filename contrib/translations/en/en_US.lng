@@ -2,6 +2,27 @@
 :DOSBOX-X:LANGUAGE:English
 :DOSBOX-X:CODEPAGE:437
 :DOSBOX-X:REMARK:
+:DRIVE
+Drive
+.
+:TYPE
+Type
+.
+:LABEL
+Label
+.
+:DRIVE_NUMBER
+Drive number
+.
+:DISK_NAME
+Disk name
+.
+:IDE_POSITION
+IDE position
+.
+:SWAP_SLOT
+Swap slot
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
 .

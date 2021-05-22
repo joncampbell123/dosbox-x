@@ -935,7 +935,7 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
@@ -4404,7 +4404,7 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap slot");
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
@@ -4432,7 +4432,7 @@ public:
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap slot");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),MSG_Get("DRIVE_NUMBER"),MSG_Get("DISK_NAME"),MSG_Get("IDE_POSITION"),MSG_Get("SWAP_SLOT"));
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)

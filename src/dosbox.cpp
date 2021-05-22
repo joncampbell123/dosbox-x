@@ -4298,8 +4298,15 @@ void DOSBOX_SetupConfigSections(void) {
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
-    MSG_Add("SLOT","Slot");
+    MSG_Add("DRIVE","Drive");
+    MSG_Add("TYPE","Type");
+    MSG_Add("LABEL","Label");
+    MSG_Add("DRIVE_NUMBER","Drive number");
+    MSG_Add("DISK_NAME","Disk name");
+    MSG_Add("IDE_POSITION","IDE position");
+    MSG_Add("SWAP_SLOT","Swap slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
+    MSG_Add("SLOT","Slot");
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
