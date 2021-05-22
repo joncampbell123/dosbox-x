@@ -1,5 +1,7 @@
 :DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
+:DOSBOX-X:REMARK:建议使用ＴＴＦ输出选项和代码页936以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -121,7 +123,7 @@ The DOSBox-X command-line configuration utility. Supported options:
 
 .
 :PROGRAM_CONFIG_HLP_POSINT
-positive integer
+正整数
 .
 :PROGRAM_CONFIG_HLP_SECTHLP
 段落 %s 包含以下属性:
@@ -166,35 +168,35 @@ DOSBox-X 是用以下命令行参数启动:
 缺少参数.
 .
 :PROGRAM_MOUSE_INSTALL
-Installed at PS/2 port.
+安装在 PS/2 端口.
 
 .
 :PROGRAM_MOUSE_VERTICAL
-Reverse Y-axis enabled.
+已启用反转Y轴.
 
 .
 :PROGRAM_MOUSE_VERTICAL_BACK
-Reverse Y-axis disabled.
+已禁用反转Y轴.
 
 .
 :PROGRAM_MOUSE_UNINSTALL
-Driver successfully unloaded...
+驱动程序已成功卸载...
 
 .
 :PROGRAM_MOUSE_ERROR
-Already installed at PS/2 port.
+已经安装在 PS/2 端口.
 
 .
 :PROGRAM_MOUSE_NOINSTALLED
-Driver is not installed.
+驱动程序未安装.
 
 .
 :PROGRAM_MOUSE_HELP
-Turns on/off mouse.
+启用或禁用鼠标.
 
 MOUSE [/?] [/U] [/V]
-  /U: Uninstall
-  /V: Reverse Y-axis
+  /U: 卸载
+  /V: 反转Y轴
 
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
@@ -336,46 +338,46 @@ Some other usage examples of MOUNT:
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-Failed to mount the PhysFS drive.
+无法挂载 PhysFS 驱动器.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Please MOUNT a normal directory first before adding an overlay on top.
+请先挂载普通目录然后在上面加上覆盖目录.
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
-The overlay is NOT compatible with the drive that is specified.
+覆盖目录与指定的驱动器不兼容.
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.
+覆盖目录需与原驱动器所指定的定位方式相同，不能混合相对路径和绝对路径.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-The overlay directory can not be the same as underlying drive.
+覆盖目录不能与原驱动器的目录相同.
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-An error occurred when trying to create an overlay drive.
+创建覆盖目录时发生错误.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-Overlay %s on drive %c mounted.
+覆盖目录 %s 已挂载于驱动器 %c 上.
 
 .
 :PROGRAM_LOADFIX_ALLOC
-%d kb allocated.
+%d 字节已分配.
 
 .
 :PROGRAM_LOADFIX_DEALLOC
-%d kb freed.
+%d 字节已释放.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
-Used memory freed.
+已释放使用的内存.
 
 .
 :PROGRAM_LOADFIX_ERROR
-Memory allocation error.
+内存分配错误.
 
 .
 :PROGRAM_LOADFIX_HELP
@@ -392,71 +394,71 @@ LOADFIX -f [-xms] [-ems]
   -f (or -
 .
 :MSCDEX_SUCCESS
-MSCDEX installed.
+MSCDEX 已安装.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.
+MSCDEX 错误: 多个光盘的驱动器字母应保持连续.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
-MSCDEX: Failure: Not yet supported.
+MSCDEX 错误: 尚未支持.
 
 .
 :MSCDEX_ERROR_PATH
-MSCDEX: Specified location is not a CD-ROM drive.
+MSCDEX: 指定的位置并非光驱.
 
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX: Failure: Invalid file or unable to open.
+MSCDEX 错误: 非法文件或无法打开文件.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
-MSCDEX: Failure: Too many CD-ROM drives (max: 5). MSCDEX Installation failed.
+MSCDEX 错误: 光驱数量过多 (最多5个). MSCDEX 安装失败.
 
 .
 :MSCDEX_LIMITED_SUPPORT
-MSCDEX: Mounted subdirectory: limited support.
+MSCDEX: 挂载子目录: 有限支持.
 
 .
 :MSCDEX_INVALID_FILEFORMAT
-MSCDEX: Failure: File is either no ISO/CUE image or contains errors.
+MSCDEX 错误: 文件并非 ISO/CUE 镜像文件或含有错误.
 
 .
 :MSCDEX_UNKNOWN_ERROR
-MSCDEX: Failure: Unknown error.
+MSCDEX 错误: 未知错误.
 
 .
 :PROGRAM_RESCAN_SUCCESS
-Drive cache cleared.
+驱动器缓存已清除.
 
 .
 :PROGRAM_INTRO
-[2J[32;1mWelcome to DOSBox-X[0m, an open-source x86 emulator with sound and graphics.
-DOSBox-X creates a shell for you which looks just like the plain DOS.
+[2J[32;1m欢迎使用 DOSBox-X[0m, 支持声音和图像且开放源代码的 x86 模拟器.
+DOSBox-X 创建一个 DOS 环境让您仿佛正在使用原本的 DOS 系统.
 
-[31;1mDOSBox-X will stop/exit without a warning if an error occurred![0m
+[31;1mDOSBox-X 如果遇到错误将会在未警告的情况下停止运行或退出![0m
 
 
 
 .
 :PROGRAM_INTRO_MENU_UP
-DOSBox-X Introduction
+       DOSBox-X 介绍
 .
 :PROGRAM_INTRO_MENU_BASIC
-Basic mount
+基本挂载
 .
 :PROGRAM_INTRO_MENU_CDROM
-CD-ROM support
+光驱支持
 .
 :PROGRAM_INTRO_MENU_USAGE
-Usage
+使用
 .
 :PROGRAM_INTRO_MENU_INFO
-Information
+信息
 .
 :PROGRAM_INTRO_MENU_QUIT
-Quit
+退出
 .
 :PROGRAM_INTRO_MENU_BASIC_HELP
 
@@ -555,9 +557,9 @@ For information about CD-ROM support, type [34;1mintro cdrom[0m
 For information about special keys, type [34;1mintro special[0m
 For information about usage, type [34;1mintro usage[0m
 
-For the latest version of DOSBox-X, go to its GitHub site:[34;1m
+For the latest version of DOSBox-X, go to its homepage:[34;1m
 
-[34;1mhttps://github.com/joncampbell123/dosbox-x[0m
+[34;1mhttps://dosbox-x.com/[0m or \033[34;1mhttp://dosbox-x.software\033[0m
 
 For more information about DOSBox-X, please take a look at its Wiki:
 
@@ -764,24 +766,24 @@ bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.
 
 .
 :PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Dynamic VHD files are not supported.
+不支持动态 VHD 文件.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
-Could not extract drive geometry from image.
-Use parameter -size bps,spc,hpc,cyl to specify the geometry.
+无法获得镜像文件中的驱动器参数.
+请使用选项 -size bps,spc,hpc,cyl 指定驱动器参数.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
-Image geometry auto detection: -size %u,%u,%u,%u
+自动检测镜像文件中的驱动器参数: -size %u,%u,%u,%u
 
 .
 :PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
-Type "%s" is unsupported. Specify "hdd" or "floppy" or "iso".
+不支持类型 "%s". 请指定 "hdd" 或 "floppy" 或 "iso".
 
 .
 :PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
-Format "%s" is unsupported. Specify "fat" or "iso" or "none".
+不支持格式 "%s". 请指定 "fat" 或 "iso" 或 "none".
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_FILE
@@ -825,7 +827,7 @@ Format "%s" is unsupported. Specify "fat" or "iso" or "none".
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
-Using multiple files is only supported for cue/iso images.
+只在使用 CUE/ISO 镜像文件时支持多个文件.
 
 .
 :PROGRAM_IMGMOUNT_HELP
@@ -979,7 +981,7 @@ Some examples:
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-No layout in %s for codepage %i
+键盘布局 %s 无法在代码页 %i 中找到
 
 .
 :PROGRAM_KEYB_INVCPFILE

@@ -33,6 +33,7 @@ using namespace std;
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+std::string langname = "", langnote = "";
 int msgcodepage = 0;
 void menu_update_autocycle(void);
 
@@ -103,7 +104,6 @@ void LoadMessageFile(const char * fname) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
 
-    msgcodepage = 0;
 	FILE * mfile=fopen(fname,"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
@@ -113,6 +113,8 @@ void LoadMessageFile(const char * fname) {
 		LOG_MSG("MSG:Cannot load language file: %s",fname);
 		return;
 	}
+    msgcodepage = 0;
+    langname = langnote = "";
 	char linein[LINE_IN_MAXLEN];
 	char name[LINE_IN_MAXLEN], menu_name[LINE_IN_MAXLEN];
 	char string[LINE_IN_MAXLEN*10], temp[4096];
@@ -141,7 +143,7 @@ void LoadMessageFile(const char * fname) {
             if (!strncasecmp(linein+1, "DOSBOX-X:", 9)) {
                 char *p = linein+10;
                 char *r = strchr(p, ':');
-                if (*p && r!=NULL && r>p) {
+                if (*p && r!=NULL && r>p && *(r+1)) {
                     *r=0;
                     if (!strcmp(p, "CODEPAGE")) {
                         int c = atoi(r+1);
@@ -149,7 +151,10 @@ void LoadMessageFile(const char * fname) {
                             msgcodepage = c;
                             dos.loaded_codepage = c;
                         }
-                    }
+                    } else if (!strcmp(p, "LANGUAGE"))
+                        langname = r+1;
+                    else if (!strcmp(p, "REMARK"))
+                        langnote = r+1;
                     *r=':';
                 }
             } else if (!strncasecmp(linein+1, "MENU:", 5)) {
@@ -193,12 +198,14 @@ const char * MSG_Get(char const * msg) {
 	return msg;
 }
 
-bool MSG_Write(const char * location) {
+bool MSG_Write(const char * location, const char * name) {
     char temp[4096];
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
 	fprintf(out,":DOSBOX-X:VERSION:%s\n",VERSION);
+	if (name!=NULL||langname!="") fprintf(out,":DOSBOX-X:LANGUAGE:%s\n",name!=NULL?name:langname.c_str());
 	if (dos.loaded_codepage) fprintf(out,":DOSBOX-X:CODEPAGE:%d\n",dos.loaded_codepage);
+	fprintf(out,":DOSBOX-X:REMARK:%s\n",langnote.c_str());
 	morelen=true;
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
         if (!CodePageGuestToHostUTF8(temp,(*tel).val.c_str()))

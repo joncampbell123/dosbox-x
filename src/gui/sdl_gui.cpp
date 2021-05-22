@@ -79,10 +79,10 @@ extern unsigned char        GFX_Bshift;
 extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 dos_kernel_disabled, confres, swapad;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
-extern std::string          strPasteBuffer;
+extern std::string          strPasteBuffer, langname;
 
 extern void                 PasteClipboard(bool bPressed);
-extern bool                 MSG_Write(const char *);
+extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
@@ -1535,16 +1535,19 @@ public:
 
 class SaveLangDialog : public GUI::ToplevelWindow {
 protected:
-    GUI::Input *name;
+    GUI::Input *name, *lang;
     GUI::Button *saveButton = NULL, *closeButton = NULL;
 public:
     SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
+        ToplevelWindow(parent, x, y, 400, 150 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter filename for language file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
-        name->setText("messages.txt");
-        (saveButton = new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
+        name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.txt");
+        new GUI::Label(this, 5, 60, "Language name (optional):");
+        lang = new GUI::Input(this, 5, 80, width - 10 - border_left - border_right);
+        lang->setText(langname.c_str());
+        (saveButton = new GUI::Button(this, 120, 110, "OK", 70))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 210, 110, "Cancel", 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1553,7 +1556,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") MSG_Write(name->getText());
+        if (arg == "OK") MSG_Write(name->getText(), lang->getText());
         close();
         if(shortcut) running=false;
     }

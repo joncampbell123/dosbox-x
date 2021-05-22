@@ -1,5 +1,7 @@
 :DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:LANGUAGE:Spanish
 :DOSBOX-X:CODEPAGE:858
+:DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
 .
@@ -446,9 +448,9 @@ Para información del soporte CD-ROM, teclee ←[34;1mintro cdrom←[0m
 Para información de teclas especiales, teclee ←[34;1mintro special←[0m
 Para información de uso, teclee ←[34;1mintro usage←[0m
 
-Para la última versión de DOSBox-X, visita el sitio de Github:←[34;1m
+Para la última versión de DOSBox-X, visita el web:←[34;1m
 
-←[34;1mhttps://github.com/joncampbell123/dosbox-x←[0m
+←[34;1mhttps://dosbox-x.com/←[0m o \033[34;1mhttp://dosbox-x.software\033[0m
 
 Para más información sobre DOSBox-X, visita nuestra Wiki:
 

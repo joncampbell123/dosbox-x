@@ -37,9 +37,11 @@
     when the mouse is not locked. (Wengier)
   - When opening "Save..." or "Save Language File..."
     dialogs in the Configuration Tool, the new diaglogs
-    will now automatically be in focus; pressing ENTER
-    key saves the file, and pressing ESC key will close
-    these dialog boxes. (Wengier)
+    will now automatically be in focus. For the language
+    file, the name of the current language file will be
+    filled and modifible. Pressing ENTER key saves the
+    config or language file, and pressing ESC key will
+    close these dialog boxes. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)

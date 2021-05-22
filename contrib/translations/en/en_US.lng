@@ -1,5 +1,7 @@
 :DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:LANGUAGE:English
 :DOSBOX-X:CODEPAGE:437
+:DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
 .
@@ -449,9 +451,9 @@ For information about CD-ROM support, type [34;1mintro cdrom[0m
 For information about special keys, type [34;1mintro special[0m
 For information about usage, type [34;1mintro usage[0m
 
-For the latest version of DOSBox-X, go to its GitHub site:[34;1m
+For the latest version of DOSBox-X, go to its homepage:[34;1m
 
-[34;1mhttps://github.com/joncampbell123/dosbox-x[0m
+[34;1mhttps://dosbox-x.com/[0m or \033[34;1mhttp://dosbox-x.software\033[0m
 
 For more information about DOSBox-X, please take a look at its Wiki:
 

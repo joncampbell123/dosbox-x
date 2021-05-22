@@ -516,7 +516,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	return true;
 }
 
-bool MSG_Write(const char *);
+bool MSG_Write(const char *, const char *);
 
 /*! \brief          CONFIG.COM utility to control configuration and files
  *
@@ -1505,7 +1505,7 @@ void CONFIG::Run(void) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_MISSINGPARAM"));
 				return;
 			}
-			if (!MSG_Write(pvars[0].c_str())) {
+			if (!MSG_Write(pvars[0].c_str(), NULL)) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),pvars[0].c_str());
 				return;
 			}
