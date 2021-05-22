@@ -2998,6 +2998,9 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
         }
     }
 
+    /* update mode 2 indicator */
+    real_writeb(0x60,0x8C,(pc98_function_row_mode == 2) ? '*' : ' ');
+
     real_writeb(0x60,0x112,total_rows - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
 
     if (pc98_function_row_mode == 2) {
@@ -3021,7 +3024,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
                 i++;
         }
 
-        mem_writew(0xA0000+((o+2)*2),(unsigned char)('*'));
+        mem_writew(0xA0000+((o+2)*2),real_readb(0x60,0x8C));
         mem_writeb(0xA2000+((o+2)*2),0xE1);
 
         draw_pc98_function_row(o,pc98_func_key_shortcut);
