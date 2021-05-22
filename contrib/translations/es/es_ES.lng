@@ -295,16 +295,17 @@ Memoria usada liberada.◙
 Error de asignacion de memoria.◙
 .
 :PROGRAM_LOADFIX_HELP
-Reduce la cantidad de memoria convencional o XMS disponible.
+Reduce la cantidad de memoria convencional o XMS/EMS disponible.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
 LOADFIX -f [-xms] [-ems]
 
   -xms        Asigna memoria de XMS en lugar de memoria convencional
+  -ems        Asigna memoria de EMS en lugar de memoria convencional
   -{ram}      Especifica la cantidad de memoria para asignar en KB
-                 Por defecto 64 kb para memoria base; 1 MB para XMS
+                 Por defecto 64 kb para memoria base; 1 MB para XMS/EMS
   -a          Auto asigna suficiente memoria para llenar los 64 KB más bajos
-  -f          Libera memoria previamente asignada
+  -f (o -d)   Libera memoria previamente asignada
   {program}   Ejecuta el programa especificado
   {options}   Opciones de programa (si las hay)
 

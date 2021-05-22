@@ -295,7 +295,7 @@ Used memory freed.◙
 Memory allocation error.◙
 .
 :PROGRAM_LOADFIX_HELP
-Reduces the amount of available conventional or XMS memory.
+Reduces the amount of available conventional or XMS/EMS memory.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
 LOADFIX -f [-xms] [-ems]
@@ -303,7 +303,7 @@ LOADFIX -f [-xms] [-ems]
   -xms        Allocates memory from XMS rather than conventional memory
   -ems        Allocates memory from EMS rather than conventional memory
   -{ram}      Specifies the amount of memory to allocate in KB
-                 Defaults to 64kb for conventional memory; 1MB for XMS memory
+                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory
   -a          Auto allocates enough memory to fill the lowest 64KB memory
   -f (or -d)  Frees previously allocated memory
   {program}   Runs the specified program

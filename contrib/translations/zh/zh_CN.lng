@@ -381,17 +381,27 @@ Some other usage examples of MOUNT:
 
 .
 :PROGRAM_LOADFIX_HELP
-Reduces the amount of available conventional or XMS memory.
+减少可用的常规内存或 XMS/EMS 内存.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        Allocates memory from XMS rather than conventional memory
-  -ems        Allocates memory from EMS rather than conventional memory
-  -{ram}      Specifies the amount of memory to allocate in KB
-                 Defaults to 64kb for conventional memory; 1MB for XMS memory
-  -a          Auto allocates enough memory to fill the lowest 64KB memory
-  -f (or -
+  -xms        从 XMS 内存中而不是常规内存中分配内存
+  -ems        从 EMS 内存中而不是常规内存中分配内存
+  -{ram}      指定要分配的内存大小（单位:千字节)
+                 常规内存默认为 64kb ; XMS或EMS内存默认为 1MB
+  -a          自动分配足够的内存以充满低端 64KB 内存
+  -f (或 -d)  释放此前分配的内存
+  {程序}      运行指定的程序
+  {选项}      程序选项 (如果有)
+
+举例:
+  [32;1mLOADFIX game.exe[0m     分配 64KB 常规内存并运行 game.exe
+  [32;1mLOADFIX -a[0m           自动分配足够的常规内存
+  [32;1mLOADFIX -128[0m         分配 128KB 常规内存
+  [32;1mLOADFIX -xms[0m         分配 1MB XMS 内存
+  [32;1mLOADFIX -f[0m           释放已分配的常规内存
+
 .
 :MSCDEX_SUCCESS
 MSCDEX 已安装.
@@ -956,15 +966,15 @@ Some usage examples of IMGMAKE:
 
 .
 :PROGRAM_KEYB_SHOWHELP
-Configures a keyboard for a specific language.
+为指定语言配置键盘.
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
+KEYB [键盘布局 ID [代码页 [代码页文件]]]
 
-Some examples:
-  [32;1mKEYB[0m          Display currently loaded codepage.
-  [32;1mKEYB sp[0m       Load the Spanish (SP) layout, use an appropriate codepage.
-    [32;1mKEYB sp 850[0m   Load the Spanish (SP) layout, use codepage 850.
-  [32;1mKEYB sp 850 mycp.cpi[0m Same as above, but use file mycp.cpi.
+举例:
+  [32;1mKEYB[0m          显示当前加载的代码页.
+  [32;1mKEYB sp[0m       加载西班牙语 (SP) 布局, 使用相应的代码页.
+  [32;1mKEYB sp 850[0m   加载西班牙语 (SP) 布局, 使用代码页 850.
+  [32;1mKEYB sp 850 mycp.cpi[0m 与以上相同, 但使用文件 mycp.cpi.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1359,7 +1369,7 @@ SUBST: 命令行参数错误.
 :SHELL_CMD_BREAK_HELP_LONG
 BREAK [ON | OFF]
 
-Type BREAK without a parameter to display the current BREAK setting.
+输入不带参数的 BREAK 命令将显示当前 BREAK 状态.
 
 .
 :SHELL_CMD_CHDIR_HELP
@@ -1436,17 +1446,17 @@ EXIT
 
 .
 :SHELL_CMD_HELP_HELP_LONG
-HELP [/A or /ALL]
-HELP [command]
+HELP [/A 或 /ALL]
+HELP [命令]
 
-   /A or /ALL   Lists all supported internal commands.
-   [command]    Shows help for the specified command.
+   /A 或 /ALL   显示所有支持的内部命令.
+   [命令]       显示指定命令的帮助.
 
-[0mE.g., [37;1mHELP COPY[0m or [37;1mCOPY /?[0m shows help information for COPY command.
+[0mE.g., [37;1mHELP COPY[0m 或 [37;1mCOPY /?[0m 显示 COPY 命令的帮助信息.
 
-Note: External commands like [33;1mMOUNT[0m and [33;1mIMGMOUNT[0m are not listed by HELP [/A].
-      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).
-      Type [33;1mcommand /?[0m or [33;1mHELP command[0m for help information for that command.
+注释: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不会被 HELP [/A] 命令列出.
+      这些命令可以在 Z 盘中作为程序找到 (比如 MOUNT.COM).
+      输入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 显示此命令的帮助信息.
 
 .
 :SHELL_CMD_MKDIR_HELP
@@ -1802,12 +1812,12 @@ Type ALIAS without parameters to display the list of aliases in the form:
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn]
 
-  nnn   Specifies a code page number.
+  nnn   指定代码页.
 
-Supported code pages for changing in the TrueType font output:
+TTF 输出方式所支持的代码页包括:
 437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
 
-Also double-byte code pages including 932, 936, 949, and 950.
+以及双字节代码页,包括: 932, 936, 949, 950
 
 .
 :SHELL_CMD_CHCP_ACTIVE
@@ -1829,9 +1839,9 @@ TTF 字体中未定义的字符数: %d
 :SHELL_CMD_COUNTRY_HELP_LONG
 COUNTRY [nnn] 
 
-  nnn   Specifies a country code.
+  nnn   指定国家代码.
 
-Date and time formats will be affacted by the specified country code.
+指定的国家代码将影响显示的日期和时间格式.
 
 .
 :SHELL_CMD_CTTY_HELP
@@ -1858,7 +1868,7 @@ command-name | MORE [drive:][path][filename]
 
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME file
+TRUENAME 文件
 
 .
 :SHELL_CMD_DXCAPTURE_HELP

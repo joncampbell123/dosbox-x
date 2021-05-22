@@ -7425,13 +7425,13 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
-        "Reduces the amount of available conventional or XMS memory.\n\n"
+        "Reduces the amount of available conventional or XMS/EMS memory.\n\n"
         "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
         "LOADFIX -f [-xms] [-ems]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
         "  -ems        Allocates memory from EMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
-        "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
+        "                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory\n"
         "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
         "  -f (or -d)  Frees previously allocated memory\n"
         "  {program}   Runs the specified program\n"
