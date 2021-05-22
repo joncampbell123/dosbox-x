@@ -1289,7 +1289,7 @@ SUBST [unidad1: [unidad2:]ruta]◙SUBST unidad1: /D◙◙  unidad1:        Espec
 Carga un programa en la memoria superior (requiere memoria XMS+UMB).◙
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [unidad1:][ruta]nombrearchivo [parámetros]◙LOADHIGH        [unidad1:][ruta]nombrearchivo [parámetros]◙
+LH              [unidad:][ruta]nombrearchivo [parámetros]◙LOADHIGH        [unidad:][ruta]nombrearchivo [parámetros]◙
 .
 :SHELL_CMD_CHOICE_HELP
 Espera a una pulsación del teclado y establece un ERRORLEVEL.◙

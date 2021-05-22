@@ -383,7 +383,7 @@ Some other usage examples of MOUNT:
 :PROGRAM_LOADFIX_HELP
 减少可用的常规内存或 XMS/EMS 内存.
 
-LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
+LOADFIX [-xms] [-ems] [-{ram}] [{程序}] [{选项}]
 LOADFIX -f [-xms] [-ems]
 
   -xms        从 XMS 内存中而不是常规内存中分配内存
@@ -1021,7 +1021,7 @@ KEYB [键盘布局 ID [代码页 [代码页文件]]]
 .
 :SHELL_CMD_VOL_DRIVE
 
- 盘卷在驱动器 %c
+ 盘卷在驱动器 %c 
 .
 :SHELL_CMD_VOL_SERIAL
  盘卷序列号为 
@@ -1377,15 +1377,15 @@ BREAK [ON | OFF]
 
 .
 :SHELL_CMD_CHDIR_HELP_LONG
-CHDIR [drive:][path]
+CHDIR [驱动器:][路径]
 CHDIR [..]
-CD [drive:][path]
+CD [驱动器:][路径]
 CD [..]
 
-  ..   Specifies that you want to change to the parent directory.
+  ..   指定您想改变到父目录.
 
-Type CD drive: to display the current directory in the specified drive.
-Type CD without parameters to display the current drive and directory.
+输入 CD 驱动器: 显示指定驱动器的当前目录.
+输入不带参数的 CD 命令显示当前驱动器和目录.
 
 .
 :SHELL_CMD_CLS_HELP
@@ -1401,25 +1401,24 @@ CLS
 
 .
 :SHELL_CMD_DIR_HELP_LONG
-DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+DIR [驱动器:][路径][文件名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
 
-  [drive:][path][filename]
-              Specifies drive, directory, and/or files to list.
-  /W          Uses wide list format.
-  /B          Uses bare format (no heading information or summary).
-  /S          Displays files in specified directory and all subdirectories.
-  /P          Pauses after each screenful of information.
-  /A          Displays files with specified attributes.
-  attributes   D  Directories                R  Read-only files
-               H  Hidden files               A  Files ready for archiving
-               S  System files               -  Prefix meaning not
-  /O          List by files in sorted order.
-  sortorder    N  By name (alphabetic)       S  By size (smallest first)
-               E  By extension (alphabetic)  D  By date & time (earliest first)
-               G  Group directories first    -  Prefix to reverse order
+  [驱动器:][路径][文件名]
+              指定要列出的驱动器, 目录或文件名.
+  /W          使用宽格式列出.
+  /B          使用短格式列出 (无标题信息或概要).
+  /S          显示指定目录和所有子目录中的文件.
+  /P          显示完一屏后暂停.
+  /A          显示带有指定属性的文件.
+  属性         D  目录                 R  只读文件
+               H  隐藏文件             A  归档文件
+               S  系统文件             -  前缀表示相反
+  /O          以排序方式列出文件.
+  排列顺序     N  按文件名 (字母排列)  S  按文件大小 (小的在前)
+               E  按扩展名 (字母排列)  D  按文件日期时间 (早的在前)
+               G  先显示目录           -  前缀表示相反顺序
 
-Switches may be preset in the DIRCMD environment variable.  Override
-preset switches by prefixing any switch with - (hyphen)--for example, /-W.
+选项可以在 DIRCMD 环境变量中预先设置. 可以用带-前缀的选项(比如/-W)进行覆盖.
             
 .
 :SHELL_CMD_ECHO_HELP
@@ -1464,8 +1463,8 @@ HELP [命令]
 
 .
 :SHELL_CMD_MKDIR_HELP_LONG
-MKDIR [drive:][path]
-MD [drive:][path]
+MKDIR [驱动器:][路径]
+MD [驱动器:][路径]
 
 .
 :SHELL_CMD_RMDIR_HELP
@@ -1473,8 +1472,8 @@ MD [drive:][path]
 
 .
 :SHELL_CMD_RMDIR_HELP_LONG
-RMDIR [drive:][path]
-RD [drive:][path]
+RMDIR [驱动器:][路径]
+RD [驱动器:][路径]
 
 .
 :SHELL_CMD_SET_HELP
@@ -1482,14 +1481,14 @@ RD [drive:][path]
 
 .
 :SHELL_CMD_SET_HELP_LONG
-SET [variable=[string]]
+SET [变量名=[字符串]]
 
-   variable     Specifies the environment-variable name.
-   string       Specifies a series of characters to assign to the variable.
+   变量名     指定环境变量的名字.
+   字符串     指定分配到变量的字符串.
 
-* If no string is specified, the variable is removed from the environment.
+* 如果没有指定字符串, 指定的环境变量将被移除.
 
-Type SET without parameters to display the current environment variables.
+输入不带参数的 SET 命令显示当前环境变量.
 
 .
 :SHELL_CMD_IF_HELP
@@ -1497,19 +1496,15 @@ Type SET without parameters to display the current environment variables.
 
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL number command
-IF [NOT] string1==string2 command
-IF [NOT] EXIST filename command
+IF [NOT] ERRORLEVEL 数字 命令
+IF [NOT] 字符串1==字符串2 命令
+IF [NOT] EXIST 文件名 命令
 
-  NOT               Specifies that DOS should carry out
-                    the command only if the condition is false.
+  NOT               指定命令仅在条件非真的情况下执行.
 
-  ERRORLEVEL number Specifies a true condition if the last program run
-                    returned an exit code equal to or greater than the number
-                    specified.
+  ERRORLEVEL 数字   指定条件仅在上个执行程序的返回码至少达到此数字时为真.
 
-  string1==string2  Specifies a true condition if the specified text strings
-                    match.
+  字符串1==字符串2  指定条件仅在两个字符串相同时为真.
 
   
 .
@@ -1518,11 +1513,11 @@ IF [NOT] EXIST filename command
 
 .
 :SHELL_CMD_GOTO_HELP_LONG
-GOTO label
+GOTO 标签
 
-   label   Specifies a text string used in the batch program as a label.
+   标签   在处理文件中指定一个文本字符串作为标签.
 
-You type a label on a line by itself, beginning with a colon.
+标签将作为单独一行, 前面加上冒号.
 
 .
 :SHELL_CMD_SHIFT_HELP
@@ -1538,15 +1533,14 @@ SHIFT
 
 .
 :SHELL_CMD_FOR_HELP_LONG
-FOR %%variable IN (set) DO command [command-parameters]
+FOR %%变量 IN (系列) DO 命令 [命令参数]
 
-  %%variable  Specifies a replaceable parameter.
-  (set)      Specifies a set of one or more files. Wildcards may be used.
-  command    Specifies the command to carry out for each file.
-  command-parameters
-             Specifies parameters or switches for the specified command.
+  %%变量     指定可替换参数.
+  (系列)    指定包含一个或多个文件的系列, 可使用通配符.
+  命令      指定将作用于每个文件的命令.
+  命令参数  指定命令所使用的参数.
 
-To use the command in a batch program, specify %%%%variable instead of %%variable.
+如果在批处理文件中使用, 请使用 %%%%变量 代替 %%变量.
 
 .
 :SHELL_CMD_LFNFOR_HELP
@@ -1556,9 +1550,9 @@ To use the command in a batch program, specify %%%%variable instead of %%variabl
 :SHELL_CMD_LFNFOR_HELP_LONG
 LFNFOR [ON | OFF]
 
-Type LFNFOR without a parameter to display the current LFNFOR setting.
+输入出不带参数的 LFNFOR 命令显示当前 LFNFOR 设置.
 
-This command is only useful if LFN support is currently enabled.
+此命令仅在长文件名支持启用的情况下有效.
 
 .
 :SHELL_CMD_TYPE_HELP
@@ -1566,7 +1560,7 @@ This command is only useful if LFN support is currently enabled.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
-TYPE [drive:][path][filename]
+TYPE [驱动器:][路径][文件名]
 
 .
 :SHELL_CMD_REM_HELP
@@ -1574,7 +1568,7 @@ TYPE [drive:][path][filename]
 
 .
 :SHELL_CMD_REM_HELP_LONG
-REM [comment]
+REM [注释]
 
 .
 :SHELL_CMD_RENAME_HELP
@@ -1582,13 +1576,13 @@ REM [comment]
 
 .
 :SHELL_CMD_RENAME_HELP_LONG
-RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
-REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+RENAME [驱动器:][路径][目录名1 | 文件名1] [目录名2 | 文件名2]
+REN [驱动器:][路径][目录名1 | 文件名1] [目录名2 | 文件名2]
 
-Note that you can not specify a new drive or path for your destination.
+注意您不能给目标文件指定新的驱动器或路径.
 
-Wildcards (* and ?) are supported for files. For example, the following command
-renames all text files: [37;1mREN *.TXT *.BAK[0m
+通配符 (* 和 ?) 可以在文件名中使用.
+举例, 此命令将重命令所有文本文件: [37;1mREN *.TXT *.BAK[0m
 
 .
 :SHELL_CMD_DELETE_HELP
@@ -1596,16 +1590,14 @@ renames all text files: [37;1mREN *.TXT *.BAK[0m
 
 .
 :SHELL_CMD_DELETE_HELP_LONG
-DEL [/P] [/F] [/Q] names
-ERASE [/P] [/F] [/Q] names
+DEL [/P] [/F] [/Q] 名称
+ERASE [/P] [/F] [/Q] 名称
 
-  names         Specifies a list of one or more files or directories.
-                Wildcards may be used to delete multiple files. If a
-                directory is specified, all files within the directory
-                will be deleted.
-  /P            Prompts for confirmation before deleting one or more files.
-  /F            Force deleting of read-only files.
-  /Q            Quiet mode, do not ask if ok to delete on global wildcard.
+  名称          指定一个或多个文件或目录. 通配符可以用来指定删除多个文件.
+                如果指定一个目录则该目录中的所有文件将被删除.
+  /P            删除一个或多个文件时提示确认.
+  /F            强制删除只读文件.
+  /Q            安静模式, 删除目录下所有文件时不进行确认.
 
 .
 :SHELL_CMD_COPY_HELP
@@ -1613,27 +1605,26 @@ ERASE [/P] [/F] [/Q] names
 
 .
 :SHELL_CMD_COPY_HELP_LONG
-COPY [/Y | /-Y] source [+source [+ ...]] [destination]
+COPY [/Y | /-Y] 源文件 [+源文件 [+ ...]] [目标]
 
-  source        Specifies the file or files to be copied.
-  destination   Specifies the directory and/or filename for the new file(s).
-  /Y            Suppresses prompting to confirm you want to overwrite an
-                existing destination file.
-  /-Y           Causes prompting to confirm you want to overwrite an
-                existing destination file.
+  源文件        指定要复制的文件.
+  目标          指定要复制到的文件名或目录.
+  /Y            覆盖现存文件时不进行确认.
+  /-Y           覆盖现存文件时进行确认.
 
-The switch /Y may be preset in the COPYCMD environment variable.
-This may be overridden wit
+选项 /Y 可以在 COPYCMD 环境变量中预先设置. 可以在命令行中使用 /-Y 选项进行覆盖.
+
+要连接文件, 指定一个文件名作为目标, 同时使用多个文件名作为源文件 (使用通配符或者文件1+文件2+文件3格式).
+
 .
 :SHELL_CMD_CALL_HELP
 在批处理文件中调用批处理文件.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
-CALL [drive:][path]filename [batch-parameters]
+CALL [驱动器:][路径]文件名 [批处理参数]
 
-batch-parameters   Specifies any command-line information required by
-                   the batch program.
+批处理参数  指定批处理文件所需的命令行参数.
 
 .
 :SHELL_CMD_SUBST_HELP
@@ -1641,14 +1632,14 @@ batch-parameters   Specifies any command-line information required by
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
-SUBST [drive1: [drive2:]path]
-SUBST drive1: /D
+SUBST [驱动器1: [驱动器2:]路径]
+SUBST 驱动器1: /D
 
-  drive1:       Specifies a drive to which you want to assign a path.
-  [drive2:]path Specifies a mounted local drive and path you want to assign to.
-  /D            Deletes a mounted or substituted drive.
+  驱动器1:        指定您想分配路径的新驱动器.
+  [驱动器2:]路径  指定已挂载的本地驱动器和路径.
+  /D              删除已挂载或代替的驱动器.
 
-Type SUBST with no parameters to display a list of mounted local drives.
+输出不带参数的 SUBST 命令显示已挂载的本地驱动器列表.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
@@ -1656,8 +1647,8 @@ Type SUBST with no parameters to display a list of mounted local drives.
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [drive1:][path]filename [parameters]
-LOADHIGH        [drive1:][path]filename [parameters]
+LH              [驱动器:][路径]文件名 [参数]
+LOADHIGH        [驱动器:][路径]文件名 [参数]
 
 .
 :SHELL_CMD_CHOICE_HELP
@@ -1665,11 +1656,11 @@ LOADHIGH        [drive1:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
-  /N  -  Do not display the choices at end of prompt.
-  /S  -  Enables case-sensitive choices to be selected.
-  text  -  The text to display as a prompt.
+CHOICE [/C:选择] [/N] [/S] text
+  /C[:]选择  指定允许的按键. 默认为: yn.
+  /N         不在末尾显示选择.
+  /S         启用大小写敏感选择模式.
+  文字       作为提示符显示的文字.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -1677,17 +1668,17 @@ CHOICE [/C:choices] [/N] [/S] text
 
 .
 :SHELL_CMD_ATTRIB_HELP_LONG
-ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [驱动器:][路径][文件名] [/S]
 
-  +   Sets an attribute.
-  -   Clears an attribute.
-  R   Read-only file attribute.
-  A   Archive file attribute.
-  S   System file attribute.
-  H   Hidden file attribute.
-  [drive:][path][filename]
-      Specifies file(s) or directory for ATTRIB to process.
-  /S  Processes files in all directories in the specified path.
+  +   设置属性.
+  -   清除属性.
+  R   只读属性.
+  A   归档属性.
+  S   系统属性.
+  H   隐藏属性.
+  [驱动器:][路径][文件名]
+      指定 ATTRIB 命令要处理的文件或目录.
+  /S  处理指定路径下所有目录中的文件.
 
 .
 :SHELL_CMD_PATH_HELP
@@ -1695,11 +1686,11 @@ ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
 
 .
 :SHELL_CMD_PATH_HELP_LONG
-PATH [[drive:]path[;...][;%PATH%]
+PATH [[驱动器:]路径[;...][;%PATH%]
 PATH ;
 
-Type PATH ; to clear all search path settings.
-Type PATH without parameters to display the current path.
+输入 PATH ; 清除所有已设置的搜索路径.
+输入不带参数的 PATH 命令显示当前搜索路径.
 
 .
 :SHELL_CMD_PUSHD_HELP
@@ -1707,11 +1698,11 @@ Type PATH without parameters to display the current path.
 
 .
 :SHELL_CMD_PUSHD_HELP_LONG
-PUSHD [path]
+PUSHD [路径]
 
-path        Specifies the directory to make the current directory.
+路径        指定要作为当前目录的目录.
 
-Type PUSHD with no parameters to display currently stored directories.
+输入不带参数的 PUSHD 命令显示当前保存的目录.
 
 .
 :SHELL_CMD_POPD_HELP
@@ -1729,7 +1720,7 @@ POPD
 :SHELL_CMD_VERIFY_HELP_LONG
 VERIFY [ON | OFF]
 
-Type VERIFY without a parameter to display the current VERIFY setting.
+输入不代参数的 VERIFY 命令显示当前 VERIFY 设置.
 
 .
 :SHELL_CMD_VER_HELP
@@ -1738,16 +1729,16 @@ Type VERIFY without a parameter to display the current VERIFY setting.
 .
 :SHELL_CMD_VER_HELP_LONG
 VER [/R]
-VER [SET] number or VER SET [major minor]
+VER [SET] 版本号 或 VER SET [主版本号 次版本号]
 
-  /R                 Display DOSBox-X's Git commit version and build date.
-  [SET] number       Set the specified number as the reported DOS version.
-  SET [major minor]  Set the reported DOS version in major and minor format.
+  /R                   　　显示 DOSBox-X 的 Git 提交版本和生成日期.
+  [SET] 版本号           　设置指定的版本号为要报告的 DOS 版本.
+  SET [主版本号 次版本号]  以主版本号+次版本号的格式设置要报告的 DOS 版本.
 
-  [0mE.g., [37;1mVER 6.0[0m or [37;1mVER 7.1[0m sets the DOS version to 6.0 and 7.1, respectively.
-  On the other hand, [37;1mVER SET 7 1[0m sets the DOS version to 7.01 instead of 7.1.
+  [0m举例, [37;1mVER 6.0[0m 或 [37;1mVER 7.1[0m 将 DOS 版本分别设置为 6.0 和 7.1.
+  另一方面, [37;1mVER SET 7 1[0m 将设置 DOS 版为 7.01 （而不是 7.1）.
 
-Type VER without parameters to display DOSBox-X and the reported DOS version.
+输入不带参数的 VER 命令显示 DOSBox-X 及报告的 DOS 版本.
 
 .
 :SHELL_CMD_VER_VER
@@ -1763,7 +1754,7 @@ DOSBox-X 版本 %s (%s). 报告的 DOS 版本 %d.%02d.
 
 .
 :SHELL_CMD_VOL_HELP_LONG
-VOL [drive]
+VOL [驱动器]
 
 .
 :SHELL_CMD_PROMPT_HELP
@@ -1771,27 +1762,27 @@ VOL [drive]
 
 .
 :SHELL_CMD_PROMPT_HELP_LONG
-PROMPT [text]
-  text    Specifies a new command prompt.
+PROMPT [文字]
+  文字    指定新的命令提示符.
 
-Prompt can be made up of normal characters and the following special codes:
-  $A   & (Ampersand)
-  $B   | (pipe)
-  $C   ( (Left parenthesis)
-  $D   Current date
-  $E   Escape code (ASCII code 27)
-  $F   ) (Right parenthesis)
-  $G   > (greater-than sign)
-  $H   Backspace (erases previous character)
-  $L   < (less-than sign)
-  $N   Current drive
-  $P   Current drive and path
-  $Q   = (equal sign)
-  $S     (space)
-  $T   Current time
-  $V   DOS version number
-  $_   Carriage return and linefeed
-  $$   $ (dollar sign)
+提示符可以由正常字符和以下特殊代码组成:
+  $A   & (&号)
+  $B   | (管道字符)
+  $C   ( (左括号)
+  $D   当前日期
+  $E   转义码 (ASCII 代码 27)
+  $F   ) (右括号)
+  $G   > (大于号)
+  $H   退格符 (删除此前字符)
+  $L   < (小于号)
+  $N   当前驱动器
+  $P   当前驱动器和路径
+  $Q   = (等号)
+  $S     (空格)
+  $T   当前时间
+  $V   DOS 版本号
+  $_   回车和换行
+  $$   $ (美元字符)
 
 .
 :SHELL_CMD_ALIAS_HELP
@@ -1799,10 +1790,10 @@ Prompt can be made up of normal characters and the following special codes:
 
 .
 :SHELL_CMD_ALIAS_HELP_LONG
-ALIAS [name[=value] ... ]
+ALIAS [名称[=值] ... ]
 
-Type ALIAS without parameters to display the list of aliases in the form:
-`ALIAS NAME = VALUE'
+输入不带参数的 ALIAS 命令将以如下形式显示已定义的别名列表:
+`ALIAS 名称 = 值'
 
 .
 :SHELL_CMD_CHCP_HELP
@@ -1849,8 +1840,8 @@ COUNTRY [nnn]
 
 .
 :SHELL_CMD_CTTY_HELP_LONG
-CTTY device
-  device        The terminal device to use, such as CON.
+CTTY 设备名
+  设备名        要使用的终端设备, 比如 CON.
 
 .
 :SHELL_CMD_MORE_HELP
@@ -1858,9 +1849,9 @@ CTTY device
 
 .
 :SHELL_CMD_MORE_HELP_LONG
-MORE [drive:][path][filename]
-MORE < [drive:][path]filename
-command-name | MORE [drive:][path][filename]
+MORE [驱动器:][路径][文件名]
+MORE < [驱动器:][路径]文件名
+命令名 | MORE [驱动器:][路径][文件名]
 
 .
 :SHELL_CMD_TRUENAME_HELP
@@ -1878,7 +1869,7 @@ TRUENAME 文件
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-It will start video or audio capture, run program, and then automatically stop capture when the program exits.
+它将启动视频或音频捕捉, 运行程序, 等程序运行结束时停止捕捉.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -1886,20 +1877,20 @@ It will start video or audio capture, run program, and then automatically stop c
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [command] [options]
+DEBUGBOX [命令] [选项]
 
-Type DEBUGBOX without a parameter to start the debugger.
+输入不带参数的 DEBUGBOX 命令将启动调试器.
 
 .
 :SHELL_CMD_COMMAND_HELP
-Starts the DOSBox-X command shell.
+启动 DOSBox-X 命令解释器.
 
-The following options are accepted:
+支持以下选项:
 
-  /C    Executes the specified command and returns.
-  /K    Executes the specified command and continues running.
-  /P    Loads a permanent copy of the command shell.
-  /INIT Initializes the command shell.
+  /C    执行指定的命令并返回.
+  /K    执行指定的命令并继续运行.
+  /P    载入永久性的命令解释器.
+  /INIT 初始化命令行.
 
 .
 :SHELL_STARTUP_HEAD1_PC98
@@ -1928,8 +1919,8 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 [32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_CGA_MONO
-Use [31mCtrl+F7[37m to cycle through green, amber, and white monochrome color,      
-and [31mCtrl+F8[37m to change contrast/brightness settings.                         
+按 [31mCtrl+F7[37m 键在单色间切换： 绿色、琥珀色、白色.                             
+按 [31mCtrl+F8[37m 键改变高对比度/亮度设置.                                         
 .
 :MENU:mapper_reset
 重新开始模拟

@@ -93,7 +93,7 @@ void DOS_Shell::ShowPrompt(void) {
 				reg_cl=(uint8_t)((Bitu)ticks % 60);
 				ticks/=60;
 				reg_ch=(uint8_t)((Bitu)ticks % 24);
-				WriteOut("%2d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
+				WriteOut("%d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
 				break;
 			}
 			case 'V': WriteOut("DOSBox-X version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;

@@ -1409,8 +1409,8 @@ void SHELL_Init() {
 		   "  /D            Deletes a mounted or substituted drive.\n\n"
 		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
-	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive1:][path]filename [parameters]\n"
-		   "LOADHIGH        [drive1:][path]filename [parameters]\n");
+	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
+		   "LOADHIGH        [drive:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"

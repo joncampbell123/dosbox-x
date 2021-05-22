@@ -1297,7 +1297,7 @@ SUBST [drive1: [drive2:]path]◙SUBST drive1: /D◙◙  drive1:       Specifies 
 Loads a program into upper memory (requires XMS and UMB memory).◙
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [drive1:][path]filename [parameters]◙LOADHIGH        [drive1:][path]filename [parameters]◙
+LH              [drive:][path]filename [parameters]◙LOADHIGH        [drive:][path]filename [parameters]◙
 .
 :SHELL_CMD_CHOICE_HELP
 Waits for a keypress and sets ERRORLEVEL.◙
