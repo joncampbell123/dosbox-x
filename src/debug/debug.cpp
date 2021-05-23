@@ -973,8 +973,15 @@ static void DrawData(void) {
                 mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
                 if(showPrintable) {
                     if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-                    mvwprintw (dbg.win_data,y,63+x,"%c",ch);
-                } else mvwaddch(dbg.win_data,y,63+x,ch);
+                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+                } else {
+#ifdef __PDCURSES__
+                    mvwaddrawch(dbg.win_data, y, 63 + x, ch);
+#else
+                    if(ch < 32) ch = '.';
+                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+#endif
+                }
 
                 add++;
             }
@@ -3004,6 +3011,16 @@ uint32_t DEBUG_CheckKeys(void) {
 		case PADSTAR:	key='*';	break;
 		case PADMINUS:	key='-';	break;
 		case PADPLUS:	key='+';	break;
+		case PADSTOP:	key=KEY_DC;		break;
+		case PAD0:		key=KEY_IC;		break;
+		case KEY_A1:	key=KEY_HOME;	break;
+		case KEY_A2:	key=KEY_UP;		break;
+		case KEY_A3:	key=KEY_PPAGE;	break;
+		case KEY_B1:	key=KEY_LEFT;	break;
+		case KEY_B3:	key=KEY_RIGHT;	break;
+		case KEY_C1:	key=KEY_END;	break;
+		case KEY_C2:	key=KEY_DOWN;	break;
+		case KEY_C3:	key=KEY_NPAGE;	break;
 		case ALT_D:
 			if (ungetch('D') != ERR) key=27;
 			break;
