@@ -288,6 +288,10 @@ private:
                     PC98_GetCtrlFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x92u); dev_con_pos=0; dev_con_max=esclen;
                     return (dev_con_max != 0)?true:false;
                 }
+                else if (code == 0x95) {// CTRL+F4   Toggle kanji/graph mode     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                    void pc98_toggle_char_mode(void);
+                    pc98_toggle_char_mode();
+                }
                 else if (code == 0x97) {// CTRL+F6   Toggle 20/25-line text      HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
                     /* toggle the bit and change the text layer */
                     {

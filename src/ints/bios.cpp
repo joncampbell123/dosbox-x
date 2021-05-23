@@ -2969,6 +2969,8 @@ void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct p
 }
 
 void draw_pc98_function_row(unsigned int o, const struct pc98_func_key_shortcut_def* keylist) {
+    mem_writew(0xA0000+((o+1)*2),real_readb(0x60,0x8B));
+    mem_writeb(0xA2000+((o+1)*2),0xE1);
     for (unsigned int i=0u;i < 5u;i++)
         draw_pc98_function_row_elem(o,4u + (i * 7u),keylist[i]);
     for (unsigned int i=5u;i < 10u;i++)
@@ -3074,6 +3076,16 @@ void pc98_function_row_user_toggle(void) {
         update_pc98_function_row(0,true);
     else
         update_pc98_function_row(pc98_function_row_mode+1,true);
+}
+
+void pc98_set_char_mode(bool mode) {
+    real_writeb(0x60,0x8A,mode);
+    real_writeb(0x60,0x8B,(mode == true) ? ' ' : 'g');
+    update_pc98_function_row(pc98_function_row_mode,true);
+}
+
+void pc98_toggle_char_mode(void) {
+    pc98_set_char_mode(!real_readb(0x60,0x8A));
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
