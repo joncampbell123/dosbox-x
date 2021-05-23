@@ -1,0 +1,107 @@
+/* test comment */
+// test comment
+
+/* yeah, using a bit of syntax inspiration from Perl */
+exit unless global dialect == "interrupt list"; /* this is a list of interrupts, do not parse otherwise, just quietly exit with success */
+
+/* IBM PC BIOS interrupt list */
+if global platform == "ibm-pc" {
+    interrupt 0x10 {
+        type software;
+        name "Video BIOS";
+        description "Video and video related BIOS functions";
+        select by register ah {
+            case 0x00 {
+                name "Set video mode";
+                input {
+                    register al bits [6:0] type integer;
+                    name "Video mode";
+                }
+                input {
+                    register al bit 7 type !flag; /* set bit to NOT clear video memory */
+                    name "Clear video memory";
+                }
+            }
+            case 0x01 {
+                name "Set text mode cursor shape";
+                input {
+                    register ch bits [4:0] type integer;    
+                    name "Top scan line of the cursor, inclusive";
+                }
+                input {
+                    register cl bits [4:0] type integer;
+                    name "Bottom scan line of the cursor, inclusive";
+                }
+                input {
+                    register ch bits [6:5] type integer;
+                    name "Cursor blink and invisibility control";
+                    if (global videoclass is one of "cga" or "mda") {
+                        enum {
+                            00b = "normal",
+                            01b = "invisible",
+                            10b = "erratic blink",
+                            11b = "slow blink"
+                        }
+                    }
+                    else {
+                        enum {
+                            00b = "normal",
+                            else = "invisible"
+                        }
+                    }
+                }
+            }
+            case 0x02 {
+                name "Set cursor position";
+                input {
+                    register bh type integer;
+                    name "Page number";
+                }
+                input {
+                    register dh type integer;
+                    name "Row number";
+                    description "Row number from top of screen";
+                    integer base 0;
+                }
+                input {
+                    register dl type integer;
+                    name "Column number";
+                    description "Column number from left side of screen";
+                    integer base 0;
+                }
+            }
+            case 0x03 {
+                name "Get cursor size and position";
+                input {
+                    register bh type integer;
+                    name "Page number";
+                }
+                output {
+                    register ch type integer;
+                    name "Top scan line of the cursor, inclusive";
+                }
+                output {
+                    register cl type integer;
+                    name "Bottom scan line of the cursor, inclusive";
+                }
+                output {
+                    register dh type integer;
+                    name "Row number";
+                    description "Row number from top of screen";
+                    integer base 0;
+                }
+                output {
+                    register dl type integer;
+                    name "Column number";
+                    description "Column number from left side of screen";
+                    integer base 0;
+                }
+                modified {
+                    note "Phoenix BIOS: AX = 0000h (ref. Ralph Brown Interrupt List)";
+                    register ax;
+                }
+            }
+        }
+    }
+}
+
