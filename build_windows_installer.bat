@@ -40,7 +40,8 @@ if not exist %isspath%\ISCC.exe (
 	goto error
 )
 
-set datestr=
+set datestr=%1
+if "%datestr:~0,2%"=="20" if not "%datestr:~7%"=="" if "%datestr:~8%"=="" goto hasdate
 for /f %%i in ('%isspath%\date.exe +%%Y%%m%%d') do set datestr=%%i
 
 if "%datestr%"=="" (
@@ -48,6 +49,7 @@ if "%datestr%"=="" (
 	goto error
 )
 
+:hasdate
 set vwin32zip=
 set vwin64zip=
 set varm32zip=

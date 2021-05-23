@@ -158,7 +158,7 @@ void LoadMessageFile(const char * fname) {
                         langnote = r+1;
                     *r=':';
                 }
-            } else if (!strncasecmp(linein+1, "MENU:", 5)) {
+            } else if (!strncasecmp(linein+1, "MENU:", 5)&&strlen(linein+6)<LINE_IN_MAXLEN) {
                 *name=0;
                 strcpy(menu_name,linein+6);
             } else {
