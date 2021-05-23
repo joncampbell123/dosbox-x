@@ -9227,7 +9227,7 @@ bool DOSBOX_parse_argv() {
             if (control->cmdline->NextOptArgv(tmp)) {
                 struct stat st;
                 if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
-                    if (chdir(tmp.c_str()) < 0)
+                    if (chdir(tmp.c_str()) == -1)
                         return false;
             } else
                 usecfgdir = true;
@@ -10314,7 +10314,10 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to get the current working directory.");
+        return false;
+    }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
     const char *lFilterDescription = "OpenGL shader files (*.glsl)";
@@ -10364,7 +10367,10 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
             GFX_ForceRedrawScreen();
         }
     }
-    chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to change directories.");
+        return false;
+    }
 #endif
 
     return true;
@@ -10388,7 +10394,10 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to get the current working directory.");
+        return false;
+    }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.ttf","*.TTF"};
     const char *lFilterDescription = "TrueType font files (*.ttf)";
@@ -10416,7 +10425,10 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 #endif
         }
     }
-    chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to change directories.");
+        return false;
+    }
 #endif
 
     return true;
@@ -10430,7 +10442,10 @@ void Load_mapper_file() {
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("Load_mapper_file failed to get the current working directory.");
+        return;
+    }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.map","*.MAP"};
     const char *lFilterDescription = "Mapper files (*.map)";
@@ -10470,7 +10485,9 @@ void Load_mapper_file() {
             ReloadMapper(section,true);
         }
     }
-    chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("Load_mapper_file failed to change directories.");
+    }
 #endif
 }
 
@@ -10481,7 +10498,10 @@ void Restart_config_file() {
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to get the current working directory.");
+        return;
+    }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.conf","*.CONF"};
     const char *lFilterDescription = "DOSBox-X config files (*.map)";
@@ -10506,7 +10526,9 @@ void Restart_config_file() {
             RebootConfig(name, true);
         }
     }
-    chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to change directories.");
+    }
 #endif
 }
 
@@ -11142,7 +11164,10 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to get the current working directory.");
+        return false;
+    }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.log","*.LOG"};
     const char *lFilterDescription = "Log files (*.log)";
@@ -11152,7 +11177,10 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     bool savetologfile(const char *name);
     if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", ("Cannot save to the file: "+std::string(lTheSaveFileName)).c_str(), "ok","warning", 1);
 #endif
-    chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("save_logas_menu_callback failed to change directories.");
+        return false;
+    }
 #endif
     return true;
 }
@@ -11381,7 +11409,10 @@ bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * 
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("browse_save_file_menu_callback failed to get the current working directory.");
+        return false;
+    }
     const char *lFilterPatterns[] = {"*.sav","*.SAV"};
     const char *lFilterDescription = "Save files (*.sav)";
     char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a save file","",2,lFilterPatterns,lFilterDescription);
@@ -11389,7 +11420,10 @@ bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * 
         savefilename = std::string(lTheSaveFileName);
         mainMenu.get_item("usesavefile").set_text("Use save file"+(savefilename.size()?" ("+savefilename+")":"")).refresh_item(mainMenu);
     }
-	chdir( Temp_CurrentDir );
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("browse_save_file_menu_callback failed to change to the current working directory.");
+        return false;
+    }
 #endif
     return true;
 }
@@ -12271,18 +12305,28 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     if (workdiropt == "prompt" && control->opt_promptfolder < 0) control->opt_promptfolder = 1;
     else if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
-        chdir(workdirdef.c_str());
+        if (chdir(workdirdef.c_str()) == -1) {
+            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'custom' or 'force'.");
+        }
         control->opt_used_defaultdir = true;
         usecfgdir = false;
     } else if (workdiropt == "userconfig") {
         std::string config_path;
         Cross::GetPlatformConfigDir(config_path);
-        if (config_path.size()) chdir(config_path.c_str());
+        if (config_path.size()) {
+            if (chdir(config_path.c_str()) == -1) {
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
+            }
+        }
         control->opt_used_defaultdir = true;
         usecfgdir = false;
     } else if (workdiropt == "program") {
-        std::string exepath=GetDOSBoxXPath();
-        if (exepath.size()) chdir(exepath.c_str());
+        std::string exepath = GetDOSBoxXPath();
+        if (exepath.size()) {
+            if (chdir(exepath.c_str()) == -1) {
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'program'.");
+            }
+        }
         control->opt_used_defaultdir = true;
         usecfgdir = false;
     } else if (workdiropt == "config") {
@@ -12300,7 +12344,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
         char cwd[512] = {0};
-        getcwd(cwd,sizeof(cwd)-1);
+        if(getcwd(cwd, sizeof(cwd) - 1) == NULL) {
+            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        }
 
 #if !defined(MACOSX)
         if(control->opt_promptfolder < 0) {
@@ -12326,7 +12372,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         if (control->opt_promptfolder == 1 && workdiropt == "default" && workdirdef.size()) {
             control->opt_promptfolder = 0;
-            chdir(workdirdef.c_str());
+            if(chdir(workdirdef.c_str()) == -1) {
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'default'.");
+            }
             control->opt_used_defaultdir = true;
             usecfgdir = false;
         }
@@ -12546,7 +12594,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->configfiles.size()&&usecfgdir) {
             std::string configpath=control->configfiles.front();
             size_t found=configpath.find_last_of("/\\");
-            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
+            if(found != string::npos) {
+                if(chdir(configpath.substr(0, found + 1).c_str()) == -1) {
+                    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for .conf file.");
+                }
+            }
         }
 
 		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
@@ -12789,22 +12841,36 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         void ResolvePath(std::string& in);
         ResolvePath(workdirdef);
         if (((workdiropt == "custom" && !control->opt_used_defaultdir) || workdiropt == "force") && workdirdef.size()) {
-            chdir(workdirdef.c_str());
+            if(chdir(workdirdef.c_str()) == -1) {
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'custom' or 'force'.");
+            }
         } else if (workdiropt == "userconfig") {
             std::string config_path;
             Cross::GetPlatformConfigDir(config_path);
-            if (config_path.size()) chdir(config_path.c_str());
+            if(config_path.size()) {
+                if(chdir(config_path.c_str()) == -1) {
+                    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
+                }
+            }
         } else if (workdiropt == "program" && exepath.size()) {
-            chdir(exepath.c_str());
+            if(chdir(exepath.c_str()) == -1) {
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'program'.");
+            }
         } else if (workdiropt == "config" && control->configfiles.size()) {
             std::string configpath=control->configfiles.front();
             size_t found=configpath.find_last_of("/\\");
-            if (found!=string::npos) chdir(configpath.substr(0, found+1).c_str());
+            if(found != string::npos) {
+                if(chdir(configpath.substr(0, found + 1).c_str()) == -1) {
+                    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'config'.");
+                }
+            }
         }
 
         char cwd[512] = {0};
-        char *res = getcwd(cwd,sizeof(cwd)-1);
-        if (res!=NULL) LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
+        if(getcwd(cwd, sizeof(cwd) - 1))
+            LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
+        else
+            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
     }
 
 #if (ENVIRON_LINKED)
