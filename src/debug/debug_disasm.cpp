@@ -439,9 +439,9 @@ static char *addr_to_hex(UINT32 addr, int splitup) {
 
   if (splitup) {
     if (fp_segment(addr)==0 || fp_offset(addr)==0xffff) /* 'coz of wraparound */
-      sprintf(buffer, "%04X", (unsigned)fp_offset(addr) );
+      sprintf(buffer, "%04X", fp_offset(addr) );
     else
-      sprintf(buffer, "%04X:%04X", (unsigned)fp_segment(addr), (unsigned)fp_offset(addr) );
+      sprintf(buffer, "%04X:%04X", fp_segment(addr), fp_offset(addr) );
   } else {
 #if 0
 	  /* Pet outcommented, reducing address size to 4
@@ -608,7 +608,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
       } else
         signchar = '+';
       if (delta || !optional)
-		uprintf("%c%0*lX", signchar, (extend), (long)delta);
+		uprintf("%c%0*lX", signchar, extend, (long)delta);
     } else {
       if (extend==2)
         delta = (UINT16)delta;
