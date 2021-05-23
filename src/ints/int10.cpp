@@ -1219,21 +1219,25 @@ void INT10_Startup(Section *sec) {
          * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
          */
 
+        real_writeb(0x60,0x8A,1); /* kanji/graph mode */
+        real_writeb(0x60,0x8B,' '); /* kanji/graph mode indicator */
+        real_writeb(0x60,0x8C,' '); /* function row mode 2 indicator */
+
         /* number of text rows on the screen.
          * Touhou Project will not clear/format the text layer properly without this variable. */
-        mem_writeb(0x710,0); /* cursor position Y coordinate */
-        mem_writeb(0x711,1); /* function definition display status flag */
-        mem_writeb(0x712,25 - 1 - 1); /* scroll range lower limit (usually 23 when function key row is visible) */
-        mem_writeb(0x713,1); /* normal 25 lines */
-        mem_writeb(0x714,0xE1); /* content erase attribute */
+        real_writeb(0x60,0x110,0); /* cursor position Y coordinate */
+        real_writeb(0x60,0x111,1); /* function definition display status flag */
+        real_writeb(0x60,0x112,25 - 1 - 1); /* scroll range lower limit (usually 23 when function key row is visible) */
+        real_writeb(0x60,0x113,1); /* normal 25 lines */
+        real_writeb(0x60,0x114,0xE1); /* content erase attribute */
 
-        mem_writeb(0x719,0x20); /* content erase character */
+        real_writeb(0x60,0x119,0x20); /* content erase character */
 
-        mem_writeb(0x71B,0x01); /* cursor displayed */
-        mem_writeb(0x71C,0x00); /* cursor position X coordinate */
-        mem_writeb(0x71D,0xE1); /* content display attribute */
-        mem_writeb(0x71E,0x00); /* scroll range upper limit (usually 0) */
-        mem_writeb(0x71F,0x01); /* scrolling speed is normal */
+        real_writeb(0x60,0x11B,0x01); /* cursor displayed */
+        real_writeb(0x60,0x11C,0x00); /* cursor position X coordinate */
+        real_writeb(0x60,0x11D,0xE1); /* content display attribute */
+        real_writeb(0x60,0x11E,0x00); /* scroll range upper limit (usually 0) */
+        real_writeb(0x60,0x11F,0x01); /* scrolling speed is normal */
 
         /* init text RAM */
         for (unsigned int i=0;i < 0x1FE0;i += 2) {

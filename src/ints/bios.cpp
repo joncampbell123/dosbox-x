@@ -2969,6 +2969,8 @@ void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct p
 }
 
 void draw_pc98_function_row(unsigned int o, const struct pc98_func_key_shortcut_def* keylist) {
+    mem_writew(0xA0000+((o+1)*2),real_readb(0x60,0x8B));
+    mem_writeb(0xA2000+((o+1)*2),0xE1);
     for (unsigned int i=0u;i < 5u;i++)
         draw_pc98_function_row_elem(o,4u + (i * 7u),keylist[i]);
     for (unsigned int i=5u;i < 10u;i++)
@@ -2998,6 +3000,9 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
         }
     }
 
+    /* update mode 2 indicator */
+    real_writeb(0x60,0x8C,(pc98_function_row_mode == 2) ? '*' : ' ');
+
     real_writeb(0x60,0x112,total_rows - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
 
     if (pc98_function_row_mode == 2) {
@@ -3021,7 +3026,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
                 i++;
         }
 
-        mem_writew(0xA0000+((o+2)*2),(unsigned char)('*'));
+        mem_writew(0xA0000+((o+2)*2),real_readb(0x60,0x8C));
         mem_writeb(0xA2000+((o+2)*2),0xE1);
 
         draw_pc98_function_row(o,pc98_func_key_shortcut);
@@ -3071,6 +3076,16 @@ void pc98_function_row_user_toggle(void) {
         update_pc98_function_row(0,true);
     else
         update_pc98_function_row(pc98_function_row_mode+1,true);
+}
+
+void pc98_set_char_mode(bool mode) {
+    real_writeb(0x60,0x8A,mode);
+    real_writeb(0x60,0x8B,(mode == true) ? ' ' : 'g');
+    update_pc98_function_row(pc98_function_row_mode,true);
+}
+
+void pc98_toggle_char_mode(void) {
+    pc98_set_char_mode(!real_readb(0x60,0x8A));
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
@@ -5148,8 +5163,8 @@ static Bitu INTDC_PC98_Handler(void) {
                  * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code)
                  *
                  * NTS: Reverse engineering INT DCh shows it sets both 71Dh and 73Ch as below */
-                mem_writeb(0x71D,reg_dl);   /* 60:11D */
-                mem_writeb(0x73C,reg_dx);   /* 60:13C */
+                real_writeb(0x60,0x11D,reg_dl);
+                real_writeb(0x60,0x13C,reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 DL=X-coord DH=Y-coord set cursor position */
