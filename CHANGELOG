@@ -47,6 +47,11 @@
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)
+  - Added the ability to toggle between Shift-JIS and
+    graphical modes using Ctrl+F4 key (or ESC )3 and
+    ESC )0 escape sequences) in the PC-98 mode. There
+    is now also an indication of graphical mode in the
+    function row. (nmlgc)
   - Added "ttf.wpfg" config option in [render] section
     which can optionally specify a foreground color
     (0-7) for the TTF output, similar to "ttf.wpbg" for
