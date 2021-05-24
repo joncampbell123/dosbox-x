@@ -204,10 +204,10 @@ bool MSG_Write(const char * location, const char * name) {
     char temp[4096];
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
-	fprintf(out,":DOSBOX-X:VERSION:%s\n",VERSION);
 	if (name!=NULL) langname=std::string(name);
 	if (langname!="") fprintf(out,":DOSBOX-X:LANGUAGE:%s\n",langname.c_str());
 	if (dos.loaded_codepage) fprintf(out,":DOSBOX-X:CODEPAGE:%d\n",dos.loaded_codepage);
+	fprintf(out,":DOSBOX-X:VERSION:%s\n",VERSION);
 	fprintf(out,":DOSBOX-X:REMARK:%s\n",langnote.c_str());
 	morelen=true;
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){

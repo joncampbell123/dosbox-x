@@ -1,6 +1,6 @@
-:DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
+:DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
@@ -1034,10 +1034,10 @@ Usa ←[32mHELP←[37m para ver la lista de comandos, ←[32mINTRO←[37m para u
 ←[32mEj←[37m: Prueba en salida de video ←[33mTrueType font←[37m u ←[33mOpenGL pixel-perfect←[37m
 .
 :SHELL_STARTUP_TEXT2_PC98
-Para lanzar ←[33m"Configuration Tool"←[37m usa ←[31mhost+C←[37m. La tecla HOST es ←[32mF11←[37m.◙Para activar el ←[33m"Mapper Editor"←[37m para asignar teclas, usa ←[31mhost+M←[37m.  ◙Para conmutar entre pantalla completa o modo ventana, usa ←[31mhost+F←[37m. ◙Para ajustar la velocidad de CPU, usa ←[31mhost+SUMA←[37m o ←[31mhost+MENOS←[37m.     
+Para lanzar ←[33m"Configuration Tool"←[37m usa ←[31mhost+C←[37m. La tecla HOST es ←[32mF11←[37m.◙Para activar el ←[33m"Mapper Editor"←[37m para asignar teclas, usa ←[31mhost+M←[37m.  ◙Para conmutar entre pantalla completa o modo ventana, usa ←[31mhost+F←[37m. ◙Para ajustar la velocidad de CPU, usa ←[31mhost+MAS←[37m o ←[31mhost+MENOS←[37m.      
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X funcionando en modo de emulacion japonesa NEC PC-98.←[37m     ◙←[31mEMULACION DE PC98 ACTUALMENTE INCOMPLETA Y BAJO FUERTE DESARROLLO.←[37m
+←[36mDOSBox-X funcionando en modo NEC PC-98xx.                    ←[37m     ◙←[31mEMULACION DE PC98 ACTUALMENTE INCOMPLETA Y BAJO FUERTE DESARROLLO.←[37m
 .
 :SHELL_STARTUP_TEXT3_PC98
 ←[32mWeb de DOSBox-X  ←[33mhttps://dosbox-x.com/    ←[36mEmulacion completa DOS  ←[37m◙←[32mGuia y manuales  ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS Windows 3.x y Win9x←[37m◙←[32mSoporte DOSBox-X ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m◙←[32mTraduccion←[37m       ←[33mhttps://github.com/Dalekamistoso/dosbox-x        ←[37m
