@@ -2,7 +2,35 @@
 // test comment
 
 /* global <identifier> = variable from global state including that provided by host program. "global" is explicitly
-   specified to differentiate from any local variables this script may use. */
+   specified to differentiate from any local variables this script may use. The word following global is always an
+   identifier. At the primitive level of dev at this time, you can technically use global if but DON'T, because
+   the parser in the future will be fixed to disallow reserved words as identifiers entirely, at which point you
+   may only refer to global var "if" using quotation marks. */
+
+/* global <identifier> may support variable substitution in the future if needed, at which point some syntax needs
+   to be defined to "dereference" the variable to get it's true value and refer to that global instead. Idea: use
+   the asterisk just like derferencing a pointer in C/C++ i.e. global *varname */
+
+/* reserved word list:
+    bits
+    by
+    case
+    description
+    flag
+    global
+    if
+    input
+    integer
+    interrupt
+    of
+    or
+    output
+    modified
+    name
+    register
+    select
+    type
+*/
 
 /* yeah, using a bit of syntax inspiration from Perl */
 exit unless global dialect == "interrupt list"; /* this is a list of interrupts, do not parse otherwise, just quietly exit with success */
