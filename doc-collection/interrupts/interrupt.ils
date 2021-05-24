@@ -1,6 +1,9 @@
 /* test comment */
 // test comment
 
+/* global <identifier> = variable from global state including that provided by host program. "global" is explicitly
+   specified to differentiate from any local variables this script may use. */
+
 /* yeah, using a bit of syntax inspiration from Perl */
 exit unless global dialect == "interrupt list"; /* this is a list of interrupts, do not parse otherwise, just quietly exit with success */
 
