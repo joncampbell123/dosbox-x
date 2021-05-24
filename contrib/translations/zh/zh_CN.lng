@@ -40,7 +40,7 @@ IDE 位置
 存档
 .
 :CONFIG_SUGGESTED_VALUES
-可能的值
+Possible values
 .
 :AUTO_CYCLE_MAX
 自动选择周期 [最大]

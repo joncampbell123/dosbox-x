@@ -709,8 +709,9 @@ void DOS_Shell::Prepare(void) {
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
-			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
-			if (sec->Get_bool("automountall")) MountAllDrives(this, control->opt_fastlaunch);
+			const Section_prop* sec = static_cast<Section_prop*>(control->GetSection("dos"));
+			const char *automountstr = sec->Get_string("automountall");
+			if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet")||control->opt_fastlaunch);
 		}
 #endif
 		strcpy(i4dos_data, "");

@@ -44,6 +44,8 @@
     close these dialog boxes. (Wengier)
   - Command "CONFIG -wl" will show the name of language
     file being written to. (Wengier)
+  - If a config option can only be changed at run-time,
+    "CONFIG -set" will now show such message. (Wengier)
   - SETCOLOR command can now change the text-mode color
     schemes in outputs rather than the TrueType font
     output too (VGA mode only). (Wengier)
@@ -60,6 +62,8 @@
     section which when set to true (default) will force
     to use the current TrueType font (set via ttf.font)
     for printing too when using TTF output. (Wengier)
+  - Added value "quiet" to "automountall" config option
+    to auto-mount all Windows drives quietly. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
   - Added menu option "Print text screen" (under "DOS")

@@ -1196,6 +1196,10 @@ void DOSBOX_SetupConfigSections(void) {
 
         0 };
 
+    const char* automountopts[] = {
+        "true", "false", "quiet", "1", "0",
+        0 };
+
     const char* workdiropts[] = {
         "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
         0 };
@@ -1284,7 +1288,7 @@ void DOSBOX_SetupConfigSections(void) {
             "on higher resolution monitors which is probably not what you want.");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
+    Pstring = secprop->Add_string("quit warning",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(quit_settings);
     Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when the user tries to close its window.\n"
             "If set to auto (default), DOSBox-X will warn if a DOS program, game or a guest system is currently running.\n"
@@ -3889,11 +3893,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Automatically mount all available Windows drives at start.");
-    Pbool->SetBasic(true);
+    Pstring = secprop->Add_string("automountall",Property::Changeable::WhenIdle,"false");
+    Pstring->Set_values(automountopts);
+    Pstring->Set_help("Automatically mount all available Windows drives at start.");
+    Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("mountwarning",Property::Changeable::OnlyAtStart,true);
+    Pbool = secprop->Add_bool("mountwarning",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
     Pbool->SetBasic(true);
 

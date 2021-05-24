@@ -1161,6 +1161,11 @@ void CONFIG::Run(void) {
 					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
 				return;
 			}
+			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
+			if (p==NULL||p->getChange()==Property::Changeable::OnlyAtStart) {
+				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
+				return;
+			}
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
 			// now execute
 			Section* tsec = control->GetSection(pvars[0]);
@@ -1169,7 +1174,6 @@ void CONFIG::Run(void) {
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
 			std::string inputline = pvars[1] + "=" + value;
-			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
 				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
@@ -1363,7 +1367,8 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
                             } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
-                                if (section->Get_bool("automountall")) MountAllDrives(this, false);
+                                const char *automountstr = section->Get_string("automountall");
+                                if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet"));
                             } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
                                 clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {

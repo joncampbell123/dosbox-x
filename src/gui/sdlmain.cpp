@@ -7917,7 +7917,7 @@ void SDL_SetupConfigSection() {
                       "  (output=surface does not!)");
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::OnlyAtStart, "");
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
     Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
     Pstring->SetBasic(true);
 
@@ -7929,7 +7929,7 @@ void SDL_SetupConfigSection() {
         "ddraw", "direct3d",
         0 };
 
-    Pint = sdl_sec->Add_int("display", Property::Changeable::OnlyAtStart, 0);
+    Pint = sdl_sec->Add_int("display", Property::Changeable::Always, 0);
     Pint->Set_help("Specify a screen/display number to use for a multi-screen setup (0 = default).");
     Pint->SetBasic(true);
 

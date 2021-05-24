@@ -377,8 +377,9 @@ bool Prop_string::SetValue(std::string const& input) {
     //If there are none then it can be paths and such which are case sensitive
     if (!suggested_values.empty()) lowcase(temp);
     Value val(temp,Value::V_STRING);
-    return SetVal(val,false,true);
+    return SetVal(val,false,true)||(!suggested_values.empty()&&!input.size());
 }
+
 bool Prop_string::CheckValue(Value const& in, bool warn) {
     if (suggested_values.empty()) return true;
     for(const_iter it = suggested_values.begin();it != suggested_values.end();++it) {
@@ -419,7 +420,7 @@ bool Prop_path::SetValue(std::string const& input) {
 bool Prop_bool::SetValue(std::string const& input) {
     Value val;
     if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_BOOL)) return false;
-    return SetVal(val,false,/*warn*/true)&&input.size();
+    return SetVal(val,false,/*warn*/true);
 }
 
 bool Prop_hex::SetValue(std::string const& input) {
