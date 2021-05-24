@@ -6,10 +6,31 @@
 Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
 .
 :CONFIGFILE_INTRO
-# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versi¢n si puedes)◙# Lineas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas l¡neas se usan para documentar brevemente el efecto de cada opcion.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
+# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versión si puedes)◙# Lineas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas l¡neas se usan para documentar brevemente el efecto de cada opcion.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
+.
+:DRIVE
+Disco
+.
+:TYPE
+Tipo
+.
+:LABEL
+Etiqueta
+.
+:DRIVE_NUMBER
+Nº de unidad
+.
+:DISK_NAME
+Nombre de disco
+.
+:IDE_POSITION
+Posición IDE
+.
+:SWAP_SLOT
+Intercambiar slot
 .
 :EMPTY_SLOT
 Slot vacío
@@ -59,29 +80,28 @@ Escribiendo archivo config %s◙
 :PROGRAM_CONFIG_USAGE
 Utilidad de configuración por comandos de DOSBox-X. Opciones admitidas:
 
--wc (o -writeconf) sin parámetro: Escribe en archivo primario de configuración cargado.
--wc (o -writeconf) con nombre de archivo: Escribe archivo al directorio de configuración.
--wl (o -writelang) con nombre de archivo: Escribe las cadenas del idioma actual.
--wcp [archivo] Escribe archivo config al directorio del programa (dosbox-x.conf/archivo).
--wcd Escribe en el archivo de configuración predeterminado del directorio de configuración.
--all Usa este parámetro con -wc, -wcp, o -wcd para escribir TODAS las opciones en el archivo de configuración.
--mod Usa este con -wc, -wcp, o -wcd para escribir SOLO las opciones modificadas del archivo de configuración.
+-wc (o -writeconf) sin parámetro: Escribe en archivo primario config cargado.
+-wc (o -writeconf) con nombre de archivo: Escribe archivo al dir. de config.
+-wl (o -writelang) con nombre de archivo: Escribe cadenas del idioma actual.
+-wcp [archivo] Escribe config al dir. de DosBox-X dosbox-x.conf o "archivo"
+-wcd Escribe en el archivo de config por defecto del directorio de config.
+-all con -wc -wcp o -wcd para escribir TODAS las opciones en archivo config.
+-mod con -wc -wcp o -wcd para escribir SOLO las opciones modificadas.
 -wcboot, -wcpboot, o -wcdboot reincia DOSBox-X tras escribir archivo.
--bootconf (o -bc) reinicia con archivo config indicado (o el primario ya cargado).
--norem Usa este con -wc, -wcp, o -wcd para no escribir comentarios de opciones de configuración.
+-bootconf (o -bc) reinicia con archivo config deseado (o primario ya cargado).
+-norem Usa con -wc -wcp o -wcd para no escribir comentarios de opciones.
 -gui Inicia la herramienta de configuración grafica de DOSBox-X.
 -l Lista los parámetros de configuración de DOSBox-X.
--h, -help, -? secciónes / nombre_de_sección / nombre_de_propiedad
- Sin parámetros muestra esta ayuda. Añade "sections" para una lista de secciónes.
+-h, -help, -? secciones / nombre_de_sección / nombre_de_propiedad.
+ Sin parámetros muestra esta ayuda. Añade "sections" para lista de secciones.
  Para más info de una sección o propiedad especifica añade su nombre detras.
 -axclear Limpia la sección [autoexec].
 -axadd [línea] Añade una línea a la sección [autoexec].
 -axtype Imprime el contenido de una sección del [autoexec].
--securemode Cambia a modo seguro donde MOUNT, IMGMOUNT y BOOT estaran
+-securemode Cambia a modo seguro donde MOUNT, IMGMOUNT y BOOT estarán.
  desactivadas asi como la habilidad de crear archivos de idioma y config.
 -get "sección propiedad" devuelve el valor de la propiedad.
 -set "sección propiedad=valor" establece el valor de la propiedad.
-
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
 Proposito de la propiedad "%s" (contenido en sección "%s"):◙%s◙◙Valores posibles: %s◙Valor por defecto: %s◙Valor actual: %s◙
@@ -1335,7 +1355,7 @@ VER [SET] número o VER SET [mayor menor]
   [SET] número       Establece la versión de DOS informada por DOSBox-X.
   SET [mayor menor]  SEstablece la versió de DOS en formato mayor o menor.
 
-  ←[0mEj. ←[37;1mVER 6.0←[0m o ←[37;1mVER 7.1←[0m establece versi¢n DOS 6.0 y 7.1, respectivamente.
+  ←[0mEj. ←[37;1mVER 6.0←[0m o ←[37;1mVER 7.1←[0m establece versión DOS 6.0 y 7.1, respectivamente.
   Por otro lado, ←[37;1mVER SET 7 1←[0m establece la versión DOS como 7.01 en vez de 7.1.
 
 Teclea VER sin parámetros para mostrar versión de DOSBox-X y del DOS emulada.
@@ -1375,7 +1395,7 @@ Prompt puede estar compuesto de caracteres y estos códigos especiales:
   $Q   = (signo igual)
   $S     (espacio)
   $T   Hora actual
-  $V   Número de versi¢n DOS actual
+  $V   Número de versión DOS actual
   $_   Retorno de carro y salto de línea
   $$   $ (símbolo del dólar)
 
@@ -1504,7 +1524,7 @@ Enviar tecla especial
 Seleccionar tecla de host
 .
 :MENU:WheelToArrow
-Movimientos rueda del ratón
+Movimientos de la rueda del ratón
 .
 :MENU:SharedClipboard
 Funciones portapapeles compartido
