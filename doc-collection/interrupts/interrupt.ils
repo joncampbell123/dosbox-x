@@ -1,6 +1,10 @@
 /* test comment */
 // test comment
 
+/* "Dialect" means that a somewhat common tokenizer will be written, but the syntax on top will vary between the
+   various kinds of information to gather. One for interrupts, one for opcodes, one for any other category. Over
+   time as each develops to it's intended purpose, the dialects will be developed into a more common syntax. */
+
 /* global <identifier> = variable from global state including that provided by host program. "global" is explicitly
    specified to differentiate from any local variables this script may use. The word following global is always an
    identifier. At the primitive level of dev at this time, you can technically use global if but DON'T, because
