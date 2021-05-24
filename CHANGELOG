@@ -130,6 +130,8 @@
   - Fixed the mouse not automatically captured when
     DOSBox-X starts with the settings fullscreen=true
     and autolock=true. (Wengier)
+  - Fixed inputs in the Configuration Tool when the
+    Configuration Tool is scaled. (Wengier)
   - Fixed keys may not work after loading a saved state
     for the game Buck Rogers. (Wengier)
   - Fixed Windows detection for the game "Tex Murphy:
