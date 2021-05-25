@@ -49,7 +49,7 @@ typedef struct {
 Bitu call_program;
 extern const char *modifier;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1365,21 +1365,36 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+                            } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
+                                clipboard_dosapi = section->Get_bool("dos clipboard api");
+                                mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
                             } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
                                 const char *automountstr = section->Get_string("automountall");
                                 if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet"));
-                            } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
-                                clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
 								winautorun = section->Get_bool("startcmd");
 								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
 								startwait = section->Get_bool("startwait");
-								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+                                mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                                true
+#else
+                                startcmd
+#endif
+                                ).refresh_item(mainMenu);
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
 								startquiet = section->Get_bool("startquiet");
-								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
+								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                                true
+#else
+                                startcmd
+#endif
+                                ).refresh_item(mainMenu);
 #endif
                             }
 						} else if (!strcasecmp(pvars[0].c_str(), "render")) {

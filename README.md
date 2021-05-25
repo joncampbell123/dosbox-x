@@ -57,13 +57,13 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for long filenames and FAT32 disk images (DOS 7+ features)
 
-* Support for starting programs to run on the host systems (-hostrun)
-
 * Support for pixel-perfect scaling output for improved image quality
 
 * Support for TrueType font (TTF) output for text-mode DOS programs
 
 * Support for printing features, either to a real or to a virtual printer
+
+* Support for starting programs to run on the host systems (-hostrun option)
 
 * Support for 3dfx Voodoo chip and Glide emulation (including Glide wrapper)
 

@@ -3917,7 +3917,13 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
+    Pbool = secprop->Add_bool("startcmd",Property::Changeable::
+#if defined(WIN32) && !defined(HX_DOS)
+    WhenIdle
+#else
+    OnlyAtStart
+#endif
+    ,false);
     Pbool->Set_help("Enable START command to start programs to run on the host system. On Windows host programs or commands may also be launched directly.");
     Pbool->SetBasic(true);
 
