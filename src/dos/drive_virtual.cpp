@@ -44,7 +44,7 @@ struct VFILE_Block {
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
 char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII],ondirs[MAX_VFILES][CROSS_LEN];
-static VFILE_Block * first_file, * lfn_search[256];
+static VFILE_Block * first_file, * parent_dir, * lfn_search[256];
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
@@ -141,6 +141,7 @@ char* Generate_SFN(const char *name) {
 void VFILE_Shutdown(void) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Shutting down VFILE system");
 
+    if (parent_dir != NULL) delete parent_dir;
 	while (first_file != NULL) {
 		VFILE_Block *n = first_file->next;
 		delete first_file;
@@ -312,8 +313,8 @@ Virtual_Drive::Virtual_Drive() {
 	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = 0;}
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = section->Get_string("drive z hide files");
+    parent_dir = new VFILE_Block;
 }
-
 
 bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	if (*name == 0) {
@@ -429,15 +430,15 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
             break;
         }
     }
+	uint8_t attr;char pattern[CROSS_LEN];
+	dta.GetSearchParams(attr,pattern,uselfn);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(onpos);
-		search_file=first_file;
+		search_file=(attr & DOS_ATTR_DIRECTORY) && onpos>0?parent_dir:first_file;
 	} else {
 		lfn_id[lfn_filefind_handle]=onpos;
-		lfn_search[lfn_filefind_handle]=first_file;
+		lfn_search[lfn_filefind_handle]=(attr & DOS_ATTR_DIRECTORY) && onpos>0?parent_dir:first_file;
 	}
-	uint8_t attr;char pattern[CROSS_LEN];
-    dta.GetSearchParams(attr,pattern,uselfn);
 	if (attr == DOS_ATTR_VOLUME) {
 		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 		return true;
@@ -447,8 +448,8 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 			return true;
 		}
 	} else if ((attr & DOS_ATTR_DIRECTORY) && onpos>0) {
-		if (WildFileCmp("..",pattern)) {
-			dta.SetResult("..","..",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+		if (WildFileCmp(".",pattern)) {
+			dta.SetResult(".",".",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
 			return true;
 		}
 	}
@@ -459,6 +460,16 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	uint8_t attr;char pattern[CROSS_LEN];
 	dta.GetSearchParams(attr,pattern,uselfn);
     unsigned int pos=lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
+
+    if ((lfn_filefind_handle>=LFN_FILEFIND_MAX&&search_file==parent_dir) || (lfn_filefind_handle<LFN_FILEFIND_MAX&&lfn_search[lfn_filefind_handle]==parent_dir)) {
+        bool cmp=WildFileCmp("..",pattern);
+        if (cmp) dta.SetResult("..","..",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+        if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
+            search_file=first_file;
+        else
+            lfn_search[lfn_filefind_handle]=first_file;
+        if (cmp) return true;
+    }
 
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {

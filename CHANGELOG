@@ -31,6 +31,11 @@
     the TTF output, but can be enable or disabled for
     all outputs by setting option "printdbcs" to "true"
     or "false" in [printer] section. (Wengier)
+  - Added ability to toggle between Shift-JIS (or Kanji)
+    and graphical modes using Ctrl+F4 key (or ESC )3 and
+    ESC )0 escape sequences) in the PC-98 mode. There
+    is now also an indication of graphical mode in the
+    function row. (nmlgc)
   - Added the "usesystemcursor" config option (in [sdl]
     section) which when set to true will use host system
     mouse cursor instead of drawing a DOS mouse cursor
@@ -52,11 +57,6 @@
   - Added support for new TTF word processor type "FE"
     for FastEdit, a new DOS text editor with functions
     to view and change text styles. (Wengier)
-  - Added the ability to toggle between Shift-JIS and
-    graphical modes using Ctrl+F4 key (or ESC )3 and
-    ESC )0 escape sequences) in the PC-98 mode. There
-    is now also an indication of graphical mode in the
-    function row. (nmlgc)
   - Added "ttf.wpfg" config option in [render] section
     which can optionally specify a foreground color
     (0-7) for the TTF output, similar to "ttf.wpbg" for
