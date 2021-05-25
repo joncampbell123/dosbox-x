@@ -6928,11 +6928,13 @@ static void INT2FDBG_ProgramStart(Program * * make) {
 }
 #endif
 
+#if defined (WIN32)
+extern bool ctrlbrk;
+extern std::string startincon;
+#endif
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
-extern bool ctrlbrk;
-extern std::string startincon;
 SHELLEXECUTEINFO lpExecInfo;
 
 void EndStartProcess() {
@@ -6944,6 +6946,7 @@ void EndStartProcess() {
     }
     ctrlbrk=false;
 }
+#endif
 
 class START : public Program {
 public:
@@ -6970,6 +6973,7 @@ public:
             cmd--;
             cmd[0]='"';
         }
+#if defined(WIN32) && !defined(HX_DOS)
         char *cmdstr = cmd==NULL?NULL:(char *)strstr(cmd, cmd[0]=='"'?"\" ":" ");
         char buf[CROSS_LEN], dir[CROSS_LEN+15], str[CROSS_LEN*2];
         int k=0;
@@ -7088,21 +7092,65 @@ public:
             inshell=false;
         }
         DOS_SetError(ErrorCode);
+#else
+        if (cmd==NULL || !strlen(cmd) || !strcmp(cmd,"?") || !strcmp(cmd,"/") || !strcmp(cmd,"/?") || !strcmp(cmd,"-?") || !strcasecmp(cmd,"/open") || !strcasecmp(cmd,"-open")) {
+            PrintUsage();
+            DOS_SetError(0);
+            return;
+        }
+        if (!startquiet) WriteOut("Starting %s...\n", cmd);
+        bool open=false;
+        if (!strncasecmp(cmd, "/open ", 5) || !strncasecmp(cmd, "-open ", 6)) {
+            open=true;
+            cmd+=5;
+        }
+        cmd=trim(cmd);
+        int ret=0;
+#if defined(LINUX) || defined(MACOSX)
+        ret=system(((open?
+#if defined(LINUX)
+        "xdg-open "
+#else
+        "open "
+#endif
+        :"")+std::string(cmd)+(startwait||(strlen(cmd)>2&&!strcmp(cmd+strlen(cmd)-2," &"))?"":" &")).c_str());
+#else
+        WriteOut("Error: START cannot launch application to run on your current host system.\n");
+        return;
+#endif
+        if (ret==-1) {
+            WriteOut("Error: START could not launch application.\n");
+            return;
+        }
+        DOS_SetError(ret);
+#endif
     }
 
 private:
     void PrintUsage() {
         constexpr const char *msg =
             "Starts a separate window to run a specified program or command.\n\n"
+#if defined(WIN32)
             "START [+|-|_] command [arguments]\n\n"
             "  [+|-|_]: To maximize/minimize/hide the program.\n"
             "  The options /MAX, /MIN, /HID are also accepted.\n"
             "  command: The command, program or file to start.\n"
             "  arguments: Arguments to pass to the application.\n\n"
             "START opens the Windows command prompt automatically to run these commands\n"
-            "and wait for a key press before exiting (specified by \"startincon\" option):\n"
-            "%s\n\nNote: The path specified in this command is the path on the Windows host.\n";
-        WriteOut(msg, startincon.c_str());
+            "and wait for a key press before exiting (specified by \"startincon\" option):\n%s\n\n"
+#else
+            "START /OPEN file\nSTART command [arguments]\n\n"
+            "  /OPEN: To open a file or URL with the associated program.\n"
+            "  file: The file or URL to open with the associated program.\n"
+            "  command: The command or program to start or run.\n"
+            "  arguments: Arguments to pass to the application.\n\n"
+#endif
+            "Note: The path specified in this command is the path on the host system.\n";
+        WriteOut(msg
+#if defined(WIN32)
+        ,startincon.c_str()
+#endif
+        );
     }
 };
 
@@ -7110,7 +7158,6 @@ void START_ProgramStart(Program **make)
 {
 	*make = new START;
 }
-#endif
 
 #define MAX_FLAGS 512
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
@@ -7810,7 +7857,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
     if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
 #endif
 

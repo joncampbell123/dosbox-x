@@ -500,7 +500,7 @@ static const char *def_menu_dos[] =
     "--",
     "DOSMouseMenu",
     "DOSEMSMenu",
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
     "DOSWinMenu",
 #endif
     "--",
@@ -568,7 +568,7 @@ static const char *def_menu_dos_ems[] =
     NULL
 };
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 /* DOS WIN menu ("DOSWinMenu") */
 static const char *def_menu_dos_win[] =
 {
@@ -1568,7 +1568,7 @@ void ConstructMenu(void) {
     /* DOS EMS menu */
     ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
     /* DOS WIN menu */
     ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
 #endif

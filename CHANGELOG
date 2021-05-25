@@ -14,6 +14,11 @@
     mounted local drive via SHELL= command in [config]
     section of config file after the drive is properly
     mounted via INSTALL= command. (Wengier)
+  - Extended START command to Linux and macOS systems.
+    It is enabled by default just like on Windows host
+    systems, but can be enabled by setting "startcmd"
+    to "true" or with the -hostrun command-line option
+    (replacing -winrun command-line option). (Wengier)
   - CHCP command in the TrueType font (TTF) output now
     allows code page 932, 936, 949, and 950 to display
     Chinese, Japanese and Korean characters and file

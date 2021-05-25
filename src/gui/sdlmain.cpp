@@ -9121,8 +9121,10 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
+#if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
+            fprintf(stderr,"  -hostrun                                Enable START command, CLIP$ device and long filename support\n");
+#endif
 #if defined(WIN32) && !defined(HX_DOS)
-            fprintf(stderr,"  -winrun                                 Enable START command and CLIP$ device (Windows version only)\n");
             fprintf(stderr,"                                          Windows programs can be launched directly to run on the host.\n");
 #endif
             fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
@@ -9204,7 +9206,12 @@ bool DOSBOX_parse_argv() {
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
         }
-#if !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
+        else if (optname == "hostrun") {
+            winrun = true;
+        }
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
         else if (optname == "winrun") {
             winrun = true;
         }
@@ -9932,7 +9939,7 @@ bool dos_lfn_disable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     return true;
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 bool dos_win_autorun_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -13551,14 +13558,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSWinMenu");
-                item.set_text("Windows host applications");
+                item.set_text("Host system applications");
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Launch to run on the Windows host").
-                        set_callback_function(dos_win_autorun_menu_callback);
+                        set_callback_function(dos_win_autorun_menu_callback)
+#if defined(LINUX) || defined(MACOSX)
+                    .enable(false)
+#endif
+                    ;
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application if possible").
                         set_callback_function(dos_win_wait_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_quiet").set_text("Quiet mode - no start messages").

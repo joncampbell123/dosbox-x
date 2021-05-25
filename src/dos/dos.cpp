@@ -3054,9 +3054,7 @@ public:
         mountwarning = section->Get_bool("mountwarning");
         if (winrun) {
             Section* tsec = control->GetSection("dos");
-#if defined (WIN32)
             tsec->HandleInputline("startcmd=true");
-#endif
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
@@ -3465,8 +3463,22 @@ public:
         mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
         mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
-        mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
-        mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+        mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
 #endif
         force_conversion=false;
 
@@ -3488,8 +3500,13 @@ public:
 			EndRunProcess();
 		}
 		force_conversion=true;
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
 		mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 		mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_win_quiet").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
