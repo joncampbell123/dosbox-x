@@ -15,7 +15,7 @@
     section of config file after the drive is properly
     mounted via INSTALL= command. (Wengier)
   - Extended START command to Linux and macOS systems.
-    It is enabled by default just like on Windows host
+    It's disabled by default just like on Windows host
     systems, but can be enabled by setting "startcmd"
     to "true" or with the -hostrun command-line option
     (replacing -winrun command-line option). (Wengier)
