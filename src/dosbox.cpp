@@ -2338,7 +2338,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
-    Pstring->Set_help("You can specify a word processor for the TTF output (WP=WordPerfect, WS=WordStar, XY=XyWrite) and optionally also a version number.\n"
+    Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
+                    "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
                     "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
                     "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
     Pstring->SetBasic(true);

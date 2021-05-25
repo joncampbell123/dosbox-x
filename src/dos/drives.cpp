@@ -164,6 +164,7 @@ bool LWildFileCmp(const char * file, const char * wild)
     if (strrchr(nwild,'*')&&strrchr(nwild,'.')==NULL) strcat(nwild,".*");
     find_ext=strrchr(nwild,'.');
     if (find_ext) {
+            if (wild_match(file, nwild)) return true;
             Bitu size=(Bitu)(find_ext-nwild);
             if (size>255) size=255;
             memcpy(wild_name,nwild,size);

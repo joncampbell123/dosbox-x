@@ -369,6 +369,7 @@ static const char *def_menu_video_ttf[] =
     "ttf_wpwp",
     "ttf_wpws",
     "ttf_wpxy",
+    "ttf_wpfe",
     "--",
     "ttf_blinkc",
 #if C_PRINTER

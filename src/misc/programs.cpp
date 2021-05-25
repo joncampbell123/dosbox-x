@@ -1422,6 +1422,7 @@ void CONFIG::Run(void) {
                                 mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
                                 mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
                                 mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {

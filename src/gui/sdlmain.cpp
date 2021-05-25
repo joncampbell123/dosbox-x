@@ -3777,6 +3777,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
             else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
             else if (!strncasecmp(wpstr, "XY", 2)) wpType=3;
+            else if (!strncasecmp(wpstr, "FE", 2)) wpType=4;
             if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
         }
         wpBG = render_section->Get_int("ttf.wpbg");
@@ -4065,6 +4066,7 @@ void change_output(int output) {
     mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpfe").enable(TTF_using()).check(wpType==4).refresh_item(mainMenu);
     mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor>-1).refresh_item(mainMenu);
 #if C_PRINTER
     mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
@@ -4497,6 +4499,25 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
             colorBG = wpBG > -1 ? wpBG : (wpVersion < 4 ? 0 : 1);
             if (colorFG != wpFG+8) colorFG = wpFG;
         }
+    } else if (wpType == 4 && colorFG == wpFG) {									// FastEdit
+        if (colorBG == 1 || colorBG == 5 || colorBG == 6 || colorBG == 7 || colorBG == 11 || colorBG == 12 || colorBG == 13 || colorBG == 15)
+            colorFG += 8;
+        if (colorBG == 2 || colorBG == 5) {
+            if (showital) style |= TTF_STYLE_ITALIC;
+        } else if (colorBG == 3 || colorBG == 6) {
+            if (showline) style |= TTF_STYLE_UNDERLINE;
+        } else if (colorBG == 4 || colorBG == 7) {
+            if (showsout) style |= TTF_STYLE_STRIKETHROUGH;
+        } else if (colorBG == 8 || colorBG == 11) {
+            style |= (showital?TTF_STYLE_ITALIC:0) | (showline?TTF_STYLE_UNDERLINE:0);
+        } else if (colorBG == 9 || colorBG == 12) {
+            style |= (showital?TTF_STYLE_ITALIC:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
+        } else if (colorBG == 10 || colorBG == 13) {
+            style |= (showline?TTF_STYLE_UNDERLINE:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
+        } else if (colorBG == 14 || colorBG == 15) {
+            style |= (showital?TTF_STYLE_ITALIC:0) | (showline?TTF_STYLE_UNDERLINE:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
+        }
+        colorBG = wpBG;
     }
     if (char512 && wpType == 1) {
         if (wpExtChar && (colorFG&8)) {	// WordPerfect high bit = second character set (if 512char active)
@@ -4505,8 +4526,8 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
         }
     }
     if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
-        if (!(style&TTF_STYLE_ITALIC)) style |= TTF_STYLE_BOLD;
-        colorFG = wpFG;
+        if (ttf.SDL_fontbi != 0 || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
+        if (ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC) || ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC) || wpType == 4) colorFG = wpFG;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);
@@ -11022,12 +11043,16 @@ bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
     } else if (!strcmp(mname, "ttf_wpxy")) {
         SetVal("render", "ttf.wp", "xy");
         wpType=3;
+    } else if (!strcmp(mname, "ttf_wpfe")) {
+        SetVal("render", "ttf.wp", "fe");
+        wpType=4;
     } else
         return true;
     mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
     mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
     resetFontSize();
     return true;
 }
@@ -13364,6 +13389,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_wp_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpxy").set_text("TTF word processor: XyWrite").
                     set_callback_function(ttf_wp_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpfe").set_text("TTF word processor: FastEdit").
+                    set_callback_function(ttf_wp_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
                     set_callback_function(ttf_blinking_cursor_callback);
 #if C_PRINTER
@@ -13979,6 +14006,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1);
         mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2);
         mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3);
+        mainMenu.get_item("ttf_wpfe").enable(TTF_using()).check(wpType==4);
         mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor>-1);
 #if C_PRINTER
         mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
