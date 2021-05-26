@@ -572,7 +572,7 @@ void CONFIG::Run(void) {
 		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype",
 		"-avistart","-avistop",
 		"-startmapper",
-		"-get", "-set",
+		"-get", "-set", "-setf",
 		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
@@ -584,7 +584,7 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_REC_AVI_START, P_REC_AVI_STOP,
 		P_START_MAPPER,
-		P_GETPROP, P_SETPROP,
+		P_GETPROP, P_SETPROP, P_SETFORCE,
 		P_WRITELANG, P_WRITELANG2,
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
@@ -1064,7 +1064,7 @@ void CONFIG::Run(void) {
 			}
 			return;
 		}
-		case P_SETPROP:	{
+		case P_SETPROP: case P_SETFORCE:	{
 			// Code for the configuration changes
 			// Official format: config -set "section property=value"
 			// Accepted: with or without -set, 
@@ -1162,7 +1162,7 @@ void CONFIG::Run(void) {
 				return;
 			}
 			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
-			if (p==NULL||p->getChange()==Property::Changeable::OnlyAtStart) {
+			if ((p==NULL||p->getChange()==Property::Changeable::OnlyAtStart)&&presult!=P_SETFORCE) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
 				return;
 			}
@@ -1592,8 +1592,7 @@ void PROGRAMS_Init() {
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
 		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
-		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
-		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-all, -mod Use with -wc, -wcp, or -wcd to write ALL or only modified options.\n"\
 		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
@@ -1607,8 +1606,8 @@ void PROGRAMS_Init() {
 		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
 		"-startmapper Starts the DOSBox-X mapper editor.\n"\
 		"-gui Starts the graphical configuration tool.\n"
-		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value of the property.\n");
+		"-get \"section property\" returns the value of the property (also to %%CONFIG%%).\n"\
+		"-set (-setf for force) \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
