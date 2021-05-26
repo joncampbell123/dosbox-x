@@ -2988,10 +2988,10 @@ uint32_t DEBUG_CheckKeys(void) {
         return 0;
     }
 	
-	if (key >='1' && key <='5' && strlen(codeViewData.inputStr) == 0) {
-		const int32_t v[] ={5,500,1000,5000,10000};
+	if (key >='0' && key <='5' && strlen(codeViewData.inputStr) == 0) {
+		const int32_t v[] ={1,5,500,1000,5000,10000};
 
-		ret = DEBUG_Run(v[key - '1'],true);
+		ret = DEBUG_Run(v[key - '0'],true);
 
 		/* Setup variables so we end up at the proper ret processing */
 		numberrun = true;
