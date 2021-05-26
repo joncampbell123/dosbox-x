@@ -1,11 +1,4 @@
 0.83.14
-  - Added dosbox.conf option to control whether the
-    LMSW instruction allows the guest to clear the PE
-    bit (leave protected mode).
-  - Debugger interface now accepts the '0' key as a
-    command to single-step in case F11 is not an option.
-    If you are using XFCE's Terminal emulator, this is
-    helpful because the Terminal app takes F11 for itself.
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
     root directory of Z drive any more. Only one-level
@@ -130,6 +123,10 @@
   - Added "maximize" config option in [sdl] section to
     automatically maximize the DOSBox-X window at start
     (SDL2 and Windows SDL1 builds only). (Wengier)
+  - Added "allow lmsw to exit protected mode" config
+    option in [cpu] section to control whether the LMSW
+    instruction allows the guest to clear the PE bit
+    (leave protected mode).
   - Added "debuggerrun" config option in [log] section
     to set the run mode when DOSBox-X Debugger starts.
     You can now also switch them from the menu ("Debug"
@@ -138,6 +135,10 @@
     to debugger commands "RUN" and "RUNWATCH". Also,
     the built-in DEBUGBOX command without a parameter
     will start the DOSBox-X debugger. (Wengier)
+  - Debugger interface now accepts the '0' key as a
+    command to single-step in case F11 is not an option.
+    If you are using XFCE's Terminal emulator, this is
+    helpful because Terminal app takes F11 for itself.
   - "Debug" menu is now a top-level menu for debugging
     builds. Also added more debugging options including
     "Generate NMI interrupt" and "Hook INT 2Fh calls"
