@@ -1,4 +1,7 @@
 0.83.14
+  - Added dosbox.conf option to control whether the
+    LMSW instruction allows the guest to clear the PE
+    bit (leave protected mode).
   - Debugger interface now accepts the '0' key as a
     command to single-step in case F11 is not an option.
     If you are using XFCE's Terminal emulator, this is
