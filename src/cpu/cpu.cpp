@@ -62,6 +62,8 @@ public:
 # define CPU_LOG(...)
 # endif
 
+bool lmsw_allow_clear_pe_bit = false;
+
 bool enable_weitek = false;
 
 bool CPU_NMI_gate = true;
@@ -2565,7 +2567,7 @@ Bitu CPU_SMSW(void) {
 bool CPU_LMSW(Bitu word) {
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	word&=0xf;
-	if (cpu.cr0 & 1) word|=1; 
+	if ((cpu.cr0&1/*PE bit*/) && !lmsw_allow_clear_pe_bit) word|=1/*PE bit, stuck on, cannot exit protected mode, 286 style*/;
 	word|=(cpu.cr0&0xfffffff0);
 	CPU_SET_CRX(0,word);
 	return false;
@@ -3698,6 +3700,37 @@ public:
             LOG_MSG("CPU change requires guest system reboot");
             throw int(3);
         }
+
+		const char *lmsw_allow_pe_clear = section->Get_string("allow lmsw to exit protected mode");
+		if (!strcmp(lmsw_allow_pe_clear,"true") || !strcmp(lmsw_allow_pe_clear,"1")) {
+			lmsw_allow_clear_pe_bit = true;
+		}
+		else if (!strcmp(lmsw_allow_pe_clear,"false") || !strcmp(lmsw_allow_pe_clear,"0")) {
+			lmsw_allow_clear_pe_bit = false;
+		}
+		else {
+			/* auto */
+			/* This is not yet fully confirmed, but Intel 386 programming guides suggest that the 386
+			 * does not allow LMSW to clear PE, while the 486DX documentation does not mention it at all,
+			 * therefore the guess here is that sometime around the 486/Pentium era it became possible to
+			 * exit protected mode with LMSW. The reason for this guess is a music unpacker file from
+			 * scene.org, MMCMP.EXE / MMUNCMP.EXE, which appears to use LMSW and SMSW to save the machine
+			 * status word, jump into protected mode briefly, load FS and GS with 4GB limits, then use
+			 * LMSW to restore the original machine status word (to return to real mode). Since LMSW is
+			 * a privileged instruction, the code is written to skip that protected mode jump if the PE
+			 * bit is already set. However, if LMSW is not supposed to let you clear the PE bit, then
+			 * how is code like that supposed to work? Did the programmer write it on non-Intel hardware?
+			 * Did Intel drop the set-only PE behavior during the 486 era? Perhaps the programmer and
+			 * his userbase only ever used it in cases where EMM386.EXE or Windows was running, and there
+			 * fore under virtual 8086 mode where the code to do that was skipped? */
+			/* In any case, the assumption here is that if the target CPU is a 486 or higher, LMSW can
+			 * clear the PE bit. There is a ticket open in DOSLIB with a task to write a program that
+			 * can verify this behavior on real hardware. */
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) /* maybe the original 486 retained the behavior? */
+				lmsw_allow_clear_pe_bit = true;
+			else
+				lmsw_allow_clear_pe_bit = false;
+		}
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);

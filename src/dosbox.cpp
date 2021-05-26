@@ -2428,6 +2428,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("always report triple fault",Property::Changeable::Always,false);
     Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
 
+    Pstring = secprop->Add_string("allow lmsw to exit protected mode",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Controls whether the processor will allow the guest to exit protected mode using the 286 LMSW instruction (clear the PE bit)");
+
     Pbool = secprop->Add_bool("report fdiv bug",Property::Changeable::Always,false);
     Pbool->Set_help("If set, the FDIV bug will be reported with the cputype=pentium setting.");
 
