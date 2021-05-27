@@ -144,13 +144,14 @@
     the built-in DEBUGBOX command without a parameter
     will start the DOSBox-X debugger. (Wengier)
   - Debugger interface now accepts the '0' key as a
-    command to single-step in case F11 is not an option.
+    command to single-step in case F11 isn't an option.
     If you are using XFCE's Terminal emulator, this is
     helpful because Terminal app takes F11 for itself.
   - "Debug" menu is now a top-level menu for debugging
-    builds. Also added more debugging options including
-    "Generate NMI interrupt" and "Hook INT 2Fh calls"
-    under this menu. (Wengier)
+    builds (for non-debugging builds there is "Logging
+    console" menu group under "Help"). Also added more
+    debug options including "Generate NMI interrupt"
+    and "Hook INT 2Fh calls" under this menu. (Wengier)
   - Fixed /S and /F option (date/time-synchronization
     ON/OFF) of DATE command not working. (Wengier)
   - Fixed the mouse not automatically captured when

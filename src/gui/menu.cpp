@@ -105,10 +105,10 @@ static const char *def_menu__toplevel[] =
     "CaptureMenu",
 #endif
     "DriveMenu",
-    "HelpMenu",
 #if C_DEBUG
     "DebugMenu",
 #endif
+    "HelpMenu",
     NULL
 };
 
