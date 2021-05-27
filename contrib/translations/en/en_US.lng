@@ -81,7 +81,7 @@ Writing config file %s◙
 Written to language file %s◙
 .
 :PROGRAM_CONFIG_USAGE
-The DOSBox-X command-line configuration utility. Supported options:◙-wc (or -writeconf) without parameter: Writes to primary loaded config file.◙-wc (or -writeconf) with filename: Writes file to the config directory.◙-wl (or -writelang) with filename: Writes the current language strings.◙-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).◙-wcd Writes to the default config file in the config directory.◙-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.◙-mod Use this with -wc, -wcp, or -wcd to write modified config options only.◙-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.◙-bootconf (or -bc) reboots with specified config file (or primary loaded file).◙-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.◙-l Lists DOSBox-X's configuration parameters.◙-h, -help, -? Shows this help; add the word "sections" for a list of sections.◙-h, -help, -? section / property Shows info on a specific section or property.◙-axclear Clears the [autoexec] section.◙-axadd [line] Adds a line to the [autoexec] section.◙-axtype Prints the content of the [autoexec] section.◙-avistart, -avistop Starts or stops AVI recording.◙-securemode Enables secure mode where features like mounting will be disabled.◙-startmapper Starts the DOSBox-X mapper editor.◙-gui Starts the graphical configuration tool.◙-get "section property" returns the value of the property.◙-set "section property=value" sets the value of the property.◙
+The DOSBox-X command-line configuration utility. Supported options:◙-wc (or -writeconf) without parameter: Writes to primary loaded config file.◙-wc (or -writeconf) with filename: Writes file to the config directory.◙-wl (or -writelang) with filename: Writes the current language strings.◙-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).◙-wcd Writes to the default config file in the config directory.◙-all, -mod Use with -wc, -wcp, or -wcd to write ALL or only modified options.◙-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.◙-bootconf (or -bc) reboots with specified config file (or primary loaded file).◙-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.◙-l Lists DOSBox-X's configuration parameters.◙-h, -help, -? Shows this help; add the word "sections" for a list of sections.◙-h, -help, -? section / property Shows info on a specific section or property.◙-axclear Clears the [autoexec] section.◙-axadd [line] Adds a line to the [autoexec] section.◙-axtype Prints the content of the [autoexec] section.◙-avistart, -avistop Starts or stops AVI recording.◙-securemode Enables secure mode where features like mounting will be disabled.◙-startmapper Starts the DOSBox-X mapper editor.◙-gui Starts the graphical configuration tool.◙-get "section property" returns the value of the property (also to %%CONFIG%%).◙-set (-setf for force) "section property=value" sets the value of the property.◙
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
 Purpose of property "%s" (contained in section "%s"):◙%s◙◙Possible Values: %s◙Default value: %s◙Current value: %s◙
@@ -1514,6 +1514,9 @@ TTF word processor: WordStar
 :MENU:ttf_wpxy
 TTF word processor: XyWrite
 .
+:MENU:ttf_wpfe
+TTF word processor: FastEdit
+.
 :MENU:ttf_blinkc
 Display TTF blinking cursor
 .
@@ -1665,7 +1668,7 @@ EMM386 emulation
 Disable EMS emulation
 .
 :MENU:DOSWinMenu
-Windows host applications
+Host system applications
 .
 :MENU:dos_win_autorun
 Launch to run on the Windows host

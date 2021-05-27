@@ -225,6 +225,7 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munidad←[0m ←[36;1mlocal_director
                   ('overlay' redirige escrituras a otro directorio)
  -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas)
  -ro              Monta la unidad en modo de solo lectura (read-only).
+ -pr              Ruta es relativa a la ubicación del archivo de configuración.
  -cd              Genera lista de valores del CD local de la "unidad".
  -usecd [drive #] Para emulación de hardware directa, como reproducir audio.
  -ioctl           Usa acceso a hardware de más bajo nivel (con opción -usecd).
@@ -1874,6 +1875,9 @@ Procesador de texto TTF: WordStar
 :MENU:ttf_wpxy
 Procesador de texto TTF: XyWrite
 .
+:MENU:ttf_wpfe
+Procesador de texto TTF: FastEdit
+.
 :MENU:ttf_blinkc
 Mostrar el cursor parpadeante en TTF
 .
@@ -2022,7 +2026,7 @@ Emulación de EMM386
 Desactivar emulación de EMS
 .
 :MENU:DOSWinMenu
-Aplicaciones de host de windows
+Aplicaciones de host
 .
 :MENU:dos_win_autorun
 Lanzar para ejecutar en host Windows
