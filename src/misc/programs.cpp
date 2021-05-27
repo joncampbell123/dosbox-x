@@ -1002,6 +1002,51 @@ void CONFIG::Run(void) {
                             WriteOut("%d\n",rect.bottom-rect.top);
                             first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
+                        } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
+                            const char *hostos =
+#if defined(HX_DOS)
+                            "DOS"
+#elif defined(WIN32)
+                            "Windows"
+#elif defined(LINUX)
+                            "Linux"
+#elif defined(MACOSX)
+                            "macOS"
+#elif defined(OS2)
+                            "OS/2"
+#else
+                            "Other"
+#endif
+                            ;
+                            WriteOut("%s\n",hostos);
+                            first_shell->SetEnv("CONFIG",hostos);
+                        } else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
+                            if (securemode_check()) return;
+                            char cwd[512] = {0};
+                            char *res = getcwd(cwd,sizeof(cwd)-1);
+                            WriteOut("%s\n",res==NULL?"":cwd);
+                            first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
+                        } else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
+                            if (securemode_check()) return;
+                            std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
+                            WriteOut("%s\n",exepath.c_str());
+                            first_shell->SetEnv("CONFIG",exepath.c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
+                            if (securemode_check()) return;
+                            std::string config_path;
+                            Cross::GetPlatformConfigDir(config_path);
+                            WriteOut("%s\n",config_path.c_str());
+                            first_shell->SetEnv("CONFIG",config_path.c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
+                            if (securemode_check()) return;
+                            std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
+                            if (configdir.size()) {
+                                std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
+                                if(pos == std::string::npos) pos = 0;
+                                configdir.erase(pos);
+                            }
+                            WriteOut("%s\n",configdir.c_str());
+                            first_shell->SetEnv("CONFIG",configdir.c_str());
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
@@ -1577,7 +1622,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NOCONFIGFILE","No config file loaded!\n");
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
-	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s user configuration directory: \n%s\n\n");
 	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");
 	
 	// writeconf

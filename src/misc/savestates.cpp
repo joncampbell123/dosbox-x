@@ -270,6 +270,8 @@ std::string GetPlatform(bool save) {
     "Unix "
 #elif defined(MACOSX)
     "macOS "
+#elif defined(OS2)
+    "OS/2 "
 #else
     save?"Other ":""
 #endif

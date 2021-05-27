@@ -54,6 +54,11 @@
     close these dialog boxes. (Wengier)
   - Command "CONFIG -wl" will show the name of language
     file being written to. (Wengier)
+  - Added special properties to CONFIG command such as
+    "hostos", "programdir", "workdir", "configdir", and
+    "userconfigdir" so that commands like "CONFIG -GET
+    hostos" and "CONFIG -GET workdir" will get the host
+    system OS and DOSBox-X working directory. (Wengier)
   - If a config option can only be changed at run-time,
     "CONFIG -set" will now show such a message. You can
     use "CONFIG -setf" to bypass, but the setting won't

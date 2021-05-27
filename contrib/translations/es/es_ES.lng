@@ -66,7 +66,7 @@ Archivo config primario: ◙%s◙
 Ficheros config adicionales:◙
 .
 :PROGRAM_CONFIG_CONFDIR
-Directorio de configuración DOSBox-X %s: ◙%s◙◙
+Directorio de user configuración DOSBox-X %s: ◙%s◙◙
 .
 :PROGRAM_CONFIG_WORKDIR
 Directo de trabajo de DOSBox-X: ◙%s◙◙

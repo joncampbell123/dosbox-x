@@ -7416,6 +7416,7 @@ void DOS_SetupPrograms(void) {
         " (Note that 'overlay' redirects writes for mounted drive to another directory)\n"
         " -label [name]    Set the volume label name of the drive (all upper case)\n"
         " -ro              Mount the drive in read-only mode.\n"
+        " -pr              Specify the path is relative to the config file location.\n"
         " -cd              Generate a list of local CD drive's \"drive #\" values.\n"
         " -usecd [drive #] For direct hardware emulation such as audio playback.\n"
         " -ioctl           Use lowest level hardware access (following -usecd option).\n"

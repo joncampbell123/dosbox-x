@@ -77,7 +77,7 @@ Possible values
 
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s 配置文件目录: 
+DOSBox-X %s 用户配置文件目录: 
 %s
 
 
@@ -299,6 +299,7 @@ MOUSE [/?] [/U] [/V]
                    (其中 'overlay' 将重定向挂载驱动器中的写操作至另一个目录)
  -label [名称]     设置驱动器的标签名称 (全部大写)
  -ro               以只读方式挂载驱动器.
+ -pr               指定路径为相对于配置文件所在目录.
  -cd               显示包含光驱号的主机光驱列表.
  -usecd [驱动器号] 支持直接硬件模拟比如 CD 音频播放.
  -ioctl            使用最低级别的硬件访问 (与 -usecd 选项一起使用).
