@@ -99,6 +99,8 @@
   - Cleaned up the welcome banner messages and other
     messages involving boxdrawing characters for easier
     translations into certain languages. (Wengier)
+  - Command-line option -silent now implies -nomenu and
+    SDL_AUDIODRIVER=dummy as well. (Wengier)
   - Command-line option -fastlaunch will now suppress
     messages by "automountall=true" option. (Wengier)
   - Setting "irq" to "0" in [sblaster] section of the
