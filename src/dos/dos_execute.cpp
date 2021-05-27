@@ -394,6 +394,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			}
 			if (maxfree<minsize) {
 				DOS_CloseFile(fhandle);
+                delete[] loadbuf;
 				DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 				DOS_FreeMemory(envseg);
 				return false;
