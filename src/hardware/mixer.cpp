@@ -1175,6 +1175,7 @@ void MIXER_Init() {
     mixer.swapstereo=section->Get_bool("swapstereo");
     mixer.sampleaccurate=section->Get_bool("sample accurate");
     mixer.mute=false;
+    if (control->opt_silent) mixer.nosound = true;
 
     /* Initialize the internal stuff */
     mixer.prebuffer_samples=0;

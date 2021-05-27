@@ -80,7 +80,7 @@ private:
 public:
 	INNOVA(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("innova")) return;
+		if(!section->Get_bool("innova")||control->opt_silent) return;
 		innova.rate = (unsigned int)section->Get_int("samplerate");
 		innova.basePort = (unsigned int)section->Get_hex("sidbase");
 		sampling_method method = SAMPLE_FAST;

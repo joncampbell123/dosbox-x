@@ -9196,6 +9196,7 @@ bool DOSBOX_parse_argv() {
             putenv(const_cast<char*>("SDL_AUDIODRIVER=dummy"));
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_exit = true;
+            control->opt_silent = true;
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
@@ -13955,6 +13956,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         MSG_Init();
 
         char name[6]="slot0";
+        if (!control->opt_silent)
         for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
             name[4]='0'+i;
             std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);

@@ -3295,7 +3295,8 @@ private:
         sb.reveal_sc_type = RSC_NONE;
         sb.ess_extended_mode = false;
         const char * sbtype=config->Get_string("sbtype");
-        if (!strcasecmp(sbtype,"sb1")) type=SBT_1;
+        if (control->opt_silent) type = SBT_NONE;
+        else if (!strcasecmp(sbtype,"sb1")) type=SBT_1;
         else if (!strcasecmp(sbtype,"sb2")) type=SBT_2;
         else if (!strcasecmp(sbtype,"sbpro1")) type=SBT_PRO1;
         else if (!strcasecmp(sbtype,"sbpro2")) type=SBT_PRO2;

@@ -2113,7 +2113,7 @@ public:
         gus_enable = false;
         if(!IS_EGAVGA_ARCH) return;
         Section_prop * section=static_cast<Section_prop *>(configuration);
-        if(!section->Get_bool("gus")) return;
+        if(!section->Get_bool("gus")||control->opt_silent) return;
 
         gus_enable = true;
         memset(&myGUS,0,sizeof(myGUS));

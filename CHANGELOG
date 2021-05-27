@@ -77,10 +77,6 @@
     section which when set to true (default) will force
     to use the current TrueType font (set via ttf.font)
     for printing too when using TTF output. (Wengier)
-  - Added value "quiet" to "automountall" config option
-    to auto-mount all Windows drives quietly. (Wengier)
-  - Improved handling of Ctrl+C/Ctrl+Break for shell-
-    based DOS programs. (Wengier)
   - Added menu option "Print text screen" (under "DOS")
     to print current DOS text screen, if the printer
     feature has been enabled. (Wengier)
@@ -99,10 +95,15 @@
   - Cleaned up the welcome banner messages and other
     messages involving boxdrawing characters for easier
     translations into certain languages. (Wengier)
-  - Command-line option -silent now implies -nomenu and
-    SDL_AUDIODRIVER=dummy as well. (Wengier)
+  - Command-line option -silent now implies -nomenu,
+    SDL_AUDIODRIVER=dummy and will disable all sound-
+    related config option as well. (Wengier)
   - Command-line option -fastlaunch will now suppress
-    messages by "automountall=true" option. (Wengier)
+    messages by "automountall=true" option. Also added
+    value "quiet" to "automountall" config option to
+    auto-mount all Windows drives quietly. (Wengier)
+  - Improved handling of Ctrl+C/Ctrl+Break for shell-
+    based DOS programs. (Wengier)
   - Setting "irq" to "0" in [sblaster] section of the
     config file will use the default IRQ number for the
     sound card type. Also fixed "irq=-1", "dma=-1" and
