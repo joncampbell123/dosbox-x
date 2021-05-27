@@ -101,7 +101,7 @@ Utilidad de configuración por comandos de DOSBox-X. Opciones admitidas:
 -securemode Cambia a modo seguro donde MOUNT, IMGMOUNT y BOOT estarán.
  desactivadas asi como la habilidad de crear archivos de idioma y config.
 -get "sección propiedad" devuelve el valor de la propiedad.
--set "sección propiedad=valor" establece el valor de la propiedad.
+-set (o -setf) "sección propiedad=valor" establece el valor de la propiedad.
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
 Proposito de la propiedad "%s" (contenido en sección "%s"):◙%s◙◙Valores posibles: %s◙Valor por defecto: %s◙Valor actual: %s◙
@@ -225,7 +225,7 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munidad←[0m ←[36;1mlocal_director
                   ('overlay' redirige escrituras a otro directorio)
  -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas)
  -ro              Monta la unidad en modo de solo lectura (read-only).
- -pr              Ruta es relativa a la ubicación del archivo de configuración.
+ -pr              Indica que la ruta es relativa a la ubicación del archivo config.
  -cd              Genera lista de valores del CD local de la "unidad".
  -usecd [drive #] Para emulación de hardware directa, como reproducir audio.
  -ioctl           Usa acceso a hardware de más bajo nivel (con opción -usecd).
