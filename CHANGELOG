@@ -48,10 +48,10 @@
     mouse cursor instead of drawing a DOS mouse cursor
     when the mouse is not locked. (Wengier)
   - When opening "Save..." or "Save Language File..."
-    dialogs in the Configuration Tool, the new diaglogs
+    dialogs in the Configuration Tool, the new dialogs
     will now automatically be in focus. For the language
     file, the name of the current language file will be
-    filled and modifible. Pressing ENTER key saves the
+    filled and modifiable. Pressing ENTER key saves the
     config or language file, and pressing ESC key will
     close these dialog boxes. (Wengier)
   - Command "CONFIG -wl" will show the name of language
