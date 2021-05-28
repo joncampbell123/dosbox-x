@@ -5143,6 +5143,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     else if (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
     else if (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
     else if ((width >= 800)&&(height>=600)) screenratio = 4.0 / 3.0;
+    else if (render.aspect) screenratio = 4.0 / 3.0;
 
 #if C_DEBUG
             LOG(LOG_VGA,LOG_NORMAL)("screen: %1.3f, scanfield: %1.3f, scan: %1.3f, vratio: %1.3f",
