@@ -79,6 +79,12 @@
     section which when set to true (default) will force
     to use the current TrueType font (set via ttf.font)
     for printing too when using TTF output. (Wengier)
+  - Added additional options to the "mouse_wheel_key"
+    config option to allow conversion of mouse wheel
+    movements into Ctrl+up/down arrow (option 4), Ctrl+
+    left/right arrows (option 5), Ctrl+PgUp/PgDn keys
+    (option 6). More menu options are added to "Mouse
+    wheel movements" menu group as well. (Wengier)
   - Added menu option "Print text screen" (under "DOS")
     to print current DOS text screen, if the printer
     feature has been enabled. (Wengier)

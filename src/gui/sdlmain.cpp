@@ -6948,38 +6948,50 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 #if defined(WIN32) && !defined(HX_DOS)
-				INPUT ip = {0};
-				ip.type = INPUT_KEYBOARD;
-				ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
-				ip.ki.time = 0;
-				ip.ki.dwExtraInfo = 0;
-				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
-				SendInput(1, &ip, sizeof(INPUT));
-				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
-				SendInput(1, &ip, sizeof(INPUT));
-#else
-                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
-                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
+                if (wheel_key<4) {
+                    INPUT ip = {0};
+                    ip.type = INPUT_KEYBOARD;
+                    ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+                    ip.ki.time = 0;
+                    ip.ki.dwExtraInfo = 0;
+                    ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+                    SendInput(1, &ip, sizeof(INPUT));
+                    ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+                    SendInput(1, &ip, sizeof(INPUT));
+                } else
 #endif
+                {
+                    bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                    if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                    KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), true);
+                    if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                    KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), false);
+                }
 			} else
 				Mouse_ButtonPressed(100-1);
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 #if defined(WIN32) && !defined(HX_DOS)
-				INPUT ip = {0};
-				ip.type = INPUT_KEYBOARD;
-				ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
-				ip.ki.time = 0;
-				ip.ki.dwExtraInfo = 0;
-				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
-				SendInput(1, &ip, sizeof(INPUT));
-				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
-				SendInput(1, &ip, sizeof(INPUT));
-#else
-                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
-                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
+                if (wheel_key<4) {
+                    INPUT ip = {0};
+                    ip.type = INPUT_KEYBOARD;
+                    ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+                    ip.ki.time = 0;
+                    ip.ki.dwExtraInfo = 0;
+                    ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+                    SendInput(1, &ip, sizeof(INPUT));
+                    ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+                    SendInput(1, &ip, sizeof(INPUT));
+                } else
 #endif
+                {
+                    bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                    if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                    KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), true);
+                    if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                    KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
+                }
 			} else
 				Mouse_ButtonPressed(100+1);
             break;
@@ -7528,34 +7540,46 @@ void GFX_Events() {
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 				if(event.wheel.y > 0) {
 #if defined (WIN32) && !defined(HX_DOS)
-					INPUT ip = {0};
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
-					SendInput(1, &ip, sizeof(INPUT));
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
-					SendInput(1, &ip, sizeof(INPUT));
-#else
-                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
-                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
+                    if (wheel_key<4) {
+                        INPUT ip = {0};
+                        ip.type = INPUT_KEYBOARD;
+                        ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+                        ip.ki.time = 0;
+                        ip.ki.dwExtraInfo = 0;
+                        ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+                        SendInput(1, &ip, sizeof(INPUT));
+                        ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+                        SendInput(1, &ip, sizeof(INPUT));
+                    } else
 #endif
+                    {
+                        bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                        if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                        KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), true);
+                        if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                        KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), false);
+                    }
 				} else if(event.wheel.y < 0) {
 #if defined (WIN32) && !defined(HX_DOS)
-					INPUT ip = {0};
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
-					SendInput(1, &ip, sizeof(INPUT));
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
-					SendInput(1, &ip, sizeof(INPUT));
-#else
-                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
-                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
+                    if (wheel_key<4) {
+                        INPUT ip = {0};
+                        ip.type = INPUT_KEYBOARD;
+                        ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+                        ip.ki.time = 0;
+                        ip.ki.dwExtraInfo = 0;
+                        ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+                        SendInput(1, &ip, sizeof(INPUT));
+                        ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+                        SendInput(1, &ip, sizeof(INPUT));
+                    } else
 #endif
+                    {
+                        bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                        if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                        KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), true);
+                        if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                        KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
+                    }
 				}
 			}
 			break;
@@ -8004,9 +8028,10 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, -1);
-    Pint->SetMinMax(-3,3);
+    Pint->SetMinMax(-6,6);
     Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
         "0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.\n"
+        "4: Ctrl+up/down arrows; 5: Ctrl+left/right arrows; 6: Ctrl+PgUp/PgDn keys.\n"
         "Putting a minus sign in front will disable the conversion for guest systems.");
     Pint->SetBasic(true);
 
@@ -9941,47 +9966,24 @@ bool dos_win_quiet_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 }
 #endif
 
-bool wheel_updown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool wheel_move_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    wheel_key = 1;
-    mainMenu.get_item("wheel_updown").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool wheel_leftright_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    wheel_key = 2;
-    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_leftright").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool wheel_pageupdown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    wheel_key = 3;
-    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_pageupdown").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool wheel_none_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    wheel_key = 0;
-    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_none").check(true).refresh_item(mainMenu);
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "wheel_none")) wheel_key = 0;
+    else if (!strcmp(mname, "wheel_updown")) wheel_key = 1;
+    else if (!strcmp(mname, "wheel_leftright")) wheel_key = 2;
+    else if (!strcmp(mname, "wheel_pageupdown")) wheel_key = 3;
+    else if (!strcmp(mname, "wheel_ctrlupdown")) wheel_key = 4;
+    else if (!strcmp(mname, "wheel_ctrlleftright")) wheel_key = 5;
+    else if (!strcmp(mname, "wheel_ctrlpageupdown")) wheel_key = 6;
+    mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
     return true;
 }
 
@@ -13921,10 +13923,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlesc").set_text("Mapper \"Send special key\": Ctrl+Esc").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlbreak").set_text("Mapper \"Send special key\": Ctrl+Break").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_cad").set_text("Mapper \"Send special key\": Ctrl+Alt+Del").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_none_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlupdown").set_text("Convert to Ctrl+up/down arrows").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlleftright").set_text("Convert to Ctrl+left/right arrows").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlpageupdown").set_text("Convert to Ctrl+PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
@@ -13952,6 +13957,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
         mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
         mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
         mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
         mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
         mainMenu.get_item("sendkey_mapper_winlogo").check(sendkeymap==1).refresh_item(mainMenu);
