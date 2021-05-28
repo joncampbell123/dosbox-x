@@ -816,8 +816,6 @@ static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return TempLine;
 }
 
-extern uint32_t Expand16Table[4][16];
-
 template <const unsigned int card,typename templine_type_t> static inline templine_type_t EGA_Planar_Common_Block_xlat(const uint8_t t) {
     if (card == MCH_VGA)
         return vga.dac.xlat32[t];
@@ -2136,7 +2134,6 @@ extern uint8_t GDC_display_plane;
 extern uint8_t GDC_display_plane_pending;
 extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
-extern bool gdc_analog;
 
 unsigned char       pc98_text_first_row_scanline_start = 0x00;  /* port 70h */
 unsigned char       pc98_text_first_row_scanline_end = 0x0F;    /* port 72h */
@@ -3109,15 +3106,6 @@ void VGA_ProcessScanline(const uint8_t *raw) {
     }
 }
 
-extern uint32_t GFX_Rmask;
-extern unsigned char GFX_Rshift;
-extern uint32_t GFX_Gmask;
-extern unsigned char GFX_Gshift;
-extern uint32_t GFX_Bmask;
-extern unsigned char GFX_Bshift;
-extern uint32_t GFX_Amask;
-extern unsigned char GFX_Ashift;
-extern unsigned char GFX_bpp;
 extern uint32_t vga_capture_stride;
 
 template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel(const BPPT raw) {
