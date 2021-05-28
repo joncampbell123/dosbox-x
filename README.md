@@ -375,10 +375,14 @@ DOSBox-X displays English as the default language, and uses the U.S. code page (
 
 All messages displayed by DOSBox-X are in English with the default setting. DOSBox-X does support the feature to
 change the display messages with the use of language files. The language files control all visible output of the
-internal commands and the internal DOS. If you are a speaker of a non-English language, you can create additional
-language files for use with DOSBox-X by translating messages in DOSBox-X to your language. Other DOSBox-X users may
-also use these language files for DOSBox-X to display messages in such language if they wish. You can for example find
-the Spanish translation files from: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/es
+internal commands and the internal DOS, as well as the text in DOSBox-X's drop-down menus. If you are a speaker of
+a non-English language, you are encouraged to create additional language files for use with DOSBox-X by translating
+messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
+messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
+
+Spanish language file: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/es
+
+Simplified Chinese language file: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/zh
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
