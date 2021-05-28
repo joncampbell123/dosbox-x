@@ -1257,6 +1257,9 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
