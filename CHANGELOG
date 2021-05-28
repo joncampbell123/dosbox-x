@@ -27,7 +27,9 @@
     auto-detection for box-drawing characters in these
     code pages, and these can be disabled by setting
     new options "ttf.autodbcs" and "ttf.autoboxdraw" to
-    "false". KEYB command (and "keyboardlayout" config
+    "false". There is also option "ttf.halfwidthkana"
+    to enable half-width Katakana in Japanese non-PC98
+    machines. KEYB command (and "keyboardlayout" config
     option) also accept "jp", "ko", "cn", "tw", "hk",
     "zh" as key layout names for code pages. (Wengier)
   - Added support for printing Chinese/Japanese/Korean
@@ -81,11 +83,12 @@
     to print current DOS text screen, if the printer
     feature has been enabled. (Wengier)
   - Added menu options "Display TTF blinking cursor",
-    "CJK: Switch DBCS/SBCS mode", and "CJK: Auto-detect
-    box-drawing symbols" under "Video" => "TTF options"
+    "CJK: Switch DBCS/SBCS mode", "CJK: Auto-detect
+    box-drawing characters" and "CJK: Allow half-width
+    Japanese Katahana" under "Video" => "TTF options"
     menu group to toggle the TTF options ttf.blinkc,
-    ttf.autodbcs and ttf.autoboxdraw found in [render]
-    section of the config file. (Wengier)
+    ttf.autodbcs, ttf.autoboxdraw and ttf.halfwidthkana
+    in [render] section of the config file. (Wengier)
   - Support for UTF-8 encoded language files. Specify
     a DOS code page with "country" option in [config]
     section of the config file. Windows SDL1 menu and

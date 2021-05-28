@@ -377,6 +377,7 @@ static const char *def_menu_video_ttf[] =
 #endif
     "ttf_dbcs_sbcs",
     "ttf_autoboxdraw",
+    "ttf_halfwidthkana",
     NULL
 };
 #endif

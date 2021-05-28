@@ -3196,10 +3196,12 @@ uint8_t lead[6];
 uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool halfwidthkana;
 extern const char* RunningProgram;
 
 // Wengier: Auto-detect box-drawing characters in CJK mode for TTF output
 bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
+    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
     return (c1 == 196 && c2 == 196 && c3 == 196 && (c4 == 180 || c4 == 182 || c4 == 183 || c4 == 189 || c4 == 191 || c4 == 193 || c4 == 194 || c4 == 196 || c4 == 197 || c4 == 208 || c4 == 210 || c4 == 215 || c4 == 217)) ||
     ((c1 == 192 || c1 == 193 || c1 == 194 || c1 == 195 || c1 == 196 || c1 == 197 || c1 == 199 || c1 == 208 || c1 == 210 || c1 == 211 || c1 == 214 || c1 == 215 || c1 == 218) && c2 == 196 && c3 == 196 && c4 == 196) ||
     (c1 == 205 && c2 == 205 && c3 == 205 && (c4 == 181 || c4 == 184 || c4 == 185 || c4 == 187 || c4 == 188 || c4 == 189 || c4 == 190 || c4 == 202 || c4 == 203 || c4 == 205 || c4 == 207 || c4 == 209 || c4 == 216)) ||

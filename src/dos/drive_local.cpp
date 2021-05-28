@@ -36,6 +36,7 @@
 #include "callback.h"
 #include "regs.h"
 #include "timer.h"
+#include "render.h"
 #include "../libs/physfs/physfs.h"
 #include "../libs/physfs/physfs.c"
 #include "../libs/physfs/physfs_archiver_7z.c"
@@ -167,6 +168,8 @@ bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
     return true;
 }
 
+extern bool forceswk;
+extern uint16_t cpMap_PC98[256];
 template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
@@ -174,7 +177,11 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
         if (ic >= map_max) return false; // non-representable
-        MT wc = map[ic]; // output: unicode character
+        MT wc = 
+#if defined(USE_TTF)
+        dos.loaded_codepage==437&&forceswk&&ic>=0xA1&&ic<=0xDF?cpMap_PC98[ic]:
+#endif
+        map[ic]; // output: unicode character
 
         *d++ = (uint16_t)wc;
     }
@@ -204,7 +211,7 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     return true;
 }
 
-/* needed for Wengier's TTF output and PC-98 mode */
+/* needed for Wengier's TTF output and CJK mode */
 template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;

@@ -49,7 +49,7 @@ typedef struct {
 Bitu call_program;
 extern const char *modifier;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw, halfwidthkana;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -90,6 +90,7 @@ public:
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
 bool TTF_using();
+int setTTFCodePage();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1542,6 +1543,12 @@ void CONFIG::Run(void) {
                                 autoboxdraw = section->Get_bool("ttf.autoboxdraw");
                                 mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 18).c_str(), "ttf.halfwidthkana=")) {
+#if defined(USE_TTF)
+                                halfwidthkana = section->Get_bool("ttf.halfwidthkana");
+                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana).refresh_item(mainMenu);
+                                if (TTF_using()) {setTTFCodePage();resetFontSize();}
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
 #if defined(USE_TTF)
