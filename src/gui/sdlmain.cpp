@@ -4641,7 +4641,7 @@ void GFX_EndTextLines(bool force=false) {
                     uint8_t ascii = newAC[x].chr&255;
 
                     curAC[x] = newAC[x];
-                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !(dos.loaded_codepage == 932 && enable_dbcs_tables && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
+                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !(dos.loaded_codepage == 932 && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
                         ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
                         ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
                         ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
@@ -5076,6 +5076,7 @@ int setTTFCodePage() {
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif
+        if (cp == 932 && halfwidthkana) resetFontSize();
         return notMapped;
     } else
         return -1;
