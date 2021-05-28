@@ -78,7 +78,7 @@ public:
     DOS_File() :flags(0) { name = 0; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
-	virtual	~DOS_File(){if(name) delete [] name;};
+	virtual ~DOS_File(){ delete [] name;};
 	virtual bool	Read(uint8_t * data,uint16_t * size)=0;
 	virtual bool	Write(const uint8_t * data,uint16_t * size)=0;
 	virtual bool	Seek(uint32_t * pos,uint32_t type)=0;
@@ -86,7 +86,7 @@ public:
 	/* ert, 20100711: Locking extensions */
 	virtual bool    LockFile(uint8_t mode, uint32_t pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
 	virtual uint16_t	GetInformation(void)=0;
-	virtual void	SetName(const char* _name)	{ if (name) delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
+	virtual void	SetName(const char* _name)	{ delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
 	virtual char*	GetName(void)				{ return name; };
 	virtual bool	IsOpen()					{ return open; };
 	virtual bool	IsName(const char* _name)	{ if (!name) return false; return strcasecmp(name,_name)==0; };
