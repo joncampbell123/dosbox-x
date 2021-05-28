@@ -3169,10 +3169,10 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
         vga_capture_write_address < 0xFFFF0000ul &&
         (vga_capture_write_address + (vga_capture_current_rect.w*4ul)) <= MemMax) {
         switch (vga.draw.bpp) {
-            case 32:    VGA_CaptureWriteScanlineChecked<32>((uint32_t*)raw); break;
-            case 16:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
-            case 15:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
-            case 8:     VGA_CaptureWriteScanlineChecked< 8>((uint8_t *)raw); break;
+            case 32:    VGA_CaptureWriteScanlineChecked<32>((const uint32_t*)raw); break;
+            case 16:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
+            case 15:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
+            case 8:     VGA_CaptureWriteScanlineChecked< 8>(raw); break;
         }
     }
     else {
