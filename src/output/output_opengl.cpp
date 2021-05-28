@@ -903,7 +903,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
                 }
                 else
                 {
-                    trgTex = reinterpret_cast<uint32_t*>(static_cast<void*>(sdl_opengl.framebuf));
+                    trgTex = reinterpret_cast<uint32_t*>(sdl_opengl.framebuf);
                 }
 
                 if (trgTex)

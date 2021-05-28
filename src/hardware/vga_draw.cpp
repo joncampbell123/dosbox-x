@@ -263,7 +263,7 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
                 const unsigned int shift = 13u - vga.config.addr_shift;
                 const unsigned char mask = (vga.crtc.mode_control & 3u) ^ 3u;
 
-                new_mask &= (size_t)(~(size_t(mask) << shift));
+                new_mask &= (~(size_t(mask) << shift));
                 new_add  += (size_t)(vga.draw_2[0].vert.current_char_pixel & mask) << shift;
             }
         }
@@ -399,7 +399,7 @@ static uint8_t * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
-    const uint8_t *base = (uint8_t*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint32_t * draw=(uint32_t *)TempLine;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
@@ -574,7 +574,7 @@ static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     if (GCC_UNLIKELY(((vga.draw.line_length + offset) & (~vga.draw.linear_mask)) != 0u)) {
         // this happens, if at all, only once per frame (1 of 480 lines)
         // in some obscure games
-        Bitu end = (Bitu)((Bitu)offset + (Bitu)vga.draw.line_length) & (Bitu)vga.draw.linear_mask;
+        Bitu end = (offset + vga.draw.line_length) & vga.draw.linear_mask;
         
         // assuming lines not longer than 4096 pixels
         Bitu wrapped_len = end & 0xFFF;
@@ -807,7 +807,7 @@ static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
         hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
         int x = (int)floor(hretrace_fx_avg + 0.5);
 
-        vidstart += (Bitu)((int)x);
+        vidstart += (Bitu)x;
     }
 
     for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
@@ -2891,7 +2891,7 @@ again:
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
+        PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
 
@@ -2983,7 +2983,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
+        PIC_AddEvent(VGA_DrawEGASingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
 
@@ -3115,9 +3115,9 @@ template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel
      * Also the 32bpp case shows how hacky this codebase is with regard to 32bpp color order support */
     if (bpp == 32) {
         if (GFX_bpp >= 24) {
-            r = ((uint32_t)raw & (uint32_t)GFX_Rmask) >> (uint32_t)GFX_Rshift;
-            g = ((uint32_t)raw & (uint32_t)GFX_Gmask) >> (uint32_t)GFX_Gshift;
-            b = ((uint32_t)raw & (uint32_t)GFX_Bmask) >> (uint32_t)GFX_Bshift;
+            r = ((uint32_t)raw & GFX_Rmask) >> (uint32_t)GFX_Rshift;
+            g = ((uint32_t)raw & GFX_Gmask) >> (uint32_t)GFX_Gshift;
+            b = ((uint32_t)raw & GFX_Bmask) >> (uint32_t)GFX_Bshift;
         }
         else {
             // hack alt, see vga_dac.cpp
@@ -3309,7 +3309,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         Bitu current_tick = GetTicks();
         static Bitu jolt_tick = 0;
         if( uservsyncjolt > 0.0f ) {
-            jolt_tick = (Bitu)current_tick;
+            jolt_tick = current_tick;
 
             // set the update counter to a low value so that the user will almost
             // immediately see the effects of an auto-correction.  This gives the
@@ -3322,7 +3322,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if( persistent_sync_counter == 0 ) {
                 float ticks_since_jolt = (signed long)current_tick - (signed long)jolt_tick;
                 double num_host_syncs_in_those_ticks = floor(ticks_since_jolt / vsync.period);
-                float diff_thing = ticks_since_jolt - (num_host_syncs_in_those_ticks * (double)vsync.period);
+                float diff_thing = ticks_since_jolt - (num_host_syncs_in_those_ticks * vsync.period);
 
                 if( diff_thing > (vsync.period / 2.0f) ) real_diff = diff_thing - vsync.period;
                 else real_diff = diff_thing;
@@ -4039,11 +4039,11 @@ void VGA_CheckScanLength(void) {
                 // S3 Trio: Testing on a real S3 Virge PCI card shows that the
                 //          byte/word/dword bits have no effect on SVGA modes other
                 //          than the 16-color 800x600 SVGA mode.
-                vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<2u);
+                vga.draw.address_add=vga.config.scan_len*(2u<<2u);
             }
             else {
                 // Other cards (?)
-                vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<vga.config.addr_shift);
+                vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
             }
         }
         break;
@@ -4056,7 +4056,7 @@ void VGA_CheckScanLength(void) {
     case M_CGA16:
     case M_AMSTRAD: // Next line.
         if (IS_EGAVGA_ARCH)
-            vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<vga.config.addr_shift);
+            vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
         else
             vga.draw.address_add=vga.draw.blocks;
         break;
