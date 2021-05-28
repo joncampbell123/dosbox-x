@@ -2207,7 +2207,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
+    Pbool->Set_help("Allow 9-pixel wide text mode fonts instead of 8-pixel wide fonts.");
+    Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("euro",Property::Changeable::Always,-1);
     Pint->Set_help("Display Euro symbol instead of the specified ASCII character (33-255).\n"
