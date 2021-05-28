@@ -1887,6 +1887,9 @@ CJK: Cambiar modo DBCS/SBCS
 :MENU:ttf_autoboxdraw
 CJK: Auto-detecta símbolos de dibujo de caja
 .
+:MENU:ttf_halfwidthkana
+CJK: Permitir katakana japonés de ancho medio
+.
 :MENU:VideoPC98Menu
 Opciones de PC-98
 .

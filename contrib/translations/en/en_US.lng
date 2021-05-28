@@ -1529,6 +1529,9 @@ CJK: Switch between DBCS/SBCS modes
 :MENU:ttf_autoboxdraw
 CJK: Auto-detect box-drawing characters
 .
+:MENU:ttf_halfwidthkana
+CJK: Allow half-width Japanese Katakana
+.
 :MENU:VideoPC98Menu
 PC-98 options
 .

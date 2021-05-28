@@ -1345,7 +1345,7 @@ SUBST: 命令行参数错误.
 您亦可以通过 DOSBox-X 所带的[33m下拉式菜单[37m来完成 DOSBox-X 的各种操作和功能。    
 .
 :SHELL_STARTUP_EXAMPLE
-[32m举例[37m: 您可以试着在下拉式菜单中选择 [33mTTF[37m 或者 [33mOpenGL perfect[37m 输出选项。       
+[32m举例[37m: 您可以试着在 [32m视频[37m 菜单中选择 [33mTTF[37m 或者 [33mOpenGL perfect[37m 输出选项。       
 .
 :SHELL_STARTUP_HEAD2
 [36m常用的默认快捷方式:                                                         [37m
@@ -1732,7 +1732,7 @@ POPD
 :SHELL_CMD_VERIFY_HELP_LONG
 VERIFY [ON | OFF]
 
-输入不代参数的 VERIFY 命令显示当前 VERIFY 设置.
+输入不带参数的 VERIFY 命令显示当前 VERIFY 设置.
 
 .
 :SHELL_CMD_VER_HELP
@@ -2115,10 +2115,10 @@ CPU 类型
 缩放器
 .
 :MENU:scaler_forced
-强制使用绽放器
+强制使用缩放器
 .
 :MENU:scaler_set_none
-None
+无
 .
 :MENU:scaler_set_normal2x
 Normal 2X
@@ -2365,6 +2365,9 @@ TTF 字处理软件: FastEdit
 .
 :MENU:ttf_autoboxdraw
 中日韩: 自动检测制表符
+.
+:MENU:ttf_halfwidthkana
+中日韩: 允许半角日文片假名
 .
 :MENU:VideoPC98Menu
 PC-98 选项
