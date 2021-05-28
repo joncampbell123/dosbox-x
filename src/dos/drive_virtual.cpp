@@ -44,7 +44,7 @@ struct VFILE_Block {
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
 char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII],ondirs[MAX_VFILES][CROSS_LEN];
-static VFILE_Block * first_file, * parent_dir, * lfn_search[256];
+static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
@@ -141,7 +141,10 @@ char* Generate_SFN(const char *name) {
 void VFILE_Shutdown(void) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Shutting down VFILE system");
 
-    if (parent_dir != NULL) delete parent_dir;
+    if (parent_dir != NULL) {
+        delete parent_dir;
+        parent_dir = NULL;
+    }
 	while (first_file != NULL) {
 		VFILE_Block *n = first_file->next;
 		delete first_file;
@@ -313,7 +316,7 @@ Virtual_Drive::Virtual_Drive() {
 	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = 0;}
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = section->Get_string("drive z hide files");
-    parent_dir = new VFILE_Block;
+    if (parent_dir == NULL) parent_dir = new VFILE_Block;
 }
 
 bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
