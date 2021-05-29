@@ -2220,7 +2220,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 		//Find first sourcefile
 		char sPath[DOS_PATHLENGTH];
-		bool ret=DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst(((strchr(sPath, ' ')&&sPath[0]!='"'&&sPath[0]!='"'?"\"":"")+std::string(sPath)+(strchr(sPath, ' ')&&sPath[strlen(sPath)-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
+		bool ret=DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst(((strchr(sPath, ' ')&&sPath[0]!='"'?"\"":"")+std::string(sPath)+(strchr(sPath, ' ')&&sPath[strlen(sPath)-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 		if (!ret) {
 			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),source.filename.c_str());
 			dos.dta(save_dta);
