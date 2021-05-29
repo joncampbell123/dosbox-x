@@ -59,7 +59,7 @@ export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
 export INTERNAL_FREETYPE=1
 
-pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp >/dev/null
+pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
 
 # now compile ourself
 echo Compiling DOSBox-X
