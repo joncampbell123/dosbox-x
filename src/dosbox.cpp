@@ -4062,7 +4062,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");
     Pstring->Set_help("The backend (either pcap or slirp is supported) used for the NE2000 Ethernet emulation.\n"
-        "If set to \"auto\", then \"slirp\" is selected when available, otherwise \"pcap\" is selected when available.");
+        "If set to \"auto\", then \"slirp\" is selected when available, otherwise \"pcap\" is selected when available.\n"
+        "NE2000 Ethernet emulation will be disabled if no backend is available (or the specified backend if unavailble).");
     Pstring->Set_values(backendopts);
     Pstring->SetBasic(true);
 

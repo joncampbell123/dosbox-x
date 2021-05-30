@@ -62,7 +62,8 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         else
             LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());
         return nullptr;
-    } else LOG_MSG("ETHERNET: NE2000 Ethernet emulation backend selected: %s", backend.c_str());
+    } else
+        LOG_MSG("ETHERNET: NE2000 Ethernet emulation backend selected: %s", backend.c_str());
     assert(settings);
     if (conn->Initialize(settings))
     {
