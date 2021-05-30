@@ -723,8 +723,8 @@ void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
-    uint8_t const* read = reinterpret_cast<uint8_t const*>(data);
+void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
+    const uint8_t* read = static_cast<const uint8_t *>(data);
     if (size==0)
         return;
 
