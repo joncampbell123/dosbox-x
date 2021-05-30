@@ -1773,7 +1773,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
 
     Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
-    Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
+    Pstring->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
                     "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
                     "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
                     "(machine=svga_et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped\n"
