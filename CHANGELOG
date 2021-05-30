@@ -101,7 +101,8 @@
     section of the config file. Windows SDL1 menu and
     macOS menu are now also compatible with Unicode
     language files and characters. Also improved code
-    page compatibility for SDL-drawn menu. (Wengier)
+    page compatibility for text in the SDL drawn menu
+    and the Configuration Tool. (Wengier)
   - Cleaned up the welcome banner messages and other
     messages involving boxdrawing characters for easier
     translations into certain languages. (Wengier)

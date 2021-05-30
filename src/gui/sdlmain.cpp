@@ -2440,6 +2440,7 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
+extern bool font_14_init, font_16_init;
 
 void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
@@ -2469,17 +2470,9 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
     }
     else {
         unsigned char *scan, *bmp;
-        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
-            PhysPt font16pt=Real2Phys(int10.rom.font_16);
-            uint8_t font[fontHeight];
-            for (int i=0; i<fontHeight; i++) {
-                font[i]=phys_readb(font16pt+c*fontHeight+i);
-#if defined(__MINGW32__)
-                LOG_MSG(NULL); // MinGW seems to need this for some reason
-#endif
-            }
-            bmp = (unsigned char*)font;
-        } else
+        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check)
+            bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
+        else
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
         assert(sdl.surface->pixels != NULL);
@@ -2546,17 +2539,9 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
     }
     else { 
         unsigned char *scan, *bmp;
-        if (CurMode&&IS_VGA_ARCH&&dos.loaded_codepage&&dos.loaded_codepage!=437&&int10.rom.font_16!=0&&!check) {
-            PhysPt font16pt=Real2Phys(int10.rom.font_16);
-            uint8_t font[fontHeight];
-            for (int i=0; i<fontHeight; i++) {
-                font[i]=phys_readb(font16pt+c*fontHeight+i);
-#if defined(__MINGW32__)
-                LOG_MSG(NULL); // MinGW seems to need this for some reason
-#endif
-            }
-            bmp = (unsigned char*)font;
-        } else
+        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check)
+            bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
+        else
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
         assert(sdl.surface->pixels != NULL);
@@ -5033,6 +5018,7 @@ void RebootGuest(bool pressed) {
 extern int eurAscii;
 extern bool enable_dbcs_tables;
 extern uint16_t cpMap_PC98[256];
+void initcodepagefont();
 bool forceswk=false, CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
@@ -5073,6 +5059,7 @@ int setTTFCodePage() {
             }
         if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
             cpMap[eurAscii] = 0x20ac;
+        initcodepagefont();
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif

@@ -67,7 +67,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern uint8_t              int10_font_14[256 * 14];
+extern uint8_t              int10_font_14[256 * 14], int10_font_14_init[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -77,7 +77,7 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres, swapad;
+extern bool                 dos_kernel_disabled, confres, swapad, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
@@ -139,7 +139,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
-    GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
+    GUI::Font::addFont("default",new GUI::BitmapFont(font_14_init&&dos.loaded_codepage&&dos.loaded_codepage!=437?int10_font_14_init:int10_font_14,14,10));
 }
 
 static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
@@ -201,6 +201,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     LoadMessageFile(section->Get_string("language"));
+    if (font_14_init) GUI_LoadFonts();
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());

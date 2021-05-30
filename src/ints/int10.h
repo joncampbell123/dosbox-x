@@ -103,6 +103,8 @@ extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern uint8_t int10_font_14_alternate[20 * 15 + 1];
 extern uint8_t int10_font_16_alternate[19 * 17 + 1];
+extern uint8_t int10_font_14_init[256 * 14];
+extern uint8_t int10_font_16_init[256 * 16];
 
 struct VideoModeBlock {
 	uint16_t	mode;

@@ -527,6 +527,8 @@ static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
 bool shellrun=false;
+bool InitCodePage(void);
+void initcodepagefont(void);
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -729,6 +731,10 @@ void DOS_Shell::Prepare(void) {
 			}
 		}
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
+        int cp=dos.loaded_codepage;
+        if (!dos.loaded_codepage) InitCodePage();
+        initcodepagefont();
+        dos.loaded_codepage=cp;
     }
 }
 

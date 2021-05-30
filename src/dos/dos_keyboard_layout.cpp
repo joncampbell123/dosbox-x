@@ -716,6 +716,87 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 
 extern int eurAscii;
 extern uint8_t euro_08[8], euro_14[14], euro_16[16];
+bool font_14_init=false, font_16_init=false;
+uint8_t int10_font_14_init[256 * 14], int10_font_16_init[256 * 16];
+void initcodepagefont() {
+    if (!dos.loaded_codepage) return;
+	uint32_t start_pos;
+	uint16_t number_of_codepages;
+	static uint8_t cpi_buf[65536];
+	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
+    switch (dos.loaded_codepage) {
+        case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
+                    for (Bitu bct=0; bct<6322; bct++) cpi_buf[bct]=font_ega_cpx[bct];
+                    cpi_buf_size=6322;
+                    break;
+        case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
+                    for (Bitu bct=0; bct<5455; bct++) cpi_buf[bct]=font_ega3_cpx[bct];
+                    cpi_buf_size=5455;
+                    break;
+        case 737:	case 851:	case 869:
+                    for (Bitu bct=0; bct<5720; bct++) cpi_buf[bct]=font_ega5_cpx[bct];
+                    cpi_buf_size=5720;
+                    break;
+        default:
+                    return;
+    }
+    uint16_t found_at_pos=0x29+19;
+    size_of_cpxdata=cpi_buf_size;
+    cpi_buf[found_at_pos]=0xcb;
+    uint16_t seg=0;
+    uint16_t size=0x1500;
+    if (!DOS_AllocateMemory(&seg,&size)) return;
+    MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
+    uint16_t save_ds=SegValue(ds);
+    uint16_t save_es=SegValue(es);
+    uint16_t save_ss=SegValue(ss);
+    uint32_t save_esp=reg_esp;
+    SegSet16(ds,seg);
+    SegSet16(es,seg);
+    SegSet16(ss,seg+0x1000);
+    reg_esp=0xfffe;
+    CALLBACK_RunRealFar(seg,0x100);
+    SegSet16(ds,save_ds);
+    SegSet16(es,save_es);
+    SegSet16(ss,save_ss);
+    reg_esp=save_esp;
+    MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
+    cpi_buf_size=65536;
+    DOS_FreeMemory(seg);
+	start_pos=host_readd(&cpi_buf[0x13]);
+	number_of_codepages=host_readw(&cpi_buf[start_pos]);
+	start_pos+=4;
+	for (uint16_t test_codepage=0; test_codepage<number_of_codepages; test_codepage++) {
+		uint16_t device_type, font_codepage, font_type;
+		device_type=host_readw(&cpi_buf[start_pos+0x04]);
+		font_codepage=host_readw(&cpi_buf[start_pos+0x0e]);
+		uint32_t font_data_header_pt;
+		font_data_header_pt=host_readd(&cpi_buf[start_pos+0x16]);
+		font_type=host_readw(&cpi_buf[font_data_header_pt]);
+		if ((device_type==0x0001) && (font_type==0x0001) && (font_codepage==dos.loaded_codepage)) {
+			uint16_t number_of_fonts=host_readw(&cpi_buf[font_data_header_pt+0x02]);
+			uint32_t font_data_start=font_data_header_pt+0x06;
+			for (uint16_t current_font=0; current_font<number_of_fonts; current_font++) {
+				uint8_t font_height=cpi_buf[font_data_start];
+				font_data_start+=6;
+				if (font_height==0x10) {
+                    for (uint16_t i=0;i<256*16;i++)
+                        int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i];
+                    font_16_init=true;
+				} else if (font_height==0x0e) {
+                    for (uint16_t i=0;i<256*14;i++)
+                        int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i];
+                    font_14_init=true;
+                }
+				font_data_start+=font_height*256u;
+			}
+			return;
+		}
+		start_pos=host_readd(&cpi_buf[start_pos]);
+		start_pos+=2;
+	}
+}
+
 Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t codepage_id) {
 	char cp_filename[512];
 	strcpy(cp_filename, codepage_file_name);
@@ -947,22 +1028,26 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
                     if (int10.rom.font_16 != 0) {
                         PhysPt font16pt=Real2Phys(int10.rom.font_16);
                         for (uint16_t i=0;i<256*16;i++) {
-                            phys_writeb(font16pt+i,eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i]);
+                            int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i];
+                            phys_writeb(font16pt+i,int10_font_16_init[i]);
                         }
                         // terminate alternate list to prevent loading
                         phys_writeb(Real2Phys(int10.rom.font_16_alternate),0);
                         font_changed=true;
+                        font_16_init=true;
                     }
 				} else if (font_height==0x0e) {
 					// 14x8 font, IF supported by the video card
                     if (int10.rom.font_14 != 0) {
                         PhysPt font14pt=Real2Phys(int10.rom.font_14);
                         for (uint16_t i=0;i<256*14;i++) {
-                            phys_writeb(font14pt+i,eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i]);
+                            int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i];
+                            phys_writeb(font14pt+i,int10_font_14_init[i]);
                         }
                         // terminate alternate list to prevent loading
                         phys_writeb(Real2Phys(int10.rom.font_14_alternate),0);
                         font_changed=true;
+                        font_14_init=true;
                     }
 				} else if (font_height==0x08) {
                     // 8x8 fonts. All video cards support it
