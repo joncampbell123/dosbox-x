@@ -1200,6 +1200,10 @@ void DOSBOX_SetupConfigSections(void) {
         "true", "false", "quiet", "1", "0",
         0 };
 
+    const char* backendopts[] = {
+        "pcap", "slirp", "auto", "none",
+        0 };
+
     const char* workdiropts[] = {
         "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
         0 };
@@ -4056,8 +4060,10 @@ void DOSBOX_SetupConfigSections(void) {
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
 
-    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
-    Pstring->Set_help("The backend (pcap or slirp) used for Ethernet emulation.");
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");
+    Pstring->Set_help("The backend (either pcap or slirp is supported) used for the NE2000 Ethernet emulation.\n"
+        "If set to \"auto\", then \"slirp\" is selected when available, otherwise \"pcap\" is selected when available.");
+    Pstring->Set_values(backendopts);
     Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);

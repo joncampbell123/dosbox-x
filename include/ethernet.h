@@ -88,6 +88,6 @@ class EthernetConnection
  * @param backend The name of the connection backend
  * @return An initialized Ethernet connection, nullptr otherwise
  */
-EthernetConnection* OpenEthernetConnection(const std::string& backend);
+EthernetConnection* OpenEthernetConnection(std::string backendstr);
 
 #endif

@@ -111,6 +111,10 @@
     messages by "automountall=true" option. Also added
     value "quiet" to "automountall" config option to
     auto-mount all Windows drives quietly. (Wengier)
+  - Added default value "auto" to "backend" option in
+    [ne2000] section of the configuration which will
+    automatically select slirp backend if available,
+    then pcap backend if available. (Wengier)
   - Improved handling of Ctrl+C/Ctrl+Break for shell-
     based DOS programs. (Wengier)
   - Setting "irq" to "0" in [sblaster] section of the
