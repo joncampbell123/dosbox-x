@@ -50,6 +50,10 @@ export CPPFLAGS="$new$CPPFLAGS -g3"
 export CXXFLAGS="$new$CXXFLAGS -g3"
 export INTERNAL_FREETYPE=1
 
+brew list fluid-synth &>/dev/null || brew install fluid-synth
+brew list libslirp &>/dev/null || brew install libslirp
+brew list pkg-config &>/dev/null || brew install pkg-config
+
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
