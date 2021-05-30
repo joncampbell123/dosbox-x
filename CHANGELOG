@@ -83,7 +83,8 @@
     config option to allow conversion of mouse wheel
     movements into Ctrl+up/down arrow (option 4), Ctrl+
     left/right arrows (option 5), Ctrl+PgUp/PgDn keys
-    (option 6). More menu options are added to "Mouse
+    (option 6), and Ctrl+W/Z as used by WordStar & EDIT
+    (option 7) . More menu options are added to "Mouse
     wheel movements" menu group as well. (Wengier)
   - Added menu option "Print text screen" (under "DOS")
     to print current DOS text screen, if the printer

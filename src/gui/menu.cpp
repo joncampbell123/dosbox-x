@@ -184,6 +184,7 @@ static const char *def_menu_main_wheelarrow[] =
     "wheel_ctrlupdown",
     "wheel_ctrlleftright",
     "wheel_ctrlpageupdown",
+    "wheel_ctrlwz",
     "--",
     "wheel_none",
     "wheel_guest",

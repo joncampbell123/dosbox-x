@@ -6960,7 +6960,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     SendInput(1, &ip, sizeof(INPUT));
                 } else
 #endif
-                {
+                if (wheel_key==7) {
+                    bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                    if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                    KEYBOARD_AddKey(KBD_w, true);
+                    if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                    KEYBOARD_AddKey(KBD_w, false);
+                } else {
                     bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), true);
@@ -6985,7 +6991,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     SendInput(1, &ip, sizeof(INPUT));
                 } else
 #endif
-                {
+                if (wheel_key==7) {
+                    bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                    if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                    KEYBOARD_AddKey(KBD_z, true);
+                    if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                    KEYBOARD_AddKey(KBD_z, false);
+                } else {
                     bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), true);
@@ -7552,7 +7564,13 @@ void GFX_Events() {
                         SendInput(1, &ip, sizeof(INPUT));
                     } else
 #endif
-                    {
+                    if (wheel_key==7) {
+                        bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                        if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                        KEYBOARD_AddKey(KBD_w, true);
+                        if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                        KEYBOARD_AddKey(KBD_w, false);
+                    } else {
                         bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
                         if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
                         KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), true);
@@ -7573,7 +7591,13 @@ void GFX_Events() {
                         SendInput(1, &ip, sizeof(INPUT));
                     } else
 #endif
-                    {
+                    if (wheel_key==7) {
+                        bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
+                        if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
+                        KEYBOARD_AddKey(KBD_z, true);
+                        if (ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
+                        KEYBOARD_AddKey(KBD_z, false);
+                    } else {
                         bool ctrlup = sdl.lctrlstate==SDL_KEYUP && sdl.rctrlstate==SDL_KEYUP;
                         if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, true);
                         KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), true);
@@ -8028,10 +8052,11 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, -1);
-    Pint->SetMinMax(-6,6);
+    Pint->SetMinMax(-7,7);
     Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
         "0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.\n"
         "4: Ctrl+up/down arrows; 5: Ctrl+left/right arrows; 6: Ctrl+PgUp/PgDn keys.\n"
+        "7: Ctrl+W/Z, as supported by text editors like WordStar and MS-DOS EDIT.\n"
         "Putting a minus sign in front will disable the conversion for guest systems.");
     Pint->SetBasic(true);
 
@@ -9977,12 +10002,14 @@ bool wheel_move_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     else if (!strcmp(mname, "wheel_ctrlupdown")) wheel_key = 4;
     else if (!strcmp(mname, "wheel_ctrlleftright")) wheel_key = 5;
     else if (!strcmp(mname, "wheel_ctrlpageupdown")) wheel_key = 6;
+    else if (!strcmp(mname, "wheel_ctrlwz")) wheel_key = 7;
     mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
     mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
     mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
     mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
     mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
     mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
     mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
     return true;
 }
@@ -13930,6 +13957,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlupdown").set_text("Convert to Ctrl+up/down arrows").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlleftright").set_text("Convert to Ctrl+left/right arrows").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlpageupdown").set_text("Convert to Ctrl+PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlwz").set_text("Convert to Ctrl+W/Z keys").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
@@ -13960,6 +13988,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
         mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
         mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
         mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
         mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
         mainMenu.get_item("sendkey_mapper_winlogo").check(sendkeymap==1).refresh_item(mainMenu);
