@@ -28,7 +28,7 @@ Windows installers for the previous DOSBox-X versions are also available from:
 * [dosbox-x-windows-0.83.12-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.12/dosbox-x-windows-0.83.12-setup.exe) (version 0.83.12)
 * [dosbox-x-windows-0.83.11-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.11/dosbox-x-windows-0.83.11-setup.exe) (version 0.83.11)
 
-If you see the message "Windows Defender SmartScreen prevented an unrecognized app from starting", you can solve it by clicking "More info" and then "Run anyway".
+If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting```, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
@@ -101,9 +101,9 @@ For 64-bit ARM-based macOS:
 
 The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
-If the macOS Gatekeeper claims that the program is damaged on your system, you should be able to get it work by running the following command once from the Terminal when you are in the ```dosbox-x``` or ```dosbox-x-sdl2``` directory:
+If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run DOSBox-X, you should be able to solve the problem by running the following command once in the Terminal and you are in the directory in which the macOS zip package is extracted (where you can find two folders including ```dosbox-x``` and ```dosbox-x-sdl2```):
 
-``xattr -cr dosbox-x.app``
+``xattr -cr dosbox-x/dosbox-x.app dosbox-x-sdl2/dosbox-x.app``
 
 If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the command line rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
 
@@ -127,7 +127,7 @@ Alternatively, you can run DOSBox-X from a DOS environment with the help of the 
 
 * [dosbox-x-dos-0.83.13-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.13/dosbox-x-dos-0.83.13-loadlin.zip)
 
-With this LOADLIN DOS package you can even run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true``` and/or ```autolock=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
+With this LOADLIN DOS package you can run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true``` and/or ```autolock=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 
 Note: You may not see DOS packages for some DOSBox-X versions. For example, the official DOS package is not available for DOSBox-X version 0.83.1.
 
