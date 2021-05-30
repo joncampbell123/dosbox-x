@@ -77,6 +77,9 @@ Directo de trabajo de DOSBox-X: ◙%s◙◙
 :PROGRAM_CONFIG_FILE_WHICH
 Escribiendo archivo config %s◙
 .
+:PROGRAM_LANGUAGE_FILE_WHICH
+Escribiendo archivo idioma %s◙
+.
 :PROGRAM_CONFIG_USAGE
 Utilidad de configuración por comandos de DOSBox-X. Opciones admitidas:
 
@@ -225,7 +228,7 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munidad←[0m ←[36;1mlocal_director
                   ('overlay' redirige escrituras a otro directorio)
  -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas)
  -ro              Monta la unidad en modo de solo lectura (read-only).
- -pr              Indica que la ruta es relativa a la ubicación del archivo config.
+ -pr              Indica la ruta es relativa a la ubicación del archivo config.
  -cd              Genera lista de valores del CD local de la "unidad".
  -usecd [drive #] Para emulación de hardware directa, como reproducir audio.
  -ioctl           Usa acceso a hardware de más bajo nivel (con opción -usecd).
