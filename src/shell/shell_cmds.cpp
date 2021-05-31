@@ -552,7 +552,7 @@ continue_1:
 	std::string pfull=std::string(spath)+std::string(pattern);
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-    bool res=DOS_FindFirst((char *)((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
+    bool res=DOS_FindFirst(((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) {
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
@@ -1095,7 +1095,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	std::string pfull=std::string(spath)+std::string(pattern);
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-	if (!DOS_FindFirst((char *)((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(), strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME)) {
+	if (!DOS_FindFirst(((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(), strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME)) {
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
 	} else {
@@ -1956,7 +1956,7 @@ void DOS_Shell::CMD_LS(char *args) {
 	}
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-	bool ret = DOS_FindFirst((char *)((uselfn?"\"":"")+std::string(spattern)+(uselfn?"\"":"")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
+	bool ret = DOS_FindFirst(((uselfn?"\"":"")+std::string(spattern)+(uselfn?"\"":"")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
 	if (!ret) {
 		lfn_filefind_handle=fbak;
 		if (strlen(trim(args)))
@@ -2220,9 +2220,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 		//Find first sourcefile
 		char sPath[DOS_PATHLENGTH];
-		bool ret=DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst((char *)((strchr(sPath, ' ')&&sPath[0]!='"'&&sPath[0]!='"'?"\"":"")+std::string(sPath)+(strchr(sPath, ' ')&&sPath[strlen(sPath)-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
+		bool ret=DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst(((strchr(sPath, ' ')&&sPath[0]!='"'?"\"":"")+std::string(sPath)+(strchr(sPath, ' ')&&sPath[strlen(sPath)-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 		if (!ret) {
-			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),const_cast<char*>(source.filename.c_str()));
+			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),source.filename.c_str());
 			dos.dta(save_dta);
 			return;
 		}
@@ -2569,7 +2569,7 @@ void DOS_Shell::CMD_IF(char * args) {
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			std::string sfull=std::string(spath)+std::string(pattern);
-			bool ret=DOS_FindFirst((char *)((uselfn&&sfull.length()&&sfull[0]!='"'?"\"":"")+sfull+(uselfn&&sfull.length()&&sfull[sfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
+			bool ret=DOS_FindFirst(((uselfn&&sfull.length()&&sfull[0]!='"'?"\"":"")+sfull+(uselfn&&sfull.length()&&sfull[sfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
 			lfn_filefind_handle=fbak;
 			dos.dta(save_dta);
 			if (ret==(!has_not)) DoCommand(args);
@@ -3768,7 +3768,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 			std::string tmp;
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=lfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			if (DOS_FindFirst((char *)(std::string(spath)+std::string(pattern)).c_str(), ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
+			if (DOS_FindFirst((std::string(spath)+std::string(pattern)).c_str(), ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
 				{
 				dta.GetResult(name, lname, size, date, time, attr);
 				tmp=std::string(path)+std::string(lfn?lname:name);

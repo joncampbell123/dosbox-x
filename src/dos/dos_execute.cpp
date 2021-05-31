@@ -350,7 +350,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
-	uint8_t * loadbuf=(uint8_t *)new uint8_t[0x10000u];
+	uint8_t * loadbuf=new uint8_t[0x10000u];
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
@@ -394,6 +394,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			}
 			if (maxfree<minsize) {
 				DOS_CloseFile(fhandle);
+                delete[] loadbuf;
 				DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 				DOS_FreeMemory(envseg);
 				return false;

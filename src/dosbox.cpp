@@ -285,10 +285,10 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
     /* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
      * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
-    s  = (signed long long)((unsigned long long)PIC_Ticks * (unsigned long long)dst.freq);
-    s += (signed long long)(((unsigned long long)PIC_TickIndexND() * (unsigned long long)dst.freq) / (unsigned long long)CPU_CycleMax);
+    s  = (signed long long)((unsigned long long)PIC_Ticks * dst.freq);
+    s += (signed long long)(((unsigned long long)PIC_TickIndexND() * dst.freq) / (unsigned long long)CPU_CycleMax);
     /* convert down to frequency counts, not freq x 1000 */
-    s /= (signed long long)(1000ULL * (unsigned long long)dst.freq_div);
+    s /= (signed long long)(1000ULL * dst.freq_div);
 
     /* guard against time going backwards slightly (as PIC_TickIndexND() will do sometimes by tiny amounts) */
     if (dst.counter < (unsigned long long)s) dst.counter = (unsigned long long)s;
@@ -1078,8 +1078,8 @@ void DOSBOX_RealInit() {
     LOG_MSG("%s BCLK: %.3fHz (%llu/%llu)",
         IS_PC98_ARCH ? "C-BUS" : "ISA",
         (double)clockdom_ISA_BCLK.freq / clockdom_ISA_BCLK.freq_div,
-        (unsigned long long)clockdom_ISA_BCLK.freq,
-        (unsigned long long)clockdom_ISA_BCLK.freq_div);
+        clockdom_ISA_BCLK.freq,
+        clockdom_ISA_BCLK.freq_div);
 
     clockdom_ISA_OSC.set_name("ISA OSC");
     clockdom_ISA_BCLK.set_name("ISA BCLK");

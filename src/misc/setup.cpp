@@ -884,7 +884,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
 
         (*tel)->PrintData(outfile,everything,norem);
 		if (!strcmp(temp, "config")||!strcmp(temp, "4dos")) {
-			const char * extra = const_cast<char*>(sec->data.c_str());
+			const char * extra = sec->data.c_str();
 			bool used1=false, used2=false;
 			char linestr[CROSS_LEN+1], *lin=linestr;
 			if (extra&&strlen(extra)) {

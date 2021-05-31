@@ -1410,7 +1410,7 @@ HRESULT CDirect3D::CreateVertex(void)
     if (psActive) {
         vertices[0].position = D3DXVECTOR3(-0.5f, -0.5f, 0.0f);
         vertices[0].diffuse = 0xFFFFFFFF;
-        vertices[0].texcoord = D3DXVECTOR2(0.0f, (float)sizey);
+        vertices[0].texcoord = D3DXVECTOR2(0.0f, sizey);
 
         vertices[1].position = D3DXVECTOR3(-0.5f, 0.5f, 0.0f);
         vertices[1].diffuse = 0xFFFFFFFF;
@@ -1418,11 +1418,11 @@ HRESULT CDirect3D::CreateVertex(void)
 
         vertices[2].position = D3DXVECTOR3(0.5f, -0.5f, 0.0f);
         vertices[2].diffuse = 0xFFFFFFFF;
-        vertices[2].texcoord = D3DXVECTOR2((float)sizex, (float)sizey);
+        vertices[2].texcoord = D3DXVECTOR2(sizex, sizey);
 
         vertices[3].position = D3DXVECTOR3(0.5f, 0.5f, 0.0f);
         vertices[3].diffuse = 0xFFFFFFFF;
-        vertices[3].texcoord = D3DXVECTOR2((float)sizex, 0.0f);
+        vertices[3].texcoord = D3DXVECTOR2(sizex, 0.0f);
     }
     else {
         vertices[0].position = D3DXVECTOR3((float)dwX, (float)dwY, 0.0f);
@@ -1431,15 +1431,15 @@ HRESULT CDirect3D::CreateVertex(void)
 
         vertices[1].position = D3DXVECTOR3((float)dwX, (float)(dwY + dwScaledHeight), 0.0f);
         vertices[1].diffuse = 0xFFFFFFFF;
-        vertices[1].texcoord = D3DXVECTOR2(0.0f, (float)sizey);
+        vertices[1].texcoord = D3DXVECTOR2(0.0f, sizey);
 
         vertices[2].position = D3DXVECTOR3((float)(dwX + dwScaledWidth), (float)dwY, 0.0f);
         vertices[2].diffuse = 0xFFFFFFFF;
-        vertices[2].texcoord = D3DXVECTOR2((float)sizex, 0.0f);
+        vertices[2].texcoord = D3DXVECTOR2(sizex, 0.0f);
 
         vertices[3].position = D3DXVECTOR3((float)(dwX + dwScaledWidth), (float)(dwY + dwScaledHeight), 0.0f);
         vertices[3].diffuse = 0xFFFFFFFF;
-        vertices[3].texcoord = D3DXVECTOR2((float)sizex, (float)sizey);
+        vertices[3].texcoord = D3DXVECTOR2(sizex, sizey);
     }
 
     // Additional vertices required for some PS effects

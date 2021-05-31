@@ -639,7 +639,7 @@ void DOS_Shell::Prepare(void) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
-			const char * extra = const_cast<char*>(section->data.c_str());
+			const char * extra = section->data.c_str();
 			if (extra) {
 				std::string vstr;
 				std::istringstream in(extra);
@@ -704,7 +704,7 @@ void DOS_Shell::Prepare(void) {
         GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
-			strcat(config_data, (char *)section->Get_string("rem"));
+			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
@@ -719,7 +719,7 @@ void DOS_Shell::Prepare(void) {
 		strcpy(i4dos_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("4dos"));
 		if (section!=NULL) {
-			const char * extra = const_cast<char*>(section->data.c_str());
+			const char * extra = section->data.c_str();
 			if (extra) {
 				std::istringstream in(extra);
 				if (in)	for (std::string line; std::getline(in, line); ) {
@@ -878,7 +878,7 @@ public:
         }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
-		const char * extra = const_cast<char*>(section->data.c_str());
+		const char * extra = section->data.c_str();
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
 			size_t firstline_length = strcspn(extra,"\r\n");

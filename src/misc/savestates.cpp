@@ -547,7 +547,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     }
 
     size_buf = 8192;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");
@@ -964,7 +964,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
 	opt_compress_level = 9;
 
     size_buf = 16384;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         //printf("Error allocating memory\n");

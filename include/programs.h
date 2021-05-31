@@ -101,8 +101,8 @@ class Program {
 public:
 	Program();                                          //! Constructor
 	virtual ~Program(){                                 //! Default destructor
-		if (cmd != NULL) delete cmd;
-		if (psp != NULL) delete psp;
+		delete cmd;
+		delete psp;
 	}
 
     /*! \brief      Exit status of the program

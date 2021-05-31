@@ -357,7 +357,7 @@ public:
 		switch (size) {
 		case 1:mem_writeb(pt+addr,(uint8_t)val);break;
 		case 2:mem_writew(pt+addr,(uint16_t)val);break;
-		case 4:mem_writed(pt+addr,(uint32_t)val);break;
+		case 4:mem_writed(pt+addr,val);break;
 		}
 	}
     inline void SetPt(const uint16_t seg) { pt=PhysMake(seg,0);}
@@ -563,7 +563,7 @@ public:
 	void	SetDirID(uint16_t entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };
 	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
-	uint32_t	GetDirIDCluster(void)		{ return (uint32_t)sGet(sDTA,dirCluster); };
+	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
     uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
 private:
 	#ifdef _MSC_VER
@@ -684,7 +684,7 @@ public:
 	void SetPSP(uint16_t _psp) { sSave(sSDA,current_psp, _psp); }
 	uint8_t GetDrive(void) { return (uint8_t)sGet(sSDA,current_drive); }
 	uint16_t GetPSP(void) { return (uint16_t)sGet(sSDA,current_psp); }
-	uint32_t GetDTA(void) { return (uint32_t)sGet(sSDA,current_dta); }
+	uint32_t GetDTA(void) { return sGet(sSDA,current_dta); }
 	
 	
 private:

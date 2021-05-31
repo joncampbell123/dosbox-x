@@ -918,7 +918,7 @@ void CONFIG::Run(void) {
 							p->GetValue().ToString().c_str());
 					}
 					if (!strcasecmp(pvars[0].c_str(), "config")||!strcasecmp(pvars[0].c_str(), "4dos")) {
-						const char * extra = const_cast<char*>(psec->data.c_str());
+						const char * extra = psec->data.c_str();
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
@@ -1070,7 +1070,7 @@ void CONFIG::Run(void) {
 				if (val == NO_SUCH_PROPERTY) {
 					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
 						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
-						const char * extra = const_cast<char*>(psec->data.c_str());
+						const char * extra = psec->data.c_str();
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
@@ -1466,7 +1466,7 @@ void CONFIG::Run(void) {
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
                                     WriteOut("[2J");
                                 else {
-                                    reg_ax=(uint16_t)CurMode->mode;
+                                    reg_ax=CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);
                                 }
                                 lastset=iscol?2:1;
