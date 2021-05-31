@@ -11869,14 +11869,14 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
 #if defined(C_SDL2)
     int x=-1, y=-1;
 #endif
-    if (!GFX_IsFullscreen()) {
+    if (!GFX_IsFullscreen()&&!window_was_maximized) {
         switchfs=true;
 #if defined(C_SDL2)
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
-        toscale=false;
     }
+    toscale=false;
     helpcmd = menuitem->get_name().substr(8);
     GUI_Shortcut(36);
     toscale=true;
