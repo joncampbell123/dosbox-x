@@ -427,6 +427,7 @@ private:
 
 extern CSerial* serialports[];
 const uint8_t serial_defaultirq[] = { 4, 3, 4, 3, 0, 0, 0, 0, 0 };
+const uint16_t serial_defaultaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8,0,0,0,0,0};
 const char* const serial_comname[]={"COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9"};
 
 // the COM devices

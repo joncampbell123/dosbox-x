@@ -186,7 +186,7 @@
   - Fixed Windows detection for the game "Tex Murphy:
     Under a Killing Moon". (Wengier)
   - Fixed serial ports 5-9 may not be usable with real
-    serial ports (directserial). (Wengier)
+    serial ports (directserial). (vkbaf & Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
   - Updated Windows installer to use the latest Inno
