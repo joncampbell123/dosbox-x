@@ -205,7 +205,7 @@ static INLINE uint32_t phys_readd(const PhysPt addr) {
 
 /* These don't check for alignment, better be sure it's correct */
 
-void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size);
+void MEM_BlockWrite(PhysPt pt, const void *data, size_t size);
 void MEM_BlockRead(PhysPt pt,void * data,Bitu size);
 void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size);
 void MEM_BlockRead32(PhysPt pt,void * data,Bitu size);

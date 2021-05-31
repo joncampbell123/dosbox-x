@@ -276,7 +276,7 @@ void INT10_SetupRomMemory(void) {
 
 		if (IS_VGA_ARCH) {
 			// SVGA card-specific ROM signatures
-			switch(svgaCard) {
+			switch (svgaCard) {
 			case SVGA_S3Trio:
                 if(!VGA_BIOS_use_rom) {
                     // S3 ROM signature
@@ -304,6 +304,8 @@ void INT10_SetupRomMemory(void) {
 				phys_writeb(rom_base+0x007e,'G');
 				phys_writeb(rom_base+0x007f,'A');
 				phys_writeb(rom_base+0x0080,'=');
+				break;
+			case SVGA_None:
 				break;
 			}
 		}

@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <cassert>
 
 #include "dosbox.h"
 #include "mem.h"
@@ -31,8 +32,8 @@ Bitu INT10_VideoState_GetSize(Bitu state) {
 	if (state&2) size+=0x3a;
 	if (state&4) size+=0x303;
 	if ((svgaCard==SVGA_S3Trio) && (state&8)) size+=0x43;
-	if (size!=0) size=(size-1)/64+1;
-	return size;
+	assert(size > 0);
+	return (size - 1) / 64 + 1;
 }
 
 bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
