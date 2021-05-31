@@ -1,1287 +1,2119 @@
-:DOSBOX-X:LANGUAGE:English (United States)
-:DOSBOX-X:CODEPAGE:437
+:DOSBOX-X:LANGUAGE:Japanese (UTF-8)
+:DOSBOX-X:CODEPAGE:932
 :DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
-Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
+このセクションに記載の行は起動時に実行されます。
+MOUNT したい場合はここに記載できます。
 .
 :CONFIGFILE_INTRO
-# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)◙# Lines starting with a # are comment lines and are ignored by DOSBox-X.◙# They are used to (briefly) document the effect of each option.◙# To write out ALL options, use command 'config -all' with -wc or -writeconf options.◙
+# これは DOSBox-X %s の設定ファイルです。 (最新のバージョンのDOSBox-Xを使用してください)
+# # から始まる行はコメント行で、DOSBox-Xは無視します。
+# それぞれのオプションの意味(の概要)を説明するために用います。
+# すべてのオプションを書き出すためには, 'config -all'　コマンドに -wc または -writeconf のオプションを加えて実行してください。
+
 .
 :CONFIG_SUGGESTED_VALUES
-Possible values
+設定可能な値
 .
 :DRIVE
-Drive
+ドライブ
 .
 :TYPE
-Type
+タイプ
 .
 :LABEL
-Label
+ラベル
 .
 :DRIVE_NUMBER
-Drive number
+ドライブ番号
 .
 :DISK_NAME
-Disk name
+ディスク名
 .
 :IDE_POSITION
-IDE position
+IDE ポジション
 .
 :SWAP_SLOT
-Swap slot
+スロットの入替
 .
 :EMPTY_SLOT
-Empty slot
+空のスロット
 .
 :SLOT
-Slot
+スロット
 .
 :AUTO_CYCLE_MAX
-Auto cycles [max]
+自動サイクル設定 [最大]
 .
 :AUTO_CYCLE_AUTO
-Auto cycles [auto]
+自動サイクル設定 [自動]
 .
 :AUTO_CYCLE_OFF
-Auto cycles [off]
+自動サイクル設定 [無効]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
-No such section or property.◙
+セクションまたはプロパティは無効です。
+
 .
 :PROGRAM_CONFIG_NO_PROPERTY
-There is no property %s in section %s.◙
+プロパティ %s はセクション %s に存在しません。
+
 .
 :PROGRAM_CONFIG_SET_SYNTAX
-The syntax for -set option is incorrect.◙
+-set オプションの文法に誤りがあります。
+
 .
 :PROGRAM_CONFIG_NOCONFIGFILE
-No config file loaded!◙
+Config ファイルが読み込まれていません!
+
 .
 :PROGRAM_CONFIG_PRIMARY_CONF
-Primary config file: ◙%s◙
+初期の設定ファイル:
+%s
+
 .
 :PROGRAM_CONFIG_ADDITIONAL_CONF
-Additional config files:◙
+追加の設定ファイル:
+
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s user configuration directory: ◙%s◙◙
+DOSBox-X %s 設定用ディレクトリ:
+%s
+
+
 .
 :PROGRAM_CONFIG_WORKDIR
-DOSBox-X's working directory: ◙%s◙◙
+DOSBox-X's 作業用ディレクトリ:
+%s
+
+
 .
 :PROGRAM_CONFIG_FILE_ERROR
-◙Can't open file %s◙
+
+ファイル %s を開けません。
+
 .
 :PROGRAM_CONFIG_FILE_WHICH
-Writing config file %s◙
+設定ファイル %s を書き込み中
 .
 :PROGRAM_LANGUAGE_FILE_WHICH
-Written to language file %s◙
+Written to language file %s
 .
 :PROGRAM_CONFIG_USAGE
-The DOSBox-X command-line configuration utility. Supported options:◙-wc (or -writeconf) without parameter: Writes to primary loaded config file.◙-wc (or -writeconf) with filename: Writes file to the config directory.◙-wl (or -writelang) with filename: Writes the current language strings.◙-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).◙-wcd Writes to the default config file in the config directory.◙-all, -mod Use with -wc, -wcp, or -wcd to write ALL or only modified options.◙-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.◙-bootconf (or -bc) reboots with specified config file (or primary loaded file).◙-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.◙-l Lists DOSBox-X's configuration parameters.◙-h, -help, -? Shows this help; add the word "sections" for a list of sections.◙-h, -help, -? section / property Shows info on a specific section or property.◙-axclear Clears the [autoexec] section.◙-axadd [line] Adds a line to the [autoexec] section.◙-axtype Prints the content of the [autoexec] section.◙-avistart, -avistop Starts or stops AVI recording.◙-securemode Enables secure mode where features like mounting will be disabled.◙-startmapper Starts the DOSBox-X mapper editor.◙-gui Starts the graphical configuration tool.◙-get "section property" returns the value of the property (also to %%CONFIG%%).◙-set (-setf for force) "section property=value" sets the value of the property.◙
+DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプション:
+-wc (or -writeconf) パラメータなしの場合: primary loaded fileに書き込み。
+-wc (or -writeconf) ファイル名: ファイルを設定用ディレクトリに書き出す。
+-wl (or -writelang) ファイル名: 現在の language stringsを書き出す。
+-wcp [ファイル名] プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
+-wcd 設定用ディレクトリにデフォルト設定ファイルを書き出す。
+-all -wc, -wcp, -wcd と組み合わせ、設定ファイルに全てのオプションを書き出す。
+-wcboot, -wcpboot, -wcdboot: ファイル書き出し後に DOSBox-X を再起動。
+-bootconf(or -bc) 指定の設定用ﾌｧｲﾙ(またはprimary loaded file)を用いて再起動。
+-norem -wc, -wcp, or -wcd と組み合わせ、オプションのコメントを書き出さない。
+-l DOSBox-X の設定用パラメータの一覧を表示。
+-h, -help, -? このヘルプを表示。"sections"を加えた場合はセクションの一覧。
+-h, -help, -? セクション/プロパティ 指定のセクション,プロパティの情報を表示。
+-axclear [autoexec] セクションをクリアする。
+-axadd [line] [autoexec] セクションに行を追加。
+-axtype [autoexec] セクションの内容を表示。
+-avistart, -avistop AVI 録画を開始・停止。
+-securemode Secure mode を有効化(マウント等の機能が無効化されます)
+-startmapper DOSBox-X マッパーエディターを起動。
+-gui グラフィカルな設定ツールを起動。
+-get "section property" 指定のプロパティの値を返す(%%CONFIG%%へも)。
+-set (-setfで強制) "section property=value" 指定のプロパティの値を設定。
+
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
-Purpose of property "%s" (contained in section "%s"):◙%s◙◙Possible Values: %s◙Default value: %s◙Current value: %s◙
+プロパティの目的 "%s" (含まれるセクション: "%s"):
+%s
+
+設定可能な値: %s
+デフォルト値: %s
+現在の値: %s
+
 .
 :PROGRAM_CONFIG_HLP_LINEHLP
-Purpose of section "%s":◙%s◙Current value:◙%s◙
+セクションの目的 "%s":
+%s
+現在の値:
+%s
+
 .
 :PROGRAM_CONFIG_HLP_NOCHANGE
-This property cannot be changed at runtime.◙
+実行中はこのプロパティを変更できません。
 .
 :PROGRAM_CONFIG_HLP_POSINT
-positive integer
+正の整数
 .
 :PROGRAM_CONFIG_HLP_SECTHLP
-Section %s contains the following properties:◙
+セクション %s に含まれるプロパティ:
 .
 :PROGRAM_CONFIG_HLP_SECTLIST
-DOSBox-X configuration contains the following sections:◙◙
+DOSBox-X configuration に含まれるセクション:
 .
 :PROGRAM_CONFIG_SECURE_ON
-Switched to secure mode.◙
+セキュア・モードに変更しました。
 .
 :PROGRAM_CONFIG_SECURE_DISALLOW
-This operation is not permitted in secure mode.◙
+セキュア・モードではこの操作はできません。
 .
 :PROGRAM_CONFIG_SECTION_ERROR
-Section %s doesn't exist.◙
+セクション %s は存在しません。
 .
 :PROGRAM_CONFIG_VALUE_ERROR
-"%s" is not a valid value for property %s.◙
+"%s" はプロパティ %s の有効な値ではありません。
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
-There may be other sections with the same property name.◙
+他のセクションに同じプロパティ名があるかもしれません。
 .
 :PROGRAM_CONFIG_GET_SYNTAX
-Correct syntax: config -get "section property".◙
+文法が違います: config -get "セクション プロパティ".
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
-◙DOSBox-X was started with the following command line parameters:◙%s◙
+DOSBox-X は以下のｺﾏﾝﾄﾞﾗｲﾝ ﾊﾟﾗﾒｰﾀを指定して起動されました:
+%s
+
+
 .
 :PROGRAM_CONFIG_MISSINGPARAM
-Missing parameter.◙
+パラメータが足りません。
 .
 :PROGRAM_MOUSE_INSTALL
-Installed at PS/2 port.◙
+PS/2 ポートに接続。
 .
 :PROGRAM_MOUSE_VERTICAL
-Reverse Y-axis enabled.◙
+Y軸反転 有効
 .
 :PROGRAM_MOUSE_VERTICAL_BACK
-Reverse Y-axis disabled.◙
+Y軸反転 無効
+
 .
 :PROGRAM_MOUSE_UNINSTALL
-Driver successfully unloaded...◙
+ドライバは常駐解除されました...
+
 .
 :PROGRAM_MOUSE_ERROR
-Already installed at PS/2 port.◙
+すでに PS/2 ポートに接続されています。
+
 .
 :PROGRAM_MOUSE_NOINSTALLED
-Driver is not installed.◙
+ドライバが読み込まれていません。
+
 .
 :PROGRAM_MOUSE_HELP
-Turns on/off mouse.◙◙MOUSE [/?] [/U] [/V]◙  /U: Uninstall◙  /V: Reverse Y-axis◙
+マウスを有効・無効化.
+
+MOUSE [/?] [/U] [/V]
+  /U: 常駐解除
+  /V: Y軸反転
+
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
-CDROMs found: %d◙
+見つかったCDROM: %d
+
 .
 :PROGRAM_MOUNT_STATUS_FORMAT
-%-5s  %-58s %-12s◙
+%-5s  %-58s %-12s
+
 .
 :PROGRAM_MOUNT_STATUS_ELTORITO
-Drive %c is mounted as El Torito floppy drive◙
+%c ドライブは El Torito 形式のフロッピードライブとしてマウントされました。
+
 .
 :PROGRAM_MOUNT_STATUS_RAMDRIVE
-Drive %c is mounted as RAM drive◙
+%c ドライブは RAMドライブとしてマウントされました。
+
 .
 :PROGRAM_MOUNT_STATUS_2
-Drive %c is mounted as %s◙
+%c ドライブに %s をマウントしました
+
 .
 :PROGRAM_MOUNT_STATUS_1
-The currently mounted drives are:◙
+現在マウントされているドライブ:
+
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
-%-5s  %-47s  %-12s  %s◙
+%-5s  %-47s  %-12s  %s
+
 .
 :PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
-%-12s  %-40s  %-12s  %s◙
+%-12s  %-40s  %-12s  %s
+
 .
 :PROGRAM_IMGMOUNT_STATUS_2
-The currently mounted drive numbers are:◙
+現在マウントされているドライブ番号:
+
 .
 :PROGRAM_IMGMOUNT_STATUS_1
-The currently mounted FAT/ISO drives are:◙
+現在マウントされている FAT/ISOドライブ:
+
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
-No drive available◙
+マウントされたドライブがありません。
+
 .
 :PROGRAM_MOUNT_ERROR_1
-Directory %s does not exist.◙
+ディレクトリ %s は無効です。
+
 .
 :PROGRAM_MOUNT_ERROR_2
-%s is not a directory◙
+%s はディレクトリではありません。
+
 .
 :PROGRAM_MOUNT_IMGMOUNT
-To mount image files, use the ←[34;1mIMGMOUNT←[0m command, not the ←[34;1mMOUNT←[0m command.◙
+イメージをマウントするためには,  [34;1mMOUNT[0m ではなく[34;1mIMGMOUNT[0m を使ってください。
+
 .
 :PROGRAM_MOUNT_ILL_TYPE
-Illegal type %s◙
+無効なタイプ %s
+
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-Drive %c already mounted with %s◙
+%c ドライブにはすでに %sがマウントされています。
 .
 :PROGRAM_MOUNT_USAGE
-Mounts directories or drives in the host system as DOSBox-X drives.◙Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directory←[0m [option]←[0m◙ ←[37;1mdrive←[0m            Drive letter where the directory or drive will be mounted.◙ ←[36;1mlocal_directory←[0m  Local directory or drive in the host system to be mounted.◙ [option]         Option(s) for mounting. The following options are accepted:◙ -t               Specify the drive type the mounted drive to behave as.◙                  Supported drive type: dir, floppy, cdrom, overlay◙ (Note that 'overlay' redirects writes for mounted drive to another directory)◙ -label [name]    Set the volume label name of the drive (all upper case)◙ -ro              Mount the drive in read-only mode.◙ -pr              Specify the path is relative to the config file location.◙ -cd              Generate a list of local CD drive's "drive #" values.◙ -usecd [drive #] For direct hardware emulation such as audio playback.◙ -ioctl           Use lowest level hardware access (following -usecd option).◙ -aspi            Use the installed ASPI layer (following -usecd option).◙ -freesize [size] Specify the free disk space of drive in MB (KB for floppies).◙ -nocachedir      Enable real-time update and do not cache the drive.◙ -z drive         Move virtual drive Z: to a different letter.◙ -o               Report the drive as: local, remote.◙ -q               Quiet mode (no message output).◙ -u               Unmount the drive.◙ ←[32;1m-examples        Show some usage examples.←[0m◙Type MOUNT with no parameters to display a list of mounted drives.◙
+ホストのディレクトリやドライブをDOSBox-X のドライブとしてマウントします。
+使用法: [34;1m[32;1mMOUNT[0m [37;1mdrive[0m [36;1mlocal_directory[0m [option][0m
+ [37;1mdrive[0m            ディレクトリまたはドライブをマウントするドライブ
+ [36;1mlocal_directory[0m  マウントするホストシステムのディレクトリまたはドライブ
+ [option]         設定可能なオプション:
+ -t               マウントするドライブのタイプを指定。
+                  設定可能なタイプ: dir, floppy, cdrom, overlay
+ ('overlay'を指定するとマウントしたドライブへの書き込みを別のディレクトリへ
+ リダイレクトされる)
+ -label [名前]    ドライブのボリュームラベル (すべて大文字とすること)
+ -ro              ドライブを書き込み禁止でマウントする
+ -pr              パスが設定ファイルの位置からの相対位置であることとする。
+ -cd              ホストシステムのCDドライブの"drive #" の値の一覧を表示する。
+ -usecd [drive #] オーディオ再生等の直接ハードウェア・エミュレーション時に指定
+ -ioctl           最もlowレベルなハードウェアアクセスを使用 (-usecd の後に指定)
+ -aspi            インストールされた ASPI レイヤーを使用 (-usecd の後に指定)
+ -freesize [size] ドライブの空容量をMB(フロッピーの時はKB)で指定。
+ -nocachedir      リアルタイム更新を有効化し、ドライブをキャッシュしない。
+ -z drive         仮想ドライブ Z: のドライブ文字を別の文字に変更。
+ -o               ドライブの local, remote の種別を表示。
+ -q               表示を抑制する (メッセージを非表示).
+ -u               ドライブのマウントを解除。
+ [32;1m-examples        使用例を表示[0m
+マウントされたドライブの一覧を表示するには、オプションなしで MOUNT と入力する
+
 .
 :PROGRAM_MOUNT_EXAMPLE
-A basic example of MOUNT command:◙◙←[32;1mMOUNT c %s←[0m◙◙This makes the directory %s act as the C: drive inside DOSBox-X.◙The directory has to exist in the host system. If the directory contains◙space(s), be sure to properly quote the directory with double quotes,◙e.g. %s◙◙Some other usage examples of MOUNT:◙◙←[32;1mMOUNT←[0m                             - list all mounted drives◙←[32;1mMOUNT -cd←[0m                         - list all local CD drives◙←[32;1mMOUNT d %s←[0m            - mount the D: drive to the directory◙←[32;1mMOUNT c %s -t cdrom←[0m      - mount the C: drive as a CD-ROM drive◙←[32;1mMOUNT c %s -ro←[0m           - mount the C: drive in read-only mode◙←[32;1mMOUNT c %s -label TEST←[0m   - mount the C: drive with the label TEST◙←[32;1mMOUNT c %s -nocachedir ←[0m  - mount C: without caching the drive◙←[32;1mMOUNT c %s -freesize 128←[0m - mount C: with 128MB free disk space◙←[32;1mMOUNT c %s -u←[0m            - force mount C: drive even if it's mounted◙←[32;1mMOUNT c %s -t overlay←[0m  - mount C: with overlay directory on top◙←[32;1mMOUNT c -u←[0m                        - unmount the C: drive◙
+MOUNT コマンドの基本的な使用例:
+
+[32;1mMOUNT c %s[0m
+
+ディレクトリ %s がDOSBox-Xの C: ドライブとして認識される。
+ディレクトリは、ホストシステムに存在しなければならない。
+ディレクトリ名に空白がある場合は、適切にダブルクオーテーションで囲むこと。
+例: %s
+
+MOUNTのその他の使用例:
+
+[32;1mMOUNT[0m                             - マウントされたドライブの一覧
+[32;1mMOUNT -cd[0m                         - ホストのCDドライブの一覧
+[32;1mMOUNT d %s[0m            - D:ドライブにディレクトリをマウント
+[32;1mMOUNT c %s -t cdrom[0m      - C:ドライブを CD-ROMドライブとしてマウント
+[32;1mMOUNT c %s -ro[0m           - C:ドライブを書き込み禁止でマウント
+[32;1mMOUNT c %s -label TEST[0m   - C:ドライブをボリュームラベルTESTでマウント
+[32;1mMOUNT c %s -nocachedir [0m  - C:ドライブをキャッシュ無効でマウント
+[32;1mMOUNT c %s -freesize 128[0m - C:ドライブを空容量128MB 確保してマウント
+[32;1mMOUNT c %s -u[0m            - C:ドライブがすでにマウントされていても強制
+                                          的にマウントする
+[32;1mMOUNT c %s -t overlay[0m  - mount C: with overlay directory on top
+[32;1mMOUNT c -u[0m                        - C:ドライブのマウントを解除する
+
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
-Drive %c is not mounted.◙
+%c ドライブはマウントされていません。
 .
 :PROGRAM_MOUNT_UMOUNT_SUCCESS
-Drive %c has successfully been removed.◙
+%c ドライブのマウントを解除しました。
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
-Drive number %c has successfully been removed.◙
+ドライブ番号 %c のマウントを解除しました。
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
-Virtual Drives can not be unMOUNTed.◙
+仮想ドライブのマウントを解除することはできません。
 .
 :PROGRAM_MOUNT_WARNING_WIN
-Warning: Mounting C:\ is not recommended.◙
+警告: C:\ をマウントすることは推奨されません。
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-Warning: Mounting / is not recommended.◙
+警告: / をマウントすることは推奨されません。
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-Failed to mount the PhysFS drive.◙
+PhysFS ドライブのマウントに失敗しました。
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Please MOUNT a normal directory first before adding an overlay on top.◙
+Overlayを追加する前に、通常のディレクトリを MOUNT する必要があります。
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
-The overlay is NOT compatible with the drive that is specified.◙
+指定のドライブには overlay は追加できません。
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.
+Overlayのディレクトリは、追加前のディレクトリと同じアドレス指定方法で指定する必要があります。相対パス・絶対パスの混在はできません。
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-The overlay directory can not be the same as underlying drive.◙
+Overlay のディレクトリには、追加前のディレクトリと同じものは指定できません。
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-An error occurred when trying to create an overlay drive.◙
+Overlayドライブの作成でエラーがありました。
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-Overlay %s on drive %c mounted.◙
+Overlay %s を %c ドライブにマウントしました。
 .
 :PROGRAM_LOADFIX_ALLOC
-%d kb allocated.◙
+%d kb 確保しました。
 .
 :PROGRAM_LOADFIX_DEALLOC
-%d kb freed.◙
+%d kb 解放しました。
 .
 :PROGRAM_LOADFIX_DEALLOCALL
-Used memory freed.◙
+使用していたメモリを解放しました。
 .
 :PROGRAM_LOADFIX_ERROR
-Memory allocation error.◙
+メモリ確保エラー。
 .
 :PROGRAM_LOADFIX_HELP
-Reduces the amount of available conventional or XMS/EMS memory.◙◙LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]◙LOADFIX -f [-xms] [-ems]◙◙  -xms        Allocates memory from XMS rather than conventional memory◙  -ems        Allocates memory from EMS rather than conventional memory◙  -{ram}      Specifies the amount of memory to allocate in KB◙                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory◙  -a          Auto allocates enough memory to fill the lowest 64KB memory◙  -f (or -d)  Frees previously allocated memory◙  {program}   Runs the specified program◙  {options}   Program options (if any)◙◙Examples:◙  ←[32;1mLOADFIX game.exe←[0m     Allocates 64KB of conventional memory and runs game.exe◙  ←[32;1mLOADFIX -a←[0m           Auto-allocates enough memory conventional memory◙  ←[32;1mLOADFIX -128←[0m         Allocates 128KB of conventional memory◙  ←[32;1mLOADFIX -xms←[0m         Allocates 1MB of XMS memory◙  ←[32;1mLOADFIX -f←[0m           Frees allocated conventional memory◙
+使用可能なコンベンショナルメモリ・XMS/EMSメモリの量を減らします。
+
+LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        コンベンショナルメモリよりも XMSメモリを確保する
+  -ems        コンベンショナルメモリよりも EMSメモリを確保する
+  -{ram}      確保するメモリ量を KB で指定する。
+                 デフォルトはコンベンショナルメモリ 64kb; XMS/EMS メモリ 1MB
+  -a          最も低位の64KBメモリを埋めるのに必要なメモリを自動確保
+  -f (or -d)  確保したメモリを解放
+  {program}   指定のプログラムを実行
+  {options}   プログラムのオプション (必要に応じて)
+
+例:
+  [32;1mLOADFIX game.exe[0m     コンベンショナルメモリを 64KB 確保してgame.exeを実行
+  [32;1mLOADFIX -a[0m           必要なコンベンショナルメモリを自動確保
+  [32;1mLOADFIX -128[0m         コンベンショナルメモリを128KB 確保
+  [32;1mLOADFIX -xms[0m         XMSメモリを1MB確保
+  [32;1mLOADFIX -f[0m           確保したコンベンショナルメモリを解放
+
 .
 :MSCDEX_SUCCESS
-MSCDEX installed.◙
+MSCDEX をインストールしました。
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.◙
+MSCDEX: エラー: 複数のCD-ROMドライブのドライブ文字は連続させる必要があります。
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
-MSCDEX: Failure: Not yet supported.◙
+MSCDEX: エラー: 未サポート
 .
 :MSCDEX_ERROR_PATH
-MSCDEX: Specified location is not a CD-ROM drive.◙
+MSCDEX: エラー: 指定の場所はCD-ROM ドライブではありません。
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX: Failure: Invalid file or unable to open.◙
+MSCDEX: エラー: ファイルが無効または開けません。
 .
 :MSCDEX_TOO_MANY_DRIVES
-MSCDEX: Failure: Too many CD-ROM drives (max: 5). MSCDEX Installation failed.◙
+MSCDEX: エラー: CD-ROM ドライブが多すぎます (最大: 5). MSCDEX インストールできませんでした。
 .
 :MSCDEX_LIMITED_SUPPORT
-MSCDEX: Mounted subdirectory: limited support.◙
+MSCDEX: サブディレクトリをマウントしました。: 部分的サポート
 .
 :MSCDEX_INVALID_FILEFORMAT
-MSCDEX: Failure: File is either no ISO/CUE image or contains errors.◙
+MSCDEX: エラー: 指定のファイルはISO/CUE イメージでないか、不具合があります。
 .
 :MSCDEX_UNKNOWN_ERROR
-MSCDEX: Failure: Unknown error.◙
+MSCDEX: エラー: 不明なエラー。
 .
 :PROGRAM_RESCAN_SUCCESS
-Drive cache cleared.◙
+ドライブキャッシュをクリアしました。
 .
 :PROGRAM_INTRO
-←[2J←[32;1mWelcome to DOSBox-X←[0m, an open-source x86 emulator with sound and graphics.◙DOSBox-X creates a shell for you which looks just like the plain DOS.◙◙←[31;1mDOSBox-X will stop/exit without a warning if an error occurred!←[0m◙◙◙
+[2J[32;1mDOSBox-Xへようこそ![0m, 音声・グラフィックスをサポートするオープンソースな x86 エミュレータです。
+DOSBox-X はDOSと全く同じようなシェルを表示します。
+
+[31;1mエラーがあると、DOSBox-X は警告なしに停止・終了することがあります![0m
+
+
+
 .
 :PROGRAM_INTRO_MENU_UP
-DOSBox-X Introduction
+DOSBox-X の紹介
 .
 :PROGRAM_INTRO_MENU_BASIC
-Basic mount
+標準マウント
 .
 :PROGRAM_INTRO_MENU_CDROM
-CD-ROM support
+CD-ROM サポート
 .
 :PROGRAM_INTRO_MENU_USAGE
-Usage
+使用法
 .
 :PROGRAM_INTRO_MENU_INFO
-Information
+情報
 .
 :PROGRAM_INTRO_MENU_QUIT
-Quit
+終了
 .
 :PROGRAM_INTRO_MENU_BASIC_HELP
-◙←[1m   ←[1m←[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.←[0m◙
+
+[1m   [1m[KMOUNT で、実際のハードウェアとDOSBox-XのエミュレートされたPCがつながります[0m
+
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
-◙←[1m   ←[1m←[KTo mount your CD-ROM in DOSBox-X, you need to specify additional options◙   when mounting the CD-ROM.←[0m◙
+
+[1m   [1m[KDOSBox-XにCD-ROMをマウントする時には、追加でオプションを指定する
+   必要があります。[0m
+
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
-◙←[1m   ←[1m←[KAn overview of the command line options you can give to DOSBox-X.←[0m◙
+
+[1m   [1m[KDOSBox-Xのコマンドラインオプションの概要[0m
+
 .
 :PROGRAM_INTRO_MENU_INFO_HELP
-◙←[1m   ←[1m←[KHow to get more information about DOSBox-X.←[0m◙
+
+[1m   [1m[KDOSBox-Xに関する情報を得る方法[0m
+
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
-◙←[1m   ←[1m←[KExit from Intro.←[0m◙
+
+[1m   [1m[KDosbox-Xの紹介を終了する[0m
+
 .
 :PROGRAM_INTRO_USAGE_TOP
-←[2J←[32;1mAn overview of the command line options you can give to DOSBox-X.←[0m◙Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.◙◙dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]◙         [-conf congfigfile] [-lang languagefile] [-machine machinetype]◙         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]◙         [-noconsole] [-c command] [-set <section property=value>]◙◙
+[2J[32;1mDOSBox-Xのコマンドラインオプションの概要[0m
+Windowsでは cmd.exe を用いるか, DOSBox-X.exe のショートカットの編集が必要です
+
+dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf congfigfile] [-lang languagefile] [-machine machinetype]
+         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
+         [-noconsole] [-c command] [-set <section property=value>]
+
+
 .
 :PROGRAM_INTRO_USAGE_1
-←[33;1m  name←[0m◙○If name is a directory it will mount that as the C: drive.◙○If name is an executable it will mount the directory of name◙○as the C: drive and execute name.◙◙←[33;1m  -exit←[0m◙○DOSBox-X will close itself when the DOS application name ends.◙◙←[33;1m  -version←[0m◙○Outputs version information and exit. Useful for frontends.◙◙←[33;1m  -fastlaunch←[0m◙○Enables fast launch mode (skip BIOS logo and welcome banner).◙◙←[33;1m  -fullscreen←[0m◙○Starts DOSBox-X in fullscreen mode.◙
+[33;1m  name[0m
+  name がディレクトリの時、それを C: ドライブとしてマウントします。
+  name が実行ファイルの場合、そのファイルがあるディレクトリをC:ドライブ
+  としてマウントします。
+
+[33;1m  -exit[0m
+  DOSBox-X はDOSアプリケーション name の終了時に自身も終了します。
+
+[33;1m  -version[0m
+  バージョン情報を表示して終了します。フロントエンド用に使います。
+
+[33;1m  -fastlaunch[0m
+  高速起動モード (BIOS ロゴと Welcome バナーの表示をスキップします)
+
+[33;1m  -fullscreen[0m
+  DOSBox-X を全画面モードで起動します。
+
 .
 :PROGRAM_INTRO_USAGE_2
-←[33;1m  -conf←[0m configfile◙○Start DOSBox-X with the options specified in configfile.◙○See the documentation for more details.◙◙←[33;1m  -lang←[0m languagefile◙○Start DOSBox-X using the language specified in languagefile.◙◙←[33;1m  -noconsole←[0m (Windows Only)◙○Start DOSBox-X without showing the console window. Output will◙○be redirected to stdout.txt and stderr.txt◙◙←[33;1m  -machine←[0m machinetype◙○Setup DOSBox-X to emulate a specific type of machine. Valid choices:◙○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,◙○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).◙○The machinetype affects both the video card and available sound cards.◙
+[33;1m  -conf[0m configfile
+  configfile に指定したオプションで DOSBox-X を起動します。
+  詳しくはドキュメントを参照ください。
+
+[33;1m  -lang[0m languagefile
+  指定した languagefile を用いて、DOSBox-X を起動します。
+
+[33;1m  -noconsole[0m (Windows Only)
+  コンソールウィンドウを表示せずに DOSBox-X を起動します。
+  出力はstdout.txt と stderr.txtへリダイレクトされます。
+
+[33;1m  -machine[0m machinetype
+  DOSBox-X を指定したタイプのマシンとして起動します。指定可能な選択肢:
+  hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+  pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (デフォルト)
+  machinetype によって、ビデオカード・設定可能なサウンドカードが変わります。
+
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m◙○Enter the keymapper directly on startup. Useful for people with◙○keyboard problems.◙◙←[33;1m  -noautoexec←[0m◙○Skips the [autoexec] section of the loaded configuration file.◙◙←[33;1m  -c←[0m command◙○Runs the specified command before running name. Multiple commands◙○can be specified. Each command should start with -c, though.◙○A command can be: an Internal Program, a DOS command or an executable◙○on a mounted drive.◙◙←[33;1m  -set←[0m <section property=value>◙○Sets the config option (overriding the config file). Multiple options◙○can be specified. Each option should start with -set, though.◙
+[33;1m  -startmapper[0m
+  起動時にキーマッパーをに入ります。キーボード関連の不具合がある場合に役立つ
+  ことがあります。
+
+[33;1m  -noautoexec[0m
+  読み込んだ設定ファイルの [autoexec] セクションを実行しません。
+
+[33;1m  -c[0m command
+  name を実行する前に実行するコマンドを指定します。
+  複数のコマンドを指定できますが、それぞれの前に -c をつける必要があります。
+  コマンドは内部プログラム、DOSコマンド、マウントされたドライブの実行ファイル
+  のいずれかを指定できます。
+
+[33;1m  -set[0m <section property=value>
+  設定用のオプションを指定します (設定ファイルの設定より優先します)。
+  複数のオプションを指定できますが、それぞれ -set から始める必要があります。
+
 .
 :PROGRAM_INTRO_INFO
-←[32;1mInformation:←[0m◙◙For information about basic mount, type ←[34;1mintro mount←[0m◙For information about CD-ROM support, type ←[34;1mintro cdrom←[0m◙For information about special keys, type ←[34;1mintro special←[0m◙For information about usage, type ←[34;1mintro usage←[0m◙◙For the latest version of DOSBox-X, go to its homepage:←[34;1m◙◙←[34;1mhttps://dosbox-x.com/←[0m or ←[34;1mhttp://dosbox-x.software←[0m◙◙For more information about DOSBox-X, please take a look at its Wiki:◙◙←[34;1mhttps://dosbox-x.com/wiki←[0m◙
+[32;1m情報:[0m
+
+マウントに関する基本的な情報は、[34;1mintro mount[0m と入力
+CD-ROMサポートに関する情報は、  [34;1mintro cdrom[0m と入力
+特殊キーに関する情報は、        [34;1mintro special[0m と入力
+使用法に関する情報は、          [34;1mintro usage[0m と入力
+
+DOSBox-Xの最新版はホームページにあります:[34;1m
+
+[34;1mhttps://dosbox-x.com/[0m or [34;1mhttp://dosbox-x.software[0m
+
+Wikiにも、DOSBox-Xに関する役立つ情報があります:
+
+[34;1mhttps://dosbox-x.com/wiki[0m
+
 .
 :PROGRAM_INTRO_MOUNT_START
-←[32;1mHere are some commands to get you started:←[0m◙Before you can use the files located on your own filesystem,◙you have to mount the directory containing the files.◙◙
+[32;1mこれらは、始めるために知っておくべきコマンドです:[0m
+ファイルシステムにあるファイルを使えるようにするためには、
+そのファイルがあるディレクトリをマウントする必要があります。
+
+
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-←[32mmount c c:\dosgames\←[37m will create a C drive with c:\dosgames as contents.
+[32mmount c c:\dosgames\[37m で、中身が c:\dosgames のC:ドライブが作成されます。
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m is an example. Replace it with your own games directory.  ←[37m 
+c:\dosgames\[37m は例であり、ご自分のゲームディレクトリを指定してください。[37m 
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-←[32mmount c ~/dosgames←[37m will create a C drive with ~/dosgames as contents.
+[32mmount c ~/dosgames[37m で、 ~/dosgames を中身とする C ドライブが作成されます。
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m is an example. Replace it with your own games directory.←[37m  
+[32m~/dosgames[37m は例であり、ご自分のゲームディレクトリを指定してください。[37m  
 .
 :PROGRAM_INTRO_MOUNT_END
-When the mount has successfully completed you can type ←[34;1mc:←[0m to go to your freshly◙mounted C: drive. Typing ←[34;1mdir←[0m there will show its contents. ←[34;1mcd←[0m will allow you to◙enter a directory (recognised by the ←[33;1m[]←[0m in a directory listing).◙You can run programs/files which end with ←[31m.exe .bat←[0m and ←[31m.com←[0m.◙
+マウントに成功したら、[34;1mc:[0m でマウントしたC:ドライブに移動できます。
+[34;1mdir[0m とタイプすると、中身の一覧が表示されます。 
+[34;1mcd[0m でディレクトリを移動できます(一覧の中で[33;1m[][0mで識別できます)。
+[31m.exe .bat[0m, [31m.com[0mで終わるプログラム・ファイルは実行可能です。
+
 .
 :PROGRAM_INTRO_CDROM
-←[2J←[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:←[0m◙DOSBox-X provides CD-ROM emulation on several levels.◙◙The ←[33mbasic←[0m level works on all CD-ROM drives and normal directories.◙It installs MSCDEX and marks the files read-only.◙Usually this is enough for most games:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   or   ←[34;1mmount d C:\example -t cdrom←[0m◙If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:◙←[34;1mmount d C:\example -t cdrom -label CDLABEL←[0m◙◙The ←[33mnext←[0m level adds some low-level support.◙Therefore only works on CD-ROM drives:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m◙◙The ←[33mlast←[0m level of support depends on your Operating System:◙For ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m and ←[1mLinux←[0m:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m◙For ←[1mWindows 9x←[0m with a ASPI layer installed:◙←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m◙◙Replace ←[0;31mD:\←[0m with the location of your CD-ROM.◙Replace the ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m with the number reported for your CD-ROM if you type:◙←[34;1mmount -cd←[0m◙
+[2J[32;1mDOSBox-Xで実機・仮想CD-ROM ドライブをマウントする方法:[0m
+DOSBox-X はいくつかのレベルの CD-ROM エミュレーションを提供します。
+
+[33m基本[0m レベルは、全てのCD-ROMドライブと通常のディレクトリで動作します。
+MSCDEX をインストールし、ファイルの属性をを読み込み専用とします。
+通常は、これでほとんどのゲームで十分です:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   or   [34;1mmount d C:\example -t cdrom[0m
+うまく動作しない場合は、DOSBox-XにCD-ROMラベル情報を設定してみてください:
+[34;1mmount d C:\example -t cdrom -label CDLABEL[0m
+
+[33m次[0m のレベルでは、いくつかの low-level サポートを追加します。
+よって、CD-ROM ドライブでのみ動作します:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
+
+[33m最後[0m のレベルのサポートは、オペレーティングシステムにより異なります:
+[1mWindows 2000[0m, [1mWindows XP[0m, [1mLinux[0mの場合:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
+[1mWindows 9x[0m (ASPI レイヤーが必要)の場合:
+[34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
+
+[0;31mD:\[0m はあなたの CD-ROM に合わせて変更してください。.
+[34;1m-usecd [33m0[0m の [33;1m0[0m は、以下のコマンドをタイプしたときの数字として下さい:
+[34;1mmount -cd[0m
+
 .
 :PROGRAM_BOOT_NOT_EXIST
-Bootdisk file does not exist.  Failing.◙
+起動ディスクのファイルが見つかりません。中止します。
+
 .
 :PROGRAM_BOOT_NOT_OPEN
-Cannot open bootdisk file.  Failing.◙
+起動ディスクのファイルが開けません。中止します。
+
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image file is read-only! Boot in write-protected mode.◙
+イメージファイルは書き込み禁止です！ 書き込み禁止モードで起動します。
+
 .
 :PROGRAM_BOOT_PRINT_ERROR
-This command boots DOSBox-X from either a floppy or hard disk image.◙◙For this command, one can specify a succession of floppy disks swappable◙by the menu command, and drive: specifies the mounted drive to boot from.◙If no drive letter is specified, this defaults to boot from the A drive.◙If no parameter is specified, it will try to boot from the current drive.◙The only bootable drive letters are A, C, and D.  For booting from a hard◙drive (C or D), ensure the image is already mounted by ←[34;1mIMGMOUNT←[0m command.◙◙The syntax of this command is one of the following:◙◙←[34;1mBOOT [driveletter:]←[0m◙◙←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m◙◙Note: An image file with a leading colon (:) will be booted in write-protected◙mode if the "leading colon write protect image" option is enabled.◙◙Examples:◙◙←[32;1mBOOT A:←[0m       - boot from drive A: if it is mounted and bootable.◙←[32;1mBOOT :DOS.IMG←[0m - boot from floppy image DOS.IMG in write-protected mode.◙
+このコマンドは DOSBox-X をフロッピーまたはハードディスクイメージから起動します
+
+このコマンドは、メニューコマンドで入替可能なフロッピーディスク群を指定できます
+drive: はマウントされているもののうち、起動するドライブを指定します。
+ドライブ文字を指定しない場合は、デフォルトでAドライブから起動します。
+パラメータを指定しない場合、カレントドライブから起動を試みます。
+起動可能なドライブ文字は A, C, Dです。  ハードディスク(C: D:ドライブ)から起動
+する場合は、イメージが[34;1mIMGMOUNT[0mコマンドでマウントされている必要があります。
+
+このコマンドの用法は以下のいずれかです:
+
+[34;1mBOOT [driveletter:][0m
+
+[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
+
+注: イメージファイルの前にコロン (:) をつけると読み取り専用で起動します。
+    (ただし、"leading colon write protect image" オプションが有効の時)
+
+例:
+
+[32;1mBOOT A:[0m       - A:ドライブから起動。(マウント済みで起動可能な場合)
+[32;1mBOOT :DOS.IMG[0m - フロッピーイメージ DOS.IMG を読み取り専用で起動。
+
 .
 :PROGRAM_BOOT_UNABLE
-Unable to boot off of drive %c.◙
+%cドライブから起動できません。
 .
 :PROGRAM_BOOT_IMAGE_OPEN
-Opening image file: %s◙
+イメージファイルを開きます: %s
 .
 :PROGRAM_BOOT_IMAGE_NOT_OPEN
-Cannot open %s◙
+イメージを開けません %s
+
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-PCjr cartridge found, but machine is not PCjr
+PCjr カートリッジが見つかりましたが、マシンがPCjrではありません。
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
-Available PCjr cartridge commandos:%s
+使用可能な PCjr cartridge commandos:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
-No PCjr cartridge commandos found
+PCjr cartridge commandos が見つかりません。
 .
 :PROGRAM_LOADROM_HELP
-Loads the specified ROM image file.◙◙LOADROM ROM_file◙
+指定のROM イメージファイルを読み込みます。
+
+LOADROM ROM_file
+
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
-Must specify ROM file to load.◙
+読み込むROMファイルを指定してください。
+
 .
 :PROGRAM_LOADROM_CANT_OPEN
-ROM file not accessible.◙
+ROM ファイルにアクセスできません。
+
 .
 :PROGRAM_LOADROM_TOO_LARGE
-ROM file too large.◙
+ROMファイルが大きすぎます。
+
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Video BIOS not supported by machine type.◙
+Video BIOS がこのマシン・タイプではサポートされていません。
+
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
-ROM file not recognized.◙
+ROM ファイルが認識できません。
+
 .
 :PROGRAM_LOADROM_BASIC_LOADED
-BASIC ROM loaded.◙
+BASIC ROM を読み込みました。
+
 .
 :PROGRAM_BIOSTEST_HELP
-Boots into a BIOS image for running CPU tester BIOS.◙◙BIOSTEST image_file◙
+CPU tester BIOSを実行するため、BIOSイメージから起動します。
+
+BIOSTEST image_file
+
 .
 :VHD_ERROR_OPENING
-Could not open the specified VHD file.◙
+指定の VHDファイルを開けません。
+
 .
 :VHD_INVALID_DATA
-The specified VHD file is corrupt and cannot be opened.◙
+指定のVHDファイルが壊れているか、開けません。
+
 .
 :VHD_UNSUPPORTED_TYPE
-The specified VHD file is of an unsupported type.◙
+指定のVHDファイルは、サポートされていない形式です。
+
 .
 :VHD_ERROR_OPENING_PARENT
-The parent of the specified VHD file could not be found.◙
+指定のVHDファイルの親ファイルが見つかりません。
+
 .
 :VHD_PARENT_INVALID_DATA
-The parent of the specified VHD file is corrupt and cannot be opened.◙
+指定のVHDファイルの親ファイルが壊れているか、開けません。
+
 .
 :VHD_PARENT_UNSUPPORTED_TYPE
-The parent of the specified VHD file is of an unsupported type.◙
+指定のVHDファイルの親ファイルは、サポートされていない形式です。
+
 .
 :VHD_PARENT_INVALID_MATCH
-The parent of the specified VHD file does not contain the expected identifier.◙
+指定のVHDファイルの親ファイルの識別子が違います。
+
 .
 :VHD_PARENT_INVALID_DATE
-The parent of the specified VHD file has been changed and cannot be loaded.◙
+指定のVHDファイルの親ファイルが変更されており、読み込めません。
+
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
-Must specify drive letter to mount image at.◙
+イメージをマウントするドライブ文字を指定してください。
+
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).◙
+イメージをマウントするドライブ番号 (0 to %d)を指定してください(0,1=fda,fdb;2,3=hda,hdb)。
+
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
-Could not load image file.◙Check that the path is correct and the image is accessible.◙
+イメージファイルを読み込めません。
+イメージへのパスとアクセス権を確認してください。
+
 .
 :PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Dynamic VHD files are not supported.◙
+ダイナミックVHDファイルはサポートされていません。
+
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
-Could not extract drive geometry from image.◙Use parameter -size bps,spc,hpc,cyl to specify the geometry.◙
+イメージからジオメトリ情報が取得できません。
+パラメータ -size bps,spc,hpc,cyl でジオメトリ情報を指定してください。
+
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
-Image geometry auto detection: -size %u,%u,%u,%u◙
+イメージのジオメトリの自動検出: -size %u,%u,%u,%u
+
 .
 :PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
-Type "%s" is unsupported. Specify "hdd" or "floppy" or "iso".◙
+マウント形式 "%s" は無効です。"hdd" "floppy" "iso"のいずれかを指定してください。
+
 .
 :PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
-Format "%s" is unsupported. Specify "fat" or "iso" or "none".◙
+フォーマット形式 "%s" は無効です。"fat" "iso" "none"のいずれかを指定してください。
+
 .
 :PROGRAM_IMGMOUNT_SPECIFY_FILE
-Must specify image file(s) to mount.◙
+マウントするイメージファイルを指定してください。
+
 .
 :PROGRAM_IMGMOUNT_FILE_NOT_FOUND
-Image file not found.◙
+イメージファイルが見つかりません。
+
 .
 :PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
-Image file not found: IMGMAKE.IMG.◙
+イメージファイルが見つかりません: IMGMAKE.IMG.
+
 .
 :PROGRAM_IMGMOUNT_MOUNT
-To mount directories, use the ←[34;1mMOUNT←[0m command, not the ←[34;1mIMGMOUNT←[0m command.◙
+ディレクトリをマウントするためには[34;1mIMGMOUNT[0m ではなく[34;1mMOUNT[0mコマンドを使ってください。
+
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED
-Drive already mounted at that letter.◙
+そのドライブ文字にはすでにマウントされています。
+
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
-Drive number %d already mounted.◙
+ドライブ番号 %d はすでにマウントされています。
+
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE
-Cannot create drive from file.◙
+ファイルからドライブを作成できませんでした。
+
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
-Cannot create PhysFS drive.◙
+PhysFS ドライブを作成できませんでした。
+
 .
 :PROGRAM_IMGMOUNT_MOUNT_NUMBER
-Drive number %d mounted as %s◙
+ドライブ番号 %d に %s をマウントしました。
+
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
-The image must be on a host, local or network drive.◙
+イメージはホストかローカルかネットワークドライブにある必要があります。
+
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
-Using multiple files is only supported for cue/iso images.◙
+複数ファイルの指定は cue/iso イメージのみサポートされています。.
+
 .
 :PROGRAM_IMGMOUNT_HELP
-Mounts floppy, hard drive and optical disc images.◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]◙←[32;1mIMGMOUNT←[0m ←[37;1mdriveNum←[0m ←[36;1mfile←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-t iso] [-fs iso]◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)◙←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size◙←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (or ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [options] -u)◙ ←[37;1mdrive←[0m               Drive letter to mount the image at.◙ ←[37;1mdriveNum←[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.◙ ←[36;1mfile←[0m                Image filename(s), or ←[33;1mIMGMAKE.IMG←[0m if not specified.◙ -t iso              Image type is optical disc iso or cue / bin image.◙ -t hdd              Image type is hard disk; VHD and HDI files are supported.◙ -t floppy|ram       Image type is floppy drive|RAM drive.◙ -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).◙ -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.◙ -fs none            Do not detect filesystem (auto-assumed for drive numbers).◙ -reservecyl #       Report # number of cylinders less than actual in BIOS.◙ -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.◙ -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.◙ -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.◙ -ro                 Mount image(s) read-only (or leading ':' for read-only).◙ -u                  Unmount the drive or drive number.◙ ←[32;1m-examples           Show some usage examples.←[0m
+フロッピー、ハードディスク、光学ディスクのイメージをマウントします。
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+[32;1mIMGMOUNT[0m [37;1mdriveNum[0m [36;1mfile[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1mfile[0m [-t iso] [-fs iso]
+[32;1mIMGMOUNT[0m [37;1mdrive[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
+[32;1mIMGMOUNT[0m [37;1mdrive[0m -t ram -size size
+[32;1mIMGMOUNT[0m -u [37;1mdrive|driveNum[0m (or [32;1mIMGMOUNT[0m [37;1mdrive|driveNum[0m [36;1mfile[0m [options] -u)
+ [37;1mdrive[0m               イメージをマウントするドライブ文字
+ [37;1mdriveNum[0m            マウントするドライブ番号 0-1 は FDD, 2-5 は HDD
+ [36;1mfile[0m                イメージファイル名, 指定しない場合は [33;1mIMGMAKE.IMG[0m
+ -t iso              光学ディスクのイメージ形式 (iso または cue / bin)
+ -t hdd              ハードディスクのイメージ形式; (VHD または HDI 形式)
+ -t floppy|ram       フロッピー|RAMドライブのイメージ形式
+ -fs iso             ISO 9660ファイルシステム (.iso/.cueの時、自動指定)
+ -fs fat             FATファイルシステム (FAT12, FAT16, FAT32)
+ -fs none            ファイルシステムを検出しない(ドライブ番号指定時、自動指定)
+ -reservecyl #       BIOSにシリンダ数を実際より # 小さい数字で認識させる
+ -ide controller     
+                 ドライブをマウントするIDEコントローラ (1m, 1s, 2m, 2s) を指定
+ -size size|ss,s,h,c サイズを KB or セクタ・サイズ or CHS ジオメトリで指定
+ -bootcd cdDrive     起動用フロッピーを読み込むCDドライブを指定
+ -ro                 イメージを書込禁止でマウント(または先頭に ':'をつける)
+ -u                  ドライブまたはドライブ番号のマウントを解除する。
+ [32;1m-examples           使用例の表示[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
-Some usage examples of IMGMOUNT:◙◙  ←[32;1mIMGMOUNT←[0m                       - list mounted FAT/ISO drives & drive numbers◙  ←[32;1mIMGMOUNT C←[0m                     - mount hard disk image ←[33;1mIMGMAKE.IMG←[0m as C:◙  ←[32;1mIMGMOUNT C c:\image.img←[0m        - mount hard disk image c:\image.img as C:◙  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - mount CD image c:\files\game.iso as D:◙  ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - mount cue file of a cue/bin pair as CD drive◙  ←[32;1mIMGMOUNT 0 dos.ima←[0m             - mount floppy image dos.ima as drive number 0◙                                   (←[33;1mBOOT A:←[0m will boot from drive if bootable)◙  ←[32;1mIMGMOUNT A -ro dos.ima←[0m         - mount floppy image dos.ima as A: read-only◙  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m  - mount floppy images dsk1.img and dsk2.img as◙                                   A:, swappable via menu item "Swap floppy",◙                                   with dsk1.img read-only (but not dsk2.img)◙  ←[32;1mIMGMOUNT A -bootcd D←[0m           - mount bootable floppy A: from CD drive D:◙  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - mount hard drive C: as a 10MB RAM drive◙  ←[32;1mIMGMOUNT C disk.img -u←[0m         - force mount hard disk image disk.img as C:,◙                                   auto-unmount drive beforehand if necessary◙  ←[32;1mIMGMOUNT A -u←[0m                  - unmount previously-mounted drive A:◙
+IMGMOUNTの使用例:
+
+  [32;1mIMGMOUNT[0m                      - マウントされた FAT/ISO ドライブとドライブ番
+                                  号の一覧表示
+  [32;1mIMGMOUNT C[0m                    - HDDイメージ [33;1mIMGMAKE.IMG[0m をC:ドライブに
+                                  マウント
+  [32;1mIMGMOUNT C c:\image.img[0m       - HDDイメージc:\image.imgをC:ドライブに
+                                  マウント
+  [32;1mIMGMOUNT D c:\files\game.iso[0m  - CD イメージc:\files\game.iso をD:ドライブに
+                                  マウント
+  [32;1mIMGMOUNT D cdaudio.cue[0m        - cueファイルを用いcue/binファイルをCDドライブ
+                                  としてマウント
+  [32;1mIMGMOUNT 0 dos.ima[0m            - FDイメージdos.imaをドライブ番号 0にマウント
+                                  (起動可能であれば[33;1mBOOT A:[0m で起動する)
+  [32;1mIMGMOUNT A -ro dos.ima[0m        - FDイメージ dos.ima を A: 読取専用でマウント
+  [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m - FDイメージ dsk1.img and dsk2.img を A:
+                                  ドライブに"ディスクの入替"メニューで入替可能
+                                  とし、dsk1.img 読取専用 (dsk2.imgは書込可能)
+  [32;1mIMGMOUNT A -bootcd D[0m          - CD ドライブ D:を起動用FD Aとしてマウント
+  [32;1mIMGMOUNT C -t ram -size 10000[0m - C:ドライブに10MBのRAMドライブをマウント
+  [32;1mIMGMOUNT C disk.img -u[0m        - C:ドライブにHDイメージ disk.imgを強制的
+                                  にマウント。必要な場合、先に自動マウント解除
+  [32;1mIMGMOUNT A -u[0m                 - A:ドライブのマウントを解除
+
 .
 :PROGRAM_IMGMAKE_SYNTAX
-Creates floppy or hard disk images.◙Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m◙  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #]←[0m◙  file: Image file to create (or ←[33;1mIMGMAKE.IMG←[0m if not set) - ←[31;1mpath on the host←[0m◙  -t: Type of image.◙    ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):◙     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880◙    ←[33;1mHard disk templates:←[0m◙     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image◙     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image◙     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)◙    ←[33;1mCustom hard disk images:←[0m hd (requires -size or -chs)◙  -size: Size of a custom hard disk image in MB.◙  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).◙  -nofs: Add this parameter if a blank image should be created.◙  -force: Force to overwrite the existing image file.◙  -bat: Create a .bat file with the IMGMOUNT command required for this image.◙  -fat: FAT filesystem type (12, 16, or 32).◙  -spc: Sectors per cluster override. Must be a power of 2.◙  -fatcopies: Override number of FAT table copies.◙  -rootdir: Size of root directory in entries. Ignored for FAT32.◙  -source: drive letter - if specified the image is read from a floppy disk.◙  -retries: how often to retry when attempting to read a bad floppy disk(1-99).◙  ←[32;1m-examples: Show some usage examples.←[0m
+フロッピーまたはハードディスクイメージを作成します。
+使用法: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #][0m
+  file: 作成するイメージ名 (ない場合は[33;1mIMGMAKE.IMG[0m) - [31;1mホスト上のパス[0m
+  -t: イメージのタイプ
+    [33;1mフロッピー用テンプレート[0m (容量を指定するための名前 KB or fd=fd_1440):
+     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
+    [33;1mハードディスク用テンプレート:[0m
+     hd_250: 250MB イメージ, hd_520: 520MB イメージ, hd_1gig: 1GB イメージ
+     hd_2gig: 2GB イメージ, hd_4gig: 4GB イメージ, hd_8gig: 8GB イメージ
+     hd_st251: 40MB イメージ,hd_st225: 20MB イメージ(古いドライブのジオメトリ)
+    [33;1mカスタムハードディスクイメージ:[0m hd (-size または -chs が必要)
+  -size: カスタムハードディスクイメージのサイズ (MBで指定)
+  -chs: ディスクのジオメトリ シリンダ(1-1023),ヘッド(1-255),セクタ(1-63)
+  -nofs: ブランクなイメージを作成する場合に指定
+  -force: 既存のイメージファイルを強制上書きする
+  -bat: このイメージをIMGMOUNTコマンドでマウントする.bat ファイルを生成する。
+  -fat: FAT ファイルシステムのタイプ (12, 16, or 32).
+  -spc: クラスタあたりのセクタを強制指定。 2のべき乗とすること。
+  -fatcopies: FATテーブル数を強制指定。
+  -rootdir: ルートディレクトリエントリのサイズ (FAT32では無視される)
+  -source: ドライブ文字 - 指定された場合、イメージはフロッピーから読み込まれる
+  -retries: 状態の悪いフロッピーの再読込実施回数(1-99).
+  [32;1m-examples: 使用例を表示する[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
-Some usage examples of IMGMAKE:◙◙  ←[32;1mIMGMAKE -t fd←[0m                   - create a 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m◙  ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m◙  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img◙  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img◙  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image◙  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image◙  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - create a HDD image of specified CHS◙  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - read image from physical drive A:◙
+IMGMAKE の使用例:
+
+  [32;1mIMGMAKE -t fd[0m                   - 1.44MB FDイメージを作成 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE -t fd_1440 -force[0m       - FDイメージを強制的に作成 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE dos.img -t fd_2880[0m      - dos.imgという名の2.88MB FDイメージを作成
+  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 50MB HDD イメージを作成 c:\disk.img
+  [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - ブランクの520MB HDD イメージを作成
+  [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 2GB FAT32 の HDD イメージを作成
+  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 指定したCHSで HDD イメージを作成
+  [32;1mIMGMAKE c:\disk.img -source a[0m           - イメージを物理ドライブ A:作成
+
 .
 :PROGRAM_IMGMAKE_FLREAD
-Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes◙◙
+ディスクのジオメトリ: シリンダ %d, ヘッド %d, セクタ %d, %d Kバイト
+
+
 .
 :PROGRAM_IMGMAKE_FLREAD2
-%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown◙◙
+%s =良好, %s =再試行後良好, ! =CRCエラー, x =セクターが見つからない, ? =不明
+
+
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
-The file "%s" already exists. You can specify "-force" to overwrite.◙
+ファイル "%s" は既に存在します。"-force" を指定して上書きできます。
+
 .
 :PROGRAM_IMGMAKE_CANNOT_WRITE
-The file "%s" cannot be opened for writing.◙
+ファイル "%s" は書き込むために開くことができません。
+
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Not enough space availible for the image file. Need %u bytes.◙
+イメージファイルを作成するのに必要な空き容量が %u バイト足りません。
+
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-Creating image file "%s" with %u cylinders, %u heads and %u sectors◙
+イメージファイル "%s"を作成しました: シリンダ %u, ヘッド%u, セクタ %u
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
-◙◙Unable to read floppy.
+
+
+フロッピーを読み取りできません。
 .
 :PROGRAM_KEYB_INFO
-Codepage %i has been loaded◙
+コードページ %i に設定しました。
+
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-Codepage %i has been loaded for layout %s◙
+Codepage %i has been loaded for layout %s
+
 .
 :PROGRAM_KEYB_SHOWHELP
-Configures a keyboard for a specific language.◙◙KEYB [keyboard layout ID [codepage number [codepage file]]]◙◙Some examples:◙  ←[32;1mKEYB←[0m          Display currently loaded codepage.◙  ←[32;1mKEYB sp←[0m       Load the Spanish (SP) layout, use an appropriate codepage.◙  ←[32;1mKEYB sp 850←[0m   Load the Spanish (SP) layout, use codepage 850.◙  ←[32;1mKEYB sp 850 mycp.cpi←[0m Same as above, but use file mycp.cpi.◙
+キーボードを指定の言語に設定します。
+
+KEYB [キーボードレイアウト ID [コードページ番号 [コードページファイル]]]
+
+使用例:
+  [32;1mKEYB[0m          読み込まれたコードページを表示
+  [32;1mKEYB sp[0m       スペイン語(SP)レイアウトを読込み, 適切なコードページを使用
+  [32;1mKEYB sp 850[0m   スペイン語(SP)レイアウトを読込み, コードページ850を使用
+  [32;1mKEYB sp 850 mycp.cpi[0m 上記と同じ, ただしmycp.cpiファイルを使用
+
 .
 :PROGRAM_KEYB_NOERROR
-Keyboard layout %s loaded for codepage %i◙
+キーボードレイアウト %s をコードページ %i用に読み込みました。
+
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found◙◙
+キーボードファイル %s が見つかりません。
+
+
 .
 :PROGRAM_KEYB_INVALIDFILE
-Keyboard file %s invalid◙
+キーボードファイル %s は無効です。
+
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-No layout in %s for codepage %i◙
+キーボードレイアウト %s はコードページ %i 用ではありません。
+
 .
 :PROGRAM_KEYB_INVCPFILE
-None or invalid codepage file for layout %s◙◙
+キーボードファイル %s のためのコードページファイルがないか無効です。
+
+
 .
 :PROGRAM_MODE_USAGE
-Configures system devices.◙◙←[34;1mMODE←[0m display-type       :display-type codes are ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, or ←[1mMONO←[0m◙←[34;1mMODE CON COLS=←[0mc ←[34;1mLINES=←[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60◙←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)◙
+システムデバイスの設定
+
+[34;1mMODE[0m display-type       :設定可能なコード [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
+[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :設定可能なカラム・行 c=80 or 132, n=25, 43, 50, or 60
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :設定可能範囲 r=1-32 (32=最速), d=1-4 (1=最小)
+
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-Invalid parameter(s).◙
+無効なパラメータです。
+
 .
 :SHELL_CMD_TREE_ERROR
-No subdirectories exist◙
+サブディレクトリがありません。
+
 .
 :SHELL_CMD_VOL_TREE
-Directory PATH listing for Volume %s◙
+ボリューム %s のディレクトリ・パスの一覧
+
 .
 :SHELL_CMD_VOL_DRIVE
-◙ Volume in drive %c 
+
+ ドライブ %c のボリューム 
 .
 :SHELL_CMD_VOL_SERIAL
- Volume Serial Number is 
+ ボリューム シリアル番号は 
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
-has no label◙
+のボリューム ラベルがありません。
+
 .
 :SHELL_CMD_VOL_SERIAL_LABEL
-is %s◙
+は %s
+
 .
 :SHELL_ILLEGAL_PATH
-Path not found◙
+ディレクトリの指定が違います。
+
 .
 :SHELL_ILLEGAL_DRIVE
-Invalid drive specification◙
+無効なドライブの指定です。
+
 .
 :SHELL_CMD_HELP
-If you want a list of all supported internal commands type ←[33;1mHELP /ALL←[0m.◙You can also find external commands on the Z: drive as programs.◙A short list of the most often used commands:◙
+サポートされている内部コマンドの一覧を表示するには [33;1mHELP /ALL[0mと
+タイプしてください。外部コマンドは Z: ドライブ内のプログラムとして存在します。
+よく使われるコマンドの一覧:
+
 .
 :SHELL_CMD_HELP_END1
-External commands such as ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m can be found on the Z: drive.◙
+[33;1mMOUNT[0m and [33;1mIMGMOUNT[0m 等の外部コマンドは Z: ドライブにあります。
+
 .
 :SHELL_CMD_HELP_END2
-Type ←[33;1mHELP command←[0m or ←[33;1mcommand /?←[0m for help information for the specified command.◙
+[33;1mcommand /?[0mまたは[33;1mHELP command[0m でそれらのコマンドのヘルプ情報を表示できます
+
 .
 :SHELL_CMD_ECHO_ON
-ECHO is on.◙
+ECHO は <ON> です。
+
 .
 :SHELL_CMD_ECHO_OFF
-ECHO is off.◙
+ECHO は <OFF> です。
+
 .
 :SHELL_ILLEGAL_CONTROL_CHARACTER
-Unexpected control character: Dec %03u and Hex %#04x.◙
+無効なコントロール文字: 10進 %03u 16進 %#04x.
+
 .
 :SHELL_ILLEGAL_SWITCH
-Invalid switch - %s◙
+無効なスイッチ - %s
+
 .
 :SHELL_MISSING_PARAMETER
-Required parameter missing.◙
+パラメータが足りません。
+
 .
 :SHELL_MISSING_FILE
-The following file is missing or corrupted: %s◙
+ファイルが見つからないか、壊れています: %s
+
 .
 :SHELL_CMD_CHDIR_ERROR
-Invalid directory - %s◙
+無効なディレクトリ - %s
+
 .
 :SHELL_CMD_CHDIR_HINT
-Hint: To change to different drive type ←[31m%c:←[0m◙
+ヒント: ドライブを変更するためには [31m%c:[0mと入力する。
+
 .
 :SHELL_CMD_CHDIR_HINT_2
-directoryname contains unquoted spaces.◙Try ←[31mcd %s←[0m or properly quote them with quotation marks.◙
+ディレクトリ名に空白文字が含まれます。
+[31mcd %s[0m または適切にクオーテーションマークで適切に囲ってください。
+
 .
 :SHELL_CMD_CHDIR_HINT_3
-You are still on drive Z:, and the specified directory cannot be found.◙For accessing a mounted drive, change to the drive with a syntax like ←[31mC:←[0m.◙
+現在のドライブはZ:で、指定のディレクトリが見つかりません。
+マウントしたドライブにアクセスするには、[31mC:[0m等でマウントしたドライブへ変更してください。
+
 .
 :SHELL_CMD_DATE_HELP
-Displays or changes the internal date.◙
+内部カレンダを表示または変更します。
+
 .
 :SHELL_CMD_DATE_ERROR
-The specified date is not correct.◙
+指定の日付は正しくありません。
+
 .
 :SHELL_CMD_DATE_DAYS
-3SunMonTueWedThuFriSat
+2日月火水木金土
 .
 :SHELL_CMD_DATE_NOW
-Current date: 
+現在の日付: 
 .
 :SHELL_CMD_DATE_SETHLP
-Type 'date %s' to change.◙
+変更する時は 'date %s' と入力してください.
+
 .
 :SHELL_CMD_DATE_HELP_LONG
-DATE [[/T] [/H] [/S] | date]◙  date:       New date to set◙  /S:         Permanently use host time and date as DOS time◙  /F:         Switch back to DOSBox-X internal time (opposite of /S)◙  /T:         Only display date◙  /H:         Synchronize with host◙
+DATE [[/T] [/H] [/S] | date]
+  date:       新しく指定する日付
+  /S:         常にホストの日付・時間をDOSの時間として使用
+  /F:         DOSBox-X の内部時間に戻す(/Sの逆)
+  /T:         日付の表示のみ
+  /H:         ホストと同期
+
 .
 :SHELL_CMD_TIME_HELP
-Displays or changes the internal time.◙
+内部時刻を表示または変更します。
+
 .
 :SHELL_CMD_TIME_ERROR
-The specified time is not correct.◙
+指定の時間は正しくありません。
+
 .
 :SHELL_CMD_TIME_NOW
-Current time: 
+現在の時間: 
 .
 :SHELL_CMD_TIME_SETHLP
-Type 'time %s' to change.◙
+変更する時は 'time %s' と入力してください。
+
 .
 :SHELL_CMD_TIME_HELP_LONG
-TIME [[/T] [/H] | time]◙  time:       New time to set◙  /T:         Display simple time◙  /H:         Synchronize with host◙
+TIME [[/T] [/H] | time]
+  time:       新しく指定する時刻
+  /T:         時刻の簡易表示
+  /H:         ホストと同期する
+
 .
 :SHELL_CMD_MKDIR_EXIST
-Directory already exists - %s◙
+ディレクトリが既に存在します - %s
+
 .
 :SHELL_CMD_MKDIR_ERROR
-Unable to create directory - %s◙
+ディレクトリを作成できませんでした - %s
+
 .
 :SHELL_CMD_RMDIR_ERROR
-Invalid path, not directory, or directory not empty - %s◙
+パスが無効かディレクトリでないか、ディレクトリが空ではありません - %s
+
 .
 :SHELL_CMD_RENAME_ERROR
-Unable to rename - %s◙
+ファイル名を変更できませんでした: %s
+
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
-Unable to get attributes: %s◙
+ファイル属性を取得できませんでした: %s
+
 .
 :SHELL_CMD_ATTRIB_SET_ERROR
-Unable to set attributes: %s◙
+ファイル属性を設定できませんでした: %s
+
 .
 :SHELL_CMD_DEL_ERROR
-Unable to delete - %s◙
+削除できませんでした - %s
+
 .
 :SHELL_CMD_DEL_SURE
-All files in directory will be deleted!◙Are you sure [Y/N]?
+ディレクトリ内のすべてのファイルが削除されます!
+続けますか [Y/N]?
 .
 :SHELL_SYNTAXERROR
-Syntax error◙
+文法のエラー
+
 .
 :SHELL_CMD_SET_NOT_SET
-Environment variable %s not defined.◙
+環境変数 %s が定義されていません。
+
 .
 :SHELL_CMD_SET_OUT_OF_SPACE
-Not enough environment space left.◙
+環境変数領域の空きが足りません。
+
 .
 :SHELL_CMD_IF_EXIST_MISSING_FILENAME
-IF EXIST: Missing filename.◙
+IF EXIST: ファイル名を指定してください。
+
 .
 :SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
-IF ERRORLEVEL: Missing number.◙
+IF ERRORLEVEL: 数値を指定してください。
+
 .
 :SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
-IF ERRORLEVEL: Invalid number.◙
+IF ERRORLEVEL: 無効な数値
+
 .
 :SHELL_CMD_GOTO_MISSING_LABEL
-No label supplied to GOTO command.◙
+GOTO コマンドにラベルを指定してください。
+
 .
 :SHELL_CMD_GOTO_LABEL_NOT_FOUND
-GOTO: Label %s not found.◙
+GOTO: ラベル %s が見つかりません。
+
 .
 :SHELL_CMD_FILE_ACCESS_DENIED
-Access denied - %s◙
+アクセスが拒否されました - %s
+
 .
 :SHELL_CMD_FILE_NOT_FOUND
-File not found - %s◙
+ファイルが見つかりません - %s
+
 .
 :SHELL_CMD_FILE_EXISTS
-File %s already exists.◙
+ファイル %s は既に存在します。
+
 .
 :SHELL_CMD_DIR_INTRO
- Directory of %s◙◙
+ %s のディレクトリ
+
+
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d File(s) %17s Bytes◙
+%5d 個のファイル      %17s バイト
+
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d Dir(s)  %17s Bytes free◙
+%5d 個のディレクトリ  %17s バイトの空き領域
+
 .
 :SHELL_CMD_DIR_FILES_LISTED
-Total files listed:◙
+ファイル総数:
+
 .
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
-Drive %c does not exist!◙You must ←[31mmount←[0m it first. Type ←[1;33mintro←[0m or ←[1;33mintro mount←[0m for more information.◙
+%c ドライブが存在しません!
+You must [31mmount[0m it first. Type [1;33mintro[0m or [1;33mintro mount[0m for more information.
+
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
-Do you want to give DOSBox-X access to your real CD-ROM drive %c [Y/N]?
+DOSBox-X に実際のCD-ROM %c へのアクセスを許可しますか %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
-Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?
+DOSBox-X に実際のフロッピーディスク %c へのアクセスを許可しますか [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?
+DOSBox-X に実際のリムーバブルドライブ %c へのアクセスを許可しますか [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
-Do you want to give DOSBox-X access to your real network drive %c [Y/N]?
+DOSBox-X に実際のネットワークドライブ %c へのアクセスを許可しますか [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-Do you really want to give DOSBox-X access to everything◙on your real hard drive %c [Y/N]?
+本当に DOSBox-X に実機のハードディスク %c の全てにアクセスできるように
+しますか[Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?
+DOSBox-X に実機のハードディスク %c へのアクセスを許可しますか[Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
-Bad command or filename - "%s"◙
+コマンドまたはファイル名が無効です - "%s"
+
 .
 :SHELL_CMD_PAUSE
-Press any key to continue . . .◙
+続けるには何かキーを押してください . . .
+
 .
 :SHELL_CMD_PAUSE_HELP
-Waits for one keystroke to continue.◙
+キーを一つ押されたら、続行します。
+
 .
 :SHELL_CMD_PAUSE_HELP_LONG
-PAUSE◙
+中断
+
 .
 :SHELL_CMD_COPY_FAILURE
-Copy failure - %s◙
+コピーに失敗しました。 - %s
+
 .
 :SHELL_CMD_COPY_SUCCESS
-   %d File(s) copied.◙
+   %d 個のファイルをコピーしました。
+
 .
 :SHELL_CMD_COPY_CONFIRM
-Overwrite %s (Yes/No/All)?
+%s を上書きしますか (Yes/No/All)?
 .
 :SHELL_CMD_COPY_NOSPACE
-Insufficient disk space - %s◙
+ディスクの空き容量が足りません - %s
+
 .
 :SHELL_CMD_COPY_ERROR
-Copy error - %s◙
+コピーできません - %s
+
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
-The currently mounted local drives are:◙
+現在マウントされているローカルドライブ:
+
 .
 :SHELL_CMD_SUBST_NO_REMOVE
-Unable to remove, drive not in use.◙
+削除できません。ドライブは使用されていません。
+
 .
 :SHELL_CMD_SUBST_IN_USE
-Target drive is already in use.◙
+指定のドライブは既に使用中です。.
+
 .
 :SHELL_CMD_SUBST_NOT_LOCAL
-It is only possible to use SUBST on local drives.◙
+SUBST はローカルドライブにのみ使用可能です。
+
 .
 :SHELL_CMD_SUBST_INVALID_PATH
-The specified drive or path is invalid.◙
+指定のドライブまたはパスは無効です。
+
 .
 :SHELL_CMD_SUBST_FAILURE
-SUBST: There is an error in your command line.◙
+SUBST: コマンドラインにエラーがあります。
+
 .
 :SHELL_STARTUP_TITLE
-Welcome to DOSBox-X !
+DOSBox-Xへようこそ !
 .
 :SHELL_STARTUP_HEAD1_PC98
-←[36mGetting Started with DOSBox-X:←[37m                                    
+[36mDOSBox-X をはじめよう:[37m                                            
 .
 :SHELL_STARTUP_TEXT1_PC98
-Type ←[32mHELP←[37m for shell commands, and ←[32mINTRO←[37m for a short introduction. ◙You could also complete various tasks through the ←[33mdrop-down menus←[37m.
+内部コマンドの一覧は [32mHELP[37m, 簡単な紹介は[32mINTRO[37m とタイプして下さい。 
+[33mドロップダウンメニュー[37mからも様々な設定が可能です。                
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mExample←[37m: Try select ←[33mTrueType font←[37m or ←[33mOpenGL perfect←[37m output option.
+[32m例[37m: 出力オプション[33mTrueType font[37m,[33mOpenGL pixel-perfect[37mを試して下さい
 .
 :SHELL_STARTUP_TEXT2_PC98
-To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    ◙To activate the ←[33mMapper Editor←[37m for key assignments, use ←[31mhost+M←[37m.    ◙To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.      ◙To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   
+[33m設定ツール[37mの起動 [31mhost+C[37m. host キーは [32mF11[37m.                         
+[33mマッパーエディタ[37m(キー設定)の起動 [31mhost+M[37m.                          
+全画面表示とウィンドウ表示の切替 [31mF11 [37m+ [31mF[37m                          
+エミュレーション速度の調整      [31mF11 [37m+ [31mプラス[37m[37m または [31mF11 [37m+ [31mマイナス[37m
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.←[37m     ◙←[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.←[37m       
+[36mDOSBox-X は日本の NEC PC-98 エミュレーションモードで動作中です。[37m  
+[31mPC-98 エミュレーションは不完全で開発進行中です。           [37m       
 .
 :SHELL_STARTUP_TEXT3_PC98
-←[32mDOSBox-X project ←[33mhttps://dosbox-x.com/     ←[36mComplete DOS emulations←[37m◙←[32mDOSBox-X guide   ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x and 9x←[37m◙←[32mDOSBox-X support ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+[32mプロジェクト ページ[37m: [33mhttps://dosbox-x.com/ [36mComplete DOS emulations[37m
+[32mユーザガイドWiki[37m: [33mhttps://dosbox-x.com/wiki[32m [36mDOS,Windows 3.x and 9x[37m
+[32mバグ報告・提案 [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_HEAD1
-←[36mGetting started with DOSBox-X:                                              ←[37m
+[36mDOSBox-X をはじめよう:                                                      [37m
 .
 :SHELL_STARTUP_TEXT1
-Type ←[32mHELP←[37m to see the list of shell commands, ←[32mINTRO←[37m for a brief introduction.◙You can also complete various tasks in DOSBox-X through the ←[33mdrop-down menus←[37m.
+内部コマンドの一覧を表示するには[32mHELP[37m, 簡単な紹介は[32mINTRO[37m とタイプしてください
+[33mドロップダウンメニュー[37mからも様々な設定が可能です。                          
 .
+
 :SHELL_STARTUP_EXAMPLE
-←[32mExample←[37m: Try select the ←[33mTrueType font←[37m or ←[33mOpenGL pixel-perfect←[37m output option.
+[32m例[37m: 出力オプション[33mTrueType font[37m または [33mOpenGL pixel-perfect[37m を試してください
 .
 :SHELL_STARTUP_HEAD2
-←[36mUseful default shortcuts:                                                   ←[37m
+[36m便利なデフォルトのショートカット                                            [37m
 .
 :SHELL_STARTUP_TEXT2
-- switch between windowed and full-screen mode with key combination ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m◙- launch ←[33mConfiguration Tool←[37m using ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m◙- increase or decrease the emulation speed with ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m
+- 全画面表示とウィンドウ表示の切替 [31mF11 [37m+ [31mF[37m                                  [37m
+- [33m設定ツール[37m の起動 [31mF11 [37m+ [31mC[37m[37m, [33mマッパーエディタ[37m の起動 [31mF11 [37m+ [31mM[37m                [37m
+- エミュレーション速度の調整 [31mF11 [37m+ [31mプラス[37m[37m または [31mF11 [37m+ [31mマイナス[37m             [37m
 .
 :SHELL_STARTUP_CGA
-Composite CGA mode is supported. Use ←[31mCtrl+F8←[37m to set composite output ON/OFF.◙Use ←[31mCtrl+Shift+[F7/F8]←[37m to change hue; ←[31mCtrl+F7←[37m selects early/late CGA model. 
+コンポジット CGA モード [31mCtrl+F8[37m でコンポジット出力ON/OFFを切り替えます。
+[31mCtrl+Shift+[F7/F8][37m で色合いを変更します; [31mCtrl+F7[37m early/late CGA モデルを切り替えます。
 .
 :SHELL_STARTUP_CGA_MONO
-Use ←[31mCtrl+F7←[37m to cycle through green, amber, and white monochrome color,      ◙and ←[31mCtrl+F8←[37m to change contrast/brightness settings.                         
+[31mCtrl+F7[37m で色を緑・アンバー・白黒を切り替え,                                 
+[31mCtrl+F8[37m でコントラスト・明るさを設定します。                                
 .
 :SHELL_STARTUP_HERC
-Use ←[31mCtrl+F7←[37m to cycle through white, amber, and green monochrome color.      ◙Use ←[31mCtrl+F8←[37m to toggle horizontal blending (only in graphics mode).          
+[31mCtrl+F7[37m で色を緑・アンバー・白黒を切り替えます。                            
+Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
 .
 :SHELL_STARTUP_HEAD3
-←[36mDOSBox-X project on the web:                                                ←[37m
+[36mDOSBox-X プロジェクト Webサイト:                                            [37m
 .
 :SHELL_STARTUP_TEXT3
-←[32mHomepage of project←[37m: ←[33mhttps://dosbox-x.com/           ←[36mComplete DOS emulations←[37m◙←[32mUser guides on Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x and 9x←[37m◙←[32mIssue or suggestion←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m
+[32mプロジェクト ページ[37m: [33mhttps://dosbox-x.com/           [36mComplete DOS emulations[37m
+[32mユーザガイド Wiki  [37m: [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x and 9x[37m
+[32mバグ報告・提案     [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m
 .
 :SHELL_STARTUP_LAST
 HAVE FUN WITH DOSBox-X !
 .
 :SHELL_CMD_BREAK_HELP
-Sets or clears extended CTRL+C checking.◙
+CTRL+Cの押下チェックの動作を設定・解除します。
+
 .
 :SHELL_CMD_BREAK_HELP_LONG
-BREAK [ON | OFF]◙◙Type BREAK without a parameter to display the current BREAK setting.◙
+BREAK [ON | OFF]
+
+BREAKの現在の設定は、パラメータなしで BREAK とタイプして確認できます。
+
 .
 :SHELL_CMD_CHDIR_HELP
-Displays or changes the current directory.◙
+カレントディレクトリを表示・変更します。
+
 .
 :SHELL_CMD_CHDIR_HELP_LONG
-CHDIR [drive:][path]◙CHDIR [..]◙CD [drive:][path]◙CD [..]◙◙  ..   Specifies that you want to change to the parent directory.◙◙Type CD drive: to display the current directory in the specified drive.◙Type CD without parameters to display the current drive and directory.◙
+CHDIR [drive:][path]
+CHDIR [..]
+CD [drive:][path]
+CD [..]
+
+  ..   親ディレクトリへ移動したいときに指定します。
+
+CD drive: とタイプすると、指定したドライブのカレントディレクトリを表示します。
+パラメータなしで CD とタイプすると、カレントドライブとディレクトリを表示します
+
 .
 :SHELL_CMD_CLS_HELP
-Clears screen.◙
+画面をクリアします。
+
 .
 :SHELL_CMD_CLS_HELP_LONG
-CLS◙
+CLS
+
 .
 :SHELL_CMD_DIR_HELP
-Displays a list of files and subdirectories in a directory.◙
+ディレクトリ内のファイルとサブディレクトリの一覧を表示します。
+
 .
 :SHELL_CMD_DIR_HELP_LONG
-DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]◙◙  [drive:][path][filename]◙              Specifies drive, directory, and/or files to list.◙  /W          Uses wide list format.◙  /B          Uses bare format (no heading information or summary).◙  /S          Displays files in specified directory and all subdirectories.◙  /P          Pauses after each screenful of information.◙  /A          Displays files with specified attributes.◙  attributes   D  Directories                R  Read-only files◙               H  Hidden files               A  Files ready for archiving◙               S  System files               -  Prefix meaning not◙  /O          List by files in sorted order.◙  sortorder    N  By name (alphabetic)       S  By size (smallest first)◙               E  By extension (alphabetic)  D  By date & time (earliest first)◙               G  Group directories first    -  Prefix to reverse order◙◙Switches may be preset in the DIRCMD environment variable.  Override◙preset switches by prefixing any switch with - (hyphen)--for example, /-W.◙
+DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [drive:][path][filename]
+              一覧を表示したいドライブ・ディレクトリ・ファイルを指定します。
+  /W          ワイド一覧形式で表示します、
+  /B          ファイル名のみを表示します (見出しや要約がつきません)
+  /S          指定されたディレクトリおよびそのサブディレクトリの全てのファイル
+              を表示します。
+  /P          1画面毎に停止して表示します。
+  /A          指定された属性のファイルを表示します。
+  属性         D  ディレクトリ               R  読み取り専用
+               H  隠しファイル               A  アーカイブ
+               S  システムファイル           -  その属性以外
+  /O          ファイルを並べ替えて表示します。
+  ソート順     N  名前順 (アルファベット)    S  サイズ順 (小さい方から)
+               E  拡張子順 (アルファベット)  D  日時順 (古い方から)
+               G  グループ(ディレクトリから) -  降順
+
+環境変数 DIRCMD にスイッチを設定できます。
+/-Wのように - (ハイフン)を前につけると、そのスイッチは無効になります。
+
 .
 :SHELL_CMD_ECHO_HELP
-Displays messages, or turns command-echoing on or off.◙
+メッセージを表示したり、コマンドエコーのONとOFFを切り替えます。
+
 .
 :SHELL_CMD_ECHO_HELP_LONG
-  ECHO [ON | OFF]◙  ECHO [message]◙◙Type ECHO without parameters to display the current echo setting.◙
+  ECHO [ON | OFF]
+  ECHO [message]
+
+ECHOの現在の設定は、パラメータなしで ECHO とタイプして確認できます。
+
 .
 :SHELL_CMD_EXIT_HELP
-Exits from the command shell.◙
+コマンドシェルを終了します。
+
 .
 :SHELL_CMD_EXIT_HELP_LONG
-EXIT◙
+EXIT
+
 .
 :SHELL_CMD_HELP_HELP
-Shows DOSBox-X command help.◙
+DOSBox-X コマンドのヘルプを表示します。
+
 .
 :SHELL_CMD_HELP_HELP_LONG
-HELP [/A or /ALL]◙HELP [command]◙◙   /A or /ALL   Lists all supported internal commands.◙   [command]    Shows help for the specified command.◙◙←[0mE.g., ←[37;1mHELP COPY←[0m or ←[37;1mCOPY /?←[0m shows help information for COPY command.◙◙Note: External commands like ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m are not listed by HELP [/A].◙      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).◙      Type ←[33;1mcommand /?←[0m or ←[33;1mHELP command←[0m for help information for that command.◙
+HELP [/A or /ALL]
+HELP [command]
+
+   /A or /ALL   サポートされた内部コマンドの一覧を表示します。
+   [command]    指定した command のヘルプを表示します。
+
+[0m例: [37;1mHELP COPY[0m または [37;1mCOPY /?[0m は COPY コマンドのヘルプ情報を表示します。
+
+注: [33;1mMOUNT[0m、[33;1mIMGMOUNT[0m のような外部コマンドは HELP [/A] の一覧に表示されません
+    これらのコマンドは Z: ドライブにプログラムとして存在します (例: MOUNT.COM)
+    [33;1mcommand /?[0mまたは[33;1mHELP command[0m でそれらのコマンドのヘルプ情報を表示できます
 .
 :SHELL_CMD_MKDIR_HELP
-Creates a directory.◙
+ディレクトリを作成します。
+
 .
 :SHELL_CMD_MKDIR_HELP_LONG
-MKDIR [drive:][path]◙MD [drive:][path]◙
+MKDIR [drive:][path]
+MD [drive:][path]
+
 .
 :SHELL_CMD_RMDIR_HELP
-Removes a directory.◙
+ディレクトリを削除します。
+
 .
 :SHELL_CMD_RMDIR_HELP_LONG
-RMDIR [drive:][path]◙RD [drive:][path]◙
+RMDIR [drive:][path]
+RD [drive:][path]
+
 .
 :SHELL_CMD_SET_HELP
-Displays or changes environment variables.◙
+環境変数を表示・変更します。
+
 .
 :SHELL_CMD_SET_HELP_LONG
-SET [variable=[string]]◙◙   variable     Specifies the environment-variable name.◙   string       Specifies a series of characters to assign to the variable.◙◙* If no string is specified, the variable is removed from the environment.◙◙Type SET without parameters to display the current environment variables.◙
+SET [variable=[string]]
+
+   variable     指定する環境変数名
+   string       環境変数に設定する文字列
+
+* 文字列を指定しない場合、環境変数を削除します。
+
+環境変数の一覧を表示するためには、パラメータなしで SET と入力します。
+
 .
 :SHELL_CMD_IF_HELP
-Performs conditional processing in batch programs.◙
+バッチプログラムで条件分岐します。
+
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL number command◙IF [NOT] string1==string2 command◙IF [NOT] EXIST filename command◙◙  NOT               Specifies that DOS should carry out◙                    the command only if the condition is false.◙◙  ERRORLEVEL number Specifies a true condition if the last program run◙                    returned an exit code equal to or greater than the number◙                    specified.◙◙  string1==string2  Specifies a true condition if the specified text strings◙                    match.◙◙  EXIST filename    Specifies a true condition if the specified filename◙                    exists.◙◙  command           Specifies the command to carry out if the condition is◙                    met.  Command can be followed by ELSE command which◙                    will execute the command after the ELSE keyword if the◙                    specified condition is FALSE◙
+IF [NOT] ERRORLEVEL number command
+IF [NOT] string1==string2 command
+IF [NOT] EXIST filename command
+
+  NOT               条件が成立しない場合に、DOSはコマンドを実行します。
+
+  ERRORLEVEL number 最後に実行したプログラムの終了コードがnumberと同じか
+                    大きい数値の時、真(True)を返します。
+
+  string1==string2  二つの文字列が一致するときに真(True)を返します。
+
+  EXIST filename    ファイル名がfilenameのファイルが存在する時に真(True)を
+                    返します。
+
+  command           条件が成立したときに実行するコマンドを指定します。
+                    コマンドに続けて、ELSEキーワードの後に条件が不成立の
+                    時に実行するコマンドを指定できます。
+
 .
 :SHELL_CMD_GOTO_HELP
-Jumps to a labeled line in a batch program.◙
+バッチプログラムの指定のラベル行へジャンプします。
+
 .
 :SHELL_CMD_GOTO_HELP_LONG
-GOTO label◙◙   label   Specifies a text string used in the batch program as a label.◙◙You type a label on a line by itself, beginning with a colon.◙
+GOTO label
+
+   label   バッチプログラムで、ラベルとする文字列を指定します。
+
+ラベルは行の先頭に、コロン(:)に続けて指定します。
+
 .
 :SHELL_CMD_SHIFT_HELP
-Changes the position of replaceable parameters in a batch file.◙
+バッチファイル中の置き換え可能なパラメータの位置を変更します。
+
 .
 :SHELL_CMD_SHIFT_HELP_LONG
-SHIFT◙
+SHIFT
+
 .
 :SHELL_CMD_FOR_HELP
-Runs a specified command for each file in a set of files.◙
+指定されたコマンドをファイルセットの各ファイルに対し実行します。
+
 .
 :SHELL_CMD_FOR_HELP_LONG
-FOR %%variable IN (set) DO command [command-parameters]◙◙  %%variable  Specifies a replaceable parameter.◙  (set)      Specifies a set of one or more files. Wildcards may be used.◙  command    Specifies the command to carry out for each file.◙  command-parameters◙             Specifies parameters or switches for the specified command.◙◙To use the command in a batch program, specify %%%%variable instead of %%variable.◙
+FOR %%variable IN (set) DO command [command-parameters]
+
+  %%variable  置き換え可能なパラメータを指定
+  (set)      一つ以上のファイルからなるセットを指定 (ワイルドカード使用可能)
+  command    各ファイルに対して実行するコマンドを指定
+  command-parameters
+             指定したコマンドのパラメータまたはスイッチを指定
+
+バッチプログラムでコマンドを使用する場合は %%variable を %%%%variable とする
+
 .
 :SHELL_CMD_LFNFOR_HELP
-Enables or disables long filenames when processing FOR wildcards.◙
+FORワイルドカードにロングファイルネームを使うかどうかの設定をします
+
 .
 :SHELL_CMD_LFNFOR_HELP_LONG
-LFNFOR [ON | OFF]◙◙Type LFNFOR without a parameter to display the current LFNFOR setting.◙◙This command is only useful if LFN support is currently enabled.◙
+LFNFOR [ON | OFF]
+
+LFNFOR の設定を表示するためには、パラメータなしで LFNFOR とタイプします。
+
+このコマンドは LFN サポートが有効な時のみ使用可能です。
+
 .
 :SHELL_CMD_TYPE_HELP
-Displays the contents of a text-file.◙
+テキストファイルの内容を表示します。
+
 .
 :SHELL_CMD_TYPE_HELP_LONG
-TYPE [drive:][path][filename]◙
+TYPE [drive:][path][filename]
+
 .
 :SHELL_CMD_REM_HELP
-Adds comments in a batch file.◙
+バッチファイルにコメントを追加します。
+
 .
 :SHELL_CMD_REM_HELP_LONG
-REM [comment]◙
+REM [comment]
+
 .
 :SHELL_CMD_RENAME_HELP
-Renames a file/directory or files.◙
+ファイル名またはディレクトリ名を変更します。
+
 .
 :SHELL_CMD_RENAME_HELP_LONG
-RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]◙REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]◙◙Note that you can not specify a new drive or path for your destination.◙◙Wildcards (* and ?) are supported for files. For example, the following command◙renames all text files: ←[37;1mREN *.TXT *.BAK←[0m◙
+RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+
+変更先には、新しいドライブやパスを設定できないことに注意してください。
+
+ワイルドカード (* や ?) もサポートされます。 例えば、以下のコマンドは
+全てのテキストファイルの名前を変更します: [37;1mREN *.TXT *.BAK[0m
+
 .
 :SHELL_CMD_DELETE_HELP
-Removes one or more files.◙
+一つまたは複数のファイルを削除します。
+
 .
 :SHELL_CMD_DELETE_HELP_LONG
-DEL [/P] [/F] [/Q] names◙ERASE [/P] [/F] [/Q] names◙◙  names         Specifies a list of one or more files or directories.◙                Wildcards may be used to delete multiple files. If a◙                directory is specified, all files within the directory◙                will be deleted.◙  /P            Prompts for confirmation before deleting one or more files.◙  /F            Force deleting of read-only files.◙  /Q            Quiet mode, do not ask if ok to delete on global wildcard.◙
+DEL [/P] [/F] [/Q] names
+ERASE [/P] [/F] [/Q] names
+
+  names         一つまたは複数のファイルまたはディレクトリを指定します。
+                ワイルドカードを用いて複数のファイルを削除できます。
+                ディレクトリを指定した場合、その中のファイルはすべて削除
+                されます。
+  /P            各ファイルを削除する前に確認のメッセージを表示します。
+  /F            書き込み禁止のファイルを強制的に削除します。
+  /Q            非表示モード。ワイルドカードで一括削除するときの確認
+  　　　　　　　メッセージを表示しません。
+
 .
 :SHELL_CMD_COPY_HELP
-Copies one or more files.◙
+一つまたは複数のファイルを別の場所にコピーします。
+
 .
 :SHELL_CMD_COPY_HELP_LONG
-COPY [/Y | /-Y] source [+source [+ ...]] [destination]◙◙  source        Specifies the file or files to be copied.◙  destination   Specifies the directory and/or filename for the new file(s).◙  /Y            Suppresses prompting to confirm you want to overwrite an◙                existing destination file.◙  /-Y           Causes prompting to confirm you want to overwrite an◙                existing destination file.◙◙The switch /Y may be preset in the COPYCMD environment variable.◙This may be overridden with /-Y on the command line.◙◙To append files, specify a single file for destination, but multiple files◙for source (using wildcards or file1+file2+file3 format).◙
+COPY [/Y | /-Y] source [+source [+ ...]] [destination]
+
+  source        コピーするファイル（一つまたは複数）を指定します。
+  destination   コピー先のディレクトリ・ファイル名を指定します。
+  /Y            コピー先に同名のファイルが存在する場合、上書きするかの
+                確認メッセージを表示しません。
+  /-Y           コピー先に同名のファイルが存在する場合、上書きするかの
+                確認メッセージを表示します。
+
+スイッチ /Y は環境変数 COPYCMD にあらかじめセットしておくことができます。
+このスイッチはコマンドラインで/-Y を指定することで、無効にできます。
+
+ファイルを結合するには、destinationに単一のファイル名を指定し、sourceに
+複数のファイルを指定します。(ワイルドカードまたはfile1+file2+file3 の
+ように指定します)
+
 .
 :SHELL_CMD_CALL_HELP
-Starts a batch file from within another batch file.◙
+バッチファイルから別のバッチファイルを実行します。
+
 .
 :SHELL_CMD_CALL_HELP_LONG
-CALL [drive:][path]filename [batch-parameters]◙◙batch-parameters   Specifies any command-line information required by◙                   the batch program.◙
+CALL [drive:][path]filename [batch-parameters]
+
+batch-parameters   バッチファイルの実行に必要なスイッチ・パラメータを
+                   指定します。
 .
 :SHELL_CMD_SUBST_HELP
-Assigns an internal directory to a drive.◙
+内部のディレクトリを仮想的なドライブに割り当てます。
+
 .
 :SHELL_CMD_SUBST_HELP_LONG
-SUBST [drive1: [drive2:]path]◙SUBST drive1: /D◙◙  drive1:       Specifies a drive to which you want to assign a path.◙  [drive2:]path Specifies a mounted local drive and path you want to assign to.◙  /D            Deletes a mounted or substituted drive.◙◙Type SUBST with no parameters to display a list of mounted local drives.◙
+SUBST [drive1: [drive2:]path]
+SUBST drive1: /D
+
+  drive1:       パスを割り当てる仮想ドライブを指定します。
+  [drive2:]path 仮想ドライブに割り当てるローカルドライブとパスを指定します。
+  /D            drive1の割り当てを解除します。
+
+仮想ドライブの一覧を表示するには、パラメータなしで SUBST とタイプします。
+
 .
 :SHELL_CMD_LOADHIGH_HELP
-Loads a program into upper memory (requires XMS and UMB memory).◙
+プログラムを上位メモリ領域に読み込みます (XMS・UMB メモリが必要)
+
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [drive:][path]filename [parameters]◙LOADHIGH        [drive:][path]filename [parameters]◙
+LH              [drive:][path]filename [parameters]
+LOADHIGH        [drive:][path]filename [parameters]
+
 .
 :SHELL_CMD_CHOICE_HELP
-Waits for a keypress and sets ERRORLEVEL.◙
+キーの入力を待ち、ERRORLEVEL を返します。
+
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text◙  /C[:]choices  -  Specifies allowable keys.  Default is: yn.◙  /N  -  Do not display the choices at end of prompt.◙  /S  -  Enables case-sensitive choices to be selected.◙  text  -  The text to display as a prompt.◙
+CHOICE [/C:choices] [/N] [/S] text
+  /C[:]choices  -  入力可能なキーを指定します (デフォルトは: yn)
+  /N  -  プロンプトの最後に選択肢を表示しない
+  /S  -  選択肢の大文字小文字を区別する
+  text  -  プロンプトに表示するテキスト
+
 .
 :SHELL_CMD_ATTRIB_HELP
-Displays or changes file attributes.◙
+ファイルの属性を表示・変更します。
+
 .
 :SHELL_CMD_ATTRIB_HELP_LONG
-ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]◙◙  +   Sets an attribute.◙  -   Clears an attribute.◙  R   Read-only file attribute.◙  A   Archive file attribute.◙  S   System file attribute.◙  H   Hidden file attribute.◙  [drive:][path][filename]◙      Specifies file(s) or directory for ATTRIB to process.◙  /S  Processes files in all directories in the specified path.◙
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
+
+  +   属性をセットする
+  -   属性をクリアする
+  R   読み取り専用
+  A   アーカイブ
+  S   システムファイル
+  H   隠しファイル
+  [drive:][path][filename]
+      ATTRIBコマンドが属性を設定するファイル・ディレクトリを指定
+  /S  指定のパスのディレクトリ内のすべてのファイルに対して属性を設定
+
 .
 :SHELL_CMD_PATH_HELP
-Displays or sets a search path for executable files.◙
+実行ファイルを検索するパスを表示・設定します。
+
 .
 :SHELL_CMD_PATH_HELP_LONG
-PATH [[drive:]path[;...][;%PATH%]◙PATH ;◙◙Type PATH ; to clear all search path settings.◙Type PATH without parameters to display the current path.◙
+PATH [[drive:]path[;...][;%PATH%]
+PATH ;
+
+パスの設定をすべて削除するには、PATH ; とタイプします。
+現在のパスを表示するには、パラメータなしで PATH とタイプします。
+
 .
 :SHELL_CMD_PUSHD_HELP
-Stores the current directory for use by the POPD command, then◙changes to the specified directory.◙
+POPDで復帰するディレクトリを保存し、指定のディレクトリへ移動します
+
 .
 :SHELL_CMD_PUSHD_HELP_LONG
-PUSHD [path]◙◙path        Specifies the directory to make the current directory.◙◙Type PUSHD with no parameters to display currently stored directories.◙
+PUSHD [path]
+
+path        指定したディレクトリをカレントディレクトリにします。
+
+保存されているディレクトリを表示するには、パラメータなしでPUSHDとタイプします
+
 .
 :SHELL_CMD_POPD_HELP
-Changes to the directory stored by the PUSHD command.◙
+PUSHDで保存したディレクトリへ移動します。
+
 .
 :SHELL_CMD_POPD_HELP_LONG
-POPD◙
+POPD
+
 .
 :SHELL_CMD_VERIFY_HELP
-Controls whether to verify files are written correctly to a disk.◙
+ファイルがディスクに正しく書き込まれたかの照合をするかを指定します
+
 .
 :SHELL_CMD_VERIFY_HELP_LONG
-VERIFY [ON | OFF]◙◙Type VERIFY without a parameter to display the current VERIFY setting.◙
+VERIFY [ON | OFF]
+
+VERIFYの現在の設定は、パラメータなしで VERIFY とタイプして確認できます。
+
 .
 :SHELL_CMD_VER_HELP
-Displays or sets DOSBox-X's reported DOS version.◙
+DOSBox-X自身と、DOSBox-Xが返す DOS バージョンを表示・設定します。
+
 .
 :SHELL_CMD_VER_HELP_LONG
-VER [/R]◙VER [SET] number or VER SET [major minor]◙◙  /R                 Display DOSBox-X's Git commit version and build date.◙  [SET] number       Set the specified number as the reported DOS version.◙  SET [major minor]  Set the reported DOS version in major and minor format.◙◙  ←[0mE.g., ←[37;1mVER 6.0←[0m or ←[37;1mVER 7.1←[0m sets the DOS version to 6.0 and 7.1, respectively.◙  On the other hand, ←[37;1mVER SET 7 1←[0m sets the DOS version to 7.01 instead of 7.1.◙◙Type VER without parameters to display DOSBox-X and the reported DOS version.◙
+VER [/R]
+VER [SET] number または VER SET [major minor]
+
+  /R                 DOSBox-X のGit コミットバージョンとビルド日時を表示
+  [SET] number       DOSBox-Xが返すDOS のバージョンを 指定の number で指定
+  SET [major minor]  DOSBox-Xが返すDOS のバージョンを major.minor 形式で指定
+
+  [0m例, [37;1mVER 6.0[0m または [37;1mVER 7.1[0m とすると DOS バージョンはそれぞれ 6.0 と 7.1に,
+  一方, [37;1mVER SET 7 1[0m とすると、DOS バージョンは 7.1 ではなく 7.01 となります。
+
+DOSBox-X とDOS のバージョンは、パラメータなしでVERとタイプして確認できます。
+
 .
 :SHELL_CMD_VER_VER
-DOSBox-X version %s (%s). Reported DOS version %d.%02d.◙
+DOSBox-X バージョン %s (%s). DOS バージョン %d.%02d.
+
 .
 :SHELL_CMD_VER_INVALID
-The specified DOS version is not correct.◙
+不正な DOS バージョンが指定されました。
+
 .
 :SHELL_CMD_VOL_HELP
-Displays the disk volume label and serial number, if they exist.◙
+ボリュームラベルとシリアル番号を表示します(存在する場合)。
+
 .
 :SHELL_CMD_VOL_HELP_LONG
-VOL [drive]◙
+VOL [drive]
+
 .
 :SHELL_CMD_PROMPT_HELP
-Changes the command prompt.◙
+コマンドプロンプトを変更します。
+
 .
 :SHELL_CMD_PROMPT_HELP_LONG
-PROMPT [text]◙  text    Specifies a new command prompt.◙◙Prompt can be made up of normal characters and the following special codes:◙  $A   & (Ampersand)◙  $B   | (pipe)◙  $C   ( (Left parenthesis)◙  $D   Current date◙  $E   Escape code (ASCII code 27)◙  $F   ) (Right parenthesis)◙  $G   > (greater-than sign)◙  $H   Backspace (erases previous character)◙  $L   < (less-than sign)◙  $N   Current drive◙  $P   Current drive and path◙  $Q   = (equal sign)◙  $S     (space)◙  $T   Current time◙  $V   DOS version number◙  $_   Carriage return and linefeed◙  $$   $ (dollar sign)◙
+PROMPT [text]
+  text    新しいコマンドプロンプトを指定
+
+プロンプトは、通常の文字と以下の特殊コードを組み合わせることができます:
+  $A   & (アンパサンド)
+  $B   | (パイプ)
+  $C   ( (括弧開き)
+  $D   現在の日付
+  $E   エスケープコード (ASCII コード 27)
+  $F   ) (括弧閉じ)
+  $G   > (大なり:不等号)
+  $H   バックスペース (一文字前を消去)
+  $L   < (小なり:不等号)
+  $N   カレントドライブ
+  $P   カレントドライブ・パス
+  $Q   = (等号)
+  $S     (空白)
+  $T   現在時刻
+  $V   DOS バージョン番号
+  $_   行頭復帰(CR)と行送り(LF)
+  $$   $ (ドル記号)
+
 .
 :SHELL_CMD_ALIAS_HELP
-Defines or displays aliases.◙
+エイリアスを定義・表示します。
+
 .
 :SHELL_CMD_ALIAS_HELP_LONG
-ALIAS [name[=value] ... ]◙◙Type ALIAS without parameters to display the list of aliases in the form:◙`ALIAS NAME = VALUE'◙
+ALIAS [name[=value] ... ]
+
+パラメータなしで ALIAS とタイプすると、エイリアスの一覧が表示されます:
+`ALIAS NAME = VALUE'
+
 .
 :SHELL_CMD_CHCP_HELP
-Displays or changes the current DOS code page.◙
+現在の DOS コードページを表示・変更します。
+
 .
 :SHELL_CMD_CHCP_HELP_LONG
-CHCP [nnn]◙◙  nnn   Specifies a code page number.◙◙Supported code pages for changing in the TrueType font output:◙437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874◙◙Also double-byte code pages including 932, 936, 949, and 950.◙
+CHCP [nnn]
+
+  nnn   コードページ番号を指定します。
+
+TrueType フォント出力への変更をサポートするコードページ:
+437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+
+932, 936, 949, 950 等の2バイト言語のコードページもサポートします。
+
 .
 :SHELL_CMD_CHCP_ACTIVE
-Active code page: %d◙
+現在のコードページ: %d
+
 .
 :SHELL_CMD_CHCP_MISSING
-Characters not defined in TTF font: %d◙
+指定の TTF フォント内に文字が定義されていません。: %d
+
 .
 :SHELL_CMD_CHCP_INVALID
-Invalid code page number - %s◙
+無効なコードページ番号 - %s
+
 .
 :SHELL_CMD_COUNTRY_HELP
-Displays or changes the current country.◙
+国設定を表示・変更します。
+
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
-COUNTRY [nnn] ◙◙  nnn   Specifies a country code.◙◙Date and time formats will be affacted by the specified country code.◙
+COUNTRY [nnn] 
+
+  nnn   国コードを指定します。
+
+日付・時間のフォーマットは指定の国コードにより変わります。
+
 .
 :SHELL_CMD_CTTY_HELP
-Changes the terminal device used to control the system.◙
+システムの入出力デバイスを変更します。
+
 .
 :SHELL_CMD_CTTY_HELP_LONG
-CTTY device◙  device        The terminal device to use, such as CON.◙
+CTTY device
+  device        使用する端末デバイス(例えば CON)
+
 .
 :SHELL_CMD_MORE_HELP
-Displays output one screen at a time.◙
+画面を1画面ずつ表示します。
+
 .
 :SHELL_CMD_MORE_HELP_LONG
-MORE [drive:][path][filename]◙MORE < [drive:][path]filename◙command-name | MORE [drive:][path][filename]◙
+MORE [drive:][path][filename]
+MORE < [drive:][path]filename
+command-name | MORE [drive:][path][filename]
+
 .
 :SHELL_CMD_TRUENAME_HELP
-Finds the fully-expanded name for a file.◙
+ファイルの完全に展開された物理名を表示します。
+
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME file◙
+TRUENAME file
+
 .
 :SHELL_CMD_DXCAPTURE_HELP
-Runs program with video or audio capture.◙
+プログラムを映像・音声をキャプチャしながら実行します。
+
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]◙◙It will start video or audio capture, run program, and then automatically stop capture when the program exits.◙
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+
+映像・音声のキャプチャを開始してからプログラムを実行し、プログラム終了時に
+キャプチャも終了します。
+
 .
 :SHELL_CMD_DEBUGBOX_HELP
-Runs program and breaks into debugger at entry point.◙
+プログラムを実行し、エントリ・ポイントでデバッガに入ります。
+
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [command] [options]◙◙Type DEBUGBOX without a parameter to start the debugger.◙
+DEBUGBOX [command] [options]
+
+パラメータなしで DEBUGBOX と入力すると、デバッガが起動します。
+
 .
 :SHELL_CMD_COMMAND_HELP
-Starts the DOSBox-X command shell.◙◙The following options are accepted:◙◙  /C    Executes the specified command and returns.◙  /K    Executes the specified command and continues running.◙  /P    Loads a permanent copy of the command shell.◙  /INIT Initializes the command shell.◙
+DOSBox-X コマンド・シェルの起動
+
+以下のオプションを使用可能です:
+
+  /C    指定のコマンドを実行して、シェルを終了します。
+  /K    指定のコマンドを実行し、シェルは終了しません。
+  /P    コマンドシェルを起動し、常駐します。
+  /INIT コマンドシェルを初期化します。
+
 .
 :MENU:mapper_reset
-Reset virtual machine
+仮想マシンのリセット
 .
 :MENU:mapper_reboot
-Reboot guest system
+ゲスト・システムのリセット
 .
 :MENU:mapper_loadmap
-Load mapper file...
+マッパーファイルの読込み...
 .
 :MENU:mapper_quickrun
-Quick launch program...
+クイック起動...
 .
 :MENU:mapper_shutdown
-Quit from DOSBox-X
+DOSBox-Xを終了する
 .
 :MENU:mapper_capmouse
-Capture mouse
+マウスをキャプチャする
 .
 :MENU:mapper_fastedit
-Quick edit: copy on select and paste text
+クイック編集: 選択時コピーとテキスト貼付け
 .
 :MENU:mapper_copyall
-Copy all text on the DOS screen
+DOS画面上のテキストをすべてコピー
 .
 :MENU:mapper_paste
-Pasting from the clipboard
+クリップボードからの貼り付け
 .
 :MENU:mapper_pasteend
-Stop clipboard pasting
+クリップボードからの貼り付けを停止
 .
 :MENU:mapper_pause
-Pause emulation
+一時停止
 .
 :MENU:mapper_pauseints
-Pause with interrupts enabled
+一時停止(割込みは有効)
 .
 :MENU:mapper_gui
-Configuration tool
+設定ツール
 .
 :MENU:mapper_mapper
-Mapper editor
+マッパーエディター
 .
 :MENU:mapper_fullscr
-Toggle fullscreen
+全画面表示との切替
 .
 :MENU:mapper_resetsize
-Reset window size
+ウィンドウサイズのリセット
 .
 :MENU:mapper_incsize
-Increase TTF font size
+TTFフォントサイズ 大きくする
 .
 :MENU:mapper_decsize
-Decrease TTF font size
+TTFフォントサイズ 小さくする
 .
 :MENU:mapper_togmenu
-Hide/show menu bar
+メニューバーの表示・非表示
 .
 :MENU:MainMenu
-Main
+メイン
 .
 :MENU:MainSendKey
-Send special key
+特殊キーの送信
 .
 :MENU:MainHostKey
-Select host key
+ホスト・キーの選択
 .
 :MENU:WheelToArrow
-Mouse wheel movements
+マウスホイールの動作
 .
 :MENU:SharedClipboard
-Shared clipboard functions
+クリップボード共有設定
 .
 :MENU:CpuMenu
 CPU
 .
 :MENU:CpuCoreMenu
-CPU core
+CPU コア
 .
 :MENU:CpuTypeMenu
-CPU type
+CPU タイプ
 .
 :MENU:CpuSpeedMenu
-Emulate CPU speed
+CPU スピード調整
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz (~240 cycles)
+8088 XT 4.77MHz (～240 サイクル)
 .
 :MENU:cpu286-8
-286 8MHz (~750 cycles)
+286 8MHz (～750 サイクル)
 .
 :MENU:cpu286-12
-286 12MHz (~1510 cycles)
+286 12MHz (～1510 サイクル)
 .
 :MENU:cpu286-25
-286 25MHz (~3300 cycles)
+286 25MHz (～3300 サイクル)
 .
 :MENU:cpu386-25
-386DX 25MHz (~4595 cycles)
+386DX 25MHz (～4595 サイクル)
 .
 :MENU:cpu386-33
-386DX 33MHz (~6075 cycles)
+386DX 33MHz (～6075 サイクル)
 .
 :MENU:cpu486-33
-486DX 33MHz (~12010 cycles)
+486DX 33MHz (～12010 サイクル)
 .
 :MENU:cpu486-66
-486DX2 66MHz (~23880 cycles)
+486DX2 66MHz (～23880 サイクル)
 .
 :MENU:cpu486-100
-486DX4 100MHz (~33445 cycles)
+486DX4 100MHz (～33445 サイクル)
 .
 :MENU:cpu486-133
-486DX5 133MHz (~47810 cycles)
+486DX5 133MHz (～47810 サイクル)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycles)
+Pentium 60MHz (～31545 サイクル)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 cycles)
+Pentium 66MHz (～35620 サイクル)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycles)
+Pentium 75MHz (～43500 サイクル)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycles)
+Pentium 90MHz (～52000 サイクル)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycles)
+Pentium 100MHz (～60000 サイクル)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycles)
+Pentium 120MHz (～74000 サイクル)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycles)
+Pentium 133MHz (～80000 サイクル)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycles)
+Pentium 166MHz MMX (～97240 サイクル)
 .
 :MENU:VideoMenu
-Video
+ビデオ
 .
 :MENU:VideoFrameskipMenu
-Frameskip
+フレームスキップ
 .
 :MENU:frameskip_0
-Off
+切
 .
 :MENU:frameskip_1
-1 frame
+1フレーム
 .
 :MENU:frameskip_2
-2 frame
+2フレーム
 .
 :MENU:frameskip_3
-3 frame
+3フレーム
 .
 :MENU:frameskip_4
-4 frame
+4フレーム
 .
 :MENU:frameskip_5
-5 frame
+5フレーム
 .
 :MENU:frameskip_6
-6 frame
+6フレーム
 .
 :MENU:frameskip_7
-7 frame
+7フレーム
 .
 :MENU:frameskip_8
-8 frame
+8フレーム
 .
 :MENU:frameskip_9
-9 frame
+9フレーム
 .
 :MENU:frameskip_10
-10 frame
+10フレーム
 .
 :MENU:VideoScalerMenu
-Scaler
+スケーラ
 .
 :MENU:scaler_forced
-Force scaler
+スケーラ強制使用
 .
 :MENU:scaler_set_none
-None
+等倍
 .
 :MENU:scaler_set_normal2x
 Normal 2X
@@ -1296,7 +2128,7 @@ Normal 4X
 Normal 5X
 .
 :MENU:scaler_set_hardware_none
-Hardware None
+Hardware 等倍
 .
 :MENU:scaler_set_hardware2x
 Hardware 2X
@@ -1311,10 +2143,10 @@ Hardware 4X
 Hardware 5X
 .
 :MENU:scaler_set_gray
-Grayscale
+グレースケール 等倍
 .
 :MENU:scaler_set_gray2x
-Grayscale 2X
+グレースケール 2X
 .
 :MENU:scaler_set_tv2x
 TV 2X
@@ -1368,10 +2200,10 @@ xBRZ
 xBRZ Bilinear
 .
 :MENU:refresh_rate
-Refresh rate...
+リフレッシュレート...
 .
 :MENU:VideoOutputMenu
-Output
+出力
 .
 :MENU:output_surface
 Surface
@@ -1389,34 +2221,34 @@ OpenGL nearest
 OpenGL perfect
 .
 :MENU:output_ttf
-TrueType font
+TrueTypeフォント
 .
 :MENU:doublescan
-Doublescan
+ダブルスキャン
 .
 :MENU:VideoVsyncMenu
-V-Sync
+垂直同期
 .
 :MENU:vsync_on
-On
+入
 .
 :MENU:vsync_force
-Force
+強制
 .
 :MENU:vsync_host
-Host
+ホスト
 .
 :MENU:vsync_off
-Off
+切
 .
 :MENU:vsync_set_syncrate
-Set syncrate
+同期レートを設定
 .
 :MENU:VideoOverscanMenu
-Overscan
+オーバースキャン
 .
 :MENU:overscan_0
-Off
+切
 .
 :MENU:overscan_1
 1
@@ -1449,175 +2281,175 @@ Off
 10
 .
 :MENU:VideoTextmodeMenu
-Text-mode
+テキスト・モード
 .
 :MENU:clear_screen
-Clear the screen
+スクリーンを消去
 .
 :MENU:vga_9widetext
-Allow 9-pixel wide fonts
+9ピクセル 幅広フォントを許可
 .
 :MENU:text_background
-High intensity: background color
+強調: 背景色
 .
 :MENU:text_blinking
-High intensity: blinking text
+強調: テキスト点滅
 .
 :MENU:line_80x25
-Screen: 80 columns x 25 lines
+スクリーン: 80 カラム x 25 行
 .
 :MENU:line_80x43
-Screen: 80 columns x 43 lines
+スクリーン: 80 カラム x 43 行
 .
 :MENU:line_80x50
-Screen: 80 columns x 50 lines
+スクリーン: 80 カラム x 50 行
 .
 :MENU:line_80x60
-Screen: 80 columns x 60 lines
+スクリーン: 80 カラム x 60 行
 .
 :MENU:line_132x25
-Screen: 132 columns x 25 lines
+スクリーン: 132 カラム x 25 行
 .
 :MENU:line_132x43
-Screen: 132 columns x 43 lines
+スクリーン: 132 カラム x 43 行
 .
 :MENU:line_132x50
-Screen: 132 columns x 50 lines
+スクリーン: 132 カラム x 50 行
 .
 :MENU:line_132x60
-Screen: 132 columns x 60 lines
+スクリーン: 132 カラム x 60 行
 .
 :MENU:VideoTTFMenu
-TTF options
+TTFオプション
 .
 :MENU:ttf_showbold
-Display bold text in TTF
+太字をTTFで表示
 .
 :MENU:ttf_showital
-Display italic text in TTF
+斜体をTTFで表示
 .
 :MENU:ttf_showline
-Display underlined text in TTF
+下線をTTFで表示
 .
 :MENU:ttf_showsout
-Display strikeout text in TTF
+打ち消し線をTTFで表示
 .
 :MENU:ttf_wpno
-TTF word processor: None
+TTF ワードプロセッサー: なし
 .
 :MENU:ttf_wpwp
-TTF word processor: WordPerfect
+TTF ワードプロセッサー: WordPerfect
 .
 :MENU:ttf_wpws
-TTF word processor: WordStar
+TTF ワードプロセッサー: WordStar
 .
 :MENU:ttf_wpxy
-TTF word processor: XyWrite
+TTF ワードプロセッサー: XyWrite
 .
 :MENU:ttf_wpfe
-TTF word processor: FastEdit
+TTF ワードプロセッサー: FastEdit
 .
 :MENU:ttf_blinkc
-Display TTF blinking cursor
+TTFでカーソル点滅を表示
 .
 :MENU:ttf_printfont
-Use current TTF font for printing
+現在のTTFフォントを印刷に使用
 .
 :MENU:ttf_dbcs_sbcs
-CJK: Switch between DBCS/SBCS modes
+CJK: DBCS/SBCS モードを切替
 .
 :MENU:ttf_autoboxdraw
-CJK: Auto-detect box-drawing characters
+CJK: 罫線文字を自動検出
 .
 :MENU:ttf_halfwidthkana
-CJK: Allow half-width Japanese Katakana
+CJK: 日本語半角カナ文字を使用
 .
 :MENU:VideoPC98Menu
-PC-98 options
+PC-98 オプション
 .
 :MENU:pc98_5mhz_gdc
-5MHz GDC clock
+5MHz GDC クロック
 .
 :MENU:pc98_allow_200scanline
-Allow 200-line scanline effect
+200-ライン スキャンライン効果有効
 .
 :MENU:pc98_allow_4partitions
 Allow 4 display partitions in graphics layer
 .
 :MENU:pc98_enable_egc
-Enable EGC
+EGC有効
 .
 :MENU:pc98_enable_grcg
-Enable GRCG
+GRCG有効
 .
 :MENU:pc98_enable_analog
-Enable analog display
+アナログディスプレイ
 .
 :MENU:pc98_enable_analog256
-Enable analog 256-color display
+アナログ256色表示
 .
 :MENU:pc98_enable_188user
-Enable 188+ user CG cells
+ユーザ定義文字数(188以上)有効
 .
 :MENU:pc98_clear_text
-Clear text layer
+テキスト・レイヤーの消去
 .
 :MENU:pc98_clear_graphics
-Clear graphics layer
+グラフィックス・レイヤーの消去
 .
 :MENU:load_d3d_shader
-Select Direct3D pixel shader...
+Direct3D ピクセルシェーダの選択...
 .
 :MENU:load_glsl_shader
-Select OpenGL (GLSL) shader...
+OpenGL (GLSL)シェーダの選択...
 .
 :MENU:load_ttf_font
-Select TrueType font (TTF)...
+TrueTypeフォント(TTF)の選択...
 .
 :MENU:SoundMenu
-Sound
+サウンド
 .
 :MENU:mixer_swapstereo
-Swap stereo
+音声の左右入替
 .
 :MENU:mixer_mute
-Mute
+ミュート
 .
 :MENU:mixer_info
-Show sound mixer volumes
+音量ミキサのボリュームの表示
 .
 :MENU:sb_info
-Show Sound Blaster configuration
+Sound Blaster設定の表示
 .
 :MENU:midi_info
-Show MIDI device configuration
+MIDIデバイス設定の表示
 .
 :MENU:DOSMenu
 DOS
 .
 :MENU:enable_a20gate
-Enable A20 gate
+A20ゲート有効
 .
 :MENU:change_currentcd
-Change current CD image...
+CDイメージの入替...
 .
 :MENU:change_currentfd
-Change current floppy image...
+フロッピーイメージの入替...
 .
 :MENU:DOSMouseMenu
-Mouse emulation
+マウスエミュレーション
 .
 :MENU:dos_mouse_enable_int33
-Internal Emulation
+内部エミュレーション
 .
 :MENU:dos_mouse_y_axis_reverse
-Y-axis Reverse
+Y軸反転
 .
 :MENU:dos_mouse_sensitivity
-Sensitivity
+感度
 .
 :MENU:DOSVerMenu
-Reported DOS version
+返された DOS バージョン
 .
 :MENU:dos_ver_330
 3.30
@@ -1632,61 +2464,61 @@ Reported DOS version
 7.10
 .
 :MENU:dos_ver_edit
-Edit
+編集
 .
 :MENU:DOSLFNMenu
-Long filename support
+ロングファイルネーム サポート
 .
 :MENU:dos_lfn_auto
-Auto per reported DOS version
+DOSのバージョンに応じて自動設定
 .
 :MENU:dos_lfn_enable
-Enable long filename emulation
+ロングファイルネーム エミュレーション有効
 .
 :MENU:dos_lfn_disable
-Disable long filename emulation
+ロングファイルネーム エミュレーション無効
 .
 :MENU:DOSPC98Menu
-PC-98 PIT master clock
+PC-98 PIT マスタクロック
 .
 :MENU:dos_pc98_pit_4mhz
-4MHz/8MHz PIT master clock
+システムクロック8MHz系
 .
 :MENU:dos_pc98_pit_5mhz
-5MHz/10MHz PIT master clock
+システムクロック5MHz系
 .
 :MENU:DOSEMSMenu
-Expanded memory (EMS)
+拡張メモリ (EMS)
 .
 :MENU:dos_ems_true
-Enable EMS emulation
+EMS エミュレーション:有効
 .
 :MENU:dos_ems_board
-EMS board emulation
+EMS ボード エミュレーション
 .
 :MENU:dos_ems_emm386
-EMM386 emulation
+EMM386 エミュレーション
 .
 :MENU:dos_ems_false
-Disable EMS emulation
+EMS エミュレーション:無効
 .
 :MENU:DOSWinMenu
-Host system applications
+ホストシステムのアプリケーション
 .
 :MENU:dos_win_autorun
-Launch to run on the Windows host
+Windows のホスト上で実行する
 .
 :MENU:dos_win_wait
-Wait for the application if possible
+可能であればアプリケーションを待つ
 .
 :MENU:dos_win_quiet
-Quiet mode - no start messages
+非表示モード - スタート時のメッセージを非表示
 .
 :MENU:CaptureMenu
-Capture
+キャプチャ
 .
 :MENU:CaptureFormatMenu
-Capture format
+キャプチャのフォーマット
 .
 :MENU:capture_fmt_avi_zmbv
 AVI + ZMBV
@@ -1695,1210 +2527,1210 @@ AVI + ZMBV
 MPEG-TS + H.264
 .
 :MENU:saveoptionmenu
-Save/load options
+セーブ/ロード オプション
 .
 :MENU:saveslotmenu
-Select save slot
+セーブスロットを選択
 .
 :MENU:enable_autosave
-Enable auto-saving state
+自動ステート(状態)保存を有効化
 .
 :MENU:noremark_savestate
-No remark when saving state
+ステート(状態)保存時に確認しない
 .
 :MENU:force_loadstate
-No warning when loading state
+ステート(状態)読込時に警告しない
 .
 :MENU:removestate
-Remove state in slot
+スロットに保存したステート(状態)を削除
 .
 :MENU:refreshslot
-Refresh display status
+ディスプレイ情報を更新する
 .
 :MENU:lastautosaveslot
-Select last auto-saved slot
+最後にセーブされた自動セーブスロットを選択
 .
 :MENU:usesavefile
-Use save file instead of save slot
+セーブ用スロットの代わりにセーブファイルを使用
 .
 :MENU:autosavecfg
-Auto-save settings...
+自動セーブの設定...
 .
 :MENU:browsesavefile
-Browse save file...
+セーブファイルの一覧...
 .
 :MENU:current_page
-Current page: 1/10
+現在のページ: 1/10
 .
 :MENU:prev_page
-Previous page
+前のページへ
 .
 :MENU:next_page
-Next page
+次のページへ
 .
 :MENU:first_page
-Go to first page
+最初のページへ
 .
 :MENU:last_page
-Go to last page
+最後のページへ
 .
 :MENU:DriveMenu
-Drive
+ドライブ
 .
 :MENU:DriveA
 A
 .
 :MENU:drive_A_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_A_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_A_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_A_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_A_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_A_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_A_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_A_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_A_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_A_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_A_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_A_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_A_info
-Drive information
+ドライブ情報
 .
 :MENU:drive_A_boot
-Boot from drive
+ドライブからブート
 .
 :MENU:drive_A_bootimg
-Boot from disk image
+ディスクイメージからブート
 .
 :MENU:DriveB
 B
 .
 :MENU:drive_B_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_B_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_B_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_B_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_B_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_B_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_B_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_B_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_B_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_B_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_B_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_B_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_B_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveC
 C
 .
 :MENU:drive_C_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_C_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_C_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_C_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_C_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_C_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_C_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_C_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_C_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_C_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_C_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_C_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_C_info
-Drive information
+ドライブ情報
 .
 :MENU:drive_C_boot
-Boot from drive
+ドライブからブート
 .
 :MENU:drive_C_bootimg
-Boot from disk image
+ディスクイメージからブート
 .
 :MENU:DriveD
 D
 .
 :MENU:drive_D_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_D_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_D_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_D_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_D_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_D_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_D_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_D_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_D_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_D_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_D_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_D_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_D_info
-Drive information
+ドライブ情報
 .
 :MENU:drive_D_boot
-Boot from drive
+ドライブからブート
 .
 :MENU:drive_D_bootimg
-Boot from disk image
+ディスクイメージからブート
 .
 :MENU:DriveE
 E
 .
 :MENU:drive_E_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_E_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_E_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_E_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_E_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_E_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_E_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_E_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_E_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_E_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_E_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_E_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_E_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveF
 F
 .
 :MENU:drive_F_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_F_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_F_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_F_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_F_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_F_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_F_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_F_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_F_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_F_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_F_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_F_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_F_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveG
 G
 .
 :MENU:drive_G_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_G_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_G_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_G_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_G_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_G_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_G_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_G_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_G_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_G_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_G_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_G_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_G_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveH
 H
 .
 :MENU:drive_H_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_H_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_H_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_H_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_H_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_H_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_H_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_H_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_H_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_H_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_H_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_H_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_H_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveI
 I
 .
 :MENU:drive_I_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_I_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_I_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_I_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_I_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_I_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_I_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_I_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_I_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_I_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_I_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_I_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_I_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveJ
 J
 .
 :MENU:drive_J_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_J_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_J_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_J_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_J_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_J_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_J_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_J_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_J_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_J_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_J_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_J_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_J_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveK
 K
 .
 :MENU:drive_K_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_K_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_K_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_K_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_K_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_K_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_K_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_K_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_K_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_K_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_K_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_K_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_K_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveL
 L
 .
 :MENU:drive_L_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_L_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_L_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_L_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_L_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_L_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_L_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_L_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_L_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_L_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_L_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_L_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_L_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveM
 M
 .
 :MENU:drive_M_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_M_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_M_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_M_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_M_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_M_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_M_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_M_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_M_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_M_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_M_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_M_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_M_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveN
 N
 .
 :MENU:drive_N_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_N_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_N_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_N_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_N_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_N_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_N_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_N_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_N_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_N_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_N_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_N_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_N_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveO
 O
 .
 :MENU:drive_O_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_O_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_O_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_O_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_O_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_O_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_O_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_O_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_O_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_O_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_O_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_O_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_O_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveP
 P
 .
 :MENU:drive_P_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_P_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_P_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_P_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_P_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_P_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_P_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_P_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_P_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_P_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_P_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_P_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_P_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveQ
 Q
 .
 :MENU:drive_Q_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_Q_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_Q_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_Q_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_Q_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_Q_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_Q_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_Q_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_Q_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_Q_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_Q_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_Q_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_Q_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveR
 R
 .
 :MENU:drive_R_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_R_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_R_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_R_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_R_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_R_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_R_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_R_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_R_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_R_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_R_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_R_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_R_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveS
 S
 .
 :MENU:drive_S_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_S_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_S_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_S_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_S_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_S_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_S_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_S_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_S_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_S_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_S_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_S_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_S_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveT
 T
 .
 :MENU:drive_T_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_T_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_T_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_T_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_T_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_T_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_T_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_T_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_T_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_T_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_T_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_T_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_T_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveU
 U
 .
 :MENU:drive_U_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_U_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_U_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_U_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_U_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_U_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_U_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_U_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_U_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_U_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_U_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_U_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_U_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveV
 V
 .
 :MENU:drive_V_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_V_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_V_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_V_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_V_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_V_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_V_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_V_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_V_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_V_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_V_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_V_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_V_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveW
 W
 .
 :MENU:drive_W_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_W_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_W_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_W_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_W_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_W_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_W_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_W_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_W_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_W_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_W_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_W_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_W_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveX
 X
 .
 :MENU:drive_X_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_X_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_X_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_X_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_X_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_X_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_X_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_X_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_X_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_X_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_X_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_X_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_X_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveY
 Y
 .
 :MENU:drive_Y_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_Y_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_Y_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_Y_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_Y_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_Y_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_Y_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_Y_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_Y_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_Y_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_Y_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_Y_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_Y_info
-Drive information
+ドライブ情報
 .
 :MENU:DriveZ
 Z
 .
 :MENU:drive_Z_mountauto
-Auto-mount Windows drive
+Windowsのドライブを自動マウント
 .
 :MENU:drive_Z_mounthd
-Mount folder as hard drive
+フォルダをHDDとしてマウント
 .
 :MENU:drive_Z_mountcd
-Mount folder as CD drive
+フォルダをCDドライブとしてマウント
 .
 :MENU:drive_Z_mountfd
-Mount folder as floppy drive
+フォルダをFDDとしてマウント
 .
 :MENU:drive_Z_mountfro
-Option: mount folder read-only
+オプション: 書き込み禁止でフォルダをマウント
 .
 :MENU:drive_Z_mountarc
-Mount an archive file (ZIP/7Z)
+書庫ファイル(ZIP/7Z)をマウント
 .
 :MENU:drive_Z_mountimg
-Mount a disk or CD image file
+ディスクまたはCDイメージをマウント
 .
 :MENU:drive_Z_mountimgs
-Mount multiple disk/CD images
+複数のディスク/CDイメージをマウント
 .
 :MENU:drive_Z_mountiro
-Option: mount images read-only
+オプション: 書込禁止でイメージをマウント
 .
 :MENU:drive_Z_unmount
-Unmount drive
+ドライブのマウント解除
 .
 :MENU:drive_Z_rescan
-Rescan drive
+ドライブの再スキャン
 .
 :MENU:drive_Z_swap
-Swap disk
+ディスクの入替
 .
 :MENU:drive_Z_info
-Drive information
+ドライブ情報
 .
 :MENU:HelpMenu
-Help
+ヘルプ
 .
 :MENU:help_intro
-Introduction
+DOSBox-Xの紹介
 .
 :MENU:help_homepage
-DOSBox-X homepage
+DOSBox-X ホームページ
 .
 :MENU:help_wiki
-DOSBox-X Wiki guide
+DOSBox-X Wiki ガイド
 .
 :MENU:help_issue
-DOSBox-X support
+DOSBox-X サポート
 .
 :MENU:help_nic
-List network interfaces
+ネットワークインターフェースの一覧
 .
 :MENU:help_prt
-List printer devices
+プリンタデバイスの一覧
 .
 :MENU:help_about
-About DOSBox-X
+DOSBox-Xについて
 .
 :MENU:show_console
-Show logging console
+ログ用コンソールを表示
 .
 :MENU:wait_on_error
-Console wait on error
+エラー時にコンソールを停止
 .
 :MENU:save_logas
-Save logging as...
+名前をつけてログを保存...
 .
 :MENU:debugger_rundebug
-Debugger option: Run debugger
+デバッガオプション: デバッガを実行
 .
 :MENU:debugger_runnormal
-Debugger option: Run normal
+デバッガオプション: 通常実行
 .
 :MENU:debugger_runwatch
-Debugger option: Run watch
+デバッガオプション: Watchを実行
 .
 :MENU:HelpCommandMenu
-DOS commands
+DOS コマンド
 .
 :MENU:command_DIR
 DIR
@@ -3024,157 +3856,157 @@ POPD
 TRUENAME
 .
 :MENU:DebugMenu
-Debug
+デバッグ
 .
 :MENU:debug_blankrefreshtest
-Refresh test (blank display)
+リフレッシュのテスト (空白の画面)
 .
 :MENU:debug_generatenmi
-Generate NMI interrupt
+NMI 割り込みを発生
 .
 :MENU:debug_int2fhook
-Hook INT 2Fh calls
+INT 2Fh コールをフック
 .
 :MENU:debug_logint21
-Log INT 21h calls
+INT 21h コールを記録
 .
 :MENU:debug_logfileio
-Log file I/O
+ファイル I/Oを記録
 .
 :MENU:mapper_speedlock
-Toggle Speedlock
+スピードロックの切替
 .
 :MENU:mapper_speedlock2
-Turbo (Fast Forward)
+ターボ (Fast Forward)
 .
 :MENU:mapper_speednorm
-Normal speed
+通常の速度
 .
 :MENU:mapper_speedup
-Speed up
+スピード:増
 .
 :MENU:mapper_slowdown
-Slow down
+スピード:減
 .
 :MENU:mapper_editcycles
-Edit cycles
+サイクルを編集
 .
 :MENU:mapper_savestate
-Save state
+状態保存
 .
 :MENU:mapper_loadstate
-Load state
+状態読込
 .
 :MENU:mapper_showstate
-Display state information
+状態の情報表示
 .
 :MENU:mapper_prevslot
-Select previous slot
+前のスロットを選択
 .
 :MENU:mapper_nextslot
-Select next slot
+次のスロットを選択
 .
 :MENU:mapper_decfskip
-Decrease frameskip
+フレームスキップ:減
 .
 :MENU:mapper_incfskip
-Increase frameskip
+フレームスキップ:増
 .
 :MENU:mapper_aspratio
-Fit to aspect ratio
+アスペクト比に合わせる
 .
 :MENU:mapper_recwave
-Record audio to WAV
+音声をWAVに保存
 .
 :MENU:mapper_recmtwave
-Record audio to multi-track AVI
+音声をmulti-track AVIに保存
 .
 :MENU:mapper_caprawmidi
-Record MIDI output
+MIDI出力を保存
 .
 :MENU:mapper_caprawopl
-Record FM (OPL) output
+FM (OPL) 出力を保存
 .
 :MENU:mapper_video
-Record video to AVI
+動画をAVIに保存
 .
 :MENU:mapper_scrshot
-Take screenshot
+スクリーンショットを撮る
 .
 :MENU:mapper_debugger
-Start DOSBox-X Debugger
+DOSBox-X デバッガの起動
 .
 :MENU:mapper_volup
-Increase volume
+ボリューム:上
 .
 :MENU:mapper_voldown
-Decrease volume
+ボリューム:下
 .
 :MENU:mapper_recvolup
-Increase recording volume
+録音レベル:上
 .
 :MENU:mapper_recvoldown
-Decrease recording volume
+録音レベル:下
 .
 :MENU:mapper_sendkey_mapper
-Send special key
+特殊キーを送信
 .
 :MENU:mapper_cycledown
-Decrement cycles
+サイクル:減
 .
 :MENU:mapper_cycleup
-Increment cycles
+サイクル:増
 .
 :MENU:mapper_normal
-Normal core
+標準コア
 .
 :MENU:mapper_dynamic
-Dynamic core (dynamic_x86)
+ダイナミックコア (dynamic_x86)
 .
 :MENU:mapper_simple
-Simple core
+簡易コア
 .
 :MENU:mapper_full
-Full core
+完全コア
 .
 :MENU:cputype_auto
-Auto
+オート
 .
 :MENU:cputype_8086
 8086
 .
 :MENU:cputype_8086_prefetch
-8086 with prefetch
+8086 (プリフェッチ有)
 .
 :MENU:cputype_80186
 80186
 .
 :MENU:cputype_80186_prefetch
-80186 with prefetch
+80186 (プリフェッチ有)
 .
 :MENU:cputype_286
 286
 .
 :MENU:cputype_286_prefetch
-286 with prefetch
+286 (プリフェッチ有)
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386 with prefetch
+386 (プリフェッチ有)
 .
 :MENU:cputype_486old
-486 (old)
+486 (旧)
 .
 :MENU:cputype_486old_prefetch
-486 (old) with prefetch
+486 (旧(プリフェッチ有))
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486 with prefetch
+486 (プリフェッチ有)
 .
 :MENU:cputype_pentium
 Pentium
@@ -3192,67 +4024,67 @@ Page flip debug line
 Retrace poll debug line
 .
 :MENU:mapper_swapimg
-Swap floppy drive
+フロッピードライブを入替
 .
 :MENU:mapper_swapcd
-Swap CD drive
+CD ドライブを入替
 .
 :MENU:mapper_ejectpage
-Send form-feed
+改ページ送信
 .
 :MENU:mapper_rescanall
-Rescan all drives
+すべてのドライブを再スキャン
 .
 :MENU:hostkey_mapper
 Mapper-defined
 .
 :MENU:showdetails
-Show FPS and RT speed in title bar
+FPS とRT スピードをタイトルバーに表示
 .
 :MENU:restartconf
-Restart DOSBox-X with config file...
+設定ファイルを用いてDOSBox-X を再起動 ...
 .
 :MENU:auto_lock_mouse
-Autolock mouse
+マウスを自動ロック
 .
 :MENU:clipboard_right
-Via right mouse button
+マウス右クリックにより
 .
 :MENU:clipboard_middle
-Via middle mouse button
+マウス中クリックにより
 .
 :MENU:clipboard_arrows
-Via arrow keys (Home=start, End=end)
+カーソルキーにより (Home=開始, End=終了)
 .
 :MENU:screen_to_clipboard
-Copy all text on the DOS screen
+DOS画面のすべてのテキストをコピー
 .
 :MENU:clipboard_device
-Enable DOS clipboard device access
+DOS のクリップボードアクセスを許可
 .
 :MENU:clipboard_dosapi
-Enable DOS clipboard API for applications
+DOS のアプリケーション用clipboard APIの使用を許可
 .
 :MENU:clipboard_biospaste
-Use BIOS function for clipboard pasting
+クリップボードの貼り付けにBIOS ファンクションを使用
 .
 :MENU:sendkey_winlogo
-Send logo key
+Logo キーを送信
 .
 :MENU:sendkey_winmenu
-Send menu key
+Menu キーを送信
 .
 :MENU:sendkey_alttab
-Send Alt+Tab
+Alt+Tabを送信
 .
 :MENU:sendkey_ctrlesc
-Send Ctrl+Esc
+Ctrl+Escを送信
 .
 :MENU:sendkey_ctrlbreak
-Send Ctrl+Break
+Ctrl+Breakを送信
 .
 :MENU:sendkey_cad
-Send Ctrl+Alt+Del
+Ctrl+Alt+Delを送信
 .
 :MENU:hostkey_ctrlalt
 Ctrl+Alt
@@ -3264,68 +4096,68 @@ Ctrl+Shift
 Alt+Shift
 .
 :MENU:sendkey_mapper_winlogo
-Mapper "Send special key": logo key
+Mapper "特殊キーを送信": Logo キー
 .
 :MENU:sendkey_mapper_winmenu
-Mapper "Send special key": menu key
+Mapper "特殊キーを送信": Menu キー
 .
 :MENU:sendkey_mapper_alttab
-Mapper "Send special key": Alt+Tab
+Mapper "特殊キーを送信": Alt+Tab
 .
 :MENU:sendkey_mapper_ctrlesc
-Mapper "Send special key": Ctrl+Esc
+Mapper "特殊キーを送信": Ctrl+Esc
 .
 :MENU:sendkey_mapper_ctrlbreak
-Mapper "Send special key": Ctrl+Break
+Mapper "特殊キーを送信": Ctrl+Break
 .
 :MENU:sendkey_mapper_cad
-Mapper "Send special key": Ctrl+Alt+Del
+Mapper "特殊キーを送信": Ctrl+Alt+Del
 .
 :MENU:wheel_updown
-Convert to up/down arrows
+カーソル上下に変換
 .
 :MENU:wheel_leftright
-Convert to left/right arrows
-.
+カーソル左右に変換
+
 :MENU:wheel_pageupdown
-Convert to PgUp/PgDn keys
+PgUp/PgDn キーに変換
 .
 :MENU:wheel_none
-Do not convert to arrow keys
+カーソルキーに変換しない
 .
 :MENU:wheel_guest
-Enable for guest systems also
+ゲストシステムにも適用
 .
 :MENU:doublebuf
-Double Buffering (Fullscreen)
+ダブル・バッファ (全画面表示)
 .
 :MENU:alwaysontop
-Always on top
+常に手前
 .
 :MENU:highdpienable
-High DPI enable
+高DPI有効
 .
 :MENU:sync_host_datetime
-Synchronize host date/time
+ホストの日時と同期
 .
 :MENU:shell_config_commands
-Config options as commands
+オプションをコマンドとして設定
 .
 :MENU:quick_reboot
-Enable quick reboot
+高速再起動を有効化
 .
 :MENU:make_diskimage
-Create blank disk image...
+空ディスクのイメージを作成...
 .
 :MENU:list_drivenum
-Show mounted drive numbers
+マウントされたドライブ番号を表示
 .
 :MENU:list_ideinfo
-Show IDE disk or CD status
+IDE ディスク・CD の状態を表示
 .
 :MENU:print_textscreen
-Print DOS text screen
+DOS テキスト画面を印刷
 .
 :MENU:pc98_use_uskb
-Use US keyboard layout
+USキーボードレイアウトを使用
 .
