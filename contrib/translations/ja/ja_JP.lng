@@ -1,4 +1,4 @@
-:DOSBOX-X:LANGUAGE:Japanese (UTF-8)
+:DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
 :DOSBOX-X:VERSION:0.83.14
 :DOSBOX-X:REMARK:
@@ -98,7 +98,7 @@ DOSBox-X's 作業用ディレクトリ:
 設定ファイル %s を書き込み中
 .
 :PROGRAM_LANGUAGE_FILE_WHICH
-Written to language file %s
+言語ファイル %s に書き込まれます
 .
 :PROGRAM_CONFIG_USAGE
 DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプション:

@@ -380,9 +380,11 @@ a non-English language, you are encouraged to create additional language files f
 messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
 messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
 
-Spanish language file: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/es
+* Chinese (Simplified) language file: [contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)
 
-Simplified Chinese language file: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/zh
+* Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
+
+* Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
