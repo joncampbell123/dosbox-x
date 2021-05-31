@@ -55,7 +55,12 @@
     config or language file, and pressing ESC key will
     close these dialog boxes. (Wengier)
   - Command "CONFIG -wl" will show the name of language
-    file being written to. (Wengier)
+    file being written to (if there is a language file
+    loaded then "CONFIG -wl" alone will write to it),
+    and command "CONFIG -ln" will show current language
+    name (if any), or you can use command "CONFIG -ln
+    <lang_name> -wl <lang_file>" to specify a language
+    name when writting to a language file. (Wengier)
   - Added special properties to CONFIG command such as
     "hostos", "programdir", "workdir", "configdir", and
     "userconfigdir" so that commands like "CONFIG -GET

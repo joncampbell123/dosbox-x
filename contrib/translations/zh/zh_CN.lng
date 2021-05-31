@@ -106,6 +106,7 @@ DOSBox-X 命令行配置工具. 支持的选项为:
 -wc (或 -writeconf) 不带参数: 写入加载的主配置文件.
 -wc (或 -writeconf) 加文件名: 写入配置目录中的配置文件.
 -wl (或 -writelang) 加文件名: 将文字写入语言文件.
+-ln (或 -langname) 显示 (不带参数) 或指定语言名称.
 -wcp [文件名] 将配置文件写入程序目录 (dosbox-x.conf 或指定文件名).
 -wcd 写入配置目录中的默认配置文件.
 -all, -mod 与 -wc, -wcp, 或 -wcd 一起使用以写入所有/修改过的配置选项.
@@ -4118,6 +4119,9 @@ Mapper "输入特殊键": Ctrl+Break
 :MENU:sendkey_mapper_cad
 Mapper "输入特殊键": Ctrl+Alt+Del
 .
+:MENU:wheel_none
+不进行转换
+.
 :MENU:wheel_updown
 转换为上下箭头
 .
@@ -4127,8 +4131,17 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 :MENU:wheel_pageupdown
 转换为 PgUp/PgDn 键
 .
-:MENU:wheel_none
-不进行转换
+:MENU:wheel_ctrlupdown
+转换为 Ctrl+上下箭头
+.
+:MENU:wheel_ctrlleftright
+转换为 Ctrl+左右箭头
+.
+:MENU:wheel_ctrlpageupdown
+转换为 Ctrl+PgUp/PgDn 键
+.
+:MENU:wheel_ctrlwz
+转换为 Ctrl+W/Z 键
 .
 :MENU:wheel_guest
 启动客户系统时亦启用

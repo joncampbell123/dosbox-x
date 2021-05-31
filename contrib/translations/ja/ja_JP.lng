@@ -105,6 +105,7 @@ DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプ�
 -wc (or -writeconf) パラメータなしの場合: primary loaded fileに書き込み。
 -wc (or -writeconf) ファイル名: ファイルを設定用ディレクトリに書き出す。
 -wl (or -writelang) ファイル名: 現在の language stringsを書き出す。
+-ln (or -langname) (引数なしで) 表示するか、言語名を指定します。
 -wcp [ファイル名] プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
 -wcd 設定用ディレクトリにデフォルト設定ファイルを書き出す。
 -all -wc, -wcp, -wcd と組み合わせ、設定ファイルに全てのオプションを書き出す。
@@ -4113,17 +4114,29 @@ Mapper "特殊キーを送信": Ctrl+Break
 :MENU:sendkey_mapper_cad
 Mapper "特殊キーを送信": Ctrl+Alt+Del
 .
+:MENU:wheel_none
+カーソルキーに変換しない
+.
 :MENU:wheel_updown
 カーソル上下に変換
 .
 :MENU:wheel_leftright
 カーソル左右に変換
-
+.
 :MENU:wheel_pageupdown
 PgUp/PgDn キーに変換
 .
-:MENU:wheel_none
-カーソルキーに変換しない
+:MENU:wheel_ctrlupdown
+カーソルCtrl+上下に変換
+.
+:MENU:wheel_ctrlleftright
+カーソルCtrl+左右に変換
+.
+:MENU:wheel_ctrlpageupdown
+Ctrl+PgUp/PgDn キーに変換
+.
+:MENU:wheel_ctrlwz
+Ctrl+W/Z キーに変換
 .
 :MENU:wheel_guest
 ゲストシステムにも適用

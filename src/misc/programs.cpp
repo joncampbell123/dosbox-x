@@ -48,6 +48,7 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
+extern std::string langname;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw, halfwidthkana;
 
@@ -574,7 +575,8 @@ void CONFIG::Run(void) {
 		"-avistart","-avistop",
 		"-startmapper",
 		"-get", "-set", "-setf",
-		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+		"-writelang", "-wl", "-langname", "-ln",
+		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -586,7 +588,7 @@ void CONFIG::Run(void) {
 		P_REC_AVI_START, P_REC_AVI_STOP,
 		P_START_MAPPER,
 		P_GETPROP, P_SETPROP, P_SETFORCE,
-		P_WRITELANG, P_WRITELANG2,
+		P_WRITELANG, P_WRITELANG2, P_LANGNAME, P_LANGNAME2,
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
@@ -622,6 +624,14 @@ void CONFIG::Run(void) {
 		case P_GUI:
 			void GUI_Run(bool pressed);
 			GUI_Run(false);
+			break;
+
+		case P_LANGNAME: case P_LANGNAME2:
+			if (pvars.size() < 1) {
+				WriteOut("%s\n", langname.c_str());
+				return;
+			} else
+				langname=pvars[0];
 			break;
 
 		case P_ERRTEST:
@@ -1646,6 +1656,7 @@ void PROGRAMS_Init() {
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
+		"-ln (or -langname) Displays (without arguments) or specifies the language name.\n"\
 		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all, -mod Use with -wc, -wcp, or -wcd to write ALL or only modified options.\n"\

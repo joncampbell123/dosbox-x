@@ -86,6 +86,7 @@ Utilidad de configuración por comandos de DOSBox-X. Opciones admitidas:
 -wc (o -writeconf) sin parámetro: Escribe en archivo primario config cargado.
 -wc (o -writeconf) con nombre de archivo: Escribe archivo al dir. de config.
 -wl (o -writelang) con nombre de archivo: Escribe cadenas del idioma actual.
+-ln (o -langname) Muestra (sin argumentos) o especifica el nombre del idioma.
 -wcp [archivo] Escribe config al dir. de DosBox-X dosbox-x.conf o "archivo"
 -wcd Escribe en el archivo de config por defecto del directorio de config.
 -all con -wc -wcp o -wcd para escribir TODAS las opciones en archivo config.
@@ -3639,6 +3640,9 @@ Mapeador "Enviar tecla especial": Ctrl+C (Ctrl+Break)
 :MENU:sendkey_mapper_cad
 Mapeador "Enviar tecla especial": Ctrl+Alt+Supr
 .
+:MENU:wheel_none
+No convertir a cursores
+.
 :MENU:wheel_updown
 Convertir a cursores arriba / abajo
 .
@@ -3648,8 +3652,17 @@ Convertir a cursores izquierda / derecha
 :MENU:wheel_pageupdown
 Convertir a teclas RePag / AvPag
 .
-:MENU:wheel_none
-No convertir a cursores
+:MENU:wheel_ctrlupdown
+Convertir a Ctrl+cursores arriba / abajo
+.
+:MENU:wheel_ctrlleftright
+Convertir a Ctrl+cursores izquierda / derecha
+.
+:MENU:wheel_ctrlpageupdown
+Convertir a Ctrl+teclas RePag / AvPag
+.
+:MENU:wheel_ctrlwz
+Convertir a Ctrl+teclas W/Z
 .
 :MENU:wheel_guest
 Habilitar también para sistemas invitados
