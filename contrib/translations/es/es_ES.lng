@@ -82,7 +82,6 @@ Escribiendo archivo idioma %s◙
 .
 :PROGRAM_CONFIG_USAGE
 Utilidad de configuración por comandos de DOSBox-X. Opciones admitidas:
-
 -wc (o -writeconf) sin parámetro: Escribe en archivo primario config cargado.
 -wc (o -writeconf) con nombre de archivo: Escribe archivo al dir. de config.
 -wl (o -writelang) con nombre de archivo: Escribe cadenas del idioma actual.
