@@ -1,4 +1,4 @@
-sDOSBox-X Installation and Released Packages 
+DOSBox-X Installation and Released Packages
 ===========================================
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
@@ -75,13 +75,13 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Official RPM packages are not available for the current version 0.83.14; you can however get locally built 64-bit Fedora RPM package for version 0.83.13 from:
+Official RPM packages are not available for the current version 0.83.14; you can however get locally built 64-bit Fedora RPM package from:
 
-* [dosbox-x-0.83.13-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.13-1.fc34.x86_64.rpm)
+* [dosbox-x-0.83.14-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.x86_64.rpm)
 
 The Fedora RPM source code package:
 
-* [dosbox-x-0.83.13-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.13-1.fc34.src.rpm)
+* [dosbox-x-0.83.14-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.src.rpm)
 
 Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
@@ -133,7 +133,7 @@ The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ 
 
 Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.14 using this approach is available from:
 
-* [dosbox-x-dos-0.83.13-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-dos-0.83.14-loadlin.zip)
+* [dosbox-x-dos-0.83.14-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-dos-0.83.14-loadlin.zip)
 
 With this LOADLIN DOS package you can run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true``` and/or ```autolock=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 
