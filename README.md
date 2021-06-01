@@ -96,7 +96,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](https://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
 
-The latest version of DOSBox-X is 0.83.14, released on May 31, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+The latest version of DOSBox-X is 0.83.14, released on June 1, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
@@ -257,7 +257,7 @@ some things the design as implemented now cannot accomodate.
   help, I have added machine and video mode enumerations as "stubs"
   to provide a starting point for your branch's implementation of
   the platform. A stub implemented so far is "FM Towns emulation"
-  (machine=fm_towns).
+  (```machine=fm_towns```).
 
 * Cycle-accurate timing of x86 instructions and execution.
 
@@ -284,7 +284,7 @@ some things the design as implemented now cannot accomodate.
   fail in DOS applications originally written in QBasic or Turbo Basic.
   There are such DOS games written that check their file size using
   a floating point compare that will fail in this manner. To run these
-  games, you will need to disable FPU emulation (fpu=false) to force
+  games, you will need to disable FPU emulation (```fpu=false```) to force
   the QBasic/TurboBasic runtime to use software emulation instead.
 
 
