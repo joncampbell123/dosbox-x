@@ -21,7 +21,7 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installer for the current DOSBox-X version 0.83.14 is available from:
 
-* [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (specify /ALLUSERS for all users)
+* [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (specify /ALLUSERS for all users, or use [dosbox-x-windows-0.83.14-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allusers.exe))
 
 * [dosbox-x-windows-0.83.14-setup-allwin.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allwin.exe) (Windows XP compatible)
 
@@ -112,6 +112,13 @@ There are two ways to run DOSBox-X in macOS, either from the Finder or from the 
 If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run DOSBox-X, you should be able to solve the problem by running the following command once in the Terminal and you are in the directory in which the macOS zip package is extracted (where you can find two folders including ```dosbox-x``` and ```dosbox-x-sdl2```):
 
 ``xattr -cr dosbox-x/dosbox-x.app dosbox-x-sdl2/dosbox-x.app``
+
+As of DOSBox-X version 0.83.14, the macOS SDL2 build supports the Slirp and FluidSynth features by default, but you need to make sure both libraries are already installed in your macOS system in order to run this build. You can install them via [brew](https://brew.sh/) with the following commands (you only need to do this once):
+
+```
+brew fluid-synth
+brew libslirp
+```
 
 If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the Terminal rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
 
