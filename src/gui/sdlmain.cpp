@@ -11905,14 +11905,17 @@ bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 #if defined(C_SDL2)
     int x=-1, y=-1;
 #endif
-    if (niclist.find("-------------")!=std::string::npos&&!GFX_IsFullscreen()) {
+    if (niclist.find("-------------")==std::string::npos)
+        ;
+    else if (!GFX_IsFullscreen()&&!window_was_maximized) {
         switchfs=true;
 #if defined(C_SDL2)
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
         toscale=false;
-    }
+    } else
+        toscale=false;
     GUI_Shortcut(38);
     toscale=true;
     if (switchfs) {
@@ -11939,14 +11942,17 @@ bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
 #if defined(C_SDL2)
     int x=-1, y=-1;
 #endif
-    if (prtlist.find("-------------")!=std::string::npos&&!GFX_IsFullscreen()) {
+    if (prtlist.find("-------------")==std::string::npos)
+        ;
+    else if (!GFX_IsFullscreen()&&!window_was_maximized) {
         switchfs=true;
 #if defined(C_SDL2)
         SDL_GetWindowPosition(sdl.window, &x, &y);
 #endif
         GFX_SwitchFullScreen();
         toscale=false;
-    }
+    } else
+        toscale=false;
     GUI_Shortcut(39);
     toscale=true;
     if (switchfs) {
