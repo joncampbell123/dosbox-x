@@ -27,7 +27,7 @@ You can start DOSBox-X in PC-98 mode without any additional files apart from the
 
 * FREECG98.BMP: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/FREECG98.BMP?raw=true[Download here]
 
-If you want to use the TrueType font (TTF) output option (i.e. with "output=ttf"), then you will need a Japanese monospaced TrueType font for PC-98 mode. For example, you can use any of the Japanese TrueType fonts from the Migu or M+ P families:
+If you want to use the TrueType font (TTF) output option (i.e. with ``output=ttf``), then you will need a Japanese TrueType font for PC-98 mode. For example, you can use any of the Japanese TrueType fonts from the Migu or M+ P families:
 
 * Migu 1M Regular: https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/migu1m/migu-1m-regular.ttf?raw=true[Download here]
 

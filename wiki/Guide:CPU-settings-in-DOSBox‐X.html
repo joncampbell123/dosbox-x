@@ -842,8 +842,39 @@ These cputype options are ignored in DOSBox-X, and <code>auto</code> will be use
 The following config options are available to change the behaviour.</p>
 </div>
 <div class="paragraph">
-<p>Under the <code>[cpu]</code> heading you can set <code>fpu=false</code> to disable the FPU.
-<code>[dosbox]</code> <code>weitek=</code></p>
+<p>Under the <code>[cpu]</code> heading you can set <code>fpu=false</code> to disable the FPU.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+On real systems, starting with the Pentium CPU a FPU was always present.
+But DOSBox-X does allow disabling of the FPU with any CPU type.
+This could in cause problems with software that expects a FPU to be present.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>[dosbox]</code> <code>weitek=</code></p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The real FPUs had an 80bit precision.
+This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
+Very few DOS games used the FPU, but for those that do, this lesser precision can cause a verity of problem, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
+If your running Windows as the host OS, and proper FPU emulation is important, use the MinGW builds.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -857,7 +888,7 @@ The following config options are available to change the behaviour.</p>
 <p>Q: The 8088 is what IBM used in the original IBM PC&#8217;s. So why is there no 8088 option?</p>
 </div>
 <div class="paragraph">
-<p>A: Because there is no difference in terms of emulation between a 8086 and 8088.</p>
+<p>A: Because there is no difference in terms of emulation between an 8086 and 8088.</p>
 </div>
 <div class="paragraph">
 <p>Intel released the 8086 first as a 16-bit CPU, and later released the 8088 to reduce cost for manufacturers.</p>
@@ -888,6 +919,9 @@ Some software may claim the CPU to be a 8088 when <code>cputype=8086</code>, thi
 <p>A: Indeed, the 80186 was mainly meant for embedded use.
 The 80186 was never used by IBM, but there where a few rare PC clones that used it.
 Although they typically had various compatibility problems.</p>
+</div>
+<div class="paragraph">
+<p>Since various DOS tools support the detection of the 80186, DOSBox-X supports its emulation.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -945,7 +979,7 @@ And therefore used other timing methods, and therefore cycle accurate emulation 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

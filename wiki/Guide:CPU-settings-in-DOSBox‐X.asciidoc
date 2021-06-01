@@ -73,13 +73,23 @@ An emulated FPU is enabled by default.
 The following config options are available to change the behaviour.
 
 Under the ``[cpu]`` heading you can set ``fpu=false`` to disable the FPU.
+
+NOTE: On real systems, starting with the Pentium CPU a FPU was always present.
+But DOSBox-X does allow disabling of the FPU with any CPU type.
+This could in cause problems with software that expects a FPU to be present.
+
 ``[dosbox]`` ``weitek=``
+
+WARNING: The real FPUs had an 80bit precision.
+This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
+Very few DOS games used the FPU, but for those that do, this lesser precision can cause a verity of problem, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
+If your running Windows as the host OS, and proper FPU emulation is important, use the MinGW builds.
 
 ## FAQ
 #### Why is there no 8088 CPU option?
 Q: The 8088 is what IBM used in the original IBM PC's. So why is there no 8088 option?
 
-A: Because there is no difference in terms of emulation between a 8086 and 8088.
+A: Because there is no difference in terms of emulation between an 8086 and 8088.
 
 Intel released the 8086 first as a 16-bit CPU, and later released the 8088 to reduce cost for manufacturers.
 
@@ -94,6 +104,8 @@ Q: The 80186 was never used for the IBM PC, so why include it?
 A: Indeed, the 80186 was mainly meant for embedded use.
 The 80186 was never used by IBM, but there where a few rare PC clones that used it.
 Although they typically had various compatibility problems.
+
+Since various DOS tools support the detection of the 80186, DOSBox-X supports its emulation.
 
 NOTE: Similar to the 8086/8088, there was also a 80188 with 8-bit external data path to the CPU to reduce cost for manufacturers.
 And just like with the 8086, software may identify the 80186 as a 80188.

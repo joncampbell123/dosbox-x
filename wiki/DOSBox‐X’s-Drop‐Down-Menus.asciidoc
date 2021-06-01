@@ -3,7 +3,7 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achieve many things from the drop-down menu without typing commands. There are 8 menus shown in DOSBox-X’s menu bar, namely "Main", "CPU", "Video", "Sound", "DOS", "Capture", "Drive", and “Help”.
+DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achieve many things from the drop-down menu without typing commands. There are 9 menus shown in DOSBox-X’s menu bar, namely "Main", "CPU", "Video", "Sound", "DOS", "Capture", "Drive", “Help”, and “Debug”.
 
 **1. The "Main" menu**
 
@@ -35,7 +35,9 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Reboot guest system**: Reboots the kernel of the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X without resetting the virtual machine.
 
-* **Quit**: Exit from DOSBox-X.
+* **Restart DOSBox-X with config file...**: Restart DOSBox-X automatically with the select config file loaded.
+
+* **Quit from DOSBox-X**: Exit from DOSBox-X.
 
 **2. The "CPU" menu**
 
@@ -73,7 +75,7 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Reset window size**: Resets the DOSBox-X window to the default size.
 
-* **Frameskip**: Changes the frameskip setting, i.e. how many frames DOSBox-X skips before drawing one, from 0 to 10.
+* **Refresh rate...**: Sets the video refresh rate (0 for unlocking the refresh rate).
 
 * **Force scaler**: Forces the use of a scaler even if the result might not be desired. To fit a scaler in the resolution used at full screen may require a border or side bars. To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.
 
@@ -85,6 +87,8 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Overscan**: Selects the width of the overscan border, from 0 to 10. This works only if the video output is set to surface.
 rscan border, from 0 to 10. This works only if the video output is set to surface.
+
+* **Frameskip**: Changes the frameskip setting, i.e. how many frames DOSBox-X skips before drawing one, from 0 to 10.
 
 * **Text-mode**: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.
 
@@ -132,17 +136,21 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Windows host applications**: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.
 
+* **Enables A20 gate**: Turns the A20 gate on or off if it is not locked.
+
 * **Enable quick reboot**: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when DOS programs (or Windows 9x guest systems) make calls to restart the system.
 
 * **Synchronize host date/time**: Selects whether to force synchronizations with the date/time of the host system.
 
 * **Config options as commands**: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.
 
-* **Swap floppy**: Swaps the floppy image if you are using multiple floppy disk images.
+* **Swap floppy drive**: Swaps the floppy image if you are using multiple floppy disk images on floppy drive(s).
 
-* **Swap CD**: Swaps the CD image if you are using multiple CD images.
+* **Swap CD drive**: Swaps the CD image if you are using multiple CD images on CD drive(s).
 
-* **Rescan all drives**: Refreshes the cache for all DOS drives inside DOSBox-X.
+* **Change current floppy image...**: Changes the current active floppy disk image(s) on floppy drive(s), including when a guest OS is active.
+
+* **Change current CD image...**: Changes the current active ISO/CUE image(s) on CD drive(s), including when a guest OS is active.
 
 * **Create blank disk image**: Creates blank floppy or hard disk images of common disk sizes for mounting them as drives.
 
@@ -150,7 +158,11 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Show IDE disk or CD status**: Displays the status for each IDE position (1m, 1s, 2m, 2s, etc).
 
-* **Send form-feed**: Manually sends a form-feed to the printer for ejecting a new page.
+* **Rescan all drives**: Refreshes the cache for all DOS drives inside DOSBox-X.
+
+* **Print text screen**: Prints the current DOS text screen to the default printer (if the printing feature has been enabled).
+
+* **Send form-feed**: Manually sends a form-feed to the printer for ejecting a new page (if the printing feature has been enabled).
 
 **6. The "Capture" menu**
 
@@ -202,9 +214,13 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **List printer devices**: Displays the list of printer devices for the printing feature on Windows systems.
 
-* **Debugging options**: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
+* **Logging console**: Functions related to the logging console on Windows systems. Non-debugging builds only.
 
 * **About DOSBox-X**: Shows the about information for DOSBox-X.
+
+**9. The "Debug" menu**
+
+* Previously the "Debugging options" under “Help” menu, it is now a separate top-level menu appearing in debugging builds for debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
 
 DOSBox-X will show the drop-down menus in the windowed mode by default, but you can also hide it if you prefer, using any of the following methods:
 

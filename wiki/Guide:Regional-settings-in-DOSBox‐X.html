@@ -741,19 +741,25 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_using_language_files_for_customized_or_translated_display_messages">Using language files for customized or translated display messages</h3>
 <div class="paragraph">
-<p>DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files.</p>
+<p>DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files, which can either be encoded in the DOS code page or in UTF-8 as of DOSBox-X version 0.83.14.</p>
 </div>
 <div class="paragraph">
-<p>If you already have a DOSBox-X language file available, you can specify its filename in DOSBox-X&#8217;s config file (dosbox-x.conf by default) in the [dosbox] section in order to activate it. There is a <code>language=</code> setting which allows you to enter the name of the language file. For example, suppose the language file is located at C:\message.txt, then you can specify the following for use with DOSBox-X.</p>
+<p>If you already have a DOSBox-X language file available, you can specify its filename in DOSBox-X&#8217;s config file (dosbox-x.conf by default) in the [dosbox] section in order to activate it. There is a <code>language=</code> setting which allows you to enter the name of the language file. For example, suppose the language file is located at C:\message.txt, then you can specify the following for use with DOSBox-X:</p>
 </div>
 <div class="paragraph">
 <p><code>language=C:\message.txt</code></p>
 </div>
 <div class="paragraph">
-<p>For example, the Spanish language file for DOSBox-X is available from:</p>
+<p>For example, the Chinese (Simplified), Japanese and Spanish language files for DOSBox-X are available from:</p>
 </div>
 <div class="ulist">
 <ul>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng?raw=true">zh_CN.lng</a></p>
+</li>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng?raw=true">ja_JP.lng</a></p>
+</li>
 <li>
 <p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng?raw=true">es_ES.lng</a></p>
 </li>
@@ -764,6 +770,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p><code>dosbox-x -lang C:\message.txt</code></p>
+</div>
+<div class="paragraph">
+<p>Note: It is important to set the correct code page in the config file, via the <code>COUNTRY=</code> setting in [config] section of the config file, e.g. <code>COUNTRY=42,852</code> for the Czech language, and perhaps the <code>keyboardlayout</code> config option mentioned in the next section.</p>
 </div>
 <div class="paragraph">
 <p>If you do not have a DOSBox-X language file yet, and you want to customize or translate the messages as displayed by DOSBox-X, you could do so by generating the language file and then modifying the messages in it. DOSBox-X can generate a language file either from the built-in graphical configuration tool, or with the <code>CONFIG</code> command.</p>
@@ -1063,10 +1072,10 @@ For using layouts marked with * you must have ten ega.cpx files (from FreeDOS) i
 <p>Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.</p>
 </div>
 <div class="paragraph">
-<p>There is also a <code>CHCP</code> command to view the current DOS code page, and for the TrueType font (TTF) output it also allows to change the current DOS code page. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish) when using the TrueType font output. It is also recommended to specify a TrueType font that has all characters of language to be used so that these characters will be rendered correctly with the specified font. More information about the TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">Using TrueType font output in DOSBox‐X</a> guide page.</p>
+<p>There is also a <code>CHCP</code> command to view the current DOS code page, and for the TrueType font (TTF) output it also allows to change the current DOS code page. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish) when using the TrueType font output. As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for the TTF output, which allow Chinese/Japanese/Korean characters to be displayed correctly. Moreover, it is recommended to specify a TrueType font that has all characters of the language to be used so that these characters will be rendered correctly with the specified font. More information about the TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">Using TrueType font output in DOSBox‐X</a> guide page.</p>
 </div>
 <div class="paragraph">
-<p>The Japanese keyboard layout is supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting <code>machine=pc98</code> in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation in DOSBox‐X</a> guide page.</p>
+<p>The Japanese keyboard layout is also supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting <code>machine=pc98</code> in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support Japanese Shift-JIS characters such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation in DOSBox‐X</a> guide page.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1195,7 +1204,7 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

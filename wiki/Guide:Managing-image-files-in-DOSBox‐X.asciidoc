@@ -92,18 +92,18 @@ If this is not the case, you can force a diskette type with the ``-t floppy`` pa
 Supported diskette sizes options:
 
 |===
-|Disk type|Sectors|Capacity|IMGMAKE option
+|Disk type|Sides|Tracks per Side|Sectors per Track|Capacity|IMGMAKE option
 
-|5.25" SSDD|8|160KB|-t fd_160
-|**5.25" SSDD**|9|180KB|-t fd_180
-|5.25" SSDD|10|200KB|-t fd_200
-|5.25" DSDD|8|320KB|-t fd_320
-|**5.25" DSDD**|9|360KB|-t fd_360
-|5.25" DSDD|10|400KB|-t fd_400
-|**5.25" HD**|9|1200KB (1.2MB)|-t fd_1200
-|3.5" DSDD (2DD)|9|720KB|-t fd_720
-|**3.5" HD**|9|1440KB (1.44MB)|-t fd_1440 or -t fd
-|3.5" ED|9|2880KB (2.88MB)|-t fd_2880
+|5.25" SSDD     |1|40|8 |160KB          |-t fd_160
+|**5.25" SSDD** |1|40|9 |180KB          |-t fd_180
+|5.25" SSDD     |1|40|10|200KB          |-t fd_200
+|5.25" DSDD     |2|40|8 |320KB          |-t fd_320
+|**5.25" DSDD** |2|40|9 |360KB          |-t fd_360
+|5.25" DSDD     |2|40|10|400KB          |-t fd_400
+|**5.25" HD**   |2|80|15|1200KB (1.2MB) |-t fd_1200
+|3.5" DSDD (2DD)|2|80|9 |720KB          |-t fd_720
+|**3.5" HD**    |2|80|18|1440KB (1.44MB)|-t fd_1440 or -t fd
+|3.5" ED        |2|80|36|2880KB (2.88MB)|-t fd_2880
 |===
 
 NOTE: Common PC disk types in bold. The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
@@ -222,23 +222,25 @@ Image files can be made read-only by prefixing the filename with a column charac
 
 CAUTION: DOSBox-X will attempt to boot from a diskette, even if it is not bootable. This is needed to support early PC-Booter games.
 
-TIP: Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar, followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+TIP: Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar, followed by the drive letter and "Boot from drive". You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 
 ## Using diskette images in Linux
 WARNING: You should never mount a disk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the diskette image.
 
 ### Gnome Disk Image Mounter
-When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
+When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.
 
 The first time you want to open .IMA files, you need to right-click and choose "Open With Other Application", and then click on "View All Applications" and choose "Disk Image Mounter" from the list.
 The next time you want to open a .IMA file, the option will be available directly from the right-click menu.
 
 Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.
 
-Disk images can also be mounted from the Linux Terminal using:
+Disk images can also be mounted READ-WRITE from the Linux Terminal using:
 ....
-gnome-disk-image-mounter disk.ima
+gnome-disk-image-mounter -w disk.ima
 ....
+
+Or if you run ``gnome-disk-image-mounter`` without arguments, it will ask you which disk image to mount, and give you the ability to mount it READ-WRITE.
 
 ### Mounting a diskette image from the Linux shell
 The more traditional Linux method of mounting diskette image files from a Linux terminal.
@@ -329,8 +331,8 @@ DOSBox-X supports mounting harddisk images in the following formats:
 ** No support in DOSBox-X for QCOW2 compression or encryption options
 ** Must always be mounted as a drive number as such: ``imgmount 2 hdd.qcow2``
 * link:https://en.wikipedia.org/wiki/VHD_(file_format)[Virtual Hard Disk] Volume (.vhd)
-* Bochs bximage (typically .img)
 ** No support in DOSBox-X for VHD dynamic or encryption options
+* Bochs bximage (typically .img)
 * NEC PC-98 harddisk images (.nhd or .hdi)
 
 Creating and accessing harddisk images is very similar to diskette images, with the exception that they also contain partitions and they may contain other filesystems.
@@ -344,13 +346,17 @@ DOSBox-X has a built-in ``IMGMAKE`` command with which you can create partitione
 ``IMGMAKE`` only creates a single primary DOS partition per harddisk image file.
 
 ### FAT version
-The ``IMGMAKE`` command supports FAT12, FAT16 and FAT32 formatted partitions, and will try to automatically decide which type to use depending on some rules:
+The ``IMGMAKE`` command supports FAT12, FAT16 and FAT32 formatted partitions, and will try to automatically decide which type to use depending on the HDD capacity and the reported DOS version:
 
-* If the harddisk size is smaller than 12MB, it will use FAT12
-* If the harddisk size is 12MB or larger, up to 2GB, it will use FAT16
-* If the harddisk size is greater than 2GB it will use FAT32
+|===
+|HDD Capacity|Reported DOS version < 7.1|Reported DOS version ≥ 7.1
 
-One exception to the rule is, if your reported DOS version is 7.1 or higher, than harddisks of 512MB or larger will be formatted FAT32.
+|≤ 12MB| FAT12|FAT12
+|> 12MB and < 512MB |FAT16|FAT16
+|≥ 512MB and ≤ 2GB |FAT16|FAT32
+|> 2GB|FAT32|FAT32
+
+|===
 
 Using the ``-FAT`` option it is possible to overrule the decision process.
 But this can cause ``IMGMAKE`` to give errors if the partition size is not supported by the filesystem type, or can cause other problems such as performance issues or waisted disk space.
@@ -360,7 +366,7 @@ e.g.
 IMGMAKE hdd.img -t hd -size 400 -fat 32
 ....
 
-FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
+NOTE: FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
 FAT32 harddisk images will appear to have been formatted by Windows 98.
 
 ### Using templates
@@ -439,7 +445,7 @@ imgmount C: hdd.img
 imgmount C: disk.ima -t hdd
 imgmount C: disk.ima -t hdd -fs fat
 ....
-If you do not specify an image filename, then the name IMGMAKE.IMG will be used, such as the following:
+If you do not specify an image filename, it will try to open a file named IMGMAKE.IMG, such as in this example:
 ....
 imgmount c
 ....
@@ -447,9 +453,9 @@ NOTE: The ``-t hdd`` option is only needed with DOSBox-X when mounting a harddis
 Or when mounting a harddisk image that is not partitioned or formatted, or formatted with an unsupported filesystem in combination with the ``-size`` parameter.
 The ``-fs fat`` option should not be needed as the FAT12, FAT16 or FAT32 filesystem types will be automatically detected.
 
-NOTE: If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default DOS version is set.
+NOTE: If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default reported DOS version is set.
 Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
-You can change this in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance ``ver set 7.1``.
+You can change the reported DOS version in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance ``ver set 7.1``.
 
 NOTE: If a harddisk image has multiple partitions, you can only access the first partition from the DOSBox-X integrated DOS. When booting real DOS in DOSBox-X, all partitions will be accessible.
 
@@ -457,7 +463,8 @@ A harddisk image that is partitioned, but not formatted, or has an unsupported f
 ....
 imgmount 2 hdd.img
 ....
-It is required to use a device number instead of a drive letter in this case. DOSBox-X automatically assumes the -fs none flag when a drive number is used, but this flag is required for vanilla DOSBox or other DOSBox forks.
+It is required to use a device number instead of a drive letter in this case.
+DOSBox-X automatically assumes the ``-fs none`` flag when a drive number is used, but this flag is required for vanilla DOSBox or other DOSBox forks.
 
 |===
 |Device number|Controller option|IDE Controller|Master/Slave
@@ -524,23 +531,26 @@ boot c:
 ....
 NOTE: DOSBox-X supports the ``-L`` parameter for the ``BOOT`` command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
 
-TIP: Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+TIP: Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
+You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 
 ## Using harddisk images in Linux
 WARNING: You should never mount a harddisk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the diskette image.
 
 ### Gnome Disk Image Mounter
 When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter".
-Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
+Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.
 
 NOTE: If the harddisk image contains multiple partitions, they will ALL be mounted.
 
 Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.
 
-Disk images can also be mounted from the Linux Terminal using:
+Disk images can also be mounted READ-WRITE from the Linux Terminal using:
 ....
-gnome-disk-image-mounter hdd.img
+gnome-disk-image-mounter -w hdd.img
 ....
+
+Or if you run ``gnome-disk-image-mounter`` without arguments, it will ask you which disk image to mount, and give you the ability to mount it READ-WRITE.
 
 ### Mounting a harddisk image from the Linux shell
 The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires sudo access.
@@ -563,9 +573,9 @@ Unfortunately this support is incompatible with the typical MFM image files used
 One tool which is able to open harddisk images is 7-Zip.
 
 # CD-ROM or DVD images
-DOSbox-X supports CD-ROM or DVD image files in ISO9660, CUE/BIN or MDF image format.
+DOSbox-X supports CD-ROM or DVD image files with the ISO9660 filesystem in ISO, CUE/BIN or MDF image format.
 
-ISO9660 (aka ISO) is the easiest format to work with, as long as there is only a single track on the CD or DVD.
+ISO is the easiest format to work with, as long as there is only a single track on the CD or DVD.
 If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.
 
 ## Mounting CD or DVD images
@@ -586,15 +596,15 @@ NOTE: If the names of your CD/DVD images contain characters of foreign languages
 
 ### Accessing a CD or DVD in real DOS
 With the integrated DOS that DOSBox-X provides, you do not need to worry about loading a CD-ROM driver and MSCDEX.
-If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both a IDE CD-ROM driver and MSCDEX.
+If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both an IDE CD-ROM driver and MSCDEX.
 
-For a IDE CD-ROM driver we recommend either OAKCDROM.SYS or UIDE.SYS.
+For a IDE CD-ROM driver we recommend either OAKCDROM.SYS, UIDE.SYS or VIDE-CDD.SYS.
 
 * OAK stands for OEM Adaptation Kit, and this is the IDE CD-ROM driver shipped on the Windows 95, 98 and ME boot disks.
 * link:https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/cdrom/uide/[UIDE.SYS] is available from link:https://www.freedos.org/[FreeDOS].
 * You can also use the link:http://vogonsdrivers.com/getfile.php?fileid=1456&menustate=0[Acer VIDE-CDD.SYS] driver which loads faster than OAKCDROM.SYS.
 
-MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the SHSUCDX.EXE redirector available from FreeDOS.
+MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the link:http://adoxa.altervista.org/shsucdx/index.html[SHSUCDX.EXE] redirector available from FreeDOS.
 
 Edit the config.sys file and add the following line to it:
 ....
@@ -739,7 +749,7 @@ This will create a temporary RAM drive as drive E: with a size of 20MB.
 CAUTION: The contents of the RAM drive will be lost if the drive is unmounted, a program or yourself issues a reset in DOSBox-X or DOSBox-X is shut-down. They do however survive booting into real DOS.
 
 NOTE: Unlike traditional DOS RAM disk programs (e.g. VDISK, RAMDRIVE) this RAM drive will not use any memory allocated for use inside DOSBox-X itself.
-In other words, it will no effect on available memory for DOS programs.
+In other words, it will have no effect on available memory for DOS programs.
 
 # QCOW2 support
 The QCOW2 harddisk image format has support for Copy-On-Write (COW), compression and encryption.
@@ -789,15 +799,25 @@ The above will try to read the real A: drive on your Windows PC, and convert it 
 
 CAUTION: Do not buy "modern" USB 3.5" floppy drives available from retailers like Amazon.
 The drive mechanisms are junk and have a high likelihood of damaging your disk.
-Instead look for an older second-hand USB floppy drive from a known brand like Dell, HP, IBM, Lenovo, Teac or Toshiba.
+Instead look for an older second-hand USB floppy drive from a known brand like Dell, HP, IBM, Lenovo, Sony, Teac or Toshiba.
 
 # Known limitations
-When booting a Guest OS (DOS or Win9x) in DOSBox-X most of the Drive options will become unavailable (greyed out).
+When booting a Guest OS (DOS or Win9x) in DOSBox-X all of the Drive options will become unavailable (greyed out).
 This is because, once you boot a guest OS, the drive letter mapping loses its meaning as the guest OS is responsible for drive letter assignment.
 
-The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file. This is however not currently exposed in the menu.
+The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file.
 
-# Outstanding issues
+Starting with DOSBox-X 0.83.14, there is limited support for changing the loaded Floppy or CD image from the DOS menu where you will find the options "Change current floppy image..." and "Change current CD image...".
+
+If multiple floppy or CD-ROM images are mounted, you will be asked for each mounted image if you want to change it.
+
+Some limitations of this support:
+
+* Requires an image to be mounted before you boot a Guest OS, otherwise you will get an error such as "No floppy drive is currently available.". In other words, you cannot boot with an empty drive, and then add an image later.
+* You cannot "eject" or unmount an image
+
+
+# Outstanding issues with this page
 
 * Mention Bochs bximage support in more detail. Does it support flat, sparse, growing formats?
 * It seems from the sourcecode that ``IMGMAKE`` can create VHD images if you use the .vhd extension, but this does not work in practice?

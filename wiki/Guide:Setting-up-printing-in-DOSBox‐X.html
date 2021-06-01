@@ -1084,11 +1084,27 @@ device="Microsoft Print to PDF"</pre>
 </div>
 </div>
 <div class="sect3">
+<h4 id="_printdbcs">printdbcs</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Possible values: true, false, auto</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active. If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_openwith">openwith</h4>
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: \&lt;blank\&gt;</p>
+<p>Default value: &lt;blank&gt;</p>
 </li>
 </ul>
 </div>
@@ -1096,14 +1112,29 @@ device="Microsoft Print to PDF"</pre>
 <p>Start the specified program to open the output file.</p>
 </div>
 <div class="paragraph">
+<p>If set, the command window will be hidden for openwith/openerror options on the Windows platform.</p>
+</div>
+<div class="paragraph">
 <p>e.g. <code>openwith=notepad</code> will open the file with Notepad on a Windows host.</p>
 </div>
 <div class="paragraph">
-<p>Some examples:
-- Linux host: <code>openwith=xdg-open</code> will cause the file to be opened with the application associated with the file extension
-- Windows host: <code>openwith=start</code> will cause the file to be opened with the application associated with the file extension
-- Windows host: <code>openwith=notepad</code> will open the file with the Notepad application
-- macOS host: <code>openwith=open -s "Preview"</code> will cause the file to be opened with the application associated with the file extension</p>
+<p>Some examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Linux host: <code>openwith=xdg-open</code> will cause the file to be opened with the application associated with the file extension</p>
+</li>
+<li>
+<p>Windows host: <code>openwith=start</code> will cause the file to be opened with the application associated with the file extension</p>
+</li>
+<li>
+<p>Windows host: <code>openwith=notepad</code> will open the file with the Notepad application</p>
+</li>
+<li>
+<p>macOS host: <code>openwith=open -s "Preview"</code> will cause the file to be opened with the application associated with the file extension</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
@@ -1111,12 +1142,28 @@ device="Microsoft Print to PDF"</pre>
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: \&lt;blank\&gt;</p>
+<p>Default value: &lt;blank&gt;</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>Start the specified program to open the output file if an error had occurred.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_shellhide">shellhide</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, the command window will be hidden for openwith/openerror options. Only supported in the Windows platform.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1154,10 +1201,10 @@ device="Microsoft Print to PDF"</pre>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>The emulated printer requires TrueType fonts in order to be able to print text.</p>
+<p>The emulated printer requires TrueType fonts in order to be able to print text. If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.</p>
 </div>
 <div class="paragraph">
-<p>If no TTF font can be found then DOSBox-X will print with the internal TTF font (UnifontFullMediumMono) as used by the TrueType font output.</p>
+<p>If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.</p>
 </div>
 </div>
 </div>
@@ -1554,7 +1601,7 @@ parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

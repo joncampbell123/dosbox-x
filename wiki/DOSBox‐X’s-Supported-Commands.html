@@ -446,7 +446,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X supports many internal or external MS-DOS commands. Also, DOSBox-X offers additional commands such as BOOT, MOUNT and RESCAN, which are not found in MS-DOS or compatibles. Internal commands are built into the DOSBox-X command shell whereas external commands appear as programs on the Z: drive.</p>
+<p>DOSBox-X supports many internal or external MS-DOS commands. Also, DOSBox-X offers additional commands such as BOOT, MOUNT and RESCAN, which are not found in MS-DOS or compatibles. Internal commands are built into the DOSBox-X command shell whereas external commands appear as programs on the Z: drive (in subdirectories of this drive as of DOSBox-X version 0.83.14).</p>
 </div>
 <div class="paragraph">
 <p>Below is a list of internal and external commands built into DOSBox-X.</p>
@@ -459,7 +459,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Changes the DOSBox-X screen to 25/28/50 line mode.</p>
 </div>
 <div class="paragraph">
-<p>Usage: Simply enter 25, 28, or 50 without any parameters.</p>
+<p>Usage: Simply enter 25, 28, or 50 without any parameters. See also the Z:\TEXTUTIL directory for more text-mode related tools.</p>
 </div>
 </li>
 <li>
@@ -471,16 +471,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Usage: 4DOS [option]</p>
 </div>
 <div class="paragraph">
-<p>Note: You can set 4DOS.COM as the default shell to start (instead of COMMAND.COM) via the SHELL option in the config file.</p>
-</div>
-</li>
-<li>
-<p><strong>A20GATE</strong> (external command)</p>
-<div class="paragraph">
-<p>Views, turns on/off or changes the A20 gate mode.</p>
-</div>
-<div class="paragraph">
-<p>Usage: A20GATE SET [off | off_fake | on | on_fake | mask | fast] or A20GATE [ON | OFF]</p>
+<p>Note: You can set 4DOS.COM as the default shell to start (instead of COMMAND.COM) via the SHELL option in the config file. When in the 4DOS shell, type OPTION to set 4DOS options.</p>
 </div>
 </li>
 <li>
@@ -1021,15 +1012,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>LOADROM</strong> (external command)</p>
-<div class="paragraph">
-<p>Loads the specified Video BIOS ROM image file.</p>
-</div>
-<div class="paragraph">
-<p>Usage: LOADROM ROM_file</p>
-</div>
-</li>
-<li>
 <p><strong>LH/LOADHIGH</strong> (internal command)</p>
 <div class="paragraph">
 <p>Loads a program into upper memory (if UMB is available).</p>
@@ -1260,7 +1242,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Usage: SETCOLOR [color# [value]]</p>
 </div>
 <div class="paragraph">
-<p>Note: Changing the text-mode color schemes is only supported for the TrueType font (TTF) output. Use COLOR command to change the current background and foreground colors.</p>
+<p>Note: Use COLOR command to change the current background and foreground colors.</p>
 </div>
 </li>
 <li>
@@ -1287,13 +1269,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>START</strong> (external command)</p>
 <div class="paragraph">
-<p>Starts a command to run on the Windows host.</p>
+<p>Starts a command or program to run on the host system.</p>
 </div>
 <div class="paragraph">
 <p>Usage: START [option] command [arguments]</p>
 </div>
 <div class="paragraph">
-<p>Note: This command is only available in the Windows platform, enabled either by the startcmd config option or by the -winrun command-line option.</p>
+<p>Note: This command is disabled by default, but can be enabled either by the startcmd config option or by the -hostrun command-line option.</p>
 </div>
 </li>
 <li>
@@ -1312,6 +1294,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Usage: TIME [ [/T] [/H] | hh:mm:ss ]</p>
+</div>
+</li>
+<li>
+<p><strong>TITLE</strong> (external command)</p>
+<div class="paragraph">
+<p>Sets the window title for the DOSBox-X window.</p>
+</div>
+<div class="paragraph">
+<p>Usage: TITLE [string]</p>
+</div>
+<div class="paragraph">
+<p>Note: You can also set the DOSBox-X window title via the "title" option in the config file.</p>
 </div>
 </li>
 <li>
@@ -1363,30 +1357,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>VESAMOED</strong> (external command)</p>
-<div class="paragraph">
-<p>Runs the VESA BIOS mode editor utility, which can be used to add, modify or delete VESA BIOS modes.</p>
-</div>
-<div class="paragraph">
-<p>Usage: VESAMOED [options]</p>
-</div>
-<div class="paragraph">
-<p>Note: It was originally written because some old DOS games or demoscene productions, especially those shipped with a UNIVBE binary, assumed video mode numbers instead of enumerating like they should. It can also be used to rearrange VESA BIOS modes for retro developers who want to make sure their code works properly no matter what strange VESA BIOS their code runs into on real hardware. Because of limitations in DOSBox-X SVGA emulation and the render scaler architecture, the maximum resolution possible resolution is 1920x1440.</p>
-</div>
-</li>
-<li>
-<p><strong>VFRCRATE</strong> (external command)</p>
-<div class="paragraph">
-<p>Locks or unlocks the video refresh rate to a specific frame rate.</p>
-</div>
-<div class="paragraph">
-<p>Usage: VFRCRATE [SET OFF|PAL|NTSC|rate]</p>
-</div>
-<div class="paragraph">
-<p>Note: It was originally written to run demoscene games at 59.94Hz (NTSC) so that no frame blending is needed to author to DVD. It can also be used for development and testing to simulate a PC whose refresh rate is locked in hardware, such as what happens when running a DOS program on laptops. Even though standard VGA is 60Hz or 70Hz, laptops will lock the refresh rate to 60Hz when sending video to the internal display.</p>
-</div>
-</li>
-<li>
 <p><strong>VOL</strong> (internal command)</p>
 <div class="paragraph">
 <p>Displays the disk volume label and serial number, if they exist.</p>
@@ -1410,10 +1380,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>The following commands are for debugging purposes (only available on builds that have the debugging feature enabled):</p>
+<p>The following commands are for debugging purposes (many of them only available on builds that have the debugging feature enabled):</p>
 </div>
 <div class="ulist">
 <ul>
+<li>
+<p><strong>A20GATE</strong> (external command)</p>
+<div class="paragraph">
+<p>Views, turns on/off or changes the A20 gate mode.</p>
+</div>
+<div class="paragraph">
+<p>Usage: A20GATE SET [off | off_fake | on | on_fake | mask | fast] or A20GATE [ON | OFF]</p>
+</div>
+</li>
 <li>
 <p><strong>BIOSTEST</strong> (external command)</p>
 <div class="paragraph">
@@ -1421,6 +1400,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Usage: BIOSTEST image_file</p>
+</div>
+</li>
+<li>
+<p><strong>CGASNOW</strong> (external command)</p>
+<div class="paragraph">
+<p>Turns CGA snow emulation on or off.</p>
+</div>
+<div class="paragraph">
+<p>Usage: CGASNOW [ON|OFF]</p>
 </div>
 </li>
 <li>
@@ -1445,6 +1433,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>LOADROM</strong> (external command)</p>
+<div class="paragraph">
+<p>Loads the specified Video BIOS ROM image file.</p>
+</div>
+<div class="paragraph">
+<p>Usage: LOADROM ROM_file</p>
+</div>
+</li>
+<li>
 <p><strong>NMITEST</strong> (external command)</p>
 <div class="paragraph">
 <p>Generates a non-maskable interrupt (NMI).</p>
@@ -1456,17 +1453,41 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Note: This will test if the interrupt handler works properly.</p>
 </div>
 </li>
+<li>
+<p><strong>VESAMOED</strong> (external command)</p>
+<div class="paragraph">
+<p>Runs the VESA BIOS mode editor utility, which can be used to add, modify or delete VESA BIOS modes.</p>
+</div>
+<div class="paragraph">
+<p>Usage: VESAMOED [options]</p>
+</div>
+<div class="paragraph">
+<p>Note: It was originally written because some old DOS games or demoscene productions, especially those shipped with a UNIVBE binary, assumed video mode numbers instead of enumerating like they should. It can also be used to rearrange VESA BIOS modes for retro developers who want to make sure their code works properly no matter what strange VESA BIOS their code runs into on real hardware. Because of limitations in DOSBox-X SVGA emulation and the render scaler architecture, the maximum resolution possible resolution is 1920x1440.</p>
+</div>
+</li>
+<li>
+<p><strong>VFRCRATE</strong> (external command)</p>
+<div class="paragraph">
+<p>Locks or unlocks the video refresh rate to a specific frame rate.</p>
+</div>
+<div class="paragraph">
+<p>Usage: VFRCRATE [SET OFF|PAL|NTSC|rate]</p>
+</div>
+<div class="paragraph">
+<p>Note: It was originally written to run demoscene games at 59.94Hz (NTSC) so that no frame blending is needed to author to DVD. It can also be used for development and testing to simulate a PC whose refresh rate is locked in hardware, such as what happens when running a DOS program on laptops. Even though standard VGA is 60Hz or 70Hz, laptops will lock the refresh rate to 60Hz when sending video to the internal display.</p>
+</div>
+</li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Note: As of DOSBox-X version 0.83.6, you can customize the external commands as appeared on the Z: drive. For example, you can add your favorite DOS programs to the drivez directory, which will add to or replace existing programs on the Z: drive.</p>
+<p>Note: As of DOSBox-X version 0.83.6, you can customize the external commands as appeared on the Z: drive. For example, you can add your favorite DOS programs to the drivez directory, which will add to or replace existing programs on the Z: drive. As of DOSBox-X version 0.83.14, support for one-level subdirectories on the Z: drive is also added.</p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

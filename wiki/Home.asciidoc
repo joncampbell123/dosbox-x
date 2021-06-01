@@ -17,7 +17,7 @@ toc::[]
 
 ### DOSBox-X's Main Focus
 
-Unlike DOSBox's original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990's configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to link:https://dosbox-x.com/newdosdevelopment.html[help make new DOS developments possible] with confidence the program will run properly on actual DOS systems.
+Unlike DOSBox's original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990's configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, and at the same time we are also making efforts to improve emulation quality and usability, including the general experiences for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to link:https://dosbox-x.com/newdosdevelopment.html[help make new DOS developments possible] with confidence the program will run properly on actual DOS systems.
 
 ### What DOSBox-X Can Do
 
@@ -251,11 +251,11 @@ DOSBox-X vs Demoscene test results: link:http://dosbox-x.com/demoscene-compat.ht
 ### Frequently Asked Questions (FAQ)
 * **What is DOS?**
 +
-DOS is short for "**D**isk **O**perating **S**ystem". It refers to a family of operating systems that dominated the IBM PC compatible market in the 1980s and the 1990s. Early versions of Microsoft Windows (1.0-3.x, as well as 9x/ME) are also largely DOS-based. The relevant systems were usually called "X DOS", "X-DOS" or "XDOS" with the X being the brand name (e.g. PC DOS, DR-DOS, and FreeDOS respectively). Despite common usage, none of them were actually called just DOS. Microsoft's system, MS-DOS, was the most-widely used among these operating systems. Microsoft Windows 3.x and 9x/ME are also based on MS-DOS.
+DOS is short for "**D**isk **O**perating **S**ystem". It refers to a family of operating systems that dominated the IBM PC compatible market in the 1980s and the 1990s. Early versions of Microsoft Windows (1.0-3.x, as well as 9x/ME) are also DOS-based. The relevant systems were usually called "X DOS", "X-DOS" or "XDOS" with the X being the brand name (e.g. PC DOS, DR-DOS, and FreeDOS respectively). Despite common usage, none of them were actually called just DOS. Microsoft's system, MS-DOS, was the most-widely used among these operating systems. Microsoft Windows 3.x and 9x/ME are also based on MS-DOS, although Windows 3.x may also run on another DOS such as PC DOS or DR-DOS.
 
 * **What is DOSBox-X's release pattern?**
 +
-Currently, new DOSBox-X versions are made public either on the last day of a month, or at the start of the next month, including both binary releases for the supported platforms and the source code of DOSBox-X. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X's build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes. This is DOSBox-X's official release pattern, although it may change later.
+Currently, new DOSBox-X versions are usually made public on the last day of a month, or sometimes at the start of the next month, including both binary releases for the supported platforms and the source code of DOSBox-X. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X's build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes. This is DOSBox-X's official release pattern, although it may change later.
 
 * **Can I start to run my DOS program or game immediately?**
 +
@@ -275,7 +275,7 @@ Yes, you can do this, although currently only available in the Windows version. 
 
 * **Can I customize the content of the Z drive?**
 +
-Yes, you can! You can add your own files to the Z drive by putting the files on the directory named “drivez” in the DOSBox-X working directory, the user configuration directory, or the directory where the DOSBox-X executable is located. The files in this directory will then appear in the Z drive, or in the case there are already existing files with the same names they will replace the existing files. You can also hide or remove existing files or programs on the Z drive using the “drive z hide files” config option in [dos] section of the config file. The files listed here (separated by space) will be hidden or removed from the Z drive (files with leading forward slashs like ``/A20GATE.COM`` will become hidden files, which can be listed using the ``DIR /A`` command). With these you can virtually customize the content of the Z drive in any way you want, just make sure any programs you may need (e.g. MOUNT.COM for MOUNT command) are still available on the drive. Moreover, you can move the Z drive to a different drive (e.g. Y drive) using the MOUNT command using its -Z option, such as ``MOUNT -Z Y``. You can move the drive as many times as you want, or move it back and forth as needed.
+Yes, you can! You can add your own files to the Z drive by putting the files on the directory named “drivez” in the DOSBox-X working directory, the user configuration directory, or the directory where the DOSBox-X executable is located. The files in this directory will then appear in the Z drive, or in the case there are already existing files with the same names they will replace the existing files. You can also hide or remove existing files or programs on the Z drive using the “drive z hide files” config option in [dos] section of the config file. The files listed here (separated by space) will be hidden or removed from the Z drive (files with leading forward slashs like ``/4HELP.EXE`` will become hidden files, which can be listed using the ``DIR /A`` command). With these you can virtually customize the content of the Z drive in any way you want, just make sure any programs you may need (e.g. MOUNT.COM for MOUNT command) are still available on the drive. Moreover, you can move the Z drive to a different drive (e.g. Y drive) using the MOUNT command using its -Z option, such as ``MOUNT -Z Y``. You can move the drive as many times as you want, or move it back and forth as needed.
 
 * **Can I change the default command shell in DOSBox-X?**
 +
@@ -301,3 +301,29 @@ cycles = max
 [dos]
 hard drive data rate limit = 0
 ```
+
+Using the TrueType font (TTF) output and disabling double-scanning can improve the performance too (especially for text-mode applications):
+
+```
+[sdl]
+output=ttf
+doublescan=false
+```
+
+If you do not need any sound output, you can also set the following to further improve the speed when DOSBox-X starts:
+
+```
+[mixer]
+nosound=true
+
+[midi]
+mididevice=none
+
+[sblaster]
+sbtype=none
+
+[speaker]
+pcspeaker=false
+```
+
+If you want to launch DOSBox-X to run some DOS command(s) and then exit automatically without showing the DOSBox-X window at all, you can start DOSBox-X with the command-line option ``-silent`` to achieve this result (the command will usually return almost instantaneously). If you intend to run text-mode applications that do a lot of automated operations (e.g. compilation and various types of compression/decompression) in such case, you probably want to use ``-silent`` in combination with config option ``output=ttf`` (perhaps also ``ttf.blinkc=false`` and ``ttf.ptsize=9``) to have much better performance.

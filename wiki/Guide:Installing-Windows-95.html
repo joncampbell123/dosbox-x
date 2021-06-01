@@ -1068,7 +1068,7 @@ To enable networking, you first need to enable NE2000 adapter emulation in your 
 <div class="sectionbody">
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
-The default is <code>backend=pcap</code>.</p>
+The default is <code>backend=auto</code>, which implies <code>backend=slirp</code> if SLIRP support is available, otherwise <code>backend=pcap</code> is implied if PCAP support is available.</p>
 </div>
 <div class="sect2">
 <h3 id="_backendpcap">backend=pcap</h3>
@@ -1125,7 +1125,7 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 <div class="ulist">
 <ul>
 <li>
-<p>For now, it only works on Linux.</p>
+<p>It is not supported in all platforms, such as Windows Visual Studio builds.</p>
 </li>
 <li>
 <p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).</p>
@@ -1556,7 +1556,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

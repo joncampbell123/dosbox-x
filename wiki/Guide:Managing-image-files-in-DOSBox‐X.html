@@ -529,7 +529,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_qcow2_support">QCOW2 support</a></li>
 <li><a href="#_archiving_diskettes">Archiving diskettes</a></li>
 <li><a href="#_known_limitations">Known limitations</a></li>
-<li><a href="#_outstanding_issues">Outstanding issues</a></li>
+<li><a href="#_outstanding_issues_with_this_page">Outstanding issues with this page</a></li>
 </ul>
 </div>
 </div>
@@ -777,15 +777,19 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.667%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Disk type</th>
-<th class="tableblock halign-left valign-top">Sectors</th>
+<th class="tableblock halign-left valign-top">Sides</th>
+<th class="tableblock halign-left valign-top">Tracks per Side</th>
+<th class="tableblock halign-left valign-top">Sectors per Track</th>
 <th class="tableblock halign-left valign-top">Capacity</th>
 <th class="tableblock halign-left valign-top">IMGMAKE option</th>
 </tr>
@@ -793,61 +797,81 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">160KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_160</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" SSDD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">180KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_180</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">200KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_200</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">320KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_320</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" DSDD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">360KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_360</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">400KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_400</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" HD</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1200KB (1.2MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1200</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" DSDD (2DD)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">720KB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_720</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>3.5" HD</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1440KB (1.44MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1440 or -t fd</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" ED</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">36</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2880KB (2.88MB)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_2880</p></td>
 </tr>
@@ -1116,7 +1140,7 @@ DOSBox-X will attempt to boot from a diskette, even if it is not bootable. This 
 <div class="title">Tip</div>
 </td>
 <td class="content">
-Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar, followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar, followed by the drive letter and "Boot from drive". You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 </td>
 </tr>
 </table>
@@ -1141,7 +1165,7 @@ You should never mount a disk image simultaneously in both DOSBox-X and in Linux
 <div class="sect2">
 <h3 id="_gnome_disk_image_mounter">Gnome Disk Image Mounter</h3>
 <div class="paragraph">
-<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.</p>
+<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.</p>
 </div>
 <div class="paragraph">
 <p>The first time you want to open .IMA files, you need to right-click and choose "Open With Other Application", and then click on "View All Applications" and choose "Disk Image Mounter" from the list.
@@ -1151,12 +1175,15 @@ The next time you want to open a .IMA file, the option will be available directl
 <p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
 </div>
 <div class="paragraph">
-<p>Disk images can also be mounted from the Linux Terminal using:</p>
+<p>Disk images can also be mounted READ-WRITE from the Linux Terminal using:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>gnome-disk-image-mounter disk.ima</pre>
+<pre>gnome-disk-image-mounter -w disk.ima</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Or if you run <code>gnome-disk-image-mounter</code> without arguments, it will ask you which disk image to mount, and give you the ability to mount it READ-WRITE.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1400,9 +1427,6 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </li>
 <li>
 <p><a href="https://en.wikipedia.org/wiki/VHD_(file_format)">Virtual Hard Disk</a> Volume (.vhd)</p>
-</li>
-<li>
-<p>Bochs bximage (typically .img)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -1410,6 +1434,9 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </li>
 </ul>
 </div>
+</li>
+<li>
+<p>Bochs bximage (typically .img)</p>
 </li>
 <li>
 <p>NEC PC-98 harddisk images (.nhd or .hdi)</p>
@@ -1445,24 +1472,44 @@ This option allows a few common HDD sizes to to be created, for less common type
 <div class="sect2">
 <h3 id="_fat_version">FAT version</h3>
 <div class="paragraph">
-<p>The <code>IMGMAKE</code> command supports FAT12, FAT16 and FAT32 formatted partitions, and will try to automatically decide which type to use depending on some rules:</p>
+<p>The <code>IMGMAKE</code> command supports FAT12, FAT16 and FAT32 formatted partitions, and will try to automatically decide which type to use depending on the HDD capacity and the reported DOS version:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>If the harddisk size is smaller than 12MB, it will use FAT12</p>
-</li>
-<li>
-<p>If the harddisk size is 12MB or larger, up to 2GB, it will use FAT16</p>
-</li>
-<li>
-<p>If the harddisk size is greater than 2GB it will use FAT32</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>One exception to the rule is, if your reported DOS version is 7.1 or higher, than harddisks of 512MB or larger will be formatted FAT32.</p>
-</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">HDD Capacity</th>
+<th class="tableblock halign-left valign-top">Reported DOS version &lt; 7.1</th>
+<th class="tableblock halign-left valign-top">Reported DOS version ≥ 7.1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≤ 12MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT12</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&gt; 12MB and &lt; 512MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≥ 512MB and ≤ 2GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&gt; 2GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
 <p>Using the <code>-FAT</code> option it is possible to overrule the decision process.
 But this can cause <code>IMGMAKE</code> to give errors if the partition size is not supported by the filesystem type, or can cause other problems such as performance issues or waisted disk space.</p>
@@ -1475,9 +1522,18 @@ But this can cause <code>IMGMAKE</code> to give errors if the partition size is 
 <pre>IMGMAKE hdd.img -t hd -size 400 -fat 32</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
-FAT32 harddisk images will appear to have been formatted by Windows 98.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
+FAT32 harddisk images will appear to have been formatted by Windows 98.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -1690,7 +1746,7 @@ imgmount C: disk.ima -t hdd -fs fat</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you do not specify an image filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+<p>If you do not specify an image filename, it will try to open a file named IMGMAKE.IMG, such as in this example:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1718,9 +1774,9 @@ The <code>-fs fat</code> option should not be needed as the FAT12, FAT16 or FAT3
 <div class="title">Note</div>
 </td>
 <td class="content">
-If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default DOS version is set.
+If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default reported DOS version is set.
 Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
-You can change this in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
+You can change the reported DOS version in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
 </td>
 </tr>
 </table>
@@ -1746,7 +1802,8 @@ If a harddisk image has multiple partitions, you can only access the first parti
 </div>
 </div>
 <div class="paragraph">
-<p>It is required to use a device number instead of a drive letter in this case. DOSBox-X automatically assumes the -fs none flag when a drive number is used, but this flag is required for vanilla DOSBox or other DOSBox forks.</p>
+<p>It is required to use a device number instead of a drive letter in this case.
+DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive number is used, but this flag is required for vanilla DOSBox or other DOSBox forks.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1940,7 +1997,8 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 <div class="title">Tip</div>
 </td>
 <td class="content">
-Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
+You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 </td>
 </tr>
 </table>
@@ -1966,7 +2024,7 @@ You should never mount a harddisk image simultaneously in both DOSBox-X and in L
 <h3 id="_gnome_disk_image_mounter_2">Gnome Disk Image Mounter</h3>
 <div class="paragraph">
 <p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter".
-Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.</p>
+Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1984,12 +2042,15 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 <p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
 </div>
 <div class="paragraph">
-<p>Disk images can also be mounted from the Linux Terminal using:</p>
+<p>Disk images can also be mounted READ-WRITE from the Linux Terminal using:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>gnome-disk-image-mounter hdd.img</pre>
+<pre>gnome-disk-image-mounter -w hdd.img</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Or if you run <code>gnome-disk-image-mounter</code> without arguments, it will ask you which disk image to mount, and give you the ability to mount it READ-WRITE.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2050,10 +2111,10 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>DOSbox-X supports CD-ROM or DVD image files in ISO9660, CUE/BIN or MDF image format.</p>
+<p>DOSbox-X supports CD-ROM or DVD image files with the ISO9660 filesystem in ISO, CUE/BIN or MDF image format.</p>
 </div>
 <div class="paragraph">
-<p>ISO9660 (aka ISO) is the easiest format to work with, as long as there is only a single track on the CD or DVD.
+<p>ISO is the easiest format to work with, as long as there is only a single track on the CD or DVD.
 If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.</p>
 </div>
 </div>
@@ -2107,10 +2168,10 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 <h3 id="_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</h3>
 <div class="paragraph">
 <p>With the integrated DOS that DOSBox-X provides, you do not need to worry about loading a CD-ROM driver and MSCDEX.
-If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both a IDE CD-ROM driver and MSCDEX.</p>
+If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both an IDE CD-ROM driver and MSCDEX.</p>
 </div>
 <div class="paragraph">
-<p>For a IDE CD-ROM driver we recommend either OAKCDROM.SYS or UIDE.SYS.</p>
+<p>For a IDE CD-ROM driver we recommend either OAKCDROM.SYS, UIDE.SYS or VIDE-CDD.SYS.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2126,7 +2187,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 </ul>
 </div>
 <div class="paragraph">
-<p>MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the SHSUCDX.EXE redirector available from FreeDOS.</p>
+<p>MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the <a href="http://adoxa.altervista.org/shsucdx/index.html">SHSUCDX.EXE</a> redirector available from FreeDOS.</p>
 </div>
 <div class="paragraph">
 <p>Edit the config.sys file and add the following line to it:</p>
@@ -2433,7 +2494,7 @@ The contents of the RAM drive will be lost if the drive is unmounted, a program 
 </td>
 <td class="content">
 Unlike traditional DOS RAM disk programs (e.g. VDISK, RAMDRIVE) this RAM drive will not use any memory allocated for use inside DOSBox-X itself.
-In other words, it will no effect on available memory for DOS programs.
+In other words, it will have no effect on available memory for DOS programs.
 </td>
 </tr>
 </table>
@@ -2540,7 +2601,7 @@ This will even work with USB diskette drives.</p>
 <td class="content">
 Do not buy "modern" USB 3.5" floppy drives available from retailers like Amazon.
 The drive mechanisms are junk and have a high likelihood of damaging your disk.
-Instead look for an older second-hand USB floppy drive from a known brand like Dell, HP, IBM, Lenovo, Teac or Toshiba.
+Instead look for an older second-hand USB floppy drive from a known brand like Dell, HP, IBM, Lenovo, Sony, Teac or Toshiba.
 </td>
 </tr>
 </table>
@@ -2551,15 +2612,34 @@ Instead look for an older second-hand USB floppy drive from a known brand like D
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>When booting a Guest OS (DOS or Win9x) in DOSBox-X most of the Drive options will become unavailable (greyed out).
+<p>When booting a Guest OS (DOS or Win9x) in DOSBox-X all of the Drive options will become unavailable (greyed out).
 This is because, once you boot a guest OS, the drive letter mapping loses its meaning as the guest OS is responsible for drive letter assignment.</p>
 </div>
 <div class="paragraph">
-<p>The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file. This is however not currently exposed in the menu.</p>
+<p>The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file.</p>
+</div>
+<div class="paragraph">
+<p>Starting with DOSBox-X 0.83.14, there is limited support for changing the loaded Floppy or CD image from the DOS menu where you will find the options "Change current floppy image&#8230;&#8203;" and "Change current CD image&#8230;&#8203;".</p>
+</div>
+<div class="paragraph">
+<p>If multiple floppy or CD-ROM images are mounted, you will be asked for each mounted image if you want to change it.</p>
+</div>
+<div class="paragraph">
+<p>Some limitations of this support:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Requires an image to be mounted before you boot a Guest OS, otherwise you will get an error such as "No floppy drive is currently available.". In other words, you cannot boot with an empty drive, and then add an image later.</p>
+</li>
+<li>
+<p>You cannot "eject" or unmount an image</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
-<h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
+<h1 id="_outstanding_issues_with_this_page" class="sect0">Outstanding issues with this page</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="ulist">
@@ -2589,7 +2669,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

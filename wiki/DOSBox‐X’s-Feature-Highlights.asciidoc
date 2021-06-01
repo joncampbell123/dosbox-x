@@ -87,9 +87,9 @@ With DOSBox-X there are several ways to copy and paste between DOSBox-X and the 
 * **Support for converting mouse wheel movements to arrow keys**
 +
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
-* **Support for starting programs to run on the host (Windows only)**
+* **Support for starting programs to run on the host systems**
 +
-It is possible to launch a Windows application from inside DOSBox-X to run on the Windows host, either using START command or run it directly from the shell. Set ``startcmd=true`` to enable this feature.
+It is possible to launch a host application from inside DOSBox-X to run on the host system, either using START command or in the case of Windows also run it directly from the shell. Set ``startcmd=true`` or ``-hostrun`` option to enable this feature.
 * **Support for changing or synchronizing the date and time**
 +
 You can change the date and time either from DOSBox-X's DOS shell (DATE and TIME commands), or using the DOS APIs or with DOSBox-X's BIOS Setup Utility. DOSBox-X also provides the option to automatically synchronize the date and time with the host system.
@@ -141,6 +141,9 @@ DOSBox-X supports Direct3D along with pixel shaders which provides many more out
 * **Support for TrueType fonts (TTF) for text-mode DOS applications**
 +
 DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display for DOS shell and program running in text-mode. Features such as on-screen text styles are supported in this output mode too. Look at the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page for more information.
+* **Support for additional code pages, including DBCS code pages used by CJK (Chinese/Japanese/Korean) languages**
++
+DOSBox-X supports many additional code pages for conversions between the host and guest systems, both for the TrueType font (TTF) output and other outputs, and this includes DBCS code pages used by Chinese, Japanese, and Korean languages. With a suitable TTF font you will be able to run text-mode DOS applications in these languages using the TTF output as well as printing texts in these languages.
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**

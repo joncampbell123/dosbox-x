@@ -468,7 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_dos_editions">DOS editions</a></li>
 <li><a href="#_booting_dos_from_diskettes">Booting DOS from diskettes</a></li>
-<li><a href="#_guides_to_installing_dos">Guides to installing DOS</a></li>
+<li><a href="#_guides_to_installing_dos_in_dosbox_x">Guides to installing DOS in DOSBox-X</a></li>
 <li><a href="#_hints_and_tips">Hints and Tips</a>
 <ul class="sectlevel2">
 <li><a href="#_dos_disk_caching_software">DOS disk caching software</a></li>
@@ -483,7 +483,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This guide explains how to boot regular IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.</p>
+<p>This guide explains how to boot regular (or real) IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.</p>
 </div>
 </div>
 </div>
@@ -491,12 +491,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_readme_1st">README.1ST</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases. Booting regular DOS is normally not necessary to run DOS applications such as games, or even Windows version up to 3.11 in DOSBox-X. And even if you have a application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X. There are three ways to change the reported DOS version:</p>
+<p>Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases.
+Booting real DOS is rarely necessary to run DOS applications and games, or even Windows version up to 3.11 in DOSBox-X.
+And even if you have a application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>There are three ways to change the DOS version that DOSBox-X reports:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>There is a setting "ver" under the [dos] section in DOSBox-X&#8217;s config file (dosbox-x.conf by default), or from the DOSBox-X Configuration GUI. For example, setting "ver = 7.1" will cause DOSBox-X to set the initial DOS version as 7.1, instead of the default 5.0.</p>
+<p>In the DOSBox-X config file, there is a "ver" setting under the [dos] section, or from the DOSBox-X Configuration GUI. For example, setting "ver = 7.1" will cause DOSBox-X to set the initial DOS version as 7.1, instead of the default 5.0.</p>
 </li>
 <li>
 <p>You can also set the reported DOS version with the <code>VER</code> command in the DOSBox-X command line. For example, <code>VER 6.22</code> will cause DOSBox-X to claim to be version 6.22, and <code>VER 7.1</code> will set the reported DOS version to 7.1 (7.10).</p>
@@ -506,8 +511,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>Note that LFN (long filename) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+LFN (Long FileName) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -581,7 +595,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_where_to_get_dos">Where to get DOS?</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>These pages assume that you have PC DOS or MS-DOS diskette images. Getting these image files is outside the scope of this guide.</p>
+<p>These pages assume that you have PC DOS or MS-DOS diskette images.
+Getting these image files is outside the scope of this guide.</p>
 </div>
 </div>
 </div>
@@ -591,7 +606,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_dos_versions_1_0_5_0x">DOS versions 1.0-5.0x</h3>
 <div class="paragraph">
-<p>Unless noted otherwise, the PC DOS and MS-DOS versions are equivalent for this guide. There are various limitations that DOS imposes that are dependant on the version. A few milestones:</p>
+<p>Unless noted otherwise, the PC DOS and MS-DOS versions are equivalent for this guide.
+There are various limitations that DOS imposes that are dependant on the version.
+A few milestones:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -618,6 +635,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>DOS 2.0</strong></p>
 <div class="ulist">
 <ul>
+<li>
+<p>First to support directories (CD, RD/RMDIR, MD/MKDIR)</p>
+</li>
 <li>
 <p>First to support HDDs up to 16 or 32MB (depending on OEM)</p>
 </li>
@@ -691,7 +711,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>DOS 5 is the last version for which Microsoft and IBM shared code. From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and start to diverge.</p>
+<p>DOS 5 is the last version for which Microsoft and IBM shared code.
+From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and start to diverge.</p>
 </div>
 </div>
 <div class="sect2">
@@ -702,7 +723,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>MS-DOS 6.0</strong> included an updated HIMEM.SYS XMS 3.x driver with support for up to 64MB RAM</p>
 </li>
 <li>
-<p><strong>MS-DOS 7.0</strong> (included in Windows 95 and 95A)</p>
+<p><strong>MS-DOS 7.0</strong> (included with Windows 95 and 95A)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -718,27 +739,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>MS-DOS 7.1</strong> (included in Windows 95 OSR2, 98 and 98SE)</p>
+<p><strong>MS-DOS 7.1</strong> (included with Windows 95 OSR2, 98 and 98SE)</p>
 <div class="ulist">
 <ul>
 <li>
 <p>First version to support FAT32</p>
 </li>
 <li>
-<p>First version to support LBA for HDDs up to 2TB, although FDISK requires patch to support HDD size greater than 64GB</p>
+<p>First version to support LBA for HDDs up to 2TB, although FDISK requires a patch to support HDD sizes greater than 64GB.</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>Considered the best MS-DOS version to be used in modern systems. While unofficial, there is also standalone MS-DOS 7.1 installation package available</p>
+<p>Considered the best MS-DOS version to be used in modern systems. While unofficial, there is also a stand-alone MS-DOS 7.1 installation package available.</p>
 </li>
 <li>
-<p><strong>MS-DOS 8.0</strong> (included in Windows ME)</p>
+<p><strong>MS-DOS 8.0</strong> (included with Windows ME)</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Removed some features such as real-mode support, although there are patches to re-enable some of these features</p>
+<p>Removed some features such as real-mode support, although there are patches to re-enable some of these features.</p>
 </li>
 </ul>
 </div>
@@ -767,7 +788,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>PC DOS 7.1</strong> (kernel files only)</p>
+<p><strong>PC DOS 7.1</strong> (kernel files only, and only for OEMs)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -785,7 +806,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_dos_editions">DOS editions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>MS-DOS was licensed by many clone manufacturers and in the early days these OEM editions were <em>customized</em> to the manufacturer, and therefore many of these early OEM specific editions don&#8217;t work, or only work partially in DOSBox-X. Because of this, up to DOS version 3.2, it is typically easier to use the IBM PC DOS versions in DOSBox-X.</p>
+<p>MS-DOS was licensed by many clone manufacturers and in the early days these OEM editions were <em>customized</em> to the manufacturer, and therefore many of these early OEM specific editions don&#8217;t work, or only work partially in DOSBox-X.
+Because of this, up to DOS version 3.2, it is typically easier to use the IBM PC DOS versions in DOSBox-X.</p>
 </div>
 </div>
 </div>
@@ -793,7 +815,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_booting_dos_from_diskettes">Booting DOS from diskettes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Booting DOS from a diskette image is pretty straight forward. Start DOSBox-X and you should find yourself at the DOSBox-X <code>Z:\&gt;</code> prompt. This is not a real DOS, but a 'simulated' DOS that is compatible with most DOS games and applications. Now type something equivalent to</p>
+<p>Booting DOS from a diskette image is pretty straight forward.
+Start DOSBox-X and you should find yourself at the DOSBox-X <code>Z:\&gt;</code> prompt.
+This is not a real DOS, but a 'simulated' DOS that is compatible with most DOS games and applications.
+Now type something equivalent to</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -801,7 +826,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>Assuming that dos.img is an uncompressed DOS disk image in IBM-MFM format (typically with a file extension of .IMG or .IMA), in your current working directory, it should start it. This even works for the original IBM PC DOS Version 1.00.</p>
+<p>Assuming that dos.img is an uncompressed DOS disk image in IBM-MFM format (typically with a file extension of .IMG or .IMA), in your current working directory, it should start it.
+This even works for the original IBM PC DOS Version 1.00.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -811,7 +837,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_guides_to_installing_dos">Guides to installing DOS</h2>
+<h2 id="_guides_to_installing_dos_in_dosbox_x">Guides to installing DOS in DOSBox-X</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
@@ -843,19 +869,33 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_dos_disk_caching_software">DOS disk caching software</h3>
 <div class="paragraph">
-<p>DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup. This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact it may actually be counter productive. As such it is recommended to disable SmartDrive.</p>
+<p>DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
+This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact it may actually be counter productive.
+As such it is recommended to disable SmartDrive.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_shutdown_dos">Shutdown DOS</h3>
 <div class="paragraph">
-<p>Normally when running DOSBox-X, you can simply <code>EXIT</code> and DOSBox-X will close. But when your running a real DOS Disk image, this no longer works.</p>
+<p>Normally when running DOSBox-X, you can simply <code>EXIT</code> and DOSBox-X will close.
+But when your running a real DOS Disk image, this no longer works.</p>
 </div>
 <div class="paragraph">
-<p>The solution to this is a small 3rd party utility called <code>ATXOFF.COM</code>. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes. ATXOFF relies on the APM support provided by DOSBox-X.</p>
+<p>The solution to this is a small 3rd party utility called <code>ATXOFF.COM</code>.
+This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.
+ATXOFF relies on the APM support provided by DOSBox-X.</p>
 </div>
-<div class="paragraph">
-<p>Note: If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> running ATXOFF as otherwise you risk filesystem corruption.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> running ATXOFF as otherwise you risk filesystem corruption.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Example AUTOEXEC.BAT usage of ATXOFF in combination with Windows 3.x:</p>
@@ -877,13 +917,16 @@ ATXOFF.COM</pre>
 <div class="sect2">
 <h3 id="_long_wait_on_himem_sys">Long wait on HIMEM.SYS</h3>
 <div class="paragraph">
-<p>If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory&#8230;&#8203;", which can take a considerable amount of time and is pointless in a emulated environment. You can bypass it by editing CONFIG.SYS and changing <code>DEVICE=C:\DOS\HIMEM.SYS</code> to <code>DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF</code>.</p>
+<p>If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory&#8230;&#8203;", which can take a considerable amount of time and is pointless in a emulated environment.
+You can bypass it by editing CONFIG.SYS and changing <code>DEVICE=C:\DOS\HIMEM.SYS</code> to <code>DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF</code>.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_reboot_dos">Reboot DOS</h3>
 <div class="paragraph">
-<p>You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main"). If for some reason you want to do a reboot from the command-line, look for a 3rd party utility called <code>RESTART.COM</code>. For rebooting DOS using such a utility you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.</p>
+<p>You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main").
+If for some reason you want to do a reboot from the command-line, look for a 3rd party utility called <code>RESTART.COM</code>.
+For rebooting DOS using such a utility you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.</p>
 </div>
 </div>
 <div class="sect2">
@@ -903,7 +946,8 @@ Default: F1</pre>
 <p>This is due to a special Master Boot Record (MBR) that IMGMAKE creates.</p>
 </div>
 <div class="paragraph">
-<p>Pressing Enter or F1 will continue the boot process, without having to wait for the timeout. Alternatively you can remove the boot menu by booting to DOS and running <code>FDISK /MBR</code> to create a new MBR without the boot menu.</p>
+<p>Pressing Enter or F1 will continue the boot process, without having to wait for the timeout.
+Alternatively you can remove the boot menu by booting to DOS and running <code>FDISK /MBR</code> to create a new MBR without the boot menu.</p>
 </div>
 </div>
 </div>
@@ -911,7 +955,7 @@ Default: F1</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

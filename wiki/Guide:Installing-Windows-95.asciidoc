@@ -271,7 +271,7 @@ To enable networking, you first need to enable NE2000 adapter emulation in your 
 ## Enabling NE2000 in your DOSBox-X config file
 
 Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
-The default is ``backend=pcap``.
+The default is ``backend=auto``, which implies ``backend=slirp`` if SLIRP support is available, otherwise ``backend=pcap`` is implied if PCAP support is available.
 
 ### backend=pcap
 The PCAP back-end uses something called "Promiscuous mode".
@@ -306,7 +306,7 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 
 But obviously, it has its own limitations.
 
-- For now, it only works on Linux.
+- It is not supported in all platforms, such as Windows Visual Studio builds.
 - It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
 - It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 

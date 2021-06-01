@@ -446,7 +446,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achieve many things from the drop-down menu without typing commands. There are 8 menus shown in DOSBox-X’s menu bar, namely "Main", "CPU", "Video", "Sound", "DOS", "Capture", "Drive", and “Help”.</p>
+<p>DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achieve many things from the drop-down menu without typing commands. There are 9 menus shown in DOSBox-X’s menu bar, namely "Main", "CPU", "Video", "Sound", "DOS", "Capture", "Drive", “Help”, and “Debug”.</p>
 </div>
 <div class="paragraph">
 <p><strong>1. The "Main" menu</strong></p>
@@ -496,7 +496,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Reboot guest system</strong>: Reboots the kernel of the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X without resetting the virtual machine.</p>
 </li>
 <li>
-<p><strong>Quit</strong>: Exit from DOSBox-X.</p>
+<p><strong>Restart DOSBox-X with config file&#8230;&#8203;</strong>: Restart DOSBox-X automatically with the select config file loaded.</p>
+</li>
+<li>
+<p><strong>Quit from DOSBox-X</strong>: Exit from DOSBox-X.</p>
 </li>
 </ul>
 </div>
@@ -561,7 +564,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Reset window size</strong>: Resets the DOSBox-X window to the default size.</p>
 </li>
 <li>
-<p><strong>Frameskip</strong>: Changes the frameskip setting, i.e. how many frames DOSBox-X skips before drawing one, from 0 to 10.</p>
+<p><strong>Refresh rate&#8230;&#8203;</strong>: Sets the video refresh rate (0 for unlocking the refresh rate).</p>
 </li>
 <li>
 <p><strong>Force scaler</strong>: Forces the use of a scaler even if the result might not be desired. To fit a scaler in the resolution used at full screen may require a border or side bars. To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.</p>
@@ -578,6 +581,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Overscan</strong>: Selects the width of the overscan border, from 0 to 10. This works only if the video output is set to surface.
 rscan border, from 0 to 10. This works only if the video output is set to surface.</p>
+</li>
+<li>
+<p><strong>Frameskip</strong>: Changes the frameskip setting, i.e. how many frames DOSBox-X skips before drawing one, from 0 to 10.</p>
 </li>
 <li>
 <p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.</p>
@@ -657,6 +663,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Windows host applications</strong>: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.</p>
 </li>
 <li>
+<p><strong>Enables A20 gate</strong>: Turns the A20 gate on or off if it is not locked.</p>
+</li>
+<li>
 <p><strong>Enable quick reboot</strong>: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when DOS programs (or Windows 9x guest systems) make calls to restart the system.</p>
 </li>
 <li>
@@ -666,13 +675,16 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Config options as commands</strong>: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.</p>
 </li>
 <li>
-<p><strong>Swap floppy</strong>: Swaps the floppy image if you are using multiple floppy disk images.</p>
+<p><strong>Swap floppy drive</strong>: Swaps the floppy image if you are using multiple floppy disk images on floppy drive(s).</p>
 </li>
 <li>
-<p><strong>Swap CD</strong>: Swaps the CD image if you are using multiple CD images.</p>
+<p><strong>Swap CD drive</strong>: Swaps the CD image if you are using multiple CD images on CD drive(s).</p>
 </li>
 <li>
-<p><strong>Rescan all drives</strong>: Refreshes the cache for all DOS drives inside DOSBox-X.</p>
+<p><strong>Change current floppy image&#8230;&#8203;</strong>: Changes the current active floppy disk image(s) on floppy drive(s), including when a guest OS is active.</p>
+</li>
+<li>
+<p><strong>Change current CD image&#8230;&#8203;</strong>: Changes the current active ISO/CUE image(s) on CD drive(s), including when a guest OS is active.</p>
 </li>
 <li>
 <p><strong>Create blank disk image</strong>: Creates blank floppy or hard disk images of common disk sizes for mounting them as drives.</p>
@@ -684,7 +696,13 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Show IDE disk or CD status</strong>: Displays the status for each IDE position (1m, 1s, 2m, 2s, etc).</p>
 </li>
 <li>
-<p><strong>Send form-feed</strong>: Manually sends a form-feed to the printer for ejecting a new page.</p>
+<p><strong>Rescan all drives</strong>: Refreshes the cache for all DOS drives inside DOSBox-X.</p>
+</li>
+<li>
+<p><strong>Print text screen</strong>: Prints the current DOS text screen to the default printer (if the printing feature has been enabled).</p>
+</li>
+<li>
+<p><strong>Send form-feed</strong>: Manually sends a form-feed to the printer for ejecting a new page (if the printing feature has been enabled).</p>
 </li>
 </ul>
 </div>
@@ -774,10 +792,20 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>List printer devices</strong>: Displays the list of printer devices for the printing feature on Windows systems.</p>
 </li>
 <li>
-<p><strong>Debugging options</strong>: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.</p>
+<p><strong>Logging console</strong>: Functions related to the logging console on Windows systems. Non-debugging builds only.</p>
 </li>
 <li>
 <p><strong>About DOSBox-X</strong>: Shows the about information for DOSBox-X.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>9. The "Debug" menu</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Previously the "Debugging options" under “Help” menu, it is now a separate top-level menu appearing in debugging builds for debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.</p>
 </li>
 </ul>
 </div>
@@ -805,7 +833,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-05-01 02:59:11 -0400
+Last updated 2021-06-01 14:22:58 -0400
 </div>
 </div>
 </body>

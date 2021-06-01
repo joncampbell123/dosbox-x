@@ -26,7 +26,7 @@ You can also switch from a different output (such as the standard surface/opengl
 
 Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the ``ttf.outputswitch`` config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.
 
-The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration, or you can change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor, with the default value being 6 on PC-98 systems and 4 elsewhere.
+The blinking cursor in the TrueType output can be optionally disabled with the setting ``ttf.blinkc=false`` in the [render] section of the configuration, or you can change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor, with the default value being 6 on PC-98 systems and 4 elsewhere. The cursor blinking can also be toggled from the menu ("Video" => "TTF options" => "Display TTF blinking cursor").
 
 A screenshot showing the TrueType output with the default TTF font: 
 
@@ -76,7 +76,13 @@ The above commands will change the TTF font to ``Consola.ttf`` and the built-in 
 
 If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a ``CHCP`` command to view or change the current DOS code page for TTF output. For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font.
 
-If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC-98-emulation-in-DOSBox-X{suffixappend}[Guide: PC-98 emulation in DOSBox-X] page for more information about this.
+If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X] page for more information about this.
+
+As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Simplified or Traditional Chinese text-mode DOS applications with DOSBox-X's TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the link:https://unifoundry.com/unifont/[GNU Unifont] or a TTF font like ``simkai.ttf`` (included in some language versions of Windows). Automatic detection of box-drawing characters is enabled for CJK mode by default, but can be disabled with the ``ttf.autoboxdraw`` config option. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the ``simkai.ttf`` TTF font: 
+
+image::images/DOSBox-X:Softscape_Tools_Simkai.png[Chinese-language DOS program running in DOSBox-X]
+
+As of DOSBox-X version 0.83.14, the printing feature will use the same TrueType font as the one used by the TTF output by default if the TTF output is currently active, and this includes support for both standard single-byte codepages used by most countries and double-byte codepages as used by CJK languages. Look at the link:Guide%3ASetting-up-printing-in-DOSBox‐X{suffixappend}[Guide: Setting up printing in DOSBox-X] page for more information.
 
 ## Modifying the screen dimension for the output
 
@@ -113,7 +119,7 @@ The above commands will change the screen dimension to 30 lines and 100 columns 
 
 ## On-screen text styles for DOS applications
 
-DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, and XyWrite. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:
+DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, XyWrite, and FastEdit. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:
 
 ```
 ttf.wp=XY
@@ -134,9 +140,9 @@ Then the regular text will be rendered using the Consola.ttf font, whereas the b
 
 If you set ``ttf.wp=WP`` which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting ``ttf.char512=false`` in the [render] section of the configuration.
 
-If you set ``ttf.wp=WS`` which sets WordStar as the word processor, then you probably want to set ``high intensity blinking`` to ``false`` for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" => "Text-mode" => "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option ``BrightBG=Yes`` if you use the 4DOS shell.
+If you set ``ttf.wp=WS`` (or ``ttf.wp=FE``) which sets WordStar (or FastEdit) as the word processor, then you probably want to set ``high intensity blinking`` to ``false`` for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" => "Text-mode" => "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option ``BrightBG=Yes`` if you use the 4DOS shell.
 
-There is additionally a ``ttf.wpbg`` option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option.
+There is additionally a ``ttf.wpbg`` option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option. Similarly, there is a ``ttf.wpfg`` option which you can specify a foreground color (0-7).
 
 ## Color scheme for the TrueType font output
 

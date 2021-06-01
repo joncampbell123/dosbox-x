@@ -250,23 +250,41 @@ The path (directory) where the output files are stored. Defaults to the current 
 
 The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored. Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).
 
+#### printdbcs
+* Default value: auto
+* Possible values: true, false, auto
+
+Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active. If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.
+
 #### openwith
-* Default value: \<blank\>
+* Default value: <blank>
 
 Start the specified program to open the output file.
+
+If set, the command window will be hidden for openwith/openerror options on the Windows platform.
 
 e.g. ``openwith=notepad`` will open the file with Notepad on a Windows host.
 
 Some examples:
+
 - Linux host: ``openwith=xdg-open`` will cause the file to be opened with the application associated with the file extension
+
 - Windows host: ``openwith=start`` will cause the file to be opened with the application associated with the file extension
+
 - Windows host: ``openwith=notepad`` will open the file with the Notepad application
+
 - macOS host: ``openwith=open -s "Preview"`` will cause the file to be opened with the application associated with the file extension
 
 #### openerror
-* Default value: \<blank\>
+* Default value: <blank>
 
 Start the specified program to open the output file if an error had occurred.
+
+#### shellhide
+* Default value: false
+* Possible values: true, false
+
+If set, the command window will be hidden for openwith/openerror options. Only supported in the Windows platform.
 
 #### timeout
 * Default value: 0
@@ -283,9 +301,9 @@ If non-zero, it specifies the time after which the page will be ejected automati
 You can also manually eject a form-feed when you want to do so, and this option is available from the DOS menu.
 
 # Setting up fonts for the emulated printer
-The emulated printer requires TrueType fonts in order to be able to print text.
+The emulated printer requires TrueType fonts in order to be able to print text. If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the ``ttf.printfont`` option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.
 
-If no TTF font can be found then DOSBox-X will print with the internal TTF font (UnifontFullMediumMono) as used by the TrueType font output.
+If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.
 
 ## Windows host
 DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
@@ -395,15 +413,15 @@ parallel1=reallpt directlpt:378
 
 ## Windows host, in combination with 3rd-party printing solution
 
-In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like link:http://sourceforge.net/projects/winprint/[WinPrint] (open-source), link:https://www.printfil.com/[Printfil], or link:http://www.dosprn.com/[DOSPRN]. Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.
+In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like link:https://www.printfil.com/[Printfil], link:http://www.dosprn.com/[DOSPRN], or link:http://sourceforge.net/projects/winprint/[WinPrint] (open-source). Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.
 
 ### Windows host, extended solution using Printfil
 
 According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications. You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.
 
-Printfil has implemented official support for integration with DOSBox-X since version 5.27. In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing. You can find the main features of Printfil in link:https://www.printfil.com/edesc.htm[its feature list page]. Once configured, there is no additional setup needed for printing support.
+Printfil has implemented official support for integration with DOSBox-X since version 5.27. In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing. You can find the main features of Printfil in link:https://www.printfil.com/edesc.htm[its feature list page]. Once configured, there is no additional setup needed for printing support on the DOSBox-X side.
 
-You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window. Printfil will automatically detect DOSBox-X if installed, and ask whether to capture the selected port for DOSBox-X. If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions. Below is a screenshot of its configuration window.
+You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window. Printfil will automatically detect DOSBox-X if it is installed in the default path (C:\DOSBox-X), and ask whether to capture the selected port for DOSBox-X. If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions. Below is a screenshot of its configuration window.
 
 image::images/Printfil_configuration_window.png[The Printfil configuration window]
 
