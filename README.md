@@ -63,6 +63,8 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for printing features, either to a real or to a virtual printer
 
+* Support for starting programs to run on the host systems (-hostrun option)
+
 * Support for 3dfx Voodoo chip and Glide emulation (including Glide wrapper)
 
 * Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
@@ -75,7 +77,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-While the great majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as support for automatic drive mounting, Direct3D output and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms. More information about DOSBox-X's features can be found in [DOSBox-X’s Feature Highlights](https://dosbox-x.com/wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights) page in the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
+While the vast majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as Direct3D output and support for automatic drive mounting on the Windows platform. These features cannot be easily ported to other platforms. More information about DOSBox-X's features can be found in [DOSBox-X’s Feature Highlights](https://dosbox-x.com/wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights) page in the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
@@ -94,7 +96,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](https://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
 
-The latest version of DOSBox-X is 0.83.12, released on April 1, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+The latest version of DOSBox-X is 0.83.13, released on April 30, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
@@ -128,7 +130,7 @@ greatly appreciated:
     - The normal operation of DOS games and applications
     - Software or hardware emulation accuracy, helped by for example demoscene software
     - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
-    - New DOS developments
+    - Developments of new DOS software
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, assistance of other users, and/or general conversation
   - Platform support (Windows, Linux, macOS, DOS, but others are welcome)
@@ -352,6 +354,14 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
   URL: http://www.columbia.edu/~em36/dosboxapp.html
 
+* DOSBoxWP (for WordPerfect for DOS) by emendelson
+
+  DOSBoxWP is a customized version of DOSBox-X targetted for users of WordPerfect for DOS.
+
+  URL (Windows): http://www.columbia.edu/~em36/wpdos/dosboxwp.html
+
+  URL (macOS): http://www.columbia.edu/~em36/wpdos/wpdosboxmac.html
+
 * Win31DOSBox (Windows 3.1 for 64-bit Windows) by emendelson
 
   Win31DOSBox aims to be an easy method of running Windows 3.x software for 64-bit Windows systems.
@@ -365,10 +375,16 @@ DOSBox-X displays English as the default language, and uses the U.S. code page (
 
 All messages displayed by DOSBox-X are in English with the default setting. DOSBox-X does support the feature to
 change the display messages with the use of language files. The language files control all visible output of the
-internal commands and the internal DOS. If you are a speaker of a non-English language, you can create additional
-language files for use with DOSBox-X by translating messages in DOSBox-X to your language. Other DOSBox-X users may
-also use these language files for DOSBox-X to display messages in such language if they wish. You can for example find
-the Spanish translation files from: https://github.com/joncampbell123/dosbox-x/tree/master/contrib/translations/es
+internal commands and the internal DOS, as well as the text in DOSBox-X's drop-down menus. If you are a speaker of
+a non-English language, you are encouraged to create additional language files for use with DOSBox-X by translating
+messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
+messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
+
+* Chinese (Simplified) language file: [contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)
+
+* Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
+
+* Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically

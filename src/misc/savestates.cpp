@@ -9,6 +9,7 @@
 #include "menu.h"
 #include "shell.h"
 #include "cross.h"
+#include "render.h"
 #include "mapper.h"
 #include "control.h"
 #include "logging.h"
@@ -45,7 +46,7 @@ bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
 void refresh_slots(void);
-void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
+void GFX_LosingFocus(void), GFX_ReleaseMouse(void), MAPPER_ReleaseAllKeys(void), resetFontSize(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 namespace
 {
@@ -185,11 +186,14 @@ void LoadGameState(bool pressed) {
 //        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
 //        return;
 //    }
-    GFX_LosingFocus();
+    if (!GFX_IsFullscreen()&&render.aspect) GFX_LosingFocus();
     try
     {
         LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
         SaveState::instance().load(currentSlot);
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
     }
     catch (const SaveState::Error& err)
     {
@@ -266,6 +270,8 @@ std::string GetPlatform(bool save) {
     "Unix "
 #elif defined(MACOSX)
     "macOS "
+#elif defined(OS2)
+    "OS/2 "
 #else
     save?"Other ":""
 #endif
@@ -541,7 +547,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     }
 
     size_buf = 8192;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");
@@ -958,7 +964,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
 	opt_compress_level = 9;
 
     size_buf = 16384;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         //printf("Error allocating memory\n");
@@ -1129,7 +1135,15 @@ void SaveState::save(size_t slot) { //throw (Error)
          *      has been changed to const char* and the return value of tinyfd_inputBox() is given to
          *      a local temporary char* string where the modification can be made, and *then* assigned
          *      to the const char* string for the rest of this function. */
+        bool fs=GFX_IsFullscreen();
+        if (fs) GFX_SwitchFullScreen();
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GFX_ReleaseMouse();
         char *new_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the Cancel button to cancel the saving.", " ");
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        if (fs&&!GFX_IsFullscreen()) GFX_SwitchFullScreen();
         if (new_remark==NULL) return;
         new_remark=trim(new_remark);
         if (strlen(new_remark)>30) new_remark[30]=0;

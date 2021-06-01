@@ -101,8 +101,8 @@ class Program {
 public:
 	Program();                                          //! Constructor
 	virtual ~Program(){                                 //! Default destructor
-		if (cmd != NULL) delete cmd;
-		if (psp != NULL) delete psp;
+		delete cmd;
+		delete psp;
 	}
 
     /*! \brief      Exit status of the program
@@ -125,6 +125,6 @@ public:
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
-void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * SDL_main);
+void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * SDL_main,const char *dir="");
 
 #endif

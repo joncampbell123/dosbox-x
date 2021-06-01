@@ -1,3 +1,207 @@
+0.83.15
+  - 
+0.83.14
+  - Added support for directories on the Z drive, so
+    there is no need to put all files/programs on the
+    root directory of Z drive any more. Only one-level
+    directories are currently supported. There are now
+    six directories on the Z drive by default, namely
+    4DOS, BIN, DEBUG, DOS, SYSTEM, TEXTUTIL. Most files
+    that previously appeared on the root directory of
+    Z drive are now categorized into directories, with
+    addition of some files/programs, such as additional
+    4DOS files, text utilities in TEXTUTIL directory
+    and TITLE command to change window title. (Wengier)
+  - You can now specify a command shell located on a
+    mounted local drive via SHELL= command in [config]
+    section of config file after the drive is properly
+    mounted via INSTALL= command. (Wengier)
+  - Extended START command to Linux and macOS systems.
+    It's disabled by default just like on Windows host
+    systems, but can be enabled by setting "startcmd"
+    to "true" or with the -hostrun command-line option
+    (replacing -winrun command-line option). (Wengier)
+  - CHCP command in the TrueType font (TTF) output now
+    allows code page 932, 936, 949, and 950 to display
+    Chinese, Japanese and Korean characters and file
+    names with DBCS support enabled in non-PC98 mode.
+    By default DOSBox-X will enable DBCS characters and
+    auto-detection for box-drawing characters in these
+    code pages, and these can be disabled by setting
+    new options "ttf.autodbcs" and "ttf.autoboxdraw" to
+    "false". There is also option "ttf.halfwidthkana"
+    to enable half-width Katakana in Japanese non-PC98
+    machines. KEYB command (and "keyboardlayout" config
+    option) also accept "jp", "ko", "cn", "tw", "hk",
+    "zh" as key layout names for code pages. (Wengier)
+  - Added support for printing Chinese/Japanese/Korean
+    DBCS (double-byte) characters when these code pages
+    are active, which by default ("auto") is enabled for
+    the TTF output, but can be enable or disabled for
+    all outputs by setting option "printdbcs" to "true"
+    or "false" in [printer] section. (Wengier)
+  - Added ability to toggle between Shift-JIS (or Kanji)
+    and graphical modes using Ctrl+F4 key (or ESC )3 and
+    ESC )0 escape sequences) in the PC-98 mode. There
+    is now also an indication of graphical mode in the
+    function row. (nmlgc)
+  - Added the "usesystemcursor" config option (in [sdl]
+    section) which when set to true will use host system
+    mouse cursor instead of drawing a DOS mouse cursor
+    when the mouse is not locked. (Wengier)
+  - When opening "Save..." or "Save Language File..."
+    dialogs in the Configuration Tool, the new dialogs
+    will now automatically be in focus. For the language
+    file, the name of the current language file will be
+    filled and modifiable. Pressing ENTER key saves the
+    config or language file, and pressing ESC key will
+    close these dialog boxes. (Wengier)
+  - Command "CONFIG -wl" will show the name of language
+    file being written to (if there is a language file
+    loaded then "CONFIG -wl" alone will write to it),
+    and command "CONFIG -ln" will show current language
+    name (if any), or you can use command "CONFIG -ln
+    <lang_name> -wl <lang_file>" to specify a language
+    name when writting to a language file. (Wengier)
+  - Added special properties to CONFIG command such as
+    "hostos", "programdir", "workdir", "configdir", and
+    "userconfigdir" so that commands like "CONFIG -GET
+    hostos" and "CONFIG -GET workdir" will get the host
+    system OS and DOSBox-X working directory. (Wengier)
+  - If a config option can only be changed at run-time,
+    "CONFIG -set" will now show such a message. You can
+    use "CONFIG -setf" to bypass, but the setting won't
+    take effect in the current session. (Wengier)
+  - SETCOLOR command can now change the text-mode color
+    schemes in outputs rather than the TrueType font
+    output too (VGA mode only). (Wengier)
+  - Added support for new TTF word processor type "FE"
+    for FastEdit, a new DOS text editor with functions
+    to view and change text styles. (Wengier)
+  - Added "ttf.wpfg" config option in [render] section
+    which can optionally specify a foreground color
+    (0-7) for the TTF output, similar to "ttf.wpbg" for
+    the background color in the TTF output. (Wengier)
+  - Added "ttf.printfont" config option in [render]
+    section which when set to true (default) will force
+    to use the current TrueType font (set via ttf.font)
+    for printing too when using TTF output. (Wengier)
+  - Added additional options to the "mouse_wheel_key"
+    config option to allow conversion of mouse wheel
+    movements into Ctrl+up/down arrow (option 4), Ctrl+
+    left/right arrows (option 5), Ctrl+PgUp/PgDn keys
+    (option 6), and Ctrl+W/Z as used by WordStar & EDIT
+    (option 7) . More menu options are added to "Mouse
+    wheel movements" menu group as well. (Wengier)
+  - Added menu option "Print text screen" (under "DOS")
+    to print current DOS text screen, if the printer
+    feature has been enabled. (Wengier)
+  - Added menu options "Display TTF blinking cursor",
+    "CJK: Switch DBCS/SBCS mode", "CJK: Auto-detect
+    box-drawing characters" and "CJK: Allow half-width
+    Japanese Katahana" under "Video" => "TTF options"
+    menu group to toggle the TTF options ttf.blinkc,
+    ttf.autodbcs, ttf.autoboxdraw and ttf.halfwidthkana
+    in [render] section of the config file. (Wengier)
+  - Support for UTF-8 encoded language files. Specify
+    a DOS code page with "country" option in [config]
+    section of the config file. Windows SDL1 menu and
+    macOS menu are now also compatible with Unicode
+    language files and characters. Also improved code
+    page compatibility for text in the SDL drawn menu
+    and the Configuration Tool. (Wengier)
+  - Cleaned up the welcome banner messages and other
+    messages involving boxdrawing characters for easier
+    translations into certain languages. (Wengier)
+  - Command-line option -silent now implies -nomenu,
+    SDL_AUDIODRIVER=dummy and will disable all sound-
+    related config option as well. (Wengier)
+  - Command-line option -fastlaunch will now suppress
+    messages by "automountall=true" option. Also added
+    value "quiet" to "automountall" config option to
+    auto-mount all Windows drives quietly. (Wengier)
+  - Added default value "auto" to "backend" option in
+    [ne2000] section of the configuration which will
+    automatically select slirp backend if available,
+    then pcap backend if available. (Wengier)
+  - Improved handling of Ctrl+C/Ctrl+Break for shell-
+    based DOS programs. (Wengier)
+  - Setting "irq" to "0" in [sblaster] section of the
+    config file will use the default IRQ number for the
+    sound card type. Also fixed "irq=-1", "dma=-1" and
+    "hdma=-1" not working as desired. (Wengier)
+  - Option "dpi aware=auto" now defaults to "true" when
+    full-screen mode is requested when DOSBox-X starts
+    in Windows SDL1 builds. (Wengier)
+  - The return value of AL in Int21/AX=0Eh is no longer
+    fixed. The game Jurassic Park may run after moving
+    Z drive to a different letter (e.g. E:). (Wengier)
+  - Added "Change current floppy image..." and "Change
+    current CD image..." menu options to change the
+    currently active floppy disk image(s) on drive A: &
+    B: and ISO/CUE image(s) on CD drives respectively.
+    This makes it possible to change the active floppy
+    disk and/or CD images while a guest system (e.g.
+    Windows 9x) is currently running. (Wengier)
+  - Added "Restart DOSBox-X with config file..." menu
+    option to start DOSBox-X with the specified config
+    file automatically from the menu. (Wengier)
+  - Added "Refresh rate..." menu option (under "Video")
+    to set the video refresh rate. (Wengier)
+  - Added "Enable A20 gate" menu option (under "DOS")
+    to enable or disable the A20 gate. (Wengier)
+  - Added "maximize" config option in [sdl] section to
+    automatically maximize the DOSBox-X window at start
+    (SDL2 and Windows SDL1 builds only). (Wengier)
+  - Added "allow lmsw to exit protected mode" config
+    option in [cpu] section to control whether the LMSW
+    instruction allows the guest to clear the PE bit
+    (leave protected mode).
+  - Added "debuggerrun" config option in [log] section
+    to set the run mode when DOSBox-X Debugger starts.
+    You can now also switch them from the menu ("Debug"
+    => "Debugger option: ..."), including "debugger",
+    "normal" and "watch", the later two corresponding
+    to debugger commands "RUN" and "RUNWATCH". Also,
+    the built-in DEBUGBOX command without a parameter
+    will start the DOSBox-X debugger. (Wengier)
+  - Debugger interface now accepts the '0' key as a
+    command to single-step in case F11 isn't an option.
+    If you are using XFCE's Terminal emulator, this is
+    helpful because Terminal app takes F11 for itself.
+  - "Debug" menu is now a top-level menu for debugging
+    builds (for non-debugging builds there is "Logging
+    console" menu group under "Help"). Also added more
+    debug options including "Generate NMI interrupt"
+    and "Hook INT 2Fh calls" under this menu. (Wengier)
+  - Fixed /S and /F option (date/time-synchronization
+    ON/OFF) of DATE command not working. (Wengier)
+  - Fixed aspect=true not working properly for some
+    screen modes such as machine=ega. (Wengier)
+  - Fixed the mouse not automatically captured when
+    DOSBox-X starts with the settings fullscreen=true
+    and autolock=true. (Wengier)
+  - Fixed inputs in the Configuration Tool when the
+    Configuration Tool is scaled. (Wengier)
+  - Fixed keys may not work after loading a saved state
+    for the game Buck Rogers. (Wengier)
+  - Fixed Windows detection for the game "Tex Murphy:
+    Under a Killing Moon". (Wengier)
+  - Fixed serial ports 5-9 may not be usable with real
+    serial ports (directserial). (vkbaf & Wengier)
+  - Fixed issues related to screen dimensions in TTF
+    output in CGA/EGA modes since 0.83.12. (Wengier)
+  - Updated Windows installer to use the latest Inno
+    Setup 6, allowing features such as administrative
+    install mode via /ALLUSERS option. (Wengier)
+  - Integrated SVN commits (Allofich)
+    - r4443: Improve detection of Paradise SVGA in some
+    installers with additional signature.
+    - r4453: Improve bittest instructions to wrap more
+    correctly. 
+    - r4454: Enable A20 routines in BIOS.
+    - r4456: The numeric keypad can now be used to
+    navigate the debugger when Num Lock is off.
 0.83.13
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-

@@ -127,7 +127,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -263,7 +263,7 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
                 const unsigned int shift = 13u - vga.config.addr_shift;
                 const unsigned char mask = (vga.crtc.mode_control & 3u) ^ 3u;
 
-                new_mask &= (size_t)(~(size_t(mask) << shift));
+                new_mask &= (~(size_t(mask) << shift));
                 new_add  += (size_t)(vga.draw_2[0].vert.current_char_pixel & mask) << shift;
             }
         }
@@ -399,7 +399,7 @@ static uint8_t * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
-    const uint8_t *base = (uint8_t*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint32_t * draw=(uint32_t *)TempLine;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
@@ -574,7 +574,7 @@ static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     if (GCC_UNLIKELY(((vga.draw.line_length + offset) & (~vga.draw.linear_mask)) != 0u)) {
         // this happens, if at all, only once per frame (1 of 480 lines)
         // in some obscure games
-        Bitu end = (Bitu)((Bitu)offset + (Bitu)vga.draw.line_length) & (Bitu)vga.draw.linear_mask;
+        Bitu end = (offset + vga.draw.line_length) & vga.draw.linear_mask;
         
         // assuming lines not longer than 4096 pixels
         Bitu wrapped_len = end & 0xFFF;
@@ -807,7 +807,7 @@ static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
         hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
         int x = (int)floor(hretrace_fx_avg + 0.5);
 
-        vidstart += (Bitu)((int)x);
+        vidstart += (Bitu)x;
     }
 
     for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
@@ -815,8 +815,6 @@ static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 
     return TempLine;
 }
-
-extern uint32_t Expand16Table[4][16];
 
 template <const unsigned int card,typename templine_type_t> static inline templine_type_t EGA_Planar_Common_Block_xlat(const uint8_t t) {
     if (card == MCH_VGA)
@@ -2136,7 +2134,6 @@ extern uint8_t GDC_display_plane;
 extern uint8_t GDC_display_plane_pending;
 extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
-extern bool gdc_analog;
 
 unsigned char       pc98_text_first_row_scanline_start = 0x00;  /* port 70h */
 unsigned char       pc98_text_first_row_scanline_end = 0x0F;    /* port 72h */
@@ -2894,7 +2891,7 @@ again:
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
+        PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
 
@@ -2986,7 +2983,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
+        PIC_AddEvent(VGA_DrawEGASingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
 
@@ -3109,15 +3106,6 @@ void VGA_ProcessScanline(const uint8_t *raw) {
     }
 }
 
-extern uint32_t GFX_Rmask;
-extern unsigned char GFX_Rshift;
-extern uint32_t GFX_Gmask;
-extern unsigned char GFX_Gshift;
-extern uint32_t GFX_Bmask;
-extern unsigned char GFX_Bshift;
-extern uint32_t GFX_Amask;
-extern unsigned char GFX_Ashift;
-extern unsigned char GFX_bpp;
 extern uint32_t vga_capture_stride;
 
 template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel(const BPPT raw) {
@@ -3127,9 +3115,9 @@ template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel
      * Also the 32bpp case shows how hacky this codebase is with regard to 32bpp color order support */
     if (bpp == 32) {
         if (GFX_bpp >= 24) {
-            r = ((uint32_t)raw & (uint32_t)GFX_Rmask) >> (uint32_t)GFX_Rshift;
-            g = ((uint32_t)raw & (uint32_t)GFX_Gmask) >> (uint32_t)GFX_Gshift;
-            b = ((uint32_t)raw & (uint32_t)GFX_Bmask) >> (uint32_t)GFX_Bshift;
+            r = ((uint32_t)raw & GFX_Rmask) >> (uint32_t)GFX_Rshift;
+            g = ((uint32_t)raw & GFX_Gmask) >> (uint32_t)GFX_Gshift;
+            b = ((uint32_t)raw & GFX_Bmask) >> (uint32_t)GFX_Bshift;
         }
         else {
             // hack alt, see vga_dac.cpp
@@ -3181,10 +3169,10 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
         vga_capture_write_address < 0xFFFF0000ul &&
         (vga_capture_write_address + (vga_capture_current_rect.w*4ul)) <= MemMax) {
         switch (vga.draw.bpp) {
-            case 32:    VGA_CaptureWriteScanlineChecked<32>((uint32_t*)raw); break;
-            case 16:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
-            case 15:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
-            case 8:     VGA_CaptureWriteScanlineChecked< 8>((uint8_t *)raw); break;
+            case 32:    VGA_CaptureWriteScanlineChecked<32>((const uint32_t*)raw); break;
+            case 16:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
+            case 15:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
+            case 8:     VGA_CaptureWriteScanlineChecked< 8>(raw); break;
         }
     }
     else {
@@ -3192,10 +3180,38 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+uint8_t lead[6];
 uint32_t ticksPrev = 0;
 bool sync_time, manualtime=false;
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool halfwidthkana;
 extern const char* RunningProgram;
+
+// Wengier: Auto-detect box-drawing characters in CJK mode for TTF output
+bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
+#if defined(USE_TTF)
+    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
+#endif
+    return (c1 == 196 && c2 == 196 && c3 == 196 && (c4 == 180 || c4 == 182 || c4 == 183 || c4 == 189 || c4 == 191 || c4 == 193 || c4 == 194 || c4 == 196 || c4 == 197 || c4 == 208 || c4 == 210 || c4 == 215 || c4 == 217)) ||
+    ((c1 == 192 || c1 == 193 || c1 == 194 || c1 == 195 || c1 == 196 || c1 == 197 || c1 == 199 || c1 == 208 || c1 == 210 || c1 == 211 || c1 == 214 || c1 == 215 || c1 == 218) && c2 == 196 && c3 == 196 && c4 == 196) ||
+    (c1 == 205 && c2 == 205 && c3 == 205 && (c4 == 181 || c4 == 184 || c4 == 185 || c4 == 187 || c4 == 188 || c4 == 189 || c4 == 190 || c4 == 202 || c4 == 203 || c4 == 205 || c4 == 207 || c4 == 209 || c4 == 216)) ||
+    ((c1 == 198 || c1 == 200 || c1 == 201 || c1 == 202 || c1 == 203 || c1 == 204 || c1 == 205 || c1 == 206 || c1 == 207 || c1 == 209 || c1 == 212 || c1 == 213 || c1 == 216) && c2 == 205 && c3 == 205 && c4 == 205) ||
+    (c1 == 176 && c2 == 176 && c3 == 176 && c4 == 176) || (c1 == 177 && c2 == 177 && c3 == 177 && c4 == 177) || (c1 == 178 && c2 == 178 && c3 == 178 && c4 == 178) ||
+    (c1 == 192 && c2 == 193 && c3 == 193 && c4 == 193) || (c1 == 193 && c2 == 193 && c3 == 193 && c4 == 193) || (c1 == 218 && c2 == 194 && c3 == 194 && c4 == 194) ||
+    (c1 == 194 && c2 == 194 && c3 == 194 && c4 == 194) || (c1 == 195 && c2 == 197 && c3 == 197 && c4 == 197) || (c1 == 197 && c2 == 197 && c3 == 197 && c4 == 197) ||
+    (c1 == 202 && c2 == 202 && c3 == 202 && c4 == 202) || (c1 == 203 && c2 == 203 && c3 == 203 && c4 == 203) || (c1 == 206 && c2 == 206 && c3 == 206 && c4 == 206) ||
+    (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
+    (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
+    (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220);
+}
+
+bool isDBCSCP() {
+    return !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+}
+
+bool isDBCSLB(uint8_t chr, uint8_t* lead) {
+    return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
+}
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
@@ -3293,7 +3309,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         Bitu current_tick = GetTicks();
         static Bitu jolt_tick = 0;
         if( uservsyncjolt > 0.0f ) {
-            jolt_tick = (Bitu)current_tick;
+            jolt_tick = current_tick;
 
             // set the update counter to a low value so that the user will almost
             // immediately see the effects of an auto-correction.  This gives the
@@ -3306,7 +3322,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if( persistent_sync_counter == 0 ) {
                 float ticks_since_jolt = (signed long)current_tick - (signed long)jolt_tick;
                 double num_host_syncs_in_those_ticks = floor(ticks_since_jolt / vsync.period);
-                float diff_thing = ticks_since_jolt - (num_host_syncs_in_those_ticks * (double)vsync.period);
+                float diff_thing = ticks_since_jolt - (num_host_syncs_in_those_ticks * vsync.period);
 
                 if( diff_thing > (vsync.period / 2.0f) ) real_diff = diff_thing - vsync.period;
                 else real_diff = diff_thing;
@@ -3659,7 +3675,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     // NTS: To be moved
     if (autosave_second>0&&enable_autosave) {
         uint32_t ticksNew=GetTicks();
-        if (ticksNew-ticksPrev>autosave_second*1000) {
+        if (ticksNew-ticksPrev>(unsigned int)autosave_second*1000) {
             auto_save_state=true;
             int index=0;
             for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
@@ -3668,13 +3684,13 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if (autosave_end[index]>autosave_last[index]&&autosave_last[index]>=autosave_start[index]) autosave_last[index]++;
                     else autosave_last[index]=autosave_start[index];
                 } else autosave_last[index]=autosave_start[index];
-                int state = GetGameState_Run();
+                int state = (int)GetGameState_Run();
                 SetGameState_Run(autosave_last[index]-1);
                 SaveGameState_Run();
                 SetGameState_Run(state);
             } else if (!autosave_start[index]) {
                 SaveGameState_Run();
-                autosave_last[index]=GetGameState_Run()+1;
+                autosave_last[index]=(int)(GetGameState_Run()+1);
             }
             auto_save_state=false;
             ticksPrev=ticksNew;
@@ -3690,11 +3706,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
+        uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
             const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
-            uint16_t uname[4];
 
             // TTF output only looks at VGA emulation state for cursor status,
             // which PC-98 mode does not update.
@@ -3741,7 +3757,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             text[2]=0;
                             uname[0]=0;
                             uname[1]=0;
-                            CodePageGuestToHostUint16(uname,text);
+                            CodePageGuestToHostUTF16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
                                 (*draw).chr=uname[0];
                                 (*draw).doublewide=1;
@@ -3804,15 +3820,59 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
+            bool dbw, dex, bd[txtMaxCols];
+            for (int i=0; i<6; i++) lead[i] = 0;
+            if (isDBCSCP())
+                for (int i=0; i<6; i++) {
+                    lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+                    if (lead[i] == 0) break;
+                }
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (int i=0; i<txtMaxCols; i++) bd[i] = false;
+                    dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
+                        if (dex) {
+                            (*draw).chr = ' ';
+                            dbw=dex=false;
+                        } else if (dbw) {
+                            (*draw).skipped = 1;
+                            dbw=dex=false;
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            if (!boxdefault && col<ttf.cols-3) {
+                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (!bd[col])
+                                    boxdefault=true;
+                            }
+                            if (boxdefault) {
+                                char text[3];
+                                text[0]=(*draw).chr & 0xFF;
+                                text[1]=*(vidmem+2) & 0xFF;
+                                text[2]=0;
+                                uname[0]=0;
+                                uname[1]=0;
+                                CodePageGuestToHostUTF16(uname,text);
+                                if (uname[0]!=0&&uname[1]==0) {
+                                    (*draw).chr=uname[0];
+                                    (*draw).doublewide=1;
+                                    (*draw).unicode=1;
+                                    dbw=true;
+                                    dex=false;
+                                } else {
+                                    (*draw).chr=' ';
+                                    dbw=false;
+                                    dex=true;
+                                }
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
@@ -3831,10 +3891,47 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             } else {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
+                    for (int i=0; i<txtMaxCols; i++) bd[i] = false;
+                    dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw = ttf_cell();
                         (*draw).selected = (*drawc).selected;
-                        (*draw).chr = *vidmem;
+                        (*draw).chr = *vidmem & 0xFF;
+                        if (dex) {
+                            (*draw).chr = ' ';
+                            dbw=dex=false;
+                        } else if (dbw) {
+                            (*draw).skipped = 1;
+                            dbw=dex=false;
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            if (!boxdefault && col<ttf.cols-3) {
+                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (!bd[col])
+                                    boxdefault=true;
+                            }
+                            if (boxdefault) {
+                                char text[3];
+                                text[0]=(*draw).chr & 0xFF;
+                                text[1]=*(vidmem+1) & 0xFF;
+                                text[2]=0;
+                                uname[0]=0;
+                                uname[1]=0;
+                                CodePageGuestToHostUTF16(uname,text);
+                                if (uname[0]!=0&&uname[1]==0) {
+                                    (*draw).chr=uname[0];
+                                    (*draw).doublewide=1;
+                                    (*draw).unicode=1;
+                                    dbw=true;
+                                    dex=false;
+                                } else {
+                                    (*draw).chr=' ';
+                                    dbw=false;
+                                    dex=true;
+                                }
+                            }
+                        }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
                         Bitu background = attr >> 4;
@@ -3942,11 +4039,11 @@ void VGA_CheckScanLength(void) {
                 // S3 Trio: Testing on a real S3 Virge PCI card shows that the
                 //          byte/word/dword bits have no effect on SVGA modes other
                 //          than the 16-color 800x600 SVGA mode.
-                vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<2u);
+                vga.draw.address_add=vga.config.scan_len*(2u<<2u);
             }
             else {
                 // Other cards (?)
-                vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<vga.config.addr_shift);
+                vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
             }
         }
         break;
@@ -3959,7 +4056,7 @@ void VGA_CheckScanLength(void) {
     case M_CGA16:
     case M_AMSTRAD: // Next line.
         if (IS_EGAVGA_ARCH)
-            vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<vga.config.addr_shift);
+            vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
         else
             vga.draw.address_add=vga.draw.blocks;
         break;
@@ -5034,6 +5131,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     else if (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
     else if (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
     else if ((width >= 800)&&(height>=600)) screenratio = 4.0 / 3.0;
+    else if (render.aspect) screenratio = 4.0 / 3.0;
 
 #if C_DEBUG
             LOG(LOG_VGA,LOG_NORMAL)("screen: %1.3f, scanfield: %1.3f, scan: %1.3f, vratio: %1.3f",

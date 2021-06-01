@@ -23,7 +23,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #include "dosbox.h"
 #include "callback.h"
 #include "mem.h"
@@ -38,6 +37,7 @@
 #include "support.h"
 #include "setup.h"
 #include "control.h"
+#include "SDL.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -50,6 +50,8 @@ void bios_enable_ps2();
 void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
+extern bool MOUSE_IsLocked();
+extern bool usesystemcursor;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -498,6 +500,10 @@ void RestoreCursorBackground() {
 
 void DrawCursor() {
     if (mouse.hidden || mouse.inhibit_draw) return;
+    if (usesystemcursor&&!MOUSE_IsLocked()) {
+        SDL_ShowCursor(SDL_ENABLE);
+        return;
+    }
     INT10_SetCurMode();
     // In Textmode ?
     if (CurMode->type==M_TEXT) {
@@ -714,9 +720,8 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
-#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
-#include "render.h"
 char text[5000];
+extern bool isDBCSCP();
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
 	uint16_t result=0, len=0;
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -726,7 +731,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	} else {
 		c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-		r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+		r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
 	}
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
     if (w>0&&h>0) {
@@ -781,6 +786,8 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 	return text;
 }
 
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
+#include "render.h"
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
     uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -790,7 +797,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
         r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
     } else {
         c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-        r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
     }
     if (w>0&&h>0) {
         c1=c*x1/w;
@@ -809,12 +816,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 		r2=t;
 	}
 #if defined(USE_TTF)
-    if (ttf.inUse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3)) {
+    if (ttf.inUse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP())) {
         ttf_cell *newAC = newAttrChar;
         for (int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||(IS_PC98_ARCH&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
+                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP())&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[x].selected = select?1:0;
             newAC += ttf.cols;
         }
@@ -1187,6 +1194,7 @@ static Bitu INT33_Handler(void) {
             else RestoreCursorBackgroundText();
             if (mouse.hidden == 0) mouse.hidden_at = PIC_FullIndex();
             mouse.hidden++;
+            if (usesystemcursor&&!MOUSE_IsLocked()) SDL_ShowCursor(SDL_DISABLE);
         }
         break;
     case 0x03:  /* Return position and Button Status */
@@ -1385,7 +1393,6 @@ static Bitu INT33_Handler(void) {
         break;
     case 0x0b:  /* Read Motion Data */
         {
-            extern bool MOUSE_IsLocked();
             const auto locked = MOUSE_IsLocked();
             reg_cx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_x : 0);
             reg_dx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_y : 0);

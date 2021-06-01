@@ -2969,6 +2969,8 @@ void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct p
 }
 
 void draw_pc98_function_row(unsigned int o, const struct pc98_func_key_shortcut_def* keylist) {
+    mem_writew(0xA0000+((o+1)*2),real_readb(0x60,0x8B));
+    mem_writeb(0xA2000+((o+1)*2),0xE1);
     for (unsigned int i=0u;i < 5u;i++)
         draw_pc98_function_row_elem(o,4u + (i * 7u),keylist[i]);
     for (unsigned int i=5u;i < 10u;i++)
@@ -2998,6 +3000,9 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
         }
     }
 
+    /* update mode 2 indicator */
+    real_writeb(0x60,0x8C,(pc98_function_row_mode == 2) ? '*' : ' ');
+
     real_writeb(0x60,0x112,total_rows - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
 
     if (pc98_function_row_mode == 2) {
@@ -3021,7 +3026,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
                 i++;
         }
 
-        mem_writew(0xA0000+((o+2)*2),(unsigned char)('*'));
+        mem_writew(0xA0000+((o+2)*2),real_readb(0x60,0x8C));
         mem_writeb(0xA2000+((o+2)*2),0xE1);
 
         draw_pc98_function_row(o,pc98_func_key_shortcut);
@@ -3071,6 +3076,16 @@ void pc98_function_row_user_toggle(void) {
         update_pc98_function_row(0,true);
     else
         update_pc98_function_row(pc98_function_row_mode+1,true);
+}
+
+void pc98_set_char_mode(bool mode) {
+    real_writeb(0x60,0x8A,mode);
+    real_writeb(0x60,0x8B,(mode == true) ? ' ' : 'g');
+    update_pc98_function_row(pc98_function_row_mode,true);
+}
+
+void pc98_toggle_char_mode(void) {
+    pc98_set_char_mode(!real_readb(0x60,0x8A));
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
@@ -5148,8 +5163,8 @@ static Bitu INTDC_PC98_Handler(void) {
                  * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code)
                  *
                  * NTS: Reverse engineering INT DCh shows it sets both 71Dh and 73Ch as below */
-                mem_writeb(0x71D,reg_dl);   /* 60:11D */
-                mem_writeb(0x73C,reg_dx);   /* 60:13C */
+                real_writeb(0x60,0x11D,reg_dl);
+                real_writeb(0x60,0x13C,reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 DL=X-coord DH=Y-coord set cursor position */
@@ -5751,7 +5766,33 @@ static Bitu INT15_Handler(void) {
     }
     switch (reg_ah) {
     case 0x06:
-        LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unkown Function 6 (Amstrad?)");
+        LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unknown Function 6 (Amstrad?)");
+        break;
+    case 0x24:      //A20 stuff
+        switch (reg_al) {
+        case 0: //Disable a20
+            MEM_A20_Enable(false);
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);             //clear on success
+            break;
+        case 1: //Enable a20
+            MEM_A20_Enable( true );
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);             //clear on success
+            break;
+        case 2: //Query a20
+            reg_al = MEM_A20_Enabled() ? 0x1 : 0x0;
+            reg_ah = 0;                   //call successful
+            CALLBACK_SCF(false);
+            break;
+        case 3: //Get a20 support
+            reg_bx = 0x3;       //Bitmask, keyboard and 0x92
+            reg_ah = 0;         //call successful
+            CALLBACK_SCF(false);
+            break;
+        default:
+            goto unhandled;
+        }
         break;
     case 0xC0:  /* Get Configuration*/
         CPU_SetSegGeneral(es,biosConfigSeg);
@@ -6550,6 +6591,7 @@ static Bitu INT15_Handler(void) {
                 }
                 break;
             default:
+            unhandled:
                 LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ah=E8, al=%2X",reg_al);
                 reg_ah=0x86;
                 CALLBACK_SCF(true);
@@ -6970,7 +7012,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
 }
 
 char *getSetupLine(const char *capt, const char *cont) {
-    unsigned int pad1=25-strlen(capt), pad2=41-strlen(cont);
+    unsigned int pad1=(unsigned int)(25-strlen(capt)), pad2=(unsigned int)(41-strlen(cont));
     static char line[90];
     sprintf(line, "º%*c%s%*c%s%*cº", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
     return line;
@@ -7118,9 +7160,16 @@ void showBIOSSetup(const char* card, int x, int y) {
         reg_eax = 0x0600u;
         reg_ebx = 0x1e00u;
         reg_ecx = 0x0000u;
-        reg_edx = 0x184Fu;
+        reg_edx =
+#if defined(USE_TTF)
+        TTF_using()?(ttf.lins-1)*0x100+(ttf.cols-1):
+#endif
+        0x184Fu;
         CALLBACK_RunRealInt(0x10);
     }
+#if defined(USE_TTF)
+    if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
+#endif
     char title[]="                               BIOS Setup Utility                               ";
     char *p=machine == MCH_PC98?title+2:title;
     BIOS_Int10RightJustifiedPrint(x,y,p);
@@ -8562,6 +8611,16 @@ private:
         GFX_SetTitle(-1,-1,-1,false);
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\nDOSBox-X user guide: https://dosbox-x.com/wiki\n\n";
         bool textsplash = section->Get_bool("disable graphical splash");
+#if defined(USE_TTF)
+        if (TTF_using()) {
+            textsplash = true;
+            if (ttf.cols != 80 || ttf.lins != 25) {
+                oldcols = ttf.cols;
+                oldlins = ttf.lins;
+            } else
+                oldcols = oldlins = 0;
+        }
+#endif
         char logostr[8][30];
         strcpy(logostr[0], "+-------------------+");
         strcpy(logostr[1], "|    Welcome  To    |");
@@ -8577,17 +8636,6 @@ private:
         , SDL_STRING);
         sprintf(logostr[6], "|  Version %7s  |", VERSION);
         strcpy(logostr[7], "+-------------------+");
-#if defined(USE_TTF)
-        if (TTF_using()) {
-            textsplash = true;
-            if (ttf.cols != 80 || ttf.lins != 25) {
-                oldcols = ttf.cols;
-                oldlins = ttf.lins;
-                ttf_setlines(80, 25);
-            } else
-                oldcols = oldlins = 0;
-        }
-#endif
 startfunction:
         int logo_x,logo_y,x=2,y=2,rowheight=8;
         logo_y = 2;
@@ -8695,6 +8743,10 @@ startfunction:
             // TODO: For CGA, PCjr, and Tandy, we could render a 4-color CGA version of the same logo.
             //       And for MDA/Hercules, we could render a monochromatic ASCII art version.
         }
+
+#if defined(USE_TTF)
+        if (TTF_using() && (ttf.cols != 80 || ttf.lins != 25)) ttf_setlines(80, 25);
+#endif
 
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
@@ -9086,9 +9138,6 @@ startfunction:
         }
 #endif
 
-#if defined(USE_TTF)
-        if (TTF_using() && oldcols>0 && oldlins>0) ttf_setlines(oldcols, oldlins);
-#endif
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
             CALLBACK_RunRealInt(0x18);
@@ -9117,6 +9166,12 @@ startfunction:
             reg_eax = 3;
             CALLBACK_RunRealInt(0x10);
         }
+#if defined(USE_TTF)
+        if (TTF_using() && oldcols>0 && oldlins>0) {
+            ttf_setlines(oldcols, oldlins);
+            oldcols = oldlins = 0;
+        }
+#endif
 
         return CBRET_NONE;
     }

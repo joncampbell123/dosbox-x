@@ -45,11 +45,9 @@
 #endif
 #include "build_timestamp.h"
 
-static bool first_run=true;
-extern bool use_quick_reboot, mountwarning;
 extern bool startcmd, startwait, startquiet, winautorun;
-extern bool enable_config_as_shell_commands;
-extern bool dos_shell_running_program, addovl;
+extern bool dos_shell_running_program, mountwarning;
+extern bool addovl, addipx;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -93,10 +91,12 @@ static char autoexec_data[AUTOEXEC_SIZE] = { 0 };
 static std::list<std::string> autoexec_strings;
 typedef std::list<std::string>::iterator auto_it;
 
-void VFILE_Remove(const char *name);
+void VFILE_Remove(const char *name,const char *dir="");
+void runRescan(const char *str), DOSBox_SetSysMenu(void);
+void SetupDBCSTable(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 
 #if defined(WIN32)
-void MountAllDrives(Program * program) {
+void MountAllDrives(Program * program, bool quiet) {
     uint32_t drives = GetLogicalDrives();
     char name[4]="A:\\";
     for (int i=0; i<25; i++) {
@@ -105,7 +105,7 @@ void MountAllDrives(Program * program) {
             name[0]='A'+i;
             int type=GetDriveType(name);
             if (type!=DRIVE_NO_ROOT_DIR) {
-                program->WriteOut("Mounting %c: => %s..\n", name[0], name);
+                if (!quiet) program->WriteOut("Mounting %c: => %s..\n", name[0], name);
                 char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
                 name[2]=' ';
                 strcpy(mountstring,name);
@@ -113,8 +113,8 @@ void MountAllDrives(Program * program) {
                 strcat(mountstring,name);
                 strcat(mountstring," -Q");
                 runMount(mountstring);
-                if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
-                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+                if (!Drives[i] && !quiet) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
+                else if(mountwarning && !quiet && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
             }
         }
     }
@@ -353,7 +353,7 @@ void DOS_Shell::ParseLine(char * line) {
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
 		} else
-			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File open error - %s\n"), in);
+			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
 	}
 	bool fail=false;
 	char pipetmp[270];
@@ -401,7 +401,7 @@ void DOS_Shell::ParseLine(char * line) {
 		if(!status && normalstdout) {
 			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
 			if (!toc) {
-				WriteOut(!*out?"File creation error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File creation error - %s\n"), out);
+				WriteOut(!*out?"File creation error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File creation error - %s\n"), out);
 				DOS_CloseFile(1);
 				DOS_OpenFile("nul", OPEN_READWRITE, &dummy);
 			}
@@ -520,56 +520,77 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
-bool shellrun=false;
-void DOS_Shell::Run(void) {
-	shellrun=true;
-	char input_line[CMD_MAXLINE] = {0};
-	std::string line;
-	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
-	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);
-	if (optP) perm=true;
-	if (optC||optK) {
-		input_line[CMD_MAXLINE-1u] = 0;
-		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
-		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
-		if (sep) *sep = 0;
-		DOS_Shell temp;
-		temp.echo = echo;
-		temp.exec=true;
-		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
-		temp.RunInternal();				// exits when no bf is found.
-		temp.exec=false;
-		if (!optK||(!perm&&temp.exit)) {
-            shellrun=false;
-            return;
-        }
-	} else if (cmd->FindStringRemain("/?",line)) {
-		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
-		shellrun=false;
-		return;
-	}
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
+static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
+static char const * const prompt_string="PROMPT=$P$G";
+static char const * const full_name="Z:\\COMMAND.COM";
+static char const * const init_line="/INIT AUTOEXEC.BAT";
 
-    bool optInit=cmd->FindString("/INIT",line,true);
+bool shellrun=false;
+bool InitCodePage(void);
+void initcodepagefont(void);
+void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
             std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
-            if (machine == MCH_PC98)
-                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),44,verstr.c_str());
-            else
-                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),54,verstr.c_str());
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN2")));
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
-#if C_DEBUG
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_DEBUG")));
-#else
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_EMPTY")));
-#endif
-            if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_CGA")));
-            if (machine == MCH_PC98) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_PC98")));
-            if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_HERC")));
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_END")));
+            if (machine == MCH_PC98) {
+                WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string("  \033[33m%*s\033[37m \x86\x46\n")).c_str()),34,verstr.c_str());
+                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_EXAMPLE_PC98")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg("\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"));
+                WriteOut(ParseMsg((std::string("\033[1m\033[32m")+MSG_Get("SHELL_STARTUP_LAST")+"\033[0m\n").c_str()));
+            } else {
+                WriteOut(ParseMsg("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string(" \033[33m%*s\033[37m \xBA\033[0m")).c_str()),45,verstr.c_str());
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                if (IS_VGA_ARCH) WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_EXAMPLE")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD2")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                if (machine == MCH_CGA || machine == MCH_AMSTRAD) {
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                } else if (machine == MCH_HERC || machine == MCH_MDA) {
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                }
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
+                WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
+            }
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
             WriteOut("[2J");
 		if (!countryNo) {
@@ -599,19 +620,26 @@ void DOS_Shell::Run(void) {
 				country = atoi(trim(countrystr));
 				int newCP = atoi(trim(r+1));
 				*r=',';
+                if (!IS_PC98_ARCH) {
 #if defined(USE_TTF)
-                if (ttf.inUse && !IS_PC98_ARCH) {
-                    void toSetCodePage(DOS_Shell *shell, int newCP);
-                    if (newCP) toSetCodePage(this, newCP);
-                    else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
-                }
+                    if (ttf.inUse) {
+                        if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
+                        else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                    } else
 #endif
+                    if (newCP==932||newCP==936||newCP==949||newCP==950) {
+                        dos.loaded_codepage=newCP;
+                        SetupDBCSTable();
+                        runRescan("-A -Q");
+                        DOSBox_SetSysMenu();
+                    }
+                }
             }
 			if (country>0) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
-			const char * extra = const_cast<char*>(section->data.c_str());
+			const char * extra = section->data.c_str();
 			if (extra) {
 				std::string vstr;
 				std::istringstream in(extra);
@@ -639,6 +667,12 @@ void DOS_Shell::Run(void) {
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
 							ResolvePath(vstr);
+							if (!strcmp(cmd, "set path")) {
+								if (vstr=="Z:\\"||vstr=="z:\\")
+									vstr=path_string+5;
+								else if (vstr.size()>3&&(vstr.substr(0, 4)=="Z:\\;"||vstr.substr(0, 4)=="z:\\;")&&vstr.substr(4).find("Z:\\")==std::string::npos&&vstr.substr(4).find("z:\\")==std::string::npos)
+									vstr=vstr.substr(0, 3)+std::string(path_string+8)+vstr.substr(3);
+							}
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							vstr=std::string(val);
@@ -646,8 +680,8 @@ void DOS_Shell::Run(void) {
 							strcpy(tmp, vstr.c_str());
 							char *name=StripArg(tmp);
 							if (!*name) continue;
-							if (!DOS_FileExists(name)) {
-								WriteOut("The following file is missing or corrupted: %s\n", name);
+							if (!DOS_FileExists(name)&&!DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())&&!DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str())) {
+								WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
 								continue;
 							}
 							if (!strcasecmp(cmd, "install"))
@@ -666,23 +700,26 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
+        std::string line;
+        GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
-			strcat(config_data, (char *)section->Get_string("rem"));
+			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
-			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
-			if (sec->Get_bool("automountall")) MountAllDrives(this);
+			const Section_prop* sec = static_cast<Section_prop*>(control->GetSection("dos"));
+			const char *automountstr = sec->Get_string("automountall");
+			if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet")||control->opt_fastlaunch);
 		}
 #endif
 		strcpy(i4dos_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("4dos"));
 		if (section!=NULL) {
-			const char * extra = const_cast<char*>(section->data.c_str());
+			const char * extra = section->data.c_str();
 			if (extra) {
 				std::istringstream in(extra);
 				if (in)	for (std::string line; std::getline(in, line); ) {
@@ -693,11 +730,45 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
-		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
+		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
+        int cp=dos.loaded_codepage;
+        if (!dos.loaded_codepage) InitCodePage();
+        initcodepagefont();
+        dos.loaded_codepage=cp;
     }
-    else if (!optInit) {
+}
+
+void DOS_Shell::Run(void) {
+	shellrun=true;
+	char input_line[CMD_MAXLINE] = {0};
+	std::string line;
+	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
+	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);
+	if (optP) perm=true;
+	if (optC||optK) {
+		input_line[CMD_MAXLINE-1u] = 0;
+		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
+		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
+		if (sep) *sep = 0;
+		DOS_Shell temp;
+		temp.echo = echo;
+		temp.exec=true;
+		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
+		temp.RunInternal();				// exits when no bf is found.
+		temp.exec=false;
+		if (!optK||(!perm&&temp.exit)) {
+            shellrun=false;
+            return;
+        }
+	} else if (cmd->FindStringRemain("/?",line)) {
+		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
+		shellrun=false;
+		return;
+	}
+
+    bool optInit=cmd->FindString("/INIT",line,true);
+    if (this != first_shell && !optInit)
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
-    }
 
 	if (optInit) {
 		input_line[CMD_MAXLINE-1u] = 0;
@@ -807,7 +878,7 @@ public:
         }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
-		const char * extra = const_cast<char*>(section->data.c_str());
+		const char * extra = section->data.c_str();
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
 			size_t firstline_length = strcspn(extra,"\r\n");
@@ -862,7 +933,7 @@ public:
 			if (test.st_mode & S_IFDIR) {
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
-				if(secure) autoexec[14].Install("z:\\config.com -securemode");
+				if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 				command_found = true;
 			} else {
 				char* name = strrchr(buffer,CROSS_FILESPLIT);
@@ -884,7 +955,7 @@ public:
 				strcpy(orig,name);
 				upcase(name);
 				if(strstr(name,".BAT") != 0) {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					/* BATch files are called else exit will not work */
 					autoexec[15].Install(std::string("CALL ") + name);
 					if(addexit) autoexec[16].Install("exit");
@@ -897,10 +968,10 @@ public:
 					/* securemode gets a different number from the previous branches! */
 					autoexec[14].Install(std::string("IMGMOUNT D \"") + orig + std::string("\" -t iso"));
 					//autoexec[16].Install("D:");
-					if(secure) autoexec[15].Install("z:\\config.com -securemode");
+					if(secure) autoexec[15].Install("z:\\system\\config.com -securemode");
 					/* Makes no sense to exit here */
 				} else {
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
+					if(secure) autoexec[14].Install("z:\\system\\config.com -securemode");
 					autoexec[15].Install(name);
 					if(addexit) autoexec[16].Install("exit");
 				}
@@ -910,10 +981,10 @@ public:
 
 		/* Combining -securemode, noautoexec and no parameters leaves you with a lovely Z:\. */
 		if ( !command_found ) { 
-			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
+			if ( secure ) autoexec[12].Install("z:\\system\\config.com -securemode");
 		}
 #else
-		if (secure) autoexec[i++].Install("z:\\config.com -securemode");
+		if (secure) autoexec[i++].Install("z:\\system\\config.com -securemode");
 #endif
 
 		if (addexit) autoexec[i++].Install("exit");
@@ -995,13 +1066,84 @@ static Bitu INT2E_Handler(void) {
 	return CBRET_NONE;
 }
 
-static char const * const path_string="PATH=Z:\\";
-static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
-static char const * const prompt_string="PROMPT=$P$G";
-static char const * const full_name="Z:\\COMMAND.COM";
-static char const * const init_line="/INIT AUTOEXEC.BAT";
-
 extern unsigned int dosbox_shell_env_size;
+extern uint16_t fztime, fzdate;
+void IPXNET_ProgramStart(Program * * make);
+void drivezRegister(std::string path, std::string dir) {
+    char exePath[CROSS_LEN];
+    std::vector<std::string> names;
+    if (path.size()) {
+#if defined(WIN32)
+        WIN32_FIND_DATA fd;
+        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
+        if(hFind != INVALID_HANDLE_VALUE) {
+            do {
+                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                    names.emplace_back(fd.cFileName);
+                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
+                    names.push_back(std::string(fd.cFileName)+"/");
+            } while(::FindNextFile(hFind, &fd));
+            ::FindClose(hFind);
+        }
+#else
+        struct dirent *dir;
+        DIR *d = opendir(path.c_str());
+        if (d)
+        {
+            while ((dir = readdir(d)) != NULL)
+              if (dir->d_type==DT_REG)
+                names.push_back(dir->d_name);
+              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
+                names.push_back(std::string(dir->d_name)+"/");
+            closedir(d);
+        }
+#endif
+    }
+    int res;
+    long f_size;
+    uint8_t *f_data;
+    struct stat temp_stat;
+    const struct tm* ltime;
+    for (std::string name: names) {
+        if (!name.size()) continue;
+        if (name.back()=='/' && dir=="/") {
+            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            fztime = fzdate = 0;
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            continue;
+        }
+        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
+        if (f == NULL) {
+            strcpy(exePath, GetDOSBoxXPath().c_str());
+            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
+            f = fopen(exePath, "rb");
+        }
+        f_size = 0;
+        f_data = NULL;
+
+        if (f != NULL) {
+            res=fstat(fileno(f),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            fseek(f, 0, SEEK_END);
+            f_size=ftell(f);
+            f_data=(uint8_t*)malloc(f_size);
+            fseek(f, 0, SEEK_SET);
+            fread(f_data, sizeof(char), f_size, f);
+            fclose(f);
+        }
+        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        fztime = fzdate = 0;
+    }
+}
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
@@ -1015,22 +1157,24 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TREE_ERROR", "No subdirectories exist\n");
 	MSG_Add("SHELL_CMD_VOL_TREE", "Directory PATH listing for Volume %s\n");
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
-	MSG_Add("SHELL_CMD_VOL_DRIVEERROR","Cannot find the drive specified\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
 	MSG_Add("SHELL_ILLEGAL_PATH","Path not found\n");
 	MSG_Add("SHELL_ILLEGAL_DRIVE","Invalid drive specification\n");
 	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported internal commands type \033[33;1mHELP /ALL\033[0m.\nYou can also find external commands on the Z: drive as programs.\nA short list of the most often used commands:\n");
+	MSG_Add("SHELL_CMD_HELP_END1","External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
+	MSG_Add("SHELL_CMD_HELP_END2","Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
+	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
-	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
+	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, and the specified directory cannot be found.\nFor accessing a mounted drive, change to the drive with a syntax like \033[31mC:\033[0m.\n");
 	MSG_Add("SHELL_CMD_DATE_HELP","Displays or changes the internal date.\n");
 	MSG_Add("SHELL_CMD_DATE_ERROR","The specified date is not correct.\n");
 	MSG_Add("SHELL_CMD_DATE_DAYS","3SunMonTueWedThuFriSat"); // "2SoMoDiMiDoFrSa"
@@ -1050,6 +1194,7 @@ void SHELL_Init() {
 									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
+	MSG_Add("SHELL_CMD_MKDIR_EXIST","Directory already exists - %s\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
@@ -1124,119 +1269,27 @@ void SHELL_Init() {
 // "\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \xBA\n"
     }
 
-    if (machine == MCH_PC98) {
-        MSG_Add("SHELL_STARTUP_BEGIN",
-                "\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-                "\x86\x46 \033[32mWelcome to DOSBox-X ! \033[33m%*s\033[37m \x86\x46\n"
-                "\x86\x46                                                                    \x86\x46\n"
-                "\x86\x46 \033[36mGetting Started with DOSBox-X:\033[37m                                     \x86\x46\n"
-                "\x86\x46                                                                    \x86\x46\n"
-                "\x86\x46 Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction.  \x86\x46\n"
-                "\x86\x46 You could also complete various tasks through the \033[33mdrop-down menus\033[37m. \x86\x46\n"
-                "\x86\x46 \033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option. \x86\x46\n"
-                "\x86\x46                                                                    \x86\x46\n");
-        MSG_Add("SHELL_STARTUP_BEGIN2",
-                    (std::string("\x86\x46 To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string(" \x86\x46\n")).c_str()
-               );
-        MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\x86\x46 To activate the \033[33mMapper Editor\033[37m for key assignments, use \033[31mhost+M\033[37m.     \x86\x46\n"
-                "\x86\x46 To switch between windowed and full-screen mode, use \033[31mhost+F\033[37m.       \x86\x46\n"
-                "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost+Plus\033[37m and \033[31mhost+Minus\033[37m.    \x86\x46\n"
-               );
-        MSG_Add("SHELL_STARTUP_PC98","\x86\x46 \033[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.\033[37m      \x86\x46\n"
-                "\x86\x46 \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \x86\x46\n"
-                "\x86\x46                                                                    \x86\x46\n");
-        MSG_Add("SHELL_STARTUP_DEBUG",
-#if defined(MACOSX)
-                //"\x86\x46 Debugger is available, use \033[31mAlt+F12\033[37m to enter.                       \x86\x46\n"
-#else
-                //"\x86\x46 Debugger is available, use \033[31mAlt+Pause\033[37m to enter.                     \x86\x46\n"
-#endif
-                "\x86\x46                                                                    \x86\x46\n"
-               );
-        MSG_Add("SHELL_STARTUP_EMPTY",
-                "\x86\x46                                                                    \x86\x46\n"
-               );
-        MSG_Add("SHELL_STARTUP_END",
-                "\x86\x46 \033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m \x86\x46\n"
-                "\x86\x46 \033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m \x86\x46\n"
-                "\x86\x46 \033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m \x86\x46\n"
-                "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
-                "\033[1m\033[32mHAVE FUN WITH DOSBox-X !\033[0m\n"
-               );
-    }
-    else {
-        MSG_Add("SHELL_STARTUP_BEGIN",
-                "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"
-                "\033[44;1m\xBA \033[32mWelcome to DOSBox-X ! \033[33m%*s\033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[36mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction. \xBA\033[0m"
-                "\033[44;1m\xBA You can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m. \xBA\033[0m"
-               );
-        MSG_Add("SHELL_STARTUP_BEGIN2",
-                IS_VGA_ARCH?"\033[44;1m\xBA \033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option. \xBA\033[0m":"");
-        MSG_Add("SHELL_STARTUP_BEGIN3",
-                (std::string("\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[36mUseful default shortcuts:                                                   \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
-                (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
-        if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF. \xBA\033[0m"
-                    "\033[44;1m\xBA Use \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model.  \xBA\033[0m"
-                    "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                   );
-        } else {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,       \xBA\033[0m"
-                   "\033[44;1m\xBA and \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
-                    "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                   );
-        }
-        MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
-                "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use Ctrl+F7 to cycle through white, amber, and green monochrome color.       \xBA\033[0m"
-                "\033[44;1m\xBA Use Ctrl+F8 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-               );
-        MSG_Add("SHELL_STARTUP_DEBUG",
-#if defined(MACOSX)
-                //"\033[44;1m\xBA Debugger is also available. To enter the debugger  : \033[31mAlt \033[37m+\033[31m F12\033[37m               \xBA\033[0m"
-#else
-                //"\033[44;1m\xBA Debugger is also available. To enter the debugger  : \033[31mAlt \033[37m+\033[31m Pause\033[37m             \xBA\033[0m"
-#endif
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-               );
-        MSG_Add("SHELL_STARTUP_EMPTY",
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-               );
-        MSG_Add("SHELL_STARTUP_END",
-                "\033[44;1m\xBA \033[36mDOSBox-X project on the web:                                                \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/           \033[36mComplete DOS emulations\033[37m \xBA\033[0m"
-                "\033[44;1m\xBA \033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m       \033[36mDOS, Windows 3.x and 9x\033[37m \xBA\033[0m"
-                "\033[44;1m\xBA \033[32mIssue or suggestion\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m \xBA\033[0m"
-                "\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"
-                "\033[1m\033[32mHAVE FUN WITH DOSBox-X !                                                       \033[0m\n"
-               );
-    }
+    MSG_Add("SHELL_STARTUP_TITLE", "Welcome to DOSBox-X !");
+    MSG_Add("SHELL_STARTUP_HEAD1_PC98", "\033[36mGetting Started with DOSBox-X:\033[37m                                    ");
+    MSG_Add("SHELL_STARTUP_TEXT1_PC98", "Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction. \nYou could also complete various tasks through the \033[33mdrop-down menus\033[37m.");
+    MSG_Add("SHELL_STARTUP_EXAMPLE_PC98", "\033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option.");
+    MSG_Add("SHELL_STARTUP_TEXT2_PC98", (std::string("To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string("\nTo activate the \033[33mMapper Editor\033[37m for key assignments, use \033[31mhost+M\033[37m.    \nTo switch between windowed and full-screen mode, use \033[31mhost+F\033[37m.      \nTo adjust the emulated CPU speed, use \033[31mhost+Plus\033[37m and \033[31mhost+Minus\033[37m.   ")).c_str());
+    MSG_Add("SHELL_STARTUP_INFO_PC98","\033[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.\033[37m     \n\033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m       ");
+    MSG_Add("SHELL_STARTUP_TEXT3_PC98", "\033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m\n\033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m");
+    MSG_Add("SHELL_STARTUP_HEAD1", "\033[36mGetting started with DOSBox-X:                                              \033[37m");
+    MSG_Add("SHELL_STARTUP_TEXT1", "Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction.\nYou can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m.");
+    MSG_Add("SHELL_STARTUP_EXAMPLE", "\033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option.");
+    MSG_Add("SHELL_STARTUP_HEAD2", "\033[36mUseful default shortcuts:                                                   \033[37m");
+    MSG_Add("SHELL_STARTUP_TEXT2", (std::string("- switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m\n") +
+            std::string("- launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m\n") +
+            std::string("- increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
+            (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m")).c_str());
+    MSG_Add("SHELL_STARTUP_CGA", "Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF.\nUse \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model. ");
+    MSG_Add("SHELL_STARTUP_CGA_MONO","Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,      \nand \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                         ");
+    MSG_Add("SHELL_STARTUP_HERC","Use \033[31mCtrl+F7\033[37m to cycle through white, amber, and green monochrome color.      \nUse \033[31mCtrl+F8\033[37m to toggle horizontal blending (only in graphics mode).          ");
+    MSG_Add("SHELL_STARTUP_HEAD3", "\033[36mDOSBox-X project on the web:                                                \033[37m");
+    MSG_Add("SHELL_STARTUP_TEXT3", "\033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/           \033[36mComplete DOS emulations\033[37m\n\033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m       \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mIssue or suggestion\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m");
+    MSG_Add("SHELL_STARTUP_LAST", "HAVE FUN WITH DOSBox-X !");
 
 	MSG_Add("SHELL_CMD_BREAK_HELP","Sets or clears extended CTRL+C checking.\n");
 	MSG_Add("SHELL_CMD_BREAK_HELP_LONG","BREAK [ON | OFF]\n\nType BREAK without a parameter to display the current BREAK setting.\n");
@@ -1363,8 +1416,8 @@ void SHELL_Init() {
 		   "  /D            Deletes a mounted or substituted drive.\n\n"
 		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
-	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive1:][path]filename [parameters]\n"
-		   "LOADHIGH        [drive1:][path]filename [parameters]\n");
+	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
+		   "LOADHIGH        [drive:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
@@ -1432,8 +1485,9 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
+	MSG_Add("SHELL_CMD_CHCP_MISSING", "Characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
@@ -1447,7 +1501,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 #if C_DEBUG
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
-	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n\nType DEBUGBOX without a parameter to start the debugger.\n");
 #endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C    Executes the specified command and returns.\n  /K    Executes the specified command and continues running.\n  /P    Loads a permanent copy of the command shell.\n  /INIT Initializes the command shell.\n");
 
@@ -1561,8 +1615,6 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
     std::string dirname="drivez";
     std::string path = ".";
     path += CROSS_FILESPLIT;
@@ -1584,115 +1636,92 @@ void SHELL_Init() {
                 path = "";
         }
     }
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-                    names.push_back(fd.cFileName);
-                }
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG) names.push_back(dir->d_name);
-            closedir(d);
-        }
+
+    drivezRegister(path, "/");
+
+	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
+#if C_IPX
+	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
-    }
-    long f_size;
-    uint8_t *f_data;
-    for (std::string name: names) {
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
-
-        if(f != NULL) {
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
-
-        if(f_data) VFILE_Register(name.c_str(), f_data, f_size);
-    }
-
-	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
-    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
+	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT);
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_TEXTUTIL_ZIP);
-		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
-		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP);
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
-		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
-
-		if (IS_VGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
-		else if (IS_EGA_ARCH)
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
-		else
-			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_OPTION_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X60_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X50_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X43_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_80X25_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X60_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X50_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X43_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_132X25_COM, "/TEXTUTIL/");
 	}
-	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE);
+
+	/* don't register 50 unless VGA */
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_VGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
 	else if (IS_EGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
 
-	/* don't register 50 unless VGA */
-	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
+    if (IS_VGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
+    else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
+    else if (!IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
 
 	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
 	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
 	/* DSXMENU.EXE */
 	if (IS_PC98_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
-	else
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+	else {
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+    }
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
@@ -1733,27 +1762,6 @@ void SHELL_Init() {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,CTBUF+1));
 	dos.psp(psp_seg);
-
-    /* settings */
-    if (first_run) {
-        const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
-		use_quick_reboot = section->Get_bool("quick reboot");
-		enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
-		startwait = section->Get_bool("startwait");
-		startquiet = section->Get_bool("startquiet");
-		winautorun=startcmd;
-		first_run=false;
-    }
-#if !defined(HX_DOS)
-    mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
-#endif
-	mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
-	mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
-#if defined(WIN32) && !defined(HX_DOS)
-    mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
-#endif
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT
@@ -1771,26 +1779,25 @@ void SHELL_Run() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
     bool altshell=false;
     char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
+    SHELL_ProgramStart_First_shell(&first_shell);
+    first_shell->Prepare();
     if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
         char *shell = (char *)section->Get_string("shell");
         if (strlen(shell)) {
             tmp=trim(shell);
             name=StripArg(tmp);
             upcase(name);
-            if (*name&&DOS_FileExists(name)) {
+            if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
                 strreplace(name,'/','\\');
                 altshell=true;
-            }
+            } else if (*name)
+                first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
         }
     }
-	SHELL_ProgramStart_First_shell(&first_shell);
 
 	i4dos=false;
 	if (altshell) {
         if (strstr(name, "4DOS.COM")) i4dos=true;
-        first_shell->perm=false;
-        first_shell->exit=true;
-        first_shell->Run();
         first_shell->SetEnv("COMSPEC",name);
         if (!strlen(tmp)) {
             char *p=strrchr(name, '\\');

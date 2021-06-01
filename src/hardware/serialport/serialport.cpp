@@ -98,10 +98,9 @@ device_COM::~device_COM() {
 		sclass->mydosdevice = NULL;
 }
 
-
-
-// COM1 - COM4 objects
+// COM1 - COM9 objects
 CSerial* serialports[9] ={0,0,0,0,0,0,0,0,0};
+uint16_t serial_baseaddr[9] = {0,0,0,0,0,0,0,0,0};
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
     (void)iolen;//UNUSED
@@ -1121,8 +1120,10 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
     cd=false;			// bit7: CD
 
 	std::string str;
-	uint16_t base = serial_baseaddr[id];
-	if(cmd->FindStringBegin("base:",str,true)) base = strtol(str.c_str(), NULL, 16);
+	uint16_t base = serial_defaultaddr[id];
+	if(cmd->FindStringBegin("base:",str,true)) base = (uint16_t)strtol(str.c_str(), NULL, 16);
+	for (Bitu i=0; i<id; i++) if (base == serial_baseaddr[i]) base = 0;
+	serial_baseaddr[id] = base;
 	irq = serial_defaultirq[id];
 	getBituSubstring("irq:",&irq, cmd);
 	if (irq < 2 || irq > 15) irq = serial_defaultirq[id];
@@ -1175,6 +1176,7 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	txOverrunErrors=0;
 	overrunIF0=0;
 	breakErrors=0;
+	LOG_MSG("Serial%d: BASE %xh",(int)id+1,(int)base);
 	
 	for (Bitu i = 0; i <= 7; i++) {
 		WriteHandler[i].Install (i + base, SERIAL_Write, IO_MB);
@@ -1326,7 +1328,7 @@ void BIOS_Post_register_comports() {
 
 	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL && serial_baseaddr[i])
-			BIOS_SetCOMPort(i,serial_baseaddr[i]);
+			BIOS_SetCOMPort(i,serial_baseaddr[i]); // This works only for ports COM1 to COM4. There is no space to store more addresses
 	}
 }
 

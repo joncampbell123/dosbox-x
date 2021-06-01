@@ -75,24 +75,24 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
 	uint8_t rdval;
 	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
-	if (GCC_UNLIKELY(mem_readb_checked(lin_addr,&rdval))) return true;
-	PageHandler * handler=get_tlb_readhandler(lin_addr);
+	if (GCC_UNLIKELY(mem_readb_checked((const PhysPt)lin_addr,&rdval))) return true;
+	PageHandler * handler=get_tlb_readhandler((const PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
 		cph=( CodePageHandler *)handler;
 		if (handler->flags & cflag) return false;
 		cph->ClearRelease();
 		cph=0;
-		handler=get_tlb_readhandler(lin_addr);
+		handler=get_tlb_readhandler((const PhysPt)lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (PAGING_ForcePageInit(lin_addr)) {
-			handler=get_tlb_readhandler(lin_addr);
+			handler=get_tlb_readhandler((const PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=( CodePageHandler *)handler;
 				if (handler->flags & cflag) return false;
 				cph->ClearRelease();
 				cph=0;
-				handler=get_tlb_readhandler(lin_addr);
+				handler=get_tlb_readhandler((const PhysPt)lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {
@@ -141,7 +141,7 @@ static uint8_t decode_fetchb(void) {
 			/* trigger possible page fault here */
 			decode.page.first++;
 			Bitu fetchaddr=decode.page.first << 12;
-			mem_readb(fetchaddr);
+			mem_readb((const PhysPt)fetchaddr);
 			MakeCodePage(fetchaddr,decode.page.code);
 			CacheBlock * newblock=cache_getblock();
 			decode.active_block->crossblock=newblock;
@@ -206,7 +206,7 @@ static INLINE void decode_increase_wmapmask(Bitu size) {
 	if (GCC_UNLIKELY(!activecb->cache.wmapmask)) {
 		activecb->cache.wmapmask=(uint8_t*)malloc(START_WMMEM);
 		memset(activecb->cache.wmapmask,0,START_WMMEM);
-		activecb->cache.maskstart=decode.page.index;
+		activecb->cache.maskstart=(uint16_t)decode.page.index;
 		activecb->cache.masklen=START_WMMEM;
 		mapidx=0;
 	} else {
@@ -219,7 +219,7 @@ static INLINE void decode_increase_wmapmask(Bitu size) {
 			memcpy(tempmem,activecb->cache.wmapmask,activecb->cache.masklen);
 			free(activecb->cache.wmapmask);
 			activecb->cache.wmapmask=tempmem;
-			activecb->cache.masklen=newmasklen;
+			activecb->cache.masklen=(uint16_t)newmasklen;
 		}
 	}
 	switch (size) {
@@ -384,10 +384,10 @@ static BlockReturn DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t 
 	reg_flags=(dflags&FMASK_TEST) | (reg_flags&(~FMASK_TEST));
 	reg_eip+=eip_add;
 	if (pf_restore_struct.data.stack)
-		reg_esp = core_dyn.pagefault_old_stack;
+		reg_esp = (uint32_t)core_dyn.pagefault_old_stack;
 #ifdef CPU_FPU
 	if (pf_restore_struct.data.fpu_top)
-		TOP = core_dyn.pagefault_old_fpu_top;
+		TOP = (uint32_t)core_dyn.pagefault_old_fpu_top;
 #endif
 	CPU_Cycles-=cycle_sub;
 	bool saved_allow = dosbox_allow_nonrecursive_page_fault;
@@ -982,16 +982,16 @@ static bool mem_readw_checked_dcx64(PhysPt address, uint16_t* dst) {
 	return get_tlb_readhandler(address)->readw_checked(address, dst);
 }
 static bool mem_writed_checked_dcx64(PhysPt address, Bitu val) {
-	return get_tlb_writehandler(address)->writed_checked(address, val);
+	return get_tlb_writehandler(address)->writed_checked(address, (uint32_t)val);
 }
 static bool mem_writew_checked_dcx64(PhysPt address, Bitu val) {
-	return get_tlb_writehandler(address)->writew_checked(address, val);
+	return get_tlb_writehandler(address)->writew_checked(address, (uint16_t)val);
 }
 static bool mem_readb_checked_dcx64(PhysPt address, uint8_t* dst) {
 	return get_tlb_readhandler(address)->readb_checked(address, dst);
 }
 static bool mem_writeb_checked_dcx64(PhysPt address, Bitu val) {
-	return get_tlb_writehandler(address)->writeb_checked(address, val);
+	return get_tlb_writehandler(address)->writeb_checked(address, (uint8_t)val);
 }
 
 static bool mem_readd_checked_dcx64_pagefault(PhysPt address, uint32_t* dst) {
@@ -1006,12 +1006,12 @@ static bool mem_readw_checked_dcx64_pagefault(PhysPt address, uint16_t* dst) {
 }
 static bool mem_writed_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
-		return get_tlb_writehandler(address)->writed_checked(address, val);
+		return get_tlb_writehandler(address)->writed_checked(address, (uint32_t)val);
 	});
 }
 static bool mem_writew_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
-		return get_tlb_writehandler(address)->writew_checked(address, val);
+		return get_tlb_writehandler(address)->writew_checked(address, (uint16_t)val);
 	});
 }
 static bool mem_readb_checked_dcx64_pagefault(PhysPt address, uint8_t* dst) {
@@ -1021,7 +1021,7 @@ static bool mem_readb_checked_dcx64_pagefault(PhysPt address, uint8_t* dst) {
 }
 static bool mem_writeb_checked_dcx64_pagefault(PhysPt address, Bitu val) {
 	DYN_PAGEFAULT_CHECK({
-		return get_tlb_writehandler(address)->writeb_checked(address, val);
+		return get_tlb_writehandler(address)->writeb_checked(address, (uint8_t)val);
 	});
 }
 
@@ -2490,7 +2490,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.page.invmap=codepage->invalidation_map;
 	decode.page.first=start >> 12;
 	decode.active_block=decode.block=cache_openblock();
-	decode.block->page.start=decode.page.index;
+	decode.block->page.start=(uint16_t)decode.page.index;
 	codepage->AddCacheBlock(decode.block);
 
 	for (i=0;i<G_MAX;i++) {
@@ -2624,7 +2624,7 @@ restart_prefix:
 				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
 			/* SHIFT mm, imm8*/
 			case 0x71:case 0x72:case 0x73:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
-				dyn_mmx_check(); dyn_mmx_shift_imm8(dual_code); break;
+				dyn_mmx_check(); dyn_mmx_shift_imm8((uint8_t)dual_code); break;
 			/* MOVD mm, r/m32 */
 			case 0x6e:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_movd_pqed(); break;
@@ -3124,7 +3124,7 @@ restart_prefix:
 		case 0xf8:		//CLC
 		case 0xf9:		//STC
 			gen_needflags();
-			cache_addb(opcode);break;
+			cache_addb((uint8_t)opcode);break;
 		/* GRP 3 Eb/EV */
 		case 0xf6:dyn_grp3_eb();break;
 		case 0xf7:dyn_grp3_ev();break;
@@ -3277,7 +3277,7 @@ illegalopcode:
 #endif
 finish_block:
 	/* Setup the correct end-address */
-	decode.active_block->page.end=--decode.page.index;
+	decode.active_block->page.end=(uint16_t)--decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
 	cache_remap_rx();
 	return decode.block;

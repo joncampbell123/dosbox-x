@@ -58,7 +58,7 @@ public:
 	
 	uint8_t read_sector(uint32_t sectnum, uint8_t* data);
 
-	uint8_t write_sector(uint32_t sectnum, uint8_t* data);
+	uint8_t write_sector(uint32_t sectnum, const uint8_t* data);
 	
 private:
 
@@ -106,7 +106,7 @@ private:
 
 	uint8_t update_reference_count(uint64_t cluster_offset, uint8_t* cluster_buffer);
 
-	uint8_t write_data(uint64_t file_offset, uint8_t* data, uint64_t data_size);
+	uint8_t write_data(uint64_t file_offset, const uint8_t* data, uint64_t data_size);
 
 	uint8_t write_l1_table_entry(uint64_t address, uint64_t l2_table_offset);
 
@@ -123,7 +123,7 @@ class QCow2Disk : public imageDisk{
 
 public:
 	
-	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk);
+	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk);
 
 	virtual ~QCow2Disk();
 	

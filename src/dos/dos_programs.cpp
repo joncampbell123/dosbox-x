@@ -87,9 +87,9 @@ bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool mountfro[26], mountiro[26];
+extern bool inshell, mountfro[26], mountiro[26];
 
-void DOS_EnableDriveMenu(char drv);
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
 #if defined(OS2)
@@ -176,6 +176,7 @@ void DetachFromBios(imageDisk* image) {
     }
 }
 
+extern std::string hidefiles, dosbox_title;
 extern int swapInDisksSpecificDrive;
 extern bool dos_kernel_disabled, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
@@ -408,7 +409,6 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	if(type==DRIVE_CDROM) {
 		int id, major, minor;
 		DOSBox_CheckOS(id, major, minor);
-
 		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
 			// Vista/above
 			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
@@ -467,8 +467,8 @@ std::string GetNewStr(const char *str) {
     if (str&&dos.loaded_codepage!=437) {
         char *temp = NULL;
         wchar_t* wstr = NULL;
-        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, NULL, 0);
-        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, strlen(str)+1, wstr, reqsize)==reqsize) {
+        int reqsize = MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), NULL, 0);
+        if (reqsize>0 && (wstr = new wchar_t[reqsize]) && MultiByteToWideChar(CP_UTF8, 0, str, (int)(strlen(str)+1), wstr, reqsize)==reqsize) {
             reqsize = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, "\x07", NULL);
             if (reqsize > 1 && (temp = new char[reqsize]) && WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, wstr, -1, (LPSTR)temp, reqsize, "\x07", NULL) == reqsize)
                 newstr = std::string(temp);
@@ -476,6 +476,88 @@ std::string GetNewStr(const char *str) {
     }
 #endif
     return newstr;
+}
+
+void MenuBrowseCDImage(char drive, int num) {
+	if(control->SecureMode()) {
+#if !defined(HX_DOS)
+        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
+		return;
+	}
+
+    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
+#if !defined(HX_DOS)
+        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
+        if (!tinyfd_messageBox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
+#endif
+    } else
+        return;
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    char const * lTheOpenFileName;
+    std::string files="", fname="";
+    const char *lFilterPatterns[] = {"*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS"};
+    const char *lFilterDescription = "CD image files (*.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins)";
+    lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","",14,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        uint8_t mediaid = 0xF8;
+        int error = -1;
+        qmount = true;
+        DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+        qmount = false;
+        if (error) {
+            tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
+            return;
+        }
+        DriveManager::ChangeDisk(drive-'A', newDrive);
+	}
+	chdir( Temp_CurrentDir );
+#endif
+}
+
+void MenuBrowseFDImage(char drive, int num, int type) {
+	if(control->SecureMode()) {
+#if !defined(HX_DOS)
+        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
+		return;
+	}
+
+    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9)) {
+#if !defined(HX_DOS)
+        std::string image = type==1?"El Torito floppy image":(type==2?"RAM floppy image":Drives[drive-'A']->GetInfo()+9);
+        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+image+"\n\nDo you want to change the floppy disk image now?";
+        if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
+#endif
+    } else
+        return;
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    char const * lTheOpenFileName;
+    std::string files="", fname="";
+    const char *lFilterPatterns[] = {"*.ima","*.img","*.IMA","*.IMG"};
+    const char *lFilterDescription = "Floppy image files (*.ima, *.img)";
+    lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",4,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        uint8_t mediaid = 0xF0;
+        std::vector<std::string> options;
+        if (mountiro[drive-'A']) options.emplace_back("readonly");
+        fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
+        if (!newDrive->created_successfully) {
+            tinyfd_messageBox("Error","Could not mount the selected floppy disk image.","ok","error", 1);
+            return;
+        }
+        DriveManager::ChangeDisk(drive-'A', newDrive);
+	}
+	chdir( Temp_CurrentDir );
+#endif
 }
 
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
@@ -853,7 +935,7 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
@@ -1206,11 +1288,9 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_SDL, num);
                 } else {
 #if defined (WIN32)
-                    // Check OS
-                    OSVERSIONINFO osi;
-                    osi.dwOSVersionInfoSize = sizeof(osi);
-                    GetVersionEx(&osi);
-                    if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>5)) {
+                    int id, major, minor;
+                    DOSBox_CheckOS(id, major, minor);
+                    if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
                         // Vista/above
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
                     } else {
@@ -1566,7 +1646,7 @@ private:
 
         localDrive* ldp=0;
 		bool readonly=wpcolon&&strlen(filename)>1&&filename[0]==':';
-        if (!DOS_MakeName(const_cast<char*>(readonly?filename+1:filename),fullname,&drive)) return NULL;
+        if (!DOS_MakeName(readonly?filename+1:filename,fullname,&drive)) return NULL;
 
         try {       
             ldp=dynamic_cast<localDrive*>(Drives[drive]);
@@ -1905,16 +1985,16 @@ public:
                     const char *ext = strrchr(temp_line.c_str(),'.'), *fname=readonly?temp_line.c_str()+1:temp_line.c_str();
 
                     if (ext != NULL && !strcasecmp(ext, ".d88")) {
-                        newDiskSwap[i] = new imageDiskD88(usefile, (uint8_t *)fname, floppysize, false);
+                        newDiskSwap[i] = new imageDiskD88(usefile, fname, floppysize, false);
                     }
                     else if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
-                        newDiskSwap[i] = new imageDiskVFD(usefile, (uint8_t *)fname, floppysize, false);
+                        newDiskSwap[i] = new imageDiskVFD(usefile, fname, floppysize, false);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (uint8_t *)fname, floppysize, false, 0);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 0);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (uint8_t *)fname, floppysize, false, 1);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
                     }
                     else {
                         newDiskSwap[i] = new imageDisk(usefile, fname, floppysize, false);
@@ -2544,7 +2624,7 @@ public:
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
         localDrive* ldp=0;
-        if (!DOS_MakeName((char *)temp_line.c_str(),fullname,&drive)) return;
+        if (!DOS_MakeName(temp_line.c_str(),fullname,&drive)) return;
 
         try {
             /* try to read ROM file into buffer */
@@ -2625,7 +2705,7 @@ public:
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
         localDrive* ldp = 0;
-        if (!DOS_MakeName((char*)temp_line.c_str(), fullname, &drive)) return;
+        if (!DOS_MakeName(temp_line.c_str(), fullname, &drive)) return;
 
         try {
             /* try to read ROM file into buffer */
@@ -2791,7 +2871,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_FLREAD"),
             geom.Cylinders.LowPart,geom.TracksPerCylinder,
             geom.SectorsPerTrack,(cyln_size*geom.Cylinders.LowPart)/1024);
-        WriteOut(MSG_Get("PROGRAM_IMGMAKE_FLREAD2"));
+        WriteOut(MSG_Get("PROGRAM_IMGMAKE_FLREAD2"), "\xdb", "\xb1");
             
         for(Bitu i = 0; i < geom.Cylinders.LowPart; i++) {
             Bitu result;
@@ -3280,7 +3360,6 @@ restart_int:
                     break;
                 default:
                     abort();
-                    break;
             }
 
             /* FAT32 increases reserved area to at least 7. Microsoft likes to use 32 */
@@ -3389,7 +3468,7 @@ restart_int:
                         case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * (512u / fat_copies)) / 3u) * 2u) + 2u; break;
                         case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 2u)       + 2u; break;
                         case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 4u)       + 2u; break;
-                        default:    abort(); break;
+                        default:    abort();
                     }
 
                     while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
@@ -3729,7 +3808,7 @@ void LOADFIX::Run(void)
             /* EMS allocates in 16kb increments */
             kb = (kb + 15u) & (~15u);
 
-            err = EMM_AllocateMemory(kb/16u/*16KB pages*/,/*&*/handle,false);
+            err = EMM_AllocateMemory((uint16_t)(kb/16u)/*16KB pages*/,/*&*/handle,false);
             if (err == 0) {
                 WriteOut("EMS block allocated (%uKB)\n",kb);
                 LOADFIX_ems_handles.push_back(handle);
@@ -3868,11 +3947,73 @@ public:
         /* Basic mounting has a version for each operating system.
          * This is done this way so both messages appear in the language file*/
         WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_START"));
+    if (machine == MCH_PC98) {
 #if (WIN32)
-        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_WINDOWS"));
-#else           
-        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_OTHER"));
+        WriteOut("\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+            "\033[44;1m\x86\x46\033[0m ");
+        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXST_WINDOWS"));
+        WriteOut("    \033[44;1m\x86\x46\033[0m\n\033[44;1m\x86\x46\033[0m                                                                             \033[44;1m\x86\x46\033[0m\n\033[44;1m\x86\x46\033[0m ");
+        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_WINDOWS"));
+        WriteOut("  \033[37m  \033[44;1m\x86\x46\033[44;1m\n"
+            "\033[44;1m\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+            );
+#else
+        WriteOut("\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+            "\x86\x46 ");
+        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXST_OTHER"));
+        WriteOut("    \x86\x46\n\x86\x46                                                                          \x86\x46\n\x86\x46 ");
+        WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_OTHER"));
+        WriteOut("  \033[37m  \x86\x46\n"
+            "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+            );
 #endif
+        } else {
+#if (WIN32)
+            WriteOut("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+                "\xBA ");
+            WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXST_WINDOWS"));
+            WriteOut("\xBA\n\xBA                                                                         \xBA\n\xBA ");
+            WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_WINDOWS"));
+            WriteOut("\xBA\n"
+                "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n");
+#else           
+            WriteOut("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+                "\xBA ");
+            WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXST_OTHER"));
+            WriteOut("\xBA\n\xBA                                                                      \xBA\n\xBA ");
+            WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_OTHER"));
+            WriteOut("\xBA\n"
+                "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n");
+#endif
+        }
         WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_END"));
     }
     void DisplayUsage(void) {
@@ -3889,7 +4030,18 @@ public:
     }
     void DisplayIntro(void) {
         WriteOut(MSG_Get("PROGRAM_INTRO"));
+        WriteOut("\033[44m\033[K\033[0m\n\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t ");
         WriteOut(MSG_Get("PROGRAM_INTRO_MENU_UP"));
+        if (machine == MCH_PC98)
+            WriteOut("\033[0m\n"
+                "\033[44m\033[K\033[1m\033[1m \x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\033[0m\n"
+                "\033[44m\033[K\033[0m\n"
+                );
+        else
+            WriteOut(" \033[0m\n"
+                "\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
+                "\033[44m\033[K\033[0m\n"
+                );
     }
     void DisplayMenuBefore(void) { WriteOut("\033[44m\033[K\033[33m\033[1m   \033[0m "); }
     void DisplayMenuCursorStart(void) {
@@ -3990,6 +4142,7 @@ basic:
         do switch (c) {
             case 0x48|0x80: menuname="QUIT"; goto menufirst; // Up
             case 0x50|0x80: menuname="CDROM"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut("\033[2J");
                 WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -4006,6 +4159,7 @@ cdrom:
         do switch (c) {
             case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
             case 0x50|0x80: menuname="USAGE"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
                 DOS_ReadFile (STDIN,&c,&n);
@@ -4019,6 +4173,7 @@ usage:
         do switch (c) {
             case 0x48|0x80: menuname="CDROM"; goto menufirst; // Down
             case 0x50|0x80: menuname="INFO"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 DisplayUsage();
                 goto menufirst;
@@ -4031,6 +4186,7 @@ info:
         do switch (c) {
             case 0x48|0x80: menuname="USAGE"; goto menufirst; // Up
             case 0x50|0x80: menuname="QUIT"; goto menufirst; // Down
+            case 0x1B: menuname="QUIT"; goto menufirst;
             case 0xD:   // Run
                 WriteOut("\033[2J");
                 WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -4252,7 +4408,7 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap slot");
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
@@ -4280,7 +4436,7 @@ public:
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap slot");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),MSG_Get("DRIVE_NUMBER"),MSG_Get("DISK_NAME"),MSG_Get("IDE_POSITION"),MSG_Get("SWAP_SLOT"));
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
@@ -4714,10 +4870,12 @@ private:
             if (commandLine.size()>4 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\') && commandLine.back()=='\'')
                 commandLine = commandLine.substr(1, commandLine.size()-2);
             else if (!paths.size() && commandLine.size()>3 && commandLine[0]=='\'' && toupper(commandLine[1])>='A' && toupper(commandLine[1])<='Z' && commandLine[2]==':' && (commandLine[3]=='/' || commandLine[3]=='\\')) {
-                std::string line=trim((char *)cmd->GetRawCmdline().c_str());
+                std::string line=cmd->GetRawCmdline();
+                trim(line);
                 std::size_t space=line.find(' ');
                 if (space!=std::string::npos) {
-                    line=trim((char *)line.substr(space).c_str());
+                    line=line.substr(space);
+                    trim(line);
                     std::size_t found=line.back()=='\''?line.find_last_of('\''):line.rfind("' ");
                     if (found!=std::string::npos&&found>2) {
                         commandLine=line.substr(1, found-1);
@@ -5143,28 +5301,28 @@ private:
                                 break;
                             }
                             case imageDiskVHD::ERROR_OPENING: 
-                                errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING"); break;
+                                errorMessage = MSG_Get("VHD_ERROR_OPENING"); break;
                             case imageDiskVHD::INVALID_DATA: 
-                                errorMessage = (char*)MSG_Get("VHD_INVALID_DATA"); break;
+                                errorMessage = MSG_Get("VHD_INVALID_DATA"); break;
                             case imageDiskVHD::UNSUPPORTED_TYPE: 
-                                errorMessage = (char*)MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
+                                errorMessage = MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
                             case imageDiskVHD::ERROR_OPENING_PARENT: 
-                                errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
+                                errorMessage = MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
                             case imageDiskVHD::PARENT_INVALID_DATA: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATA"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_DATA"); break;
                             case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
                             case imageDiskVHD::PARENT_INVALID_MATCH: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
                             case imageDiskVHD::PARENT_INVALID_DATE: 
-                                errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATE"); break;
+                                errorMessage = MSG_Get("VHD_PARENT_INVALID_DATE"); break;
                             default: break;
                             }
                         }
                     }
                 }
                 if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
-                    errorMessage = (char*)("Unable to detect geometry\n");
+                    errorMessage = "Unable to detect geometry\n";
                 }
             }
 
@@ -5183,7 +5341,7 @@ private:
                 imgDisks.push_back(newDrive);
 				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
                 if (!fdrive->created_successfully) {
-                    errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+                    errorMessage = MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 					if (fdrive->req_ver_major>0) {
 						static char ver_msg[150];
 						sprintf(ver_msg, "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
@@ -5650,7 +5808,7 @@ private:
             sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
             imagesize = (uint32_t)(qcow2_header.size / 1024L);
             setbuf(newDisk, NULL);
-            newImage = new QCow2Disk(qcow2_header, newDisk, (uint8_t *)fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+            newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
         }
         else {
             char tmp[256];
@@ -5669,28 +5827,28 @@ private:
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskD88(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
+                newImage = new imageDiskD88(newDisk, fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskVFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
+                newImage = new imageDiskVFD(newDisk, fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 0);
+                newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 0);
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 1);
+                newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 1);
             }
             else {
                 fseeko64(newDisk, 0L, SEEK_END);
@@ -5765,6 +5923,7 @@ void runImgmount(const char *str) {
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
+void SetupDBCSTable();
 
 class KEYB : public Program {
 public:
@@ -5772,25 +5931,28 @@ public:
 };
 
 void KEYB::Run(void) {
-    // codepage 949 start
-    std::string temp_codepage;
-    temp_codepage="949";
-    if (cmd->FindString("ko",temp_codepage,false)) {
-        dos.loaded_codepage=949;
-        const char* layout_name = DOS_GetLoadedLayout();
-        WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
-        return;
-    }
-    // codepage 949 end
     if (cmd->FindCommand(1,temp_line)) {
         if (cmd->FindString("?",temp_line,false)) {
             WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
         } else {
             /* first parameter is layout ID */
             Bitu keyb_error=0;
-            std::string cp_string;
+            std::string cp_string="";
             int32_t tried_cp = -1;
-            if (cmd->FindCommand(2,cp_string)) {
+            cmd->FindCommand(2,cp_string);
+            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:((!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950)||!cp_string.size()&&dos.loaded_codepage==950)?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zh")?936:0)));
+            if (tocp && !IS_PC98_ARCH) {
+                dos.loaded_codepage=tocp;
+                const char* layout_name = DOS_GetLoadedLayout();
+                if (layout_name==NULL)
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO"),dos.loaded_codepage);
+                else
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
+                SetupDBCSTable();
+                runRescan("-A -Q");
+                return;
+            }
+            if (cp_string.size()) {
                 /* second parameter is codepage number */
                 tried_cp=atoi(cp_string.c_str());
                 char cp_file_name[256];
@@ -5862,7 +6024,7 @@ void MODE::Run(void) {
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
         if (IS_PC98_ARCH) return;
         int LINES = 25, COLS = 80;
-        LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
         COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (cmd->GetCount()<2) {
             WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
@@ -5873,7 +6035,7 @@ void MODE::Run(void) {
         if (cmd->FindStringBegin("cols=", temp_line,false)) cols=atoi(temp_line.c_str()); else cols=COLS;
         if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
         bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
-        if (optr&&!optd||optd&&!optr) {
+        if ((optr&&!optd)||(optd&&!optr)) {
             WriteOut("Rate and delay must be specified together\n");
             return;
         }
@@ -5966,6 +6128,7 @@ public:
 			WriteOut("Generates a non-maskable interrupt (NMI).\n\nNMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
             return;
 		}
+        WriteOut("Generating a non-maskable interrupt (NMI)...\n");
         CPU_Raise_NMI();
     }
 };
@@ -6098,14 +6261,16 @@ public:
             uint8_t c,ans=0;
             uint16_t s;
 
+            inshell = true;
             do {
                 WriteOut("Delete the volume label (Y/N)? ");
                 s = 1;
                 DOS_ReadFile(STDIN,&c,&s);
                 WriteOut("\n");
-                if (s != 1) return;
+                if (s != 1 || c == 3) {inshell=false;return;}
                 ans = uint8_t(tolower(char(c)));
             } while (!(ans == 'y' || ans == 'n'));
+            inshell = false;
 
             if (ans != 'y') return;
         }
@@ -6457,6 +6622,39 @@ static void TREE_ProgramStart(Program * * make) {
     *make=new TREE;
 }
 
+class TITLE : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Sets the window title for the DOSBox-X window.\n\n"
+           "TITLE [string]\n\n"
+           "  string       Specifies the title for the DOSBox-X window.\n";
+        WriteOut(msg);
+	}
+};
+
+void TITLE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+    dosbox_title=trim(args);
+    SetVal("dosbox", "title", dosbox_title);
+    GFX_SetTitle(-1,-1,-1,false);
+}
+
+static void TITLE_ProgramStart(Program * * make) {
+    *make=new TITLE;
+}
+
 class COLOR : public Program {
 public:
     void Run(void);
@@ -6551,13 +6749,42 @@ static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
 
-#if defined(USE_TTF)
+bool setVGAColor(const char *colorArray, int i) {
+    if (!IS_VGA_ARCH||!CurMode) return false;
+    const char * nextRGB = colorArray;
+    int rgbVal[4] = {-1,-1,-1,-1};
+    if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {
+        for (int i = 0; i< 3; i++) {
+            if (rgbVal[i] < 0 || rgbVal[i] > 255)
+                return false;
+        }
+    } else if (sscanf(nextRGB, " #%6x", &rgbVal[3]) == 1) {
+        if (rgbVal[3] < 0)
+            return false;
+        for (int i = 0; i < 3; i++) {
+            rgbVal[2-i] = rgbVal[3]&255;
+            rgbVal[3] >>= 8;
+        }
+    } else
+        return false;
+    IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+    IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+    uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
+    IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[0]*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[1]*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[2]*63/255);
+    return true;
+}
+
 typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+#if defined(USE_TTF)
 extern alt_rgb altBGR1[16];
 extern bool colorChanged;
 bool setColors(const char *colorArray, int n);
 void resetFontSize();
+#endif
 
 class SETCOLOR : public Program {
 public:
@@ -6598,12 +6825,16 @@ void SETCOLOR::Run()
 				WriteOut(CurMode->mode==3?"MONO mode status => inactive (video mode 3)\n":"Failed to change MONO mode\n");
 			} else
 				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
-		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||i>0&&i<16) {
+		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||(i>0&&i<16)) {
 			if (p==NULL) {
+#if defined(USE_TTF)
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
                 WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+#else
+                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+#endif
             }
 		} else {
 			WriteOut("Invalid color number - %s\n", trim(args));
@@ -6616,9 +6847,17 @@ void SETCOLOR::Run()
 				value[127]=0;
 			} else
 				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
-            if (!ttf.inUse)
-				WriteOut("Changing color scheme is only supported for the TrueType font output.\n");
-			else if (setColors(value,i)) {
+#if defined(USE_TTF)
+			if (!ttf.inUse) {
+#endif
+                if (!IS_VGA_ARCH)
+                    WriteOut("Changing color scheme is not supported for the current video mode.\n");
+                else if (setVGAColor(value, i))
+                    WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                else
+                    WriteOut("Invalid color value - %s\n",value);
+#if defined(USE_TTF)
+			} else if (setColors(value,i)) {
                 altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
@@ -6626,14 +6865,19 @@ void SETCOLOR::Run()
 				resetFontSize();
 			} else
 				WriteOut("Invalid color value - %s\n",value);
+#endif
 			}
 	} else {
 		WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
 		for (int i = 0; i < 16; i++) {
+#if defined(USE_TTF)
             altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
             altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
             altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
 			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+#else
+			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+#endif
         }
 	}
 }
@@ -6641,16 +6885,16 @@ void SETCOLOR::Run()
 static void SETCOLOR_ProgramStart(Program * * make) {
     *make=new SETCOLOR;
 }
-#endif
 
 #if C_DEBUG
+extern Bitu int2fdbg_hook_callback;
 class INT2FDBG : public Program {
 public:
     void Run(void);
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n";
+            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n\nType INT2FDBG without a parameter to show the current hook status.\n";
         WriteOut(msg);
 	}
 };
@@ -6659,6 +6903,14 @@ void INT2FDBG::Run()
 {
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
+
+    if (!cmd->GetCount()) {
+        if (int2fdbg_hook_callback == 0)
+            WriteOut("INT 2Fh hook has not been set.\n");
+        else
+            WriteOut("INT 2Fh hook has already been set.\n");
+        return;
+    }
 
 	// Usage
 	if (!cmd->GetCount() || cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
@@ -6676,11 +6928,13 @@ static void INT2FDBG_ProgramStart(Program * * make) {
 }
 #endif
 
+#if defined (WIN32)
+extern bool ctrlbrk;
+extern std::string startincon;
+#endif
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
-extern bool ctrlbrk;
-extern std::string startincon;
 SHELLEXECUTEINFO lpExecInfo;
 
 void EndStartProcess() {
@@ -6692,6 +6946,7 @@ void EndStartProcess() {
     }
     ctrlbrk=false;
 }
+#endif
 
 class START : public Program {
 public:
@@ -6718,6 +6973,7 @@ public:
             cmd--;
             cmd[0]='"';
         }
+#if defined(WIN32) && !defined(HX_DOS)
         char *cmdstr = cmd==NULL?NULL:(char *)strstr(cmd, cmd[0]=='"'?"\" ":" ");
         char buf[CROSS_LEN], dir[CROSS_LEN+15], str[CROSS_LEN*2];
         int k=0;
@@ -6817,13 +7073,14 @@ public:
             BOOL ret;
             int count=0;
             ctrlbrk=false;
+            inshell=true;
             do {
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
                 CALLBACK_Idle();
                 if (ctrlbrk) {
                     uint8_t c;uint16_t n=1;
                     DOS_ReadFile (STDIN,&c,&n);
-                    if (c == 3) WriteOut("^C\n");
+                    if (c == 3) WriteOut("^C\r\n");
                     EndStartProcess();
                     exitCode=0;
                     break;
@@ -6832,23 +7089,68 @@ public:
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
+            inshell=false;
         }
         DOS_SetError(ErrorCode);
+#else
+        if (cmd==NULL || !strlen(cmd) || !strcmp(cmd,"?") || !strcmp(cmd,"/") || !strcmp(cmd,"/?") || !strcmp(cmd,"-?") || !strcasecmp(cmd,"/open") || !strcasecmp(cmd,"-open")) {
+            PrintUsage();
+            DOS_SetError(0);
+            return;
+        }
+        if (!startquiet) WriteOut("Starting %s...\n", cmd);
+        bool open=false;
+        if (!strncasecmp(cmd, "/open ", 5) || !strncasecmp(cmd, "-open ", 6)) {
+            open=true;
+            cmd+=5;
+        }
+        cmd=trim(cmd);
+        int ret=0;
+#if defined(LINUX) || defined(MACOSX)
+        ret=system(((open?
+#if defined(LINUX)
+        "xdg-open "
+#else
+        "open "
+#endif
+        :"")+std::string(cmd)+(startwait||(strlen(cmd)>2&&!strcmp(cmd+strlen(cmd)-2," &"))?"":" &")).c_str());
+#else
+        WriteOut("Error: START cannot launch application to run on your current host system.\n");
+        return;
+#endif
+        if (ret==-1) {
+            WriteOut("Error: START could not launch application.\n");
+            return;
+        }
+        DOS_SetError(ret);
+#endif
     }
 
 private:
     void PrintUsage() {
         constexpr const char *msg =
             "Starts a separate window to run a specified program or command.\n\n"
+#if defined(WIN32)
             "START [+|-|_] command [arguments]\n\n"
             "  [+|-|_]: To maximize/minimize/hide the program.\n"
             "  The options /MAX, /MIN, /HID are also accepted.\n"
             "  command: The command, program or file to start.\n"
             "  arguments: Arguments to pass to the application.\n\n"
             "START opens the Windows command prompt automatically to run these commands\n"
-            "and wait for a key press before exiting (specified by \"startincon\" option):\n"
-            "%s\n\nNote: The path specified in this command is the path on the Windows host.\n";
-        WriteOut(msg, startincon.c_str());
+            "and wait for a key press before exiting (specified by \"startincon\" option):\n%s\n\n"
+#else
+            "START /OPEN file\nSTART command [arguments]\n\n"
+            "  /OPEN: To open a file or URL with the associated program.\n"
+            "  file: The file or URL to open with the associated program.\n"
+            "  command: The command or program to start or run.\n"
+            "  arguments: Arguments to pass to the application.\n\n"
+#endif
+            "Note: The path specified in this command is the path on the host system.\n";
+        WriteOut(msg
+#if defined(WIN32)
+        ,startincon.c_str()
+#endif
+        );
     }
 };
 
@@ -6856,7 +7158,6 @@ void START_ProgramStart(Program **make)
 {
 	*make = new START;
 }
-#endif
 
 #define MAX_FLAGS 512
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
@@ -6952,7 +7253,7 @@ int flagged_restore(char* zip)
             uint16_t handle, size;
             if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
                 for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
-                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:((uint64_t)fileSize-UINT16_MAX*i);
+                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:(uint16_t)((uint64_t)fileSize-UINT16_MAX*i);
                     DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
                 }
                 DOS_CloseFile(handle);
@@ -6994,7 +7295,7 @@ public:
         }
         else if (cmd->GetCount())
         {
-            for (int i=1; i<=cmd->GetCount(); i++) {
+            for (unsigned int i=1; i<=cmd->GetCount(); i++) {
                 cmd->FindCommand(i,temp_line);
                 uint8_t drive;
                 char fullname[DOS_PATHLENGTH], flagfile[CROSS_LEN];
@@ -7060,7 +7361,6 @@ public:
             }
             return;
         }
-        return;
     }
     void printHelp()
     {
@@ -7116,6 +7416,7 @@ void DOS_SetupPrograms(void) {
         " (Note that 'overlay' redirects writes for mounted drive to another directory)\n"
         " -label [name]    Set the volume label name of the drive (all upper case)\n"
         " -ro              Mount the drive in read-only mode.\n"
+        " -pr              Specify the path is relative to the config file location.\n"
         " -cd              Generate a list of local CD drive's \"drive #\" values.\n"
         " -usecd [drive #] For direct hardware emulation such as audio playback.\n"
         " -ioctl           Use lowest level hardware access (following -usecd option).\n"
@@ -7176,13 +7477,13 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
-        "Reduces the amount of available conventional or XMS memory.\n\n"
+        "Reduces the amount of available conventional or XMS/EMS memory.\n\n"
         "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
         "LOADFIX -f [-xms] [-ems]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
         "  -ems        Allocates memory from EMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
-        "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
+        "                 Defaults to 64kb for conventional memory; 1MB for XMS/EMS memory\n"
         "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
         "  -f (or -d)  Frees previously allocated memory\n"
         "  {program}   Runs the specified program\n"
@@ -7213,21 +7514,7 @@ void DOS_SetupPrograms(void) {
         "\033[31;1mDOSBox-X will stop/exit without a warning if an error occurred!\033[0m\n"
         "\n"
         "\n" );
-    if (machine == MCH_PC98) {
-        MSG_Add("PROGRAM_INTRO_MENU_UP",
-            "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t DOSBox-X Introduction\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m \x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\033[0m\n"
-            "\033[44m\033[K\033[0m\n"
-            );
-    } else {
-        MSG_Add("PROGRAM_INTRO_MENU_UP",
-            "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t DOSBox-X Introduction \033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
-            "\033[44m\033[K\033[0m\n"
-            );
-    }
+    MSG_Add("PROGRAM_INTRO_MENU_UP", "DOSBox-X Introduction");
     MSG_Add("PROGRAM_INTRO_MENU_BASIC","Basic mount");
     MSG_Add("PROGRAM_INTRO_MENU_CDROM","CD-ROM support");
     MSG_Add("PROGRAM_INTRO_MENU_USAGE","Usage");
@@ -7296,9 +7583,9 @@ void DOS_SetupPrograms(void) {
         "For information about CD-ROM support, type \033[34;1mintro cdrom\033[0m\n"
         "For information about special keys, type \033[34;1mintro special\033[0m\n"
         "For information about usage, type \033[34;1mintro usage\033[0m\n\n"
-        "For the latest version of DOSBox-X, go to its GitHub site:\033[34;1m\n"
+        "For the latest version of DOSBox-X, go to its homepage:\033[34;1m\n"
         "\n"
-        "\033[34;1mhttps://github.com/joncampbell123/dosbox-x\033[0m\n"
+        "\033[34;1mhttps://dosbox-x.com/\033[0m or \033[34;1mhttp://dosbox-x.software\033[0m\n"
         "\n"
         "For more information about DOSBox-X, please take a look at its Wiki:\n"
         "\n"
@@ -7310,79 +7597,17 @@ void DOS_SetupPrograms(void) {
         "you have to mount the directory containing the files.\n"
         "\n"
         );
-    if (machine == MCH_PC98) {
-        MSG_Add("PROGRAM_INTRO_MOUNT_WINDOWS",
-            "\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-            "\x86\x46 \033[32mmount a c:\\dosgames\\\033[37m will create an A drive with c:\\dosgames as contents.\x86\x46\n"
-            "\x86\x46                                                                          \x86\x46\n"
-            "\x86\x46 \033[32mc:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m  \x86\x46\n"
-            "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
-            );
-        MSG_Add("PROGRAM_INTRO_MOUNT_OTHER",
-            "\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-            "\x86\x46 \033[32mmount a ~/dosgames\033[37m will create an A drive with ~/dosgames as contents.\x86\x46\n"
-            "\x86\x46                                                                       \x86\x46\n"
-            "\x86\x46 \033[32m~/dosgames\033[37m is an example. Replace it with your own games directory. \033[37m  \x86\x46\n"
-            "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
-            );
-        MSG_Add("PROGRAM_INTRO_MOUNT_END",
-            "When the mount has successfully completed you can type \033[34;1ma:\033[0m to go to your freshly\n"
-            "mounted A-drive. Typing \033[34;1mdir\033[0m there will show its contents."
-            " \033[34;1mcd\033[0m will allow you to\n"
-            "enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
-            "You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
-            );
-    } else {
-        MSG_Add("PROGRAM_INTRO_MOUNT_WINDOWS",
-            "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-            "\xBA \033[32mmount c c:\\dosgames\\\033[37m will create a C drive with c:\\dosgames as contents.\xBA\n"
-            "\xBA                                                                         \xBA\n"
-            "\xBA \033[32mc:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m \xBA\n"
-            "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-            );
-        MSG_Add("PROGRAM_INTRO_MOUNT_OTHER",
-            "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-            "\xBA \033[32mmount c ~/dosgames\033[37m will create a C drive with ~/dosgames as contents.\xBA\n"
-            "\xBA                                                                      \xBA\n"
-            "\xBA \033[32m~/dosgames\033[37m is an example. Replace it with your own games directory.\033[37m  \xBA\n"
-            "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-            );
-        MSG_Add("PROGRAM_INTRO_MOUNT_END",
-            "When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
-            "mounted C: drive. Typing \033[34;1mdir\033[0m there will show its contents."
-            " \033[34;1mcd\033[0m will allow you to\n"
-            "enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
-            "You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
-            );
-    }
+    MSG_Add("PROGRAM_INTRO_MOUNT_EXST_WINDOWS", "\033[32mmount c c:\\dosgames\\\033[37m will create a C drive with c:\\dosgames as contents.");
+    MSG_Add("PROGRAM_INTRO_MOUNT_EXEN_WINDOWS", "c:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m ");
+    MSG_Add("PROGRAM_INTRO_MOUNT_EXST_OTHER", "\033[32mmount c ~/dosgames\033[37m will create a C drive with ~/dosgames as contents.");
+    MSG_Add("PROGRAM_INTRO_MOUNT_EXEN_OTHER", "\033[32m~/dosgames\033[37m is an example. Replace it with your own games directory.\033[37m  ");
+    MSG_Add("PROGRAM_INTRO_MOUNT_END",
+        "When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
+        "mounted C: drive. Typing \033[34;1mdir\033[0m there will show its contents."
+        " \033[34;1mcd\033[0m will allow you to\n"
+        "enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
+        "You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
+        );
     MSG_Add("PROGRAM_INTRO_CDROM",
         "\033[2J\033[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:\033[0m\n"
         "DOSBox-X provides CD-ROM emulation on several levels.\n"
@@ -7455,12 +7680,12 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_DRIVE","Must specify drive letter to mount image at.\n");
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");
-    MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
+    /*MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
         "For \033[33mCD-ROM\033[0m images:   \033[34;1mIMGMOUNT drive-letter location-of-image -t iso\033[0m\n"
         "\n"
         "For \033[33mhardrive\033[0m images: Must specify drive geometry for hard drives:\n"
         "bytes_per_sector, sectors_per_cylinder, heads_per_cylinder, cylinder_count.\n"
-        "\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");
+        "\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");*/
     MSG_Add("PROGRAM_IMGMOUNT_INVALID_IMAGE","Could not load image file.\n"
         "Check that the path is correct and the image is accessible.\n");
     MSG_Add("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED", "Dynamic VHD files are not supported.\n");
@@ -7536,7 +7761,7 @@ void DOS_SetupPrograms(void) {
         "Usage: \033[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\033[0m\n"
         "  \033[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
-        " [-source source] [-r retries]"
+        " [-source source] [-retries #]"
 #endif
         "\033[0m\n"
         "  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"
@@ -7586,7 +7811,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_FLREAD",
         "Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes\n\n");
     MSG_Add("PROGRAM_IMGMAKE_FLREAD2",
-        "\xdb =good, \xb1 =good after retries, ! =CRC error, x =sector not found, ? =unknown\n\n");
+        "%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown\n\n");
 #endif
     MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists. You can specify \"-force\" to overwrite.\n");
     MSG_Add("PROGRAM_IMGMAKE_CANNOT_WRITE","The file \"%s\" cannot be opened for writing.\n");
@@ -7615,56 +7840,65 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
 
+    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
+    hidefiles = dos_section->Get_string("drive z hide files");
+
     /*regular setup*/
-    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart);
+    VFILE_Register("TEXTUTIL", 0, 0, "/");
+    VFILE_Register("SYSTEM", 0, 0, "/");
+    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("BIN", 0, 0, "/");
+    VFILE_Register("4DOS", 0, 0, "/");
 
-    if (!IS_PC98_ARCH)
-        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart);
-
-    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart);
-    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
-    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
-#if C_DEBUG
-    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart);
+    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+    if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
 #endif
 
-    if (!IS_PC98_ARCH) {
-        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
-        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
-        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
-#if defined(USE_TTF)
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart);
-#endif
-	}
-
-    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
-    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
-    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart);
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart);
-    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
-#if defined C_DEBUG
-    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
-    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
-#endif
-    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
-    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart);
+    void CGASNOW_ProgramStart(Program * * make), VFRCRATE_ProgramStart(Program * * make);
+    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
 
     if (IS_VGA_ARCH && svgaCard != SVGA_None)
-        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart);
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+
+    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
+
+    if (!IS_PC98_ARCH) {
+        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
+	}
+
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
+#if defined C_DEBUG
+    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
+#endif
+    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
 
     if (IS_PC98_ARCH)
-        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
+        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
 
-    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
-    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
-#if defined(WIN32) && !defined(HX_DOS)
-    if (startcmd)
-        PROGRAMS_MakeFile("START.COM", START_ProgramStart);
-#endif
-    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart);
-    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
+    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 }

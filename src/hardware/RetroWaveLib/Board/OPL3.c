@@ -19,7 +19,7 @@
 
 #include "OPL3.h"
 
-static const int transfer_speed = 2e6;
+static const int transfer_speed = (const int)2e6;
 
 void retrowave_opl3_queue_port0(RetroWaveContext *ctx, uint8_t reg, uint8_t val) {
 	retrowave_cmd_buffer_init(ctx, RetroWave_Board_OPL3, 0x12);

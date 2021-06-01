@@ -1130,7 +1130,6 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 			break;
 		default:
 			abort();
-			break;
 	}
 
 	while (1) {
@@ -1253,7 +1252,7 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 			return;
 		}
 		filesize = (uint32_t)(qcow2_header.size / 1024L);
-		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (uint8_t *)fname, filesize, bytesector, (filesize > 2880));
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, fname, filesize, bytesector, (filesize > 2880));
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
@@ -1269,22 +1268,22 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
         if (ext != NULL && !strcasecmp(ext, ".d88")) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskD88(diskfile, (uint8_t *)fname, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskD88(diskfile, fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskVFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskVFD(diskfile, fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880), 0);
+            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 0);
         }
         else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (uint8_t *)fname, filesize, (filesize > 2880), 1);
+            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 1);
         }
         else {
             fseeko64(diskfile, 0L, SEEK_END);
@@ -1668,16 +1667,26 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
             }
         }
 
-        bootbuffer.bpb.v.BPB_BytsPerSec = var_read(&bootbuffer.bpb.v.BPB_BytsPerSec);
-        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read(&bootbuffer.bpb.v.BPB_RsvdSecCnt);
-        bootbuffer.bpb.v.BPB_RootEntCnt = var_read(&bootbuffer.bpb.v.BPB_RootEntCnt);
-        bootbuffer.bpb.v.BPB_TotSec16 = var_read(&bootbuffer.bpb.v.BPB_TotSec16);
-        bootbuffer.bpb.v.BPB_FATSz16 = var_read(&bootbuffer.bpb.v.BPB_FATSz16);
-        bootbuffer.bpb.v.BPB_SecPerTrk = var_read(&bootbuffer.bpb.v.BPB_SecPerTrk);
-        bootbuffer.bpb.v.BPB_NumHeads = var_read(&bootbuffer.bpb.v.BPB_NumHeads);
-        bootbuffer.bpb.v.BPB_HiddSec = var_read(&bootbuffer.bpb.v.BPB_HiddSec);
-        bootbuffer.bpb.v.BPB_TotSec32 = var_read(&bootbuffer.bpb.v.BPB_TotSec32);
-        bootbuffer.bpb.v.BPB_VolID = var_read(&bootbuffer.bpb.v.BPB_VolID);
+        void* var = &bootbuffer.bpb.v.BPB_BytsPerSec;
+        bootbuffer.bpb.v.BPB_BytsPerSec = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RsvdSecCnt;
+        bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_RootEntCnt;
+        bootbuffer.bpb.v.BPB_RootEntCnt = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec16;
+        bootbuffer.bpb.v.BPB_TotSec16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_FATSz16;
+        bootbuffer.bpb.v.BPB_FATSz16 = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_SecPerTrk;
+        bootbuffer.bpb.v.BPB_SecPerTrk = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_NumHeads;
+        bootbuffer.bpb.v.BPB_NumHeads = var_read((uint16_t*)var);
+        var = &bootbuffer.bpb.v.BPB_HiddSec;
+        bootbuffer.bpb.v.BPB_HiddSec = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_TotSec32;
+        bootbuffer.bpb.v.BPB_TotSec32 = var_read((uint32_t*)var);
+        var = &bootbuffer.bpb.v.BPB_VolID;
+        bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
 
         if (!is_hdd) {
             /* Identify floppy format */
@@ -2180,8 +2189,10 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 bool fatDrive::FileExists(const char *name) {
     direntry fileEntry = {};
 	uint32_t dummy1, dummy2;
-	if(!getFileDirEntry(name, &fileEntry, &dummy1, &dummy2)) return false;
-	return true;
+	uint16_t save_errorcode = dos.errorcode;
+	bool found = getFileDirEntry(name, &fileEntry, &dummy1, &dummy2);
+	dos.errorcode = save_errorcode;
+	return found;
 }
 
 bool fatDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
@@ -2327,14 +2338,22 @@ uint8_t fatDrive::Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) {
 
 static void copyDirEntry(const direntry *src, direntry *dst) {
 	memcpy(dst, src, 14); // single byte fields
-	var_write(&dst->crtTime, src->crtTime);
-	var_write(&dst->crtDate, src->crtDate);
-	var_write(&dst->accessDate, src->accessDate);
-	var_write(&dst->hiFirstClust, src->hiFirstClust);
-	var_write(&dst->modTime, src->modTime);
-	var_write(&dst->modDate, src->modDate);
-	var_write(&dst->loFirstClust, src->loFirstClust);
-	var_write(&dst->entrysize, src->entrysize);
+    void* var = &dst->crtTime;
+	var_write((uint16_t*)var, src->crtTime);
+    var = &dst->crtDate;
+	var_write((uint16_t*)var, src->crtDate);
+    var = &dst->accessDate;
+	var_write((uint16_t*)var, src->accessDate);
+    var = &dst->hiFirstClust;
+	var_write((uint16_t*)var, src->hiFirstClust);
+    var = &dst->modTime;
+	var_write((uint16_t*)var, src->modTime);
+    var = &dst->modDate;
+	var_write((uint16_t*)var, src->modDate);
+    var = &dst->loFirstClust;
+	var_write((uint16_t*)var, src->loFirstClust);
+    var = &dst->entrysize;
+	var_write((uint32_t*)var, src->entrysize);
 }
 
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {

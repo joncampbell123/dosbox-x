@@ -48,15 +48,19 @@
 #include <unistd.h>
 #endif
 
+static bool first_run=true;
+extern bool use_quick_reboot, enable_config_as_shell_commands;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
 extern int lfn_filefind_handle;
 extern int autofixwarn;
+extern uint8_t lead[6];
 unsigned long totalc, freec;
 uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
 uint32_t BIOS_get_PC98_INT_STUB(void);
+bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -73,9 +77,15 @@ bool shiftjis_lead_byte(int c) {
     return false;
 }
 
-char * shiftjis_upcase(char * str) {
+char * DBCS_upcase(char * str) {
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
     for (char* idx = str; *idx ; ) {
-        if (shiftjis_lead_byte(*idx)) {
+        if ((IS_PC98_ARCH && shiftjis_lead_byte(*idx)) || (isDBCSCP() && isDBCSLB(*idx, lead))) {
             /* Shift-JIS is NOT ASCII and should not be converted to uppercase like ASCII.
              * The trailing byte can be mistaken for ASCII */
             idx++;
@@ -103,6 +113,7 @@ bool enable_dbcs_tables = true;
 bool enable_share_exe = true;
 bool enable_filenamechar = true;
 bool enable_network_redirector = true;
+bool force_conversion = false;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
@@ -110,7 +121,7 @@ int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
-char *dos_clipboard_device_name;
+const char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
 int maxfcb=100;
@@ -429,23 +440,27 @@ Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &cs,Bitu &ip);
 
+#define DOSNAMEBUF 256
+char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
+//! \brief Is a DOS program running ? (set by INT21 4B/4C)
+bool dos_program_running = false;
 bool DOS_BreakINT23InProgress = false;
 
 void DOS_PrintCBreak() {
 	/* print ^C <newline> */
 	uint16_t n = 4;
 	const char *nl = "^C\r\n";
-	DOS_WriteFile(STDOUT,(uint8_t*)nl,&n);
+	DOS_WriteFile(STDOUT,(const uint8_t*)nl,&n);
 }
 
-bool DOS_BreakTest() {
+bool DOS_BreakTest(bool print=true) {
 	if (DOS_BreakFlag) {
 		bool terminate = true;
 		bool terminint23 = false;
 		Bitu segv,offv;
 
 		/* print ^C on the console */
-		DOS_PrintCBreak();
+		if (print) DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
         DOS_BreakConioFlag = false;
@@ -503,6 +518,8 @@ bool DOS_BreakTest() {
 		if (terminate) {
 			LOG_MSG("Note: DOS break terminating program\n");
 			DOS_Terminate(dos.psp(),false,0);
+			*appname=0;
+			*appargs=0;
 			return false;
 		}
 		else if (terminint23) {
@@ -556,9 +573,6 @@ void DOS_BreakAction() {
  * --J.C. */
 bool disk_io_unmask_irq0 = true;
 
-//! \brief Is a DOS program running ? (set by INT21 4B/4C)
-bool dos_program_running = false;
-
 void XMS_DOS_LocalA20EnableIfNotEnabled(void);
 void XMS_DOS_LocalA20EnableIfNotEnabled_XMSCALL(void);
 
@@ -575,9 +589,6 @@ typedef struct {
 	UINT32 total_allocation_units;
 	UINT8 reserved[8];
 } ext_space_info_t;
-
-#define DOSNAMEBUF 256
-char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
 
 #if defined (WIN32) && !defined(HX_DOS)
 intptr_t hret=0;
@@ -799,6 +810,8 @@ static Bitu DOS_21Handler(void) {
 
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x01:      /* Read character from STDIN, with echo */
             {   
@@ -904,7 +917,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x09:      /* Write string to STDOUT */
-            {   
+            {
                 uint8_t c;uint16_t n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
                 std::string str="";
@@ -1008,7 +1021,11 @@ static Bitu DOS_21Handler(void) {
             break;  
         case 0x0e:      /* Select Default Drive */
             DOS_SetDefaultDrive(reg_dl);
-            reg_al=DOS_DRIVES;
+            {
+                int drive=maxdrive>=1&&maxdrive<=26?maxdrive:1;
+                for (uint16_t i=drive;i<DOS_DRIVES;i++) if (Drives[i]) drive=i+1;
+                reg_al=drive;
+            }
             break;
         case 0x0f:      /* Open File using FCB */
             if(DOS_FCBOpen(SegValue(ds),reg_dx)){
@@ -1385,6 +1402,8 @@ static Bitu DOS_21Handler(void) {
             DOS_Terminate(dos.psp(),true,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
+            *appname=0;
+            *appargs=0;
             break;
         case 0x32: /* Get drive parameter block for specific drive */
             {   /* Officially a dpb should be returned as well. The disk detection part is implemented */
@@ -1551,7 +1570,7 @@ static Bitu DOS_21Handler(void) {
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
 #if defined(USE_TTF)
                 if (ttf.inUse&&wpType==1) {
-                    int len = strlen(name1);
+                    int len = (int)strlen(name1);
                     if (len > 10 && !strcmp(name1+len-11, "\\VGA512.CHM"))  // Test for VGA512.CHM
                         WPvga512CHMhandle = reg_ax;							// Save handle
                 }
@@ -1615,12 +1634,13 @@ static Bitu DOS_21Handler(void) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
-                    if (ttf.inUse && reg_bx == WPvga512CHMhandle)
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle){
                         if (toread == 26 || toread == 2) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
                             WPvga512CHMcheck = true;
-                        } else if (WPvga512CHMcheck) {
+                        }
+                        else if (WPvga512CHMcheck) {
                             if (WP5chars) {
                                 memmove(dos_copybuf+2, dos_copybuf, toread);
                                 *(uint16_t*)dos_copybuf = WP5chars;
@@ -1631,9 +1651,11 @@ static Bitu DOS_21Handler(void) {
                             WPvga512CHMhandle = -1;
                             WPvga512CHMcheck = false;
                         }
+                    }
 #endif
                     CALLBACK_SCF(false);
-                } else if (dos.errorcode==77) {
+                }
+                else if (dos.errorcode==77) {
 					DOS_BreakAction();
 					if (!DOS_BreakTest()) {
 						dos.echo = false;
@@ -2505,7 +2527,7 @@ static Bitu DOS_21Handler(void) {
 					info->available_allocation_units = freec?freec:free_clusters;
 					info->total_allocation_units = totalc?totalc:total_clusters;
 					MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
-					delete(info);
+					delete info;
 					reg_ax=0;
 					CALLBACK_SCF(false);
 				}
@@ -2993,16 +3015,16 @@ public:
 				if (!strcasecmp(trim(r+1), "umb")) dos_umb=true;
 				else if (!strcasecmp(trim(r+1), "noumb")) dos_umb=false;
 			}
-			char *lastdrive = (char *)config_section->Get_string("lastdrive");
+			const char *lastdrive = config_section->Get_string("lastdrive");
 			if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 				maxdrive=lastdrive[0]-'a'+1;
-			char *dosbreak = (char *)config_section->Get_string("break");
+			const char *dosbreak = config_section->Get_string("break");
 			if (!strcasecmp(dosbreak, "on"))
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
 #if defined(WIN32)
-			char *numlock = (char *)config_section->Get_string("numlock");
+			const char *numlock = config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
 #endif
@@ -3032,16 +3054,14 @@ public:
         mountwarning = section->Get_bool("mountwarning");
         if (winrun) {
             Section* tsec = control->GetSection("dos");
-#if defined (WIN32)
             tsec->HandleInputline("startcmd=true");
-#endif
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
         startincon = section->Get_string("startincon");
-        char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
+        const char *dos_clipboard_device_enable = section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
-		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
+		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
@@ -3051,12 +3071,12 @@ public:
 			if (!*dos_clipboard_device_name||strlen(dos_clipboard_device_name)>8||!strcasecmp(dos_clipboard_device_name, "con")||!strcasecmp(dos_clipboard_device_name, "nul")||!strcasecmp(dos_clipboard_device_name, "prn"))
 				valid=false;
 			else for (unsigned int i=0; i<strlen(ch); i++) {
-				if (strchr(dos_clipboard_device_name, *(ch+i))!=NULL) {
+				if (strchr((char *)dos_clipboard_device_name, *(ch+i))!=NULL) {
 					valid=false;
 					break;
 				}
 			}
-			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
+			dos_clipboard_device_name=valid?upcase((char *)dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
             std::string text=mainMenu.get_item("clipboard_device").get_text();
             std::size_t found = text.find(":");
@@ -3404,9 +3424,9 @@ public:
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
-		char *ver = (char *)section->Get_string("ver");
+        const char *ver = section->Get_string("ver");
 		if (*ver) {
-			if (set_ver(ver)) {
+			if (set_ver((char *)ver)) {
 				/* warn about unusual version numbers */
 				if (dos.version.major >= 10 && dos.version.major <= 30) {
 					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
@@ -3422,6 +3442,45 @@ public:
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
         update_dos_ems_menu();
+
+        /* settings */
+        if (first_run) {
+            const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+            use_quick_reboot = section->Get_bool("quick reboot");
+            enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+            startwait = section->Get_bool("startwait");
+            startquiet = section->Get_bool("startquiet");
+            winautorun=startcmd;
+            first_run=false;
+        }
+        force_conversion=true;
+#if !defined(HX_DOS)
+        mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
+#endif
+        mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("enable_a20gate").enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
+        mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+#if defined(WIN32) && !defined(HX_DOS)
+        mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+        mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
+#endif
+        force_conversion=false;
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3440,8 +3499,14 @@ public:
 			EndStartProcess();
 			EndRunProcess();
 		}
-        mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
-        mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
+		force_conversion=true;
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
+		mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+		mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_win_quiet").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
@@ -3455,12 +3520,15 @@ public:
 		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("enable_a20gate").enable(false).refresh_item(mainMenu);
 #if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 #endif
+		mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
+		force_conversion=false;
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();
@@ -3559,7 +3627,6 @@ void DOS_DoShutDown() {
 
     DOS_Casemap_Free();
 
-    mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
@@ -3587,7 +3654,6 @@ void DOS_Startup(Section* sec) {
 		test = new DOS(control->GetSection("dos"));
 	}
 
-    mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
@@ -4185,7 +4251,7 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
                             if (reg_dh == 0 && s != NULL) for (int j=0; j<8-i; j++) c[o++] = ' ';
                             break;
                         }
-                        while (name1[j]&&name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*') j++;
+                        while (name1[j]&&(name1[j]<=32||name1[j]==127||name1[j]=='"'||name1[j]=='+'||name1[j]=='='||name1[j]=='.'||name1[j]==','||name1[j]==';'||name1[j]==':'||name1[j]=='<'||name1[j]=='>'||name1[j]=='['||name1[j]==']'||name1[j]=='|'||name1[j]=='?'||name1[j]=='*')) j++;
                         c[o++] = toupper(name1[j]);
                         i++;
                 }
@@ -4195,7 +4261,7 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
                         j=0;
                         for (i=0;i<3;i++) {
                                 if (*(s+i+j) == 0) break;
-                                while (*(s+i+j)&&*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*') j++;
+                                while (*(s+i+j)&&(*(s+i+j)<=32||*(s+i+j)==127||*(s+i+j)=='"'||*(s+i+j)=='+'||*(s+i+j)=='='||*(s+i+j)==','||*(s+i+j)==';'||*(s+i+j)==':'||*(s+i+j)=='<'||*(s+i+j)=='>'||*(s+i+j)=='['||*(s+i+j)==']'||*(s+i+j)=='|'||*(s+i+j)=='?'||*(s+i+j)=='*')) j++;
                                 c[o++] = toupper(*(s+i+j));
                         }
                 }

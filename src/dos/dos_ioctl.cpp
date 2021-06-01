@@ -754,7 +754,6 @@ bool DOS_IOCTL(void) {
 				return false;
 			}
 		}
-		break;
 	case 0x0E:			/* Get Logical Drive Map */
 		if (drive < 2) {
 			if (Drives[drive]) reg_al=drive+1;

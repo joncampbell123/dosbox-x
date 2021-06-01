@@ -219,7 +219,6 @@ struct PIT_Block {
                 if (new_mode) return false;
                 if (res.cycle != 0u/*index > delay*/) return true;
                 else return false;
-                break;
             case 2:
                 if (new_mode) return true;
                 return res.counter != 0;
@@ -329,7 +328,7 @@ static void PIT0_Event(Bitu /*val*/) {
 }
 
 uint32_t PIT0_GetAssignedCounter(void) {
-    return pit[0].cntr;
+    return (uint32_t)pit[0].cntr;
 }
 
 static bool counter_output(Bitu counter) {

@@ -16,7 +16,8 @@ void ResolvePath(std::string& in);
 void d3d_init(void)
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
-    if (!sdl.using_windib)
+    char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
+    if (!sdl.using_windib&&(sdl_videodrv==NULL||strcasecmp(sdl_videodrv,"dummy")))
     {
         LOG_MSG("Resetting to WINDIB mode");
         SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -338,14 +339,14 @@ void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines)
             Bitu tgtPitch;
             if (d3d->LockTexture(tgtPix, tgtPitch) && tgtPix) // if locking fails, target texture can be nullptr
             {
-                uint32_t* tgtTex = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(tgtPix));
+                uint32_t* tgtTex = reinterpret_cast<uint32_t*>(tgtPix);
 # if defined(XBRZ_PPL)
                 concurrency::task_group tg;
                 for (int i = 0; i < xbrzHeight; i += sdl_xbrz.task_granularity)
                 {
                     tg.run([=] {
                         const int iLast = min(i + sdl_xbrz.task_granularity, xbrzHeight);
-                        xbrz::pitchChange(&xbrzBuf[0], &tgtTex[0], (int)xbrzWidth, (int)xbrzHeight, (int)(xbrzWidth * sizeof(uint32_t)), (int)tgtPitch, (int)i, (int)iLast, [](uint32_t pix) { return pix; });
+                        xbrz::pitchChange(&xbrzBuf[0], &tgtTex[0], xbrzWidth, xbrzHeight, (int)(xbrzWidth * sizeof(uint32_t)), (int)tgtPitch, i, iLast, [](uint32_t pix) { return pix; });
                     });
                 }
                 tg.wait();

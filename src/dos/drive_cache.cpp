@@ -583,7 +583,7 @@ bool DOS_Drive_Cache::RemoveSpaces(char* str) {
     return (curpos!=chkpos);
 }
 
-char * shiftjis_upcase(char * str);
+char * DBCS_upcase(char * str);
 
 void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     Bits    len         = 0;
@@ -596,7 +596,7 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     // Remove Spaces
     strcpy(tmpName,info->orgname);
     if (IS_PC98_ARCH)
-        shiftjis_upcase(tmpName);
+        DBCS_upcase(tmpName);
     else
         upcase(tmpName);
 

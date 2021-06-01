@@ -50,9 +50,9 @@
 
 extern bool log_int21;
 extern bool log_fileio;
-extern bool enable_share_exe;
+extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
-extern char *dos_clipboard_device_name;
+extern const char *dos_clipboard_device_name;
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
@@ -65,8 +65,8 @@ int sdrive = 0;
  * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
-
-bool shiftjis_lead_byte(int c);
+extern uint8_t lead[6];
+bool shiftjis_lead_byte(int c), isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -87,6 +87,12 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
 	char names[LFN_NAMELENGTH];
 	strcpy(names,name);
 	char * name_int = names;
@@ -130,7 +136,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 			else if (c==' ') continue; /* should be separator */
 		}
 		upname[w++]=(char)c;
-        if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isDBCSLB(c, lead))) && r<DOS_PATHLENGTH) {
             /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
             upname[w++]=name_int[r++];
         }
@@ -480,7 +486,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	return false;
 }
 
-bool DOS_FindFirst(char * search,uint16_t attr,bool fcb_findfirst) {
+bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
 	uint8_t drive;char fullsearch[DOS_PATHLENGTH];
@@ -577,7 +583,7 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 	return ret;
 }
 
-bool DOS_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
+bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_WriteFile(entry,data,amount);
@@ -740,8 +746,8 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsNetworkResource(const_cast<char *>(name)))
-		return Network_OpenFile(const_cast<char *>(name),flags,entry);
+	if(Network_IsNetworkResource(name))
+		return Network_OpenFile(name,flags,entry);
 #endif
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
@@ -902,7 +908,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		std::string pfull=std::string(spath)+std::string(pattern);
 		int fbak=lfn_filefind_handle;
 		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
-		bool ret=DOS_FindFirst((char *)((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
+		bool ret=DOS_FindFirst(((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
 		if (ret) do {
 			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
 			uint16_t find_date,find_time;uint32_t find_size;uint8_t find_attr;
@@ -911,7 +917,7 @@ bool DOS_UnlinkFile(char const * const name) {
 				strcpy(temp, dir);
 				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
 				strcat(temp, find_name);
-				cdirs.push_back(std::string(temp));
+				cdirs.emplace_back(std::string(temp));
 			}
 		} while ((ret=DOS_FindNext())==true);
 		lfn_filefind_handle=fbak;
@@ -1207,7 +1213,8 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 		}
 		tempname[8]=0;
 		//if (DOS_FileExists(name)) {cont=true;continue;} // FIXME: Check name uniqueness
-	} while (cont || (!DOS_CreateFile(name,0,entry) && dos.errorcode==DOSERR_FILE_ALREADY_EXISTS));
+	} while (cont || DOS_FileExists(name));
+	DOS_CreateFile(name,0,entry);
 	if (dos.errorcode) return false;
 	return true;
 }
@@ -1244,6 +1251,12 @@ static bool isvalid(const char in){
 #define PARSE_RET_BADDRIVE      0xff
 
 uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string, uint8_t *change) {
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
     const char* string_begin = string;
 	uint8_t ret=0;
 	if (!(parser & PARSE_DFLT_DRIVE)) {
@@ -1310,7 +1323,7 @@ uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string,
 	/* Copy the name */	
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=(char)nc;
                 string++;
@@ -1348,7 +1361,7 @@ checkext:
 	hasext=true;finished=false;fill=' ';index=0;
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=(char)nc;
                 string++;

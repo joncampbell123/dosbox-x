@@ -2007,9 +2007,6 @@ void ScreenSDL::paint(Drawable &d) const {
 bool ScreenSDL::event(SDL_Event &event) {
 	bool rc;
 
-    event.button.x /= scale;
-    event.button.y /= scale;
-	
 #if defined(C_SDL2)
     /* handle mouse events only if it comes from the mouse.
      * ignore the fake mouse events some OSes generate from the touchscreen.
@@ -2079,6 +2076,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 		return mouseMoved(event.motion.x, event.motion.y);
 
 	case SDL_MOUSEBUTTONDOWN:
+		event.button.x /= scale; event.button.y /= scale;
 		rc = mouseDown(event.button.x, event.button.y, SDL_to_GUI(event.button.button));
 		if (abs(event.button.x-downx) > 10 || abs(event.button.y-downy) > 10) lastclick = 0;
 		downx = event.button.x; downy = event.button.y;
@@ -2086,6 +2084,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 		return rc;
 
 	case SDL_MOUSEBUTTONUP:
+		event.button.x /= scale; event.button.y /= scale;
 		rc = mouseUp(event.button.x, event.button.y, SDL_to_GUI(event.button.button));
 		if (lastdown != 0 && abs(event.button.x-downx) < 10 && abs(event.button.y-downy) < 10) {
 			if (lastclick == 0 || (GUI::Timer::now()-lastclick) > 200) {

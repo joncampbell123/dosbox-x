@@ -22,6 +22,7 @@
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "mem.h"
+#include "menu.h"
 #include "inout.h"
 #include "setup.h"
 #include "paging.h"
@@ -65,6 +66,7 @@ bool has_Init_MemHandles = false;
 bool has_Init_MemoryAccessArray = false;
 
 extern Bitu rombios_minimum_location;
+extern bool force_conversion;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
@@ -721,8 +723,8 @@ void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
-    uint8_t const* read = reinterpret_cast<uint8_t const*>(data);
+void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
+    const uint8_t* read = static_cast<const uint8_t *>(data);
     if (size==0)
         return;
 
@@ -1101,8 +1103,12 @@ void MEM_A20_Enable(bool enabled) {
     if (memory.a20.enabled != enabled)
         LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
-    if (a20_guest_changeable || a20_fake_changeable)
+    if (a20_guest_changeable || a20_fake_changeable) {
         memory.a20.enabled = enabled;
+        force_conversion = true;
+        mainMenu.get_item("enable_a20gate").check(enabled).refresh_item(mainMenu);
+        force_conversion = false;
+    }
 
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {
         if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
@@ -1145,7 +1151,7 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
-    *val=(uint16_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
+    *val=(uint16_t)(rval1 | (rval2 << 8));
     return false;
 }
 
@@ -1155,7 +1161,7 @@ bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     if (mem_readb_checked(address+1, &rval2)) return true;
     if (mem_readb_checked(address+2, &rval3)) return true;
     if (mem_readb_checked(address+3, &rval4)) return true;
-    *val=(uint32_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
+    *val=(uint32_t)(rval1 | (rval2 << 8) | (rval3 << 16) | (rval4 << 24));
     return false;
 }
 
@@ -1679,10 +1685,12 @@ public:
         else if (cmd->FindExist("ON")) {
             WriteOut("Enabling A20 gate...\n");
             MEM_A20_Enable(true);
+            if (!MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be enabled.\n");
         }
         else if (cmd->FindExist("OFF")) {
             WriteOut("Disabling A20 gate...\n");
             MEM_A20_Enable(false);
+            if (MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be disabled.\n");
         }
         else {
             WriteOut("A20 gate is currently %s.\n", MEM_A20_Enabled()?"ON":"OFF");
@@ -1920,6 +1928,7 @@ void A20Gate_OnReset(Section *sec) {
 void A20Gate_OverrideOn(Section *sec) {
     (void)sec;//UNUSED
     memory.a20.enabled = 1;
+    mainMenu.get_item("enable_a20gate").check(true).refresh_item(mainMenu);
     a20_fake_changeable = false;
     a20_guest_changeable = true;
 }
@@ -1971,6 +1980,7 @@ void A20Gate_TakeUserSetting(Section *sec) {
         LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
         a20_guest_changeable = true;
     }
+    mainMenu.get_item("enable_a20gate").check(memory.a20.enabled).refresh_item(mainMenu);
 }
 
 void Init_A20_Gate() {

@@ -75,7 +75,7 @@ static float int_to_float(const uint32_t i)
 // Print debug messages
 #define LOG_GLIDE 0
 
-void VFILE_Remove(const char *name);
+void VFILE_Remove(const char *name,const char *dir = "");
 static void process_msg(Bitu);
 
 /** Global Variables **/
@@ -450,7 +450,7 @@ public:
 	    hdll = NULL;
 	}
 
-	if (addovl) VFILE_Remove("GLIDE2X.OVL");
+	if (addovl) VFILE_Remove("GLIDE2X.OVL","SYSTEM");
     }
 };
 

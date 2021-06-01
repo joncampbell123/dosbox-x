@@ -46,6 +46,7 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
+extern bool ctrlbrk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
@@ -55,6 +56,7 @@ void DOS_Shell::ShowPrompt(void) {
 	DOS_GetCurrentDir(0,dir,uselfn);
 	std::string line;
 	const char * promptstr = "\0";
+    inshell = true;
 
 	if(GetEnvStr("PROMPT",line)) {
 		std::string::size_type idx = line.find('=');
@@ -91,10 +93,10 @@ void DOS_Shell::ShowPrompt(void) {
 				reg_cl=(uint8_t)((Bitu)ticks % 60);
 				ticks/=60;
 				reg_ch=(uint8_t)((Bitu)ticks % 24);
-				WriteOut("%2d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
+				WriteOut("%d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
 				break;
 			}
-			case 'V': WriteOut("DOSBox version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
+			case 'V': WriteOut("DOSBox-X version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
 			case '$': WriteOut("$"); break;
 			case '_': WriteOut("\n"); break;
 			case 'M': break;
@@ -102,6 +104,7 @@ void DOS_Shell::ShowPrompt(void) {
 		}
 		promptstr++;
 	}
+    inshell = false;
 }
 
 static void outc(uint8_t c) {
@@ -271,14 +274,14 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
         if (strcmp(name, ".") && strcmp(name, "..")) {
             if (dir_only) { //Handle the dir only case different (line starts with cd)
-                if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
+                if(att & DOS_ATTR_DIRECTORY) l_completion.emplace_back(qlname);
             } else {
                 const char *ext = strrchr(name, '.'); // file extension
                 if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
-                    // we add executables to the a seperate list and place that list infront of the normal files
-                    executable.push_front(qlname);
+                    // we add executables to a separate list and place that list in front of the normal files
+                    executable.emplace_front(qlname);
                 else
-                    l_completion.push_back(qlname);
+                    l_completion.emplace_back(qlname);
             }
         }
         res=DOS_FindNext();
@@ -290,6 +293,8 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     return true;
 }
 
+extern uint8_t lead[6];
+extern bool isDBCSCP();
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
@@ -302,6 +307,12 @@ void DOS_Shell::InputCommand(char * line) {
     inshell = true;
     input_eof = false;
 	line[0] = '\0';
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
 
 	std::list<std::string>::iterator it_history = l_history.begin(), it_completion = l_completion.begin();
 
@@ -429,7 +440,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0) {
                     backone();
                     str_index --;
                     MoveCaretBackwards();
@@ -487,7 +498,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32)) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32)) {
                     outc((uint8_t)line[str_index++]);
                 }
                 if (str_index < str_len) {
@@ -523,7 +534,7 @@ void DOS_Shell::InputCommand(char * line) {
                 // store current command in history if we are at beginning
                 if (it_history == l_history.begin() && !current_hist) {
                     current_hist=true;
-                    l_history.push_front(line);
+                    l_history.emplace_front(line);
                 }
 
                 // ensure we're at end to handle all cases
@@ -581,7 +592,7 @@ void DOS_Shell::InputCommand(char * line) {
                 {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32))
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -625,7 +636,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 {
                     int k=1;
-                    if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0)
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
@@ -654,10 +665,8 @@ void DOS_Shell::InputCommand(char * line) {
                 outc('\n');
                 break;
             case '': // FAKE CTRL-C
-                outc(94); outc('C');
                 *line = 0;      // reset the line.
                 if (l_completion.size()) l_completion.clear(); //reset the completion list.
-                if(!echo) outc('\n');
                 size = 0;       // stop the next loop
                 str_len = 0;    // prevent multiple adds of the same line
                 DOS_BreakFlag = false; // clear break flag so the next program doesn't get hit with it
@@ -716,7 +725,7 @@ void DOS_Shell::InputCommand(char * line) {
                         w_count = p_count = 0;
                         uint8_t c;uint16_t n=1;
                         DOS_ReadFile(STDIN,&c,&n);
-                        if (c==3) {WriteOut("^C");break;}
+                        if (c==3) {ctrlbrk=false;WriteOut("^C\r\n");break;}
                         if (c==0) DOS_ReadFile(STDIN,&c,&n);
                     }
                 }
@@ -827,7 +836,7 @@ void DOS_Shell::InputCommand(char * line) {
 
 	// add command line to history. Win95 behavior with DOSKey suggests
 	// that the original string is preserved, not the expanded string.
-	l_history.push_front(line); it_history = l_history.begin();
+	l_history.emplace_front(line); it_history = l_history.begin();
 	if (l_completion.size()) l_completion.clear();
 
 	/* DOS %variable% substitution */
@@ -1025,7 +1034,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
@@ -1035,11 +1044,11 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
-			case 0x3: WriteOut("^C\n");return true;
+			case 0x3: return true;
 			case 0xD: WriteOut("\n"); goto first_1;
 			case '\t': case 0x08: goto first_2;
 			default:
@@ -1048,7 +1057,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n");goto first_1;
-					case 0x3: WriteOut("^C\n");return true;
+					case 0x3: return true;
 					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 				goto first_2;

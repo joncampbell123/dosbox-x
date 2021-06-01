@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
-
+#include <limits.h>
 
 #include "SDL.h"
 
@@ -296,6 +296,10 @@ void                                            GFX_ForceRedrawScreen(void);    
 void                                            DOSBox_SetSysMenu(void);
 void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
 void                                            WindowsTaskbarResetPreviewRegion(void); // external
+#endif
+
+#if defined(MACOSX)
+void                        macosx_reload_touchbar(void);
 #endif
 
 //! \brief Base CEvent class for mapper events
@@ -4645,8 +4649,7 @@ void MAPPER_RunInternal() {
 #endif
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
     /* Go in the event loop */
@@ -4743,8 +4746,7 @@ void MAPPER_RunInternal() {
     mapper.running = false;
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED

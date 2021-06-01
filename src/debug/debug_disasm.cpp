@@ -439,9 +439,9 @@ static char *addr_to_hex(UINT32 addr, int splitup) {
 
   if (splitup) {
     if (fp_segment(addr)==0 || fp_offset(addr)==0xffff) /* 'coz of wraparound */
-      sprintf(buffer, "%04X", (unsigned)fp_offset(addr) );
+      sprintf(buffer, "%04X", fp_offset(addr) );
     else
-      sprintf(buffer, "%04X:%04X", (unsigned)fp_segment(addr), (unsigned)fp_offset(addr) );
+      sprintf(buffer, "%04X:%04X", fp_segment(addr), fp_offset(addr) );
   } else {
 #if 0
 	  /* Pet outcommented, reducing address size to 4
@@ -608,11 +608,11 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
       } else
         signchar = '+';
       if (delta || !optional)
-		uprintf("%c%0*lX", (char)signchar, (int)(extend), (long)delta);
+		uprintf("%c%0*lX", signchar, extend, (long)delta);
     } else {
       if (extend==2)
         delta = (UINT16)delta;
-	  uprintf("%0.*lX", (int)(2*extend), (long)delta );
+	  uprintf("%0.*lX", (2*extend), (long)delta );
     }
     return;
   }
@@ -629,7 +629,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
        } else
          signchar = '+';
        if (sign)
-		 uprintf("%c%02lX", (char)signchar, delta & 0xFFL);
+		 uprintf("%c%02lX", signchar, delta & 0xFFL);
        else
 		 uprintf("%02lX", delta & 0xFFL);
        break;
@@ -641,7 +641,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
        } else
          signchar = '+';
        if (sign)
-		 uprintf("%c%04lX", (char)signchar, delta & 0xFFFFL);
+		 uprintf("%c%04lX", signchar, delta & 0xFFFFL);
        else
 		 uprintf("%04lX", delta & 0xFFFFL);
        break;
@@ -653,7 +653,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
        } else
          signchar = '+';
        if (sign)
-		 uprintf("%c%08lX", (char)signchar, (unsigned long)delta & 0xFFFFFFFFL);
+		 uprintf("%c%08lX", signchar, (unsigned long)delta & 0xFFFFFFFFL);
        else
 		 uprintf("%08lX", (unsigned long)delta & 0xFFFFFFFFL);
        break;
@@ -873,13 +873,13 @@ static void percent(char type, char subtype)
        switch (bytes(subtype)) {              /* sizeof offset value */
        case 1:
             vofs = (INT8)getbyte();
-			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
+			name = addr_to_hex((UINT32)vofs+instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
        case 2:
             vofs  = (INT32)((UINT32)getbyte());
             vofs |= (INT32)((UINT32)getbyte() << 8);
             vofs  = (INT16)vofs;
-			name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
+			name  = addr_to_hex((UINT32)vofs+instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
 			/* i386 */
        case 4:
@@ -887,7 +887,7 @@ static void percent(char type, char subtype)
             vofs |= (INT32)((UINT32)getbyte() << 8);
             vofs |= (INT32)((UINT32)getbyte() << 16);
             vofs |= (INT32)((UINT32)getbyte() << 24);
-			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
+			name = addr_to_hex((UINT32)vofs+instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
             break;
        }
 	   if (vofs<0)

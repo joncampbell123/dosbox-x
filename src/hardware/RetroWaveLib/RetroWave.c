@@ -31,7 +31,7 @@ void retrowave_deinit(RetroWaveContext *ctx) {
 void retrowave_io_init(RetroWaveContext *ctx) {
 	// Sync CS state
 	uint8_t empty_byte = 0;
-	ctx->callback_io(ctx->user_data, 1e6, &empty_byte, NULL, 1);
+	ctx->callback_io(ctx->user_data, (uint32_t)1e6, &empty_byte, NULL, 1);
 
 	uint8_t init_sequence_1[] = {
 		0x00,
@@ -57,9 +57,9 @@ void retrowave_io_init(RetroWaveContext *ctx) {
 		uint8_t addr = i << 1;
 
 		init_sequence_1[0] = init_sequence_2[0] = init_sequence_3[0] = addr;
-		ctx->callback_io(ctx->user_data, 1e6, init_sequence_1, NULL, sizeof(init_sequence_1));
-		ctx->callback_io(ctx->user_data, 1e6, init_sequence_2, NULL, sizeof(init_sequence_2));
-		ctx->callback_io(ctx->user_data, 1e6, init_sequence_3, NULL, sizeof(init_sequence_3));
+		ctx->callback_io(ctx->user_data, (uint32_t)1e6, init_sequence_1, NULL, sizeof(init_sequence_1));
+		ctx->callback_io(ctx->user_data, (uint32_t)1e6, init_sequence_2, NULL, sizeof(init_sequence_2));
+		ctx->callback_io(ctx->user_data, (uint32_t)1e6, init_sequence_3, NULL, sizeof(init_sequence_3));
 	}
 }
 

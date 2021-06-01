@@ -645,11 +645,6 @@ void SVGA_Setup_TsengET4K(void) {
         vga.mem.memsize = 512*1024;
     else
         vga.mem.memsize = 1024*1024;
-
-    if (!VGA_BIOS_use_rom) {
-        // Tseng ROM signature
-        phys_writes(PhysMake(0xc000,0)+0x0075, " Tseng ", 8);
-    }
 }
 
 

@@ -1,0 +1,143 @@
+/* test comment */
+// test comment
+
+/* "Dialect" means that a somewhat common tokenizer will be written, but the syntax on top will vary between the
+   various kinds of information to gather. One for interrupts, one for opcodes, one for any other category. Over
+   time as each develops to it's intended purpose, the dialects will be developed into a more common syntax. */
+
+/* global <identifier> = variable from global state including that provided by host program. "global" is explicitly
+   specified to differentiate from any local variables this script may use. The word following global is always an
+   identifier. At the primitive level of dev at this time, you can technically use global if but DON'T, because
+   the parser in the future will be fixed to disallow reserved words as identifiers entirely, at which point you
+   may only refer to global var "if" using quotation marks. You will also not be allowed to use non-identifiers
+   after global, so don't think of using "global 0x203" either. */
+
+/* global <identifier> may support variable substitution in the future if needed, at which point some syntax needs
+   to be defined to "dereference" the variable to get it's true value and refer to that global instead. Idea: use
+   the asterisk just like derferencing a pointer in C/C++ i.e. global *varname */
+
+/* reserved word list:
+    bits
+    by
+    case
+    description
+    flag
+    global
+    if
+    input
+    integer
+    interrupt
+    of
+    or
+    output
+    modified
+    name
+    register
+    select
+    type
+*/
+
+/* yeah, using a bit of syntax inspiration from Perl */
+exit unless global dialect == "interrupt list"; /* this is a list of interrupts, do not parse otherwise, just quietly exit with success */
+
+/* IBM PC BIOS interrupt list */
+if global platform == "ibm-pc" {
+    interrupt 0x10 {
+        type software;
+        name "Video BIOS";
+        description "Video and video related BIOS functions";
+        select by register ah {
+            case 0x00 {
+                name "Set video mode";
+                input {
+                    register al bits [6:0] type integer;
+                    name "Video mode";
+                }
+                input {
+                    register al bit 7 type !flag; /* set bit to NOT clear video memory */
+                    name "Clear video memory";
+                }
+            }
+            case 0x01 {
+                name "Set text mode cursor shape";
+                input {
+                    register ch bits [4:0] type integer;    
+                    name "Top scan line of the cursor, inclusive";
+                }
+                input {
+                    register cl bits [4:0] type integer;
+                    name "Bottom scan line of the cursor, inclusive";
+                }
+                input {
+                    register ch bits [6:5] type integer;
+                    name "Cursor blink and invisibility control";
+                    if (global videoclass is one of "cga" or "mda") {
+                        enum {
+                            00b = "normal",
+                            01b = "invisible",
+                            10b = "erratic blink",
+                            11b = "slow blink"
+                        }
+                    }
+                    else {
+                        enum {
+                            00b = "normal",
+                            else = "invisible"
+                        }
+                    }
+                }
+            }
+            case 0x02 {
+                name "Set cursor position";
+                input {
+                    register bh type integer;
+                    name "Page number";
+                }
+                input {
+                    register dh type integer;
+                    name "Row number";
+                    description "Row number from top of screen";
+                    integer base 0;
+                }
+                input {
+                    register dl type integer;
+                    name "Column number";
+                    description "Column number from left side of screen";
+                    integer base 0;
+                }
+            }
+            case 0x03 {
+                name "Get cursor size and position";
+                input {
+                    register bh type integer;
+                    name "Page number";
+                }
+                output {
+                    register ch type integer;
+                    name "Top scan line of the cursor, inclusive";
+                }
+                output {
+                    register cl type integer;
+                    name "Bottom scan line of the cursor, inclusive";
+                }
+                output {
+                    register dh type integer;
+                    name "Row number";
+                    description "Row number from top of screen";
+                    integer base 0;
+                }
+                output {
+                    register dl type integer;
+                    name "Column number";
+                    description "Column number from left side of screen";
+                    integer base 0;
+                }
+                modified {
+                    note "Phoenix BIOS: AX = 0000h (ref. Ralph Brown Interrupt List)";
+                    register ax;
+                }
+            }
+        }
+    }
+}
+

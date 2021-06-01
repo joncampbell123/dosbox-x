@@ -694,11 +694,6 @@ void SVGA_Setup_S3Trio(void) {
         vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
     }
 
-    if (!VGA_BIOS_use_rom) {
-        // S3 ROM signature
-        phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
-    }
-
     PCI_AddSVGAS3_Device();
 }
 

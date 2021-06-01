@@ -360,9 +360,9 @@ public:
             }
 
             if(cmd.FindStringBegin("base:",str,true))
-				parallel_baseaddr[i] = strtol(str.c_str(), NULL, 16);
+				parallel_baseaddr[i] = (uint16_t)strtol(str.c_str(), NULL, 16);
             if(cmd.FindStringBegin("irq:",str,true))
-				defaultirq[i] = strtol(str.c_str(), NULL, 10);
+				defaultirq[i] = (uint8_t)strtol(str.c_str(), NULL, 10);
 			cmd.FindCommand(1,str);
 #if C_DIRECTLPT
 			if(str=="reallpt") {

@@ -588,6 +588,7 @@ public:
 		synthsamplerate = section->Get_int("samplerate");
 		if (synthsamplerate == 0) synthsamplerate = 44100;
 #endif
+		if (control->opt_silent) dev = "none";
 
 		/* If device = "default" go for first handler that works */
 		MidiHandler * handler;

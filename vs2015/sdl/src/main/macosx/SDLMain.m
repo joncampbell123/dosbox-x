@@ -188,7 +188,7 @@ static void setApplicationMenu(NSMenu *modme)
     [menuItem release];
 }
 
-void sdl1_hax_stock_osx_menu_additem(NSMenu *modme) {
+void sdl1_hax_stock_macosx_menu_additem(NSMenu *modme) {
     setApplicationMenu(modme);
 }
 
@@ -221,7 +221,7 @@ static void setupWindowMenu(void)
 
 static NSMenu *stock_menu = NULL;
 
-void* sdl1_hax_stock_osx_menu(void) {
+void* sdl1_hax_stock_macosx_menu(void) {
 	return stock_menu;
 }
 

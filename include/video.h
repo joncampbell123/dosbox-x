@@ -75,7 +75,6 @@ bool GFX_IsFullscreen(void);
 void GFX_SwitchLazyFullscreen(bool lazy);
 bool GFX_LazyFullscreenRequested(void);
 void GFX_SwitchFullscreenNoReset(void);
-void GFX_RestoreMode(void);
 void GFX_UpdateSDLCaptureState(void);
 
 #if defined (WIN32)

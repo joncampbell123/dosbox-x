@@ -36,6 +36,7 @@
 #include "callback.h"
 #include "regs.h"
 #include "timer.h"
+#include "render.h"
 #include "../libs/physfs/physfs.h"
 #include "../libs/physfs/physfs.c"
 #include "../libs/physfs/physfs_archiver_7z.c"
@@ -87,6 +88,9 @@
 #include "cp872_uni.h"
 #include "cp874_uni.h"
 #include "cp932_uni.h"
+#include "cp936_uni.h"
+#include "cp949_uni.h"
+#include "cp950_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
@@ -125,24 +129,37 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
-extern bool rsize, force_sfn, enable_share_exe;
+extern bool rsize, morelen, force_sfn, enable_share_exe, isDBCSCP();
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 
-bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-    const host_cnv_char_t* df = d + CROSS_LEN - 1;
+bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
         if (ic < 32 || ic > 127) return false; // non-representable
 
-#if defined(host_cnv_use_wchar)
         *d++ = (host_cnv_char_t)ic;
-#else
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+
+    while (*s != 0 && s < sf) {
+        unsigned char ic = (unsigned char)(*s++);
+        if (ic < 32 || ic > 127) return false; // non-representable
+
         if (utf8_encode(&d,df,(uint32_t)ic) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
-#endif
     }
 
     assert(d <= df);
@@ -151,14 +168,20 @@ bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_L
     return true;
 }
 
-template <class MT> bool String_SBCS_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+extern bool forceswk;
+extern uint16_t cpMap_PC98[256];
+template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
         if (ic >= map_max) return false; // non-representable
-        MT wc = map[ic]; // output: unicode character
+        MT wc = 
+#if defined(USE_TTF)
+        dos.loaded_codepage==437&&forceswk&&ic>=0xA1&&ic<=0xDF?cpMap_PC98[ic]:
+#endif
+        map[ic]; // output: unicode character
 
         *d++ = (uint16_t)wc;
     }
@@ -169,21 +192,17 @@ template <class MT> bool String_SBCS_TO_HOST_uint16(uint16_t *d/*CROSS_LEN*/,con
     return true;
 }
 
-template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const host_cnv_char_t* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
         if (ic >= map_max) return false; // non-representable
         MT wc = map[ic]; // output: unicode character
 
-#if defined(host_cnv_use_wchar)
-        *d++ = (host_cnv_char_t)wc;
-#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
-#endif
     }
 
     assert(d <= df);
@@ -192,14 +211,14 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
     return true;
 }
 
-/* needed for Wengier's TTF output and PC-98 mode */
-template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+/* needed for Wengier's TTF output and CJK mode */
+template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -223,13 +242,13 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS_uint16(uint16_t *d/*CROSS_
     return true;
 }
 
-template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const host_cnv_char_t* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -244,12 +263,8 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
         if (wc == 0x0000)
             return false;
 
-#if defined(host_cnv_use_wchar)
-        *d++ = (host_cnv_char_t)wc;
-#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
-#endif
     }
 
     assert(d <= df);
@@ -269,7 +284,7 @@ template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map
 }
 
 // TODO: This is SLOW. Optimize.
-template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+template <class MT> int DBCS_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     for (size_t h=0;h < 1024;h++) {
         MT ofs = hitbl[h];
 
@@ -285,20 +300,15 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
     return -1;
 }
 
-template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
+template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
-#if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
-#else
-        if ((ic=utf8_decode(&s,sf)) < 0)
-            return false; // non-representable
-#endif
 
-        int oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
 
@@ -319,18 +329,43 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
     return true;
 }
 
-template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
+template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+
+    while (*s != 0 && s < sf) {
+        int ic;
+        if ((ic=utf8_decode(&s,sf)) < 0)
+            return false; // non-representable
+
+        int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        if (oc < 0)
+            return false; // non-representable
+
+        if (oc >= 0x100) {
+            if ((d+1) >= df) return false;
+            *d++ = (char)(oc >> 8U);
+            *d++ = (char)oc;
+        }
+        else {
+            if (d >= df) return false;
+            *d++ = (char)oc;
+        }
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+template <class MT> bool String_HOST_TO_SBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
-#if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
-#else
-        if ((ic=utf8_decode(&s,sf)) < 0)
-            return false; // non-representable
-#endif
 
         int oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
         if (oc < 0)
@@ -346,18 +381,58 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
     return true;
 }
 
-bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
-    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
+template <class MT> bool String_HOST_TO_SBCS_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+
+    while (*s != 0 && s < sf) {
+        int ic;
+        if ((ic=utf8_decode(&s,sf)) < 0)
+            return false; // non-representable
+
+        int oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
+        if (oc < 0)
+            return false; // non-representable
+
+        if (d >= df) return false;
+        *d++ = (char)oc;
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+bool String_HOST_TO_ASCII_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+    const uint16_t *sf = s + CROSS_LEN - 1;
     const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
-#if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
-#else
+
+        if (ic < 32 || ic > 127)
+            return false; // non-representable
+
+        if (d >= df) return false;
+        *d++ = (char)ic;
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
+
+    while (*s != 0 && s < sf) {
+        int ic;
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
-#endif
 
         if (ic < 32 || ic > 127)
             return false; // non-representable
@@ -374,175 +449,266 @@ bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_L
 
 bool cpwarn_once = false;
 
-bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_HOST_TO_SBCS<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
-        default:
-            /* at this time, it would be cruel and unusual to not allow any file I/O just because
-             * our code page support is so limited. */
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
             }
-            return String_HOST_TO_ASCII(d,s);
+            if (dos.loaded_codepage>=800)
+                return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            else
+                return String_HOST_TO_ASCII_UTF16(d,s);
     }
-
-    return false;
 }
 
-bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
-        default: // Otherwise just use code page 437
-            return String_SBCS_TO_HOST_uint16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        default: // Otherwise just use code page 437 or ASCII
+            if (!cpwarn_once) {
+                cpwarn_once = true;
+                LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
+            }
+            if (dos.loaded_codepage>=800)
+                return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            else
+                return String_HOST_TO_ASCII_UTF8(d,s);
     }
-
-    return false;
 }
 
-bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         case 808:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
         case 852:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
         case 853:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
         case 857:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 860:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
         case 862:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
         case 863:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
         case 864:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
         case 865:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 869:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 874:
-            return String_SBCS_TO_HOST<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
         case 932:
-            return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
-        default:
-            /* at this time, it would be cruel and unusual to not allow any file I/O just because
-             * our code page support is so limited. */
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
             }
-            return String_ASCII_TO_HOST(d,s);
+            if (dos.loaded_codepage>=800)
+                return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            else
+                return String_ASCII_TO_HOST_UTF16(d,s);
     }
+}
 
-    return false;
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    switch (dos.loaded_codepage) {
+        case 437:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 808:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+        case 850:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+        case 852:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+        case 853:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+        case 855:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 857:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+        case 858:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 860:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
+        case 861:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp861_to_unicode,sizeof(cp861_to_unicode)/sizeof(cp861_to_unicode[0]));
+        case 862:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp862_to_unicode,sizeof(cp862_to_unicode)/sizeof(cp862_to_unicode[0]));
+        case 863:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp863_to_unicode,sizeof(cp863_to_unicode)/sizeof(cp863_to_unicode[0]));
+        case 864:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp864_to_unicode,sizeof(cp864_to_unicode)/sizeof(cp864_to_unicode[0]));
+        case 865:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
+        case 866:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 869:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+        case 872:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
+        case 874:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp874_to_unicode,sizeof(cp874_to_unicode)/sizeof(cp874_to_unicode[0]));
+        case 932:
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        case 936:
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp936_to_unicode_hitbl,cp936_to_unicode_raw,sizeof(cp936_to_unicode_raw)/sizeof(cp936_to_unicode_raw[0]));
+        case 949:
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
+        case 950:
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        default: // Otherwise just use code page 437 or ASCII
+            if (!cpwarn_once) {
+                cpwarn_once = true;
+                LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
+            }
+            if (dos.loaded_codepage>=800)
+                return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            else
+                return String_ASCII_TO_HOST_UTF8(d,s);
+    }
 }
 
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
-    if (!CodePageGuestToHost(cpcnv_temp,s))
+#if defined(host_cnv_use_wchar)
+    if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s))
+#else
+    if (!CodePageGuestToHostUTF8((char *)cpcnv_temp,s))
+#endif
         return NULL;
 
     return cpcnv_temp;
 }
 
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
-    if (!CodePageHostToGuest((char*)cpcnv_temp,s))
+#if defined(host_cnv_use_wchar)
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s))
+#else
+    if (!CodePageHostToGuestUTF8((char *)cpcnv_temp,(char *)s))
+#endif
         return NULL;
 
     return (char*)cpcnv_temp;
 }
 
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
-    if (!CodePageHostToGuest((char*)cpcnv_ltemp,s))
+#if defined(host_cnv_use_wchar)
+    if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s))
+#else
+    if (!CodePageHostToGuestUTF8((char *)cpcnv_ltemp,(char *)s))
+#endif
         return NULL;
 
     return (char*)cpcnv_ltemp;
@@ -1024,7 +1190,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	return FindNext(dta);
 }
 
-char * shiftjis_upcase(char * str);
+char * DBCS_upcase(char * str);
 
 bool localDrive::FindNext(DOS_DTA & dta) {
 
@@ -1092,8 +1258,8 @@ again:
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
-        if (IS_PC98_ARCH)
-            shiftjis_upcase(find_name);
+        if (IS_PC98_ARCH || isDBCSCP())
+            DBCS_upcase(find_name);
         else
             upcase(find_name);
     }
@@ -1479,7 +1645,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
                         if (diff<0&&(-diff)>*_free_clusters)
                             *_free_clusters=0;
                         else
-                            *_free_clusters += diff;
+                            *_free_clusters += (uint16_t)diff;
                     }
 					if (*_total_clusters<*_free_clusters) {
 						if (*_free_clusters>65525)
@@ -2248,7 +2414,7 @@ PHYSFS_sint64 PHYSFS_fileLength(const char *name) {
 
 /* Need to strip "/.." components and transform '\\' to '/' for physfs */
 static char *normalize(char * name, const char *basedir) {
-	int last = strlen(name)-1;
+	int last = (int)(strlen(name)-1);
 	strreplace(name,'\\','/');
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (last > 0 && name[last] == '.' && name[last-1] == '/') name[last-1] = 0;
@@ -2258,7 +2424,7 @@ static char *normalize(char * name, const char *basedir) {
 		if (slash) *slash = 0;
 	}
 	if (strlen(basedir) > strlen(name)) { strcpy(name,basedir); strreplace(name,'\\','/'); }
-	last = strlen(name)-1;
+	last = (int)(strlen(name)-1);
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (name[0] == 0) name[0] = '/';
 	//LOG_MSG("File access: %s",name);
@@ -2352,7 +2518,14 @@ bool physfsDrive::FileExists(const char* name) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 	normalize(newname,basedir);
-	return PHYSFS_exists(newname) && !PHYSFS_isDirectory(newname);
+    bool result = PHYSFS_exists(newname);
+    if(result) {
+        PHYSFS_Stat statbuf;
+        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+        result = (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY);
+    }
+
+	return result;
 }
 
 bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
@@ -2362,7 +2535,9 @@ bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) 
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 	normalize(newname,basedir);
-	time_t mytime = PHYSFS_getLastModTime(newname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
@@ -2387,20 +2562,25 @@ bool physfsDrive::isdir(const char *name) {
 	char myname[CROSS_LEN];
 	strcpy(myname,name);
 	normalize(myname,basedir);
-	return PHYSFS_isDirectory(myname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), false);
+    return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
 }
 
 void *physfsDrive::opendir(const char *name) {
 	char myname[CROSS_LEN];
 	strcpy(myname,name);
 	normalize(myname,basedir);
-	if (!PHYSFS_isDirectory(myname)) return NULL;
-
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), NULL);
+    if(statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return NULL;
 	struct opendirinfo *oinfo = (struct opendirinfo *)malloc(sizeof(struct opendirinfo));
 	strcpy(oinfo->dir, myname);
 	oinfo->files = PHYSFS_enumerateFiles(myname);
 	if (oinfo->files == NULL) {
-		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,PHYSFS_getLastError());
+        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,errorMessage);
 		free(oinfo);
 		return NULL;
 	}
@@ -2468,14 +2648,17 @@ physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t 
 		if((lastdir == newname) && !strchr(dir+(((dir[0]|0x20) >= 'a' && (dir[0]|0x20) <= 'z')?2:0),':')) {
 			// If the first parameter is a directory, the next one has to be the archive file,
 			// do not confuse it with basedir if trailing : is not there!
-			int tmp = strlen(dir)-1;
+			int tmp = (int)(strlen(dir)-1);
 			dir[tmp++] = ':';
 			dir[tmp++] = CROSS_FILESPLIT;
 			dir[tmp] = '\0';
 		}
 		if (*lastdir) {
-            if (PHYSFS_mount(lastdir,mp,true) == 0)
-                LOG_MSG("PHYSFS couldn't mount '%s': %s",lastdir,PHYSFS_getLastError());
+            if(PHYSFS_mount(lastdir, mp, true) == 0) {
+                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+                LOG_MSG("PHYSFS couldn't mount '%s': %s", lastdir, errorMessage);
+            }
             else {
                 if (mountarc.size()) mountarc+=", ";
                 mountarc+= lastdir;
@@ -2527,8 +2710,8 @@ bool physfsDrive::setOverlaydir(const char * name) {
 			PHYSFS_setWriteDir(oldwrite);
         return false;
 	} else {
-        if (oldwrite) PHYSFS_removeFromSearchPath(oldwrite);
-        PHYSFS_addToSearchPath(newname, 1);
+        if (oldwrite) PHYSFS_unmount(oldwrite);
+        PHYSFS_mount(newname, NULL, 1);
         dirCache.EmptyCache();
     }
 	if (oldwrite) free((char *)oldwrite);
@@ -2592,14 +2775,18 @@ bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attrib
 	char *slash = strrchr(newname,'/');
 	if (slash && slash != newname) {
 		*slash = 0;
-		if (!PHYSFS_isDirectory(newname)) return false;
+        PHYSFS_Stat statbuf;
+        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+		if (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return false;
 		PHYSFS_mkdir(newname);
 		*slash = '/';
 	}
 
 	PHYSFS_file * hand=PHYSFS_openWrite(newname);
 	if (!hand){
-		LOG_MSG("Warning: file creation failed: %s (%s)",newname,PHYSFS_getLastError());
+        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+		LOG_MSG("Warning: file creation failed: %s (%s)",newname,errorMessage);
 		return false;
 	}
 
@@ -2647,7 +2834,9 @@ bool physfsDrive::RemoveDir(const char * dir) {
 	CROSS_FILENAME(newdir);
 	dirCache.ExpandName(newdir);
 	normalize(newdir,basedir);
-	if (PHYSFS_isDirectory(newdir) && PHYSFS_delete(newdir)) {
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
+	if ((statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) && PHYSFS_delete(newdir)) {
 		CROSS_FILENAME(newdir);
 		dirCache.DeleteEntry(newdir,true);
 		dirCache.EmptyCache();
@@ -2682,7 +2871,9 @@ bool physfsDrive::TestDir(const char * dir) {
 	CROSS_FILENAME(newdir);
 	dirCache.ExpandName(newdir);
 	normalize(newdir,basedir);
-	return (PHYSFS_isDirectory(newdir));
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
+	return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
 }
 
 bool physfsDrive::Rename(const char * oldname,const char * newname) {
@@ -2736,7 +2927,10 @@ bool physfsDrive::GetFileAttr(const char * name,uint16_t * attr) {
 	*attr = 0;
 	if (!PHYSFS_exists(newname)) return false;
 	*attr=DOS_ATTR_ARCHIVE;
-	if (PHYSFS_isDirectory(newname)) *attr|=DOS_ATTR_DIRECTORY;
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
+    if(statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY)
+        *attr |= DOS_ATTR_DIRECTORY;
     return true;
 }
 
@@ -2791,7 +2985,9 @@ again:
 	dirCache.ExpandName(lfull_name);
 	normalize(lfull_name,basedir);
 
-	if (PHYSFS_isDirectory(lfull_name)) find_attr=DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE;
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(lfull_name, &statbuf), false);
+	if (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) find_attr=DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE;
 	else find_attr=DOS_ATTR_ARCHIVE;
 	if (~srch_attr & find_attr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM)) goto again;
 
@@ -2799,7 +2995,7 @@ again:
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
 	uint16_t find_date,find_time;uint32_t find_size;
 	find_size=(uint32_t)PHYSFS_fileLength(lfull_name);
-	time_t mytime = PHYSFS_getLastModTime(lfull_name);
+    time_t mytime = statbuf.modtime;
 	struct tm *time;
 	if((time=localtime(&mytime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
@@ -2846,7 +3042,7 @@ bool physfsFile::Read(uint8_t * data,uint16_t * size) {
 	}
 	if (last_action==WRITE) prepareRead();
 	last_action=READ;
-	PHYSFS_sint64 mysize = PHYSFS_read(fhandle,data,1,(PHYSFS_uint64)*size);
+    const PHYSFS_sint64 mysize = PHYSFS_readBytes(fhandle, data, *size);
 	//LOG_MSG("Read %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
 	*size = (uint16_t)mysize;
 	return true;
@@ -2861,14 +3057,18 @@ bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
 	last_action=WRITE;
 	if (*size==0) {
 		if (PHYSFS_tell(fhandle) == 0) {
-			PHYSFS_close(PHYSFS_openWrite(pname));
-			//LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+            if (PHYSFS_close(PHYSFS_openWrite(pname))) {
+                //LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
+                return true;
+            }
+            else
+                return false;
 		} else {
-			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,PHYSFS_tell(fhandle));
+			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,(int)PHYSFS_tell(fhandle));
 			return false;
 		}
 	} else {
-		PHYSFS_sint64 mysize = PHYSFS_write(fhandle,data,1,(PHYSFS_uint64)*size);
+		PHYSFS_sint64 mysize = PHYSFS_writeBytes(fhandle, data, *size);
 		//LOG_MSG("Wrote %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
 		*size = (uint16_t)mysize;
 		return true;
@@ -2880,7 +3080,7 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	switch (type) {
 	case DOS_SEEK_SET:break;
 	case DOS_SEEK_CUR:mypos += PHYSFS_tell(fhandle); break;
-	case DOS_SEEK_END:mypos += PHYSFS_fileLength(fhandle);-mypos; break;
+	case DOS_SEEK_END:mypos += PHYSFS_fileLength(fhandle)-mypos; break;
 	default:
 	//TODO Give some doserrorcode;
 		return false;//ERROR
@@ -2929,15 +3129,19 @@ bool physfsFile::prepareWrite() {
 		//LOG_MSG("COW",pname,PHYSFS_tell(fhandle));
 		PHYSFS_file *whandle = PHYSFS_openWrite(pname);
 		if (whandle == NULL) {
-			LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+            const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+            const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+			LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
 			return false;
 		}
 		char buffer[65536];
 		PHYSFS_sint64 size;
 		PHYSFS_seek(fhandle, 0);
-		while ((size = PHYSFS_read(fhandle,buffer,1,65536)) > 0) {
-			if (PHYSFS_write(whandle,buffer,1,size) != size) {
-				LOG_MSG("PHYSFS copy-on-write failed: %s.",PHYSFS_getLastError());
+		while ((size = PHYSFS_readBytes(fhandle,buffer,65536)) > 0) {
+			if (PHYSFS_writeBytes(whandle, buffer, size) != size) {
+                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
+                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
+				LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
 				PHYSFS_close(whandle);
 				return false;
 			}
@@ -2975,7 +3179,9 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
 	fhandle=handle;
 	info=devinfo;
 	strcpy(pname,physname);
-	time_t mytime = PHYSFS_getLastModTime(pname);
+    PHYSFS_Stat statbuf;
+    if(!PHYSFS_stat(pname, &statbuf)) return;
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
@@ -2996,7 +3202,9 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
 
 bool physfsFile::UpdateDateTimeFromHost(void) {
 	if(!open) return false;
-	time_t mytime = PHYSFS_getLastModTime(pname);
+    PHYSFS_Stat statbuf;
+    BAIL_IF_ERRPASS(!PHYSFS_stat(pname, &statbuf), false);
+    time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&mytime))!=0) {
@@ -3450,7 +3658,7 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 	else {
 		f = fopen_wrap(newname,mode);
 	}
-	//Check if a directories are part of the name:
+	//Check if a directory is part of the name:
 	char* dir = strrchr((char *)dos_filename,'\\');
 	if (!f && dir && *dir) {
 		if (logoverlay) LOG_MSG("Overlay: warning creating a file inside a directory %s",dos_filename);
@@ -3888,25 +4096,25 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 		char dir_name[CROSS_LEN], dir_sname[CROSS_LEN];
 		bool is_directory;
 		if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-			if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(dir_name);
+			if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
 			else if (is_directory) {
-				dirnames.push_back(dir_name);
+				dirnames.emplace_back(dir_name);
 				if (!strlen(dir_sname)) {
 					strcpy(dir_sname, dir_name);
 					upcase(dir_sname);
 				}
-				dirnames.push_back(dir_sname);
-			} else filenames.push_back(dir_name);
+				dirnames.emplace_back(dir_sname);
+			} else filenames.emplace_back(dir_name);
 			while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
-				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(dir_name);
+				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
 				else if (is_directory) {
-					dirnames.push_back(dir_name);
+					dirnames.emplace_back(dir_name);
 					if (!strlen(dir_sname)) {
 						strcpy(dir_sname, dir_name);
 						upcase(dir_sname);
 					}
-					dirnames.push_back(dir_sname);
-				} else filenames.push_back(dir_name);
+					dirnames.emplace_back(dir_sname);
+				} else filenames.emplace_back(dir_name);
 			}
 		}
 		closedir(dirp);
@@ -3996,7 +4204,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 			//upcase(dosname);  //Should not be really needed, as uppercase in the overlay is a requirement...
 			CROSS_DOSFILENAME(dosname);
 			if (logoverlay) LOG_MSG("update cache add dosname %s",dosname);
-			DOSnames_cache.push_back(dosname);
+			DOSnames_cache.emplace_back(dosname);
 		}
 	}
 
@@ -4506,7 +4714,7 @@ void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 	else
 		strcat(tname,temp_name);
 	if (!is_deleted_file(tname)) {
-		deleted_files_in_base.push_back(tname);
+		deleted_files_in_base.emplace_back(tname);
 		if (create_on_disk) add_special_file_to_disk(tname, "DEL");
 	}
 }
@@ -4633,8 +4841,8 @@ void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (logoverlay) LOG_MSG("Adding name to overlay_only_dir_cache %s",name);
 	if (!is_dir_only_in_overlay(name)) {
-		DOSdirs_cache.push_back(name);
-		DOSdirs_cache.push_back(sname);
+		DOSdirs_cache.emplace_back(name);
+		DOSdirs_cache.emplace_back(sname);
 	}
 }
 
@@ -4686,7 +4894,7 @@ void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (!is_deleted_path(name)) {
-		deleted_paths_in_base.push_back(name);
+		deleted_paths_in_base.emplace_back(name);
 		//Add it to deleted files as well, so it gets skipped in FindNext. 
 		//Maybe revise that.
 		if (create_on_disk) add_special_file_to_disk(name,"RMD");

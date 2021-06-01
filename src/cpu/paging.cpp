@@ -641,22 +641,22 @@ static INLINE void InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEnt
 	Bitu d_index=lin_page >> 10;
 	Bitu t_index=lin_page & 0x3ff;
 	Bitu table_addr=(paging.base.page<<12)+d_index*4;
-	table.load=phys_readd(table_addr);
+	table.load=phys_readd((const PhysPt)table_addr);
 	if (!table.block.p) {
 		LOG(LOG_PAGING,LOG_NORMAL)("NP Table");
 		PAGING_PageFault(lin_addr,table_addr,
 			(writing?0x02:0x00) | (((cpu.cpl&cpu.mpl)==0)?0x00:0x04));
-		table.load=phys_readd(table_addr);
+		table.load=phys_readd((const PhysPt)table_addr);
 		if (GCC_UNLIKELY(!table.block.p))
 			E_Exit("Pagefault didn't correct table");
 	}
 	Bitu entry_addr=(table.block.base<<12)+t_index*4;
-	entry.load=phys_readd(entry_addr);
+	entry.load=phys_readd((const PhysPt)entry_addr);
 	if (!entry.block.p) {
 //		LOG(LOG_PAGING,LOG_NORMAL)("NP Page");
 		PAGING_PageFault(lin_addr,entry_addr,
 			(writing?0x02:0x00) | (((cpu.cpl&cpu.mpl)==0)?0x00:0x04));
-		entry.load=phys_readd(entry_addr);
+		entry.load=phys_readd((const PhysPt)entry_addr);
 		if (GCC_UNLIKELY(!entry.block.p))
 			E_Exit("Pagefault didn't correct page");
 	}
@@ -667,7 +667,7 @@ static INLINE bool InitPageCheckPresence_CheckOnly(PhysPt lin_addr,bool writing,
 	Bitu d_index=lin_page >> 10;
 	Bitu t_index=lin_page & 0x3ff;
 	Bitu table_addr=(paging.base.page<<12)+d_index*4;
-	table.load=phys_readd(table_addr);
+	table.load=phys_readd((const PhysPt)table_addr);
 	if (!table.block.p) {
 		paging.cr2=lin_addr;
 		cpu.exception.which=EXCEPTION_PF;
@@ -675,7 +675,7 @@ static INLINE bool InitPageCheckPresence_CheckOnly(PhysPt lin_addr,bool writing,
 		return false;
 	}
 	Bitu entry_addr=(table.block.base<<12)+t_index*4;
-	entry.load=phys_readd(entry_addr);
+	entry.load=phys_readd((const PhysPt)entry_addr);
 	if (!entry.block.p) {
 		paging.cr2=lin_addr;
 		cpu.exception.which=EXCEPTION_PF;
@@ -856,11 +856,11 @@ initpage_retry:
 		if (paging.enabled) {
 			X86PageEntry table;
 			X86PageEntry entry;
-			InitPageCheckPresence(lin_addr,false,table,entry);
+			InitPageCheckPresence((PhysPt)lin_addr,false,table,entry);
 
 			if (!table.block.a) {
 				table.block.a=1;		//Set access
-				phys_writed((paging.base.page<<12)+(lin_page >> 10)*4,table.load);
+				phys_writed((const PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
 			if (!entry.block.a) {
 				entry.block.a=1;					//Set access
@@ -1336,7 +1336,7 @@ public:
 
 			if (!table.block.a) {
 				table.block.a=1;		//Set access
-				phys_writed((paging.base.page<<12)+(lin_page >> 10)*4,table.load);
+				phys_writed((const PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
 			if ((!entry.block.a) || (!entry.block.d)) {
 				entry.block.a=1;	//Set access
@@ -1385,11 +1385,11 @@ public:
 		if (paging.enabled) {
 			X86PageEntry table;
 			X86PageEntry entry;
-			InitPageCheckPresence(lin_addr,true,table,entry);
+			InitPageCheckPresence((PhysPt)lin_addr,true,table,entry);
 
 			if (!table.block.a) {
 				table.block.a=1;		//Set access
-				phys_writed((paging.base.page<<12)+(lin_page >> 10)*4,table.load);
+				phys_writed((const PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
 			if (!entry.block.a) {
 				entry.block.a=1;	//Set access
@@ -1407,7 +1407,7 @@ public:
 static InitPageUserROHandler init_page_handler_userro;
 
 bool PAGING_ForcePageInit(Bitu lin_addr) {
-	PageHandler * handler=get_tlb_readhandler(lin_addr);
+	PageHandler * handler=get_tlb_readhandler((const PhysPt)lin_addr);
 	if (handler==&init_page_handler) {
 		init_page_handler.InitPageForced(lin_addr);
 		return true;

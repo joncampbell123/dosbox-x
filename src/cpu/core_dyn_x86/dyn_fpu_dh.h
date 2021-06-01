@@ -154,7 +154,7 @@ static void dh_fpu_mem(uint8_t inst, Bitu reg=decode.modrm.reg, void* mem=&dyn_d
 	cache_addb(0x05|(reg<<3));
 	cache_addd((uint32_t)(mem));
 #else // X86_64
-	opcode(reg).setabsaddr(mem).Emit8(inst);
+	opcode((int)reg).setabsaddr(mem).Emit8(inst);
 #endif
 }
 
@@ -171,7 +171,7 @@ static void dh_fpu_esc0(){
 	dyn_get_modrm(); 
 	if (decode.modrm.val >= 0xc0) {
 		cache_addb(0xd8);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else { 
 		dyn_fill_ea();
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA));
@@ -183,7 +183,7 @@ static void dh_fpu_esc1(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) {
 		cache_addb(0xd9);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else {
 		Bitu group=(decode.modrm.val >> 3) & 7;
 		Bitu sub=(decode.modrm.val & 7);
@@ -231,7 +231,7 @@ static void dh_fpu_esc2(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xda);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else {
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_32,"%Drd",DREG(EA)); 
@@ -249,23 +249,23 @@ static void dh_fpu_esc3(){
 			switch (sub) {
 			case 0x00:				//FNENI
 			case 0x01:				//FNDIS
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",sub);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction :%d",(int)sub);
 				break;
 			case 0x02:				//FNCLEX FCLEX
 				cache_addb(0xdb);
-				cache_addb(decode.modrm.val);
+				cache_addb((uint8_t)decode.modrm.val);
 				break;
 			case 0x03:				//FNINIT FINIT
 				gen_call_function((void*)&FPU_FNINIT_DH,""); 
 				cache_addb(0xdb);
-				cache_addb(decode.modrm.val);
+				cache_addb((uint8_t)decode.modrm.val);
 				break;
 			case 0x04:				//FNSETPM
 			case 0x05:				//FRSTPM
 //				LOG(LOG_FPU,LOG_ERROR)("80267 protected mode (un)set. Nothing done");
 				break;
 			default:
-				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",group,sub);
+				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 			}
 			break;
 		default:
@@ -313,7 +313,7 @@ static void dh_fpu_esc4(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xdc);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else { 
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_64,"%Drd",DREG(EA)); 
@@ -325,7 +325,7 @@ static void dh_fpu_esc5(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xdd);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else {
 		dyn_fill_ea(); 
 		Bitu group=(decode.modrm.val >> 3) & 7;
@@ -371,7 +371,7 @@ static void dh_fpu_esc6(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xde);
-		cache_addb(decode.modrm.val);
+		cache_addb((uint8_t)decode.modrm.val);
 	} else {
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_16,"%Drd",DREG(EA)); 
@@ -387,16 +387,16 @@ static void dh_fpu_esc7(){
 		switch (group){
 		case 0x00: /* FFREEP STi*/
 			cache_addb(0xdf);
-			cache_addb(decode.modrm.val);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		case 0x01: /* FXCH STi*/
 			cache_addb(0xdf);
-			cache_addb(decode.modrm.val);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		case 0x02:  /* FSTP STi*/
 		case 0x03:  /* FSTP STi*/
 			cache_addb(0xdf);
-			cache_addb(decode.modrm.val);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		case 0x04:
 			switch(sub){

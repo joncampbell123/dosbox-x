@@ -541,7 +541,7 @@ void DOS_SetupMemory(void) {
 	if (enable_dummy_device_mcb) {
 		// Create a dummy device MCB with PSPSeg=0x0008
         LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
-		DOS_MCB mcb_devicedummy((uint16_t)DOS_MEM_START+mcb_sizes);
+		DOS_MCB mcb_devicedummy(DOS_MEM_START+mcb_sizes);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
 		mcb_devicedummy.SetSize(16);
 		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
@@ -553,7 +553,7 @@ void DOS_SetupMemory(void) {
 //		mcb_devicedummy.SetFileName("SD      ");
 	}
 
-	DOS_MCB mcb((uint16_t)DOS_MEM_START+mcb_sizes);
+	DOS_MCB mcb(DOS_MEM_START+mcb_sizes);
 	mcb.SetPSPSeg(MCB_FREE);						//Free
 	mcb.SetType(0x5a);								//Last Block
 	if (machine==MCH_TANDY) {
