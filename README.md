@@ -298,28 +298,28 @@ upstream.
 As its developers have made it clear, DOSBox's main focus is on
 DOS games. This is evident by the fact that much of the code is
 somewhat accurate code with kludges to make DOS games run,
-instead of focusing on what hardware actually does.
+instead of focusing on the actual behaviors of real DOS systems.
 
-Many of the changes I (the DOSBox-X project maintainer) wanted to
-make were non-game related, and therefore were unlikely to be
-accepted by the DOSBox developers.
+Jonathan Campbell, the DOSBox-X project maintainer wanted to make
+various changes to the source code, but many of them were non-game
+related, and thus were unlikely to be accepted by the DOSBox developers.
 
-Since then, I have been modifying the source code over time to
-improve emulation, fix bugs, and resolve incompatibilities with
-Windows 95 through ME. I have added options so that DOSBox-X
+Since then, Jonathan Campbell has been modifying the source code over
+time to improve emulation, fix bugs, and resolve incompatibilities
+with Windows 95 through ME. He has added options so that DOSBox-X
 by default can emulate a wider variety of configurations more
-accurately, while allowing the user to enable hacks if needed
-to run their favorite DOS game. I have also been cleaning up
-and organizing the code to improve stability and portability
-where possible.
+accurately, while allowing the user to enable various techniques or
+hacks if needed to run their favorite DOS games or programs. He has
+also been cleaning up and organizing the code to improve stability
+and portability where possible.
 
 The original DOSBox project was not written by one programmer. It
 has been under development since late 2000 with patches, fixes,
 and improvements from members all over the Vogons forums. Despite
 not having a major official release since DOSBox 0.74 over 10
-years ago, the project is still in semi-active development today.
-Meanwhile, some of the changes themselves incorporated code from
-other projects.
+years ago, the project is still in semi-active development today
+in the form of DOSBox SVN. Meanwhile, some of the changes themselves
+incorporated code from other projects.
 
 Some features and improvments in DOSBox-X also came from another
 branch of DOSBox known as [DOSBox SVN Daum](http://ykhwong.x-y.net)
@@ -333,7 +333,8 @@ features and improvements from other projects such as [DOSBox ECE](https://dosbo
 The DOSBox-X project is also helped by its other developers and
 contributors such as Wengier, aybe, Allofich, and rderooy, who have
 done significant work to improve the DOSBox-X project, including
-creating the documentation and porting code from other projects.
+adding new features, fixing bugs, creating the documentation,
+maintaining the website, and porting code from other projects.
 
 See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
