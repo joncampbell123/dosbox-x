@@ -108,7 +108,7 @@ DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプ�
 -ln (or -langname) (引数なしで) 表示するか、言語名を指定します。
 -wcp [ファイル名] プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
 -wcd 設定用ディレクトリにデフォルト設定ファイルを書き出す。
--all -wc, -wcp, -wcd と組み合わせ、設定ファイルに全てのオプションを書き出す。
+-all, -mod -wc/-wcp/-wcd と組み合わせ、全て/変更されたのオプションを書き出す。
 -wcboot, -wcpboot, -wcdboot: ファイル書き出し後に DOSBox-X を再起動。
 -bootconf(or -bc) 指定の設定用ﾌｧｲﾙ(またはprimary loaded file)を用いて再起動。
 -norem -wc, -wcp, or -wcd と組み合わせ、オプションのコメントを書き出さない。
@@ -2375,7 +2375,7 @@ PC-98 オプション
 200-ライン スキャンライン効果有効
 .
 :MENU:pc98_allow_4partitions
-Allow 4 display partitions in graphics layer
+GDCのグラフィック分割領域を4つに拡張
 .
 :MENU:pc98_enable_egc
 EGC有効
