@@ -16,7 +16,7 @@ A list of features ported from DOSBox SVN Daum:
 * Basic support for automatic drive mounting (Windows)
 * Printer output (improved since then by Wengier)
 * NE2000 Ethernet (improved since then by Wengier)
-* MT-32 emulation (MUNT)
+* MT-32 emulation (MUNT; updated to newer version since then by Wengier)
 * Internal 3dfx Voodoo card emulation (improved since then by Wengier and joncampbell123 along with code ported from DOSBox ECE)
 * Some support for FluidSynth MIDI synthesizer
 * Improved PC Speaker emulation accuracy
@@ -30,7 +30,7 @@ A list of features ported from DOSBox ECE:
 * Support for FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks (with some decoders ported and cleaned up from DOSBox Staging and DOSBox Optionals by Wengier)
 * Support for mapping mouse buttons to keyboard
 * Improved support for 3dfx emulation (Glide wrapper and improved internal card emulation; both improved since then by Wengier)
-* Improved support for FluidSynth MIDI synthesizer
+* Improved support for FluidSynth MIDI synthesizer (internal FluidSynth support added for Windows by Wengier)
 * Updated Nuked OPL3 to 1.8
 
 A list of features ported from DOSBox Staging:
@@ -38,17 +38,17 @@ A list of features ported from DOSBox Staging:
 * AUTOTYPE command for scripted keyboard entry
 * LS command (heavily improved since then by Wengier)
 * Modem phonebook support
-* Support for changing key bindings in runtime
+* Support for changing key bindings in runtime (improved since then by Wengier)
 
 A list of features ported from vDosPlus by Wengier:
 
 * Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
 * TrueType font (TTF) output support (originally by Jos Schaars and heavily improved since then by Wengier)
-* Improved support for automatic drive mounting (Windows)
+* Improved support for automatic drive mounting (Windows; improved since then by Wengier)
 * Support for clipboard copy and paste (improved since then by Wengier)
-* Several shell improvements
+* Several shell improvements (improved since then by Wengier)
 
-Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.
+Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been heavily improved by the DOSBox-X project.
 
 The [DOSBox-X website](https://dosbox-x.com) was designed and maintained by Wengier.
 

@@ -228,7 +228,7 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munidad←[0m ←[36;1mlocal_director
                   ('overlay' redirige escrituras a otro directorio)
  -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas)
  -ro              Monta la unidad en modo de solo lectura (read-only).
- -pr              Indica la ruta es relativa a la ubicación del archivo config.
+ -pr              Indica la ruta relativa a la ubicación del archivo config.
  -cd              Genera lista de valores del CD local de la "unidad".
  -usecd [drive #] Para emulación de hardware directa, como reproducir audio.
  -ioctl           Usa acceso a hardware de más bajo nivel (con opción -usecd).
@@ -1346,7 +1346,7 @@ POPD◙
 Controla si verificar archivos que se estén escribiendo a un disco.◙
 .
 :SHELL_CMD_VERIFY_HELP_LONG
-VERIFY [ON | OFF]◙◙Teclea VERIFY sin par metros para mostrar el ajuste actual de VERIFY.◙
+VERIFY [ON | OFF]◙◙Teclea VERIFY sin par metros para mostrar el ajuste actual de VERIFY.◙
 .
 :SHELL_CMD_VER_HELP
 Muestra o establece la versión de DOS informada por DOSBox-X.◙
@@ -3400,7 +3400,7 @@ Enganchar llamadas INT 2Fh
 Registrar llamadas INT 21h
 .
 :MENU:debug_logfileio
-Archivo de registros I/O
+Archivo de registros E/S
 .
 :MENU:mapper_speedlock2
 Modo Turbo   (Avance rápido)
@@ -3544,10 +3544,10 @@ Pentium MMX
 Pentium Pro
 .
 :MENU:debug_pageflip
-Depuración de page flipping
+Depuración de cambio de página
 .
 :MENU:debug_retracepoll
-Depuración de poll (Retrace poll debug line)
+Mejoras en traceado de debug
 .
 :MENU:mapper_swapimg
 Intercambiar disqueteras

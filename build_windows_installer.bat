@@ -148,9 +148,11 @@ echo * Building DOSBox-X installers ...    *
 echo ***************************************
 if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
-if exist %isspath%\dosbox-x-windows-*-setup.exe (
-	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
+%isspath%\allusers\ISCC.exe %isspath%\allusers\DOSBox-X-setup.iss
+if exist %isspath%\dosbox-x-windows-*-setup.exe if exist exist %isspath%\dosbox-x-windows-*-setup-allusers.exe (
+	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe %isspath%\dosbox-x-windows-*-setup-allusers.exe) do echo Copying to %vsbinpath%\%%~nxi...
 	copy /y %isspath%\dosbox-x-windows-*-setup.exe %vsbinpath%
+	copy /y %isspath%\dosbox-x-windows-*-setup-allusers.exe %vsbinpath%
 	goto success
 )
 
