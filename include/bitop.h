@@ -2,8 +2,6 @@
 #include <limits.h>
 #include <stdint.h>
 
-#include <utility>
-
 namespace bitop {
 
 /* Return the number of bits of the data type.

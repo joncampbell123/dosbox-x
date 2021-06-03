@@ -21,7 +21,6 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
-#include "logging.h"
 
 #if defined(C_ICONV)
 /* good */

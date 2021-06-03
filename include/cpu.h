@@ -20,14 +20,8 @@
 #ifndef DOSBOX_CPU_H
 #define DOSBOX_CPU_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h" 
-#endif
 #ifndef DOSBOX_REGS_H
 #include "regs.h"
-#endif
-#ifndef DOSBOX_MEM_H
-#include "mem.h"
 #endif
 
 #define CPU_AUTODETERMINE_NONE		0x00

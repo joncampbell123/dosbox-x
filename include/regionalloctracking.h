@@ -1,9 +1,6 @@
 
 #include "dosbox.h"
 
-#include <vector>
-#include <string>
-
 #ifndef DOSBOX_REGIONALLOCTRACKING_H
 #define DOSBOX_REGIONALLOCTRACKING_H
 

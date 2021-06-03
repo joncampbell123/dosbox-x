@@ -19,10 +19,6 @@
 #ifndef DOSBOX_FPU_H
 #define DOSBOX_FPU_H
 
-#ifndef DOSBOX_MEM_H
-#include "mem.h"
-#endif
-
 #include "mmx.h"
 
 void FPU_ESC0_Normal(Bitu rm);

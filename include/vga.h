@@ -23,7 +23,6 @@
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
 #endif
-#include <iostream>
 
 #define VGA_LFB_MAPPED
 
