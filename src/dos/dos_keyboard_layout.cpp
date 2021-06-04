@@ -768,13 +768,13 @@ void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp)
     }
 }
 
-static void LoadFontxFile(const char * fname, int opt) {
+static bool LoadFontxFile(const char * fname, int opt) {
     fontxTbl *table;
     uint8_t size;
     Bitu code;
     if (opt==1) {
         memcpy(jfont_sbcs_19, JPNHN19X+NAME_LEN+ID_LEN+3, SBCS19_LEN * sizeof(uint8_t));
-        return;
+        return true;
     } else if (opt==2) {
         int p=NAME_LEN+ID_LEN+3;
         size = JPNZN16X[p++];
@@ -791,20 +791,19 @@ static void LoadFontxFile(const char * fname, int opt) {
                 memcpy(&jfont_dbcs_16[code*32], JPNZN16X+p, 32*sizeof(uint8_t));
                 p+=32*sizeof(uint8_t);
             }
-        return;
+        return true;
     }
     fontx_h head;
-	if (!fname) return;
-	if(*fname=='\0') return;
+	if (!fname||*fname=='\0') return false;
 	FILE * mfile=fopen(fname,"rb");
 	if (!mfile) {
 		LOG_MSG("MSG: Can't open FONTX2 file: %s",fname);
-		return;
+		return false;
 	}
 	if (getfontx2header(mfile, &head) != 0) {
 		fclose(mfile);
 		LOG_MSG("MSG: FONTX2 header is incorrect\n");
-		return;
+		return false;
     }
 	// switch whether the font is DBCS or not
 	if (head.type == 1) {
@@ -819,7 +818,7 @@ static void LoadFontxFile(const char * fname, int opt) {
 		else {
 			fclose(mfile);
 			LOG_MSG("MSG: FONTX2 DBCS font size is not correct\n");
-			return;
+			return false;
 		}
 	}
     else {
@@ -828,10 +827,11 @@ static void LoadFontxFile(const char * fname, int opt) {
 		else {
 			fclose(mfile);
 			LOG_MSG("MSG: FONTX2 SBCS font size is not correct\n");
-			return;
+			return false;
 		}
     }
 	fclose(mfile);
+    return true;
 }
 
 void ResolvePath(std::string& in);
@@ -842,13 +842,13 @@ void JFONT_Init() {
 	if (pathprop && pathprop->realpath!="") {
         std::string path=pathprop->realpath;
         ResolvePath(path);
-        LoadFontxFile(path.c_str(), 0);
+        if (!LoadFontxFile(path.c_str(), 0)) LoadFontxFile(NULL, 1);
     } else LoadFontxFile(NULL, 1);
 	pathprop = section->Get_path("jfontdbcs");
 	if(pathprop && pathprop->realpath!="") {
         std::string path=pathprop->realpath;
         ResolvePath(path);
-        LoadFontxFile(path.c_str(), 0);
+        if (!LoadFontxFile(path.c_str(), 0)) LoadFontxFile(NULL, 2);
     } else LoadFontxFile(NULL, 2);
 }
 
