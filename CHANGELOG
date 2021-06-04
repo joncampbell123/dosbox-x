@@ -1,5 +1,8 @@
 0.83.15
-  - 
+  - Added support for Japanese EGA mode (machine=jega)
+    by adopting code from DOSVax. You can optionally
+    set SBCS and DBCS fonts with jfontsbcs & jfontdbcs
+    config options in [render] section. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the

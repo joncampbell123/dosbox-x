@@ -26,7 +26,10 @@
 #include "int10.h"
 #include "shiftjis.h"
 #include "callback.h"
+#include "jega.h"
 #include <string.h>
+
+Bit8u prevchr = 0;
 
 uint8_t DefaultANSIAttr();
 
@@ -542,6 +545,12 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
         }
         break;
     default:
+		if (isJEGAEnabled()) {
+			if (real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR) != 0) {
+				ReadVTRAMChar(col, row, result);
+				return;
+			}
+		}
         fontdata=Real2Phys(RealGetVec(0x43));
         break;
     }
@@ -593,6 +602,78 @@ void INT10_ReadCharAttr(uint16_t * result,uint8_t page) {
 
 void INT10_PC98_CurMode_Relocate(void) {
     /* deprecated */
+}
+
+/* Draw DBCS char in graphics mode*/
+void WriteCharJ(Bit16u col, Bit16u row, Bit8u page, Bit8u chr, Bit8u attr, bool useattr)
+{
+	Bitu x, y, pos = row*real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col;
+	Bit8u back, cheight = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+	Bit16u sjischr = prevchr;
+	sjischr <<= 8;
+	sjischr |= chr;
+
+	if (GCC_UNLIKELY(!useattr)) { //Set attribute(color) to a sensible value
+		static bool warned_use = false;
+		if (GCC_UNLIKELY(!warned_use)) {
+			LOG(LOG_INT10, LOG_ERROR)("writechar used without attribute in non-textmode %c %X", chr, chr);
+			warned_use = true;
+		}
+		attr = 0xf;
+	}
+
+	//Attribute behavior of mode 6; mode 11 does something similar but
+	//it is in INT 10h handler because it only applies to function 09h
+	if (CurMode->mode == 0x06) attr = (attr & 0x80) | 1;
+
+	switch (CurMode->type) {
+	case M_VGA:
+	case M_EGA:
+		/* enable all planes for EGA modes (Ultima 1 colour bug) */
+		/* might be put into INT10_PutPixel but different vga bios
+		implementations have different opinions about this */
+		IO_Write(0x3c4, 0x2); IO_Write(0x3c5, 0xf);
+		// fall-through
+	default:
+		back = attr & 0x80;
+		break;
+	}
+
+	x = (pos%CurMode->twidth - 1) * 8;//move right 1 column.
+	y = (pos / CurMode->twidth)*cheight;
+
+	Bit16u ty = (Bit16u)y + 1;
+	for (Bit8u h = 0; h<16 ; h++) {
+		Bit16u bitsel = 0x8000;
+		Bit16u bitline = jfont_dbcs_16[sjischr * 32 + h * 2];
+		bitline <<= 8;
+		bitline |= jfont_dbcs_16[sjischr * 32 + h * 2 + 1];
+		Bit16u tx = (Bit16u)x;
+		while (bitsel) {
+			INT10_PutPixel(tx, ty, page, (bitline&bitsel) ? attr : back);
+			tx++;
+			bitsel >>= 1;
+		}
+		ty++;
+	}
+}
+
+/* Read char code and attribute from Virtual Text RAM (for AX)*/
+void ReadVTRAMChar(Bit16u col, Bit16u row, Bit16u * result) {
+	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+	addr <<= 4;
+	addr += 2 * (80 * row + col);
+	*result = mem_readw(addr);
+}
+
+/* Write char code and attribute into Virtual Text RAM (for AX)*/
+void SetVTRAMChar(Bit16u col, Bit16u row, Bit8u chr, Bit8u attr)
+{
+	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+	addr <<= 4;
+	addr += 2 * (80 * row + col);
+	mem_writeb(addr,chr);
+	mem_writeb(addr+1, attr);
 }
 
 void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr) {
@@ -662,6 +743,18 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
         }
         break;
     default:
+		if (isJEGAEnabled()) {
+			if (real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR) != 0)
+				SetVTRAMChar(col, row, chr, attr);
+			if (isKanji1(chr) && prevchr == 0)
+				prevchr = chr;
+			else if (isKanji2(chr) && prevchr != 0)
+			{
+				WriteCharJ(col, row, page, chr, attr, useattr);
+				prevchr = 0;
+				return;
+			}
+		}
         fontdata=RealGetVec(0x43);
         break;
     }
@@ -809,6 +902,13 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         }
         chr=' ';
     default:
+		/* Return if the char code is DBCS at the end of the line (for AX) */
+		if (cur_col + 1 == ncols && isJEGAEnabled() && isKanji1(chr))
+		{ 
+			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
+			cur_row = CURSOR_POS_ROW(page);
+			cur_col = CURSOR_POS_COL(page);
+		}
         /* Draw the actual Character */
         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
         cur_col++;

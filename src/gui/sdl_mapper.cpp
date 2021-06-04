@@ -4765,7 +4765,7 @@ void MAPPER_CheckKeyboardLayout() {
 #if defined(WIN32)
     WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
 
-    isJPkeyboard = false;
+    isJPkeyboard = true;
 
     if (cur_kb_layout == 1041/*JP106*/) {
         isJPkeyboard = true;

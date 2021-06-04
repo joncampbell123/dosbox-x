@@ -117,7 +117,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper();
+extern void         AddSaveStateMapper(), JFONT_Init();
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -142,7 +142,7 @@ extern unsigned int page;
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
-
+bool                jp_ega = false;
 bool                want_fm_towns = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -988,6 +988,7 @@ void DOSBOX_RealInit() {
     svgaCard = SVGA_None;
     s3Card = S3_Generic;
     machine = MCH_VGA;
+    jp_ega = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
     if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
@@ -1001,6 +1002,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
+    else if (mtype == "jega")          { machine = MCH_EGA; jp_ega = true;}
     else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; } /* DOSBox SVN behavior */
     else if (mtype == "svga_s386c928") { svgaCard = SVGA_S3Trio; s3Card = S3_86C928; }
     else if (mtype == "svga_s3vision864"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision864; }
@@ -1023,8 +1025,9 @@ void DOSBOX_RealInit() {
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
 
-    else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
+    else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
+    if (IS_JEGA_ARCH) JFONT_Init();  // Load DBCS fonts for JEGA
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
 #endif
@@ -1186,7 +1189,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
+        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
@@ -2293,6 +2296,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
+
+	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in JEGA mode. If not specified, the default one will be used.");
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"

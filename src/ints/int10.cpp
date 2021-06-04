@@ -28,6 +28,7 @@
 #include "mouse.h"
 #include "setup.h"
 #include "render.h"
+#include "jega.h"
 
 Int10Data int10;
 bool blinking=true;
@@ -768,6 +769,185 @@ CX	640x480	800x600	  1024x768/1280x1024
 			break;
 		}
 		break;
+	case 0x50:// Set/Read JP/US mode of CRT BIOS
+		switch (reg_al) {
+			case 0x00:
+				LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5000h is called.");
+				if (INT10_AX_SetCRTBIOSMode(reg_bx)) reg_al = 0x00;
+				else reg_al = 0x01;
+				break;
+			case 0x01:
+				//LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 5001h is called.");
+				reg_bx=INT10_AX_GetCRTBIOSMode();
+				reg_al=0;
+				break;
+			default:
+				LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+				reg_al=0x0;
+				break;
+		}
+		break;
+	case 0x51:// Save/Read JFONT pattern
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		switch (reg_al) {
+			//INT 10h/AX=5100h Store user font pattern
+			//IN
+			//ES:BP=Index of store buffer
+			//DX=Char code
+			//BH=width bits of char
+			//BL=height bits of char
+			//OUT
+			//AL=status 00h=Success 01h=Failed
+		case 0x00:
+		{
+			LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5100h is called.");
+			Bitu buf_es = SegValue(es);
+			Bitu buf_bp = reg_bp;
+			Bitu chr = reg_dx;
+			Bitu w_chr = reg_bh;
+			Bitu h_chr = reg_bl;
+			Bitu font;
+			if (w_chr == 16 && h_chr == 16) {
+				for (Bitu line = 0; line < 16; line++)
+				{
+					//Order of font pattern is different between FONTX2 and AX(JEGA).
+					font = real_readb(buf_es, buf_bp + line);
+					jfont_dbcs_16[chr * 32 + line * 2] = font;
+					font = real_readb(buf_es, buf_bp + line + 16);
+					jfont_dbcs_16[chr * 32 + line * 2 + 1] = font;
+				}
+				reg_al = 0x00;
+			}
+			else
+				reg_al = 0x01;
+			break;
+		}
+		//INT 10h/AX=5101h Read character pattern
+		//IN
+		//ES:BP=Index of read buffer
+		//DX=Char code
+		//BH=width bits of char
+		//BL=height bits of char
+		//OUT
+		//AL=status 00h=Success 01h=Failed
+		case 0x01:
+		{
+			LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5101h is called.");
+			Bitu buf_es = SegValue(es);
+			Bitu buf_bp = reg_bp;
+			Bitu chr = reg_dx;
+			Bitu w_chr = reg_bh;
+			Bitu h_chr = reg_bl;
+			Bitu font;
+			if (w_chr == 8) {
+				reg_al = 0x00;
+				switch (h_chr)
+				{
+				case 8:
+					for (Bitu line = 0; line < 8; line++)
+						real_writeb(buf_es, buf_bp + line, int10_font_08[chr * 8 + line]);
+					break;
+				case 14:
+					for (Bitu line = 0; line < 14; line++)
+						real_writeb(buf_es, buf_bp + line, int10_font_14[chr * 14 + line]);
+					break;
+				case 19:
+					for (Bitu line = 0; line < 19; line++)
+						real_writeb(buf_es, buf_bp + line, jfont_sbcs_19[chr * 19 + line]);
+					break;
+				default:
+					reg_al = 0x01;
+					break;
+				}
+			}
+			else if (w_chr == 16 && h_chr == 16) {
+				reg_al = 0x00;
+				for (Bitu line = 0; line < 16; line++)
+				{
+					font = jfont_dbcs_16[chr * 32 + line * 2];
+					real_writeb(buf_es, buf_bp + line, font);
+					font = jfont_dbcs_16[chr * 32 + line * 2 + 1];
+					real_writeb(buf_es, buf_bp + line + 16, font);
+				}
+			}
+			else
+				reg_al = 0x01;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			reg_al=0x1;
+			break;
+		}
+		break;
+	case 0x52:// Set/Read virtual text ram buffer when the video mode is JEGA graphic mode
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 52xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+		{
+			if (reg_bx == 0) real_writew(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR, 0);
+			else
+			{
+				LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS set VTRAM segment address at %x", reg_bx);
+				real_writew(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR, reg_bx);
+				/* Fill VTRAM with 0x20(Space) */
+				for (int y = 0; y < 25; y++)
+					for (int x = 0; x < 80; x++)
+						SetVTRAMChar(x, y, 0x20, 0x00);
+			}
+			break;
+		}
+		case 0x01:
+		{
+			Bitu vtram_seg = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+			if (vtram_seg == 0x0000) reg_bx = 0;
+			else reg_bx = vtram_seg;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
+	case 0x82:// Set/Read the scroll mode when the video mode is JEGA graphic mode
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 82xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+			if (reg_bl == -1) {//Read scroll mode
+				reg_al = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x01;
+			}
+			else {//Set scroll mode
+				Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+				reg_al = tmp & 0x01;//Return previous scroll mode
+				tmp |= (reg_bl & 0x01);
+				real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp);
+			}
+			break;
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
+	case 0x83:// Read the video RAM address and virtual text video RAM
+		//Out: AX=base address of video RAM, ES:BX=base address of virtual text video RAM
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 83xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+		{
+			reg_ax = CurMode->pstart;
+			Bitu vtram_seg = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+			RealMakeSeg(es, vtram_seg >> 4);
+			reg_bx = vtram_seg << 4;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
 	case 0xf0:
 		INT10_EGA_RIL_ReadRegister(reg_bl, reg_dx);
 		break;
@@ -1150,6 +1330,59 @@ RealPt GetSystemBiosINT10Vector(void) {
         return CALLBACK_RealPointer(call_10);
     else
         return 0;
+}
+
+Bitu INT10_AX_GetCRTBIOSMode(void) {
+	if (!IS_JEGA_ARCH) return 0x01;
+	if (real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x80) return 0x51;//if in US mode
+	else return 0x01;
+}
+
+bool INT10_AX_SetCRTBIOSMode(Bitu mode) {
+	if (!IS_JEGA_ARCH) return false;
+	Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	switch (mode) {
+		//Todo: verify written value
+	case 0x01:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp & 0x7F);
+		LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS has been set to US mode.");
+		INT10_SetVideoMode(0x03);
+		return true;
+		/* -------------------SET to JP mode in CRT BIOS -------------------- */
+	case 0x51:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp | 0x80);
+		LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS has been set to JP mode.");
+		//		Mouse_BeforeNewVideoMode(true);
+		// change to the default video mode (03h) with vram cleared
+		INT10_SetVideoMode(0x03);
+		//		Mouse_AfterNewVideoMode(true);;
+		return true;
+	default:
+		return false;
+	}
+}
+Bitu INT16_AX_GetKBDBIOSMode(void) {
+	if (!IS_JEGA_ARCH) return 0x01;
+	if (real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x40) return 0x51;//if in US mode
+	else return 0x01;
+}
+
+bool INT16_AX_SetKBDBIOSMode(Bitu mode) {
+	if (!IS_JEGA_ARCH) return false;
+	Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	switch (mode) {
+		//Todo: verify written value
+	case 0x01:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp & 0xBF);
+		LOG(LOG_INT10, LOG_NORMAL)("AX KBD BIOS has been set to US mode.");
+		return true;
+	case 0x51:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp | 0x40);
+		LOG(LOG_INT10, LOG_NORMAL)("AX KBD BIOS has been set to JP mode.");
+		return true;
+	default:
+		return false;
+	}
 }
 
 extern bool VGA_BIOS_use_rom;

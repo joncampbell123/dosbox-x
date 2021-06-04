@@ -27,6 +27,7 @@
 #include "dos_inc.h"
 #include "SDL.h"
 #include "int10.h"
+#include "jega.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -1594,6 +1595,32 @@ Bitu INT16_Handler(void) {
         reg_ah = (mem_readb(BIOS_KEYBOARD_FLAGS2)&0x73)   |
                  ((mem_readb(BIOS_KEYBOARD_FLAGS2)&4)<<5) | // SysReq pressed, bit 7
                  (mem_readb(BIOS_KEYBOARD_FLAGS3)&0x0c);    // Right Ctrl/Alt pressed, bits 2,3
+        break;
+    case 0x50:// Set/Get JP/US mode in KBD BIOS
+        if (!IS_JEGA_ARCH) break;
+        switch (reg_al) {
+            case 0x00:
+                LOG(LOG_BIOS, LOG_NORMAL)("AX KBD BIOS 5000h is called.");
+                if (INT16_AX_SetKBDBIOSMode(reg_bx)) reg_al = 0x00;
+                else reg_al = 0x01;
+                break;
+            case 0x01:
+                LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 5001h is called.");
+                reg_bx = INT16_AX_GetKBDBIOSMode();
+                reg_al = 0;
+                break;
+            default:
+                LOG(LOG_BIOS,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+                reg_al=0x2;//return unknown error
+                break;
+        }
+        break;
+    case 0x51:// Get the shift status
+        if (!IS_JEGA_ARCH) break;
+        if (INT16_AX_GetKBDBIOSMode() != 0x51) break;//exit if not in JP mode
+        LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 51xxh is called.");
+        reg_al = mem_readb(BIOS_KEYBOARD_FLAGS1);
+        reg_ah = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS) & 0x02;
         break;
     case 0x55:
         /* Weird call used by some dos apps */

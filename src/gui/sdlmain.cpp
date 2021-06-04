@@ -4656,7 +4656,7 @@ void GFX_EndTextLines(bool force=false) {
     if (!force) justChanged = false;
     // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
-	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16 && blinkCursor) {	// Draw cursor?
+	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline <= 16 && blinkCursor) {	// Draw cursor?
 		int newPos = (int)(vga.draw.cursor.address>>1);
 		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
@@ -4715,7 +4715,7 @@ void GFX_EndTextLines(bool force=false) {
 				if ((vga.draw.cursor.blinkon || blinkCursor<0)) {
                     // second reverse lower lines
                     textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
-                    ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
+                    ttf_textClip.y = (ttf.height*(vga.draw.cursor.sline>15?15:vga.draw.cursor.sline))>>4;
                     ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
                     ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
                     SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);

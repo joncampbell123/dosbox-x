@@ -30,6 +30,7 @@
 #include "render.h"
 #include "menu.h"
 #include "regs.h"
+#include "jega.h"
 #include "callback.h"
 
 #define SEQ_REGS 0x05
@@ -443,6 +444,23 @@ VideoModeBlock ModeList_EGA[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
+VideoModeBlock ModeList_JEGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+	{ 0x000  ,M_TEXT   ,360 ,400 ,40 ,25 ,9 ,16 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK },
+	{ 0x001  ,M_TEXT   ,360 ,400 ,40 ,25 ,9 ,16 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK },
+	{ 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK | _DOUBLESCAN },
+	{ 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK | _DOUBLESCAN },
+	{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,100 ,449 ,80 ,400 ,_DOUBLESCAN },
+	{ 0x007  ,M_TEXT   ,720 ,400 ,80 ,25 ,9 ,16 ,8 ,0xB0000 ,0x1000 ,100 ,449 ,80 ,400 ,0 },
+	{ 0x010  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,100 ,449 ,80 ,350 ,0 },
+// JEGA modes for AX
+//{ 0x002  ,M_JEGA_TEXT   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xB8000 ,0x1000 ,96  ,525 ,80 ,480 ,0	},//AX-2 is not implemented;
+{ 0x003  ,M_TEXT   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xB8000 ,0x1000 ,96  ,525 ,80 ,480 ,0	},
+//{ 0x052  ,M_JEGA_GFX   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xA0000 ,0x10000 ,96  ,525 ,80 ,480 ,0	},//AX-2 is not implemented;
+//{ 0x053  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0 },
+{ 0x053  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0 },
+};
+
 VideoModeBlock ModeList_OTHER[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde ,special flags */
 { 0x000  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,8  ,8 ,0xB8000 ,0x0800 ,56  ,31  ,40 ,25  ,0   },
@@ -816,7 +834,9 @@ static void FinishSetMode(bool clearmem) {
 #endif
 
 		/* Set font pointer */
-		if (CurMode->mode<=3 || CurMode->mode==7)
+		if ((isJEGAEnabled()) && (CurMode->mode == 0x03 || CurMode->mode == 0x53))
+			RealSetVec(0x43, int10.rom.font_19);
+		else if (CurMode->mode<=3 || CurMode->mode==7)
 			RealSetVec(0x43,int10.rom.font_8_first);
 		else {
 			switch (CurMode->cheight) {
@@ -1273,7 +1293,31 @@ bool INT10_SetVideoMode(uint16_t mode) {
 //	uint8_t vga_switches=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES);
 	uint8_t modeset_ctl=real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
 
-	if (IS_VGA_ARCH) {
+	if (IS_JEGA_ARCH) {
+		IO_WriteB(0x3d4, 0xb9);
+		Bitu tmp = IO_ReadB(0x3d5);
+		tmp |= 0x40;
+		IO_WriteB(0x3d5, tmp);
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD1, tmp);
+	}
+	if (INT10_AX_GetCRTBIOSMode() == 0x51) {
+		if (mode == 0x02) mode = 0x03;//Video mode 02h redirect to 03h (AX-1)
+		if (mode == 0x52) mode = 0x53;//Video mode 52h redirect to 53h (AX-1)
+		if (mode == 0x03 || mode == 0x53)
+		{
+			//Enable JEGA Display Out only in video mode 03h or 53h
+			IO_WriteB(0x3d4, 0xb9);
+			Bitu tmp = IO_ReadB(0x3d5);
+			tmp &= 0xbf;
+			IO_WriteB(0x3d5, tmp);
+			real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD1, tmp);;
+		}
+		if (!SetCurMode(ModeList_JEGA, mode)) {
+			LOG(LOG_INT10, LOG_ERROR)("JEGA:Trying to set illegal mode %X", mode);
+			return false;
+		}
+	}
+	else if (IS_VGA_ARCH) {
 		if (svga.accepts_mode) {
 			if (!svga.accepts_mode(mode)) return false;
 		}

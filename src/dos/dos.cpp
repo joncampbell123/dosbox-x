@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <ctype.h>
 #include "dosbox.h"
 #include "dos_inc.h"
@@ -39,6 +40,7 @@
 #include "serialport.h"
 #include "dos_network.h"
 #include "render.h"
+#include "jega.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
 #include <shellapi.h>
@@ -2921,8 +2923,6 @@ void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
 
-#include <assert.h>
-
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
 extern bool log_dev_con, addovl;
@@ -3404,6 +3404,11 @@ public:
 		DOS_SetupMisc();							/* Some additional dos interrupts */
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
+
+        if (IS_JEGA_ARCH) {
+            INT10_AX_SetCRTBIOSMode(0x51);
+            INT16_AX_SetKBDBIOSMode(0x51);
+        }
 
         const char *keepstr = section->Get_string("keep private area on boot");
         if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
