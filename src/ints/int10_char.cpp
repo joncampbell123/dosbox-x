@@ -29,7 +29,7 @@
 #include "jega.h"
 #include <string.h>
 
-Bit8u prevchr = 0;
+uint8_t prevchr = 0;
 
 uint8_t DefaultANSIAttr();
 
@@ -605,11 +605,11 @@ void INT10_PC98_CurMode_Relocate(void) {
 }
 
 /* Draw DBCS char in graphics mode*/
-void WriteCharJ(Bit16u col, Bit16u row, Bit8u page, Bit8u chr, Bit8u attr, bool useattr)
+void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t attr, bool useattr)
 {
 	Bitu x, y, pos = row*real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col;
-	Bit8u back, cheight = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-	Bit16u sjischr = prevchr;
+	uint8_t back, cheight = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+	uint16_t sjischr = prevchr;
 	sjischr <<= 8;
 	sjischr |= chr;
 
@@ -642,13 +642,13 @@ void WriteCharJ(Bit16u col, Bit16u row, Bit8u page, Bit8u chr, Bit8u attr, bool 
 	x = (pos%CurMode->twidth - 1) * 8;//move right 1 column.
 	y = (pos / CurMode->twidth)*cheight;
 
-	Bit16u ty = (Bit16u)y + 1;
-	for (Bit8u h = 0; h<16 ; h++) {
-		Bit16u bitsel = 0x8000;
-		Bit16u bitline = jfont_dbcs_16[sjischr * 32 + h * 2];
+	uint16_t ty = (uint16_t)y + 1;
+	for (uint8_t h = 0; h<16 ; h++) {
+		uint16_t bitsel = 0x8000;
+		uint16_t bitline = jfont_dbcs_16[sjischr * 32 + h * 2];
 		bitline <<= 8;
 		bitline |= jfont_dbcs_16[sjischr * 32 + h * 2 + 1];
-		Bit16u tx = (Bit16u)x;
+		uint16_t tx = (uint16_t)x;
 		while (bitsel) {
 			INT10_PutPixel(tx, ty, page, (bitline&bitsel) ? attr : back);
 			tx++;
@@ -659,7 +659,7 @@ void WriteCharJ(Bit16u col, Bit16u row, Bit8u page, Bit8u chr, Bit8u attr, bool 
 }
 
 /* Read char code and attribute from Virtual Text RAM (for AX)*/
-void ReadVTRAMChar(Bit16u col, Bit16u row, Bit16u * result) {
+void ReadVTRAMChar(uint16_t col, uint16_t row, uint16_t * result) {
 	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
 	addr <<= 4;
 	addr += 2 * (80 * row + col);
@@ -667,7 +667,7 @@ void ReadVTRAMChar(Bit16u col, Bit16u row, Bit16u * result) {
 }
 
 /* Write char code and attribute into Virtual Text RAM (for AX)*/
-void SetVTRAMChar(Bit16u col, Bit16u row, Bit8u chr, Bit8u attr)
+void SetVTRAMChar(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
 {
 	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
 	addr <<= 4;

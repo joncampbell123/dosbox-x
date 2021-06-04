@@ -733,8 +733,8 @@ typedef struct {
 } fontx_h;
 
 typedef struct {
-    Bit16u start;
-	Bit16u end;
+    uint16_t start;
+	uint16_t end;
 } fontxTbl;
 
 Bitu getfontx2header(FILE *fp, fontx_h *header)
@@ -752,7 +752,7 @@ Bitu getfontx2header(FILE *fp, fontx_h *header)
 
 uint16_t chrtosht(FILE *fp)
 {
-	Bit16u i, j;
+	uint16_t i, j;
 	i = (uint8_t)getc(fp);
 	j = (uint8_t)getc(fp) << 8;
 	return(i | j);

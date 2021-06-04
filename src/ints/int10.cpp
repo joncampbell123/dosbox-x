@@ -919,7 +919,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 				reg_al = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x01;
 			}
 			else {//Set scroll mode
-				Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+				uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
 				reg_al = tmp & 0x01;//Return previous scroll mode
 				tmp |= (reg_bl & 0x01);
 				real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp);
@@ -1340,7 +1340,7 @@ Bitu INT10_AX_GetCRTBIOSMode(void) {
 
 bool INT10_AX_SetCRTBIOSMode(Bitu mode) {
 	if (!IS_JEGA_ARCH) return false;
-	Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
 	switch (mode) {
 		//Todo: verify written value
 	case 0x01:
@@ -1369,7 +1369,7 @@ Bitu INT16_AX_GetKBDBIOSMode(void) {
 
 bool INT16_AX_SetKBDBIOSMode(Bitu mode) {
 	if (!IS_JEGA_ARCH) return false;
-	Bit8u tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
 	switch (mode) {
 		//Todo: verify written value
 	case 0x01:
