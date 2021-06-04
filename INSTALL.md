@@ -19,11 +19,11 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 ## Windows Packages (Installer or Portable)
 
-You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installer for the current DOSBox-X version 0.83.14 is available from:
+You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installers for the current DOSBox-X version 0.83.14 are available from:
 
 * [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (Standard install mode; Windows XP or later)
 
-* [dosbox-x-windows-0.83.14-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allusers.exe) (Adminstrative install mode; Windows Vista or later)
+* [dosbox-x-windows-0.83.14-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allusers.exe) (Administrative install mode; Windows Vista or later)
 
 Windows installers for the previous DOSBox-X versions are also available from:
 
@@ -120,7 +120,9 @@ brew fluid-synth
 brew libslirp
 ```
 
-If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the Terminal rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
+If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package):
+
+* [dosbox-x-macosx-x86_64-10_13.zip](https://github.com/Wengier/dosbox-x-wiki/raw/master/dosbox-x-macosx-x86_64-10_13.zip)
 
 For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
 
