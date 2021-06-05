@@ -22,6 +22,7 @@
 #include "callback.h"
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
+#include "bios.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */

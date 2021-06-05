@@ -28,27 +28,6 @@
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif
-#ifndef DOSBOX_SETUP_H
-#include "setup.h"
-#endif
-
-#ifndef CH_LIST
-#define CH_LIST
-#include <list>
-#endif
-
-#ifndef CH_VECTOR
-#define CH_VECTOR
-#include <vector>
-#endif
-
-#ifndef CH_STRING
-#define CH_STRING
-#include <string>
-#endif
-
-
-
 
 class Config{
 public:

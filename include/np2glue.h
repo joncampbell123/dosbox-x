@@ -2,11 +2,8 @@
  * to help port code from Neko Project II and match the typedefs
  * it uses. */
 
-#include <math.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 #include <limits.h>
 
 #if defined(WIN32)

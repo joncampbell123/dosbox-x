@@ -43,12 +43,6 @@
 #include <string>
 #endif
 
-#ifndef CH_CSTDIO
-#define CH_CSTDIO
-#include <stdio.h>
-#endif
-
-
 class Hex {
 private:
 	int _hex;

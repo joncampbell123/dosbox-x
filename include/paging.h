@@ -21,7 +21,6 @@
 #define DOSBOX_PAGING_H
 
 #ifndef DOSBOX_DOSBOX_H
-#include <iostream>
 #include "dosbox.h"
 #endif
 #ifndef DOSBOX_MEM_H

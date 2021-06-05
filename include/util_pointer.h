@@ -6,10 +6,6 @@
 #ifndef __UTIL_POINTER_H
 #define __UTIL_POINTER_H
 
-#include <stdint.h>			/* need standard C library integer types */
-#include <stddef.h>
-#include <alloca.h>
-
 #define min_uintptr_t			((uintptr_t)0)
 #define max_uintptr_t			( ~((uintptr_t)0) )
 
