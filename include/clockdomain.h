@@ -7,8 +7,6 @@
  *
  * (C) 2014 Jonathan Campbell */
 
-#include <assert.h>
-
 #ifndef DOSBOX_CLOCKDOMAIN_H
 #define DOSBOX_CLOCKDOMAIN_H
 

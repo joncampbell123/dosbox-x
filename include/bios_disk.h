@@ -22,9 +22,6 @@
 #ifndef DOSBOX_DOS_INC_H
 #include "dos_inc.h"
 #endif
-#ifndef DOSBOX_BIOS_H
-#include "bios.h"
-#endif
 #include "../src/dos/cdrom.h"
 
 /* The Section handling Bios Disk Access */

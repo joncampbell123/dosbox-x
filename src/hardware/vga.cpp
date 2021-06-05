@@ -116,6 +116,8 @@
  *   chained 256-color modes differently.
  */
 
+#include <assert.h>
+
 #include "dosbox.h"
 #include "setup.h"
 #include "video.h"
