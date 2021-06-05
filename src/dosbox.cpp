@@ -70,6 +70,7 @@
 #include "mapper.h"
 #include "ints/int10.h"
 #include "menu.h"
+#include "jfont.h"
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
@@ -117,7 +118,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper();
+extern void         AddSaveStateMapper(), JFONT_Init();
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -142,7 +143,7 @@ extern unsigned int page;
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
-
+bool                jp_ega = false;
 bool                want_fm_towns = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -877,7 +878,9 @@ void Init_VGABIOS() {
             VGA_BIOS_Size = 0x4000; // FIXME: Why does 0x3800 cause Windows 3.0 386 enhanced mode to hang?
     }
     else if (machine == MCH_EGA) {
-        if (VIDEO_BIOS_always_carry_16_high_font)
+        if (jp_ega)
+            VGA_BIOS_Size = 0x3500;
+        else if (VIDEO_BIOS_always_carry_16_high_font)
             VGA_BIOS_Size = 0x3000;
         else
             VGA_BIOS_Size = 0x2000;
@@ -988,6 +991,7 @@ void DOSBOX_RealInit() {
     svgaCard = SVGA_None;
     s3Card = S3_Generic;
     machine = MCH_VGA;
+    jp_ega = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
     if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
@@ -1001,6 +1005,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
+    else if (mtype == "jega")          { machine = MCH_EGA; jp_ega = true;}
     else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; } /* DOSBox SVN behavior */
     else if (mtype == "svga_s386c928") { svgaCard = SVGA_S3Trio; s3Card = S3_86C928; }
     else if (mtype == "svga_s3vision864"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision864; }
@@ -1023,8 +1028,23 @@ void DOSBOX_RealInit() {
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
 
-    else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
+    else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    Section_prop *dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
+    const char *dosvstr = dos_section->Get_string("dosv");
+    if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "chs")) dos.set_pdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")) dos.set_cdosv_enabled = true;
+    if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
+        LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
+        dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    }
+    if (IS_JEGA_ARCH || IS_DOSV) {
+        JFONT_Init();  // Load DBCS fonts for JEGA
+        if (IS_DOSV) DOSV_SetConfig(dos_section);
+    }
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
 #endif
@@ -1136,7 +1156,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
+    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -1186,7 +1206,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
+        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
@@ -2293,6 +2313,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
+
+	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in JEGA mode. If not specified, the default one will be used.");
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
@@ -3799,13 +3825,24 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
     Pstring->Set_values(dosv_settings);
     Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from Asia that use the double byte character set\n"
-            "encodings and the DOS/V extensions to display Japanese, Chinese, or Korean text.\n"
+            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
+            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs or cht), or Korean (ko) text.\n"
             "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
             "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
             "software that assumes direct access to the text mode via segment 0xB800.\n"
-            "WARNING: This option is very experimental at this time.");
+            "Note: Only Japanese DOS/V extension is supported at this time.");
     Pstring->SetBasic(true);
+
+	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
+	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
+	Pstring->Set_values(fepcontrol_settings);
+	Pstring->Set_help("FEP control API for the DOS/V emulation.");
+
+	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
+	Pstring->Set_help("V-text screen mode for the DOS/V emulation..");
+
+	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
 
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);

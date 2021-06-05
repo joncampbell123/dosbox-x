@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "mem.h"
+#include "jfont.h"
 #include "dos_inc.h"
 #include "callback.h"
 #include "control.h"
@@ -213,26 +214,26 @@ void SetupDBCSTable() {
 
         // write a valid table, or else Windows 3.1 is unhappy.
         // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
-        if (IS_PC98_ARCH || dos.loaded_codepage == 932) {   // Japanese
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair 1
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV || dos.loaded_codepage == 932) {   // Japanese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);   // low/high DBCS pair 1
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0x9F);
-            mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);  // low/high DBCS pair 2
+            mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);   // low/high DBCS pair 2
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFC);
             mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
-        } else if (dos.loaded_codepage == 936) {            // Simplified Chinese
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0xA1);  // low/high DBCS pair
+        } else if (IS_PDOSV || dos.loaded_codepage == 936) { // Simplified Chinese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0xA1);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
-        } else if (dos.loaded_codepage == 949) {            // Korean
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair
+        } else if (IS_KDOSV || dos.loaded_codepage == 949) { // Korean
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
-        } else if (dos.loaded_codepage == 950) {            // Traditional Chinese
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair
+        } else if (IS_CDOSV || dos.loaded_codepage == 950) { // Traditional Chinese
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
         } else {
-            mem_writed(Real2Phys(dos.tables.dbcs),0);       //empty table
+            mem_writed(Real2Phys(dos.tables.dbcs),0);        //empty table
         }
     }
     else {

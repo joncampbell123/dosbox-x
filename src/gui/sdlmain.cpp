@@ -261,7 +261,7 @@ extern bool has_touch_bar_support;
 bool macosx_detect_nstouchbar(void);
 void macosx_init_touchbar(void);
 void macosx_GetWindowDPI(ScreenSizeInfo &info);
-void macosx_alert(const char *title, const char *message);
+bool macosx_yesno(const char *title, const char *message);
 int macosx_yesnocancel(const char *title, const char *message);
 std::string macosx_prompt_folder(const char *default_folder);
 void GetClipboard(std::string* result);
@@ -4656,7 +4656,7 @@ void GFX_EndTextLines(bool force=false) {
     if (!force) justChanged = false;
     // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
-	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16 && blinkCursor) {	// Draw cursor?
+	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline <= 16 && blinkCursor) {	// Draw cursor?
 		int newPos = (int)(vga.draw.cursor.address>>1);
 		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
@@ -4715,7 +4715,7 @@ void GFX_EndTextLines(bool force=false) {
 				if ((vga.draw.cursor.blinkon || blinkCursor<0)) {
                     // second reverse lower lines
                     textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
-                    ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
+                    ttf_textClip.y = (ttf.height*(vga.draw.cursor.sline>15?15:vga.draw.cursor.sline))>>4;
                     ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
                     ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
                     SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
@@ -12447,12 +12447,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             else
                 default_folder = NULL;
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
+            const char *quitstr = "You have not selected a valid path. Do you do want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
 #if defined(MACOSX)
             std::string path = macosx_prompt_folder(default_folder);
             if (path.empty()) {
-                macosx_alert("Exit from DOSBox-X", "You have not selected a valid path. Please try again.");
-                fprintf(stderr,"No path chosen by user, exiting\n");
-                return 1;
+                if (macosx_yesno("Run DOSBox-X?", quitstr)==1001) {
+                    fprintf(stderr,"No path chosen by user, exiting\n");
+                    return 1;
+                }
             } else if (workdiropt == "default") {
                 int ans=macosx_yesnocancel("DOSBox-X working directory", confirmstr);
                 if (ans == 1000) {workdirsave=1;workdirsaveas=path;}
@@ -12461,9 +12463,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #elif defined(WIN32) && !defined(HX_DOS)
             std::wstring path = win32_prompt_folder(default_folder);
             if (path.empty()) {
-                MessageBoxW(NULL, L"You have not selected a valid path. Please try again.", L"Exit from DOSBox-X", MB_OK);
-                fprintf(stderr, "No path chosen by user, exiting\n");
-                return 1;
+                if (MessageBox(NULL, quitstr, "Run DOSBox-X?", MB_YESNO)==IDNO) {
+                    fprintf(stderr, "No path chosen by user, exiting\n");
+                    return 1;
+                }
             } else if (workdiropt == "default") {
                 int ans=MessageBox(NULL, confirmstr, "DOSBox-X working directory",  MB_YESNOCANCEL);
                 const wchar_t *input = path.c_str();
@@ -12477,9 +12480,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             char *cpath = tinyfd_selectFolderDialog("Select folder where to run emulation, which will become the DOSBox-X working directory:",default_folder);
             std::string path = (cpath != NULL) ? cpath : "";
             if (path.empty()) {
-                systemmessagebox("Exit from DOSBox-X", "You have not selected a valid path. Please try again.", "ok","info", 1);
-                fprintf(stderr,"No path chosen by user, exiting\n");
-                return 1;
+                if (!systemmessagebox("Run DOSBox-X?", quitstr, "yesno","question", 1)) {
+                    fprintf(stderr,"No path chosen by user, exiting\n");
+                    return 1;
+                }
             } else if (workdiropt == "default") {
                 confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.";
                 int ans=systemmessagebox("DOSBox-X working directory",confirmstr,"yesno", "question", 1);

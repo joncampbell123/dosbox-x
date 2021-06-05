@@ -160,6 +160,7 @@ void					DOSBOX_SetNormalLoop();
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
+#define IS_JEGA_ARCH            (machine==MCH_EGA && jp_ega)
 #define IS_EGA_ARCH             (machine==MCH_EGA)
 #define IS_VGA_ARCH             (machine==MCH_VGA)
 #define IS_PC98_ARCH            (machine==MCH_PC98)

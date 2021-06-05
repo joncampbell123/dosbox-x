@@ -30,6 +30,7 @@
 #include "dos_inc.h"
 #include "control.h"
 #include "render.h"
+#include "jfont.h"
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
 
@@ -1233,8 +1234,8 @@ public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		const char * layoutname=section->Get_string("keyboardlayout");
-		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
-        int tocp=!strcmp(layoutname, "jp")?932:(!strcmp(layoutname, "ko")?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")?936:(!strcmp(layoutname, "us")?437:0))));
+		dos.loaded_codepage=(IS_PC98_ARCH || IS_JEGA_ARCH ? 932 : 437);	// US codepage already initialized
+        int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||IS_CDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
         if (tocp) layoutname="us";
 
 #if defined(USE_TTF)

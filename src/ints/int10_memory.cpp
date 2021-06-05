@@ -23,6 +23,7 @@
 #include "inout.h"
 #include "int10.h"
 #include "callback.h"
+#include "jfont.h"
 
 bool int10_vga_bios_vector = true;
 bool rom_bios_8x8_cga_font = true;
@@ -148,6 +149,10 @@ void INT10_ReloadFont(void) {
 	case 14:
 		if (IS_VGA_ARCH && svgaCard==SVGA_None && CurMode->mode==7) map=0x80;
 		INT10_LoadFont(Real2Phys(int10.rom.font_14),false,256,0,map,14);
+		break;
+	case 19:
+		if (IS_EGA_ARCH && svgaCard == SVGA_None) map = 0x80;
+		INT10_LoadFont(Real2Phys(int10.rom.font_19), false, 256, 0, map, 19);
 		break;
 	case 16:
 	default:
@@ -385,6 +390,11 @@ void INT10_SetupRomMemory(void) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_16_alternate[i]);
 		}
 	}
+    else if (IS_JEGA_ARCH) {
+        int10.rom.font_19 = RealMake(0xC000, int10.rom.used);
+        for (i = 0; i < 256 * 19; i++)
+            phys_writeb(rom_base + int10.rom.used++, jfont_sbcs_19[i]);
+    }
 	else {
 		int10.rom.font_16=0; /* why write the 16-high version if not emulating VGA? */
 		int10.rom.font_16_alternate=0;
@@ -493,6 +503,12 @@ void INT10_ReloadRomFonts(void) {
 	font8pt=Real2Phys(int10.rom.font_8_second);
 	for (unsigned int i=0;i<128*8;i++) {
 		phys_writeb(font8pt+i,int10_font_08[i+128*8]);
+	}
+	if (IS_JEGA_ARCH) {
+		PhysPt font19pt = Real2Phys(int10.rom.font_19);
+		for (Bitu i = 0; i < 256 * 19; i++) {
+			phys_writeb(font19pt + i, jfont_sbcs_19[i]);
+		}
 	}
 	INT10_SetupRomMemoryChecksum();
 }

@@ -130,6 +130,7 @@ typedef struct {
 		RealPt font_16;
 		RealPt font_14_alternate;
 		RealPt font_16_alternate;
+		RealPt font_19;
 		RealPt static_state;
 		RealPt video_save_pointers;
         RealPt video_dynamic_save_area;
@@ -151,6 +152,7 @@ typedef struct {
 	uint16_t vesa_setmode;
 	bool vesa_nolfb;
 	bool vesa_oldvbe;
+	uint8_t text_row;
 } Int10Data;
 
 #define _EGA_HALF_CLOCK			0x0001

@@ -33,6 +33,7 @@
 #include "../gui/render_scalers.h"
 #include "vga.h"
 #include "pic.h"
+#include "jfont.h"
 #include "menu.h"
 #include "timer.h"
 #include "config.h"
@@ -1952,49 +1953,156 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
+	Bitu background, foreground;
+	Bitu chr, chr_left, attr, bsattr;
+	bool chr_wide = false;
 
-    while (blocks--) { // for each character in the line
-        VGA_Latch pixels;
-
-        pixels.d = *vidmem;
-        vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
-
-        Bitu chr = pixels.b[0];
-        Bitu attr = pixels.b[1];
-        // the font pattern
-        Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
-        
-        Bitu background = attr >> 4u;
-        // if blinking is enabled bit7 is not mapped to attributes
-        if (vga.draw.blinking) background &= ~0x8u;
-        // choose foreground color if blinking not set for this cell or blink on
-        Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-            (attr&0xf):background;
-        // underline: all foreground [freevga: 0x77, previous 0x7]
-        if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-            (vga.crtc.underline_location&0x1f)==line))
-                background = foreground;
-        if (vga.draw.char9dot) {
-            font <<=1; // 9 pixels
-            // extend to the 9th pixel if needed
-            if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-                (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-            for (Bitu n = 0; n < 9; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
-
-                font <<= 1;
+    while (blocks--) {
+        if (isJEGAEnabled()) {
+            VGA_Latch pixels;
+            pixels.d = *vidmem;
+            vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
+            chr = pixels.b[0];
+            attr = pixels.b[1];
+            if (!chr_wide) {
+                if (!(jega.RMOD2 & 0x80))
+                {
+                    background = attr >> 4;
+                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
+                    if (vga.draw.blinking) background &= ~0x8;
+                    bsattr = 0;
+                }
+                else {
+                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
+                    background = 0;
+                    bsattr = attr;
+                    if (bsattr & 0x40) {
+                        Bitu tmp = background;
+                        background = foreground;
+                        foreground = tmp;
+                    }
+                }
+                if(isKanji1(chr) && blocks > 1) {
+                    chr_left=chr;
+                    chr_wide=true;
+                    blocks++;
+                } else {
+                    Bitu font = jfont_sbcs_19[chr*19+line];
+                    for (Bitu n = 0; n < 8; n++) {
+                        *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                        font <<= 1;
+                    }
+                    if (bsattr & 0x20) {
+                        draw -= 8;
+                        *draw = vga.attr.palette[foreground];
+                        draw += 8;
+                    }
+                    if (line == 18 && bsattr & 0x10) {
+                        draw -= 8;
+                        for (Bitu n = 0; n < 8; n++)
+                            *draw++ = vga.attr.palette[foreground];
+                    }
+                    chr_wide=false;
+                }
+            }
+            else
+            {
+                Bitu pad_y = jega.RPSSC;
+                Bitu exattr = 0;
+                if (jega.RMOD2 & 0x40) {
+                    exattr = attr;
+                    if ((exattr & 0x30) == 0x30) pad_y = jega.RPSSL;
+                    else if (exattr & 0x30) pad_y = jega.RPSSU;
+                }
+                if (line >= pad_y && line < 16 + pad_y) {
+                    if (isKanji2(chr)) {
+                        Bitu fline = line - pad_y;
+                        chr_left <<= 8;
+                        chr |= chr_left;
+                        if (exattr & 0x20) {
+                            if (exattr & 0x10) fline = (fline >> 1) + 8;
+                            else fline = fline >> 1;
+                        }
+                        if (exattr & 0x40) {
+                            Bitu font = jfont_dbcs_16[chr * 32 + fline * 2];
+                            if (!(exattr & 0x08))
+                                font = jfont_dbcs_16[chr * 32 + fline * 2 + 1];
+                            for (Bitu n = 0; n < 8; n++) {
+                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                font <<= 1;
+                            }
+                        } else {
+                            Bitu font = jfont_dbcs_16[chr * 32 + fline * 2];
+                            font <<= 8;
+                            font |= jfont_dbcs_16[chr * 32 + fline * 2 + 1];
+                            if (exattr &= 0x80)
+                            {
+                                Bitu font2 = font;
+                                font2 >>= 1;
+                                font |= font2;
+                            }
+                            for (Bitu n = 0; n < 16; n++) {
+                                *draw++ = vga.attr.palette[(font & 0x8000) ? foreground : background];
+                                font <<= 1;
+                            }
+                        }
+                    } else for (Bitu n = 0; n < 16; n++)
+                        *draw++ = vga.attr.palette[background];
+                } else if (line == (17 + pad_y) && (bsattr & 0x10)) {
+                        for (Bitu n = 0; n < 16; n++)
+                            *draw++ = vga.attr.palette[foreground];
+                } else for (Bitu n = 0; n < 16; n++) *draw++ = vga.attr.palette[background];
+                if (bsattr & 0x20) {
+                    draw -= 16;
+                    *draw = vga.attr.palette[foreground];
+                    draw += 16;
+                }
+                chr_wide=false;
+                blocks--;
             }
         } else {
-            for (Bitu n = 0; n < 8; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+            VGA_Latch pixels;
 
-                font <<= 1;
+            pixels.d = *vidmem;
+            vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
+
+            Bitu chr = pixels.b[0];
+            Bitu attr = pixels.b[1];
+            // the font pattern
+            Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+            Bitu background = attr >> 4u;
+            // if blinking is enabled bit7 is not mapped to attributes
+            if (vga.draw.blinking) background &= ~0x8u;
+            // choose foreground color if blinking not set for this cell or blink on
+            Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+                (attr&0xf):background;
+            // underline: all foreground [freevga: 0x77, previous 0x7]
+            if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
+                (vga.crtc.underline_location&0x1f)==line))
+                    background = foreground;
+            if (vga.draw.char9dot) {
+                font <<=1; // 9 pixels
+                // extend to the 9th pixel if needed
+                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                for (Bitu n = 0; n < 9; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
+
+                    font <<= 1;
+                }
+            } else {
+                for (Bitu n = 0; n < 8; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+
+                    font <<= 1;
+                }
             }
         }
     }
@@ -3206,7 +3314,7 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
 }
 
 bool isDBCSCP() {
-    return !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+    return !IS_PC98_ARCH && ((IS_JEGA_ARCH)||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
 }
 
 bool isDBCSLB(uint8_t chr, uint8_t* lead) {
@@ -4886,6 +4994,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_TEXT:
         vga.draw.blocks=width;
         // if char9_set is true, allow 9-pixel wide fonts
+		if (isJEGAEnabled()) { //if Kanji Text Disable is off
+			vga.draw.char9dot = false;
+			height = 480;
+			bpp = 16;
+		}
         if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
             // 8-pixel wide
             pix_per_char = 8;

@@ -42,6 +42,14 @@ struct CommandTail{
 #pragma pack ()
 #endif
 
+#define IS_DOS_JAPANESE (mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F)
+#define IS_DOS_CJK ((mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs)) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0xFE))
+#define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_cdosv_enabled || dos.set_pdosv_enabled)
+#define IS_JDOSV (dos.set_jdosv_enabled)
+#define IS_KDOSV (dos.set_kdosv_enabled)
+#define IS_CDOSV (dos.set_cdosv_enabled)
+#define IS_PDOSV (dos.set_pdosv_enabled)
+
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
 
@@ -745,6 +753,10 @@ struct DOS_Block {
         uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
     uint16_t loaded_codepage = 0;
+    bool set_cdosv_enabled = false;
+    bool set_jdosv_enabled = false;
+    bool set_kdosv_enabled = false;
+    bool set_pdosv_enabled = false;
 };
 
 extern DOS_Block dos;

@@ -751,6 +751,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r2=t;
 	}
 	text[0]=0;
+	if (!IS_DOSV)
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
 			if (IS_PC98_ARCH) {

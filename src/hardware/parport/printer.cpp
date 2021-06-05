@@ -29,6 +29,7 @@
 #include "printer_charmaps.h"
 #include "control.h"
 #include "pic.h" // for timeout
+#include "jfont.h"
 #include "timer.h"
 #include "render.h"
 #include "dos_inc.h"
@@ -1337,11 +1338,11 @@ void CPrinter::printChar(uint8_t ch, int box)
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
-    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || (TTF_using()
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
-    )) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
+    )))) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
         uint32_t tick = GetTicks();
         if (box!=0 && last3 && last2 && lastchar && lasttick && (tick-lasttick<50||tick-lasttick<printer_timout)) {
             if (ch>=176&&ch<=223

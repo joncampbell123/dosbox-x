@@ -628,6 +628,16 @@ void macosx_alert(const char *title, const char *message) {
     [alert runModal];
 }
 
+int macosx_yesno(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert addButtonWithTitle:@"No"];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    return [alert runModal];
+}
+
 int macosx_yesnocancel(const char *title, const char *message) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert addButtonWithTitle:@"Yes"];

@@ -27,6 +27,7 @@
 #include "dos_inc.h"
 #include "SDL.h"
 #include "int10.h"
+#include "jfont.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -42,6 +43,7 @@
 #endif
 
 static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0;
+static uint8_t fep_line = 0x01;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
@@ -1437,6 +1439,21 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
     return CBRET_NONE;
 }
 
+static bool IsKanjiCode(uint16_t key)
+{
+	if(isJEGAEnabled() || IS_DOSV) {
+		// Kanji
+		if((key & 0xff00) == 0xf000 || (key & 0xff00) == 0xf100) {
+			return true;
+		}
+		// Framework II
+		if(key == 0x8500 || key == 0x8600 || key == 0x9c00 || key == 0x9e00
+		  || key == 0xa500 || key == 0xa600 || key == 0x8a00 || key == 0x8900) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /* check whether key combination is enhanced or not,
    translate key if necessary */
@@ -1458,10 +1475,10 @@ static bool IsEnhancedKey(uint16_t &key) {
     } else if (((key>>8)>0x84) || (((key&0xff)==0xf0) && (key>>8))) {
         /* key is enhanced key (either scancode part>0x84 or
            specially-marked keyboard combination, low part==0xf0) */
-        return true;
+        if(!IsKanjiCode(key)) return true;
     }
     /* convert key if necessary (extended keys) */
-    if ((key>>8) && ((key&0xff)==0xe0))  {
+    if (!IsKanjiCode(key) && (key>>8) && ((key&0xff)==0xe0))  {
         key&=0xff00;
     }
     return false;
@@ -1509,7 +1526,7 @@ Bitu INT16_Handler(void) {
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
                 /* special enhanced key, clear low part before returning key */
-                temp&=0xff00;
+                if(!IsKanjiCode(temp)) temp&=0xff00;
             }
             reg_ax=temp;
         } else {
@@ -1594,6 +1611,43 @@ Bitu INT16_Handler(void) {
         reg_ah = (mem_readb(BIOS_KEYBOARD_FLAGS2)&0x73)   |
                  ((mem_readb(BIOS_KEYBOARD_FLAGS2)&4)<<5) | // SysReq pressed, bit 7
                  (mem_readb(BIOS_KEYBOARD_FLAGS3)&0x0c);    // Right Ctrl/Alt pressed, bits 2,3
+        break;
+    case 0x14:
+        if(IS_DOSV && IS_DOS_JAPANESE && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+            if(reg_al == 0x02) {
+                // get
+                reg_al = fep_line;
+            } else if(reg_al == 0x00 || reg_al == 0x01) {
+                // set
+                fep_line = reg_al;
+            }
+        }
+        break;
+    case 0x50:// Set/Get JP/US mode in KBD BIOS
+        if (!IS_JEGA_ARCH) break;
+        switch (reg_al) {
+            case 0x00:
+                LOG(LOG_BIOS, LOG_NORMAL)("AX KBD BIOS 5000h is called.");
+                if (INT16_AX_SetKBDBIOSMode(reg_bx)) reg_al = 0x00;
+                else reg_al = 0x01;
+                break;
+            case 0x01:
+                LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 5001h is called.");
+                reg_bx = INT16_AX_GetKBDBIOSMode();
+                reg_al = 0;
+                break;
+            default:
+                LOG(LOG_BIOS,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+                reg_al=0x2;//return unknown error
+                break;
+        }
+        break;
+    case 0x51:// Get the shift status
+        if (!IS_JEGA_ARCH) break;
+        if (INT16_AX_GetKBDBIOSMode() != 0x51) break;//exit if not in JP mode
+        LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 51xxh is called.");
+        reg_al = mem_readb(BIOS_KEYBOARD_FLAGS1);
+        reg_ah = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS) & 0x02;
         break;
     case 0x55:
         /* Weird call used by some dos apps */

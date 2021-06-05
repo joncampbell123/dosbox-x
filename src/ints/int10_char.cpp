@@ -26,7 +26,11 @@
 #include "int10.h"
 #include "shiftjis.h"
 #include "callback.h"
+#include "dos_inc.h"
+#include "jfont.h"
 #include <string.h>
+
+uint8_t prevchr = 0;
 
 uint8_t DefaultANSIAttr();
 
@@ -251,6 +255,7 @@ static void TEXT_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,ui
 
 void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page) {
 /* Do some range checking */
+    if(IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     if (CurMode->type!=M_TEXT) page=0xff;
     BIOS_NCOLS;BIOS_NROWS;
     if(rul>rlr) return;
@@ -474,6 +479,7 @@ void INT10_GetCursorPos(uint8_t *row, uint8_t*col, const uint8_t page)
 }
 
 void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
+    if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
     if (IS_PC98_ARCH) {
@@ -506,6 +512,8 @@ void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
         }
     }
 }
+
+uint16_t GetTextSeg();
 
 void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
     /* Externally used by the mouse routine */
@@ -542,6 +550,15 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
         }
         break;
     default:
+		if (isJEGAEnabled()) {
+			if (real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR) != 0) {
+				ReadVTRAMChar(col, row, result);
+				return;
+			}
+		} else if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			*result = real_readw(GetTextSeg(), (row * real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col) * 2);
+			return;
+		}
         fontdata=Real2Phys(RealGetVec(0x43));
         break;
     }
@@ -584,6 +601,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
     LOG(LOG_INT10,LOG_ERROR)("ReadChar didn't find character");
     *result = 0;
 }
+
 void INT10_ReadCharAttr(uint16_t * result,uint8_t page) {
     if(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     uint8_t cur_row=CURSOR_POS_ROW(page);
@@ -591,8 +609,324 @@ void INT10_ReadCharAttr(uint16_t * result,uint8_t page) {
     ReadCharAttr(cur_col,cur_row,page,result);
 }
 
+void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page) {
+	uint16_t result;
+	while (count > 0) {
+		ReadCharAttr(col, row, page, &result);
+		mem_writew(string, result);
+		string += 2;
+		col++;
+		if(col == real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)) {
+			col = 0;
+			if(row == real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) {
+				break;
+			}
+			row++;
+		}
+		count--;
+	}
+}
+
 void INT10_PC98_CurMode_Relocate(void) {
     /* deprecated */
+}
+
+/* Draw DBCS char in graphics mode*/
+void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t attr, bool useattr)
+{
+	Bitu x, y, pos = row*real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col;
+	uint8_t back, cheight = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+	uint16_t sjischr = prevchr;
+	sjischr <<= 8;
+	sjischr |= chr;
+
+	if (GCC_UNLIKELY(!useattr)) { //Set attribute(color) to a sensible value
+		static bool warned_use = false;
+		if (GCC_UNLIKELY(!warned_use)) {
+			LOG(LOG_INT10, LOG_ERROR)("writechar used without attribute in non-textmode %c %X", chr, chr);
+			warned_use = true;
+		}
+		attr = 0xf;
+	}
+
+	//Attribute behavior of mode 6; mode 11 does something similar but
+	//it is in INT 10h handler because it only applies to function 09h
+	if (CurMode->mode == 0x06) attr = (attr & 0x80) | 1;
+
+	switch (CurMode->type) {
+	case M_VGA:
+	case M_EGA:
+		/* enable all planes for EGA modes (Ultima 1 colour bug) */
+		/* might be put into INT10_PutPixel but different vga bios
+		implementations have different opinions about this */
+		IO_Write(0x3c4, 0x2); IO_Write(0x3c5, 0xf);
+		// fall-through
+	default:
+		back = attr & 0x80;
+		break;
+	}
+
+	x = (pos%CurMode->twidth - 1) * 8;//move right 1 column.
+	y = (pos / CurMode->twidth)*cheight;
+
+	uint16_t ty = (uint16_t)y + 1;
+	for (uint8_t h = 0; h<16 ; h++) {
+		uint16_t bitsel = 0x8000;
+		uint16_t bitline = jfont_dbcs_16[sjischr * 32 + h * 2];
+		bitline <<= 8;
+		bitline |= jfont_dbcs_16[sjischr * 32 + h * 2 + 1];
+		uint16_t tx = (uint16_t)x;
+		while (bitsel) {
+			INT10_PutPixel(tx, ty, page, (bitline&bitsel) ? attr : back);
+			tx++;
+			bitsel >>= 1;
+		}
+		ty++;
+	}
+}
+
+/* Read char code and attribute from Virtual Text RAM (for AX)*/
+void ReadVTRAMChar(uint16_t col, uint16_t row, uint16_t * result) {
+	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+	addr <<= 4;
+	addr += 2 * (80 * row + col);
+	*result = mem_readw(addr);
+}
+
+/* Write char code and attribute into Virtual Text RAM (for AX)*/
+void SetVTRAMChar(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
+{
+	Bitu addr = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+	addr <<= 4;
+	addr += 2 * (80 * row + col);
+	mem_writeb(addr,chr);
+	mem_writeb(addr+1, attr);
+}
+
+static bool CheckJapaneseGraphicsMode(uint8_t attr)
+{
+	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+		if(attr & 0x80) {
+			return true;
+		}
+	}
+	return false;
+}
+
+uint8_t *GetSbcsFont(Bitu code)
+{
+	return &jfont_sbcs_19[code * 19];
+}
+
+uint8_t *GetDbcsFont(Bitu code)
+{
+	return &jfont_dbcs_16[code * 32];
+}
+
+
+void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
+{
+	Bitu off;
+	uint8_t data, select;
+	uint8_t *font;
+
+	if(CheckJapaneseGraphicsMode(attr)) {
+		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
+
+		volatile uint8_t dummy;
+		Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+		uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+		font = GetSbcsFont(chr);
+		off = row * width * height + col;
+		if(svgaCard == SVGA_TsengET4K) {
+			if(off >= 0x20000) {
+				select = 0x22;
+				off -= 0x20000;
+			} else if(off >= 0x10000) {
+				select = 0x11;
+				off -= 0x10000;
+			} else {
+				select = 0x00;
+			}
+			IO_Write(0x3cd, select);
+		}
+		for(uint8_t h = 0 ; h < height ; h++) {
+			dummy = real_readb(0xa000, off);
+			data = *font++;
+			real_writeb(0xa000, off, data);
+			off += width;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				off -= 0x10000;
+				IO_Write(0x3cd, select);
+			}
+		}
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
+		return;
+	}
+	volatile uint8_t dummy;
+	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+	font = GetSbcsFont(chr);
+	off = row * width * height + col;
+	if(svgaCard == SVGA_TsengET4K) {
+		if(off >= 0x20000) {
+			select = 0x22;
+			off -= 0x20000;
+		} else if(off >= 0x10000) {
+			select = 0x11;
+			off -= 0x10000;
+		} else {
+			select = 0x00;
+		}
+		IO_Write(0x3cd, select);
+	}
+	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
+	real_writeb(0xa000, off, 0xff); dummy = real_readb(0xa000, off);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+	for(uint8_t h = 0 ; h < height ; h++) {
+		data = *font++;
+		real_writeb(0xa000, off, data);
+		off += width;
+		if(off >= 0x10000) {
+			if(select == 0x00) {
+				select = 0x11;
+			} else if(select == 0x11) {
+				select = 0x22;
+			}
+			off -= 0x10000;
+			IO_Write(0x3cd, select);
+		}
+	}
+}
+
+void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
+{
+	Bitu off;
+	uint16_t data;
+	uint16_t *font;
+	uint8_t select;
+
+	if(CheckJapaneseGraphicsMode(attr)) {
+		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
+
+		volatile uint16_t dummy;
+		Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+		uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+		font = (uint16_t *)GetDbcsFont(chr);
+		off = row * width * height + col;
+		if(svgaCard == SVGA_TsengET4K) {
+			if(off >= 0x20000) {
+				select = 0x22;
+				off -= 0x20000;
+			} else if(off >= 0x10000) {
+				select = 0x11;
+				off -= 0x10000;
+			} else {
+				select = 0x00;
+			}
+			IO_Write(0x3cd, select);
+		}
+		for(uint8_t h = 0 ; h < height ; h++) {
+			dummy = real_readw(0xa000, off);
+			if(height == 19 && (h == 0 || h > 16)) {
+				data = 0;
+			} else {
+				data = *font++;
+			}
+			real_writew(0xa000, off, data);
+			off += width;
+		}
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
+		return;
+	}
+	volatile uint16_t dummy;
+	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+	font = (uint16_t *)GetDbcsFont(chr);
+	off = row * width * height + col;
+	if(svgaCard == SVGA_TsengET4K) {
+		if(off >= 0x20000) {
+			select = 0x22;
+			off -= 0x20000;
+		} else if(off >= 0x10000) {
+			select = 0x11;
+			off -= 0x10000;
+		} else {
+			select = 0x00;
+		}
+		IO_Write(0x3cd, select);
+	}
+	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
+	real_writew(0xa000, off, 0xffff); dummy = real_readw(0xa000, off);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+	for(uint8_t h = 0 ; h < height ; h++) {
+		if(height == 19 && (h == 0 || h > 16)) {
+			data = 0;
+		} else {
+			data = *font++;
+		}
+		real_writew(0xa000, off, data);
+		off += width;
+		if(off >= 0x10000) {
+			if(select == 0x00) {
+				select = 0x11;
+			} else if(select == 0x11) {
+				select = 0x22;
+			}
+			off -= 0x10000;
+			IO_Write(0x3cd, select);
+		}
+	}
+}
+
+void WriteCharTopView(uint16_t off, int count)
+{
+	uint16_t seg = GetTextSeg();
+	uint8_t code, attr;
+	uint16_t col, row;
+	uint16_t width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+	col = (off / 2) % width;
+	row = (off / 2) / width;
+	while(count > 0) {
+		code = real_readb(seg, off);
+		attr = real_readb(seg, off + 1);
+		if(isKanji1(code)) {
+			real_writeb(seg, row * width * 2 + col * 2, code);
+			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
+			off += 2;
+			WriteCharDOSVDbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
+			count--;
+			col++;
+			if(col >= width) {
+				col = 0;
+				row++;
+			}
+			real_writeb(seg, row * width * 2 + col * 2, real_readb(seg, off));
+			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
+		} else {
+			real_writeb(seg, row * width * 2 + col * 2, code);
+			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
+			WriteCharDOSVSbcs(col, row, code, attr);
+		}
+		col++;
+		if(col >= width) {
+			col = 0;
+			row++;
+		}
+		off += 2;
+		count--;
+	}
 }
 
 void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr) {
@@ -662,6 +996,36 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
         }
         break;
     default:
+		if (isJEGAEnabled()) {
+			if (real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR) != 0)
+				SetVTRAMChar(col, row, chr, attr);
+			if (isKanji1(chr) && prevchr == 0)
+				prevchr = chr;
+			else if (isKanji2(chr) && prevchr != 0)
+			{
+				WriteCharJ(col, row, page, chr, attr, useattr);
+				prevchr = 0;
+				return;
+			}
+		} else if(DOSV_CheckJapaneseVideoMode()) {
+			DOSV_OffCursor();
+
+			uint16_t seg = GetTextSeg();
+			uint16_t width = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+			real_writeb(seg, row * width * 2 + col * 2, chr);
+			if(useattr) {
+				real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
+			}
+			if (isKanji1(chr) && prevchr == 0) {
+				prevchr = chr;
+			} else if (isKanji2(chr) && prevchr != 0) {
+				WriteCharDOSVDbcs(col - 1, row, (prevchr << 8) | chr, attr);
+				prevchr = 0;
+				return;
+			}
+			WriteCharDOSVSbcs(col, row, chr, attr);
+			return;
+		}
         fontdata=RealGetVec(0x43);
         break;
     }
@@ -809,6 +1173,13 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         }
         chr=' ';
     default:
+		/* Return if the char code is DBCS at the end of the line (for AX) */
+		if (cur_col + 1 == ncols && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0)
+		{ 
+			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
+			cur_row = CURSOR_POS_ROW(page);
+			cur_col = CURSOR_POS_COL(page);
+		}
         /* Draw the actual Character */
         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
         cur_col++;
@@ -818,14 +1189,14 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         cur_row++;
     }
     // Do we need to scroll ?
-    if(cur_row==nrows) {
+    if(cur_row>=nrows) {
         //Fill with black on non-text modes
         uint8_t fill = 0;
         if (IS_PC98_ARCH && CurMode->type == M_TEXT) {
             //Fill with the default ANSI attribute on textmode
             fill = DefaultANSIAttr();
         }
-        else if (CurMode->type==M_TEXT) {
+        else if (CurMode->type==M_TEXT || DOSV_CheckCJKVideoMode()) {
             //Fill with attribute at cursor on textmode
             uint16_t chat;
             INT10_ReadCharAttr(&chat,page);

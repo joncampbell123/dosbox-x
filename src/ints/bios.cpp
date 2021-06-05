@@ -36,6 +36,7 @@
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
+#include "jfont.h"
 #include "shiftjis.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
@@ -5509,6 +5510,9 @@ static Bitu INT8_Handler(void) {
     }
     mem_writed(BIOS_TIMER,value);
 
+	if(bootdrive<0 && IS_DOSV && DOSV_CheckCJKVideoMode())
+		INT8_DOSV();
+
     /* decrease floppy motor timer */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
     if (val) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
@@ -5552,6 +5556,23 @@ static Bitu INT17_Handler(void) {
         if(parallelPortObjects[reg_dx] != 0)
             reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
         //LOG_MSG("printer status: %x",reg_ah);
+        break;
+    case 0x20:		/* Some sort of printerdriver install check*/
+        break;
+    case 0x50: // Printer BIOS for AX
+        if (!IS_JEGA_ARCH) break;
+        switch (reg_al) {
+        case 0x00:// Set JP/US mode in PRT BIOS
+            LOG(LOG_BIOS, LOG_NORMAL)("AX PRT BIOS 5000h is called. (not implemented)");
+            reg_al = 0x01; // Return error (not implemented)
+            break;
+        case 0x01:// Get JP/US mode in PRT BIOS
+            reg_al = 0x01; // Return US mode (not implemented)
+            break;
+        default:
+            LOG(LOG_BIOS, LOG_ERROR)("Unhandled AX Function 50%2X", reg_al);
+            break;
+        }
         break;
     }
     return CBRET_NONE;
