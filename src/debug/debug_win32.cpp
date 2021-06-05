@@ -67,12 +67,18 @@ static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {
 	
 	// If the Current Buffer *is* the Size we want, Don't do anything!
 	return;
-   }
+}
 
-
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+void DEBUG_ShowMsg(char const* format,...);
 void WIN32_Console() {
 	AllocConsole();
 	SetConsoleTitle("DOSBox-X Debugger");
-	ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dwMode = 0;
+	if (GetConsoleMode(hOut, &dwMode)) SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+	ResizeConsole(hOut,80,50);
 }
 #endif
