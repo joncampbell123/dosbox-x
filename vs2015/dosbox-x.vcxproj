@@ -1001,6 +1001,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\ints\bios_vhd.cpp" />
+    <ClCompile Include="..\src\ints\int_dosv.cpp" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c" />
     <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c" />

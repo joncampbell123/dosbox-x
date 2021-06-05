@@ -39,18 +39,50 @@ extern bool vga_8bit_dac;
 extern bool wpExtChar;
 extern int wpType;
 
+uint16_t GetTextSeg();
+void WriteCharTopView(uint16_t off, int count);
+void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
+bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
 	//      the BIOS data area to play tricks with the BIOS. If we don't call this, tricks
 	//      like the Windows 95 boot logo or INT 10h virtualization in Windows 3.1/9x/ME
 	//      within the DOS "box" will not work properly.
+	if(IS_DOSV && DOSV_CheckJapaneseVideoMode() && reg_ah != 0x03) DOSV_OffCursor();
 	INT10_SetCurMode();
 
 	switch (reg_ah) {
 	case 0x00:								/* Set VideoMode */
 		Mouse_BeforeNewVideoMode(true);
-		INT10_SetVideoMode(reg_al);
+		SetTrueVideoMode(reg_al);
+		if(!IS_JEGA_ARCH && IS_DOS_JAPANESE && (reg_al == 0x03 || reg_al == 0x70 || reg_al == 0x72 || reg_al == 0x78)) {
+			uint8_t mode = reg_al;
+			if(reg_al == 0x03 || reg_al == 0x72) {
+				INT10_SetVideoMode(0x12);
+				INT10_SetDOSVModeVtext(mode, DOSV_VGA);
+			} else if(reg_al == 0x70 || reg_al == 0x78) {
+				mode = 0x70;
+				enum DOSV_VTEXT_MODE vtext_mode = DOSV_GetVtextMode((reg_al == 0x70) ? 0 : 1);
+				if(vtext_mode == DOSV_VTEXT_XGA || vtext_mode == DOSV_VTEXT_XGA_24) {
+					INT10_SetVideoMode(0x37);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else if(vtext_mode == DOSV_VTEXT_SXGA || vtext_mode == DOSV_VTEXT_SXGA_24) {
+					INT10_SetVideoMode(0x3d);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else if(vtext_mode == DOSV_VTEXT_SVGA) {
+					INT10_SetVideoMode(0x6a);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else {
+					INT10_SetVideoMode(0x12);
+					INT10_SetDOSVModeVtext(mode, DOSV_VTEXT_VGA);
+				}
+			}
+		} else {
+			if(reg_al == 0x74)
+				break;
+			INT10_SetVideoMode(reg_al);
+		}
 		Mouse_AfterNewVideoMode(true);
 		break;
 	case 0x01:								/* Set TextMode Cursor Shape */
@@ -132,7 +164,12 @@ Bitu INT10_Handler(void) {
 		INT10_GetPixel(reg_cx,reg_dx,reg_bh,&reg_al);
 		break;
 	case 0x0E:								/* Teletype OutPut */
-		INT10_TeletypeOutput(reg_al,reg_bl);
+		if(DOSV_CheckJapaneseVideoMode()) {
+			uint16_t attr;
+			INT10_ReadCharAttr(&attr, 0);
+			INT10_TeletypeOutput(reg_al, attr >> 8);
+		} else
+			INT10_TeletypeOutput(reg_al,reg_bl);
 		break;
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -543,7 +580,10 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x13:								/* Write String */
-		INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		if((reg_al & 0x10) != 0 && DOSV_CheckJapaneseVideoMode())
+			INT10_ReadString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		else
+			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		break;
 	case 0x1A:								/* Display Combination */
 		if (!IS_VGA_ARCH && machine != MCH_MCGA) break;
@@ -588,6 +628,17 @@ CX	640x480	800x600	  1024x768/1280x1024
 				if (svgaCard==SVGA_TsengET4K) reg_ax=0;
 				else reg_al=0;
 				break;
+		}
+		break;
+	case 0x1d:
+		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+			if(reg_al == 0x00) {
+				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row - reg_bl);
+			} else if(reg_al == 0x01) {
+				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row);
+			} else if(reg_al == 0x02) {
+				reg_bx = int10.text_row - real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
+			}
 		}
 		break;
 	case 0x4f:								/* VESA Calls */
@@ -972,9 +1023,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 		reg_bx=RealOff(pt);
 		}
 		break;
+	case 0xfe:
+		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+			reg_di = 0x0000;
+			SegSet16(es, GetTextSeg());
+		}
+		break;
 	case 0xff:
-		if (!warned_ff) LOG(LOG_INT10,LOG_NORMAL)("INT10:FF:Weird NC call");
-		warned_ff=true;
+		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+			WriteCharTopView(reg_di, reg_cx);
+		} else {
+			if (!warned_ff) LOG(LOG_INT10,LOG_NORMAL)("INT10:FF:Weird NC call");
+			warned_ff=true;
+		}
 		break;
 	default:
 		LOG(LOG_INT10,LOG_ERROR)("Function %4X not supported",reg_ax);
@@ -1432,6 +1493,7 @@ void INT10_Startup(Section *sec) {
         }
 
         INT10_SetVideoMode(0x3);
+        SetTrueVideoMode(0x03);
     }
     else {
         /* load PC-98 character ROM data, if possible */

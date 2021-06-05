@@ -1,6 +1,9 @@
 0.83.15
+  - Added support for DOS/V (Japanese mode) by adopting
+    code from DOSVAXJ3. Set "dosv=jp" in [dos] section
+    of the config file to enable it. (Wengier)
   - Added support for Japanese EGA mode (machine=jega)
-    by adopting code from DOSVax. You can optionally
+    by adopting code from DOSVAX. You can optionally
     set SBCS and DBCS fonts with jfontsbcs & jfontdbcs
     config options in [render] section, or the default
     fonts will be used for them. (Wengier)

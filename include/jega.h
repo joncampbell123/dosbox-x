@@ -64,6 +64,49 @@ void ReadVTRAMChar(uint16_t col, uint16_t row, uint16_t * result);
 void SetVTRAMChar(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr);
 void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t attr, bool useattr);
 
+enum DOSV_VTEXT_MODE {
+	DOSV_VGA,				// 80x25
+	DOSV_VTEXT_VGA,			// 80x30
+	DOSV_VTEXT_SVGA,		// 100x37
+	DOSV_VTEXT_XGA,			// 128x48
+	DOSV_VTEXT_XGA_24,		// 85x32
+	DOSV_VTEXT_SXGA,		// 160x64
+	DOSV_VTEXT_SXGA_24,		// 106x42
+};
+
+enum DOSV_FONT {
+	DOSV_FONT_8X16,
+	DOSV_FONT_8X19,
+	DOSV_FONT_16X16,
+	DOSV_FONT_12X24,
+	DOSV_FONT_24X24,
+
+	DOSV_FONT_16X16_WRITE,
+	DOSV_FONT_24X24_WRITE,
+
+	DOSV_MSKANJI_API,
+
+	DOSV_FONT_MAX
+};
+
+enum DOSV_FEP_CTRL {
+	DOSV_FEP_CTRL_IAS = 1,
+	DOSV_FEP_CTRL_MSKANJI = 2,
+	DOSV_FEP_CTRL_BOTH = 3
+};
+
+bool INT10_DOSV_SetCRTBIOSMode(Bitu mode);
+void DOSV_SetConfig(Section_prop *section);
+void DOSV_Setup();
+void DOSV_OffCursor();
+void INT8_DOSV();
+uint16_t DOSV_GetFontHandlerOffset(enum DOSV_FONT font);
+enum DOSV_VTEXT_MODE DOSV_GetVtextMode(Bitu no = 0);
+enum DOSV_FEP_CTRL DOSV_GetFepCtrl();
+void SetTrueVideoMode(uint8_t mode);
+uint8_t GetTrueVideoMode();
+bool DOSV_CheckJapaneseVideoMode();
+
 //inline functions
 inline bool isKanji1(uint8_t chr) { return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc); }
 inline bool isKanji2(uint8_t chr) { return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc); }

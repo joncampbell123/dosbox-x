@@ -858,6 +858,7 @@ static void FinishSetMode(bool clearmem) {
 	for (uint8_t ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
 	// Set active page 0
 	INT10_SetActivePage(0);
+	int10.text_row = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
 }
@@ -1219,7 +1220,7 @@ void ttf_switch_off(bool ss=true) {
 }
 
 void ttf_switch_on(bool ss=true) {
-    if (ss&&ttfswitch||!ss&&switch_output_from_ttf) {
+    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
         uint16_t oldax=reg_ax;
         reg_ax=0x1600;
         CALLBACK_RunRealInt(0x2F);
@@ -2272,6 +2273,60 @@ Bitu VideoModeMemSize(Bitu mode) {
 	}
 	// Return 0 for all other types, those always fit in memory
 	return 0;
+}
+
+VideoModeBlock ModeList_DOSV[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x003  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+{ 0x070  ,M_EGA    ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+{ 0x072  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SVGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,800 ,600 ,100 ,37 ,8 ,16 ,1 ,0xA0000 ,0x10000 ,128 ,663 ,100 ,600 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_XGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,128 ,48 ,8 ,16 ,1 ,0xA0000 ,0xA000  ,128 ,800 ,128 ,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_XGA_24[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,85  ,32 ,12,24 ,1 ,0xA0000 ,0xA000  ,128 ,800 ,128 ,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4  ,1280,1024,160  ,64 ,8 ,16 ,1 ,0xA0000 ,0xA000, 160 ,1152,160  ,1024,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA_24[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4  ,1280,1024,106  ,42 ,12,24 ,1 ,0xA0000 ,0xA000, 160 ,1152,160  ,1024,0	},
+};
+
+static VideoModeBlock *ModeListVtext[] = {
+	ModeList_DOSV,
+	ModeList_DOSV,
+	ModeList_DOSV_SVGA,
+	ModeList_DOSV_XGA,
+	ModeList_DOSV_XGA_24,
+	ModeList_DOSV_SXGA,
+	ModeList_DOSV_SXGA_24,
+};
+
+bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
+{
+	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
+		FinishSetMode(true);
+		INT10_SetCursorShape(6, 7);
+	} else {
+		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);
+		return false;
+	}
+	return true;
 }
 
 Bitu INT10_WriteVESAModeList(Bitu max_modes);

@@ -5510,6 +5510,9 @@ static Bitu INT8_Handler(void) {
     }
     mem_writed(BIOS_TIMER,value);
 
+	if(bootdrive<0 && IS_DOSV && DOSV_CheckJapaneseVideoMode())
+		INT8_DOSV();
+
     /* decrease floppy motor timer */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
     if (val) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);

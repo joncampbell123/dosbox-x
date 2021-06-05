@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "mem.h"
+#include "jega.h"
 #include "dos_inc.h"
 #include "callback.h"
 #include "control.h"
@@ -213,7 +214,7 @@ void SetupDBCSTable() {
 
         // write a valid table, or else Windows 3.1 is unhappy.
         // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
-        if (IS_PC98_ARCH || dos.loaded_codepage == 932) {   // Japanese
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos.loaded_codepage == 932) {   // Japanese
             mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair 1
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0x9F);
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);  // low/high DBCS pair 2

@@ -21,6 +21,7 @@
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"
+#include "jega.h"
 #include "shiftjis.h"
 #include "callback.h"
 
@@ -51,6 +52,8 @@ uint16_t last_int16_code = 0;
 
 static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
+extern bool CheckHat(uint8_t code);
+extern bool inshell;
 
 uint8_t DefaultANSIAttr() {
 	return IS_PC98_ARCH ? 0xE1 : 0x07;
@@ -71,6 +74,7 @@ private:
 	void ClearAnsi(void);
 	void Output(uint8_t chr);
 	uint8_t readcache;
+	bool lasthat;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
         bool installed;     // ANSI.SYS is installed (and therefore escapes are handled)
 		bool esc;
@@ -670,7 +674,13 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
-		if(dos.echo) Real_INT10_TeletypeOutput(readcache,defattr);
+		if (dos.echo) {
+			if (IS_DOSV) {
+				reg_al = readcache;
+				CALLBACK_RunRealInt(0x29);
+			} else
+                Real_INT10_TeletypeOutput(readcache,defattr);
+        }
 		readcache=0;
 	}
 	while (*size>count) {
@@ -700,8 +710,15 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
-				Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
-				Real_INT10_TeletypeOutput(10,defattr);
+				if (IS_DOSV) {
+					reg_al = 13;
+					CALLBACK_RunRealInt(0x29);
+					reg_al = 10;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
+					Real_INT10_TeletypeOutput(10,defattr);
+				}
 			}
 			return true;
 			break;
@@ -725,8 +742,10 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-            if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
-    			data[count++]=0x03; // CTRL+C
+			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+				data[count++]=reg_al;
+            } else if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+				data[count++]=0x03; // CTRL+C
                 if (*size > 1 || !inshell) {
                     dos.errorcode=77;
                     *size=count;
@@ -759,7 +778,27 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
-			Real_INT10_TeletypeOutput(reg_al,defattr);
+			if (IS_DOSV) {
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+					lasthat = true;
+				} else {
+					CALLBACK_RunRealInt(0x29);
+					if(lasthat && reg_al == 0x08) {
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x20;
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x08;
+						CALLBACK_RunRealInt(0x29);
+					}
+					lasthat = false;
+				}
+			} else
+				Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
 	dos.errorcode=0;
@@ -775,7 +814,28 @@ bool DOS_BreakTest(bool print);
 void DOS_BreakAction();
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
-    uint16_t count=0;
+	uint16_t count=0;
+	if (IS_DOSV) {
+		while (*size > count) {
+			reg_al = data[count];
+			if(reg_al == 0x07) {
+				INT10_TeletypeOutput(reg_al, 7);
+			} else {
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					CALLBACK_RunRealInt(0x29);
+				}
+			}
+			count++;
+		}
+		*size = count;
+		return true;
+	}
     Bitu i;
     uint8_t col,row,page;
 
