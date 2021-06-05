@@ -22,6 +22,8 @@
 #include "setup.h"
 #include "control.h"
 #include "support.h"
+
+#include <assert.h>
 #include <fstream>
 #include <string>
 #include <sstream>

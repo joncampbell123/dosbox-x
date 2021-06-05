@@ -20,8 +20,6 @@
 #ifndef DOSBOX_MIXER_H
 #define DOSBOX_MIXER_H
 
-#include <sstream>
-
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
 #endif

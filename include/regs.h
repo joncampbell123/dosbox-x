@@ -19,8 +19,6 @@
 #ifndef DOSBOX_REGS_H
 #define DOSBOX_REGS_H
 
-#include <iostream>
-
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif

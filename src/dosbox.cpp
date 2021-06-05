@@ -44,6 +44,7 @@
  *      up the code? The less spurious memory leaks, the easier it is to identify
  *      actual leaks among the noise and to patch them up. Thus, "valgrind hunting" --J.C. */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>

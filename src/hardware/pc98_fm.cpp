@@ -21,6 +21,7 @@
 #include "mixer.h"
 #include "callback.h"
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string>

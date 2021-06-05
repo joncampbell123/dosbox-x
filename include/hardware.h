@@ -20,8 +20,6 @@
 #ifndef DOSBOX_HARDWARE_H
 #define DOSBOX_HARDWARE_H
 
-#include <stdio.h>
-
 class Section;
 enum OPL_Mode {
 	OPL_none,OPL_cms,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS

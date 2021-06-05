@@ -7,18 +7,9 @@
  *
  * (C) 2014 Jonathan Campbell */
 
-#include <stdint.h>
-#include <assert.h>
-#include <math.h>
-
-#include <string>
-#include <vector>
-#include <list>
-
 #ifndef DOSBOX_CLOCKDOMAIN_H
 #define DOSBOX_CLOCKDOMAIN_H
 
-#include "dosbox.h"
 /* this code contains support for existing DOSBox code that uses PIC_AddEvent, etc. callbacks */
 #include "pic.h"
 

@@ -19,16 +19,8 @@
 #ifndef DOSBOX_BIOS_DISK_H
 #define DOSBOX_BIOS_DISK_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#ifndef DOSBOX_MEM_H
-#include "mem.h"
-#endif
 #ifndef DOSBOX_DOS_INC_H
 #include "dos_inc.h"
-#endif
-#ifndef DOSBOX_BIOS_H
-#include "bios.h"
 #endif
 #include "../src/dos/cdrom.h"
 
