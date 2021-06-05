@@ -30,10 +30,9 @@
 #include "dos_inc.h"
 #include "control.h"
 #include "render.h"
+#include "jfont.h"
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
-#define INCJFONT 1
-#include "jfont.h"
 
 #if defined (WIN32)
 #include <windows.h>
@@ -714,142 +713,6 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 		if (submap_cp!=0) return submap_cp;
 	}
 	return (IS_PC98_ARCH ? 932 : 437);
-}
-
-#define ID_LEN 6
-#define NAME_LEN 8
-#define SBCS19_LEN 256 * 19
-#define DBCS16_LEN 65536 * 32
-
-uint8_t jfont_sbcs_19[SBCS19_LEN];//256 * 19( * 8)
-uint8_t jfont_dbcs_16[DBCS16_LEN];//65536 * 16 * 2 (* 8)
-
-typedef struct {
-    char id[ID_LEN];
-    char name[NAME_LEN];
-    unsigned char width;
-    unsigned char height;
-    unsigned char type;
-} fontx_h;
-
-typedef struct {
-    uint16_t start;
-	uint16_t end;
-} fontxTbl;
-
-Bitu getfontx2header(FILE *fp, fontx_h *header)
-{
-    fread(header->id, ID_LEN, 1, fp);
-    if (strncmp(header->id, "FONTX2", ID_LEN) != 0) {
-	return 1;
-    }
-    fread(header->name, NAME_LEN, 1, fp);
-    header->width = (uint8_t)getc(fp);
-    header->height = (uint8_t)getc(fp);
-    header->type = (uint8_t)getc(fp);
-    return 0;
-}
-
-uint16_t chrtosht(FILE *fp)
-{
-	uint16_t i, j;
-	i = (uint8_t)getc(fp);
-	j = (uint8_t)getc(fp) << 8;
-	return(i | j);
-}
-
-void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp)
-{
-    while (size > 0) {
-        table->start = chrtosht(fp);
-        table->end = chrtosht(fp);
-        ++table;
-        --size;
-    }
-}
-
-static bool LoadFontxFile(const char * fname, int opt) {
-    fontxTbl *table;
-    uint8_t size;
-    Bitu code;
-    if (opt==1) {
-        memcpy(jfont_sbcs_19, JPNHN19X+NAME_LEN+ID_LEN+3, SBCS19_LEN * sizeof(uint8_t));
-        return true;
-    } else if (opt==2) {
-        int p=NAME_LEN+ID_LEN+3;
-        size = JPNZN16X[p++];
-        table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
-        Bitu i=0;
-        while (i < size) {
-            table[i].start = (JPNZN16X[p] | (JPNZN16X[p+1] << 8));
-            table[i].end = (JPNZN16X[p+2] | (JPNZN16X[p+3] << 8));
-            i++;
-            p+=4;
-        }
-        for (i = 0; i < size; i++)
-            for (code = table[i].start; code <= table[i].end; code++) {
-                memcpy(&jfont_dbcs_16[code*32], JPNZN16X+p, 32*sizeof(uint8_t));
-                p+=32*sizeof(uint8_t);
-            }
-        return true;
-    }
-    fontx_h head;
-	if (!fname||*fname=='\0') return false;
-	FILE * mfile=fopen(fname,"rb");
-	if (!mfile) {
-		LOG_MSG("MSG: Can't open FONTX2 file: %s",fname);
-		return false;
-	}
-	if (getfontx2header(mfile, &head) != 0) {
-		fclose(mfile);
-		LOG_MSG("MSG: FONTX2 header is incorrect\n");
-		return false;
-    }
-	// switch whether the font is DBCS or not
-	if (head.type == 1) {
-		if (head.width == 16 && head.height == 16) {
-			size = getc(mfile);
-			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
-			readfontxtbl(table, size, mfile);
-			for (Bitu i = 0; i < size; i++)
-				for (code = table[i].start; code <= table[i].end; code++)
-					fread(&jfont_dbcs_16[code*32], sizeof(uint8_t), 32, mfile);
-		}
-		else {
-			fclose(mfile);
-			LOG_MSG("MSG: FONTX2 DBCS font size is not correct\n");
-			return false;
-		}
-	}
-    else {
-		if (head.width == 8 && head.height == 19)
-			fread(jfont_sbcs_19, sizeof(uint8_t), SBCS19_LEN, mfile);
-		else {
-			fclose(mfile);
-			LOG_MSG("MSG: FONTX2 SBCS font size is not correct\n");
-			return false;
-		}
-    }
-	fclose(mfile);
-    return true;
-}
-
-void ResolvePath(std::string& in);
-void JFONT_Init() {
-	std::string file_name;
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
-	Prop_path* pathprop = section->Get_path("jfontsbcs");
-	if (pathprop && pathprop->realpath!="") {
-        std::string path=pathprop->realpath;
-        ResolvePath(path);
-        if (!LoadFontxFile(path.c_str(), 0)) LoadFontxFile(NULL, 1);
-    } else LoadFontxFile(NULL, 1);
-	pathprop = section->Get_path("jfontdbcs");
-	if(pathprop && pathprop->realpath!="") {
-        std::string path=pathprop->realpath;
-        ResolvePath(path);
-        if (!LoadFontxFile(path.c_str(), 0)) LoadFontxFile(NULL, 2);
-    } else LoadFontxFile(NULL, 2);
 }
 
 extern int eurAscii;
