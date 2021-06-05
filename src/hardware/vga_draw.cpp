@@ -2107,9 +2107,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
         }
     }
     // draw the text mode cursor if needed
-    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-        // the adress of the attribute that makes up the cell the cursor is in
+    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) && (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+        // the address of the attribute that makes up the cell the cursor is in
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
@@ -3321,6 +3320,7 @@ bool isDBCSLB(uint8_t chr, uint8_t* lead) {
     return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
 }
 
+uint8_t ccount = 0;
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
@@ -3519,7 +3519,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         break;
     }
     // for same blinking frequency with higher frameskip
-    vga.draw.cursor.count++;
+    if (IS_JEGA_ARCH) {
+        ccount++;
+        if (ccount>=0x20) {
+            ccount=0;
+            vga.draw.cursor.count++;
+        }
+    } else
+        vga.draw.cursor.count++;
 
     if (IS_PC98_ARCH) {
         for (unsigned int i=0;i < 2;i++)

@@ -3001,11 +3001,14 @@ uint16_t DOS_IHSEG = 0;
 //
 // Ick...
 
+Bitu MEM_PageMask(void);
 void dos_ver_menu(bool start);
 void update_dos_ems_menu(void);
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
-Bitu MEM_PageMask(void);
+void INT10_SetCursorPos_viaRealInt(uint8_t row, uint8_t col, uint8_t page);
+void INT10_WriteChar_viaRealInt(uint8_t chr, uint8_t attr, uint8_t page, uint16_t count, bool showattr);
+void INT10_ScrollWindow_viaRealInt(uint8_t rul, uint8_t cul, uint8_t rlr, uint8_t clr, int8_t nlines, uint8_t attr, uint8_t page);
 
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
@@ -3035,65 +3038,6 @@ bool set_ver(char *s) {
 }
 
 #define NUMBER_ANSI_DATA 10
-
-#define _pushregs \
-    uint16_t tmp_ax = reg_ax, tmp_bx = reg_bx, tmp_cx = reg_cx, tmp_dx = reg_dx;
-#define _popregs \
-    reg_ax = tmp_ax, reg_bx = tmp_bx, reg_cx = tmp_cx, reg_dx = tmp_dx;
-
-void INT10_SetCursorPos_viaRealInt(uint8_t row, uint8_t col, uint8_t page) {
-	_pushregs;
-	reg_ah = 0x02;
-	if (page == 0xFF) page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
-	reg_bh = page;
-	reg_dl = col;
-	reg_dh = row;
-	CALLBACK_RunRealInt(0x10);
-	_popregs;
-}
-
-void INT10_WriteChar_viaRealInt(uint8_t chr, uint8_t attr, uint8_t page, uint16_t count, bool showattr) {
-	_pushregs;
-	if (page == 0xFF) page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
-	reg_ah = showattr ? 0x09 : 0x0a;
-	reg_al = chr;
-	reg_bh = page;
-	reg_bl = attr;
-	reg_cx = count;
-	CALLBACK_RunRealInt(0x10);
-	_popregs;
-}
-
-void INT10_ScrollWindow_viaRealInt(uint8_t rul, uint8_t cul, uint8_t rlr, uint8_t clr, int8_t nlines, uint8_t attr, uint8_t page) {
-	BIOS_NCOLS;
-	BIOS_NROWS;
-
-	_pushregs;
-
-	if (nrows == 256 || nrows == 1) nrows = 25;
-	if (nlines > 0) {
-		reg_ah = 0x07;
-		reg_al = (uint8_t)nlines;
-	}
-	else {
-		reg_ah = 0x06;
-		reg_al = (uint8_t)(-nlines);
-	}
-	/* only works with active page */
-	/* if(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE); */
-
-	if (clr >= ncols) clr = (uint8_t)(ncols - 1);
-	if (rlr >= nrows) rlr = nrows - 1;
-
-	reg_bh = attr;
-	reg_cl = cul;
-	reg_ch = rul;
-	reg_dl = clr;
-	reg_dh = rlr;
-	CALLBACK_RunRealInt(0x10);
-
-	_popregs;
-}
 
 struct INT29H_DATA {
 	uint8_t lastwrite;
@@ -3149,11 +3093,10 @@ static Bitu DOS_29Handler(void)
 					reg_al = ' ';
 					CALLBACK_RunRealInt(0x10);
 				} else {
-					if(int29h_data.ansi.enabled) {
+					if(int29h_data.ansi.enabled)
 						INT10_TeletypeOutputAttr(' ', int29h_data.ansi.attr, true);
-					} else {
+					else
 						INT10_TeletypeOutput(' ', 7);
-					}
 				}
 				col = CURSOR_POS_COL(page);
 			} while(col % 8);

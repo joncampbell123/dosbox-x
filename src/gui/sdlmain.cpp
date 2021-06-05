@@ -118,6 +118,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "glidedef.h"
 #include "bios_disk.h"
 #include "inout.h"
+#include "jfont.h"
 #include "../dos/cdrom.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
@@ -309,6 +310,7 @@ bool wpExtChar = false;
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern bool resetreq, enable_dbcs_tables;
+extern uint8_t ccount;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
@@ -4661,7 +4663,14 @@ void GFX_EndTextLines(bool force=false) {
 		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
-			vga.draw.cursor.count++;
+			if (IS_JEGA_ARCH) {
+                ccount++;
+                if (ccount>=0x20) {
+                    ccount=0;
+                    vga.draw.cursor.count++;
+                }
+			} else
+				vga.draw.cursor.count++;
 
 			if (blinkCursor>-1)
 				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 1<<blinkCursor) ? true : false;
