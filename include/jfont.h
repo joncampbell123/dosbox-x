@@ -105,6 +105,7 @@ enum DOSV_VTEXT_MODE DOSV_GetVtextMode(Bitu no = 0);
 enum DOSV_FEP_CTRL DOSV_GetFepCtrl();
 void SetTrueVideoMode(uint8_t mode);
 uint8_t GetTrueVideoMode();
+bool DOSV_CheckCJKVideoMode();
 bool DOSV_CheckJapaneseVideoMode();
 
 //inline functions

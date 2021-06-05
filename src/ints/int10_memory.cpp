@@ -23,7 +23,7 @@
 #include "inout.h"
 #include "int10.h"
 #include "callback.h"
-#include "jega.h"
+#include "jfont.h"
 
 bool int10_vga_bios_vector = true;
 bool rom_bios_8x8_cga_font = true;

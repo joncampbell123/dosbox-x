@@ -30,7 +30,7 @@
 #include "render.h"
 #include "menu.h"
 #include "regs.h"
-#include "jega.h"
+#include "jfont.h"
 #include "callback.h"
 
 #define SEQ_REGS 0x05

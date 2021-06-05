@@ -27,7 +27,7 @@
 #include "shiftjis.h"
 #include "callback.h"
 #include "dos_inc.h"
-#include "jega.h"
+#include "jfont.h"
 #include <string.h>
 
 uint8_t prevchr = 0;
@@ -255,7 +255,7 @@ static void TEXT_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,ui
 
 void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page) {
 /* Do some range checking */
-    if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) DOSV_OffCursor();
+    if(IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     if (CurMode->type!=M_TEXT) page=0xff;
     BIOS_NCOLS;BIOS_NROWS;
     if(rul>rlr) return;
@@ -479,7 +479,7 @@ void INT10_GetCursorPos(uint8_t *row, uint8_t*col, const uint8_t page)
 }
 
 void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
-    if (IS_DOSV && DOSV_CheckJapaneseVideoMode()) DOSV_OffCursor();
+    if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
     if (IS_PC98_ARCH) {
@@ -555,7 +555,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
 				ReadVTRAMChar(col, row, result);
 				return;
 			}
-		} else if(DOSV_CheckJapaneseVideoMode()) {
+		} else if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			*result = real_readw(GetTextSeg(), (row * real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col) * 2);
 			return;
 		}
@@ -1174,7 +1174,7 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         chr=' ';
     default:
 		/* Return if the char code is DBCS at the end of the line (for AX) */
-		if (cur_col + 1 == ncols && DOSV_CheckJapaneseVideoMode() && isKanji1(chr) && prevchr == 0)
+		if (cur_col + 1 == ncols && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0)
 		{ 
 			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
 			cur_row = CURSOR_POS_ROW(page);
@@ -1196,7 +1196,7 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
             //Fill with the default ANSI attribute on textmode
             fill = DefaultANSIAttr();
         }
-        else if (CurMode->type==M_TEXT || DOSV_CheckJapaneseVideoMode()) {
+        else if (CurMode->type==M_TEXT || DOSV_CheckCJKVideoMode()) {
             //Fill with attribute at cursor on textmode
             uint16_t chat;
             INT10_ReadCharAttr(&chat,page);

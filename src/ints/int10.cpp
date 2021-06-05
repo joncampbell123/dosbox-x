@@ -28,7 +28,7 @@
 #include "mouse.h"
 #include "setup.h"
 #include "render.h"
-#include "jega.h"
+#include "jfont.h"
 
 Int10Data int10;
 bool blinking=true;
@@ -49,14 +49,14 @@ Bitu INT10_Handler(void) {
 	//      the BIOS data area to play tricks with the BIOS. If we don't call this, tricks
 	//      like the Windows 95 boot logo or INT 10h virtualization in Windows 3.1/9x/ME
 	//      within the DOS "box" will not work properly.
-	if(IS_DOSV && DOSV_CheckJapaneseVideoMode() && reg_ah != 0x03) DOSV_OffCursor();
+	if(IS_DOSV && DOSV_CheckCJKVideoMode() && reg_ah != 0x03) DOSV_OffCursor();
 	INT10_SetCurMode();
 
 	switch (reg_ah) {
 	case 0x00:								/* Set VideoMode */
 		Mouse_BeforeNewVideoMode(true);
 		SetTrueVideoMode(reg_al);
-		if(!IS_JEGA_ARCH && IS_DOS_JAPANESE && (reg_al == 0x03 || reg_al == 0x70 || reg_al == 0x72 || reg_al == 0x78)) {
+		if(IS_DOSV && IS_DOS_CJK && (reg_al == 0x03 || reg_al == 0x70 || reg_al == 0x72 || reg_al == 0x78)) {
 			uint8_t mode = reg_al;
 			if(reg_al == 0x03 || reg_al == 0x72) {
 				INT10_SetVideoMode(0x12);
@@ -164,7 +164,7 @@ Bitu INT10_Handler(void) {
 		INT10_GetPixel(reg_cx,reg_dx,reg_bh,&reg_al);
 		break;
 	case 0x0E:								/* Teletype OutPut */
-		if(DOSV_CheckJapaneseVideoMode()) {
+		if(DOSV_CheckCJKVideoMode()) {
 			uint16_t attr;
 			INT10_ReadCharAttr(&attr, 0);
 			INT10_TeletypeOutput(reg_al, attr >> 8);
@@ -580,7 +580,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x13:								/* Write String */
-		if((reg_al & 0x10) != 0 && DOSV_CheckJapaneseVideoMode())
+		if((reg_al & 0x10) != 0 && DOSV_CheckCJKVideoMode())
 			INT10_ReadString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		else
 			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
@@ -631,7 +631,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x1d:
-		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			if(reg_al == 0x00) {
 				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row - reg_bl);
 			} else if(reg_al == 0x01) {
@@ -1024,13 +1024,13 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0xfe:
-		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			reg_di = 0x0000;
 			SegSet16(es, GetTextSeg());
 		}
 		break;
 	case 0xff:
-		if(IS_DOSV && DOSV_CheckJapaneseVideoMode()) {
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			WriteCharTopView(reg_di, reg_cx);
 		} else {
 			if (!warned_ff) LOG(LOG_INT10,LOG_NORMAL)("INT10:FF:Weird NC call");

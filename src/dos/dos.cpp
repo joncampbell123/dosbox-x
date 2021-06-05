@@ -40,7 +40,7 @@
 #include "serialport.h"
 #include "dos_network.h"
 #include "render.h"
-#include "jega.h"
+#include "jfont.h"
 #include "../ints/int10.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"

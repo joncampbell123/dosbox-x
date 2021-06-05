@@ -27,7 +27,7 @@
 #include "dos_inc.h"
 #include "SDL.h"
 #include "int10.h"
-#include "jega.h"
+#include "jfont.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */

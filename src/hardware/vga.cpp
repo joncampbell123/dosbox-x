@@ -137,7 +137,7 @@
 #include "menu.h"
 #include "mem.h"
 #include "render.h"
-#include "jega.h"
+#include "jfont.h"
 
 #include <string.h>
 #include <stdlib.h>

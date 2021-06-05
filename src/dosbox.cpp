@@ -70,7 +70,7 @@
 #include "mapper.h"
 #include "ints/int10.h"
 #include "menu.h"
-#include "jega.h"
+#include "jfont.h"
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
@@ -1035,8 +1035,8 @@ void DOSBOX_RealInit() {
     const char *dosvstr = dos_section->Get_string("dosv");
     if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "zhs")) dos.set_pdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "zht")) dos.set_cdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "chs")) dos.set_pdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")) dos.set_cdosv_enabled = true;
     if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
         LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;

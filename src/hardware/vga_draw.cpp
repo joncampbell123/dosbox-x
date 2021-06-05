@@ -33,7 +33,7 @@
 #include "../gui/render_scalers.h"
 #include "vga.h"
 #include "pic.h"
-#include "jega.h"
+#include "jfont.h"
 #include "menu.h"
 #include "timer.h"
 #include "config.h"

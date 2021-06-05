@@ -36,7 +36,7 @@
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
-#include "jega.h"
+#include "jfont.h"
 #include "shiftjis.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
@@ -5510,7 +5510,7 @@ static Bitu INT8_Handler(void) {
     }
     mem_writed(BIOS_TIMER,value);
 
-	if(bootdrive<0 && IS_DOSV && DOSV_CheckJapaneseVideoMode())
+	if(bootdrive<0 && IS_DOSV && DOSV_CheckCJKVideoMode())
 		INT8_DOSV();
 
     /* decrease floppy motor timer */
