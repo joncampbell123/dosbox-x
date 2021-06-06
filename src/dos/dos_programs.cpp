@@ -1116,7 +1116,13 @@ public:
             int i_drive = toupper(temp_line[0]);
             if (!isalpha(i_drive)) goto showusage;
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
-            if (!cmd->FindCommand(2,temp_line)) goto showusage;
+            if (!cmd->FindCommand(2,temp_line)) {
+                if (Drives[i_drive - 'A'])
+                    WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), i_drive, Drives[i_drive - 'A']->GetInfo());
+                else
+                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), i_drive);
+                return;
+            }
             if (!temp_line.size()) goto showusage;
 			if (cmd->FindExist("-u",true)) {
                 bool curdrv = toupper(i_drive)-'A' == DOS_GetDefaultDrive();

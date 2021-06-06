@@ -1,4 +1,7 @@
 0.83.15
+  - MOUNT command followed by a drive letter only will
+    show the current status of the drive, or show that
+    the drive is not mounted if so. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)

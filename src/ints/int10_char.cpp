@@ -552,6 +552,7 @@ void WriteCharTopView(uint16_t off, int count) {
 }
 
 void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page) {
+    /* Do some range checking */
     if(IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     if (CurMode->type!=M_TEXT) page=0xff;
     BIOS_NCOLS;BIOS_NROWS;
