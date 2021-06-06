@@ -42,6 +42,7 @@
 #include "render.h"
 #include "jfont.h"
 #include "../ints/int10.h"
+#include "pic.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
 #include <shellapi.h>
