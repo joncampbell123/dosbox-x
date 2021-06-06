@@ -734,7 +734,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0xe0: /* Extended keys in the  int 16 0x10 case */
-			if(!reg_ah) { /*extended key if reg_ah isn't 0 */
+			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+				data[count++]=reg_al;
+			} else if(!reg_ah) { /*extended key if reg_ah isn't 0 */
 				data[count++] = reg_al;
 			} else {
 				data[count++] = 0;
@@ -743,9 +745,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
-				data[count++]=reg_al;
-            } else if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+            if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
 				data[count++]=0x03; // CTRL+C
                 if (*size > 1 || !inshell) {
                     dos.errorcode=77;
