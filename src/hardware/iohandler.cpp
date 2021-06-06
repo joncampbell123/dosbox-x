@@ -28,6 +28,8 @@
 
 //#define ENABLE_PORTLOG
 
+#include <math.h> /* floor */
+
 #include <vector>
 
 extern bool pcibus_enable;

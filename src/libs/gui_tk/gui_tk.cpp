@@ -35,6 +35,8 @@
 #include <SDL.h>
 #include "gui_tk.h"
 
+#include <math.h> /* floor */
+
 namespace GUI {
 
 /* start <= y < stop, region reserved for top level window title bar */
