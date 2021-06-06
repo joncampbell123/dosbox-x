@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:VERSION:0.83.15
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.◙You can put your MOUNT lines here.◙
@@ -10,6 +10,9 @@ Lines in this section will be run at startup.◙You can put your MOUNT lines her
 .
 :CONFIG_SUGGESTED_VALUES
 Possible values
+.
+:CONFIG_ADVANCED_OPTION
+Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)
 .
 :DRIVE
 Drive

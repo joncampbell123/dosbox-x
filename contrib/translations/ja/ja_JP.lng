@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:0.83.14
-:DOSBOX-X:REMARK:PC-98 エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートすることをお勧めします
+:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートすることをお勧めします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
 MOUNT したい場合はここに記載できます。
@@ -15,6 +15,9 @@ MOUNT したい場合はここに記載できます。
 .
 :CONFIG_SUGGESTED_VALUES
 設定可能な値
+.
+:CONFIG_ADVANCED_OPTION
+詳細オプション (詳細については、設定リファレンス ファイルの完全版を参照)
 .
 :DRIVE
 ドライブ

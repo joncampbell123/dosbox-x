@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:VERSION:0.83.15
 :DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -11,6 +11,12 @@ You can put your MOUNT lines here.
 # Lines starting with a # are comment lines and are ignored by DOSBox-X.
 # They are used to (briefly) document the effect of each option.
 # To write out ALL options, use command 'config -all' with -wc or -writeconf options.
+.
+:CONFIG_SUGGESTED_VALUES
+Possible values
+.
+:CONFIG_ADVANCED_OPTION
+Advanced option (see full configuration reference file [dosbox-x.reference.full.conf] for more details)
 .
 :DRIVE
 驱动器
@@ -38,9 +44,6 @@ IDE 位置
 .
 :SLOT
 存档
-.
-:CONFIG_SUGGESTED_VALUES
-Possible values
 .
 :AUTO_CYCLE_MAX
 自动选择周期 [最大]

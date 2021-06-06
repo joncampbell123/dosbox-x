@@ -4363,6 +4363,7 @@ void DOSBOX_SetupConfigSections(void) {
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+    MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
     MSG_Add("DRIVE","Drive");
     MSG_Add("TYPE","Type");
     MSG_Add("LABEL","Label");

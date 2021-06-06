@@ -2,6 +2,9 @@
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
     the drive is not mounted if so. (Wengier)
+  - The names of advanced config options will now be
+    listed in the common config reference file (i.e.
+    dosbox-x.reference.conf) too. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)

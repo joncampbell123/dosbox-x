@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.14
+:DOSBOX-X:VERSION:0.83.15
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
@@ -10,6 +10,9 @@ Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas 
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
+.
+:CONFIG_ADVANCED_OPTION
+Opciones avanzadas (ver archivo de referencia configuración completo [dosbox-x.reference.full.conf] para más detalles)
 .
 :DRIVE
 Disco
