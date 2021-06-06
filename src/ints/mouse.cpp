@@ -25,6 +25,7 @@
 
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "regs.h"
 #include "cpu.h"

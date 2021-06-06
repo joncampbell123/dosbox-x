@@ -1,5 +1,7 @@
 #include <SDL_thread.h>
 #include <SDL_timer.h>
+
+#include "logging.h"
 #include "mixer.h"
 #include "control.h"
 #include "cross.h"

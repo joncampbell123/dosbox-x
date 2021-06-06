@@ -18,6 +18,7 @@
 
 
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "jfont.h"
 #include "dos_inc.h"

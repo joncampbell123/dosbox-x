@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
 #include "shell.h"
 #include "support.h"
 

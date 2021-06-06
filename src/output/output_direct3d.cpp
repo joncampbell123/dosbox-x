@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include <output/output_direct3d.h>
 
 #include "sdlmain.h"

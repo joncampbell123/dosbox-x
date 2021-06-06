@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "regs.h"
 #include "control.h"
 #include "shell.h"

@@ -29,6 +29,7 @@
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "bios.h"
+#include "logging.h"
 #include "mem.h"
 #include "paging.h"
 #include "callback.h"

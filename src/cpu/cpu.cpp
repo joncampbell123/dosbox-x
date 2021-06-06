@@ -33,6 +33,7 @@
 #include "support.h"
 #include "control.h"
 #include "zipfile.h"
+#include "logging.h"
 
 /* dynamic core, policy, method, and flags.
  * We're going to make dynamic core more flexible, AND make sure

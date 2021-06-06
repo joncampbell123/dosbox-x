@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "video.h"
 #include "render.h"
 #include "setup.h"

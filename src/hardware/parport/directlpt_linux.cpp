@@ -18,6 +18,7 @@
 
 
 #include "config.h"
+#include "logging.h"
 #include "setup.h"
 
 #if C_DIRECTLPT

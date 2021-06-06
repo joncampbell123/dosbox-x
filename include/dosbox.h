@@ -174,10 +174,6 @@ void					DOSBOX_SetNormalLoop();
 
 #define FM_TOWNS_ARCH_CASE      MCH_FM_TOWNS
 
-#ifndef DOSBOX_LOGGING_H
-#include "logging.h"
-#endif // the logging system.
-
 extern ClockDomain			clockdom_PCI_BCLK;
 extern ClockDomain			clockdom_ISA_OSC;
 extern ClockDomain			clockdom_ISA_BCLK;

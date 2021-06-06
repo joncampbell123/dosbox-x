@@ -19,6 +19,7 @@
 #ifndef DOSBOX_LOGGING_H
 #define DOSBOX_LOGGING_H
 
+#include "config.h"
 #include "setup.h"
 
 enum LOG_TYPES {

@@ -29,6 +29,7 @@
 
 #include "programs.h"
 #include "callback.h"
+#include "logging.h"
 #include "regs.h"
 #include "support.h"
 #include "cross.h"

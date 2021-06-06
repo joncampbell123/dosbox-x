@@ -22,6 +22,7 @@
 
 #include "dosbox.h"
 
+#include "logging.h"
 #include "support.h"
 #include "inout.h"
 #include "pic.h"

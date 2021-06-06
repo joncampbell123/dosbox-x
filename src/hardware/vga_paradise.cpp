@@ -18,6 +18,7 @@
 
 
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "vga.h"
 #include "inout.h"

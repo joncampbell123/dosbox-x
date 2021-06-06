@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "cross.h"
+#include "logging.h"
 #include "setup.h"
 #include "control.h"
 #include "support.h"

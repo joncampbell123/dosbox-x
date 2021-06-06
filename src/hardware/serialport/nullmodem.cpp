@@ -23,6 +23,7 @@
 #if C_MODEM
 
 #include "control.h"
+#include "logging.h"
 #include "serialport.h"
 #include "nullmodem.h"
 

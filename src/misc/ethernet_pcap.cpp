@@ -22,6 +22,7 @@
 
 #include "ethernet_pcap.h"
 #include "dosbox.h"
+#include "logging.h"
 #include "support.h" /* strcasecmp */
 #include <cstring>
 

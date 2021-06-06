@@ -22,6 +22,8 @@
 #include <algorithm> //std::copy
 #include <iterator>  //std::front_inserter
 #include <regex>
+
+#include "logging.h"
 #include "shell.h"
 #include "timer.h"
 #include "bios.h"

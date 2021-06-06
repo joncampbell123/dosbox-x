@@ -22,6 +22,7 @@
 #include "inout.h"
 #include "cpu.h"
 #include "callback.h"
+#include "logging.h"
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"

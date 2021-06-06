@@ -28,6 +28,7 @@
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif
+#include "setup.h"
 
 class Config{
 public:

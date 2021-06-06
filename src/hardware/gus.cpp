@@ -22,6 +22,7 @@
 #include <sstream>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "dma.h"
 #include "pic.h"

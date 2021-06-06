@@ -26,6 +26,7 @@
 /*****************************************************************************/
 // C++ SDLnet wrapper
 
+#include "logging.h"
 #include "misc_util.h"
 
 struct _TCPsocketX {

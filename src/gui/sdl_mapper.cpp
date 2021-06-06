@@ -31,6 +31,7 @@
 #include "SDL.h"
 
 #include "dosbox.h"
+#include "logging.h"
 #include "video.h"
 #include "keyboard.h"
 #include "mouse.h"
