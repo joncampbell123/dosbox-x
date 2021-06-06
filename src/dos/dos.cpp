@@ -3151,8 +3151,8 @@ static Bitu DOS_29Handler(void)
 			reg_dl = col;
 			reg_dh = row;
 			CALLBACK_RunRealInt(0x10);
-			if(scroll) {
-				reg_bh = int29h_data.ansi.attr / 0x10;
+			if (scroll) {
+				reg_bh = 0x07;
 				reg_ax = 0x0601;
 				reg_cx = 0x0000;
 				reg_dl = (uint8_t)(ncols - 1);
