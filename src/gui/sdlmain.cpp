@@ -300,7 +300,7 @@ bool showsout = false;
 bool dbcs_sbcs = true;
 bool printfont = true;
 bool autoboxdraw = true;
-bool halfwidthkana = false;
+bool halfwidthkana = true;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -4060,9 +4060,9 @@ void change_output(int output) {
 #if C_PRINTER
     mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
 #endif
-    mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(dbcs_sbcs).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(halfwidthkana).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
 #endif
 
     if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
@@ -4628,7 +4628,7 @@ void GFX_EndTextLines(bool force=false) {
                     uint8_t ascii = newAC[x].chr&255;
 
                     curAC[x] = newAC[x];
-                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !(dos.loaded_codepage == 932 && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
+                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && !(dos.loaded_codepage == 932 && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
                         ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
                         ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
                         ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
@@ -5029,6 +5029,10 @@ extern bool enable_dbcs_tables;
 extern uint16_t cpMap_PC98[256];
 void initcodepagefont();
 bool forceswk=false, CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+std::map<int, int> lowboxdrawmap {
+    {1, 218}, {2, 191}, {3, 192}, {4, 217}, {5, 179}, {6, 196}, {0xe, 178},
+    {0x10, 197}, {0x14, 177}, {0x15, 193}, {0x16, 194}, {0x17, 180}, {0x19, 195}, {0x1a, 176},
+};
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
@@ -5047,12 +5051,14 @@ int setTTFCodePage() {
             text[1]=0;
             uname[0]=0;
             uname[1]=0;
-            if (cp == 932 && halfwidthkana) forceswk=true;
+            if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
             CodePageGuestToHostUTF16(uname,text);
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
-            forceswk=false;
             wcTest[i] = uname[1]==0?uname[0]:i;
+            if (forceswk && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
+                cpMap[i] = wcTest[i];
+            forceswk=false;
         }
         uint16_t unimap;
         int notMapped = 0;
@@ -14055,9 +14061,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if C_PRINTER
         mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
 #endif
-        mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(dbcs_sbcs);
-        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(autoboxdraw);
-        mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&enable_dbcs_tables).check(halfwidthkana);
+        mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
 #endif
 #if C_PRINTER
         mainMenu.get_item("print_textscreen").enable(!IS_PC98_ARCH);

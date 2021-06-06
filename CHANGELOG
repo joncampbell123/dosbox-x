@@ -6,6 +6,10 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
+  - The config option ttf.halfwidthkana (in [render]
+    section will enable low ASCII boxing characters
+    for the TrueType font (TTF) output too. This option
+    is now enabled by default for JP mode. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)

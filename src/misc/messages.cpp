@@ -26,6 +26,7 @@
 #include "setup.h"
 #include "control.h"
 #include "menu.h"
+#include "jfont.h"
 #include <list>
 #include <string>
 using namespace std;
@@ -92,7 +93,7 @@ bool InitCodePage() {
         }
     }
     if (!dos.loaded_codepage) {
-        dos.loaded_codepage = IS_PC98_ARCH?932:437;
+        dos.loaded_codepage = IS_PC98_ARCH||IS_JEGA_ARCH?932:437;
         return false;
     } else
         return true;

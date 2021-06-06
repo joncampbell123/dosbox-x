@@ -2417,7 +2417,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
 
-	Pbool = secprop->Add_bool("ttf.halfwidthkana", Property::Changeable::WhenIdle, false);
+	Pbool = secprop->Add_bool("ttf.halfwidthkana", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
 
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");

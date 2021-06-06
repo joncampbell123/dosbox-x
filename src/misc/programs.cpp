@@ -35,6 +35,7 @@
 #include "hardware.h"
 #include "mapper.h"
 #include "menu.h"
+#include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
 #if defined(WIN32)
@@ -1561,7 +1562,7 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 18).c_str(), "ttf.halfwidthkana=")) {
 #if defined(USE_TTF)
                                 halfwidthkana = section->Get_bool("ttf.halfwidthkana");
-                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana).refresh_item(mainMenu);
+                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
                                 if (TTF_using()) {setTTFCodePage();resetFontSize();}
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {

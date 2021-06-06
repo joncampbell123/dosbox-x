@@ -31,6 +31,7 @@
 #include "builtin.h"
 #include "mapper.h"
 #include "render.h"
+#include "jfont.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include <unistd.h>
@@ -47,17 +48,20 @@
 
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
-extern bool addovl, addipx;
+extern bool addovl, addipx, halfwidthkana;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
 bool usecon = true;
+bool shellrun = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+bool InitCodePage(void);
 void initRand();
+void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
@@ -514,10 +518,31 @@ const char *ParseMsg(const char *msg) {
         else if (theme == "white")
             msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
     }
-    if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
+    if (machine == MCH_PC98)
         return msg;
-    else
-        return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
+    else {
+        if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
+            msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
+        bool uselowbox = false;
+        int cp=dos.loaded_codepage;
+#if defined(USE_TTF)
+        if (!cp && ttf.inUse && halfwidthkana) {
+            InitCodePage();
+            if (dos.loaded_codepage==932) uselowbox = true;
+        }
+#endif
+        if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
+            std::string m=msg;
+            msg = str_replace((char *)msg, "\xC9", (char *)std::string(1, 1).c_str());
+            msg = str_replace((char *)msg, "\xBB", (char *)std::string(1, 2).c_str());
+            msg = str_replace((char *)msg, "\xC8", (char *)std::string(1, 3).c_str());
+            msg = str_replace((char *)msg, "\xBC", (char *)std::string(1, 4).c_str());
+            msg = str_replace((char *)msg, "\xBA", (char *)std::string(1, 5).c_str());
+            msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
+        }
+        dos.loaded_codepage=cp;
+        return msg;
+    }
 }
 
 static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
@@ -526,9 +551,6 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
-bool shellrun=false;
-bool InitCodePage(void);
-void initcodepagefont(void);
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
