@@ -21,6 +21,8 @@
 #if C_PRINTER
 
 #include <math.h>
+#include <sys/stat.h>
+
 #include "setup.h"
 #include "mapper.h"
 #include "printer_if.h"

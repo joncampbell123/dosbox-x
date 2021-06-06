@@ -24,8 +24,6 @@
 #include "dosbox.h"
 #endif
 
-#include <sys/stat.h>
-
 #if defined (_MSC_VER)						/* MS Visual C++ */
 #include <direct.h>
 #include <io.h>

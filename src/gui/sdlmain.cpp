@@ -91,6 +91,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include <sys/types.h>
 #include <algorithm> // std::transform
 #include <fcntl.h>
+#include <sys/stat.h>
 #ifdef WIN32
 # include <signal.h>
 # include <sys/stat.h>

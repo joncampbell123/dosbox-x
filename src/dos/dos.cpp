@@ -24,6 +24,8 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+#include <sys/stat.h>
+
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "bios.h"
