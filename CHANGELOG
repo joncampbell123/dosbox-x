@@ -4,7 +4,8 @@
     the drive is not mounted if so. (Wengier)
   - The names of advanced config options will now be
     listed in the common config reference file (i.e.
-    dosbox-x.reference.conf) too. (Wengier)
+    dosbox-x.reference.conf) too. Several previously
+    advanced options are now common options. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)

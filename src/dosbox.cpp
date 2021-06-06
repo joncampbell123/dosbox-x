@@ -2604,6 +2604,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through the keyboard controller.\n"
             "This option is required to allow Windows ME to reboot properly, whereas Windows 9x and earlier\n"
             "will reboot without this option using INT 19h");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("controllertype",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(controllertypes);
@@ -2629,7 +2630,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
                     "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
-		            "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
+                    "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
+    Pbool->SetBasic(true);
+
 	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable Glide emulation (Glide API passthrough to the host).\n"
                     "Requires a Glide wrapper - glide2x.dll (Windows), libglide2x.so (Linux), or libglide2x.dylib (macOS).");
@@ -2640,6 +2643,8 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("lfb",Property::Changeable::WhenIdle,"full_noaux");
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
+	Pstring->SetBasic(true);
+
 	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Show 3dfx splash screen for Glide emulation (Windows; requires 3dfxSpl2.dll).");
     Pbool->SetBasic(true);
@@ -2650,9 +2655,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("sample accurate",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos that\n"
-            "require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
-            "errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
+    Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos\n"
+            "that require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate\n"
+            "minor errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Swaps the left and right stereo channels.");
@@ -2671,6 +2677,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
     Pint->SetMinMax(0,250);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
+    Pint->SetBasic(true);
 
     secprop=control->AddSection_prop("midi",&Null_Init,true);//done
 
@@ -4095,8 +4102,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
         "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
-        "private use, so modify the last three number blocks.\n"
-        "I.e. AC:DE:48:88:99:AB.");
+        "private use, so modify the last three number blocks, e.g. AC:DE:48:88:99:AB.");
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");
     Pstring->Set_help("The backend (either pcap or slirp is supported) used for the NE2000 Ethernet emulation.\n"
@@ -4117,6 +4124,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
+    Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
 
