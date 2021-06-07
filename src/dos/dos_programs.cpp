@@ -1009,11 +1009,13 @@ public:
         }
 
         //look for -o options
+        bool local = false;
         {
             std::string s;
-
-            while (cmd->FindString("-o", s, true))
+            while (cmd->FindString("-o", s, true)) {
+                if (!strcasecmp(s.c_str(), "local")) local = true;
                 options.push_back(s);
+            }
         }
 
         /* Check for moving Z: */
@@ -1118,12 +1120,15 @@ public:
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
             if (!cmd->FindCommand(2,temp_line)) {
                 if (Drives[i_drive - 'A']) {
-                    if (quiet) WriteOut("%s\n", Drives[i_drive - 'A']->GetInfo());
-                    else WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), i_drive, Drives[i_drive - 'A']->GetInfo());
-                } else {
-                    if (quiet) WriteOut("");
-                    else WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), i_drive);
-                }
+                    const char *info = Drives[i_drive - 'A']->GetInfo();
+                    if (!quiet)
+                        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), i_drive, info+(local&&!strncasecmp("local ", info, 6)?16:0));
+                    else if (local&&!strncasecmp("local ", info, 6))
+                        WriteOut("%s\n", info+16);
+                    else if (!local)
+                        WriteOut("%s\n", info);
+                } else if (!quiet)
+                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), i_drive);
                 return;
             }
             if (!temp_line.size()) goto showusage;

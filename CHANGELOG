@@ -1,7 +1,8 @@
 0.83.15
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
-    the drive is not mounted if so. (Wengier)
+    the drive is not mounted if so. You can make the
+    message shorter with the -q option. (Wengier)
   - The names of advanced config options will now be
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
@@ -11,9 +12,11 @@
     for the TrueType font (TTF) output too. This option
     is now enabled by default for JP mode. (Wengier)
   - Added support for inputing Chinese/Japanese/Korean
-    characters from the system input method (IME) in
-    Windows SDL build. There is a config option "ime"
-    in [dosbox] section to control this. (Wengier)
+    characters using the system input method (IME) in
+    Windows SDL build. There is config option "ime" in
+    [dosbox] section to control this. When set to "auto"
+    (default), it is enabled for Windows SDL1 builds
+    only if starting with a CJK code page. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)
