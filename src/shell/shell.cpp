@@ -49,7 +49,7 @@
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
 extern bool halfwidthkana, force_conversion;
-extern bool addovl, addipx;
+extern bool addovl, addipx, enableime;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -60,6 +60,7 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+void SetIMPosition(void);
 bool InitCodePage(void);
 void initRand();
 void initcodepagefont(void);
@@ -619,7 +620,7 @@ void DOS_Shell::Prepare(void) {
 #if defined(WIN32)
 			char buffer[128];
 #endif
-            if (IS_PC98_ARCH)
+            if (IS_PC98_ARCH || IS_JEGA_ARCH)
                 countryNo = 81;
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
@@ -642,7 +643,7 @@ void DOS_Shell::Prepare(void) {
 				country = atoi(trim(countrystr));
 				int newCP = atoi(trim(r+1));
 				*r=',';
-                if (!IS_PC98_ARCH) {
+                if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
                         if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
@@ -758,6 +759,9 @@ void DOS_Shell::Prepare(void) {
         initcodepagefont();
         dos.loaded_codepage=cp;
     }
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+    if (enableime) SetIMPosition();
+#endif
 }
 
 void DOS_Shell::Run(void) {

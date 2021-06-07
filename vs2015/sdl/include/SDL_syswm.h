@@ -46,6 +46,9 @@ extern "C" {
 #ifdef SDL_PROTOTYPES_ONLY
 struct SDL_SysWMinfo;
 typedef struct SDL_SysWMinfo SDL_SysWMinfo;
+
+struct SDL_SysIMinfo;
+typedef struct SDL_SysIMinfo SDL_SysIMinfo;
 #else
 
 /* This is the structure for custom window manager events */
@@ -84,6 +87,8 @@ struct SDL_SysWMmsg {
 typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	SDL_SYSWM_TYPE subsystem;
+	HWND ime;				/* The Win32 input method window */
+	HIMC imc;				/* The Win32 input method context */
 	union {
 	    struct {
 	    	Display *display;	/**< The X11 display */
@@ -112,6 +117,13 @@ typedef struct SDL_SysWMinfo {
 	    } x11;
 	} info;
 } SDL_SysWMinfo;
+
+/* The UNIX custom input method information structure */
+typedef struct SDL_SysIMinfo {
+	SDL_version version;
+	XIM xim;			/* The X11 input mathod */
+	XIC *xic;			/* The X11 input mathod context */
+} SDL_SysIMinfo;
 
 #elif defined(SDL_VIDEO_DRIVER_NANOX)
 #include <microwin/nano-X.h>
@@ -148,6 +160,19 @@ typedef struct SDL_SysWMinfo {
 	HWND child_window;		/**< The Win32 surface window (generally, child of window) */
 	HGLRC hglrc;			/**< The OpenGL context, if any */
 } SDL_SysWMinfo;
+
+/* The windows custom input method information structure */
+typedef struct SDL_SysIMinfo {
+	SDL_version version;
+	HWND ime;				/* The Win32 input method window */
+	HIMC imc;				/* The Win32 input method context */
+	union {
+		struct {
+			void **notify_data;
+			void (**notify_func)(void*);
+		} win;
+	} info;
+} SDL_SysIMinfo;
 
 #elif defined(SDL_VIDEO_DRIVER_RISCOS)
 
@@ -217,6 +242,10 @@ typedef struct SDL_SysWMinfo {
  */
 extern DECLSPEC int SDLCALL SDL_GetWMInfo(SDL_SysWMinfo *info);
 
+#ifdef ENABLE_IM_EVENT
+/* This function gives you custom hooks into the input method information. */
+extern DECLSPEC int SDLCALL SDL_GetIMInfo(SDL_SysIMinfo *info);
+#endif
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

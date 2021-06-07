@@ -115,6 +115,13 @@ typedef struct {
 } Uint64, Sint64;
 #endif
 
+typedef enum {
+	SDL_IM_ENABLE = 1,
+	SDL_IM_FLIP,
+	SDL_IM_ONOFF,
+	SDL_IM_FONT_SIZE
+} SDL_imvalue;
+
 /*@}*/
 
 /** @name Make sure the types really have the right sizes */

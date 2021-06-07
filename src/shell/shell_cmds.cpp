@@ -38,6 +38,7 @@
 #include "control.h"
 #include "paging.h"
 #include "menu.h"
+#include "jfont.h"
 #include "render.h"
 #include <algorithm>
 #include <cstring>
@@ -4030,8 +4031,8 @@ void DOS_Shell::CMD_CHCP(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
 		return;
 	}
-    if (IS_PC98_ARCH) {
-        WriteOut("Changing code page is not supported for the PC-98 system.\n");
+    if (IS_PC98_ARCH || IS_JEGA_ARCH) {
+        WriteOut("Changing code page is not supported for the PC-98 or AX system.\n");
         return;
     }
 #if defined(USE_TTF)

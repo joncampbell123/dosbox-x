@@ -100,6 +100,7 @@ void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
 void runBoot(const char *str);
+void SetIMPosition(void);
 #if defined(USE_TTF)
 bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
@@ -5510,8 +5511,17 @@ static Bitu INT8_Handler(void) {
     }
     mem_writed(BIOS_TIMER,value);
 
-	if(bootdrive<0 && IS_DOSV && DOSV_CheckCJKVideoMode())
+	if(bootdrive>=0) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        SetIMPosition();
+#endif
+    } else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
 		INT8_DOSV();
+    } else if (IS_DOS_CJK) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        SetIMPosition();
+#endif
+    }
 
     /* decrease floppy motor timer */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);

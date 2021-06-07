@@ -52,6 +52,7 @@ uint8_t jfont_sbcs_19[SBCS19_LEN];//256 * 19( * 8)
 uint8_t jfont_dbcs_16[DBCS16_LEN];//65536 * 16 * 2 (* 8)
 
 void ResolvePath(std::string& in);
+void SetIMPosition();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 
 typedef struct {
@@ -294,6 +295,24 @@ static Bitu mskanji_api(void)
 		real_writeb(kk_seg, kk_off + 4, 'E');
 		real_writeb(kk_seg, kk_off + 5, 0);
 		reg_ax = 0;
+	} else if(func == 5) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+		if(mode & 0x8000) {
+			if(mode & 0x0001)
+				SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+			else if(mode & 0x0002)
+				SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
+		} else {
+			int onoff;
+			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+				if(onoff)
+					real_writew(param_seg, param_off + 2, 0x000a);
+				else
+					real_writew(param_seg, param_off + 2, 0x0009);
+			}
+		}
+		reg_ax = 0;
+#endif
 	}
 	return CBRET_NONE;
 }
@@ -628,6 +647,9 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+	SetIMPosition();
+#endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72) {
 		if(dosv_cursor_stat == 0) {
 			Bitu x = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS);

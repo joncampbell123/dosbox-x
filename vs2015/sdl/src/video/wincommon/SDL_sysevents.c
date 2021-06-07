@@ -96,6 +96,7 @@ DEVMODE SDL_fullscreen_mode;
 #endif
 WORD *gamma_saved = NULL;
 
+_IM_Context IM_Context; /* patched */
 
 /* Functions called by the message processing function */
 LONG (*HandleMessage)(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)=NULL;

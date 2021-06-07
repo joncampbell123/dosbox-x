@@ -33,3 +33,8 @@ extern void DIB_DestroyWindow(_THIS);
 
 extern void DIB_PumpEvents(_THIS);
 extern void DIB_InitOSKeymap(_THIS);
+
+extern int DIB_SetIMPosition(_THIS, int x, int y);
+extern char *DIB_SetIMValues(_THIS, SDL_imvalue value, int alt);
+extern char *DIB_GetIMValues(_THIS, SDL_imvalue value, int *alt);
+extern int DIB_FlushIMString(_THIS, void *buffer);

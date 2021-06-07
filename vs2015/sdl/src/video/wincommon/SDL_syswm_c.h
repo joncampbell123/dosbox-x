@@ -33,3 +33,5 @@ extern int WIN_IconifyWindow(_THIS);
 extern SDL_GrabMode WIN_GrabInput(_THIS, SDL_GrabMode mode);
 extern int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info);
 
+/* Functions to IM */
+extern int WIN_GetIMInfo(_THIS, SDL_SysIMinfo *info);

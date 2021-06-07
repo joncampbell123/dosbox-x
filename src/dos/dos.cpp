@@ -756,6 +756,9 @@ void HostAppRun() {
 }
 #endif
 
+#define IAS_DEVICE_HANDLE 0x1a50
+#define MSKANJI_DEVICE_HANDLE 0x1a51
+#define IBMJP_DEVICE_HANDLE 0x1a52
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
@@ -1630,6 +1633,36 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+            if(IS_DOSV && IS_DOS_JAPANESE) {
+                char *name_start = name1;
+                if(name1[0] == '@' && name1[1] == ':') {
+                    name_start += 2;
+                }
+                if(DOS_CheckExtDevice(name_start, false) == 0) {
+                    if(dos.im_enable_flag) {
+                        if((DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS) && !strncmp(name_start, "$IBMAIAS", 8)) {
+                            ias_handle = IAS_DEVICE_HANDLE;
+                            reg_ax = IAS_DEVICE_HANDLE;
+                            force_sfn = false;
+                            CALLBACK_SCF(false);
+                            break;
+                        } else if((DOSV_GetFepCtrl() & DOSV_FEP_CTRL_MSKANJI) && !strncmp(name_start, "MS$KANJI", 8)) {
+                            mskanji_handle = MSKANJI_DEVICE_HANDLE;
+                            reg_ax = MSKANJI_DEVICE_HANDLE;
+                            force_sfn = false;
+                            CALLBACK_SCF(false);
+                            break;
+                        }
+                    }
+                    if(!strncmp(name_start, "$IBMAFNT", 8) || !strncmp(name_start, "$IBMADSP", 8)) {
+                        ibmjp_handle = IBMJP_DEVICE_HANDLE;
+                        reg_ax = IBMJP_DEVICE_HANDLE;
+                        force_sfn = false;
+                        CALLBACK_SCF(false);
+                        break;
+                    }
+                }
+            }
 			uint8_t oldal=reg_al;
 			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {

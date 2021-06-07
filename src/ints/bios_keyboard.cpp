@@ -1612,8 +1612,27 @@ Bitu INT16_Handler(void) {
                  ((mem_readb(BIOS_KEYBOARD_FLAGS2)&4)<<5) | // SysReq pressed, bit 7
                  (mem_readb(BIOS_KEYBOARD_FLAGS3)&0x0c);    // Right Ctrl/Alt pressed, bits 2,3
         break;
+    case 0x13:
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+            if(reg_al == 0x00) {
+                if(reg_dl & 0x81)
+                    SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
+                else
+                    SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+            } else if(reg_al == 0x01) {
+                int onoff;
+                reg_dl = 0x00;
+                if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+                    if(onoff)
+                        reg_dl = 0x81;
+                }
+            }
+        }
+#endif
+        break;
     case 0x14:
-        if(IS_DOSV && IS_DOS_JAPANESE && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+        if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
             if(reg_al == 0x02) {
                 // get
                 reg_al = fep_line;

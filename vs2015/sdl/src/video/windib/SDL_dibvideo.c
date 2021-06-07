@@ -94,6 +94,14 @@ extern HWND	ParentWindowHWND;
 extern HINSTANCE aygshell;
 #endif
 
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime();
+static void free_ime();
+static int setup_ime(_THIS, Uint32 flags);
+
+#endif
+
 /* Initialization/Query functions */
 static int DIB_VideoInit(_THIS, SDL_PixelFormat *vformat);
 static SDL_Rect **DIB_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags);
@@ -225,6 +233,11 @@ static SDL_VideoDevice *DIB_CreateDevice(int devindex)
 	WIN_WinPAINT = DIB_WinPAINT;
 	HandleMessage = DIB_HandleMessage;
 
+	device->SetIMPosition = DIB_SetIMPosition;
+	device->SetIMValues = DIB_SetIMValues;
+	device->GetIMValues = DIB_GetIMValues;
+	device->FlushIMString = DIB_FlushIMString;
+	device->GetIMInfo = WIN_GetIMInfo;
 	device->free = DIB_DeleteDevice;
 
 	/* We're finally ready */
@@ -1056,6 +1069,10 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		video->flags |= SDL_OPENGL;
 	}
 
+#ifdef ENABLE_IM_EVENT
+	if (!setup_ime(this, flags))
+		SDL_SetError("setup_ime fail.");
+#endif
 	/* JC 14 Mar 2006
 		Flush the message loop or this can cause big problems later
 		Especially if the user decides to use dialog boxes or assert()!
@@ -1461,3 +1478,39 @@ void DX5_SoundFocus(HWND hwnd)
 	return;
 }
 #endif
+
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime() 
+{
+	IM_Context.im_buffer_sz = 0;
+	IM_Context.im_compose_sz = 0;
+	IM_Context.string.im_multi_byte_buffer = 0;
+
+	IM_Context.bFlip = 1;
+	IM_Context.bEnable = 1;
+
+	IM_Context.notify_data = NULL;
+	IM_Context.notify_func = NULL;
+}
+
+static void free_ime() 
+{
+	if (IM_Context.string.im_wide_char_buffer) {
+		free(IM_Context.string.im_wide_char_buffer);
+		IM_Context.string.im_wide_char_buffer = 0;
+		IM_Context.im_buffer_sz = 0;
+		IM_Context.im_compose_sz = 0;
+	}
+}
+
+static int setup_ime(_THIS, Uint32 flags)
+{
+	init_ime();
+
+	IM_Context.video_flags = flags;
+
+	return 1;
+}
+
+#endif /* ENABLE_IM_EVENT */

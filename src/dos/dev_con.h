@@ -71,6 +71,15 @@ public:
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
+	void ClearKeyMap() {
+		key_map.clear();
+	}
+	void SetKeyMap(uint16_t src, uint16_t dst) {
+		struct key_change key;
+		key.src = src;
+		key.dst = dst;
+		key_map.push_back(key);
+	}
 private:
 	void ClearAnsi(void);
 	void Output(uint8_t chr);
@@ -92,7 +101,15 @@ private:
 		uint8_t savecol;
 		uint8_t saverow;
 		bool warned;
+		bool key;
 	} ansi;
+	uint16_t keepcursor;
+
+	struct key_change {
+		uint16_t	src;
+		uint16_t	dst;
+	};
+	std::vector<struct key_change> key_map;
 
     // ESC M
     void ESC_M(void) {
@@ -745,6 +762,13 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_ah << 8) {
+					reg_al = (uint8_t)key->dst;
+					reg_ah = (uint8_t)(key->dst >> 8);
+					break;
+				}
+			}
             if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
 				data[count++]=0x03; // CTRL+C
                 if (*size > 1 || !inshell) {
@@ -768,6 +792,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             }
 			break;
 		default:
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_al) {
+					reg_al = (uint8_t)key->dst;
+				}
+			}
 			data[count++]=reg_al;
 			if ((*size > 1 || !inshell) && reg_al == 3) {
 				dos.errorcode=77;
@@ -1209,6 +1238,31 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                     break;
                 case 'l':/* (if code =7) disable linewrap */
                 case 'p':/* reassign keys (needs strings) */
+                    {
+                        struct key_change key;
+                        i = 0;
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.src = ansi.data[i++] << 8;
+                        } else {
+                            key.src = ansi.data[i++];
+                        }
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.dst = ansi.data[i++] << 8;
+                        } else {
+                            key.dst = ansi.data[i++];
+                        }
+                        key_map.push_back(key);
+                        ClearAnsi();
+                    }
+                    break;
+                case '"':
+                    if(!ansi.key) {
+                        ansi.key = true;
+                        ansi.numberofarg = 0;
+                    }
+                    break;
                 case 'i':/* printer stuff */
                 default:
                     LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[",data[count]);

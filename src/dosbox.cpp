@@ -137,7 +137,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         sync_time;
+extern bool         sync_time, enableime;
 extern int          freesizecap;
 extern unsigned int page;
 
@@ -1046,6 +1046,16 @@ void DOSBOX_RealInit() {
         JFONT_Init();  // Load DBCS fonts for JEGA
         if (IS_DOSV) DOSV_SetConfig(dos_section);
     }
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+    if (enableime) {
+        dos.im_enable_flag = true;
+        SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+        SDL_EnableUNICODE(1);
+    } else {
+        dos.im_enable_flag = false;
+        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
+#endif
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
 #endif
@@ -1361,6 +1371,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
     Pstring->Set_help("Select the key the mapper SendKey function will send.");
     Pstring->Set_values(sendkeys);
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ime",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_help("Enables support for the system input method (IME) in the Windows SDL1 builds.\n"
+                      "If set to auto, the feature is only enabled if a Chinese/Japanese/Korean code page is set.");
+    Pstring->Set_values(truefalseautoopt);
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, false);

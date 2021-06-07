@@ -10,6 +10,10 @@
     section will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
     is now enabled by default for JP mode. (Wengier)
+  - Added support for inputing Chinese/Japanese/Korean
+    characters from the system input method (IME) in
+    Windows SDL build. There is a config option "ime"
+    in [dosbox] section to control this. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Set "dosv=jp" in [dos] section
     of the config file to enable it. (Wengier)

@@ -88,6 +88,26 @@ extern HINSTANCE SDL_Instance;
 extern HWND SDL_Window;
 extern BOOL SDL_windowid;
 
+typedef struct {
+	HIMC SDL_IMC;
+	union {
+		char *im_multi_byte_buffer;
+		wchar_t *im_wide_char_buffer;
+	}string;
+	int im_buffer_sz;
+	int im_compose_sz;
+
+	Uint32 video_flags;
+	int bFlip;
+	int bEnable;
+	int bCompos;
+
+	void *notify_data;
+	void (*notify_func)(void*);
+} _IM_Context;
+
+extern _IM_Context IM_Context;
+
 /* Variables and functions exported to other parts of the native video
    subsystem (SDL_sysevents.c)
 */

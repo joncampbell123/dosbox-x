@@ -105,6 +105,7 @@
 #if defined(WIN32) || defined(_WIN32)
 #undef __WIN32__
 #define __WIN32__	1
+#define ENABLE_IM_EVENT 1
 #endif
 
 #endif /* _SDL_platform_h */

@@ -46,6 +46,8 @@ struct CommandTail{
 #define IS_CDOSV (dos.set_cdosv_enabled)
 #define IS_PDOSV (dos.set_pdosv_enabled)
 
+#define	EXT_DEVICE_BIT				0x0200
+
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
 
@@ -217,6 +219,9 @@ bool DOS_IOCTL(void);
 bool DOS_GetSTDINStatus();
 uint8_t DOS_FindDevice(char const * name);
 void DOS_SetupDevices(void);
+void DOS_ClearKeyMap(void);
+void DOS_SetConKey(uint16_t src, uint16_t dst);
+uint32_t DOS_CheckExtDevice(const char *name, bool already_flag);
 
 /* Execute and new process creation */
 bool DOS_NewPSP(uint16_t segment,uint16_t size);
@@ -753,6 +758,8 @@ struct DOS_Block {
     bool set_jdosv_enabled = false;
     bool set_kdosv_enabled = false;
     bool set_pdosv_enabled = false;
+    bool im_enable_flag;
+    uint16_t dcp;	// Device command packet
 };
 
 extern DOS_Block dos;
