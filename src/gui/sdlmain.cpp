@@ -5056,9 +5056,9 @@ int setTTFCodePage() {
             CodePageGuestToHostUTF16(uname,text);
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
             wcTest[i] = uname[1]==0?uname[0]:i;
-            if (forceswk && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
-                cpMap[i] = wcTest[i];
             forceswk=false;
+            if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
+                cpMap[i] = wcTest[i];
         }
         uint16_t unimap;
         int notMapped = 0;

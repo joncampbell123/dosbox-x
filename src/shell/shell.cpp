@@ -48,7 +48,8 @@
 
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
-extern bool addovl, addipx, halfwidthkana;
+extern bool halfwidthkana, force_conversion;
+extern bool addovl, addipx;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -524,12 +525,12 @@ const char *ParseMsg(const char *msg) {
         if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
             msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
         bool uselowbox = false;
-        int cp=dos.loaded_codepage;
 #if defined(USE_TTF)
-        if (!cp && ttf.inUse && halfwidthkana) {
-            InitCodePage();
-            if (dos.loaded_codepage==932) uselowbox = true;
-        }
+        force_conversion = true;
+        int cp=dos.loaded_codepage;
+        if (ttf.inUse && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        force_conversion = false;
+        dos.loaded_codepage=cp;
 #endif
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
@@ -540,7 +541,6 @@ const char *ParseMsg(const char *msg) {
             msg = str_replace((char *)msg, "\xBA", (char *)std::string(1, 5).c_str());
             msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
         }
-        dos.loaded_codepage=cp;
         return msg;
     }
 }
@@ -554,7 +554,7 @@ static char const * const init_line="/INIT AUTOEXEC.BAT";
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
+        if (section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
             std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
             if (machine == MCH_PC98) {
@@ -632,7 +632,7 @@ void DOS_Shell::Prepare(void) {
 		}
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+		if (section!=NULL&&!control->opt_noconfig) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
 			if (r==NULL || !*(r+1))
@@ -662,7 +662,7 @@ void DOS_Shell::Prepare(void) {
 				DOS_SetCountry(countryNo);
 			}
 			const char * extra = section->data.c_str();
-			if (extra) {
+			if (extra&&!control->opt_securemode&&!control->SecureMode()) {
 				std::string vstr;
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
