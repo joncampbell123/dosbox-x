@@ -3,6 +3,8 @@
 
 
 #include "dosbox.h"
+#include "logging.h"
+
 #if defined(_MSC_VER) && (_MSC_VER  <= 1500) 
 #include <SDL.h>
 #else

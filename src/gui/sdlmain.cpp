@@ -148,6 +148,10 @@ void GFX_OpenGLRedrawScreen(void);
 # include <shobjidl.h>
 #endif
 
+#if defined(WIN32)
+#include "resource.h"
+#endif
+
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
 /* MinGW now contains this, the older MinGW for HX-DOS does not.
  * Keep things simple and just #define around it like this */

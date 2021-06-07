@@ -30,6 +30,8 @@
 #include <string>
 #include <vector>
 #include <sys/stat.h>
+
+#include "menudef.h"
 #include "programs.h"
 #include "support.h"
 #include "drives.h"

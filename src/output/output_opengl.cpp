@@ -13,6 +13,7 @@ extern "C" {
 }
 #include "dosbox.h"
 #include "logging.h"
+#include "menudef.h"
 #include <output/output_opengl.h>
 
 #include <algorithm>
