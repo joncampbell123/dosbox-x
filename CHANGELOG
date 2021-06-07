@@ -13,8 +13,8 @@
     is now enabled by default for JP mode. (Wengier)
   - Added support for inputing Chinese/Japanese/Korean
     characters using the system input method (IME) in
-    Windows SDL build. There is config option "ime" in
-    [dosbox] section to control this. When set to "auto"
+    Windows SDL1 build. There is config option "ime" in
+    [dosbox] section to control it. When set to "auto"
     (default), it is enabled for Windows SDL1 builds
     only if starting with a CJK code page. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting

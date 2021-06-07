@@ -1374,8 +1374,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("ime",Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_help("Enables support for the system input method (IME) in the Windows SDL1 builds.\n"
-                      "If set to auto, the feature is only enabled if a Chinese/Japanese/Korean code page is set.");
+    Pstring->Set_help("Enables support for the system input methods (IME) for inputting characters in Windows SDL1 builds.\n"
+                      "If set to auto, this feature is only enabled if DOSBox-X starts with a Chinese/Japanese/Korean code page.");
     Pstring->Set_values(truefalseautoopt);
     Pstring->SetBasic(true);
 

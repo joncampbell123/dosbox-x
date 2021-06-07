@@ -12573,7 +12573,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             else
                 default_folder = NULL;
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
-            const char *quitstr = "You have not selected a valid path. Do you do want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
+            const char *quitstr = "You have not selected a valid path. Do you want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
 #if defined(MACOSX)
             std::string path = macosx_prompt_folder(default_folder);
             if (path.empty()) {
@@ -13047,7 +13047,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
     if (!strcasecmp(imestr, "auto")) {
         const char *machine = section->Get_string("machine");
-        if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || !strcasecmp(static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("dosv"), "off")) enableime = true;
+        if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || strcasecmp(static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("dosv"), "off")) enableime = true;
         else {
             force_conversion = true;
             int cp=dos.loaded_codepage;
@@ -13135,7 +13135,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if (id == 1) menu.compatible=true;
 
             /* use all variables to shut up the compiler about unused vars */
-            LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
+            LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X CheckOS results: id=%u major=%u minor=%u",id,major,minor);
         }
 #endif
 
