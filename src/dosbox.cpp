@@ -1047,11 +1047,11 @@ void DOSBOX_RealInit() {
         if (IS_DOSV) DOSV_SetConfig(dos_section);
     }
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    if (enableime) {
+    if (enableime && !control->opt_silent) {
         dos.im_enable_flag = true;
         SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
         SDL_EnableUNICODE(1);
-    } else {
+    } else if (!control->opt_silent) {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
     }

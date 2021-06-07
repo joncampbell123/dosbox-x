@@ -511,7 +511,7 @@ int SDL_SetIMPosition( int x, int y )
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;
 
-	if ( video ) {
+	if ( video && video->SetIMPosition != NULL ) {
 		return video->SetIMPosition(this, x, y);
 	}
 #endif
@@ -528,7 +528,7 @@ char *SDL_SetIMValues(SDL_imvalue value, ...)
 	int t2;
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;
-	if (video && value) {
+	if (video && value && video->SetIMValues != NULL) {
 		va_start(ap, value);
 		t2 = va_arg(ap, int);
 		ret = video->SetIMValues(this, value, t2);
@@ -560,7 +560,7 @@ char *SDL_GetIMValues(SDL_imvalue value, ...)
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;
 
-	if (video && value) {
+	if (video && value && video->GetIMValues != NULL ) {
 		va_start(ap, value);
 		t2 = va_arg(ap, int*);
 		ret = video->GetIMValues(this, value, t2);
@@ -588,7 +588,7 @@ int SDL_FlushIMString(void *buffer)
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;
 
-	if ( video ) {
+	if ( video && video->FlushIMString != NULL ) {
 		return video->FlushIMString(this, buffer);
 	}
 #endif

@@ -14682,8 +14682,10 @@ fresh_boot:
     sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-	SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
-	SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    if (!control->opt_silent) {
+        SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
 #endif
 
     //Force visible mouse to end user. Somehow this sometimes doesn't happen
