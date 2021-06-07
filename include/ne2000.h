@@ -33,8 +33,6 @@
 // to provide a windowed memory region for the chip and a MAC address.
 //
 
-#include "dosbox.h"
-
 #define bx_bool int
 #define bx_param_c uint8_t
 
