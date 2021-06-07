@@ -17,7 +17,6 @@
  */
 
 #include <string>
-#include "menudef.h"
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 
 #include <SDL_video.h>

@@ -23,6 +23,7 @@
 #include "cpu.h"
 #include "render.h"
 #include "menu.h"
+#include "menudef.h"
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "bios_disk.h"

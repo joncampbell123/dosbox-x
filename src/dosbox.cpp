@@ -55,6 +55,7 @@
 #include "debug.h"
 #include "cpu.h"
 #include "logging.h"
+#include "menudef.h"
 #include "video.h"
 #include "pic.h"
 #include "cpu.h"

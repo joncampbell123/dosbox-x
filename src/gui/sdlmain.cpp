@@ -103,6 +103,7 @@ void GFX_OpenGLRedrawScreen(void);
 #endif
 
 #include "dosbox.h"
+#include "menudef.h"
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"

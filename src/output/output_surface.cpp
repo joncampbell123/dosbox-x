@@ -4,6 +4,7 @@
 
 #include "dosbox.h"
 #include "logging.h"
+#include "menudef.h"
 #include "sdlmain.h"
 #include "vga.h"
 
