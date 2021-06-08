@@ -2,7 +2,8 @@
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
     the drive is not mounted if so. You can make the
-    message shorter with the -q option. (Wengier)
+    message shorter with the -q option, and filter out
+    non-local drives with "-o local" option. (Wengier)
   - The names of advanced config options will now be
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously

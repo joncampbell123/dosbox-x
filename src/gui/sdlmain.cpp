@@ -7187,6 +7187,12 @@ void SetIMPosition() {
 	uint8_t x, y;
 	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	INT10_GetCursorPos(&y, &x, page);
+    int nrows=25;
+	if (IS_PC98_ARCH)
+		nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+	else
+		nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+    if (y>=nrows-1) y=nrows-8;
 
 	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
 		last_ticks = GetTicks();

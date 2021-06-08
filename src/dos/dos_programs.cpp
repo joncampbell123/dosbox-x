@@ -926,7 +926,7 @@ public:
             ZDRIVE_NUM = i_newz;
         }
     }
-    void ListMounts(void) {
+    void ListMounts(bool quiet, bool local) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
         uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
@@ -934,15 +934,24 @@ public:
         dos.dta(dos.tables.tempdta);
         DOS_DTA dta(dos.dta());
 
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
+        if (!quiet) {
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
+        }
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        if (!quiet) {
+            for(int p = 1;p < cols;p++) WriteOut("-");
+            WriteOut("\n");
+        }
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
-
+            if (local && strncasecmp("local ", Drives[d]->GetInfo(), 6)) continue;
+            if (quiet) {
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), 'A'+d, Drives[d]->GetInfo()+(local && !strncasecmp("local ", Drives[d]->GetInfo(), 6)?16:0));
+                continue;
+            }
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
@@ -960,7 +969,7 @@ public:
             WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);
             none=false;
         }
-        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
+        if (none&&!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
 
@@ -977,7 +986,7 @@ public:
         /* Parse the command line */
         /* if the command line is empty show current mounts */
         if (!cmd->GetCount()) {
-            ListMounts();
+            ListMounts(false, false);
             return;
         }
 
@@ -995,18 +1004,6 @@ public:
 #endif
 			return;
 		}
-        bool path_relative_to_last_config = false;
-        if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
-
-        if (cmd->FindExist("-q",true))
-            quiet = true;
-
-        /* Check for unmounting */
-        if (cmd->FindString("-u",umount,false)) {
-            const char *msg=UnmountHelper(umount[0]);
-            if (!quiet) WriteOut(msg, toupper(umount[0]));
-            return;
-        }
 
         //look for -o options
         bool local = false;
@@ -1016,6 +1013,28 @@ public:
                 if (!strcasecmp(s.c_str(), "local")) local = true;
                 options.push_back(s);
             }
+            if (local && !cmd->GetCount()) {
+                ListMounts(false, true);
+                return;
+            }
+        }
+
+        if (cmd->FindExist("-q",true)) {
+            quiet = true;
+            if (!cmd->GetCount()) {
+                ListMounts(true, local);
+                return;
+            }
+        }
+
+        bool path_relative_to_last_config = false;
+        if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
+
+        /* Check for unmounting */
+        if (cmd->FindString("-u",umount,false)) {
+            const char *msg=UnmountHelper(umount[0]);
+            if (!quiet) WriteOut(msg, toupper(umount[0]));
+            return;
         }
 
         /* Check for moving Z: */
@@ -4425,7 +4444,8 @@ public:
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
         char swapstr[50];
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
@@ -4451,7 +4471,8 @@ public:
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),MSG_Get("DRIVE_NUMBER"),MSG_Get("DISK_NAME"),MSG_Get("IDE_POSITION"),MSG_Get("SWAP_SLOT"));
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {
