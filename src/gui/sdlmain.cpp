@@ -7180,6 +7180,32 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     return NULL;
 }
 
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+static Bitu im_x, im_y;
+static uint32_t last_ticks;
+void SetIMPosition() {
+	uint8_t x, y;
+	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	INT10_GetCursorPos(&y, &x, page);
+
+	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
+		last_ticks = GetTicks();
+		im_x = x;
+		im_y = y;
+#if defined(LINUX)
+		y++;
+#endif
+		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+#if defined(USE_TTF)
+        if (ttf.inUse)
+            SDL_SetIMPosition((x+1) * ttf.pointsize / 2, (y+1) * ttf.pointsize);
+        else
+#endif
+        SDL_SetIMPosition((x+1) * height / 2, (y+1) * height - (DOSV_CheckCJKVideoMode()?2:0));
+	}
+}
+#endif
+
 char *CodePageHostToGuest(const uint16_t *s);
 
 #if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
@@ -7953,9 +7979,10 @@ void GFX_Events() {
 				if(len = SDL_FlushIMString(NULL)) {
 					uint16_t *buff = (uint16_t *)malloc((len + 2)), uname[2];
 					SDL_FlushIMString(buff);
+					SetIMPosition();
 					for(int no = 0 ; no < len ; no++) {
                         unsigned char ch = (unsigned char)buff[no];
-                        if (isDBCSCP() && ch != buff[no]) {
+                        if ((IS_PC98_ARCH || isDBCSCP()) && ch != buff[no]) {
                             uname[0]=buff[no];
                             uname[1]=0;
                             int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)uname, -1, NULL, 0, "\x3F", NULL);
@@ -12234,34 +12261,6 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 #endif
 
     return res;
-}
-#endif
-
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-static Bitu im_x, im_y;
-static uint32_t last_ticks;
-void SetIMPosition()
-{
-	uint8_t x, y;
-	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	INT10_GetCursorPos(&y, &x, page);
-
-	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
-		last_ticks = GetTicks();
-		im_x = x;
-		im_y = y;
-#if defined(LINUX)
-		y++;
-#endif
-		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-#if defined(USE_TTF)
-        if (ttf.inUse) height = ttf.pointsize;
-#endif
-        if (DOSV_CheckCJKVideoMode())
-            SDL_SetIMPosition(x * 8, (y+1) * height - 2);
-        else
-            SDL_SetIMPosition(x * 8, (y+1) * height);
-	}
 }
 #endif
 
