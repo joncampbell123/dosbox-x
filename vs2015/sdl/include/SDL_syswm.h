@@ -87,8 +87,10 @@ struct SDL_SysWMmsg {
 typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	SDL_SYSWM_TYPE subsystem;
+	#ifdef WIN32
 	HWND ime;				/* The Win32 input method window */
 	HIMC imc;				/* The Win32 input method context */
+	#endif
 	union {
 	    struct {
 	    	Display *display;	/**< The X11 display */
