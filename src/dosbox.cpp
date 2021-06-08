@@ -3863,7 +3863,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("FEP control API for the DOS/V emulation.");
 
 	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
-	Pstring->Set_help("V-text screen mode for the DOS/V emulation..");
+	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
 
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
 	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");

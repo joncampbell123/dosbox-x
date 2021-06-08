@@ -5058,12 +5058,13 @@ int setTTFCodePage() {
             uname[1]=0;
             if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
             if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
-            CodePageGuestToHostUTF16(uname,text);
-            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
-            wcTest[i] = uname[1]==0?uname[0]:i;
+            if (CodePageGuestToHostUTF16(uname,text)) {
+                wcTest[i] = uname[1]==0?uname[0]:i;
+                if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
+                    cpMap[i] = wcTest[i];
+            }
             forceswk=false;
-            if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
-                cpMap[i] = wcTest[i];
+            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
         }
         uint16_t unimap;
         int notMapped = 0;
@@ -7982,6 +7983,7 @@ void GFX_Events() {
 			sdl.ime_ticks = 0;
 			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
 				int len;
+				char chars[10];
 				if(len = SDL_FlushIMString(NULL)) {
 					uint16_t *buff = (uint16_t *)malloc((len + 2)), uname[2];
 					SDL_FlushIMString(buff);
@@ -7991,16 +7993,13 @@ void GFX_Events() {
                         if ((IS_PC98_ARCH || isDBCSCP()) && ch != buff[no]) {
                             uname[0]=buff[no];
                             uname[1]=0;
-                            int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)uname, -1, NULL, 0, "\x3F", NULL);
-                            char *chars = memNeeded <= 1 ? NULL : (char *)malloc(memNeeded);
-                            if (chars != NULL && WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)uname, -1, (LPSTR)chars, memNeeded, "\x3F", NULL) == memNeeded) {
+                            if (CodePageHostToGuestUTF16(chars, uname)) {
                                 for (size_t i=0; i<strlen(chars); i++) {
                                     if (dos.loaded_codepage == 932 && strlen(chars) == 2 && isKanji1(chars[0]))
                                         BIOS_AddKeyToBuffer((i==0?0xf100:0xf000) | (unsigned char)chars[i]);
                                     else
                                         BIOS_AddKeyToBuffer((unsigned char)chars[i]);
                                 }
-                                free(chars);
                             } else
                                 BIOS_AddKeyToBuffer(ch);
                         } else
