@@ -1092,7 +1092,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 				prevchr = 0;
 				return;
 			}
-		} else if(DOSV_CheckJapaneseVideoMode()) {
+		} else if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			DOSV_OffCursor();
 
 			uint16_t seg = GetTextSeg();

@@ -96,6 +96,27 @@ void ResolvePath(std::string& in);
 void SetIMPosition();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
+extern uint8_t lead[6];
+
+bool isKanji1(uint8_t chr) {
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950) {
+        for (int i=0; i<6; i++) lead[i] = 0;
+        if (isDBCSCP())
+            for (int i=0; i<6; i++) {
+                lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+                if (lead[i] == 0) break;
+            }
+        return isDBCSLB(chr, lead);
+    }
+    return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
+}
+
+bool isKanji2(uint8_t chr) {
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)
+        return chr >= 0x40 && chr <= 0xfc;
+    return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
+}
 
 Bitu getfontx2header(FILE *fp, fontx_h *header)
 {
@@ -492,7 +513,7 @@ void InitFontHandle()
 	if(jfont_16 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
-		lf.lfCharSet = SHIFTJIS_CHARSET;
+		lf.lfCharSet = IS_KDOSV?HANGUL_CHARSET:(IS_CDOSV?CHINESEBIG5_CHARSET:(IS_PDOSV?GB2312_CHARSET:SHIFTJIS_CHARSET));
 		lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 		lf.lfQuality = DEFAULT_QUALITY;
@@ -511,7 +532,8 @@ bool MakeSbcs16Font() {
 		if(!GetWindowsFont(code, &jfont_sbcs_16[code * 16], 8, 16))
 			return false;
 	}
-	if (IS_DOSV) memcpy(jfont_sbcs_16, dosv_font16_data, sizeof(dosv_font16_data));
+	if (IS_JDOSV) memcpy(jfont_sbcs_16, dosv_font16_data, sizeof(dosv_font16_data));
+	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_16[ct * 16], &int10_font_16[ct * 16], 16);
 	return true;
 }
 
@@ -525,7 +547,8 @@ bool MakeSbcs19Font() {
 		}
 	}
 	if (fail) memcpy(jfont_sbcs_19, JPNHN19X+NAME_LEN+ID_LEN+3, SBCS19_LEN);
-	if (IS_DOSV) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	if (IS_JDOSV) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_19[ct * 19 + 1], &int10_font_16[ct * 16], 16);
 	return true;
 }
 
@@ -535,7 +558,8 @@ bool MakeSbcs24Font() {
 		if(!GetWindowsFont(code, &jfont_sbcs_24[code * 24 * 2], 12, 24))
 			return false;
 	}
-	if (IS_DOSV) memcpy(jfont_sbcs_24, dosv_font24_data, sizeof(dosv_font24_data));
+	if (IS_JDOSV) memcpy(jfont_sbcs_24, dosv_font24_data, sizeof(dosv_font24_data));
+	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_24[ct * 24], &int10_font_16[ct * 16], 16);
 	return true;
 }
 

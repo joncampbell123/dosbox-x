@@ -107,10 +107,7 @@ void SetTrueVideoMode(uint8_t mode);
 uint8_t GetTrueVideoMode();
 bool DOSV_CheckCJKVideoMode();
 bool DOSV_CheckJapaneseVideoMode();
-
-//inline functions
-inline bool isKanji1(uint8_t chr) { return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc); }
-inline bool isKanji2(uint8_t chr) { return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc); }
+bool isKanji1(uint8_t chr), isKanji2(uint8_t chr);
 inline bool isJEGAEnabled() {
 	if (!IS_JEGA_ARCH) return false;
 	return !(jega.RMOD1 & 0x40);
