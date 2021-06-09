@@ -341,13 +341,9 @@ static bool CheckJapaneseGraphicsMode(uint8_t attr) {
 	return false;
 }
 
-uint8_t *GetSbcsFont(Bitu code) {
-	return &jfont_sbcs_19[code * 19];
-}
-
-uint8_t *GetDbcsFont(Bitu code) {
-	return &jfont_dbcs_16[code * 32];
-}
+uint8_t *GetSbcsFont(Bitu code);
+uint8_t *GetSbcs19Font(Bitu code);
+uint8_t *GetDbcsFont(Bitu code);
 
 void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	Bitu off;
@@ -362,7 +358,7 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 		volatile uint8_t dummy;
 		Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 		uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-		font = GetSbcsFont(chr);
+		font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
 		off = row * width * height + col;
 		if(svgaCard == SVGA_TsengET4K) {
 			if(off >= 0x20000) {
@@ -397,7 +393,7 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	volatile uint8_t dummy;
 	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-	font = GetSbcsFont(chr);
+	font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
 	off = row * width * height + col;
 	if(svgaCard == SVGA_TsengET4K) {
 		if(off >= 0x20000) {
@@ -982,7 +978,9 @@ void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t a
 	x = (pos%CurMode->twidth - 1) * 8;//move right 1 column.
 	y = (pos / CurMode->twidth)*cheight;
 
-	uint16_t ty = (uint16_t)y + 1;
+	GetDbcsFont(sjischr);
+
+	uint16_t ty = (uint16_t)y;
 	for (uint8_t h = 0; h<16 ; h++) {
 		uint16_t bitsel = 0x8000;
 		uint16_t bitline = jfont_dbcs_16[sjischr * 32 + h * 2];

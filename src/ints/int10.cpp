@@ -42,6 +42,11 @@ extern int wpType;
 
 uint16_t GetTextSeg();
 void WriteCharTopView(uint16_t off, int count);
+uint8_t *GetSbcsFont(Bitu code);
+uint8_t *GetSbcs19Font(Bitu code);
+uint8_t *GetSbcs24Font(Bitu code);
+uint8_t *GetDbcsFont(Bitu code);
+uint8_t *GetDbcs24Font(Bitu code);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 Bitu INT10_Handler(void) {
@@ -585,6 +590,42 @@ CX	640x480	800x600	  1024x768/1280x1024
 			INT10_ReadString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		else
 			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		break;
+	case 0x18:
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			uint8_t *font;
+			Bitu size = 0;
+			if(reg_al == 0) {
+				reg_al = 1;
+				if(reg_bx == 0) {
+					if(reg_dh == 8) {
+						if(reg_dl == 16) {
+							font = GetSbcsFont(reg_cl);
+							size = 16;
+						} else if(reg_dl == 19) {
+							font = GetSbcs19Font(reg_cl);
+							size = 19;
+						}
+					} else if(reg_dh == 16 && reg_dl == 16) {
+						font = GetDbcsFont(reg_cx);
+						size = 2 * 16;
+					} else if(reg_dh == 12 && reg_dl == 24) {
+						font = GetSbcs24Font(reg_cl);
+						size = 2 * 24;
+					} else if(reg_dh == 24 && reg_dl == 24) {
+						font = GetDbcs24Font(reg_cx);
+						size = 3 * 24;
+					}
+					if(size > 0) {
+						uint16_t seg = SegValue(es);
+						uint16_t off = reg_si;
+						for(Bitu ct = 0 ; ct < size ; ct++)
+							real_writeb(seg, off++, *font++);
+						reg_al = 0;
+					}
+				}
+			}
+		}
 		break;
 	case 0x1A:								/* Display Combination */
 		if (!IS_VGA_ARCH && machine != MCH_MCGA) break;

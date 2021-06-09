@@ -133,6 +133,7 @@ extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10]
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
+uint8_t *GetDbcsFont(Bitu code);
 
 void memxor(void *_d,unsigned int byte,size_t count) {
     unsigned char *d = (unsigned char*)_d;
@@ -2023,6 +2024,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             if (exattr & 0x10) fline = (fline >> 1) + 8;
                             else fline = fline >> 1;
                         }
+                        GetDbcsFont(chr);
                         if (exattr & 0x40) {
                             Bitu font = jfont_dbcs_16[chr * 32 + fline * 2];
                             if (!(exattr & 0x08))

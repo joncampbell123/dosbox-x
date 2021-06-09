@@ -2331,11 +2331,24 @@ void DOSBOX_SetupConfigSections(void) {
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
 
+	//for loading a fontx2 Japanese font
 	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontsbcs16",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
 
 	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("jfontsbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
+
+	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
