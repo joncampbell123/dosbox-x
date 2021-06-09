@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
 :DOSBOX-X:VERSION:0.83.15
-:DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートすることをお勧めします
+:DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
 MOUNT したい場合はここに記載できます。
@@ -17,7 +17,7 @@ MOUNT したい場合はここに記載できます。
 設定可能な値
 .
 :CONFIG_ADVANCED_OPTION
-詳細オプション (詳細については、設定リファレンス ファイルの完全版を参照)
+詳細オプション (設定リファレンスファイル[dosbox-x.reference.full.conf]を参照)
 .
 :DRIVE
 ドライブ
@@ -101,32 +101,32 @@ DOSBox-X's 作業用ディレクトリ:
 設定ファイル %s を書き込み中
 .
 :PROGRAM_LANGUAGE_FILE_WHICH
-言語ファイル %s に書き込まれます
+言語ファイル %s に書き込みました。
 .
 :PROGRAM_CONFIG_USAGE
 DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプション:
--wc (or -writeconf) パラメータなしの場合: primary loaded fileに書き込み。
--wc (or -writeconf) ファイル名: ファイルを設定用ディレクトリに書き出す。
--wl (or -writelang) ファイル名: 現在の language stringsを書き出す。
--ln (or -langname) (引数なしで) 表示するか、言語名を指定します。
--wcp [ファイル名] プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
--wcd 設定用ディレクトリにデフォルト設定ファイルを書き出す。
--all, -mod -wc/-wcp/-wcd と組み合わせ、全て/変更されたのオプションを書き出す。
+-wc (or -writeconf): パラメータなしの場合: primary loaded fileに書き込み。
+-wc (or -writeconf): ファイル名: ファイルを設定用ディレクトリに書き出す。
+-wl (or -writelang): ファイル名: 現在の language stringsを書き出す。
+-ln (or -langname): 言語名を表示(パラメータなしの場合)または指定する。。
+-wcp [ファイル名]: プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
+-wcd: 設定用ディレクトリにデフォルト設定ファイルを書き出す。
+-all, -mod -wc/-wcp/-wcd と組み合わせ、全て/変更されたオプションを書き出す。
 -wcboot, -wcpboot, -wcdboot: ファイル書き出し後に DOSBox-X を再起動。
--bootconf(or -bc) 指定の設定用ﾌｧｲﾙ(またはprimary loaded file)を用いて再起動。
--norem -wc, -wcp, or -wcd と組み合わせ、オプションのコメントを書き出さない。
+-bootconf(or -bc): 指定の設定用ファイル(またはprimary loaded file)を用い再起動
+-norem -wc/-wcp/-wcd と組み合わせ、オプションのコメントを書き出さない。
 -l DOSBox-X の設定用パラメータの一覧を表示。
--h, -help, -? このヘルプを表示。"sections"を加えた場合はセクションの一覧。
--h, -help, -? セクション/プロパティ 指定のセクション,プロパティの情報を表示。
--axclear [autoexec] セクションをクリアする。
--axadd [line] [autoexec] セクションに行を追加。
--axtype [autoexec] セクションの内容を表示。
--avistart, -avistop AVI 録画を開始・停止。
--securemode Secure mode を有効化(マウント等の機能が無効化されます)
--startmapper DOSBox-X マッパーエディターを起動。
--gui グラフィカルな設定ツールを起動。
--get "section property" 指定のプロパティの値を返す(%%CONFIG%%へも)。
--set (-setfで強制) "section property=value" 指定のプロパティの値を設定。
+-h, -help, -?: このヘルプを表示。"sections"を加えた場合はセクションの一覧。
+-h, -help, -?: セクション/プロパティ 指定のセクション,プロパティの情報を表示。
+-axclear: [autoexec] セクションをクリアする。
+-axadd [line]: [autoexec] セクションに行を追加。
+-axtype: [autoexec] セクションの内容を表示。
+-avistart, -avistop: AVI 録画を開始・停止。
+-securemode: セキュア・モードを有効化(マウント等の機能が無効化されます)
+-startmapper: DOSBox-X マッパーエディターを起動。
+-gui: グラフィカルな設定ツールを起動。
+-get "section property": 指定のプロパティの値を返す(%%CONFIG%%へも)。
+-set (-setfで強制) "section property=value": 指定のプロパティの値を設定。
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
@@ -176,7 +176,7 @@ DOSBox-X configuration に含まれるセクション:
 文法が違います: config -get "セクション プロパティ".
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
-DOSBox-X は以下のｺﾏﾝﾄﾞﾗｲﾝ ﾊﾟﾗﾒｰﾀを指定して起動されました:
+DOSBox-X は以下のコマンドラインパラメータを指定して起動されました:
 %s
 
 
@@ -953,7 +953,7 @@ IMGMAKE の使用例:
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-Codepage %i has been loaded for layout %s
+コードページ %i をキーレイアウト %s用に読み込みました。
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -1233,8 +1233,7 @@ GOTO: ラベル %s が見つかりません。
 .
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
 %c ドライブが存在しません!
-You must [31mmount[0m it first. Type [1;33mintro[0m or [1;33mintro mount[0m for more information.
-
+最初に [31mmount[0m して下さい。 (詳細は[1;33mintro[0m または [1;33mintro mount[0mを実行)
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
 DOSBox-X に実際のCD-ROM %c へのアクセスを許可しますか %c [Y/N]?
@@ -4022,10 +4021,10 @@ Pentium MMX
 Pentium Pro
 .
 :MENU:debug_pageflip
-Page flip debug line
+デバッグ用ライン表示 (CRTCレジスタ書込み)
 .
 :MENU:debug_retracepoll
-Retrace poll debug line
+デバッグ用ライン表示 (CRTCステータス読取り)
 .
 :MENU:mapper_swapimg
 フロッピードライブを入替
@@ -4118,7 +4117,7 @@ Mapper "特殊キーを送信": Ctrl+Break
 Mapper "特殊キーを送信": Ctrl+Alt+Del
 .
 :MENU:wheel_none
-カーソルキーに変換しない
+ホイール動作をキーに変換しない
 .
 :MENU:wheel_updown
 カーソル上下に変換
@@ -4130,10 +4129,10 @@ Mapper "特殊キーを送信": Ctrl+Alt+Del
 PgUp/PgDn キーに変換
 .
 :MENU:wheel_ctrlupdown
-カーソルCtrl+上下に変換
+Ctrl+カーソル上下に変換
 .
 :MENU:wheel_ctrlleftright
-カーソルCtrl+左右に変換
+Ctrl+カーソル左右に変換
 .
 :MENU:wheel_ctrlpageupdown
 Ctrl+PgUp/PgDn キーに変換
