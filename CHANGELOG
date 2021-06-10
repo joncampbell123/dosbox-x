@@ -22,8 +22,12 @@
     (default), it is enabled for Windows SDL1 builds
     only if starting with a CJK code page. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
-    code from DOSVAXJ3. Set "dosv=jp" in [dos] section
-    of the config file to enable it. (Wengier)
+    code from DOSVAXJ3. Also added support for Chinese
+    and Korean DOS/V modes. Set "dosv" to "jp", "chs",
+    "cht", or "ko" in [dos] section of the config file
+    to enable DOS/V for different CJK modes. There are
+    also various font-related options added in [render]
+    section for the DOS/V support. (Wengier)
   - Added support for Japanese EGA mode (machine=jega)
     by adopting code from DOSVAX. You can optionally
     set SBCS and DBCS fonts with jfontsbcs & jfontdbcs
