@@ -8,6 +8,9 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
+  - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
+    are not found, then DOSBox-X will now use internal
+    Japanese fonts in addition to VGA font. (Wengier)
   - The config option ttf.halfwidthkana (in [render]
     section will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
