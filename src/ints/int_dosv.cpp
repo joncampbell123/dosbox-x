@@ -268,7 +268,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 		src[0] = code >> 8;
 		src[1] = code & 0xff;
 		src[2] = 0;
-		CodePageGuestToHostUTF16((uint16_t *)text,src);
+		if (!CodePageGuestToHostUTF16((uint16_t *)text,src)) return false;
 		text[0] &= 0xffff;
 	}
 	text[1] = ']';
@@ -513,7 +513,7 @@ void InitFontHandle()
 	if(jfont_16 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
-		lf.lfCharSet = IS_KDOSV?HANGUL_CHARSET:(IS_CDOSV?CHINESEBIG5_CHARSET:(IS_PDOSV?GB2312_CHARSET:SHIFTJIS_CHARSET));
+		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_CDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:SHIFTJIS_CHARSET));
 		lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 		lf.lfQuality = DEFAULT_QUALITY;

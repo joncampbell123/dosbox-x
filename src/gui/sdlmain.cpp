@@ -71,7 +71,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void);
+void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -2780,6 +2780,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
         SDL_UnlockSurface(sdl.surface);
     }
 
+    if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) InitFontHandle();
 #if 0
     LOG_MSG("menudraw %u",(unsigned int)SDL_GetTicks());
 #endif
@@ -14316,6 +14317,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.rebuild();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+#if defined(LINUX)
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) InitFontHandle();
+#endif
         mainMenu.screenWidth = (unsigned int)sdl.surface->w;
         mainMenu.screenHeight = (unsigned int)sdl.surface->h;
         mainMenu.updateRect();
