@@ -93,7 +93,7 @@ bool InitCodePage() {
         }
     }
     if (!dos.loaded_codepage) {
-        dos.loaded_codepage = IS_PC98_ARCH||IS_JEGA_ARCH?932:437;
+        dos.loaded_codepage = IS_PC98_ARCH||IS_JEGA_ARCH||IS_JDOSV?932:(IS_PDOSV?936:(IS_KDOSV?949:(IS_CDOSV?950:437)));
         return false;
     } else
         return true;

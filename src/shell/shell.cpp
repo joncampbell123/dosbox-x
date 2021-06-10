@@ -650,6 +650,12 @@ void DOS_Shell::Prepare(void) {
                         else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
+                    if (!newCP && IS_DOSV) {
+                        if (IS_JDOSV) newCP=932;
+                        else if (IS_PDOSV) newCP=936;
+                        else if (IS_CDOSV) newCP=949;
+                        else if (IS_KDOSV) newCP=950;
+                    }
                     if (newCP==932||newCP==936||newCP==949||newCP==950) {
                         dos.loaded_codepage=newCP;
                         SetupDBCSTable();

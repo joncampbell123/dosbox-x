@@ -1197,7 +1197,12 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
             if ((cp<1 || !isSupportedCP(cp)) && msgcodepage>0) cp = msgcodepage;
         } else if (msgcodepage>0)
             cp = msgcodepage;
-        if ((cp<1 || !isSupportedCP(cp)) && (IS_PC98_ARCH || IS_JEGA_ARCH)) cp = 932;
+        if (cp<1 || !isSupportedCP(cp)) {
+            if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV) cp = 932;
+            else if (IS_PDOSV) cp = 936;
+            else if (IS_KDOSV) cp = 949;
+            else if (IS_CDOSV) cp = 950;
+        }
     }
     uint16_t len=(uint16_t)str.size();
     if (cp>0) {

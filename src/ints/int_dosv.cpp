@@ -114,7 +114,7 @@ bool isKanji1(uint8_t chr) {
 
 bool isKanji2(uint8_t chr) {
     if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)
-        return chr >= 0x40 && chr <= 0xfc;
+        return chr >= 0x40 && chr <= 0xfe;
     return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
 }
 
@@ -254,10 +254,10 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	wchar_t text[4];
 
 	if(code < 0x100) {
-		if(code == 0x5c) {
+		if(code == 0x5c && !(IS_DOSV && !IS_JDOSV)) {
 			// yen
 			text[0] = 0xa5;
-		} else if(code >= 0xa1 && code <= 0xdf) {
+		} else if(code >= 0xa1 && code <= 0xdf && !(IS_DOSV && !IS_JDOSV)) {
 			// half kana
 			text[0] = 0xff61 + (code - 0xa1);
 		} else {
