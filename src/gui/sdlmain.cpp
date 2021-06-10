@@ -2448,8 +2448,10 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern bool font_14_init, font_16_init;
+uint8_t *GetDbcsFont(Bitu code);
+unsigned char prevc = 0;
 
-void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
+void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
 
     if (x < 0 || y < 0 ||
@@ -2473,13 +2475,27 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
         // upper left
         glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
         glEnd();
+        x += (int)mainMenu.fontCharWidth;
 #endif
     }
     else {
         unsigned char *scan, *bmp;
-        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check)
+        if (check)
+            prevc = 0;
+        else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+            if (isKanji1(c) && prevc == 0) {
+                prevc = c;
+                return;
+            } else if (isKanji2(c) && prevc > 1) {
+                bmp = GetDbcsFont(prevc*0x100+c);
+                prevc = 1;
+            } else
+                prevc = 0;
+        } else
+            prevc = 0;
+        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
             bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
-        else
+        else if (!prevc)
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
         assert(sdl.surface->pixels != NULL);
@@ -2491,34 +2507,38 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color,bool check) {
         if ((y + (int)fontHeight) > sdl.surface->h)
             return;
 
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
-        scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
+        for (int i=0; i<(prevc?2:1); i++) {
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
+            scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
 
-        for (unsigned int row=0;row < fontHeight;row++) {
-            unsigned char rb = bmp[row];
+            for (unsigned int row=0;row < fontHeight;row++) {
+                unsigned char rb = bmp[prevc?(row*2+i):row];
 
-            if (sdl.surface->format->BitsPerPixel == 32) {
-                uint32_t *dp = (uint32_t*)scan;
-                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                    if (rb & colm) *dp = (uint32_t)color;
-                    dp++;
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint32_t)color;
+                        dp++;
+                    }
                 }
-            }
-            else if (sdl.surface->format->BitsPerPixel == 16) {
-                uint16_t *dp = (uint16_t*)scan;
-                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                    if (rb & colm) *dp = (uint16_t)color;
-                    dp++;
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint16_t)color;
+                        dp++;
+                    }
                 }
-            }
 
-            scan += (size_t)sdl.surface->pitch;
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
         }
+        prevc = 0;
     }
 }
 
-void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
+void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
 
     if (x < 0 || y < 0 ||
@@ -2542,13 +2562,27 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
         // upper left
         glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
         glEnd();
+        x += (int)mainMenu.fontCharWidth;
 #endif
     }
     else { 
         unsigned char *scan, *bmp;
-        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check)
+        if (check)
+            prevc = 0;
+        else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+            if (isKanji1(c) && prevc == 0) {
+                prevc = c;
+                return;
+            } else if (isKanji2(c) && prevc > 1) {
+                bmp = GetDbcsFont(prevc*0x100+c);
+                prevc = 1;
+            } else
+                prevc = 0;
+        } else
+            prevc = 0;
+        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
             bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
-        else
+        else if (!prevc)
             bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
         assert(sdl.surface->pixels != NULL);
@@ -2560,40 +2594,44 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color,bool check) {
         if ((y + ((int)fontHeight * 2)) > sdl.surface->h)
             return;
 
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+        for (int i=0; i<(prevc?2:1); i++) {
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
 
-        for (unsigned int row=0;row < (fontHeight*2);row++) {
-            unsigned char rb = bmp[row>>1U];
+            for (unsigned int row=0;row < (fontHeight*2);row++) {
+                unsigned char rb = bmp[prevc?((row>>1U)*2+i):(row>>1U)];
 
-            if (sdl.surface->format->BitsPerPixel == 32) {
-                uint32_t *dp = (uint32_t*)scan;
-                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                    if (rb & colm) {
-                        *dp++ = (uint32_t)color;
-                        *dp++ = (uint32_t)color;
-                    }
-                    else {
-                        dp += 2;
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint32_t)color;
+                            *dp++ = (uint32_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
                     }
                 }
-            }
-            else if (sdl.surface->format->BitsPerPixel == 16) {
-                uint16_t *dp = (uint16_t*)scan;
-                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                    if (rb & colm) {
-                        *dp++ = (uint16_t)color;
-                        *dp++ = (uint16_t)color;
-                    }
-                    else {
-                        dp += 2;
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint16_t)color;
+                            *dp++ = (uint16_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
                     }
                 }
-            }
 
-            scan += sdl.surface->pitch;
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
         }
+        prevc = 0;
     }
 }
 
@@ -2618,15 +2656,20 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
     }
 #endif
 
+    prevc = 0;
     while (*text != 0) {
         if (mainMenu.fontCharScale >= 2)
             MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color,check);
         else
             MenuDrawTextChar(x,y,(unsigned char)(*text++),color,check);
-
-        x += (int)mainMenu.fontCharWidth;
     }
-
+    if (prevc>1) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,prevc,color,check);
+        else
+            MenuDrawTextChar(x,y,prevc,color,check);
+    }
+    prevc = 0;
 #if C_OPENGL
     if (OpenGL_using()) {
         glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
