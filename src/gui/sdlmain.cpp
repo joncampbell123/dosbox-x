@@ -2687,6 +2687,9 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     (void)menu;//UNUSED
 
+    int cp = dos.loaded_codepage;
+    if (!cp) InitCodePage();
+
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
     Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
@@ -2741,6 +2744,7 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
 
     if (SDL_MUSTLOCK(sdl.surface))
         SDL_UnlockSurface(sdl.surface);
+    dos.loaded_codepage = cp;
 }
 
 void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
