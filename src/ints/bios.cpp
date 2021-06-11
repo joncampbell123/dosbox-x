@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+#include "control.h"
 #include "dosbox.h"
 #include "mem.h"
 #include "cpu.h"

@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include "control.h"
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "bios.h"
