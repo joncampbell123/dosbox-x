@@ -24,6 +24,7 @@
 #if defined (WIN32)
 #include <d3d9.h>
 #endif
+#include "logging.h"
 #include "time.h"
 #include "timer.h"
 #include "setup.h"

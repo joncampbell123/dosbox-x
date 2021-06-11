@@ -19,7 +19,9 @@
 
 #include <string.h>
 #include <ctype.h>
+
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "dos_inc.h"
 #include "regs.h"

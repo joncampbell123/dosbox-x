@@ -23,6 +23,7 @@
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "drives.h"
+#include "logging.h"
 #include "support.h"
 #include "control.h"
 #include "cross.h"

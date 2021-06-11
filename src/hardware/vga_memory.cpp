@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "vga.h"
 #include "paging.h"

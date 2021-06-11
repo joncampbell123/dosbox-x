@@ -21,6 +21,7 @@
 #include "control.h"
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "setup.h"
 #include "cpu.h"
 #include "../src/cpu/lazyflags.h"

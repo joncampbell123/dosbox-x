@@ -25,6 +25,7 @@
 #include <time.h>
 #include <stdio.h>
 #include "cross.h"
+#include "logging.h"
 #include "support.h"
 #include "cpu.h"
 #include "regs.h"

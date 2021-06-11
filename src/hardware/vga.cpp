@@ -119,6 +119,7 @@
 #include <assert.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "video.h"
 #include "pic.h"

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "paging.h"
 #include "bios.h"

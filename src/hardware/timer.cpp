@@ -20,6 +20,7 @@
 #include <math.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "pic.h"
 #include "cpu.h"
 #include "mem.h"

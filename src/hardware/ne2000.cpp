@@ -3,6 +3,7 @@
 #include "dosbox.h"
 #include <string.h>
 #include <stdio.h>
+#include "logging.h"
 #include "support.h"
 #include "inout.h"
 #include "setup.h"

@@ -29,6 +29,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "setup.h"
+#include "logging.h"
 
 extern bool dos_kernel_disabled;
 PagingBlock paging;

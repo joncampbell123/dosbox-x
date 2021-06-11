@@ -27,6 +27,7 @@
 
 #include "dosbox.h"
 #include "bios.h"
+#include "logging.h"
 #include "mem.h"
 #include "regs.h"
 #include "dos_inc.h"

@@ -21,6 +21,7 @@
 #include <assert.h>
 #include "dosbox.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include "mem.h"
 #include "menu.h"
 #include "inout.h"

@@ -30,6 +30,7 @@
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "drives.h"
+#include "logging.h"
 #include "support.h"
 #include "cross.h"
 #include "inout.h"

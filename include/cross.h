@@ -20,11 +20,8 @@
 #ifndef DOSBOX_CROSS_H
 #define DOSBOX_CROSS_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
-
-#include <sys/stat.h>
+#include <stdio.h>
+#include <string>
 
 #if defined (_MSC_VER)						/* MS Visual C++ */
 #include <direct.h>
