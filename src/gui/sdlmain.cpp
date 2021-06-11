@@ -2784,7 +2784,10 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
         SDL_UnlockSurface(sdl.surface);
     }
 
+    int cp = dos.loaded_codepage;
+    if (!cp) InitCodePage();
     if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) InitFontHandle();
+    dos.loaded_codepage = cp;
 #if 0
     LOG_MSG("menudraw %u",(unsigned int)SDL_GetTicks());
 #endif
@@ -14486,7 +14489,7 @@ fresh_boot:
 
         if (dos_kernel_shutdown) {
 
-            if (!IS_PC98_ARCH&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */

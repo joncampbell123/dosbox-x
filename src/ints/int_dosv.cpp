@@ -100,30 +100,26 @@ bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 extern uint8_t lead[6];
 
 bool isKanji1(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950) {
-        for (int i=0; i<6; i++) lead[i] = 0;
-        if (isDBCSCP())
-            for (int i=0; i<6; i++) {
-                lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-                if (lead[i] == 0) break;
-            }
-        return isDBCSLB(chr, lead);
-    }
-    return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
+    if (dos.loaded_codepage == 936 || IS_PDOSV)
+        return (chr >= 0xa1 && chr <= 0xfe);
+    else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_CDOSV || IS_KDOSV)
+        return (chr >= 0x81 && chr <= 0xfe);
+    else
+        return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
 }
 
 bool isKanji2(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
         return chr >= 0x40 && chr <= 0xfe;
-    return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
+    else
+        return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
 }
 
 Bitu getfontx2header(FILE *fp, fontx_h *header)
 {
     fread(header->id, ID_LEN, 1, fp);
-    if (strncmp(header->id, "FONTX2", ID_LEN) != 0) {
-	return 1;
-    }
+    if (strncmp(header->id, "FONTX2", ID_LEN) != 0)
+        return 1;
     fread(header->name, NAME_LEN, 1, fp);
     header->width = (uint8_t)getc(fp);
     header->height = (uint8_t)getc(fp);

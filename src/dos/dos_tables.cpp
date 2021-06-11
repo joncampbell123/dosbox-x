@@ -271,7 +271,7 @@ void DOS_SetupTables(void) {
 	real_writed(seg,0x00,0x005c3a43);
 	dos_infoblock.SetCurDirStruct(RealMake(seg,0));
 
-    /* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
+    /* Allocate DBCS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
     SetupDBCSTable();
 
 	/* FILENAME CHARACTER TABLE */

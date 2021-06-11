@@ -3315,7 +3315,7 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
 }
 
 bool isDBCSCP() {
-    return !IS_PC98_ARCH && ((IS_JEGA_ARCH)||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+    return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
 }
 
 bool isDBCSLB(uint8_t chr, uint8_t* lead) {
