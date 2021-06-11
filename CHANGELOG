@@ -15,6 +15,10 @@
     section will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
     is now enabled by default for JP mode. (Wengier)
+  - Added support for showing Chinese/Japanese/Korean
+    characters in the SDL-drawn menu (except for OpenGL
+    outputs) and Configuration Tool interface (so e.g.
+    DOS command help will show correctly). (Wengier)
   - Added support for inputing Chinese/Japanese/Korean
     characters using the system input method (IME) in
     Windows SDL1 build. There is config option "ime" in

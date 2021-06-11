@@ -31,11 +31,15 @@
 
 #include "config.h"
 #include "dosbox.h"
+#include "setup.h"
+#include "jfont.h"
 
 #include <SDL.h>
 #include "gui_tk.h"
 
 #include <math.h> /* floor */
+bool isDBCSCP();
+uint8_t *GetDbcsFont(Bitu code);
 
 namespace GUI {
 
@@ -481,37 +485,49 @@ void Drawable::drawText(const Char c, bool interpret)
 	font->drawChar(this,c);
 }
 
+Char prvc = 0;
 void BitmapFont::drawChar(Drawable *d, const Char c) const {
-#define move(x) (ptr += ((x)+bit)/8-(((x)+bit)<0), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
-	const unsigned char *ptr = bitmap;
-	int bit = 0;
-
-	if (c > last) return;
-
-	if (char_position != NULL) {
+	const unsigned char *ptr = bitmap, *optr;
+	int bit = 0, i = 0;
+	if (c > last) {prvc = 0;return;}
+    if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prvc == 0) {
+            prvc = c;
+            return;
+        } else if (isKanji2(c) && prvc > 1) {
+            optr = GetDbcsFont(prvc*0x100+c);
+            prvc = 1;
+        } else
+            prvc = 0;
+    } else
+        prvc = 0;
+#define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
+	if (char_position != NULL && !prvc) {
 		ptr = char_position[c];
 		bit = 0;
-	} else {
+	} else if (!prvc)
 		move(character_step*((int)c));
-	}
-
+	int ht = prvc?16:height, at = prvc?11:ascent;
 	int rs = row_step;
 	int w = (widths != NULL?widths[c]:width);
-	int h = (ascents != NULL?ascents[c]:height);
-	Drawable out(*d,d->getX(),d->getY()-ascent,w,h);
-
+	int h = (ascents != NULL?ascents[c]:ht);
 	if (rs == 0) rs = isign(col_step)*w;
 	if (rs < 0) move(-rs*(h-1));
 	if (col_step < 0) move(abs(rs)-1);
-
-	for (int row = height-h; row < height; row++, move(rs-w*col_step)) {
-		for (int col = 0; col < w; col++, move(col_step)) {
-			if (!background_set != !(*ptr&(1<<bit)))
-				out.drawPixel(col,row);
+	for (i=0; i<(prvc?2:1); i++) {
+		Drawable out(*d,d->getX(),d->getY()-at,w,h);
+		if (prvc) ptr = optr+i;
+		for (int row = ht-h; row < ht; row++, move(rs-w*col_step)) {
+			for (int col = 0; col < w; col++, move(col_step)) {
+				if (!background_set != !(*ptr&(1<<bit)))
+					out.drawPixel(col,row);
+			}
 		}
+		d->gotoXY(d->getX()+w,d->getY());
+		if (prvc && !i) ptr = GetDbcsFont(prvc*0x100+c);
 	}
-	d->gotoXY(d->getX()+w,d->getY());
 #undef move
+	prvc = 0;
 }
 
 void Timer::check_to(unsigned int ticks) {
