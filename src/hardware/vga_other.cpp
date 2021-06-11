@@ -21,6 +21,7 @@
 #include <math.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "vga.h"
 #include "mem.h"
 #include "pic.h"

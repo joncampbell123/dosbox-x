@@ -19,6 +19,7 @@
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "pic.h"
 #include "setup.h"

@@ -19,6 +19,7 @@
 
 #include "drives.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include "support.h"
 #include "cross.h"
 

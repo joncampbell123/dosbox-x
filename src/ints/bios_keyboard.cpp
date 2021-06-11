@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "bios.h"
 #include "keyboard.h"

@@ -19,6 +19,7 @@
 #ifndef DOSBOX_FPU_H
 #define DOSBOX_FPU_H
 
+#include "logging.h"
 #include "mmx.h"
 
 void FPU_ESC0_Normal(Bitu rm);

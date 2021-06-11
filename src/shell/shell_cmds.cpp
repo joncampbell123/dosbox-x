@@ -23,6 +23,7 @@
 
 
 #include "dosbox.h"
+#include "logging.h"
 #include "shell.h"
 #include "callback.h"
 #include "regs.h"

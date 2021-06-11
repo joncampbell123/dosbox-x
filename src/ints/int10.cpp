@@ -20,6 +20,7 @@
 
 #include "dosbox.h"
 #include "control.h"
+#include "logging.h"
 #include "mem.h"
 #include "menu.h"
 #include "callback.h"

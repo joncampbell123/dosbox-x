@@ -10,8 +10,7 @@
 #ifndef DOSBOX_CLOCKDOMAIN_H
 #define DOSBOX_CLOCKDOMAIN_H
 
-/* this code contains support for existing DOSBox code that uses PIC_AddEvent, etc. callbacks */
-#include "pic.h"
+#include <string>
 
 class ClockDomain {
 public:

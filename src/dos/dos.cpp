@@ -24,9 +24,12 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+#include <sys/stat.h>
+
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "bios.h"
+#include "logging.h"
 #include "mem.h"
 #include "paging.h"
 #include "callback.h"
@@ -42,6 +45,7 @@
 #include "render.h"
 #include "jfont.h"
 #include "../ints/int10.h"
+#include "pic.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
 #include <shellapi.h>

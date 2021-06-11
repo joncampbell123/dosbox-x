@@ -39,6 +39,10 @@
 #include "bios_disk.h"
 #include "../dos/drives.h"
 
+#if defined(WIN32)
+#include "shellapi.h"
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>

@@ -23,6 +23,7 @@
 
 #include "dosbox.h"
 #include "ipxserver.h"
+#include "logging.h"
 #include "timer.h"
 #include <stdlib.h>
 #include <string.h>

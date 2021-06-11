@@ -18,7 +18,8 @@
 
 
 #include "dosbox.h"
-
+#include "logging.h"
+#include "pic.h"
 #include "setup.h"
 #include "serialdummy.h"
 #include "serialport.h"

@@ -23,6 +23,7 @@
 #include "dosbox.h"
 #include "control.h"
 #include "hardware.h"
+#include "logging.h"
 #include "setup.h"
 #include "support.h"
 #include "mem.h"

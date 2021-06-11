@@ -91,6 +91,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 #include <sys/types.h>
 #include <algorithm> // std::transform
 #include <fcntl.h>
+#include <sys/stat.h>
 #ifdef WIN32
 # include <signal.h>
 # include <sys/stat.h>
@@ -102,6 +103,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 #endif
 
 #include "dosbox.h"
+#include "menudef.h"
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"
@@ -144,6 +146,10 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 
 #if defined(WIN32) && !defined(HX_DOS)
 # include <shobjidl.h>
+#endif
+
+#if defined(WIN32)
+#include "resource.h"
 #endif
 
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */

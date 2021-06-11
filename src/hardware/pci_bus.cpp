@@ -20,6 +20,7 @@
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "paging.h"
 #include "mem.h"
 #include "pci_bus.h"

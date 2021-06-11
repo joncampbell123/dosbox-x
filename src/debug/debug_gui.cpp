@@ -37,6 +37,7 @@
 #include "menu.h"
 #include "debug.h"
 #include "debug_inc.h"
+#include "pic.h"
 
 #include <stdexcept>
 #include <exception>

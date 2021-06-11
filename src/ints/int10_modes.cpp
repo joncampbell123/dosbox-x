@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"

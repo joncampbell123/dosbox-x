@@ -20,6 +20,7 @@
 
 #include "dosbox.h"
 #include "keyboard.h"
+#include "logging.h"
 #include "support.h"
 #include "setup.h"
 #include "inout.h"

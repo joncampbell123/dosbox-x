@@ -18,6 +18,7 @@
 
 #include "dosbox.h"
 #include "control.h"
+#include "logging.h"
 #include "menu.h"
 
 bool informd3d = false;

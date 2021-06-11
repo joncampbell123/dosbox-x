@@ -20,6 +20,8 @@
 #ifndef DOSBOX_PROGRAMS_H
 #define DOSBOX_PROGRAMS_H
 
+#include <list>
+
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
 #endif

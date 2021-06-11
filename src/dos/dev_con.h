@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "dos_inc.h"
+#include "logging.h"
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"

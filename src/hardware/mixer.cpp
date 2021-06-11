@@ -49,6 +49,7 @@
 #include "mem.h"
 #include "pic.h"
 #include "dosbox.h"
+#include "logging.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"

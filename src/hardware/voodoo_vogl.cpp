@@ -27,6 +27,7 @@
 
 #include "dosbox.h"
 #include "dos_inc.h"
+#include "logging.h"
 
 #if C_OPENGL
 

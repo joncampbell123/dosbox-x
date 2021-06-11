@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "regs.h"
 #include "dos_inc.h"

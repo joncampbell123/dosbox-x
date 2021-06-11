@@ -43,6 +43,7 @@
 #endif
 
 #include "drives.h"
+#include "logging.h"
 #include "support.h"
 #include "setup.h"
 #include "src/libs/decoders/audio_convert.c"

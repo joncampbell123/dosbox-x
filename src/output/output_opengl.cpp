@@ -12,6 +12,8 @@ extern "C" {
 #include "ppscale.c"
 }
 #include "dosbox.h"
+#include "logging.h"
+#include "menudef.h"
 #include <output/output_opengl.h>
 
 #include <algorithm>
