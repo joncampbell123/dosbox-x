@@ -2559,10 +2559,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(cyclest);
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("turbo",Property::Changeable::Always,false);
-    Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
-    Pbool->SetBasic(true);
-
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
 
     Pint = secprop->Add_int("cycleup",Property::Changeable::Always,10);
@@ -2578,6 +2574,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("cycle emulation percentage adjust",Property::Changeable::Always,0);
     Pint->SetMinMax(-50,50);
     Pint->Set_help("The percentage adjustment for use with the \"Emulate CPU speed\" feature. Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.");
+
+    Pbool = secprop->Add_bool("turbo",Property::Changeable::Always,false);
+    Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);

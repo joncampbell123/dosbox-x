@@ -66,6 +66,7 @@
 #include <sys/file.h>
 #else
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
 #endif
