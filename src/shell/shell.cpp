@@ -538,12 +538,16 @@ const char *ParseMsg(const char *msg) {
 #endif
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
-            msg = str_replace((char *)msg, "\xC9", (char *)std::string(1, 1).c_str());
-            msg = str_replace((char *)msg, "\xBB", (char *)std::string(1, 2).c_str());
-            msg = str_replace((char *)msg, "\xC8", (char *)std::string(1, 3).c_str());
-            msg = str_replace((char *)msg, "\xBC", (char *)std::string(1, 4).c_str());
-            msg = str_replace((char *)msg, "\xBA", (char *)std::string(1, 5).c_str());
-            msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
+            if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {
+                msg = str_replace((char *)msg, "\xC9", (char *)std::string(1, 1).c_str());
+                msg = str_replace((char *)msg, "\xBB", (char *)std::string(1, 2).c_str());
+                msg = str_replace((char *)msg, "\xC8", (char *)std::string(1, 3).c_str());
+                msg = str_replace((char *)msg, "\xBC", (char *)std::string(1, 4).c_str());
+                msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
+            } else {
+                msg = str_replace((char *)msg, "\xBA ", (char *)(std::string(1, 5)+" ").c_str());
+                msg = str_replace((char *)msg, " \xBA", (char *)(" "+std::string(1, 5)).c_str());
+            }
         }
         return msg;
     }
