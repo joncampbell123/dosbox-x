@@ -26,6 +26,18 @@
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
+#if defined(MACOSX)
+#define _DARWIN_C_SOURCE
+#endif
+#ifndef WIN32
+#include <utime.h>
+#include <sys/file.h>
+#else
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/utime.h>
+#include <sys/locking.h>
+#endif
 
 #include "dosbox.h"
 #include "dos_inc.h"
@@ -58,18 +70,6 @@
 #include "../libs/physfs/physfs_platform_windows.c"
 #include "../libs/physfs/physfs_platform_winrt.cpp"
 #include "../libs/physfs/physfs_unicode.c"
-#if defined(MACOSX)
-#define _DARWIN_C_SOURCE
-#endif
-#ifndef WIN32
-#include <utime.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#else
-#include <fcntl.h>
-#include <sys/utime.h>
-#include <sys/locking.h>
-#endif
 
 #include "cp437_uni.h"
 #include "cp808_uni.h"
