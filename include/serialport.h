@@ -26,9 +26,6 @@
 #ifndef DOSBOX_TIMER_H
 #include "timer.h"
 #endif
-#ifndef DOSBOX_DOS_INC_H
-#include "dos_inc.h"
-#endif
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif

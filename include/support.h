@@ -21,7 +21,6 @@
 #define DOSBOX_SUPPORT_H
 
 #include <string.h>
-#include <string>
 #include <ctype.h>
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"

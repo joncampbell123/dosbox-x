@@ -5,7 +5,6 @@
 #include "render.h"
 #include "video.h"
 
-#include "cross.h"
 #include "SDL.h"
 #include "SDL_video.h"
 
