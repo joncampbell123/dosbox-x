@@ -23,6 +23,8 @@
 #include "setup.h"
 #include "support.h"
 #include "../ints/int10.h"
+#include "../output/output_opengl.h"
+#include "sdlmain.h"
 #include "regs.h"
 #include "callback.h"
 #include "mapper.h"
@@ -38,11 +40,13 @@
 #include <windows.h>
 #endif
 
+int lastcp = 0;
 void DOSBox_SetSysMenu(void);
 #if defined(USE_TTF)
 int setTTFCodePage(void);
 bool TTF_using(void);
 #endif
+bool OpenGL_using(void);
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
@@ -63,7 +67,6 @@ static FILE* OpenDosboxFile(const char* name) {
 	FILE *tmpfile=fopen(name, "rb");
 	return tmpfile;
 }
-
 
 class keyboard_layout {
 public:
@@ -1084,6 +1087,10 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				INT10_ReloadFont();
 			}
 			INT10_SetupRomMemoryChecksum();
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+#endif
 
 			return KEYB_NOERROR;
 		}

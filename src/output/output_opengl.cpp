@@ -91,13 +91,16 @@ extern unsigned int SDLDrawGenFontTextureHeight;
 extern GLuint SDLDrawGenFontTexture;
 extern bool SDLDrawGenFontTextureInit;
 #endif
-extern int initgl;
+extern int initgl, lastcp;
+extern bool font_16_init;
+extern uint8_t int10_font_16[256 * 16], int10_font_16_init[256 * 16];
 
 SDL_OpenGL sdl_opengl;
 
 int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
+bool InitCodePage();
 
 // NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
 //      this works better with maximized window or full-screen mode and the
@@ -800,25 +803,27 @@ Bitu OUTPUT_OPENGL_SetSize()
 
         /* load the font */
         {
-            extern uint8_t int10_font_16[256 * 16];
-
+            int cp = dos.loaded_codepage;
+            if (!cp) InitCodePage();
             uint32_t tmp[8 * 16];
             unsigned int x, y, c;
 
             for (c = 0; c < 256; c++) 
             {
-                unsigned char *bmp = int10_font_16 + (c * 16);
+                unsigned char *bmp;
+                if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437)
+                    bmp = (c==0xFB?int10_font_16:int10_font_16_init) + (c * 16);
+                else
+                    bmp = int10_font_16 + (c * 16);
                 for (y = 0; y < 16; y++) 
-                {
                     for (x = 0; x < 8; x++) 
-                    {
                         tmp[(y * 8) + x] = (bmp[y] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
-                    }
-                }
 
                 glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)((c % 16) * 8), /*y*/(int)((c / 16) * 16),
                     8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
             }
+            lastcp = dos.loaded_codepage;
+            dos.loaded_codepage = cp;
         }
 
         glBindTexture(GL_TEXTURE_2D, 0);
