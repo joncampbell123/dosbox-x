@@ -260,7 +260,7 @@ static bool CheckEmptyData(uint8_t *data, Bitu length)
 
 bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 {
-#if defined(LINUX) && !defined(C_SDL2) // Tested to work on Linux SDL1 build
+#if defined(LINUX) && !defined(C_SDL2) // Confirmed to work on Linux SDL1 build; seems to not work on Linux SDL2 build
 	XRectangle ir, lr;
 	wchar_t text[4];
 

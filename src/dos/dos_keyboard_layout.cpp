@@ -1087,6 +1087,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			}
 			INT10_SetupRomMemoryChecksum();
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            void change_output(int output);
             if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                 change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
 #endif
