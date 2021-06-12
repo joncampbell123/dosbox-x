@@ -42,6 +42,7 @@
 #define VTEXT_MODE_COUNT 2
 #define SBCS16_LEN 256 * 16
 #define SBCS19_LEN 256 * 19
+#define DBCS14_LEN 65536 * 28
 #define DBCS16_LEN 65536 * 32
 #define DBCS24_LEN 65536 * 72
 #define SBCS24_LEN 256 * 48
@@ -57,11 +58,13 @@ static XFontSet font_set24;
 
 const char jfont_name[] = "\x082\x06c\x082\x072\x020\x083\x053\x083\x056\x083\x062\x083\x04e";
 static uint8_t jfont_dbcs[96];
-uint8_t jfont_sbcs_19[SBCS19_LEN];//256 * 19( * 8)
-uint8_t jfont_dbcs_16[DBCS16_LEN];//65536 * 16 * 2 (* 8)
 uint8_t jfont_sbcs_16[SBCS16_LEN];//256 * 16( * 8)
-uint8_t jfont_dbcs_24[DBCS24_LEN];//65536 * 24 * 3
+uint8_t jfont_sbcs_19[SBCS19_LEN];//256 * 19( * 8)
 uint8_t jfont_sbcs_24[SBCS24_LEN];//256 * 12 * 2
+uint8_t jfont_dbcs_14[DBCS14_LEN];//65536 * 14 * 2 (* 8)
+uint8_t jfont_dbcs_16[DBCS16_LEN];//65536 * 16 * 2 (* 8)
+uint8_t jfont_dbcs_24[DBCS24_LEN];//65536 * 24 * 3
+uint8_t jfont_cache_dbcs_14[65536];
 uint8_t jfont_cache_dbcs_16[65536];
 uint8_t jfont_cache_dbcs_24[65536];
 
@@ -178,7 +181,18 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
     }
 	// switch whether the font is DBCS or not
 	if (head.type == 1) {
-		if (head.width == 16 && head.height == 16) {
+		if (head.width == 14 && head.height == 14) {
+			size = getc(mfile);
+			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
+			readfontxtbl(table, size, mfile);
+			for (Bitu i = 0; i < size; i++) {
+				for (code = table[i].start; code <= table[i].end; code++) {
+					fread(&jfont_dbcs_14[code * 28], sizeof(uint8_t), 28, mfile);
+					jfont_cache_dbcs_14[code] = 1;
+				}
+			}
+		}
+		else if (head.width == 16 && head.height == 16) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -422,6 +436,18 @@ uint8_t *GetDbcsFont(Bitu code)
 	return &jfont_dbcs_16[code * 32];
 }
 
+uint8_t *GetDbcs14Font(Bitu code, bool &is14)
+{
+	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
+	if(jfont_cache_dbcs_14[code] == 0) {
+        is14 = false;
+        return GetDbcsFont(code);
+    } else {
+        is14 = true;
+        return &jfont_dbcs_14[code * 28];
+    }
+}
+
 uint8_t *GetDbcs24Font(Bitu code)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
@@ -613,6 +639,12 @@ void JFONT_Init() {
 			if(!MakeSbcs16Font()) {
 				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
 			}
+		}
+		pathprop = section->Get_path("jfontdbcs14");
+		if(pathprop) {
+			std::string path=pathprop->realpath;
+			ResolvePath(path);
+			LoadFontxFile(path.c_str());
 		}
 		pathprop = section->Get_path("jfontdbcs24");
 		if(pathprop) {

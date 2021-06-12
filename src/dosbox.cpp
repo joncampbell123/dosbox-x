@@ -2344,6 +2344,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
 
+	Pstring = secprop->Add_path("jfontdbcs14",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) in DOS/V mode (for Configuration Tool).");
+
 	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
 

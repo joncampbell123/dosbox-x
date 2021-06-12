@@ -11,7 +11,7 @@
   - Added option "turbo" in [cpu] section to enable
     Turbo (Fast Forward) mode at start. You can also
     change it from the command-line via CONFIG command
-    (e.g. config -set turbo=true). (Wengier)
+    (e.g. "config -set turbo=true"). (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found, then DOSBox-X will now use internal
     Japanese fonts in addition to VGA font. (Wengier)
@@ -21,9 +21,12 @@
     is now enabled by default for JP mode. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
     characters in the SDL-drawn menu (except for OpenGL
-    outputs) and Configuration Tool interface (so e.g.
-    DOS command help will show correctly). (Wengier)
-  - Added support for inputing Chinese/Japanese/Korean
+    outputs, where only SBCS code pages are supported)
+    and Configuration Tool interface (so for example
+    the DOS command help will show correctly). You can
+    change the DBCS font used by the Configuration Tool
+    interface via jdbcsfont14 config option. (Wengier)
+  - Added support for inputing CJK (at least Chinese)
     characters using the system input method (IME) in
     Windows SDL1 build. There is config option "ime" in
     [dosbox] section to control it. When set to "auto"
@@ -38,8 +41,9 @@
     section for the DOS/V support. (Wengier)
   - Added support for Japanese EGA mode (machine=jega)
     by adopting code from DOSVAX. You can optionally
-    set SBCS and DBCS fonts with jfontsbcs & jfontdbcs
-    config options in [render] section, or the default
+    set SBCS and DBCS fonts with jfontsbcs, jfontdbcs
+    (and jfontsbcs19, jfontdbcs24, etc) config options
+    in [render] section of config file, or the default
     fonts will be used for them. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so

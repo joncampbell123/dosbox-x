@@ -39,7 +39,7 @@
 
 #include <math.h> /* floor */
 bool isDBCSCP();
-uint8_t *GetDbcsFont(Bitu code);
+uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 
 namespace GUI {
 
@@ -489,23 +489,24 @@ Char prvc = 0;
 void BitmapFont::drawChar(Drawable *d, const Char c) const {
 	const unsigned char *ptr = bitmap, *optr = ptr;
 	int bit = 0, i = 0, w = 0, h = 0;
+	bool is14 = false;
 	if (c > last) {prvc = 0;return;}
     if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
         if (isKanji1(c) && prvc == 0) {
             prvc = c;
             return;
-        } else if (isKanji2(c) && prvc > 1) {
-            optr = GetDbcsFont(prvc*0x100+c);
-            prvc = 1;
+        } else if (isKanji2(c) && prvc > 2) {
+            optr = GetDbcs14Font(prvc*0x100+c, is14);
+            prvc = is14?2:1;
         } else if (prvc < 0x81)
             prvc = 0;
     } else
         prvc = 0;
-#define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc==1?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
+#define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc==1||prvc==2?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
 	int ht = prvc==1?16:height, at = prvc==1?11:ascent;
 	int rs = row_step;
 	for (i=0; i<(prvc?2:1); i++) {
-		if (prvc==1)
+		if (prvc==1||prvc==2)
 			ptr = optr+i;
 		else if (char_position != NULL) {
 			ptr = char_position[i||!prvc?c:prvc];
@@ -514,8 +515,8 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 			if (i) ptr = bitmap;
 			move(character_step*((int)(i||!prvc?c:prvc)));
 		}
-		w = widths!=NULL && prvc!=1 ? widths[i||!prvc?c:prvc] : width;
-		h = ascents!=NULL && prvc!=1 ? ascents[i||!prvc?c:prvc] : ht;
+		w = widths!=NULL && prvc!=1 && prvc!=2 ? widths[i||!prvc?c:prvc] : width;
+		h = ascents!=NULL && prvc!=1 && prvc!=2 ? ascents[i||!prvc?c:prvc] : ht;
         if (!i) {
             if (rs == 0) rs = isign(col_step)*w;
             if (rs < 0) move(-rs*(h-1));

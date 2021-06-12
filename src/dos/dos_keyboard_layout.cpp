@@ -24,7 +24,6 @@
 #include "support.h"
 #include "../ints/int10.h"
 #include "../output/output_opengl.h"
-#include "sdlmain.h"
 #include "regs.h"
 #include "callback.h"
 #include "mapper.h"
