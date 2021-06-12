@@ -64,6 +64,7 @@
 #ifndef WIN32
 #include <utime.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #else
 #include <fcntl.h>
 #include <sys/utime.h>
