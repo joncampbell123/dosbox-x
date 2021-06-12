@@ -4,7 +4,6 @@
 #include "video.h"
 
 #include "SDL.h"
-#include "SDL_video.h"
 
 #ifdef __WIN32__
 #include "SDL_syswm.h"

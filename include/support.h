@@ -20,7 +20,6 @@
 #ifndef DOSBOX_SUPPORT_H
 #define DOSBOX_SUPPORT_H
 
-#include <ctype.h>
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
 #endif
