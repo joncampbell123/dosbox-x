@@ -2495,14 +2495,10 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             } else if (isKanji2(c) && prevc > 1) {
                 bmp = GetDbcsFont(prevc*0x100+c);
                 prevc = 1;
-            } else
+            } else if (prevc < 0x81)
                 prevc = 0;
         } else
             prevc = 0;
-        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
-            bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
-        else if (!prevc)
-            bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
         assert(sdl.surface->pixels != NULL);
 
@@ -2514,12 +2510,17 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             return;
 
         for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&prevc!=1)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
             scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
 
             for (unsigned int row=0;row < fontHeight;row++) {
-                unsigned char rb = bmp[prevc?(row*2+i):row];
+                unsigned char rb = bmp[prevc==1?(row*2+i):row];
 
                 if (sdl.surface->format->BitsPerPixel == 32) {
                     uint32_t *dp = (uint32_t*)scan;
