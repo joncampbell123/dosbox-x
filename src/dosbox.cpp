@@ -759,9 +759,10 @@ std::string dosbox_title;
 
 void DOSBOX_InitTickLoop() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing tick loop management");
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("cpu"));
 
     ticksRemain = 0;
-    ticksLocked = false;
+    ticksLocked = section->Get_bool("turbo");
     ticksLastRTtime = 0;
     ticksLast = GetTicks();
     ticksLastRTcounter = GetTicks();
@@ -2557,6 +2558,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->SetValue("auto",/*init*/true);
     Pstring->Set_values(cyclest);
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("turbo",Property::Changeable::Always,false);
+    Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
+    Pbool->SetBasic(true);
 
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
 

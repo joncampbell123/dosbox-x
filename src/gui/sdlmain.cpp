@@ -58,6 +58,7 @@ extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool ticksLocked;
 extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool use_quick_reboot;
@@ -14301,6 +14302,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if C_DEBUG
         if (control->opt_display2) mainMenu.get_item("mapper_debugger").enable(false).refresh_item(mainMenu);
 #endif
+        mainMenu.get_item("mapper_speedlock2").check(ticksLocked).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();

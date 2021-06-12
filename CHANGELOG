@@ -8,6 +8,10 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
+  - Added option "turbo" in [cpu] section to enable
+    Turbo (Fast Forward) mode at start. You can also
+    change it from the command-line via CONFIG command
+    (e.g. config -set turbo=true). (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found, then DOSBox-X will now use internal
     Japanese fonts in addition to VGA font. (Wengier)
