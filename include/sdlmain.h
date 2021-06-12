@@ -1,4 +1,3 @@
-#include "dosbox.h"
 
 #include "control.h"
 #include "menu.h"
