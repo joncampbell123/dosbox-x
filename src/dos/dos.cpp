@@ -35,6 +35,7 @@
 #include "paging.h"
 #include "callback.h"
 #include "regs.h"
+#include "timer.h"
 #include "menu.h"
 #include "mapper.h"
 #include "drives.h"

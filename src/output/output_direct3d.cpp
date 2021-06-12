@@ -6,6 +6,7 @@
 #include "dosbox.h"
 #include "logging.h"
 #include "menudef.h"
+#include "render.h"
 #include <output/output_direct3d.h>
 
 #include "sdlmain.h"

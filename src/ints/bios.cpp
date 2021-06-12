@@ -23,6 +23,7 @@
 #include "cpu.h"
 #include "bios.h"
 #include "regs.h"
+#include "timer.h"
 #include "cpu.h"
 #include "callback.h"
 #include "inout.h"

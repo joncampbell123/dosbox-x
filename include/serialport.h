@@ -23,9 +23,6 @@
 #ifndef DOSBOX_INOUT_H
 #include "inout.h"
 #endif
-#ifndef DOSBOX_TIMER_H
-#include "timer.h"
-#endif
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif

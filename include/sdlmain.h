@@ -1,8 +1,6 @@
 
-#include "control.h"
 #include "menu.h"
 #include "mouse.h"
-#include "render.h"
 #include "video.h"
 
 #include "SDL.h"
