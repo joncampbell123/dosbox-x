@@ -403,13 +403,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
-            item.set_text("Configuration Tool");
+            item.set_text(mainMenu.get_item("mapper_gui").get_text());
         }
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
             item.set_callback_function(gui_menu_exit);
-            item.set_text("Exit configuration Tool");
+            item.set_text(MSG_Get("CONFIG_TOOL_EXIT"));
         }
 
         guiMenu.displaylist_clear(guiMenu.display_list);
@@ -2617,8 +2617,8 @@ public:
         int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 190, closerow_y, tmp1, 80))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 275, closerow_y, MSG_Get("CLOSE"), 80))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 175, closerow_y, tmp1, 90))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 275, closerow_y, MSG_Get("CLOSE"), 90))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);

@@ -4415,6 +4415,7 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
     MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
+    MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
     MSG_Add("WARNING","Warning");
     MSG_Add("YES","Yes");
     MSG_Add("NO","No");

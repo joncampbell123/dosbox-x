@@ -74,7 +74,7 @@ std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
 	if (button == Left && x < (6+titlebox_sysmenu_width) && x > 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
-		systemMenu->executeAction("Close");
+		systemMenu->executeAction(MSG_Get("CLOSE"));
 		return true;
 	}
 	BorderedWindow::mouseClicked(x,y,button);

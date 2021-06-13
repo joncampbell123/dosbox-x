@@ -175,6 +175,11 @@ void LoadMessageFile(const char * fname) {
 			if(ll && string[ll - 1] == '\n') string[ll - 1] = 0; //Second if should not be needed, but better be safe.
             if (strlen(name))
                 MSG_Replace(name,string);
+            else if (strlen(menu_name)>6&&!strncmp(menu_name, "drive_", 6))
+                for (char c='A'; c<='Z'; c++) {
+                    std::string mname = "drive_"+std::string(1, c)+(menu_name+5);
+                    if (mainMenu.item_exists(mname)) mainMenu.get_item(mname).set_text(string);
+                }
             else if (strlen(menu_name)&&mainMenu.item_exists(menu_name))
                 mainMenu.get_item(menu_name).set_text(string);
 		} else {
@@ -220,16 +225,17 @@ bool MSG_Write(const char * location, const char * name) {
 	}
 	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
 	for (auto &id : master_list) {
-		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&id.get_name()!="mapper_cycauto") {
+		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&!(id.get_name().size()==6&&id.get_name().substr(0,5)=="Drive"&&id.get_name().back()>='A'&&id.get_name().back()<='Z')&&!(id.get_name().size()>9&&id.get_name().substr(0,6)=="drive_"&&id.get_name()[6]>='B'&&id.get_name()[6]<='Z'&&id.get_name()[7]=='_')&&id.get_name()!="mapper_cycauto") {
             std::string text = id.get_text();
             if (id.get_name()=="hostkey_mapper"||id.get_name()=="clipboard_device") {
                 std::size_t found = text.find(":");
                 if (found!=std::string::npos) text = text.substr(0, found);
             }
+            std::string idname = id.get_name().size()>9&&id.get_name().substr(0,8)=="drive_A_"?"drive_"+id.get_name().substr(8):id.get_name();
             if (!CodePageGuestToHostUTF8(temp,text.c_str()))
-                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+                fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),text.c_str());
             else
-                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),temp);
+                fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),temp);
         }
 	}
 	morelen=false;
