@@ -56,6 +56,7 @@
 #include "render.h"
 #include "mouse.h"
 #include "../ints/int10.h"
+#include "../output/output_opengl.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
@@ -89,8 +90,8 @@ bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool inshell, mountfro[26], mountiro[26];
-
+extern int lastcp;
+extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
@@ -5987,6 +5988,10 @@ void KEYB::Run(void) {
                     WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
                 SetupDBCSTable();
                 runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+#endif
                 return;
             }
             if (cp_string.size()) {

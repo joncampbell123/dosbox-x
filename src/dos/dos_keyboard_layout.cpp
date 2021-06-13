@@ -45,7 +45,9 @@ void DOSBox_SetSysMenu(void);
 int setTTFCodePage(void);
 bool TTF_using(void);
 #endif
-bool OpenGL_using(void);
+bool OpenGL_using(void), isDBCSCP(void);
+void change_output(int output), JFONT_Init(void);
+extern bool jfont_init;
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
@@ -1087,7 +1089,6 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			}
 			INT10_SetupRomMemoryChecksum();
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            void change_output(int output);
             if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                 change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
 #endif
@@ -1477,11 +1478,16 @@ public:
 		}
         if (tocp && !IS_PC98_ARCH) {
             dos.loaded_codepage=tocp;
+            if (!jfont_init && isDBCSCP()) JFONT_Init();
             SetupDBCSTable();
 #if defined(USE_TTF)
             if (TTF_using()) setTTFCodePage(); else
 #endif
             DOSBox_SetSysMenu();
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+#endif
         }
 	}
 

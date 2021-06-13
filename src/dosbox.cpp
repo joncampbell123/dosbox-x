@@ -307,7 +307,7 @@ extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
-extern bool DOSBox_Paused();
+extern bool DOSBox_Paused(), isDBCSCP(), InitCodePage();
 
 //#define DEBUG_CYCLE_OVERRUN_CALLBACK
 
@@ -1039,16 +1039,19 @@ void DOSBOX_RealInit() {
     const char *dosvstr = dos_section->Get_string("dosv");
     if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "chs")) dos.set_pdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "cht")) dos.set_cdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
     if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
         LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
     }
-    if (IS_JEGA_ARCH || IS_DOSV) {
-        JFONT_Init();  // Load DBCS fonts for JEGA
+    int cp = dos.loaded_codepage;
+    if (!cp) InitCodePage();
+    if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
+        JFONT_Init();  // Load DBCS fonts for JEGA etc
         if (IS_DOSV) DOSV_SetConfig(dos_section);
     }
+    dos.loaded_codepage = cp;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
         dos.im_enable_flag = true;
@@ -1170,7 +1173,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", 0 };
+    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -2345,7 +2348,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
 
 	Pstring = secprop->Add_path("jfontdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) in DOS/V mode (for Configuration Tool).");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.");
 
 	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
@@ -4411,6 +4414,43 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
+    MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
+    MSG_Add("WARNING","Warning");
+    MSG_Add("YES","Yes");
+    MSG_Add("NO","No");
+    MSG_Add("OK","OK");
+    MSG_Add("CANCEL","Cancel");
+    MSG_Add("CLOSE","Close");
+    MSG_Add("SAVE","Save");
+    MSG_Add("SAVE_CONFIGURATION","Save configuration");
+    MSG_Add("SAVE_LANGUAGE","Save language file");
+    MSG_Add("SAVE_RESTART","Save & Restart");
+    MSG_Add("PASTE_CLIPBOARD","Paste Clipboard");
+    MSG_Add("APPEND_HISTORY","Append History");
+    MSG_Add("EXECUTE_NOW","Execute Now");
+    MSG_Add("ADDITION_CONTENT","Additional Content:");
+    MSG_Add("CONTENT","Content:");
+    MSG_Add("EDIT_FOR","Edit %s");
+    MSG_Add("HELP_FOR","Help for %s");
+    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
+    MSG_Add("CONFIGURATION","Configuration");
+    MSG_Add("SETTINGS","Settings");
+    MSG_Add("HELP","Help");
+    MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
+    MSG_Add("GET_STARTED","Getting Started");
+    MSG_Add("CDROM_SUPPORT","CD-ROM Support");
+    MSG_Add("INTRODUCTION","Introduction");
+    MSG_Add("ABOUT","About");
+    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
+    MSG_Add("SHOW_ADVOPT", "Show advanced options");
+    MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
+    MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
+    MSG_Add("USE_USERCONFIG", "Use user config file");
+    MSG_Add("CONFIG_SAVETO", "Enter filename for the configuration file to save to:");
+    MSG_Add("CONFIG_SAVEALL", "Save all (including advanced) config options to the configuration file");
+    MSG_Add("LANG_FILENAME", "Enter filename for language file:");
+    MSG_Add("LANG_LANGNAME", "Language name (optional):");
+    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.");
     MSG_Add("DRIVE","Drive");
     MSG_Add("TYPE","Type");
     MSG_Add("LABEL","Label");

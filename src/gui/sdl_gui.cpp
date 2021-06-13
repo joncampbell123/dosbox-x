@@ -118,6 +118,7 @@ void                        WindowsTaskbarResetPreviewRegion(void);
 void                        macosx_reload_touchbar(void);
 #endif
 
+char tmp1[CROSS_LEN], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
 	"64"
@@ -125,8 +126,6 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 	"32"
 #endif
 	"-bit)\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
-
-const char *intromsg = "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.";
 
 void RebootConfig(std::string filename, bool confirm=false) {
     std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
@@ -892,7 +891,8 @@ public:
         }
 
         std::string title(section->GetName());
-        setTitle("Help for "+CapName(title));
+        sprintf(tmp1, MSG_Get("HELP_FOR"), CapName(title).c_str());
+        setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
         Section_prop* sec = dynamic_cast<Section_prop*>(title.substr(0, 4)=="Ide,"?control->GetSection("ide, primary"):section);
@@ -999,17 +999,18 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         std::string title(section->GetName());
-        setTitle("Configuration for "+CapName(title));
+        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
+        setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("HELP"), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Cancel", button_w);
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0, j = 0;
         Property *prop;
@@ -1080,8 +1081,8 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Help") {
+        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
+        else if (arg == MSG_Get("HELP")) {
             std::vector<GUI::Char> new_cfg_sname;
 
             if (!cfg_sname.empty()) {
@@ -1166,7 +1167,8 @@ public:
             scroll_h = allowed_dialog_y;
 
         std::string title(section->GetName());
-        setTitle("Configuration for "+CapName(title));
+        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
+        setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
 		char extra_data[4096] = { 0 };
@@ -1218,21 +1220,21 @@ public:
         if ((this->y + this->getHeight()) > parent->getHeight())
             move(this->x,parent->getHeight() - this->getHeight());
 
-        new GUI::Label(this, 5, button_row_y-height, title=="Config"?"Additional content:":"Content:");
+        new GUI::Label(this, 5, button_row_y-height, MSG_Get(title=="Config"?"ADDITION_CONTENT":"CONTENT"));
         content = new GUI::Input(this, 5, button_row_y-height+20, 510 - border_left - border_right, height-25);
         content->setText(extra_data);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Paste Clipboard", button_w*2);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("PASTE_CLIPBOARD"), button_w*2);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, "Help", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, MSG_Get("HELP"), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, "Cancel", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, "OK", button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0;
         Property *prop;
@@ -1301,10 +1303,10 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "OK") section->data = *(std::string*)content->getText();
+        if (arg == MSG_Get("OK")) section->data = *(std::string*)content->getText();
         std::string lines = *(std::string*)content->getText();
-        if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Help") {
+        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
+        else if (arg == MSG_Get("HELP")) {
             std::vector<GUI::Char> new_cfg_sname;
 
             if (!cfg_sname.empty()) {
@@ -1332,7 +1334,7 @@ public:
             else {
                 lookup->second->raise();
             }
-		} else if (arg == "Paste Clipboard") {
+		} else if (arg == MSG_Get("PASTE_CLIPBOARD")) {
 			strPasteBuffer="";
 			swapad=false;
 			PasteClipboard(true);
@@ -1387,15 +1389,16 @@ public:
 
         std::string title(section->GetName());
         title[0] = std::toupper(title[0]);
-        setTitle("Edit "+title);
-        new GUI::Label(this, 5, 10, "Content:");
+        sprintf(tmp1, MSG_Get("EDIT_FOR"), title.c_str());
+        setTitle(tmp1);
+        new GUI::Label(this, 5, 10, MSG_Get("CONTENT"));
         content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
-        (new GUI::Button(this, 5, 220, "Paste Clipboard"))->addActionHandler(this);
-        if (first_shell) (new GUI::Button(this, 147, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 281, 220, "Execute Now"))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 391, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 461, 220, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 5, 220, MSG_Get("PASTE_CLIPBOARD")))->addActionHandler(this);
+        if (first_shell) (new GUI::Button(this, 147, 220, MSG_Get("APPEND_HISTORY")))->addActionHandler(this);
+        if (shell_idle) (new GUI::Button(this, 281, 220, MSG_Get("EXECUTE_NOW")))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 391, 220, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 461, 220, MSG_Get("OK"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1407,9 +1410,9 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "OK") section->data = *(std::string*)content->getText();
-        if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Paste Clipboard") {
+        if (arg == MSG_Get("OK")) section->data = *(std::string*)content->getText();
+        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
+        else if (arg == MSG_Get("PASTE_CLIPBOARD")) {
 			strPasteBuffer="";
 			swapad=false;
 			PasteClipboard(true);
@@ -1427,7 +1430,7 @@ public:
 				strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 			}
 			return;
-		} else if (arg == "Append History") {
+		} else if (arg == MSG_Get("APPEND_HISTORY")) {
             std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
             while (i != first_shell->l_history.rend()) {
@@ -1436,7 +1439,7 @@ public:
                 ++i;
             }
             content->setText(lines);
-        } else if (arg == "Execute Now") {
+        } else if (arg == MSG_Get("EXECUTE_NOW")) {
             UI_RunCommands(dynamic_cast<GUI::ScreenSDL*>(getScreen()), content->getText());
         } else ToplevelWindow::actionExecuted(b, arg);
     }
@@ -1466,7 +1469,7 @@ protected:
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 620, 160 + GUI::titlebar_y_stop, title) {
-        new GUI::Label(this, 5, 10, "Enter filename for the configuration file to save to:");
+        new GUI::Label(this, 5, 10, MSG_Get("CONFIG_SAVETO"));
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         std::string fullpath;
         if (control->configfiles.size())
@@ -1474,15 +1477,15 @@ public:
         else
             fullpath = "dosbox-x.conf";
         name->setText(fullpath.c_str());
-        (new GUI::Button(this, 5, 60, "Use primary config file", 200))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "Use portable config file", 210))->addActionHandler(this);
-        (new GUI::Button(this, 425, 60, "Use user config file", 180))->addActionHandler(this);
+        (new GUI::Button(this, 5, 60, MSG_Get("USE_PRIMARYCONFIG"), 200))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, MSG_Get("USE_PORTABLECONFIG"), 210))->addActionHandler(this);
+        (new GUI::Button(this, 425, 60, MSG_Get("USE_USERCONFIG"), 180))->addActionHandler(this);
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        saveall = new GUI::Checkbox(this, 5, 95, "Save all (including advanced) config options to the configuration file");
+        saveall = new GUI::Checkbox(this, 5, 95, MSG_Get("CONFIG_SAVEALL"));
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (saveButton = new GUI::Button(this, 150, 120, "Save", 70))->addActionHandler(this);
-        (new GUI::Button(this, 240, 120, "Save & Restart", 140))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 400, 120, "Cancel", 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 150, 120, MSG_Get("SAVE"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 240, 120, MSG_Get("SAVE_RESTART"), 140))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 400, 120, MSG_Get("CANCEL"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1491,16 +1494,16 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Use portable config file") {
+        if (arg == MSG_Get("USE_PORTABLECONFIG")) {
             name->setText("dosbox-x.conf");
             return;
         }
-        if (arg == "Use primary config file") {
+        if (arg == MSG_Get("USE_PRIMARYCONFIG")) {
             if (control->configfiles.size())
                 name->setText(control->configfiles[0]);
             return;
         }
-        if (arg == "Use user config file") {
+        if (arg == MSG_Get("USE_USERCONFIG")) {
             std::string config_path;
             Cross::GetPlatformConfigDir(config_path);
             std::string fullpath,file;
@@ -1515,8 +1518,8 @@ public:
             name->setText(fullpath);
             return;
         }
-        if (arg == "Save" || arg == "Save & Restart") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
-        if (arg == "Save & Restart") RebootConfig((const char*)name->getText(), true);
+        if (arg == MSG_Get("SAVE") || arg == MSG_Get("SAVE_RESTART")) control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
+        if (arg == MSG_Get("SAVE_RESTART")) RebootConfig((const char*)name->getText(), true);
         close();
         if(shortcut) running=false;
     }
@@ -1545,14 +1548,14 @@ protected:
 public:
     SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 150 + GUI::titlebar_y_stop, title) {
-        new GUI::Label(this, 5, 10, "Enter filename for language file:");
+        new GUI::Label(this, 5, 10, MSG_Get("LANG_FILENAME"));
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.txt");
-        new GUI::Label(this, 5, 60, "Language name (optional):");
+        new GUI::Label(this, 5, 60, MSG_Get("LANG_LANGNAME"));
         lang = new GUI::Input(this, 5, 80, width - 10 - border_left - border_right);
         lang->setText(langname.c_str());
-        (saveButton = new GUI::Button(this, 120, 110, "OK", 70))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 210, 110, "Cancel", 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 120, 110, MSG_Get("OK"), 70))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 210, 110, MSG_Get("CANCEL"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1561,7 +1564,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") MSG_Write(name->getText(), lang->getText());
+        if (arg == MSG_Get("OK")) MSG_Write(name->getText(), lang->getText());
         close();
         if(shortcut) running=false;
     }
@@ -1592,8 +1595,8 @@ public:
 protected:
     GUI::ToplevelWindow*                trigger_who = NULL;
 public:
-    std::string                         trigger_enter = "OK";
-    std::string                         trigger_esc = "Cancel";
+    std::string                         trigger_enter = MSG_Get("OK");
+    std::string                         trigger_esc = MSG_Get("CANCEL");
 public:
     virtual bool                        keyDown(const GUI::Key &key) {
         if (key.special == GUI::Key::Special::Enter) {
@@ -1630,8 +1633,8 @@ public:
 
         std::string rates=str.str();
         name->setText(rates.c_str());
-        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1640,7 +1643,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             char *str = (char*)name->getText();
             if (str == NULL || !strcmp(str, "0"))
                 vga_force_refresh_rate = -1;
@@ -1672,8 +1675,8 @@ public:
 
         std::string cycles=str.str();
         name->setText(cycles.c_str());
-        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1682,7 +1685,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             Section* sec = control->GetSection("sdl");
             if (sec) {
                 std::string tmp("sensitivity=");
@@ -1728,14 +1731,14 @@ public:
             end[i]->setText(std::to_string(autosave_end[i]).c_str());
         }
         new GUI::Label(this, 15, 315, "Note: 0 for start slot = use current slot; -1 for start slot = skip saving");
-        (new GUI::Button(this, 250, 335, "OK", 70))->addActionHandler(this);
-        (new GUI::Button(this, 330, 335, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 250, 335, MSG_Get("OK"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 330, 335, MSG_Get("CANCEL"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             autosave_second = atoi(name[0]->getText());
             autosave_start[0] = atoi(start[0]->getText());
             autosave_end[0] = atoi(end[0]->getText());
@@ -1773,8 +1776,8 @@ public:
 
         std::string cycles=str.str();
         name->setText(cycles.c_str());
-        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1783,7 +1786,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             Section* sec = control->GetSection("cpu");
             if (sec) {
                 std::string tmp("cycles=");
@@ -1809,15 +1812,15 @@ public:
             name->setText(sec->Get_string("vsyncrate"));
         else
             name->setText("");
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
         Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             if (sec) {
                 const char* well = name->getText();
                 std::string s(well, 20);
@@ -1846,14 +1849,14 @@ public:
             char buffer[6];
             sprintf(buffer, "%u", human_readable);
             name->setText(buffer);
-            (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-            (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+            (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             extern unsigned int hdd_defsize;
             int human_readable = atoi(name->getText());
             if (human_readable < 0)
@@ -1882,14 +1885,14 @@ public:
             char buffer[8];
             sprintf(buffer, "%d.%02d", dos.version.major,dos.version.minor);
             name->setText(buffer);
-            (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-            (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+            (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             if (set_ver(name->getText()))
                 dos_ver_menu(false);
         }
@@ -1911,14 +1914,14 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 140, r+30, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             resize(350, r+110);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -1939,13 +1942,13 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 130, r+30, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -1973,13 +1976,13 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 130, r+30, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2075,13 +2078,13 @@ public:
                 new GUI::Label(this, 40, 175, "Swap slot : "+swappos);
             }
             dos.dta(save_dta);
-            (new GUI::Button(this, 165, 205, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 165, 205, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get(MSG_Get("CLOSE")))
             close();
         if (shortcut) running = false;
     }
@@ -2114,13 +2117,13 @@ public:
                 str = "Not yet mounted";
             new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
         }
-        (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
+        (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, MSG_Get("CLOSE"), 70))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2139,14 +2142,14 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 110, r+30, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 110, r+30, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             resize(300, r+110);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2157,18 +2160,18 @@ protected:
     GUI::Input *name;
 public:
     ShowLoadWarning(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 430, 120, "Warning") {
+        ToplevelWindow(parent, x, y, 430, 120, MSG_Get("WARNING")) {
             new GUI::Label(this, strncmp(title, "DOSBox-X ", 9)?30:10, 20, title);
-            (new GUI::Button(this, 140, 50, "Yes", 70))->addActionHandler(this);
-            (new GUI::Button(this, 230, 50, "No", 70))->addActionHandler(this);
+            (new GUI::Button(this, 140, 50, MSG_Get("YES"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 230, 50, MSG_Get("NO"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Yes")
+        if (arg == MSG_Get("YES"))
             confres=true;
-        if (arg == "No")
+        if (arg == MSG_Get("NO"))
             confres=false;
         close();
         if (shortcut) running = false;
@@ -2207,8 +2210,8 @@ public:
             imghd4gig->addActionHandler(this);
             imghd8gig = new GUI::Checkbox(this, 310, 180, "8GB");
             imghd8gig->addActionHandler(this);
-            (new GUI::Button(this, 160, 220, "OK", 70))->addActionHandler(this);
-            (new GUI::Button(this, 260, 220, "Cancel", 70))->addActionHandler(this);
+            (new GUI::Button(this, 160, 220, MSG_Get("OK"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 260, 220, MSG_Get("CANCEL"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -2359,7 +2362,7 @@ public:
             imghd2gig->setChecked(false);
             imghd4gig->setChecked(false);
         }
-        if (arg == "OK") {
+        if (arg == MSG_Get("OK")) {
             std::string temp="";
             if (imgfd360->isChecked())
                temp="fd_360";
@@ -2411,7 +2414,7 @@ public:
             }
             if (shortcut) running = false;
         }
-        else if (arg == "Close" || arg == "Cancel") {
+        else if (arg == MSG_Get("CLOSE") || arg == MSG_Get("CANCEL")) {
             close();
             if (shortcut) running = false;
         }
@@ -2424,19 +2427,19 @@ protected:
 public:
     ShowHelpIntro(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 580, 190, title) {
-            std::istringstream in(intromsg);
+            std::istringstream in(MSG_Get("INTRO_MESSAGE"));
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 260, 110, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 260, 110, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2455,14 +2458,14 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 330, r+40, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 330, r+40, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             resize(700, r+120);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2481,14 +2484,14 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 330, r+40, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 330, r+40, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             resize(700, r+120);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2506,13 +2509,13 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 180, 155, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 180, 155, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2539,14 +2542,14 @@ public:
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 350, r+40, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 350, r+40, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             resize(750, r+120);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == "Close")
+        if (arg == MSG_Get("CLOSE"))
             close();
         if (shortcut) running = false;
     }
@@ -2560,27 +2563,29 @@ public:
         cfg_windows_active.clear();
 
         GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth()/*initial*/);
-        bar->addMenu("Configuration");
-        bar->addItem(0,"Save...");
-        bar->addItem(0,"Save Language File...");
+        bar->addMenu(MSG_Get("CONFIGURATION"));
+        strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
+        bar->addItem(0,tmp1);
+        strcpy(tmp1, (MSG_Get("SAVE_LANGUAGE")+std::string("...")).c_str());
+        bar->addItem(0,tmp1);
         bar->addItem(0,"");
-        bar->addItem(0,"Close");
-        bar->addMenu("Settings");
-        bar->addMenu("Help");
-        bar->addItem(2,"Visit Homepage");
+        bar->addItem(0,MSG_Get("CLOSE"));
+        bar->addMenu(MSG_Get("SETTINGS"));
+        bar->addMenu(MSG_Get("HELP"));
+        bar->addItem(2,MSG_Get("VISIT_HOMEPAGE"));
         bar->addItem(2,"");
         if (!dos_kernel_disabled) {
             /* these do not work until shell help text is registerd */
-            bar->addItem(2,"Getting Started");
-            bar->addItem(2,"CD-ROM Support");
+            bar->addItem(2,MSG_Get("GET_STARTED"));
+            bar->addItem(2,MSG_Get("CDROM_SUPPORT"));
             bar->addItem(2,"");
         }
-        bar->addItem(2,"Introduction");
-        bar->addItem(2,"About");
+        bar->addItem(2,MSG_Get("INTRODUCTION"));
+        bar->addItem(2,MSG_Get("ABOUT"));
         bar->addActionHandler(this);
 
-        new GUI::Label(this, 10, 30, "Choose a settings group to configure:");
-        advopt = new GUI::Checkbox(this, 340, 30, "Show advanced options");
+        new GUI::Label(this, 10, 30, MSG_Get("CONFIGURE_GROUP"));
+        advopt = new GUI::Checkbox(this, 340, 30, MSG_Get("SHOW_ADVOPT"));
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         advopt->setChecked(section->Get_bool("show advanced options"));
 
@@ -2611,8 +2616,9 @@ public:
         const auto finalgridpos = gridfunc(i - 1);
         int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
-        (saveButton = new GUI::Button(this, 190, closerow_y, "Save...", 80))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 275, closerow_y, "Close", 80))->addActionHandler(this);
+        strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
+        (saveButton = new GUI::Button(this, 190, closerow_y, tmp1, 80))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 275, closerow_y, MSG_Get("CLOSE"), 80))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
@@ -2643,7 +2649,9 @@ public:
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
-        if (arg == "Close" || arg == "Cancel" || arg == "Close") {
+        strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
+        strcpy(tmp2, (MSG_Get("SAVE_LANGUAGE")+std::string("...")).c_str());
+        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) {
             running = false;
         } else if (sname == "autoexec") {
             auto lookup = cfg_windows_active.find(sname);
@@ -2681,7 +2689,7 @@ public:
             else {
                 lookup->second->raise();
             }
-        } else if (arg == "Visit Homepage") {
+        } else if (arg == MSG_Get("VISIT_HOMEPAGE")) {
             std::string url = "https://dosbox-x.com/";
 #if defined(WIN32)
             ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -2690,31 +2698,32 @@ public:
 #elif defined(MACOSX)
             system(("open "+url).c_str());
 #endif
-        } else if (arg == "About") {
+        } else if (arg == MSG_Get("ABOUT")) {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, "About DOSBox-X", aboutmsg);
-        } else if (arg == "Introduction") {
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, (MSG_Get("ABOUT")+std::string(" DOSBox-X")).c_str(), aboutmsg);
+        } else if (arg == MSG_Get("INTRODUCTION")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, "Introduction", intromsg);
-        } else if (arg == "Getting Started") {
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, MSG_Get("INTRODUCTION"), MSG_Get("INTRO_MESSAGE"));
+        } else if (arg == MSG_Get("GET_STARTED")) {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
-            msg += MSG_Get("PROGRAM_INTRO_MOUNT_WINDOWS");
+            msg += MSG_Get("PROGRAM_INTRO_MOUNT_EXST_WINDOWS")+std::string("\n\n")+MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_WINDOWS");
 #else
-            msg += MSG_Get("PROGRAM_INTRO_MOUNT_OTHER");
+            msg += MSG_Get("PROGRAM_INTRO_MOUNT_EXST_OTHER")+std::string("\n\n")+MSG_Get("PROGRAM_INTRO_MOUNT_EXEN_OTHER");
 #endif
-            msg += MSG_Get("PROGRAM_INTRO_MOUNT_END");
+            msg += std::string("\n\n")+MSG_Get("PROGRAM_INTRO_MOUNT_END");
 
             //new GUI::MessageBox2(getScreen(), 0, 50, 680, std::string("Getting Started"), msg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>680?(parent->getWidth()-680)/2:0, 50, 680, std::string("Getting Started"), msg);
-        } else if (arg == "CD-ROM Support") {
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>680?(parent->getWidth()-680)/2:0, 50, 680, MSG_Get("GET_STARTED"), msg.c_str());
+        } else if (arg == MSG_Get("CDROM_SUPPORT")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>640?(parent->getWidth()-640)/2:0, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
-        } else if (arg == "Save...") {
-            auto *np = new SaveDialog(getScreen(), 50, 100, "Save Configuration...");
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>640?(parent->getWidth()-640)/2:0, 50, 640, MSG_Get("CDROM_SUPPORT"), MSG_Get("PROGRAM_INTRO_CDROM"));
+        } else if (arg == tmp1) {
+            strcpy(tmp1, (MSG_Get("SAVE_CONFIGURATION")+std::string("...")).c_str());
+            auto *np = new SaveDialog(getScreen(), 50, 100, tmp1);
             np->raise();
-        } else if (arg == "Save Language File...") {
-            auto *np = new SaveLangDialog(getScreen(), 90, 100, "Save Language File...");
+        } else if (arg == tmp2) {
+            auto *np = new SaveLangDialog(getScreen(), 90, 100, tmp2);
             np->raise();
         } else {
             return ToplevelWindow::actionExecuted(b, arg);
@@ -2728,7 +2737,7 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
     SDL_Surface *sdlscreen;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
+    GUI::String configString = GUI::String(MSG_Get("CONFIG_TOOL"));
 
     sdlscreen = screen->getSurface();
     auto *cfg_wnd = new ConfigurationWindow(screen, 40, 10, configString);
@@ -2788,7 +2797,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
+    GUI::String configString = GUI::String(MSG_Get("CONFIG_TOOL"));
 
     sdlscreen = screen->getSurface();
     switch (select) {
@@ -2797,7 +2806,8 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             running=false;
             break;
         case 1: {
-            auto *np = new SaveDialog(screen, 90, 100, "Save Configuration...");
+            strcpy(tmp1, (MSG_Get("SAVE_CONFIGURATION")+std::string("...")).c_str());
+            auto *np = new SaveDialog(screen, 90, 100, tmp1);
             np->raise();
             } break;
         case 2: {
@@ -2836,7 +2846,8 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             new SectionEditor(screen,50,30,section);
             break;
         case 9: {
-            auto *np = new SaveLangDialog(screen, 90, 100, "Save Language File...");
+            strcpy(tmp1, (MSG_Get("SAVE_LANGUAGE")+std::string("...")).c_str());
+            auto *np = new SaveLangDialog(screen, 90, 100, tmp1);
             np->raise();
             } break;
         case 10: {

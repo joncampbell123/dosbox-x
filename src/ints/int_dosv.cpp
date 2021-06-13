@@ -95,6 +95,7 @@ static HFONT jfont_24;
 #endif
 
 bool yen_flag = false;
+bool jfont_init = false;
 uint8_t TrueVideoMode;
 void ResolvePath(std::string& in);
 void SetIMPosition();
@@ -426,6 +427,7 @@ uint8_t *GetDbcsFont(Bitu code)
 				for (uint16_t c = table[i].start; c <= table[i].end; c++) {
 					if (c==code) {
 						memcpy(&jfont_dbcs_16[code * 32], JPNZN16X+p, 32);
+						jfont_cache_dbcs_16[code] = 1;
 						return JPNZN16X+p;
 					}
 					p+=32;
@@ -440,6 +442,26 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
 	if(jfont_cache_dbcs_14[code] == 0) {
+        int p = NAME_LEN+ID_LEN+3;
+        uint8_t size = SHMZN14X[p++];
+        fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
+        Bitu i=0;
+        while (i < size) {
+            table[i].start = (SHMZN14X[p] | (SHMZN14X[p+1] << 8));
+            table[i].end = (SHMZN14X[p+2] | (SHMZN14X[p+3] << 8));
+            i++;
+            p+=4;
+        }
+        for (i = 0; i < size; i++)
+            for (uint16_t c = table[i].start; c <= table[i].end; c++) {
+                if (c==code) {
+                    memcpy(&jfont_dbcs_14[code * 28], SHMZN14X+p, 28);
+                    jfont_cache_dbcs_14[code] = 1;
+                    is14 = true;
+                    return SHMZN14X+p;
+                }
+                p+=28;
+            }
         is14 = false;
         return GetDbcsFont(code);
     } else {
@@ -587,6 +609,7 @@ bool MakeSbcs24Font() {
 }
 
 void JFONT_Init() {
+    jfont_init = true;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
 #endif
@@ -619,6 +642,12 @@ void JFONT_Init() {
 		ResolvePath(path);
 		LoadFontxFile(path.c_str());
 	}
+	pathprop = section->Get_path("jfontdbcs14");
+	if(pathprop) {
+		std::string path=pathprop->realpath;
+		ResolvePath(path);
+		LoadFontxFile(path.c_str(), 14);
+	}
 	if(IS_DOSV) {
 		pathprop = section->Get_path("jfontsbcs16");
 		if(pathprop) {
@@ -639,12 +668,6 @@ void JFONT_Init() {
 			if(!MakeSbcs16Font()) {
 				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
 			}
-		}
-		pathprop = section->Get_path("jfontdbcs14");
-		if(pathprop) {
-			std::string path=pathprop->realpath;
-			ResolvePath(path);
-			LoadFontxFile(path.c_str());
 		}
 		pathprop = section->Get_path("jfontdbcs24");
 		if(pathprop) {
