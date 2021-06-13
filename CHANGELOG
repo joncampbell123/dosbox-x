@@ -14,6 +14,8 @@
     (e.g. "config -set turbo=true"). (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool interface. (Wengier)
+  - Config option "usescancodes=auto" now implies false
+    for PC-98 mode in SDL1 builds. (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found, then DOSBox-X will now use internal
     Japanese fonts in addition to VGA font. (Wengier)

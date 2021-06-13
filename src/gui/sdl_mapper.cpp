@@ -941,7 +941,7 @@ bool useScanCode() {
 		return false;
 	else {
 		const char* layout_name = DOS_GetLoadedLayout();
-		bool ret = layout_name != NULL;
+		bool ret = layout_name != NULL && !IS_PC98_ARCH;
 		if (!load)
 			prev_ret=ret;
 		else if (ret != prev_ret) {

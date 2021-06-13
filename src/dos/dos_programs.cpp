@@ -93,7 +93,7 @@ bool nowarn = false;
 extern int lastcp;
 extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), change_output(int output);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
