@@ -94,6 +94,7 @@ static HFONT jfont_16;
 static HFONT jfont_24;
 #endif
 
+bool nokanji = false;
 bool yen_flag = false;
 bool jfont_init = false;
 uint8_t TrueVideoMode;
@@ -105,7 +106,8 @@ bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 extern uint8_t lead[6];
 
 bool isKanji1(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || IS_PDOSV)
+    if (nokanji) return false;
+    else if (dos.loaded_codepage == 936 || IS_PDOSV)
         return (chr >= 0xa1 && chr <= 0xfe);
     else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_CDOSV || IS_KDOSV)
         return (chr >= 0x81 && chr <= 0xfe);
@@ -114,7 +116,8 @@ bool isKanji1(uint8_t chr) {
 }
 
 bool isKanji2(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
+    if (nokanji) return false;
+    else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
         return chr >= 0x40 && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
