@@ -1099,16 +1099,16 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 			uint16_t seg = GetTextSeg();
 			uint16_t width = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 			real_writeb(seg, row * width * 2 + col * 2, chr);
-			if(useattr) {
+			if (useattr)
 				real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
-			}
-			if (isKanji1(chr) && prevchr == 0) {
+			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width-1)) {
 				prevchr = chr;
-			} else if (isKanji2(chr) && prevchr != 0) {
+			} else if (isKanji2(chr) && prevchr != 0 && (IS_JDOSV || col)) {
 				WriteCharDOSVDbcs(col - 1, row, (prevchr << 8) | chr, attr);
 				prevchr = 0;
 				return;
-			}
+			} else
+				prevchr = 0;
 			WriteCharDOSVSbcs(col, row, chr, attr);
 			return;
 		}
