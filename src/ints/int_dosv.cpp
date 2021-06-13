@@ -102,6 +102,7 @@ void ResolvePath(std::string& in);
 void SetIMPosition();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 extern uint8_t lead[6];
 
@@ -404,6 +405,24 @@ void GetDbcs24FrameFont(Bitu code, uint8_t *buff)
 	}
 }
 
+Bitu GetConvertedCode(Bitu code) {
+    char text[10];
+    uint16_t uname[4];
+    uname[0]=0;
+    uname[1]=0;
+    text[0] = code >> 8;
+    text[1] = code & 0xff;
+    text[2] = 0;
+    if (CodePageGuestToHostUTF16(uname,text)) {
+        int cp = dos.loaded_codepage;
+        dos.loaded_codepage = 932;
+        if (CodePageHostToGuestUTF16(text,uname))
+            code = (text[0] & 0xff) * 0x100 + (text[1] & 0xff);
+        dos.loaded_codepage = cp;
+    }
+    return code;
+}
+
 uint8_t *GetDbcsFont(Bitu code)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
@@ -416,6 +435,8 @@ uint8_t *GetDbcsFont(Bitu code)
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
 		} else {
+			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
+				code = GetConvertedCode(code);
 			int p = NAME_LEN+ID_LEN+3;
 			uint8_t size = JPNZN16X[p++];
 			fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
@@ -443,8 +464,10 @@ uint8_t *GetDbcsFont(Bitu code)
 
 uint8_t *GetDbcs14Font(Bitu code, bool &is14)
 {
-	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
-	if(jfont_cache_dbcs_14[code] == 0) {
+    memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
+    if(jfont_cache_dbcs_14[code] == 0) {
+        if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
+            code = GetConvertedCode(code);
         int p = NAME_LEN+ID_LEN+3;
         uint8_t size = SHMZN14X[p++];
         fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
