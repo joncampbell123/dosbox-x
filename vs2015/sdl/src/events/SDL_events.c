@@ -40,6 +40,7 @@
 SDL_EventFilter SDL_EventOK = NULL;
 Uint8 SDL_ProcessEvents[SDL_NUMEVENTS];
 static Uint32 SDL_eventstate = 0;
+Uint32 end_ticks = 0;
 
 /* Private data -- event queue */
 #define MAXEVENTS	256
@@ -596,7 +597,17 @@ int SDL_FlushIMString(void *buffer)
 }
 
 #ifdef WIN32
+#include "../video/wincommon/SDL_lowvideo.h"
 wchar_t CompositionFontName[LF_FACESIZE];
+int SDL_IM_Composition() {
+#ifdef ENABLE_IM_EVENT
+#define IME_END_CR_WAIT 50
+    return IM_Context.bCompos||end_ticks&&(GetTickCount()-end_ticks<IME_END_CR_WAIT) ? 1 : 0;
+#else
+    return 0;
+#endif
+}
+
 #endif
 
 void SDL_SetCompositionFontName(const char *name)

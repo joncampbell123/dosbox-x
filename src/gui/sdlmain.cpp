@@ -7141,7 +7141,7 @@ bool GFX_IsFullscreen(void) {
 
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-	if(key.keysym.sym == 0 || key.keysym.sym == 0x08 || key.keysym.sym == 0x113 || key.keysym.sym == 0x114) {
+	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x20 || key.keysym.sym == 0x113 || key.keysym.sym == 0x114))) {
 		// BS, <-, ->
 		return true;
 	}

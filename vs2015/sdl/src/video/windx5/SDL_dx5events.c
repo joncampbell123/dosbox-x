@@ -73,7 +73,7 @@ static WNDPROCTYPE userWindowProc = NULL;
 int DX5_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 /* data field required by DX5_HandleComposition */
 static COMPOSITIONFORM form;
-static DWORD end_ticks;
+extern Uint32 end_ticks;
 extern wchar_t CompositionFontName[LF_FACESIZE];
 #define	IME_MESSAGE_WAIT	1
 #define	IME_END_CR_WAIT		50
