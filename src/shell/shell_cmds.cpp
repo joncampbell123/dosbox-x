@@ -119,6 +119,7 @@ extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
+void GetExpandedPath(std::string &path);
 
 /* support functions */
 static char empty_char = 0;
@@ -2488,9 +2489,11 @@ void DOS_Shell::CMD_SET(char * args) {
 			/* ASCIIZ snip the args string in two, so that args is C-string name of the variable,
 			 * and "p" is C-string value of the variable */
 			*p++ = 0;
-
+            std::string vstr = p;
+            bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
+            if (zdirpath) GetExpandedPath(vstr);
 			/* No parsing is needed. The command interpreter does the variable substitution for us */
-			if (!SetEnv(args,p)) {
+			if (!SetEnv(args,vstr.c_str())) {
 				/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
 				WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
 			}
@@ -3300,8 +3303,12 @@ void DOS_Shell::CMD_PATH(char *args){
 		strcpy(pathstring,"set PATH=");
 		while(args && (*args=='='|| *args==' ')) 
 		     args++;
-        if (args)
-            strcat(pathstring,args);
+        if (args) {
+            std::string vstr = args;
+            bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
+            if (zdirpath) GetExpandedPath(vstr);
+            strcat(pathstring,vstr.c_str());
+        }
 		this->ParseLine(pathstring);
 		return;
 	} else {

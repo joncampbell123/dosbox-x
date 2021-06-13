@@ -559,6 +559,19 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
+void GetExpandedPath(std::string &path) {
+    if (path=="Z:\\"||path=="z:\\")
+        path=path_string+5;
+    else if (path.size()>3&&(path.substr(0, 4)=="Z:\\;"||path.substr(0, 4)=="z:\\;")&&path.substr(4).find("Z:\\")==std::string::npos&&path.substr(4).find("z:\\")==std::string::npos)
+        path=std::string(path_string+5)+path.substr(3);
+    else if (path.size()>3) {
+        size_t pos = path.find(";Z:\\");
+        if (pos == std::string::npos) pos = path.find(";z:\\");
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find("Z:\\")==std::string::npos&&path.substr(pos+4).find("z:\\")==std::string::npos))
+            path=path.substr(0, pos+1)+std::string(path_string+5)+path.substr(pos+4);
+    }
+}
+
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -642,6 +655,8 @@ void DOS_Shell::Prepare(void) {
 			else
 				countryNo = 1;
 		}
+		section = static_cast<Section_prop *>(control->GetSection("dos"));
+		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig) {
@@ -707,12 +722,7 @@ void DOS_Shell::Prepare(void) {
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
 							ResolvePath(vstr);
-							if (!strcmp(cmd, "set path")) {
-								if (vstr=="Z:\\"||vstr=="z:\\")
-									vstr=path_string+5;
-								else if (vstr.size()>3&&(vstr.substr(0, 4)=="Z:\\;"||vstr.substr(0, 4)=="z:\\;")&&vstr.substr(4).find("Z:\\")==std::string::npos&&vstr.substr(4).find("z:\\")==std::string::npos)
-									vstr=vstr.substr(0, 3)+std::string(path_string+8)+vstr.substr(3);
-							}
+							if (zdirpath && !strcmp(cmd, "set path")) GetExpandedPath(vstr);
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							vstr=std::string(val);

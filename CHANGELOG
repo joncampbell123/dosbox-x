@@ -8,6 +8,10 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
+  - Added option "drive z expand path" which when set
+    to true (default) will automatically expand %PATH%
+    environment variable to include the subdirectories
+    on the Z drive when necessary. (Wengier)
   - Added option "turbo" in [cpu] section to enable
     Turbo (Fast Forward) mode at start. You can also
     change it from the command-line via CONFIG command

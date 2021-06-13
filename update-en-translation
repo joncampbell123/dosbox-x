@@ -1,4 +1,4 @@
 #!/bin/bash
-src/dosbox-x -defaultconf -defaultdir . -silent -c 'config -ln "English (United States)" -wl contrib/translations/en/en_US.lng' || exit 1
+src/dosbox-x -defaultconf -defaultdir . -silent -c "config -ln \"English (United States)\" -wl contrib/translations/en/en_US.lng" || exit 1
 
 exit 0

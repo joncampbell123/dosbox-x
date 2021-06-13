@@ -3773,6 +3773,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
+    Pbool = secprop->Add_bool("drive z expand path",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will automatically expand the %PATH% environment variable to include the subdirectories on the Z drive.");
+
     Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/TEXTUTIL\\25.COM /TEXTUTIL\\28.COM /TEXTUTIL\\50.COM");
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
                       "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
