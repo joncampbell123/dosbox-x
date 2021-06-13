@@ -62,7 +62,6 @@ Additional Content:
 :CONTENT
 Content:
 .
-
 :EDIT_FOR
 Edit %s
 .
@@ -126,7 +125,6 @@ Language name (optional):
 :INTRO_MESSAGE
 Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.
 .
-
 :DRIVE
 Drive
 .

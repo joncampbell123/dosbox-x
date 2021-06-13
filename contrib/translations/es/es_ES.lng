@@ -14,6 +14,117 @@ Valores posibles
 :CONFIG_ADVANCED_OPTION
 Opciones avanzadas (ver archivo de referencia configuración completo [dosbox-x.reference.full.conf] para más detalles)
 .
+:CONFIG_TOOL
+DOSBox-X Configuration Tool
+.
+:WARNING
+Warning
+.
+:YES
+Yes
+.
+:NO
+No
+.
+:OK
+OK
+.
+:CANCEL
+Cancel
+.
+:CLOSE
+Close
+.
+:SAVE
+Save
+.
+:SAVE_CONFIGURATION
+Save configuration
+.
+:SAVE_LANGUAGE
+Save language file
+.
+:SAVE_RESTART
+Save & Restart
+.
+:PASTE_CLIPBOARD
+Paste Clipboard
+.
+:APPEND_HISTORY
+Append History
+.
+:EXECUTE_NOW
+Execute Now
+.
+:ADDITION_CONTENT
+Additional Content:
+.
+:CONTENT
+Content:
+.
+:EDIT_FOR
+Edit %s
+.
+:HELP_FOR
+Help for %s
+.
+:CONFIGURATION_FOR
+Configuration for %s
+.
+:CONFIGURATION
+Configuration
+.
+:SETTINGS
+Settings
+.
+:HELP
+Help
+.
+:VISIT_HOMEPAGE
+Visit Homepage
+.
+:GET_STARTED
+Getting Started
+.
+:CDROM_SUPPORT
+CD-ROM Support
+.
+:INTRODUCTION
+Introduction
+.
+:ABOUT
+About
+.
+:CONFIGURE_GROUP
+Choose a settings group to configure:
+.
+:SHOW_ADVOPT
+Show advanced options
+.
+:USE_PRIMARYCONFIG
+Use primary config file
+.
+:USE_PORTABLECONFIG
+Use portable config file
+.
+:USE_USERCONFIG
+Use user config file
+.
+:CONFIG_SAVETO
+Enter filename for the configuration file to save to:
+.
+:CONFIG_SAVEALL
+Save all (including advanced) config options to the configuration file
+.
+:LANG_FILENAME
+Enter filename for language file:
+.
+:LANG_LANGNAME
+Language name (optional):
+.
+:INTRO_MESSAGE
+Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.
+.
 :DRIVE
 Disco
 .
