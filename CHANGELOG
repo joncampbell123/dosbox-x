@@ -60,7 +60,11 @@
     Z drive are now categorized into directories, with
     addition of some files/programs, such as additional
     4DOS files, text utilities in TEXTUTIL directory
-    and TITLE command to change window title. (Wengier)
+    and TITLE command to change window title. Default
+    value of the %PATH% envonment variable has been
+    expanded to include these subdirectories, but if
+    you use a custom path then you may want to include
+    these directories in your %PATH%. (Wengier)
   - You can now specify a command shell located on a
     mounted local drive via SHELL= command in [config]
     section of config file after the drive is properly
