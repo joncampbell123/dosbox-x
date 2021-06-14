@@ -3879,11 +3879,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(dosv_settings);
     Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
             "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
-            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs or cht), or Korean (ko) text.\n"
+            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text.\n"
             "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
             "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
-            "software that assumes direct access to the text mode via segment 0xB800.\n"
-            "Note: Only Japanese DOS/V extension is supported at this time.");
+            "software that assumes direct access to the text mode via segment 0xB800.");
     Pstring->SetBasic(true);
 
 	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};

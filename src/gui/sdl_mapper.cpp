@@ -49,6 +49,7 @@
 #include "SDL_syswm.h"
 #include "sdlmain.h"
 #include "shell.h"
+#include "jfont.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -1169,20 +1170,32 @@ public:
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32)
         /* HACK: When setting up the Japanese keyboard layout, I'm seeing some bizarre keyboard handling
                  from within Windows when pressing the ~ ` (grave) aka Hankaku key. I know it's not hardware
                  because when you switch back to English the key works normally as the tilde/grave key.
                  What I'm seeing is that pressing the key only sends the "down" event (even though you're
                  not holding the key down). When you press the key again, an "up" event is sent immediately
                  followed by a "down" event. This is confusing to the mapper, so we work around it here. */
-        if (isJPkeyboard && key == SDLK_WORLD_12/*Hankaku*/) {
+        bool sendup = false;
+        if (IS_JEGA_ARCH || IS_DOSV) {
+#if defined(C_SDL2)
+            if (key == 0x35 && event->key.keysym.sym == 0x60)
+#else
+            if (key == 0x29 && event->key.keysym.sym == 0)
+#endif
+                sendup = true;
+        }
+#if !defined(C_SDL2)
+        else if (key == SDLK_WORLD_12/*Hankaku*/)
+            sendup = true;
+#endif
+        if (isJPkeyboard && sendup) {
             if (event->type == SDL_KEYDOWN) {
                 // send down, then up (right?)
                 ActivateBindList(&lists[key], 0x7fff, true);
                 DeactivateBindList(&lists[key], true);
             }
-
             return 0; // ignore up event
         }
 #endif
