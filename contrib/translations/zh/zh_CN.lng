@@ -3314,6 +3314,9 @@ CPU: 正常内核
 :MAPPER:quickrun
 快速启动程序
 .
+:MAPPER:reboot
+重启 DOS 系统
+.
 :MAPPER:recmtwave
 录制音频到多轨 AVI
 .
@@ -3322,6 +3325,9 @@ CPU: 正常内核
 .
 :MAPPER:recvolup
 提高录音音量
+.
+:MAPPER:rescanall
+刷新驱动器
 .
 :MAPPER:reset
 重启 DOSBox-X

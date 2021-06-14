@@ -5537,7 +5537,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset virtual machine");
 
-    MAPPER_AddHandler(RebootGuest, MK_b, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
+    MAPPER_AddHandler(RebootGuest, MK_b, MMODHOST, "reboot", "Reboot DOS system", &item); /* Reboot guest system or integrated DOS */
     item->set_text("Reboot guest system");
 
 #if !defined(HX_DOS)

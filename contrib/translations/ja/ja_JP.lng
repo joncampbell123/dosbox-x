@@ -3308,11 +3308,17 @@ Quick launch program
 :MAPPER:recmtwave
 Record to M.T. AVI
 .
+:MAPPER:reboot
+Reboot DOS system
+.
 :MAPPER:recvoldown
 Decrease rec. volume
 .
 :MAPPER:recvolup
 Increase rec. volume
+.
+:MAPPER:rescanall
+Rescan drives
 .
 :MAPPER:reset
 Reset DOSBox-X

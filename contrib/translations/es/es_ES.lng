@@ -2829,6 +2829,9 @@ Previous save slot
 :MAPPER:quickrun
 Quick launch program
 .
+:MAPPER:reboot
+Reboot DOS system
+.
 :MAPPER:recmtwave
 Record to M.T. AVI
 .
@@ -2837,6 +2840,9 @@ Decrease rec. volume
 .
 :MAPPER:recvolup
 Increase rec. volume
+.
+:MAPPER:rescanall
+Rescan drives
 .
 :MAPPER:reset
 Reset DOSBox-X
