@@ -2997,10 +2997,10 @@ TRUENAME
 选择下一个存档
 .
 :MENU:mapper_decfskip
-减少跳帧
+减小跳帧
 .
 :MENU:mapper_incfskip
-增加跳帧
+加大跳帧
 .
 :MENU:mapper_aspratio
 长宽比适合模式

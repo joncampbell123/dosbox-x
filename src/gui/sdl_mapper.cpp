@@ -1178,20 +1178,13 @@ public:
                  What I'm seeing is that pressing the key only sends the "down" event (even though you're
                  not holding the key down). When you press the key again, an "up" event is sent immediately
                  followed by a "down" event. This is confusing to the mapper, so we work around it here. */
-        bool sendup = false;
-        if (IS_JEGA_ARCH || IS_DOSV) {
+
 #if defined(C_SDL2)
-            if (key == 0x35 && event->key.keysym.sym == 0x60)
+        if (isJPkeyboard && key == 0x35 && event->key.keysym.sym == 0x60)
 #else
-            if (key == 0x29 && event->key.keysym.sym == 0)
+        if (isJPkeyboard && key == SDLK_WORLD_12/*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
 #endif
-                sendup = true;
-        }
-#if !defined(C_SDL2)
-        else if (key == SDLK_WORLD_12/*Hankaku*/)
-            sendup = true;
-#endif
-        if (isJPkeyboard && sendup) {
+        {
             if (event->type == SDL_KEYDOWN) {
                 // send down, then up (right?)
                 ActivateBindList(&lists[key], 0x7fff, true);
