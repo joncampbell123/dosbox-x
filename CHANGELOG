@@ -11,7 +11,8 @@
   - Added option "drive z expand path" which when set
     to true (default) will automatically expand %PATH%
     environment variable to include the subdirectories
-    on the Z drive when necessary. (Wengier)
+    on the Z drive when only the Z:\ path is specified
+    for compatibility purposes. (Wengier)
   - Added option "turbo" in [cpu] section to enable
     Turbo (Fast Forward) mode at start. You can also
     change it from the command-line via CONFIG command

@@ -2454,11 +2454,10 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
-	std::string line;
-
 	HELP("SET");
 	StripSpaces(args);
 
+	std::string line;
 	if (*args == 0) { /* "SET" by itself means to show the environment block */
 		Bitu count = GetEnvCount();
 
@@ -2491,7 +2490,7 @@ void DOS_Shell::CMD_SET(char * args) {
 			*p++ = 0;
             std::string vstr = p;
             bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
-            if (zdirpath) GetExpandedPath(vstr);
+            if (zdirpath && !strcasecmp(args, "path")) GetExpandedPath(vstr);
 			/* No parsing is needed. The command interpreter does the variable substitution for us */
 			if (!SetEnv(args,vstr.c_str())) {
 				/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
