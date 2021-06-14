@@ -839,8 +839,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 }
 
 extern bool ctrlbrk;
-bool log_dev_con = false;
+extern int log_dev_con;
 std::string log_dev_con_str;
+bool logging_con = false;
 bool DOS_BreakTest(bool print);
 void DOS_BreakAction();
 
@@ -889,7 +890,9 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
         }
         if (log_dev_con) {
             if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
-                LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());
+                logging_con = true;
+                LOG_MSG(log_dev_con==2?"%s":"DOS CON: %s",log_dev_con_str.c_str());
+                logging_con = false;
                 log_dev_con_str.clear();
             }
 

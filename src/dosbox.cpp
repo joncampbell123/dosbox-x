@@ -3788,8 +3788,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "NOTE: This option has no effect in PC-98 mode where MS-DOS systems integrate ANSI.SYS into the DOS kernel.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("log console",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, log DOS CON output to the log file.");
+    Pstring = secprop->Add_string("log console",Property::Changeable::WhenIdle,"false");
+    Pstring->Set_values(automountopts);
+    Pstring->Set_help("If set, log DOS CON output to the log file. Setting to \"quiet\" will log DOS CON output only (no debugging output).");
+    Pstring->SetBasic(true);
 
     Pint = secprop->Add_int("dos sda size",Property::Changeable::WhenIdle,0);
     Pint->Set_help("SDA (swappable data area) size, in bytes. Set to 0 to use a reasonable default.");

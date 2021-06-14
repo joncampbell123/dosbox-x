@@ -17,6 +17,8 @@
     Turbo (Fast Forward) mode at start. You can also
     change it from the command-line via CONFIG command
     (e.g. "config -set turbo=true"). (Wengier)
+  - Added value "quiet" to "log console" config option
+    to only log DOS console outputs. (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool and Mapper Editor interfaces.
     The size/position of some buttons in Configuration
