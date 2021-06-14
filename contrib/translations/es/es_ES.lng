@@ -3,130 +3,130 @@
 :DOSBOX-X:VERSION:0.83.15
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
-Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
+Las líneas de esta sección se iniciarán al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
 .
 :CONFIGFILE_INTRO
-# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versión si puedes)◙# Lineas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas l¡neas se usan para documentar brevemente el efecto de cada opcion.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
+# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versión si puedes)◙# Líneas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas líneas se usan para documentar brevemente el efecto de cada opción.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
 .
 :CONFIG_ADVANCED_OPTION
-Opciones avanzadas (ver archivo de referencia configuración completo [dosbox-x.reference.full.conf] para más detalles)
+Opciones avanzadas (ver archivo de referencias de configuración completo [dosbox-x.reference.full.conf] para más detalles)
 .
 :CONFIG_TOOL
-DOSBox-X Configuration Tool
+Herramienta de configuración de DOSBox-X
 .
 :CONFIG_TOOL_EXIT
-Exit configuration tool
+Salir de la herramienta de configuración
 .
 :WARNING
-Warning
+Aviso
 .
 :YES
-Yes
+Sí
 .
 :NO
 No
 .
 :OK
-OK
+Aceptar
 .
 :CANCEL
-Cancel
+Cancela
 .
 :CLOSE
-Close
+Cerrar
 .
 :SAVE
-Save
+Guardar
 .
 :SAVE_CONFIGURATION
-Save configuration
+Guarda configuración
 .
 :SAVE_LANGUAGE
-Save language file
+Exportar archivo de idioma
 .
 :SAVE_RESTART
-Save & Restart
+Guarda/Reinicia
 .
 :PASTE_CLIPBOARD
-Paste Clipboard
+Pegar del portapapeles
 .
 :APPEND_HISTORY
-Append History
+Agregar historial
 .
 :EXECUTE_NOW
-Execute Now
+Ejecutar ahora
 .
 :ADDITION_CONTENT
-Additional Content:
+Contenido adicional:
 .
 :CONTENT
-Content:
+Contenido:
 .
 :EDIT_FOR
-Edit %s
+Editar %s
 .
 :HELP_FOR
-Help for %s
+Ayuda de %s
 .
 :CONFIGURATION_FOR
-Configuration for %s
+Configuración de %s
 .
 :CONFIGURATION
-Configuration
+Configuración
 .
 :SETTINGS
-Settings
+Ajustes
 .
 :HELP
-Help
+Ayuda
 .
 :VISIT_HOMEPAGE
-Visit Homepage
+Visitar página de DosBox-X
 .
 :GET_STARTED
-Getting Started
+Primeros pasos en DosBox-X
 .
 :CDROM_SUPPORT
-CD-ROM Support
+Soporte de CD-ROM
 .
 :INTRODUCTION
-Introduction
+Introducción
 .
 :ABOUT
-About
+Acerca de DosBox-X
 .
 :CONFIGURE_GROUP
-Choose a settings group to configure:
+Elija un grupo de ajustes a configurar:
 .
 :SHOW_ADVOPT
-Show advanced options
+Incluir avanzados
 .
 :USE_PRIMARYCONFIG
-Use primary config file
+Usa config primario
 .
 :USE_PORTABLECONFIG
-Use portable config file
+Usa config portable
 .
 :USE_USERCONFIG
-Use user config file
+Usa config de usuario
 .
 :CONFIG_SAVETO
-Enter filename for the configuration file to save to:
+Nombre del archivo config a guardar:
 .
 :CONFIG_SAVEALL
-Save all (including advanced) config options to the configuration file
+Guardar todo (incluyendo ajustes avanzados) al archivo config
 .
 :LANG_FILENAME
-Enter filename for language file:
+Introduce el nombre del archivo de idioma:
 .
 :LANG_LANGNAME
-Language name (optional):
+Nombre del lenguaje (opcional):
 .
 :INTRO_MESSAGE
-Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.
+Bienvenido a DOSBox-X, un emulador de DOS completamente libre.◙DOSBox-X crea una consola DOS que funciona como un DOS real.◙También puedes ejecutar Windows 3.x y 95/98 bajo la máquina DOS.
 .
 :DRIVE
 Disco
@@ -610,16 +610,16 @@ Traducido por Carlos Romero, para más software visita:←[34;1m
 ←[32mmount c c:\dosgames\←[37m crea una unidad C con el contenido de c:\dosgames. 
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m es un ejemplo. Cambialo con tu propio directorio de juegos.←[37m
+c:\dosgames\←[37m es un ejemplo. Cámbialo con tu propio directorio de juegos.←[37m
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
 ←[32mmount c ~/dosgames←[37m creará una unidad C con el contenido de ~/dosgames.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m es un ejemplo. Cambialo con tu directorio con juegos.←[37m  
+←[32m~/dosgames←[37m es un ejemplo. Cámbialo con tu directorio con juegos.←[37m
 .
 :PROGRAM_INTRO_MOUNT_END
-◙Cuando mount se haya completado correctamente puedes teclear ←[34;1mc:←[0m para ir a◙tu unidad montada C: teclea ←[34;1mdir←[0m para listar su contenido, ←[34;1mcd←[0m te permite◙entrar en un directorio (van entre corchetes ←[33;1m[]←[0m en el listado de unidad).◙Puedes ejecutar programas terminados en ←[31m.exe .bat←[0m y ←[31m.com←[0m.◙
+◙←[0mCuando mount se haya completado correctamente puedes teclear ←[34;1mc:←[0m para ir a◙tu unidad montada C: teclea ←[34;1mdir←[0m para listar su contenido, ←[34;1mcd←[0m te permite◙entrar en un directorio (van entre corchetes ←[33;1m[]←[0m en el listado de unidad).◙Puedes ejecutar programas terminados en ←[31m.exe .bat←[0m y ←[31m.com←[0m.◙
 .
 :PROGRAM_INTRO_CDROM
 ←[2J←[32;1mMontando un CD-ROM real o virtual en DOSBox-X:←[0m
