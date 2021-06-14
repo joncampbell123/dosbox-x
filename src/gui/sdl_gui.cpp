@@ -1209,7 +1209,7 @@ public:
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
         int button_row_y = first_row_y + scroll_h + 5;
-        int button_w = 70;
+        int button_w = 90;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 4 + button_w) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
@@ -1230,11 +1230,11 @@ public:
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, MSG_Get("HELP"), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("OK"), button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0;
         Property *prop;
