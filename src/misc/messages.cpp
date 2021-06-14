@@ -28,16 +28,17 @@
 #include "control.h"
 #include "menu.h"
 #include "jfont.h"
+#include <map>
 #include <list>
 #include <string>
 using namespace std;
 
+int msgcodepage = 0;
+std::string langname = "", langnote = "";
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-std::string langname = "", langnote = "";
-int msgcodepage = 0;
-void menu_update_autocycle(void);
+void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -118,7 +119,7 @@ void LoadMessageFile(const char * fname) {
     msgcodepage = 0;
     langname = langnote = "";
 	char linein[LINE_IN_MAXLEN+1024];
-	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN];
+	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN], mapper_name[LINE_IN_MAXLEN];
 	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
@@ -162,9 +163,15 @@ void LoadMessageFile(const char * fname) {
                 }
             } else if (!strncasecmp(linein+1, "MENU:", 5)&&strlen(linein+6)<LINE_IN_MAXLEN) {
                 *name=0;
+                *mapper_name=0;
                 strcpy(menu_name,linein+6);
+            } else if (!strncasecmp(linein+1, "MAPPER:", 7)&&strlen(linein+8)<LINE_IN_MAXLEN) {
+                *name=0;
+                *menu_name=0;
+                strcpy(mapper_name,linein+8);
             } else {
                 *menu_name=0;
+                *mapper_name=0;
                 strcpy(name,linein+1);
             }
 		/* End of string marker */
@@ -180,8 +187,12 @@ void LoadMessageFile(const char * fname) {
                     std::string mname = "drive_"+std::string(1, c)+(menu_name+5);
                     if (mainMenu.item_exists(mname)) mainMenu.get_item(mname).set_text(string);
                 }
-            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name))
+            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name)) {
                 mainMenu.get_item(menu_name).set_text(string);
+                if (strlen(menu_name)>7&&!strncmp(menu_name, "mapper_", 7)) set_eventbutton_text(menu_name+7, string);
+            }
+            else if (strlen(mapper_name))
+                set_eventbutton_text(mapper_name, string);
 		} else {
 			/* Normal string to be added */
             if (!CodePageHostToGuestUTF8(temp,linein))
@@ -194,6 +205,7 @@ void LoadMessageFile(const char * fname) {
 	morelen=false;
 	fclose(mfile);
     menu_update_autocycle();
+    update_bindbutton_text();
     dos.loaded_codepage=cp;
 }
 
@@ -238,6 +250,14 @@ bool MSG_Write(const char * location, const char * name) {
                 fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),temp);
         }
 	}
+    std::map<std::string,std::string> get_event_map(), event_map = get_event_map();
+    for (auto it=event_map.begin();it!=event_map.end();++it) {
+        if (mainMenu.item_exists("mapper_"+it->first) && mainMenu.get_item("mapper_"+it->first).get_text() == it->second) continue;
+        if (!CodePageGuestToHostUTF8(temp,it->second.c_str()))
+            fprintf(out,":MAPPER:%s\n%s\n.\n",it->first.c_str(),it->second.c_str());
+        else
+            fprintf(out,":MAPPER:%s\n%s\n.\n",it->first.c_str(),temp);
+    }
 	morelen=false;
 	fclose(out);
 	return true;

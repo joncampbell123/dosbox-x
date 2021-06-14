@@ -18,8 +18,9 @@
     change it from the command-line via CONFIG command
     (e.g. "config -set turbo=true"). (Wengier)
   - It is now possible to translate text for graphical
-    Configuration Tool interface. The size or position
-    of some buttons are adjusted accordingly. (Wengier)
+    Configuration Tool and Mapper Editor interfaces.
+    The size/position of some buttons in Configuration
+    Tool are adjusted accordingly as well. (Wengier)
   - Config option "usescancodes=auto" now implies false
     for PC-98 mode in SDL1 builds. (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP

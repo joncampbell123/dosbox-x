@@ -37,6 +37,18 @@ DOSBox-X 設定ツール
 :OK
 OK
 .
+:ADD
+Add
+.
+:DEL
+Del
+.
+:NEXT
+Next
+.
+:CAPT
+Capt
+.
 :CANCEL
 キャンセル
 .
@@ -56,7 +68,7 @@ OK
 保存後に再起動
 .
 :PASTE_CLIPBOARD
-クリップボードを貼付け
+クリップボードを貼付
 .
 :APPEND_HISTORY
 履歴を追加
@@ -110,13 +122,13 @@ DOSBox-Xについて
 詳細オプションの表示
 .
 :USE_PRIMARYCONFIG
-プライマリ設定ファイルを使用
+プライマリ設定ファイル
 .
 :USE_PORTABLECONFIG
-ポータブル設定ファイルを使用
+ポータブル設定ファイル
 .
 :USE_USERCONFIG
-ユーザ設定ファイルを使用
+ユーザ設定ファイル
 .
 :CONFIG_SAVETO
 保存する設定ファイルの名前を入力:
@@ -131,7 +143,9 @@ DOSBox-Xについて
 言語ファイル名 (オプション):
 .
 :INTRO_MESSAGE
-DOSBox-Xへようこそ。無料で完全なDOSエミュレーションパッケージです。\nDOSBox-Xは一般的なDOSに似たDOSシェルを表示します。\nDOSマシンからWindows 3.x や 95/98を動作させることもできます。
+DOSBox-Xへようこそ。無料で完全なDOSエミュレーションパッケージです。
+DOSBox-Xは一般的なDOSに似たDOSシェルを表示します。
+DOSマシンからWindows 3.x や 95/98を動作させることもできます。
 .
 :DRIVE
 ドライブ
@@ -159,6 +173,21 @@ IDE ポジション
 .
 :SLOT
 スロット
+.
+:PREVIOUS_PAGE
+< Previous Page
+.
+:NEXT_PAGE
+ Next Page >
+.
+:SELECT_EVENT
+Select an event to change.
+.
+:SELECT_DIFFERENT_EVENT
+Select a different event or hit the Add/Del/Next buttons.
+.
+:MAPPER_FILE_SAVED
+Mapper file saved
 .
 :AUTO_CYCLE_MAX
 自動サイクル設定 [最大]
@@ -3224,4 +3253,76 @@ DOS テキスト画面を印刷
 .
 :MENU:pc98_use_uskb
 USキーボードレイアウトを使用
+.
+:MAPPER:caprawopl
+Record FM/OPL output
+.
+:MAPPER:copyall
+Copy to clipboard
+.
+:MAPPER:cycauto
+Toggle auto cycles
+.
+:MAPPER:debugger
+Show debugger
+.
+:MAPPER:decsize
+Decrease TTF size
+.
+:MAPPER:dynamic
+CPU: dynamic core
+.
+:MAPPER:fastedit
+Quick edit mode
+.
+:MAPPER:full
+CPU: full core
+.
+:MAPPER:incsize
+Increase TTF size
+.
+:MAPPER:loadmap
+Load mapper file
+.
+:MAPPER:nextslot
+Next save slot
+.
+:MAPPER:normal
+CPU: normal core
+.
+:MAPPER:paste
+Paste from clipboard
+.
+:MAPPER:pasteend
+Stop clipboard paste
+.
+:MAPPER:pauseints
+Pause with interrupt
+.
+:MAPPER:prevslot
+Previous save slot
+.
+:MAPPER:quickrun
+Quick launch program
+.
+:MAPPER:recmtwave
+Record to M.T. AVI
+.
+:MAPPER:recvoldown
+Decrease rec. volume
+.
+:MAPPER:recvolup
+Increase rec. volume
+.
+:MAPPER:reset
+Reset DOSBox-X
+.
+:MAPPER:showstate
+Display state info
+.
+:MAPPER:simple
+CPU: simple core
+.
+:MAPPER:togmenu
+Toggle menu bar
 .

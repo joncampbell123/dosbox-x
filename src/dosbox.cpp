@@ -4424,6 +4424,11 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("OK","OK");
     MSG_Add("CANCEL","Cancel");
     MSG_Add("CLOSE","Close");
+    MSG_Add("ADD","Add");
+    MSG_Add("DEL","Del");
+    MSG_Add("NEXT","Next");
+    MSG_Add("CAPT","Capt");
+    MSG_Add("EXIT","Exit");
     MSG_Add("SAVE","Save");
     MSG_Add("SAVE_CONFIGURATION","Save configuration");
     MSG_Add("SAVE_LANGUAGE","Save language file");
@@ -4463,6 +4468,11 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("SWAP_SLOT","Swap slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
     MSG_Add("SLOT","Slot");
+    MSG_Add("PREVIOUS_PAGE","< Previous Page");
+    MSG_Add("NEXT_PAGE"," Next Page >");
+    MSG_Add("SELECT_EVENT", "Select an event to change.");
+    MSG_Add("SELECT_DIFFERENT_EVENT", "Select a different event or hit the Add/Del/Next buttons.");
+    MSG_Add("MAPPER_FILE_SAVED", "Mapper file saved");
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");

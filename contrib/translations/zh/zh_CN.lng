@@ -42,6 +42,21 @@ DOSBox-X 配置工具
 :CLOSE
 关闭
 .
+:ADD
+加入
+.
+:DEL
+删除
+.
+:NEXT
+下个
+.
+:CAPT
+捕获
+.
+:EXIT
+退出
+.
 :SAVE
 保存
 .
@@ -160,6 +175,21 @@ IDE 位置
 .
 :SLOT
 存档
+.
+:PREVIOUS_PAGE
+< 上一页
+.
+:NEXT_PAGE
+ 下一页 >
+.
+:SELECT_EVENT
+选择要修改的事件.
+.
+:SELECT_DIFFERENT_EVENT
+选择另一个事件或者按加入/删除/下个按钮.
+.
+:MAPPER_FILE_SAVED
+按键配置文件已保存
 .
 :AUTO_CYCLE_MAX
 自动选择周期 [最大]
@@ -1995,13 +2025,13 @@ TRUENAME 文件
 
 .
 :SHELL_CMD_DXCAPTURE_HELP
-运行程序或启用视频或音频捕捉.
+运行程序并启用视频或音频捕获.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-它将启动视频或音频捕捉, 运行程序, 等程序运行结束时停止捕捉.
+它将启动视频或音频捕获, 运行程序, 等程序运行结束时停止捕获.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -2070,7 +2100,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 退出 DOSBox-X
 .
 :MENU:mapper_capmouse
-捕捉鼠标
+捕获鼠标
 .
 :MENU:mapper_fastedit
 快速编辑: 选择后复制或粘贴文本
@@ -2640,10 +2670,10 @@ EMM386 模拟
 安静模式 - 无启动信息
 .
 :MENU:CaptureMenu
-捕捉
+捕获
 .
 :MENU:CaptureFormatMenu
-捕捉格式
+捕获格式
 .
 :MENU:capture_fmt_avi_zmbv
 AVI + ZMBV
@@ -2934,7 +2964,7 @@ TRUENAME
 记录文件输入输出
 .
 :MENU:mapper_speedlock
-Toggle Speedlock
+打开或关闭快进模式
 .
 :MENU:mapper_speedlock2
 加速/快进模式
@@ -2991,7 +3021,7 @@ Toggle Speedlock
 录制视频到 AVI
 .
 :MENU:mapper_scrshot
-捕捉屏幕快照
+捕获屏幕快照
 .
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
@@ -3012,10 +3042,10 @@ Toggle Speedlock
 输入特殊键
 .
 :MENU:mapper_cycledown
-减少 CPU 周期
+减小 CPU 周期
 .
 :MENU:mapper_cycleup
-增加 CPU 周期
+加大 CPU 周期
 .
 :MENU:mapper_normal
 正常内核
@@ -3232,4 +3262,76 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 .
 :MENU:pc98_use_uskb
 使用美式键盘布局
+.
+:MAPPER:caprawopl
+录制 FM/OPL 输出
+.
+:MAPPER:copyall
+复制屏幕文本到剪贴板
+.
+:MAPPER:cycauto
+切换自动 CPU 周期
+.
+:MAPPER:debugger
+显示调试器
+.
+:MAPPER:decsize
+减小 TTF 字体
+.
+:MAPPER:dynamic
+CPU: 动态内核
+.
+:MAPPER:fastedit
+快速编辑模式
+.
+:MAPPER:full
+CPU: 完全内核
+.
+:MAPPER:incsize
+加大 TTF 字体
+.
+:MAPPER:loadmap
+加载按键配置文件
+.
+:MAPPER:nextslot
+下一个存档
+.
+:MAPPER:normal
+CPU: 正常内核
+.
+:MAPPER:paste
+粘贴剪贴板文字
+.
+:MAPPER:pasteend
+停止剪贴板复制
+.
+:MAPPER:pauseints
+暂停并保持中断
+.
+:MAPPER:prevslot
+上一个存档
+.
+:MAPPER:quickrun
+快速启动程序
+.
+:MAPPER:recmtwave
+录制音频到多轨 AVI
+.
+:MAPPER:recvoldown
+降低录音音量
+.
+:MAPPER:recvolup
+提高录音音量
+.
+:MAPPER:reset
+重启 DOSBox-X
+.
+:MAPPER:showstate
+显示存档信息
+.
+:MAPPER:simple
+CPU: 简单内核
+.
+:MAPPER:togmenu
+打开或关闭下拉菜单
 .

@@ -206,6 +206,7 @@ static CKeyEvent*                               caps_lock_event = NULL;
 static CKeyEvent*                               num_lock_event = NULL;
 
 static std::map<std::string, size_t>            name_to_events;
+static std::map<std::string, std::string>       event_map;
 
 static SDL_Color                                map_pal[7] =
 {
@@ -2206,7 +2207,11 @@ static CButton *press_select = NULL;
 
 class CTextButton : public CButton {
 public:
-    CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text; invertw=0; }
+    CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) {
+        if (strlen(_text)<100) strcpy(text, _text);
+        else {strncpy(text, _text, 99);text[99]=0;}
+        invertw=0;
+    }
     virtual ~CTextButton() {}
     void Draw(void) {
         uint8_t fg,bg;
@@ -2247,7 +2252,8 @@ public:
         }
     }
     void SetText(const char *_text) {
-        text = _text;
+        if (strlen(_text)<100) strcpy(text, _text);
+        else {strncpy(text, _text, 99);text[99]=0;}
     }
     void SetPartialInvert(double a) {
         if (a < 0) a = 0;
@@ -2257,7 +2263,7 @@ public:
         mapper.redraw=true;
     }
 protected:
-    const char * text;
+    char text[100];
     Bitu invertw;
 };
 
@@ -2281,6 +2287,9 @@ public:
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_DARKGREEN : CLR_GREEN);
         SetActiveEvent(event);
         last_clicked=this;
+    }
+    CEvent *GetEvent() {
+        return event;
     }
     void RebindRedraw(void) {
         Click();//HACK!
@@ -2735,8 +2744,12 @@ public:
     };
 
     //! \brief Retrieve the button name (for display in the mapper UI)
-    const char * ButtonName(void) {
+    const char * ButtonName() {
         return buttonname;
+    }
+
+    void SetButtonName(const char *name) {
+        buttonname = name;
     }
 
     //! \brief Generate a default binding from the MapKeys enumeration
@@ -3236,6 +3249,11 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
     return NULL;
 }
 
+unsigned char prvmc = 0;
+extern bool font_14_init;
+extern uint8_t int10_font_14_init[256 * 14];
+uint8_t *GetDbcs14Font(Bitu code, bool &is14);
+bool isDBCSCP();
 static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor/*=CLR_BLACK*/) {
 #if defined(C_SDL2)
     uint8_t * draw=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -3243,23 +3261,47 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
     uint8_t * draw=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
     while (*text) {
-        uint8_t * font=&int10_font_14[(*text)*14];
-        Bitu i,j;uint8_t * draw_line=draw;
-        for (i=0;i<14;i++) {
-            uint8_t map=*font++;
-            for (j=0;j<8;j++) {
-                if (map & 0x80) *(draw_line+j)=color;
-                else *(draw_line+j)=bkcolor;
-                map<<=1;
-            }
+        unsigned char c = *text;
+        uint8_t * font;
+        bool is14 = false;
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+            if (isKanji1(c) && prvmc == 0) {
+                prvmc = c;
+                text++;
+                continue;
+            } else if (isKanji2(c) && prvmc > 1) {
+                font = GetDbcs14Font(prvmc*0x100+c, is14);
+                prvmc = 1;
+            } else if (prvmc < 0x81)
+                prvmc = 0;
+        } else
+            prvmc = 0;
+        if (font_14_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&prvmc!=1)
+            font = &int10_font_14_init[c*14];
+        else if (prvmc!=1)
+            font = &int10_font_14[c*14];
+        Bitu i,j;
+        for (int k=0; k<(prvmc?2:1); k++) {
+            uint8_t * draw_line = draw;
+            for (i=0;i<14;i++) {
+                uint8_t map=*(font+(prvmc==1?(i*2+k):i));
+                for (j=0;j<8;j++) {
+                    if (map & 0x80) *(draw_line+j)=color;
+                    else *(draw_line+j)=bkcolor;
+                    map<<=1;
+                }
 #if defined(C_SDL2)
-            draw_line+=mapper.draw_surface->w;
+                draw_line+=mapper.draw_surface->w;
 #else
-            draw_line+=mapper.surface->pitch;
+                draw_line+=mapper.surface->pitch;
 #endif
+            }
+            draw+=8;
         }
-        text++;draw+=8;
+        text++;
+        prvmc = 0;
     }
+    prvmc = 0;
 }
 
 void RedrawMapperEventButtons() {
@@ -3322,11 +3364,11 @@ static void SetActiveEvent(CEvent * event) {
     mapper.addbind=false;
     bind_but.event_title->Change("EVENT:%s",event ? event->GetName(): "none");
     if (!event) {
-        change_action_text("Select an event to change.",CLR_WHITE);
+        change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
         SetActiveBind(0);
     } else {
-        change_action_text("Select a different event or hit the Add/Del/Next buttons.",CLR_WHITE);
+        change_action_text(MSG_Get("SELECT_DIFFERENT_EVENT"),CLR_WHITE);
         mapper.abindit=event->bindlist.begin();
         if (mapper.abindit!=event->bindlist.end()) {
             SetActiveBind(*(mapper.abindit));
@@ -3722,8 +3764,8 @@ static void CreateLayout(void) {
             page++;
         }
     }
-    bind_but.prevpage=new CBindButton(280,388,130,BH,"< Previous Page",BB_Prevpage);
-    bind_but.nextpage=new CBindButton(470,388,100,BH," Next Page >",BB_Nextpage);
+    bind_but.prevpage=new CBindButton(280,388,130,BH,MSG_Get("PREVIOUS_PAGE"),BB_Prevpage);
+    bind_but.nextpage=new CBindButton(470,388,100,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
     bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
     bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
     if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
@@ -3747,13 +3789,13 @@ static void CreateLayout(void) {
     bind_but.host=new CCheckButton(100,410,60,BH,"host",BC_Host);
     bind_but.hold=new CCheckButton(100,432,60,BH,"hold",BC_Hold);
 
-    bind_but.add=new CBindButton(20,384,50,BH,"Add",BB_Add);
-    bind_but.del=new CBindButton(70,384,50,BH,"Del",BB_Del);
-    bind_but.next=new CBindButton(120,384,50,BH,"Next",BB_Next);
+    bind_but.add=new CBindButton(20,384,50,BH,MSG_Get("ADD"),BB_Add);
+    bind_but.del=new CBindButton(70,384,50,BH,MSG_Get("DEL"),BB_Del);
+    bind_but.next=new CBindButton(120,384,50,BH,MSG_Get("NEXT"),BB_Next);
 
-    bind_but.save=new CBindButton(180,444,50,BH,"Save",BB_Save);
-    bind_but.exit=new CBindButton(230,444,50,BH,"Exit",BB_Exit);
-    bind_but.cap=new CBindButton(280,444,50,BH,"Capt",BB_Capture);
+    bind_but.save=new CBindButton(180,444,50,BH,MSG_Get("SAVE"),BB_Save);
+    bind_but.exit=new CBindButton(230,444,50,BH,MSG_Get("EXIT"),BB_Exit);
+    bind_but.cap=new CBindButton(280,444,50,BH,MSG_Get("CAPT"),BB_Capture);
 
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
@@ -4162,7 +4204,8 @@ static void MAPPER_SaveBinds(void) {
     char path[PATH_MAX];
     if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
 #endif
-    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
+    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+mapper.filename;
+    change_action_text(msg.c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
@@ -5169,4 +5212,37 @@ std::string get_mapper_shortcut(const char *name) {
         if ((*it)!=NULL&&!strcmp(name, (*it)->eventname.c_str()))
             return (*it)->GetBindMenuText();
     return "";
+}
+
+std::map<std::string,std::string> get_event_map() {
+    event_map.clear();
+    for (CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();++it)
+        event_map.insert(std::pair<std::string,std::string>((*it)->eventname,(*it)->ButtonName()));
+    return event_map;
+}
+
+void update_bindbutton_text() {
+    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
+    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
+    if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
+    if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
+    if (bind_but.save) bind_but.save->SetText(MSG_Get("SAVE"));
+    if (bind_but.exit) bind_but.exit->SetText(MSG_Get("EXIT"));
+    if (bind_but.cap) bind_but.cap->SetText(MSG_Get("CAPT"));
+}
+
+void set_eventbutton_text(const char *eventname, const char *buttonname) {
+    for (CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();++it)
+        if ((*it)!=NULL&&!strcmp(eventname, (*it)->eventname.c_str())) {
+            (*it)->SetButtonName(buttonname);
+            break;
+        }
+    for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
+        CEventButton *button = (CEventButton *)*it;
+        if (button!=NULL&&!strcmp(eventname, button->GetEvent()->eventname.c_str())) {
+            button->SetText(buttonname);
+            break;
+        }
+    }
 }
