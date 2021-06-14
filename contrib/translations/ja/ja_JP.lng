@@ -20,118 +20,118 @@ MOUNT したい場合はここに記載できます。
 詳細オプション (設定リファレンスファイル[dosbox-x.reference.full.conf]を参照)
 .
 :CONFIG_TOOL
-DOSBox-X Configuration Tool
+DOSBox-X 設定ツール
 .
 :CONFIG_TOOL_EXIT
-Exit configuration tool
+設定ツールを終了する
 .
 :WARNING
-Warning
+注意
 .
 :YES
-Yes
+はい
 .
 :NO
-No
+いいえ
 .
 :OK
 OK
 .
 :CANCEL
-Cancel
+キャンセル
 .
 :CLOSE
-Close
+閉じる
 .
 :SAVE
-Save
+保存
 .
 :SAVE_CONFIGURATION
-Save configuration
+設定を保存
 .
 :SAVE_LANGUAGE
-Save language file
+言語ファイルを保存
 .
 :SAVE_RESTART
-Save & Restart
+保存後に再起動
 .
 :PASTE_CLIPBOARD
-Paste Clipboard
+クリップボードを貼付け
 .
 :APPEND_HISTORY
-Append History
+履歴を追加
 .
 :EXECUTE_NOW
-Execute Now
+いま実行する
 .
 :ADDITION_CONTENT
-Additional Content:
+設定内容:
 .
 :CONTENT
-Content:
+実行する内容:
 .
 :EDIT_FOR
-Edit %s
+%s を編集
 .
 :HELP_FOR
-Help for %s
+%s のヘルプ
 .
 :CONFIGURATION_FOR
-Configuration for %s
+%s の設定
 .
 :CONFIGURATION
-Configuration
+ファイル
 .
 :SETTINGS
-Settings
+設定
 .
 :HELP
-Help
+ヘルプ
 .
 :VISIT_HOMEPAGE
-Visit Homepage
+ホームページ
 .
 :GET_STARTED
-Getting Started
+始めに
 .
 :CDROM_SUPPORT
-CD-ROM Support
+CD-ROM サポート
 .
 :INTRODUCTION
-Introduction
+紹介
 .
 :ABOUT
-About
+DOSBox-Xについて
 .
 :CONFIGURE_GROUP
-Choose a settings group to configure:
+設定するグループを選択:
 .
 :SHOW_ADVOPT
-Show advanced options
+詳細オプションの表示
 .
 :USE_PRIMARYCONFIG
-Use primary config file
+プライマリ設定ファイルを使用
 .
 :USE_PORTABLECONFIG
-Use portable config file
+ポータブル設定ファイルを使用
 .
 :USE_USERCONFIG
-Use user config file
+ユーザ設定ファイルを使用
 .
 :CONFIG_SAVETO
-Enter filename for the configuration file to save to:
+保存する設定ファイルの名前を入力:
 .
 :CONFIG_SAVEALL
-Save all (including advanced) config options to the configuration file
+全て(詳細オプション含む)のオプションを設定ファイルに保存
 .
 :LANG_FILENAME
-Enter filename for language file:
+言語ファイル名を入力:
 .
 :LANG_LANGNAME
-Language name (optional):
+言語ファイル名 (オプション):
 .
 :INTRO_MESSAGE
-Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.
+DOSBox-Xへようこそ。無料で完全なDOSエミュレーションパッケージです。\nDOSBox-Xは一般的なDOSに似たDOSシェルを表示します。\nDOSマシンからWindows 3.x や 95/98を動作させることもできます。
 .
 :DRIVE
 ドライブ
@@ -219,9 +219,9 @@ DOSBox-X's 作業用ディレクトリ:
 .
 :PROGRAM_CONFIG_USAGE
 DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプション:
--wc (or -writeconf): パラメータなしの場合: primary loaded fileに書き込み。
--wc (or -writeconf): ファイル名: ファイルを設定用ディレクトリに書き出す。
--wl (or -writelang): ファイル名: 現在の language stringsを書き出す。
+-wc (or -writeconf) パラメータなしの場合: primary loaded fileに書き込み。
+-wc (or -writeconf) ファイル名: ファイルを設定用ディレクトリに書き出す。
+-wl (or -writelang) ファイル名: 現在の language stringsを書き出す。
 -ln (or -langname): 言語名を表示(パラメータなしの場合)または指定する。。
 -wcp [ファイル名]: プログラムディレクトリに書出す(dosbox-x.conf / ファイル名)
 -wcd: 設定用ディレクトリにデフォルト設定ファイルを書き出す。
@@ -2707,7 +2707,7 @@ Windowsのドライブを自動マウント
 フォルダをFDDとしてマウント
 .
 :MENU:drive_mountfro
-オプション: 書き込み禁止でフォルダをマウント
+オプション: 書込禁止でフォルダをマウント
 .
 :MENU:drive_mountarc
 書庫ファイル(ZIP/7Z)をマウント

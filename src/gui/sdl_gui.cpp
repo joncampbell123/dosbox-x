@@ -987,7 +987,7 @@ public:
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
         int button_row_y = first_row_y + scroll_h + 5;
-        int button_w = 70;
+        int button_w = 90;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
@@ -1006,11 +1006,11 @@ public:
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("HELP"), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("CANCEL"), button_w);
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("OK"), button_w);
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0, j = 0;
         Property *prop;
@@ -1374,14 +1374,14 @@ public:
 };
 
 class AutoexecEditor : public GUI::ToplevelWindow {
-    GUI::Button *closeButton = NULL;
+    GUI::Button *closeButton = NULL, *pasteButton = NULL, *appendButton = NULL;
     Section_line * section;
     GUI::Input *content = NULL;
 public:
     std::vector<GUI::Char> cfg_sname;
 public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 550, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        ToplevelWindow(parent, x, y, 550, 310 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
             return;
@@ -1394,11 +1394,15 @@ public:
         new GUI::Label(this, 5, 10, MSG_Get("CONTENT"));
         content = new GUI::Input(this, 5, 30, 550 - 10 - border_left - border_right, 185);
         content->setText(section->data);
-        (new GUI::Button(this, 5, 220, MSG_Get("PASTE_CLIPBOARD")))->addActionHandler(this);
-        if (first_shell) (new GUI::Button(this, 147, 220, MSG_Get("APPEND_HISTORY")))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 281, 220, MSG_Get("EXECUTE_NOW")))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 391, 220, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 461, 220, MSG_Get("OK"), 70))->addActionHandler(this);
+        (pasteButton = new GUI::Button(this, 5, 220, MSG_Get("PASTE_CLIPBOARD")))->addActionHandler(this);
+        int last = 25 + pasteButton->getWidth();
+        if (first_shell) {
+            (appendButton = new GUI::Button(this, last, 220, MSG_Get("APPEND_HISTORY")))->addActionHandler(this);
+            last += 20 + appendButton->getWidth();
+        }
+        if (shell_idle) (new GUI::Button(this, last, 220, MSG_Get("EXECUTE_NOW")))->addActionHandler(this);
+        (new GUI::Button(this, 180, 260, MSG_Get("OK"), 90))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 285, 260, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1483,9 +1487,9 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, MSG_Get("CONFIG_SAVEALL"));
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (saveButton = new GUI::Button(this, 150, 120, MSG_Get("SAVE"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 240, 120, MSG_Get("SAVE_RESTART"), 140))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 400, 120, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 140, 120, MSG_Get("SAVE"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 230, 120, MSG_Get("SAVE_RESTART"), 140))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 390, 120, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1554,8 +1558,8 @@ public:
         new GUI::Label(this, 5, 60, MSG_Get("LANG_LANGNAME"));
         lang = new GUI::Input(this, 5, 80, width - 10 - border_left - border_right);
         lang->setText(langname.c_str());
-        (saveButton = new GUI::Button(this, 120, 110, MSG_Get("OK"), 70))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 210, 110, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 100, 110, MSG_Get("OK"), 90))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 200, 110, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1633,8 +1637,8 @@ public:
 
         std::string rates=str.str();
         name->setText(rates.c_str());
-        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 100, 60, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 200, 60, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1675,8 +1679,8 @@ public:
 
         std::string cycles=str.str();
         name->setText(cycles.c_str());
-        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 100, 60, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 200, 60, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1731,8 +1735,8 @@ public:
             end[i]->setText(std::to_string(autosave_end[i]).c_str());
         }
         new GUI::Label(this, 15, 315, "Note: 0 for start slot = use current slot; -1 for start slot = skip saving");
-        (new GUI::Button(this, 250, 335, MSG_Get("OK"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 330, 335, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 225, 335, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 325, 335, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1776,8 +1780,8 @@ public:
 
         std::string cycles=str.str();
         name->setText(cycles.c_str());
-        (new GUI::Button(this, 120, 60, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, MSG_Get("OK"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 100, 60, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 200, 60, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1812,8 +1816,8 @@ public:
             name->setText(sec->Get_string("vsyncrate"));
         else
             name->setText("");
-        (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
+        (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1849,8 +1853,8 @@ public:
             char buffer[6];
             sprintf(buffer, "%u", human_readable);
             name->setText(buffer);
-            (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-            (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -1879,14 +1883,14 @@ protected:
     GUI::Input *name;
 public:
     SetDOSVersion(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 450, 150, title) {
+        ToplevelWindow(parent, x, y, 410, 140, title) {
             new GUI::Label(this, 5, 10, "Enter reported DOS version:");
-            name = new GUI::Input(this, 5, 30, 400);
+            name = new GUI::Input(this, 5, 30, 390);
             char buffer[8];
             sprintf(buffer, "%d.%02d", dos.version.major,dos.version.minor);
             name->setText(buffer);
-            (new GUI::Button(this, 120, 70, MSG_Get("CANCEL"), 70))->addActionHandler(this);
-            (new GUI::Button(this, 210, 70, MSG_Get("OK"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -2210,8 +2214,8 @@ public:
             imghd4gig->addActionHandler(this);
             imghd8gig = new GUI::Checkbox(this, 310, 180, "8GB");
             imghd8gig->addActionHandler(this);
-            (new GUI::Button(this, 160, 220, MSG_Get("OK"), 70))->addActionHandler(this);
-            (new GUI::Button(this, 260, 220, MSG_Get("CANCEL"), 70))->addActionHandler(this);
+            (new GUI::Button(this, 135, 220, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 255, 220, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
