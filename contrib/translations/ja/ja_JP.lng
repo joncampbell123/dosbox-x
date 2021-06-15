@@ -109,6 +109,39 @@ Capt
 :CDROM_SUPPORT
 CD-ROM サポート
 .
+:DRIVE_INFORMATION
+Drive information
+.
+:MOUNTED_DRIVE_NUMBER
+Mounted drive numbers
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE controller assignment
+.
+:HELP_COMMAND
+Help on DOS command
+.
+:CURRENT_VOLUME
+Current sound mixer volumes
+.
+:CURRENT_SBCONFIG
+Sound Blaster configuration
+.
+:CURRENT_MIDICONFIG
+Current MIDI configuration
+.
+:CREATE_IMAGE
+Create blank disk image
+.
+:NETWORK_LIST
+Network interface list
+.
+:PRINTER_LIST
+Printer device list
+.
+:INTRODUCTION_TO
+Introduction to DOSBox-X
+.
 :INTRODUCTION
 紹介
 .

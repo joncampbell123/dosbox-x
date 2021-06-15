@@ -111,6 +111,39 @@ DOSBox-X 配置工具
 :CDROM_SUPPORT
 光盘支持
 .
+:DRIVE_INFORMATION
+驱动器信息
+.
+:MOUNTED_DRIVE_NUMBER
+已分配的驱动器号
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE 控制器状态
+.
+:HELP_COMMAND
+DOS 命令帮助
+.
+:CURRENT_VOLUME
+当前混音器音量
+.
+:CURRENT_SBCONFIG
+声卡配置信息
+.
+:CURRENT_MIDICONFIG
+MIDI 设备配置信息
+.
+:CREATE_IMAGE
+创建空白磁盘镜像
+.
+:NETWORK_LIST
+网络接口列表
+.
+:PRINTER_LIST
+打印机设备列表
+.
+:INTRODUCTION_TO
+DOSBox-X 介绍
+.
 :INTRODUCTION
 介绍
 .
@@ -3252,7 +3285,7 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 创建空白磁盘镜像...
 .
 :MENU:list_drivenum
-显示已配置的驱动器号
+显示已分配的驱动器号
 .
 :MENU:list_ideinfo
 显示 IDE 驱动器状态

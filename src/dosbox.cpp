@@ -4449,6 +4449,17 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
     MSG_Add("GET_STARTED","Getting Started");
     MSG_Add("CDROM_SUPPORT","CD-ROM Support");
+    MSG_Add("DRIVE_INFORMATION","Drive information");
+    MSG_Add("MOUNTED_DRIVE_NUMBER","Mounted drive numbers");
+    MSG_Add("IDE_CONTROLLER_ASSIGNMENT","IDE controller assignment");
+    MSG_Add("HELP_COMMAND","Help on DOS command");
+    MSG_Add("CURRENT_VOLUME","Current sound mixer volumes");
+    MSG_Add("CURRENT_SBCONFIG","Sound Blaster configuration");
+    MSG_Add("CURRENT_MIDICONFIG","Current MIDI configuration");
+    MSG_Add("CREATE_IMAGE","Create blank disk image");
+    MSG_Add("NETWORK_LIST","Network interface list");
+    MSG_Add("PRINTER_LIST","Printer device list");
+    MSG_Add("INTRODUCTION_TO","Introduction to DOSBox-X");
     MSG_Add("INTRODUCTION","Introduction");
     MSG_Add("ABOUT","About");
     MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");

@@ -2896,19 +2896,19 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np3->raise();
             } break;
         case 19: {
-            auto *np4 = new SetDOSVersion(screen, 90, 100, "Edit reported DOS version");
+            auto *np4 = new SetDOSVersion(screen, 90, 100, "Edit reported DOS version...");
             np4->raise();
             } break;
         case 20: {
-            auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound mixer volumes");
+            auto *np5 = new ShowMixerInfo(screen, 90, 70, MSG_Get("CURRENT_VOLUME"));
             np5->raise();
             } break;
         case 21: {
-            auto *np6 = new ShowSBInfo(screen, 150, 100, "Sound Blaster configuration");
+            auto *np6 = new ShowSBInfo(screen, 150, 100, MSG_Get("CURRENT_SBCONFIG"));
             np6->raise();
             } break;
         case 22: {
-            auto *np6 = new ShowMidiDevice(screen, 150, 100, "Current MIDI configuration");
+            auto *np6 = new ShowMidiDevice(screen, 150, 100, MSG_Get("CURRENT_MIDICONFIG"));
             np6->raise();
             } break;
         case 23: {
@@ -2944,39 +2944,39 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
-            auto *np8 = new ShowDriveInfo(screen, 120, 50, "Drive information");
+            auto *np8 = new ShowDriveInfo(screen, 120, 50, MSG_Get("DRIVE_INFORMATION"));
             np8->raise();
             } break;
         case 32: {
-            auto *np9 = new ShowDriveNumber(screen, 110, 70, "Mounted drive numbers");
+            auto *np9 = new ShowDriveNumber(screen, 110, 70, MSG_Get("MOUNTED_DRIVE_NUMBER"));
             np9->raise();
             } break;
         case 33: {
-            auto *np10 = new ShowIDEInfo(screen, 150, 70, "IDE controller assignment");
+            auto *np10 = new ShowIDEInfo(screen, 150, 70, MSG_Get("IDE_CONTROLLER_ASSIGNMENT"));
             np10->raise();
             } break;
         case 34: {
-            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction to DOSBox-X");
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, MSG_Get("INTRODUCTION_TO"));
             np11->raise();
             } break;
         case 35: {
-            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About DOSBox-X");
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, (MSG_Get("ABOUT")+std::string(" DOSBox-X")).c_str());
             np12->raise();
             } break;
         case 36: {
-            auto *np13 = new ShowHelpCommand(screen, 150, 120, ("Help on DOS command: "+helpcmd).c_str());
+            auto *np13 = new ShowHelpCommand(screen, 150, 120, (MSG_Get("HELP_COMMAND")+std::string(": ")+helpcmd).c_str());
             np13->raise();
             } break;
         case 37: {
-            auto *np14 = new MakeDiskImage(screen, 110, 70, "Create blank disk image");
+            auto *np14 = new MakeDiskImage(screen, 110, 70, MSG_Get("CREATE_IMAGE"));
             np14->raise();
             } break;
         case 38: {
-            auto *np15 = new ShowHelpNIC(screen, 70, 70, "Network interface list");
+            auto *np15 = new ShowHelpNIC(screen, 70, 70, MSG_Get("NETWORK_LIST"));
             np15->raise();
             } break;
         case 39: {
-            auto *np15 = new ShowHelpPRT(screen, 70, 70, "Printer device list");
+            auto *np15 = new ShowHelpPRT(screen, 70, 70, MSG_Get("PRINTER_LIST"));
             np15->raise();
             } break;
         default:
