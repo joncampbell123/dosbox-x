@@ -2111,7 +2111,7 @@ unsigned int SDLDrawGenFontTextureRows = 16;
 unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
 unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
 bool SDLDrawGenFontTextureInit = false;
-GLuint SDLDrawGenFontTexture = (GLuint)(~0UL);
+GLuint SDLDrawGenFontTexture = (GLuint)(~0UL), SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
 #endif
 
 #if !defined(C_SDL2)
@@ -2456,51 +2456,82 @@ extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern bool font_14_init, font_16_init;
 uint8_t *GetDbcsFont(Bitu code);
+void UpdateSDLDrawDBCSTexture(Bitu code);
 unsigned char prevc = 0;
 
 void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
         (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else if (prevc < 0x81)
+            prevc = 0;
+    } else
+        prevc = 0;
+
     if (OpenGL_using()) {
 #if C_OPENGL
-        unsigned int tx = (c % 16u) * 8u;
-        unsigned int ty = (c / 16u) * 16u;
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
 
-        /* MenuDrawText() has prepared OpenGL state for us */
-        glBegin(GL_QUADS);
-        // lower left
-        glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
-        // lower right
-        glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
-        // upper right
-        glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
-        // upper left
-        glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
-        glEnd();
-        x += (int)mainMenu.fontCharWidth;
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
 #endif
     }
     else {
-        unsigned char *scan, *bmp;
-        if (check)
-            prevc = 0;
-        else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
-            if (isKanji1(c) && prevc == 0) {
-                prevc = c;
-                return;
-            } else if (isKanji2(c) && prevc > 1) {
-                bmp = GetDbcsFont(prevc*0x100+c);
-                prevc = 1;
-            } else if (prevc < 0x81)
-                prevc = 0;
-        } else
-            prevc = 0;
-
         assert(sdl.surface->pixels != NULL);
 
         if (x < 0 || y < 0)
@@ -2542,57 +2573,83 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             }
             x += (int)mainMenu.fontCharWidth;
         }
-        prevc = 0;
     }
+    prevc = 0;
 }
 
 void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
         (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
-    if (OpenGL_using()) {
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
 #if C_OPENGL
-        unsigned int tx = (c % 16u) * 8u;
-        unsigned int ty = (c / 16u) * 16u;
-
-        /* MenuDrawText() has prepared OpenGL state for us */
-        glBegin(GL_QUADS);
-        // lower left
-        glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
-        // lower right
-        glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
-        // upper right
-        glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
-        // upper left
-        glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
-        glEnd();
-        x += (int)mainMenu.fontCharWidth;
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
 #endif
-    }
-    else { 
-        unsigned char *scan, *bmp;
-        if (check)
-            prevc = 0;
-        else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
-            if (isKanji1(c) && prevc == 0) {
-                prevc = c;
-                return;
-            } else if (isKanji2(c) && prevc > 1) {
                 bmp = GetDbcsFont(prevc*0x100+c);
-                prevc = 1;
-            } else
-                prevc = 0;
+            prevc = 1;
         } else
             prevc = 0;
-        if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
-            bmp = (unsigned char*)int10_font_16_init + (c * fontHeight);
-        else if (!prevc)
-            bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
+    } else
+        prevc = 0;
 
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
         assert(sdl.surface->pixels != NULL);
 
         if (x < 0 || y < 0)
@@ -2603,12 +2660,17 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             return;
 
         for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += y * sdl.surface->pitch;
             scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
 
             for (unsigned int row=0;row < (fontHeight*2);row++) {
-                unsigned char rb = bmp[prevc?((row>>1U)*2+i):(row>>1U)];
+                unsigned char rb = bmp[prevc==1?((row>>1U)*2+i):(row>>1U)];
 
                 if (sdl.surface->format->BitsPerPixel == 32) {
                     uint32_t *dp = (uint32_t*)scan;
@@ -2639,8 +2701,8 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             }
             x += (int)mainMenu.fontCharWidth;
         }
-        prevc = 0;
     }
+    prevc = 0;
 }
 
 void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {

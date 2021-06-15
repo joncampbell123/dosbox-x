@@ -33,9 +33,9 @@
     for the TrueType font (TTF) output too. This option
     is now enabled by default for JP mode. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
-    characters in the SDL-drawn menu (except for OpenGL
-    outputs, where only SBCS code pages are supported)
-    and Configuration Tool interface (so for example
+    characters in the SDL-drawn menu (and characters in
+    different SBCS code pages in OpenGL outputs) and
+    the Configuration Tool interface (so for example
     the DOS command help will show correctly). You can
     change the DBCS font used by the Configuration Tool
     interface via jdbcsfont14 config option. (Wengier)

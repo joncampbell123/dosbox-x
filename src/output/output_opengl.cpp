@@ -88,7 +88,7 @@ extern unsigned int SDLDrawGenFontTextureUnitPerRow;
 extern unsigned int SDLDrawGenFontTextureRows;
 extern unsigned int SDLDrawGenFontTextureWidth;
 extern unsigned int SDLDrawGenFontTextureHeight;
-extern GLuint SDLDrawGenFontTexture;
+extern GLuint SDLDrawGenFontTexture, SDLDrawGenDBCSFontTexture;
 extern bool SDLDrawGenFontTextureInit;
 #endif
 extern int initgl, lastcp;
@@ -101,6 +101,7 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 bool InitCodePage();
+uint8_t *GetDbcsFont(Bitu code);
 
 // NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
 //      this works better with maximized window or full-screen mode and the
@@ -476,6 +477,7 @@ static bool LoadGLShaders(const char *src, GLuint *vertex, GLuint *fragment) {
 	return false;
 }
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 void UpdateSDLDrawTexture() {
     glBindTexture(GL_TEXTURE_2D, SDLDrawGenFontTexture);
 
@@ -517,6 +519,45 @@ void UpdateSDLDrawTexture() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+void UpdateSDLDrawDBCSTexture(Bitu code) {
+    glBindTexture(GL_TEXTURE_2D, SDLDrawGenDBCSFontTexture);
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, 0);
+
+    // No borders
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+
+    /* load the font */
+    {
+        int cp = dos.loaded_codepage;
+        if (!cp) InitCodePage();
+        uint32_t tmp[8 * 16];
+        unsigned int x, y, c;
+
+        for (c = 0; c < 2; c++)
+        {
+            unsigned char *bmp = GetDbcsFont(code);
+            for (y = 0; y < 16; y++)
+                for (x = 0; x < 8; x++)
+                    tmp[(y * 8) + x] = (bmp[y*2+c] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
+
+            glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)((c % 16) * 8), /*y*/(int)((c / 16) * 16),
+                8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
+        }
+        lastcp = dos.loaded_codepage;
+        dos.loaded_codepage = cp;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+#endif
 
 Bitu OUTPUT_OPENGL_SetSize()
 {
@@ -832,7 +873,12 @@ Bitu OUTPUT_OPENGL_SetSize()
 
         UpdateSDLDrawTexture();
     }
-    // }
+
+    err = 0;
+    glGetError(); /* read and discard last error */
+
+    SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
+    glGenTextures(1, &SDLDrawGenDBCSFontTexture);
 #endif
 
     glFinish();
