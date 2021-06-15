@@ -21,12 +21,12 @@
 #endif
 
 #include "SDL.h"
+
+#include "dosbox.h"
 #include "menu.h"
 #include "../libs/gui_tk/gui_tk.h"
 
 #include "build_timestamp.h"
-
-#include "dosbox.h"
 #include "keyboard.h"
 #include "video.h"
 #include "render.h"
