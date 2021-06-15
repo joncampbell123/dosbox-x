@@ -93,7 +93,7 @@ bool nowarn = false;
 extern int lastcp;
 extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), change_output(int output);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), UpdateSDLDrawTexture();
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -5990,7 +5990,7 @@ void KEYB::Run(void) {
                 runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+                UpdateSDLDrawTexture();
 #endif
                 return;
             }

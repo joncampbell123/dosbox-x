@@ -46,7 +46,7 @@ int setTTFCodePage(void);
 bool TTF_using(void);
 #endif
 bool OpenGL_using(void), isDBCSCP(void);
-void change_output(int output), JFONT_Init(void);
+void change_output(int output), JFONT_Init(void), UpdateSDLDrawTexture();
 extern bool jfont_init;
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
@@ -1090,7 +1090,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			INT10_SetupRomMemoryChecksum();
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+                UpdateSDLDrawTexture();
 #endif
 
 			return KEYB_NOERROR;
@@ -1149,7 +1149,13 @@ Bitu keyboard_layout::switch_keyboard_layout(const char* new_layout, keyboard_la
 	} else if (this->use_foreign_layout) {
 		// switch to the US layout
 		this->use_foreign_layout=false;
-		if (tried_cp < 0) dos.loaded_codepage = 437;
+		if (tried_cp < 0) {
+            dos.loaded_codepage = 437;
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                UpdateSDLDrawTexture();
+#endif
+        }
 		diacritics_character=0;
 		LOG(LOG_BIOS,LOG_NORMAL)("Switched to US layout");
 	}
@@ -1450,7 +1456,7 @@ public:
 #endif
 		}
 
-		bool extract_codepage = true;
+		bool extract_codepage = !tocp;
 		if (wants_dos_codepage>0) {
 			if ((loaded_layout->read_codepage_file("auto", (int32_t)wants_dos_codepage)) == KEYB_NOERROR) {
 				// preselected codepage was successfully loaded
@@ -1466,11 +1472,11 @@ public:
 /*		if (strncmp(layoutname,"auto",4) && strncmp(layoutname,"none",4)) {
 			LOG_MSG("Loading DOS keyboard layout %s ...",layoutname);
 		} */
-		if (loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage)) {
+		if (!tocp && loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage)) {
 			if (strncmp(layoutname,"auto",4)) {
 				LOG_MSG("Error loading keyboard layout %s",layoutname);
 			}
-		} else {
+		} else if (!tocp) {
 			const char* lcode = loaded_layout->main_language_code();
 			if (lcode) {
 				LOG_MSG("DOS keyboard layout loaded with main language code %s for layout %s",lcode,layoutname);
@@ -1486,7 +1492,7 @@ public:
             DOSBox_SetSysMenu();
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                change_output(sdl_opengl.kind == GLNearest ? 4 : (sdl_opengl.kind == GLPerfect ? 5 : 3));
+                UpdateSDLDrawTexture();
 #endif
         }
 	}
