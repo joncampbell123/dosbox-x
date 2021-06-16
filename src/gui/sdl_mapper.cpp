@@ -3755,7 +3755,7 @@ static void CreateLayout(void) {
         }
     }
     bind_but.prevpage=new CBindButton(280,388,130,BH,MSG_Get("PREVIOUS_PAGE"),BB_Prevpage);
-    bind_but.nextpage=new CBindButton(470,388,100,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
+    bind_but.nextpage=new CBindButton(470,388,130,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
     bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
     bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
     if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
