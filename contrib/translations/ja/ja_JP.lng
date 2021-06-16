@@ -3294,7 +3294,7 @@ FM/OPL 出力を保存
 クリップボードにコピー
 .
 :MAPPER:cycauto
-サイクル自動設定切替
+サイクル自動設定 切替
 .
 :MAPPER:debugger
 デバッガーを表示

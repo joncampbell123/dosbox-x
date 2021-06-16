@@ -3520,9 +3520,8 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
 
     /* Arrow Keys */
-#define XO 18
+#define XO 19
 #define YO 0
-
     AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
     AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
     AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
@@ -3532,14 +3531,12 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"DEL","delete",KBD_delete);
     AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"END","end",KBD_end);
     AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"PDN","pagedown",KBD_pagedown);
-    AddKeyButtonEvent(PX(XO-4),PY(YO),BW,BH,"NEQ","kp_equals",KBD_kpequals);
+    AddKeyButtonEvent(PX(XO-2),PY(YO+3),BW,BH,"NEQ","kp_equals",KBD_kpequals);
     AddKeyButtonEvent(PX(XO-2),PY(YO),BW,BH,"\x18 U","up",KBD_up);
     AddKeyButtonEvent(PX(XO-3),PY(YO+1),BW,BH,"\x1B L","left",KBD_left);
     AddKeyButtonEvent(PX(XO-2),PY(YO+1),BW,BH,"\x19 D","down",KBD_down);
     AddKeyButtonEvent(PX(XO-1),PY(YO+1),BW,BH,"\x1A R","right",KBD_right);
-#undef XO
 #undef YO
-#define XO 18
 #define YO 5
 	/* Mouse Buttons */
 	new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Mouse keys");
@@ -3743,7 +3740,7 @@ static void CreateLayout(void) {
         if ((xpos+columns-1)>6) {
             xpos=3;ypos++;
         }
-        CEventButton *button=new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
+        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5?BW/2:0),PY(ypos),BW*3*columns+BW/2,BH,(*hit)->ButtonName(),(*hit));
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
         button->Enable(page==cpage);
@@ -3793,7 +3790,7 @@ static void CreateLayout(void) {
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(330, 444, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(390, 444, 310, 20); // right next to the Save button
     bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
