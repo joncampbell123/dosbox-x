@@ -2575,7 +2575,7 @@ public:
         bar->addItem(0,"");
         bar->addItem(0,MSG_Get("CLOSE"));
         bar->addMenu(MSG_Get("SETTINGS"));
-        bar->addMenu(MSG_Get("HELP"));
+        bar->addMenu(mainMenu.get_item("HelpMenu").get_text().c_str());
         bar->addItem(2,MSG_Get("VISIT_HOMEPAGE"));
         bar->addItem(2,"");
         if (!dos_kernel_disabled) {
@@ -2585,7 +2585,7 @@ public:
             bar->addItem(2,"");
         }
         bar->addItem(2,MSG_Get("INTRODUCTION"));
-        bar->addItem(2,MSG_Get("ABOUT"));
+        bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
         new GUI::Label(this, 10, 30, MSG_Get("CONFIGURE_GROUP"));
@@ -2653,8 +2653,8 @@ public:
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
-        strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        strcpy(tmp2, (MSG_Get("SAVE_LANGUAGE")+std::string("...")).c_str());
+        strcpy(tmp1, mainMenu.get_item("help_about").get_text().c_str());
+        strcpy(tmp2, (MSG_Get("SAVE")+std::string("...")).c_str());
         if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) {
             running = false;
         } else if (sname == "autoexec") {
@@ -2702,12 +2702,12 @@ public:
 #elif defined(MACOSX)
             system(("open "+url).c_str());
 #endif
-        } else if (arg == MSG_Get("ABOUT")) {
+        } else if (arg == tmp1) {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, (MSG_Get("ABOUT")+std::string(" DOSBox-X")).c_str(), aboutmsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>330?(parent->getWidth()-330)/2:0, 150, 340, mainMenu.get_item("help_about").get_text().c_str(), aboutmsg);
         } else if (arg == MSG_Get("INTRODUCTION")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, MSG_Get("INTRODUCTION"), MSG_Get("INTRO_MESSAGE"));
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, mainMenu.get_item("help_intro").get_text().c_str(), MSG_Get("INTRO_MESSAGE"));
         } else if (arg == MSG_Get("GET_STARTED")) {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -2722,15 +2722,17 @@ public:
         } else if (arg == MSG_Get("CDROM_SUPPORT")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>640?(parent->getWidth()-640)/2:0, 50, 640, MSG_Get("CDROM_SUPPORT"), MSG_Get("PROGRAM_INTRO_CDROM"));
-        } else if (arg == tmp1) {
+        } else if (arg == tmp2) {
             strcpy(tmp1, (MSG_Get("SAVE_CONFIGURATION")+std::string("...")).c_str());
             auto *np = new SaveDialog(getScreen(), 50, 100, tmp1);
             np->raise();
-        } else if (arg == tmp2) {
-            auto *np = new SaveLangDialog(getScreen(), 90, 100, tmp2);
-            np->raise();
         } else {
-            return ToplevelWindow::actionExecuted(b, arg);
+            strcpy(tmp2, (MSG_Get("SAVE_LANGUAGE")+std::string("...")).c_str());
+            if (arg == tmp2) {
+                auto *np = new SaveLangDialog(getScreen(), 90, 100, tmp2);
+                np->raise();
+            } else
+                return ToplevelWindow::actionExecuted(b, arg);
         }
     }
 };
@@ -2956,11 +2958,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np10->raise();
             } break;
         case 34: {
-            auto *np11 = new ShowHelpIntro(screen, 70, 70, MSG_Get("INTRODUCTION_TO"));
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, mainMenu.get_item("help_intro").get_text().c_str());
             np11->raise();
             } break;
         case 35: {
-            auto *np12 = new ShowHelpAbout(screen, 110, 70, (MSG_Get("ABOUT")+std::string(" DOSBox-X")).c_str());
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, mainMenu.get_item("help_about").get_text().c_str());
             np12->raise();
             } break;
         case 36: {

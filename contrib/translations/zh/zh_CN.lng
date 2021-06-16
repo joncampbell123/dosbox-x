@@ -51,14 +51,14 @@ DOSBox-X 配置工具
 :NEXT
 下个
 .
-:CAPT
-捕获
+:SAVE
+保存
 .
 :EXIT
 退出
 .
-:SAVE
-保存
+:CAPTURE
+捕获
 .
 :SAVE_CONFIGURATION
 保存配置
@@ -99,9 +99,6 @@ DOSBox-X 配置工具
 :SETTINGS
 设置
 .
-:HELP
-帮助
-.
 :VISIT_HOMEPAGE
 访问主页
 .
@@ -141,14 +138,8 @@ MIDI 设备配置信息
 :PRINTER_LIST
 打印机设备列表
 .
-:INTRODUCTION_TO
-DOSBox-X 介绍
-.
 :INTRODUCTION
 介绍
-.
-:ABOUT
-关于
 .
 :CONFIGURE_GROUP
 选择设置组进行配置:
@@ -220,6 +211,12 @@ IDE 位置
 .
 :SELECT_DIFFERENT_EVENT
 选择另一个事件或者按加入/删除/下个按钮.
+.
+:PRESS_JOYSTICK_KEY
+按键盘上的键/游戏杆按钮或者移动游戏杆.
+.
+:CAPTURE_ENABLED
+捕获已启用. 按 ESC 键停止捕获.
 .
 :MAPPER_FILE_SAVED
 按键配置文件已保存

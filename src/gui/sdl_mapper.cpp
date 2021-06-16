@@ -2328,7 +2328,7 @@ public:
         case BB_Add: 
             mapper.addbind=true;
             SetActiveBind(0);
-            change_action_text("Press a key/joystick button or move the joystick.",CLR_RED);
+            change_action_text(MSG_Get("PRESS_JOYSTICK_KEY"),CLR_RED);
             break;
         case BB_Del:
             assert(mapper.aevent != NULL);
@@ -2368,7 +2368,7 @@ public:
             break;
         case BB_Capture:
             GFX_CaptureMouse();
-            if (mouselocked) change_action_text("Capture enabled. Hit ESC to release capture.",CLR_WHITE);
+            if (mouselocked) change_action_text(MSG_Get("CAPTURE_ENABLED"),CLR_WHITE);
             break;
         }
     }
@@ -3786,9 +3786,9 @@ static void CreateLayout(void) {
     bind_but.del=new CBindButton(70,384,50,BH,MSG_Get("DEL"),BB_Del);
     bind_but.next=new CBindButton(120,384,50,BH,MSG_Get("NEXT"),BB_Next);
 
-    bind_but.save=new CBindButton(180,444,50,BH,MSG_Get("SAVE"),BB_Save);
-    bind_but.exit=new CBindButton(230,444,50,BH,MSG_Get("EXIT"),BB_Exit);
-    bind_but.cap=new CBindButton(280,444,50,BH,MSG_Get("CAPT"),BB_Capture);
+    bind_but.save=new CBindButton(180,444,60,BH,MSG_Get("SAVE"),BB_Save);
+    bind_but.exit=new CBindButton(240,444,60,BH,MSG_Get("EXIT"),BB_Exit);
+    bind_but.cap=new CBindButton(300,444,85,BH,MSG_Get("CAPTURE"),BB_Capture);
 
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
@@ -5222,7 +5222,7 @@ void update_bindbutton_text() {
     if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
     if (bind_but.save) bind_but.save->SetText(MSG_Get("SAVE"));
     if (bind_but.exit) bind_but.exit->SetText(MSG_Get("EXIT"));
-    if (bind_but.cap) bind_but.cap->SetText(MSG_Get("CAPT"));
+    if (bind_but.cap) bind_but.cap->SetText(MSG_Get("CAPTURE"));
 }
 
 void set_eventbutton_text(const char *eventname, const char *buttonname) {

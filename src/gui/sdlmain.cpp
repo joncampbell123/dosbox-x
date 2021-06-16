@@ -2734,10 +2734,11 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
             MenuDrawTextChar(x,y,(unsigned char)(*text++),color,check);
     }
     if (prevc>1) {
+        prevc = 0;
         if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,prevc,color,check);
+            MenuDrawTextChar2x(x,y,prevc,color,true);
         else
-            MenuDrawTextChar(x,y,prevc,color,check);
+            MenuDrawTextChar(x,y,prevc,color,true);
     }
     prevc = 0;
 #if C_OPENGL

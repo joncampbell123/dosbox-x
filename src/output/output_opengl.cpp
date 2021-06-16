@@ -84,8 +84,6 @@ PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer = NULL;
 #define glVertexAttribPointer     gl2::glVertexAttribPointer
 
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-extern unsigned int SDLDrawGenFontTextureUnitPerRow;
-extern unsigned int SDLDrawGenFontTextureRows;
 extern unsigned int SDLDrawGenFontTextureWidth;
 extern unsigned int SDLDrawGenFontTextureHeight;
 extern GLuint SDLDrawGenFontTexture, SDLDrawGenDBCSFontTexture;
@@ -548,7 +546,7 @@ void UpdateSDLDrawDBCSTexture(Bitu code) {
                 for (x = 0; x < 8; x++)
                     tmp[(y * 8) + x] = (bmp[y*2+c] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
 
-            glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)((c % 16) * 8), /*y*/(int)((c / 16) * 16),
+            glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)(c * 8), /*y*/0,
                 8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
         }
         lastcp = dos.loaded_codepage;

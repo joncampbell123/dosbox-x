@@ -52,14 +52,14 @@ OK
 :NEXT
 次
 .
-:CAPT
-キャプチャ
+:SAVE
+保存
 .
 :EXIT
 終了
 .
-:SAVE
-保存
+:CAPTURE
+キャプチャ
 .
 :SAVE_CONFIGURATION
 設定を保存
@@ -100,9 +100,6 @@ OK
 :SETTINGS
 設定
 .
-:HELP
-ヘルプ
-.
 :VISIT_HOMEPAGE
 ホームページ
 .
@@ -112,14 +109,38 @@ OK
 :CDROM_SUPPORT
 CD-ROM サポート
 .
+:DRIVE_INFORMATION
+ドライブ情報
+.
+:MOUNTED_DRIVE_NUMBER
+マウントされたドライブ数
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE コントローラ接続状態
+.
+:HELP_COMMAND
+DOS コマンドのヘルプ
+.
+:CURRENT_VOLUME
+現在の音量ミキサの設定
+.
+:CURRENT_SBCONFIG
+現在の Sound Blaster 設定
+.
+:CURRENT_MIDICONFIG
+現在の MIDI 設定
+.
+:CREATE_IMAGE
+空のディスクイメージ作成
+.
+:NETWORK_LIST
+ネットワークインターフェース一覧
+.
+:PRINTER_LIST
+プリンタデバイス一覧
+.
 :INTRODUCTION
 紹介
-.
-:INTRODUCTION_TO
-DOSBox-X 紹介
-.
-:ABOUT
-について
 .
 :CONFIGURE_GROUP
 設定するグループを選択:
@@ -191,6 +212,12 @@ IDE ポジション
 .
 :SELECT_DIFFERENT_EVENT
 イベントを選択または、追加/削除/次ボタンを押してください
+.
+:PRESS_JOYSTICK_KEY
+キー/ボタンを押すか、ジョイスティックを動かします
+.
+:CAPTURE_ENABLED
+キャプチャしています。ESCで終了します。
 .
 :MAPPER_FILE_SAVED
 マッバーファイルを保存しました
@@ -3267,7 +3294,7 @@ FM/OPL 出力を保存
 クリップボードにコピー
 .
 :MAPPER:cycauto
-サイクル自動設定 切替
+サイクル自動設定切替
 .
 :MAPPER:debugger
 デバッガーを表示

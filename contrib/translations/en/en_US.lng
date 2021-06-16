@@ -47,14 +47,14 @@ Del
 :NEXT
 Next
 .
-:CAPT
-Capt
+:SAVE
+Save
 .
 :EXIT
 Exit
 .
-:SAVE
-Save
+:CAPTURE
+Capture
 .
 :SAVE_CONFIGURATION
 Save configuration
@@ -95,9 +95,6 @@ Configuration
 :SETTINGS
 Settings
 .
-:HELP
-Help
-.
 :VISIT_HOMEPAGE
 Visit Homepage
 .
@@ -137,14 +134,8 @@ Network interface list
 :PRINTER_LIST
 Printer device list
 .
-:INTRODUCTION_TO
-Introduction to DOSBox-X
-.
 :INTRODUCTION
 Introduction
-.
-:ABOUT
-About
 .
 :CONFIGURE_GROUP
 Choose a settings group to configure:
@@ -214,6 +205,12 @@ Select an event to change.
 .
 :SELECT_DIFFERENT_EVENT
 Select a different event or hit the Add/Del/Next buttons.
+.
+:PRESS_JOYSTICK_KEY
+Press a key/joystick button or move the joystick.
+.
+:CAPTURE_ENABLED
+Capture enabled. Hit ESC to release capture.
 .
 :MAPPER_FILE_SAVED
 Mapper file saved
