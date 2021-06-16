@@ -4631,6 +4631,20 @@ void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("MapperMenu");
+        item.set_text(mainMenu.get_item("mapper_mapper").get_text());
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("ExitMapper");
+        item.set_text(MSG_Get("MAPPER_EDITOR_EXIT"));
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
+        item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
+    }
     mapperMenu.rebuild();
 #endif
 
@@ -5080,19 +5094,19 @@ void MAPPER_StartUp() {
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MapperMenu");
-        item.set_text("Mapper");
+        item.set_text(mainMenu.get_item("mapper_mapper").get_text());
     }
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
         item.set_callback_function(mapper_menu_exit);
-        item.set_text("Exit mapper");
+        item.set_text(MSG_Get("MAPPER_EDITOR_EXIT"));
     }
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
         item.set_callback_function(mapper_menu_save);
-        item.set_text("Save mapper file");
+        item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
 
     mapperMenu.displaylist_clear(mapperMenu.display_list);

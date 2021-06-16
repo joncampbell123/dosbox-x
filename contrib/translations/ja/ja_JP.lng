@@ -25,6 +25,12 @@ DOSBox-X 設定ツール
 :CONFIG_TOOL_EXIT
 設定ツールを終了する
 .
+:MAPPER_EDITOR_EXIT
+マッパーエディター終了する
+.
+:SAVE_MAPPER_FILE
+マッパーファイルを保存
+.
 :WARNING
 注意
 .

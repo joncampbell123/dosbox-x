@@ -24,6 +24,12 @@ DOSBox-X 配置工具
 :CONFIG_TOOL_EXIT
 退出配置工具
 .
+:MAPPER_EDITOR_EXIT
+退出按键编辑
+.
+:SAVE_MAPPER_FILE
+保存按键配置文件
+.
 :WARNING
 警告
 .

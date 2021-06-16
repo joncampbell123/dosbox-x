@@ -4420,6 +4420,8 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
     MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
     MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
+    MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
+    MSG_Add("SAVE_MAPPER_FILE","Save mapper file");
     MSG_Add("WARNING","Warning");
     MSG_Add("YES","Yes");
     MSG_Add("NO","No");

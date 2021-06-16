@@ -20,6 +20,12 @@ DOSBox-X Configuration Tool
 :CONFIG_TOOL_EXIT
 Exit configuration tool
 .
+:MAPPER_EDITOR_EXIT
+Exit mapper editor
+.
+:SAVE_MAPPER_FILE
+Save mapper file
+.
 :WARNING
 Warning
 .
