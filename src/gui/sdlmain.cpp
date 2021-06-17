@@ -271,7 +271,7 @@ extern bool has_touch_bar_support;
 bool macosx_detect_nstouchbar(void);
 void macosx_init_touchbar(void);
 void macosx_GetWindowDPI(ScreenSizeInfo &info);
-bool macosx_yesno(const char *title, const char *message);
+int macosx_yesno(const char *title, const char *message);
 int macosx_yesnocancel(const char *title, const char *message);
 std::string macosx_prompt_folder(const char *default_folder);
 void GetClipboard(std::string* result);
@@ -12705,14 +12705,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(MACOSX)
             std::string path = macosx_prompt_folder(default_folder);
             if (path.empty()) {
-                if (macosx_yesno("Run DOSBox-X?", quitstr)==1001) {
+                if (!macosx_yesno("Run DOSBox-X?", quitstr)) {
                     fprintf(stderr,"No path chosen by user, exiting\n");
                     return 1;
                 }
             } else if (workdiropt == "default") {
                 int ans=macosx_yesnocancel("DOSBox-X working directory", confirmstr);
-                if (ans == 1000) {workdirsave=1;workdirsaveas=path;}
-                else if (ans == 1001) workdirsave=2;
+                if (ans == 1) {workdirsave=1;workdirsaveas=path;}
+                else if (ans == 0) workdirsave=2;
             }
 #elif defined(WIN32) && !defined(HX_DOS)
             std::wstring path = win32_prompt_folder(default_folder);

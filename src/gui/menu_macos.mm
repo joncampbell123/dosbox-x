@@ -635,7 +635,8 @@ int macosx_yesno(const char *title, const char *message) {
     [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
     [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
     [alert setAlertStyle:NSInformationalAlertStyle];
-    return [alert runModal];
+    int res = [alert runModal];
+    return res==NSAlertFirstButtonReturn?1:0;
 }
 
 int macosx_yesnocancel(const char *title, const char *message) {
@@ -646,5 +647,6 @@ int macosx_yesnocancel(const char *title, const char *message) {
     [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
     [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
     [alert setAlertStyle:NSInformationalAlertStyle];
-    return [alert runModal];
+    int res = [alert runModal];
+    return res==NSAlertFirstButtonReturn?1:(res==NSAlertSecondButtonReturn?0:-1);
 }
