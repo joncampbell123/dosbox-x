@@ -21,10 +21,10 @@ Herramienta de configuración de DOSBox-X
 Salir de la herramienta de configuración
 .
 :MAPPER_EDITOR_EXIT
-Exit mapper editor
+Abandonar editor de mapeo
 .
 :SAVE_MAPPER_FILE
-Save mapper file
+Salvar archivo de mapeo
 .
 :WARNING
 Aviso
@@ -39,28 +39,28 @@ No
 Aceptar
 .
 :CANCEL
-Cancela
+Cancelar
 .
 :CLOSE
 Cerrar
 .
 :ADD
-Add
+Añadir
 .
 :DEL
-Del
+Suprimir
 .
 :NEXT
-Next
+Siguiente
 .
 :SAVE
 Guardar
 .
 :EXIT
-Exit
+Salir
 .
 :CAPTURE
-Capture
+Capturar
 .
 :SAVE_CONFIGURATION
 Guarda configuración
@@ -111,34 +111,34 @@ Primeros pasos en DosBox-X
 Soporte de CD-ROM
 .
 :DRIVE_INFORMATION
-Drive information
+Información de unidad
 .
 :MOUNTED_DRIVE_NUMBER
-Mounted drive numbers
+Nº de unidad montada
 .
 :IDE_CONTROLLER_ASSIGNMENT
-IDE controller assignment
+Asignación de controlador IDE
 .
 :HELP_COMMAND
-Help on DOS command
+Ayuda de comandos DOS
 .
 :CURRENT_VOLUME
-Current sound mixer volumes
+Valores actuales del mezclador
 .
 :CURRENT_SBCONFIG
-Sound Blaster configuration
+Configuración de Sound Blaster
 .
 :CURRENT_MIDICONFIG
-Current MIDI configuration
+Configuración actual de MIDI
 .
 :CREATE_IMAGE
-Create blank disk image
+Crear imagen de disco en blanco
 .
 :NETWORK_LIST
-Network interface list
+Lista de adaptadores de red
 .
 :PRINTER_LIST
-Printer device list
+Lista de dispositivos de impresión
 .
 :INTRODUCTION
 Introducción
@@ -201,25 +201,25 @@ Slot vacío
 Slot
 .
 :PREVIOUS_PAGE
-< Previous Page
+< Pág anterior
 .
 :NEXT_PAGE
-    Next Page >
+Pág siguiente >
 .
 :SELECT_EVENT
-Select an event to change.
+Elige evento a cambiar.
 .
 :SELECT_DIFFERENT_EVENT
-Select a different event or hit the Add/Del/Next buttons.
+Usa otro evento o usa Add/Del/Next.
 .
 :PRESS_JOYSTICK_KEY
-Press a key/joystick button or move the joystick.
+Pulsa una tecla o usa el joystick.
 .
 :CAPTURE_ENABLED
-Capture enabled. Hit ESC to release capture.
+Captura activada. Pulsa ESC para liberar.
 .
 :MAPPER_FILE_SAVED
-Mapper file saved
+Archivo de mapeado guardado.
 .
 :AUTO_CYCLE_MAX
 Ciclos automáticos [máximo]
@@ -1669,10 +1669,10 @@ Edicion rápida: Copiar texto al seleccionar y pegarlo
 Copiar todo el texto de la ventana DOS
 .
 :MENU:mapper_paste
-Pegar desde el portapapeles
+Pegar desde portapapeles
 .
 :MENU:mapper_pasteend
-Detener el pegado del portapapeles
+Detener pegado de portapapeles
 .
 :MENU:mapper_pause
 Pausar emulación
@@ -1684,19 +1684,19 @@ Pausar con interrupciones activadas
 Herramienta de configuración
 .
 :MENU:mapper_mapper
-Editor de Mapper
+Editor de mapeador
 .
 :MENU:mapper_fullscr
-Pasar a pantalla completa
+Pantalla completa
 .
 :MENU:mapper_resetsize
 Restaurar ventana
 .
 :MENU:mapper_incsize
-Aumentar tamaño de fuente TTF
+Aumentar tamaño TTF
 .
 :MENU:mapper_decsize
-Reducir tamaño de fuente TTF
+Reducir tamaño TTF
 .
 :MENU:mapper_togmenu
 Ocultar/mostrar barra de menú
@@ -2350,10 +2350,10 @@ Guía Wiki de DOSBox-X
 Soporte de DOSBox-X
 .
 :MENU:help_nic
-Lista de interfaces de red
+Lista de dispositivos de red
 .
 :MENU:help_prt
-Lista de dispositivos de impresora
+Lista de dispositivos de impresión
 .
 :MENU:help_about
 Acerca de DOSBox-X
@@ -2521,7 +2521,7 @@ Registrar llamadas INT 21h
 Archivo de registros E/S
 .
 :MENU:mapper_speedlock2
-Modo Turbo   (Avance rápido)
+Modo Turbo (Avance rápido)
 .
 :MENU:mapper_speednorm
 Normal
@@ -2551,13 +2551,13 @@ Seleccionar slot de guardado anterior
 Seleccionar slot de guardado siguiente
 .
 :MENU:mapper_decfskip
-Disminuir salto de fotogramas
+Reducir frameskip
 .
 :MENU:mapper_incfskip
-Incrementar salto de fotogramas
+Aumentar frameskip
 .
 :MENU:mapper_aspratio
-Ajustar a relación de aspecto
+Relación de aspecto
 .
 :MENU:mapper_recwave
 Grabar audio en WAV
@@ -2668,16 +2668,16 @@ Depuración de cambio de página
 Mejoras en traceado de debug
 .
 :MENU:mapper_swapimg
-Intercambiar disqueteras
+Intercambiar FDD
 .
 :MENU:mapper_swapcd
-Intercambiar unidad de CD
+Intercambiar CDROMs
 .
 :MENU:mapper_ejectpage
-Enviar salto de página (Form-feed)
+Enviar Form-feed
 .
 :MENU:mapper_rescanall
-Volver a escanear todas las unidades
+Actualizar unidades
 .
 :MENU:hostkey_mapper
 Definido por Mapeador: F11
@@ -2811,84 +2811,87 @@ Mostrar número de las unidades montadas
 :MENU:list_ideinfo
 Mostrar estado de disco IDE o CD
 .
+:MENU:print_textscreen
+Imprimir texto de pantalla DOS
+.
 :MENU:pc98_use_uskb
 Usar distribución de teclado US
 .
 :MAPPER:caprawopl
-Record FM/OPL output
+Graba salida FM/OPL
 .
 :MAPPER:copyall
-Copy to clipboard
+Copia a portapapeles
 .
 :MAPPER:cycauto
-Toggle auto cycles
+Activa auto ciclos
 .
 :MAPPER:debugger
-Show debugger
+Activa depurador
 .
 :MAPPER:decsize
-Decrease TTF size
+Reducir tamaño TTF
 .
 :MAPPER:dynamic
-CPU: dynamic core
+CPU: Core dinámico
 .
 :MAPPER:fastedit
-Quick edit mode
+Edición rápida
 .
 :MAPPER:full
 CPU: full core
 .
 :MAPPER:incsize
-Increase TTF size
+Aumentar tamaño TTF
 .
 :MAPPER:loadmap
-Load mapper file
+Carga archivo mapper
 .
 :MAPPER:nextslot
-Next save slot
+Slot guardado sig.
 .
 :MAPPER:normal
 CPU: normal core
 .
 :MAPPER:paste
-Paste from clipboard
+Pegar portapapeles
 .
 :MAPPER:pasteend
-Stop clipboard paste
+Detener portapapeles
 .
 :MAPPER:pauseints
-Pause with interrupt
+Pausa con interrupción
 .
 :MAPPER:prevslot
-Previous save slot
+Slot guardado previo
 .
 :MAPPER:quickrun
-Quick launch program
+Lanzar prog. rápido
 .
 :MAPPER:reboot
-Reboot DOS system
+Reinicia sistema DOS
 .
 :MAPPER:recmtwave
-Record to M.T. AVI
+Grabar a M.T. AVI
 .
 :MAPPER:recvoldown
-Decrease rec. volume
+Bajar vol. grabación
 .
 :MAPPER:recvolup
-Increase rec. volume
+Subir vol. grabación
 .
 :MAPPER:rescanall
-Rescan drives
+Actualizar unidades
 .
 :MAPPER:reset
-Reset DOSBox-X
+Resetea DOSBox-X
 .
 :MAPPER:showstate
-Display state info
+Ver info de estado
 .
 :MAPPER:simple
-CPU: simple core
+CPU: núcleo simple
 .
 :MAPPER:togmenu
-Toggle menu bar
+Activar barra de menú
 .

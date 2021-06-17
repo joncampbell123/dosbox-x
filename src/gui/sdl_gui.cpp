@@ -118,7 +118,7 @@ void                        WindowsTaskbarResetPreviewRegion(void);
 void                        macosx_reload_touchbar(void);
 #endif
 
-char tmp1[CROSS_LEN], tmp2[CROSS_LEN];
+char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
 	"64"
@@ -1003,7 +1003,7 @@ public:
         setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("HELP"), button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
 
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
@@ -1081,8 +1081,9 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        strcpy(tmp1, mainMenu.get_item("HelpMenu").get_text().c_str());
         if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
-        else if (arg == MSG_Get("HELP")) {
+        else if (arg == tmp1) {
             std::vector<GUI::Char> new_cfg_sname;
 
             if (!cfg_sname.empty()) {
