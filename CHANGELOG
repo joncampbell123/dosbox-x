@@ -21,8 +21,8 @@
     to only log DOS console outputs. (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool and Mapper Editor interfaces.
-    The size/position of some buttons in Configuration
-    Tool are adjusted accordingly as well. (Wengier)
+    The sizes and/or positions of some buttons in these
+    interfaces are adjusted accordingly too. (Wengier)
   - Config option "usescancodes=auto" now implies false
     for PC-98 mode in SDL1 builds. (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
@@ -58,6 +58,9 @@
     (and jfontsbcs19, jfontdbcs24, etc) config options
     in [render] section of config file, or the default
     fonts will be used for them. (Wengier)
+  - Fixed a bug which may lead to crash when pasting
+    text via the DOS clipboard API (e.g. the 4DOS CLIP:
+    device) in non-Windows platforms. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
