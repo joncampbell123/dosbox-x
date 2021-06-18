@@ -33,6 +33,7 @@
 #include "mapper.h"
 #include "pic.h"
 #include "hardware.h"
+#include "logging.h"
 #include "timer.h"
 
 #define RAWBUF	1024
