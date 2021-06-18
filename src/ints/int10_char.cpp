@@ -1316,11 +1316,21 @@ void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt 
     while (count>0) {
         uint8_t chr=mem_readb(string);
         string++;
-        if (flag&2) {
+        if ((flag & 2) != 0 || (DOSV_CheckCJKVideoMode() && flag == 0x20)) {
             attr=mem_readb(string);
             string++;
         }
-        INT10_TeletypeOutputAttr(chr,attr,true,page);
+        if (DOSV_CheckCJKVideoMode() && flag == 0x20) {
+            WriteChar(col, row, page, chr, attr, true);
+            col++;
+            if (col == real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)) {
+                col = 0;
+                if(row == real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1)
+                    break;
+                row++;
+            }
+        } else
+            INT10_TeletypeOutputAttr(chr,attr,true,page);
         count--;
     }
     if (!(flag&1)) {

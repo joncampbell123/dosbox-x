@@ -285,7 +285,7 @@ static bool check_key(uint16_t &code) {
 }
 
 void trimKana(void) {
-    Bit8u kana_status = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS);
+    uint8_t kana_status = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS);
     if (kana_status & 0x02) { //Kana locked
         LOG(LOG_KEYBOARD, LOG_NORMAL)("Kana shift OFF");
         mem_writeb(BIOS_KEYBOARD_AX_KBDSTATUS, 0xfc & kana_status);//Kana status LED=on and Shift=on
