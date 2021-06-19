@@ -2079,7 +2079,7 @@ command-name | MORE [drive:][path][filename]
 
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME file
+TRUENAME [/H] file
 
 .
 :SHELL_CMD_DXCAPTURE_HELP

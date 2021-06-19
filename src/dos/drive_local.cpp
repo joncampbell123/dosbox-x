@@ -131,6 +131,7 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
+static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe, isDBCSCP();
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
@@ -1384,6 +1385,18 @@ bool localDrive::GetFileAttrEx(char* name, struct stat *status) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 	return !stat(newname,status);
+}
+
+std::string localDrive::GetHostName(const char * name) {
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+	ht_stat_t temp_stat;
+	hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
+	return hostname;
 }
 
 unsigned long localDrive::GetCompressedSize(char* name) {
@@ -4709,6 +4722,31 @@ bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 	return localDrive::GetFileAttr(name,attr);
 }
 
+std::string Overlay_Drive::GetHostName(const char * name) {
+	char overlayname[CROSS_LEN];
+	strcpy(overlayname,overlaydir);
+	strcat(overlayname,name);
+	CROSS_FILENAME(overlayname);
+	ht_stat_t temp_stat;
+	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
+	if (host_name != NULL && ht_stat(host_name ,&temp_stat)==0) {
+        hostname = overlayname;
+        return hostname;
+    }
+	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
+	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
+		strcpy(overlayname,overlaydir);
+		strcat(overlayname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_FILENAME(overlayname);
+		host_name = CodePageGuestToHost(overlayname);
+		if(host_name != NULL && ht_stat(host_name,&temp_stat)==0) {
+            hostname = overlayname;
+            return hostname;
+        }
+	}
+	hostname = is_deleted_file(name)? "" : localDrive::GetHostName(name);
+	return hostname;
+}
 
 void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 	char tname[CROSS_LEN];

@@ -75,6 +75,7 @@ public:
 	virtual bool SetFileAttr(const char * name,uint16_t attr);
 	virtual bool GetFileAttr(const char * name,uint16_t * attr);
 	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	std::string GetHostName(const char * name);
 	virtual unsigned long GetCompressedSize(char* name);
 #if defined (WIN32)
 	virtual HANDLE CreateOpenFile(char const* const name);
@@ -765,6 +766,7 @@ public:
 	virtual bool FileUnlink(const char * name);
 	virtual bool SetFileAttr(const char * name,uint16_t attr);
 	virtual bool GetFileAttr(const char * name,uint16_t * attr);
+	std::string GetHostName(const char * name);
 	virtual bool FileExists(const char* name);
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block);

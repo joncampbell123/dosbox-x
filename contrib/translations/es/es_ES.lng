@@ -1627,7 +1627,7 @@ MORE [unidad:][ruta][nombrearchivo]◙MORE < [unidad:][ruta][nombrearchivo]◙no
 Busca el nombre completamente expandido de un archivo.◙
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME archivo◙
+TRUENAME [/H] archivo◙
 .
 :SHELL_CMD_DXCAPTURE_HELP
 Ejecuta un programa con captura de video o audio.◙

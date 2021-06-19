@@ -3429,6 +3429,7 @@ void DOS_Shell::CMD_VOL(char *args){
 
 void DOS_Shell::CMD_TRUENAME(char * args) {
 	HELP("TRUENAME");
+	bool optH=ScanCMDBool(args,"H");
 	args = trim(args);
 	if (!*args) {
 		WriteOut("No file name given.\n");
@@ -3440,8 +3441,19 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 	}
 	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
 	uint8_t drive;
-	if (DOS_MakeName(name, fullname, &drive))
-		WriteOut("%c:\\%s\r\n", drive+'A', fullname);
+	if (DOS_MakeName(name, fullname, &drive)) {
+        if (optH) {
+           if (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6)) {
+               localDrive *ldp = dynamic_cast<localDrive*>(Drives[drive]);
+               Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+               std::string hostname = "";
+               if (odp) hostname = odp->GetHostName(fullname);
+               else if (ldp) hostname = ldp->GetHostName(fullname);
+               if (hostname.size()) WriteOut("%s\n", hostname.c_str());
+           }
+        } else
+            WriteOut("%c:\\%s\r\n", drive+'A', fullname);
+    }
 	else
 		WriteOut(dos.errorcode==DOSERR_PATH_NOT_FOUND?"Path not found\n":"File not found\n");
 }

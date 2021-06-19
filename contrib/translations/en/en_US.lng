@@ -1263,7 +1263,7 @@ MORE [drive:][path][filename]◙MORE < [drive:][path]filename◙command-name | M
 Finds the fully-expanded name for a file.◙
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME file◙
+TRUENAME [/H] file◙
 .
 :SHELL_CMD_DXCAPTURE_HELP
 Runs program with video or audio capture.◙
