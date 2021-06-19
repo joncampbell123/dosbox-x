@@ -646,6 +646,8 @@ void DOS_Shell::Prepare(void) {
 #endif
             if (IS_PC98_ARCH || IS_JEGA_ARCH)
                 countryNo = 81;
+            else if (IS_DOSV)
+                countryNo = IS_PDOSV?86:(IS_CDOSV?886:(IS_KDOSV?82:81));
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
