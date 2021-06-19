@@ -3963,7 +3963,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
                         } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
@@ -4022,7 +4022,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
                         } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;

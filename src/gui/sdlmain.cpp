@@ -7312,12 +7312,15 @@ void SetIMPosition() {
 	uint8_t x, y;
 	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	INT10_GetCursorPos(&y, &x, page);
-    int nrows=25;
+    int nrows=25, ncols=80;
 	if (IS_PC98_ARCH)
 		nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-	else
+	else {
 		nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+		ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+    }
     if (y>=nrows-1) y=nrows-8;
+    if (x>=ncols-4) x=ncols-4;
 
 	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
 		last_ticks = GetTicks();
@@ -7327,12 +7330,13 @@ void SetIMPosition() {
 		y++;
 #endif
 		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+        uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
 #if defined(USE_TTF)
         if (ttf.inUse)
             SDL_SetIMPosition((x+1) * ttf.pointsize / 2, (y+1) * ttf.pointsize);
         else
 #endif
-        SDL_SetIMPosition((x+1) * height / 2, (y+1) * height - (DOSV_CheckCJKVideoMode()?2:0));
+        SDL_SetIMPosition((x+1) * width, (y+1) * height - (DOSV_CheckCJKVideoMode()?2:0));
 	}
 }
 #endif
