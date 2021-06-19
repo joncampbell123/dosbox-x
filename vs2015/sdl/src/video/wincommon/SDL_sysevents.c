@@ -791,7 +791,7 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 #define CS_BYTEALIGNCLIENT	0
 #endif
 	if ( ! name && ! SDL_Appname ) {
-		name = "SDL_app";
+		name = "DOSBox-X";
 		SDL_Appstyle = CS_BYTEALIGNCLIENT;
 		SDL_Instance = hInst ? hInst : SDL_GetModuleHandle();
 	}

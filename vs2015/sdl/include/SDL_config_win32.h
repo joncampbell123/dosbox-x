@@ -164,7 +164,7 @@ typedef unsigned int uintptr_t;
 #endif
 #ifndef _WIN32_WCE
 // DirectDraw support DISABLED until it can be fixed to work with the async mode
-//#define SDL_VIDEO_DRIVER_DDRAW	1
+#define SDL_VIDEO_DRIVER_DDRAW	1
 #endif
 #define SDL_VIDEO_DRIVER_DUMMY	1
 #define SDL_VIDEO_DRIVER_WINDIB	1

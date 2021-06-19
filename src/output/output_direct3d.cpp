@@ -19,7 +19,7 @@ void d3d_init(void)
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D;
     char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-    if (!sdl.using_windib&&(sdl_videodrv==NULL||strcasecmp(sdl_videodrv,"dummy")))
+    if (!sdl.using_windib&&(sdl_videodrv==NULL||(strcasecmp(sdl_videodrv,"dummy")&&strcasecmp(sdl_videodrv,"directx"))))
     {
         LOG_MSG("Resetting to WINDIB mode");
         SDL_QuitSubSystem(SDL_INIT_VIDEO);
