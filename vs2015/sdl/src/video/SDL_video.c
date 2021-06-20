@@ -1976,6 +1976,7 @@ int SDL_GetWMInfo (SDL_SysWMinfo *info)
 	}
 }
 
+#ifdef ENABLE_IM_EVENT
 /* Get some platform dependent input method information */
 int SDL_GetIMInfo (SDL_SysIMinfo *info)
 {
@@ -1988,6 +1989,7 @@ int SDL_GetIMInfo (SDL_SysIMinfo *info)
 		return(0);
 	}
 }
+#endif
 
 /* DOSBox-X Hack API: Allow host program to determine size/position of the fullscreen window */
 int SDL_FSPositionX = 0,SDL_FSPositionY = 0;
