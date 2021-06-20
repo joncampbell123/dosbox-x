@@ -45,7 +45,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Save and load state support (with up to 100 save slots + save files)
 
-* NEC PC-98 mode emulation and Chinese/Japanese/Korean support
+* NEC PC-98, AX, DOS/V emulation and Chinese/Japanese/Korean support
 
 * Better support and compatibility with DOS applications
 
