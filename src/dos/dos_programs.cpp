@@ -7148,7 +7148,7 @@ public:
             open=true;
             cmd+=5;
         }
-        cmd=trim(TranslateHostPath(cmd));
+        cmd=trim((char *)TranslateHostPath(cmd));
         int ret=0;
 #if defined(LINUX) || defined(MACOSX)
         ret=system(((open?
