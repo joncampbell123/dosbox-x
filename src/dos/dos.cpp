@@ -621,18 +621,6 @@ typedef struct {
 	UINT8 reserved[8];
 } ext_space_info_t;
 
-#if defined (WIN32) && !defined(HX_DOS)
-intptr_t hret=0;
-void EndRunProcess() {
-    if(hret) {
-        DWORD exitCode;
-        GetExitCodeProcess((HANDLE)hret, &exitCode);
-        if (exitCode==STILL_ACTIVE)
-            TerminateProcess((HANDLE)hret, 0);
-    }
-    ctrlbrk=false;
-}
-
 char res1[CROSS_LEN] = {0}, res2[CROSS_LEN], *result;
 const char * TranslateHostPath(const char * arg, bool next = false) {
     result = next ? res2: res1;
@@ -677,6 +665,18 @@ const char * TranslateHostPath(const char * arg, bool next = false) {
             strcat(result, args.substr(spos, epos).c_str());
     }
     return result;
+}
+
+#if defined (WIN32) && !defined(HX_DOS)
+intptr_t hret=0;
+void EndRunProcess() {
+    if(hret) {
+        DWORD exitCode;
+        GetExitCodeProcess((HANDLE)hret, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess((HANDLE)hret, 0);
+    }
+    ctrlbrk=false;
 }
 
 void HostAppRun() {
