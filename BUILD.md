@@ -1,6 +1,9 @@
 Building DOSBox-X
 =================
 
+The page is about building the DOSBox-X source code. For instructions on installing
+and using DOSBox-X, please look at the [INSTALL](INSTALL.md) page and the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
+
 General information on source code compilation
 ----------------------------------------------
 
