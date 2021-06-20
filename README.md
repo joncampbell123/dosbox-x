@@ -100,7 +100,7 @@ The latest version of DOSBox-X is 0.83.14, released on June 1, 2021. If you use 
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
-The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
+The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and possbily other operating systems too. You can also get the latest development source code from the repository directly. See also the [BUILD](BUILD.md) page for information on building/compiling the DOSBox-X source code.
 
 
 ## Compatibility with DOS programs and games
@@ -141,8 +141,9 @@ See the [CONTRIBUTING](CONTRIBUTING.md) page for more contribution guidelines.
 If you want to tweak or write some code and you don't know what to work on,
 feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
 
-For more information about the source code, please take a look at the
-[DOSBox-X source code description](README.source-code-description) page.
+For more descriptions on the source code, please take a look at the
+[DOSBox-X source code description](README.source-code-description) page. Information on
+building on the source code can be found in the [BUILD](BUILD.md) page.
 
 Information about the debugger is also available in the
 [DOSBox-X Debugger](README.debugger) page.
