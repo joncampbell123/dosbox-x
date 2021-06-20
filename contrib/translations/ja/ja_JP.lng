@@ -2693,6 +2693,9 @@ EMS エミュレーション:無効
 :MENU:dos_win_autorun
 Windows のホスト上で実行する
 .
+:MENU:dos_win_transpath
+パスをホストシステムパスに変換します
+.
 :MENU:dos_win_wait
 可能であればアプリケーションを待つ
 .

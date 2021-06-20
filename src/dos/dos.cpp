@@ -4049,6 +4049,13 @@ public:
         mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
 #endif
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+        mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_wait").check(startwait).enable(
 #if defined(WIN32) && !defined(HX_DOS)
         true
@@ -4057,13 +4064,6 @@ public:
 #endif
         ).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-        true
-#else
-        startcmd
-#endif
-        ).refresh_item(mainMenu);
-        mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
 #if defined(WIN32) && !defined(HX_DOS)
         true
 #else
@@ -4096,9 +4096,9 @@ public:
 		mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
 #endif
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+		mainMenu.get_item("dos_win_transpath").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_win_quiet").enable(false).refresh_item(mainMenu);
-		mainMenu.get_item("dos_win_transpath").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);

@@ -1859,6 +1859,9 @@ Host system applications
 :MENU:dos_win_autorun
 Launch to run on the Windows host
 .
+:MENU:dos_win_transpath
+Translate paths to host system paths
+.
 :MENU:dos_win_wait
 Wait for the application if possible
 .

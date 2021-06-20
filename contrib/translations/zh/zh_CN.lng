@@ -2699,6 +2699,9 @@ EMM386 模拟
 :MENU:dos_win_autorun
 自动在 Windows 主机中运行
 .
+:MENU:dos_win_transpath
+将路径转换为主机系统路径
+.
 :MENU:dos_win_wait
 等待应用程序 (如果可能)
 .

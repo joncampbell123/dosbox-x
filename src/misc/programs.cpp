@@ -1445,6 +1445,15 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
 #endif
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+							} else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
+								starttranspath = section->Get_bool("starttranspath");
+								mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                                true
+#else
+                                startcmd
+#endif
+                                ).refresh_item(mainMenu);
 							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
 								startwait = section->Get_bool("startwait");
                                 mainMenu.get_item("dos_win_wait").check(startwait).enable(
@@ -1457,15 +1466,6 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
 								startquiet = section->Get_bool("startquiet");
 								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
-								starttranspath = section->Get_bool("starttranspath");
-								mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
 #if defined(WIN32) && !defined(HX_DOS)
                                 true
 #else
