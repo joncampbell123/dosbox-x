@@ -87,6 +87,7 @@ bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
 bool startquiet = false;
+bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
@@ -6990,6 +6991,7 @@ void EndStartProcess() {
 }
 #endif
 
+const char * TranslateHostPath(const char * arg, bool next = false);
 class START : public Program {
 public:
     void Run() {
@@ -7089,14 +7091,14 @@ public:
             strcpy(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
             strcat(dir, cmd);
             strcat(dir, " ");
-            if (cmdstr!=NULL) strcat(dir, cmdstr);
+            if (cmdstr!=NULL) strcat(dir, TranslateHostPath(cmdstr));
             if (!strcasecmp(cmd,"for")) strcat(dir, ")");
             strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
             lpExecInfo.lpFile = "CMD.EXE";
             lpExecInfo.lpParameters = dir;
         } else {
-            lpExecInfo.lpFile = cmd;
-            lpExecInfo.lpParameters = cmdstr;
+            lpExecInfo.lpFile = cmd==NULL?NULL:TranslateHostPath(cmd);
+            lpExecInfo.lpParameters = cmdstr==NULL?NULL:TranslateHostPath(cmdstr, true);
         }
         bool setdir=false;
         char winDirCur[512], winDirNew[512];
@@ -7146,7 +7148,7 @@ public:
             open=true;
             cmd+=5;
         }
-        cmd=trim(cmd);
+        cmd=trim(TranslateHostPath(cmd));
         int ret=0;
 #if defined(LINUX) || defined(MACOSX)
         ret=system(((open?

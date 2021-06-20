@@ -137,8 +137,8 @@ int maxdrive=1;
 int enablelfn=-1;
 bool uselfn, winautorun=false;
 extern int infix, log_dev_con;
-extern bool int15_wait_force_unmask_irq, shellrun, logging_con;
-extern bool winrun, startcmd, startwait, startquiet, ctrlbrk, i4dos;
+extern bool int15_wait_force_unmask_irq, shellrun, logging_con, ctrlbrk;
+extern bool winrun, startcmd, startwait, startquiet, starttranspath, i4dos;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
@@ -633,6 +633,52 @@ void EndRunProcess() {
     ctrlbrk=false;
 }
 
+char res1[CROSS_LEN] = {0}, res2[CROSS_LEN], *result;
+const char * TranslateHostPath(const char * arg, bool next = false) {
+    result = next ? res2: res1;
+    if (!starttranspath) {
+        strcpy(result, arg);
+        return result;
+    }
+    std::string args = arg;
+    size_t spos = 0, epos = 0, lastpos;
+    while (1) {
+        lastpos = spos;
+        spos += epos+args.substr(lastpos+epos).find_first_not_of(' ');
+        if (spos<lastpos+epos) {
+            strcat(result, args.substr(lastpos+epos).c_str());
+            break;
+        }
+        if (!lastpos&&!epos) strcpy(result, args.substr(0, spos).c_str());
+        else strcat(result, args.substr(lastpos+epos, spos-lastpos-epos).c_str());
+        if (arg[spos] == '"') {
+            epos = args.substr(spos+1).find("\" ");
+            if (epos == std::string::npos) epos = args.size() - spos;
+            else epos += 2;
+        } else {
+            epos = args.substr(spos).find_first_of(' ');
+            if (epos == std::string::npos) epos = args.size() - spos;
+        }
+        char fullname[DOS_PATHLENGTH];
+        uint8_t drive;
+        if (DOS_MakeName(args.substr(spos, epos).c_str(), fullname, &drive) && (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+           localDrive *ldp = dynamic_cast<localDrive*>(Drives[drive]);
+           Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+           std::string hostname = "";
+           if (odp) hostname = odp->GetHostName(fullname);
+           else if (ldp) hostname = ldp->GetHostName(fullname);
+           if (hostname.size()) {
+               if (arg[spos] == '"') strcat(result, "\"");
+               strcat(result, hostname.c_str());
+               if (arg[spos] == '"') strcat(result, "\"");
+           } else
+               strcat(result, args.substr(spos, epos).c_str());
+        } else
+            strcat(result, args.substr(spos, epos).c_str());
+    }
+    return result;
+}
+
 void HostAppRun() {
     char comline[256], *p=comline;
     char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
@@ -682,7 +728,7 @@ void HostAppRun() {
         if (SetCurrentDirectory(winDirNew)) {
             SHELLEXECUTEINFO lpExecInfo;
             strcpy(comline, appargs);
-            strcpy(comline, trim(p));
+            strcpy(comline, trim((char *)TranslateHostPath(p)));
             if (!startquiet) {
                 char msg[]="Now run it as a Windows application...\r\n";
                 uint16_t s = (uint16_t)strlen(msg);
@@ -3987,6 +4033,7 @@ public:
             enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
             startwait = section->Get_bool("startwait");
             startquiet = section->Get_bool("startquiet");
+            starttranspath = section->Get_bool("starttranslatepath");
             winautorun=startcmd;
             first_run=false;
         }
@@ -4010,6 +4057,13 @@ public:
 #endif
         ).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+        true
+#else
+        startcmd
+#endif
+        ).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
 #if defined(WIN32) && !defined(HX_DOS)
         true
 #else
@@ -4044,6 +4098,7 @@ public:
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 		mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_win_quiet").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_win_transpath").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);

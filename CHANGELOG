@@ -11,6 +11,10 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
+  - Added option "starttranspath" which if set to true
+    will automatically translath all paths in command-
+    line to host system paths when starting programs to
+    run on the host system. (Wengier)
   - Added option "drive z expand path" which when set
     to true (default) will automatically expand %PATH%
     environment variable to include the subdirectories

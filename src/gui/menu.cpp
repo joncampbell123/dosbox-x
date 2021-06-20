@@ -584,6 +584,7 @@ static const char *def_menu_dos_win[] =
     "dos_win_autorun",
     "dos_win_wait",
     "dos_win_quiet",
+    "dos_win_transpath",
     NULL
 };
 #endif
