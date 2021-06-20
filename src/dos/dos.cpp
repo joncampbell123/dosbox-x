@@ -4033,7 +4033,7 @@ public:
             enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
             startwait = section->Get_bool("startwait");
             startquiet = section->Get_bool("startquiet");
-            starttranspath = section->Get_bool("starttranslatepath");
+            starttranspath = section->Get_bool("starttranspath");
             winautorun=startcmd;
             first_run=false;
         }

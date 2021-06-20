@@ -71,8 +71,10 @@
     in [render] section of config file, or the default
     fonts will be used for them. (Wengier)
   - Added "videodriver" config option in [sdl] section
-    to force a video driver (such as windib, directx,
-    dummy) for the SDL library to use. (Wengier)
+    to force a video driver (such as windib/windows,
+    x11, dummy) for the SDL library to use. The video
+    driver "directx" has been enabled for Windows SDL1
+    builds, although without menus. (Wengier)
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)
