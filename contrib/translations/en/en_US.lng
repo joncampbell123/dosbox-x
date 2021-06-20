@@ -2144,6 +2144,9 @@ TRUENAME
 :MENU:DebugMenu
 Debug
 .
+:MENU:HelpDebugMenu
+Logging console
+.
 :MENU:debug_blankrefreshtest
 Refresh test (blank display)
 .

@@ -13297,7 +13297,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         std::string videodriver = static_cast<Section_prop *>(control->GetSection("sdl"))->Get_string("videodriver");
         if (videodriver.size()) {
             videodriver = "SDL_VIDEODRIVER="+videodriver;
-            putenv(videodriver.c_str());
+            putenv((char *)videodriver.c_str());
         }
 
 #ifdef WIN32
@@ -14046,13 +14046,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
 #if C_DEBUG
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DebugMenu");
-
                 item.set_text("Debug");
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"HelpDebugMenu")
 #else
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
-
-                item.set_text("Logging console");
+                item
 #endif
+                .set_text("Logging console");
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);

@@ -2984,6 +2984,9 @@ TRUENAME
 :MENU:DebugMenu
 调试
 .
+:MENU:HelpDebugMenu
+记录控制台
+.
 :MENU:debug_blankrefreshtest
 刷新测试 (空白显示)
 .

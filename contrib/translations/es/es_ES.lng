@@ -2505,6 +2505,9 @@ TRUENAME
 :MENU:DebugMenu
 Depurador
 .
+:MENU:HelpDebugMenu
+Consola de registro
+.
 :MENU:debug_blankrefreshtest
 Prueba de refresco (pantalla en blanco)
 .

@@ -2810,6 +2810,9 @@ Windowsのドライブを自動マウント
 :MENU:HelpMenu
 ヘルプ
 .
+:MENU:HelpDebugMenu
+ログ用コンソール
+.
 :MENU:help_intro
 DOSBox-Xの紹介
 .
