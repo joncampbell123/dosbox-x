@@ -7319,8 +7319,13 @@ void SetIMPosition() {
 		nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
 		ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     }
-    if (y>=nrows-1) y=nrows-8;
-    if (x>=ncols-4) x=ncols-4;
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
+        if (y>=nrows-1) y=nrows-8;
+        if (x>=ncols-4) x=ncols-4;
+    } else {
+        x--;
+        y--;
+    }
 
 	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
 		last_ticks = GetTicks();

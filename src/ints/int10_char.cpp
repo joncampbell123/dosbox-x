@@ -1259,9 +1259,8 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         }
         chr=' ';
     default:
-		/* Return if the char code is DBCS at the end of the line (for AX) */
-		if (cur_col + 1 == ncols && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0)
-		{ 
+		/* Return if the char code is DBCS at the end of the line (for DOS/V) */
+		if (cur_col + 1 == ncols && IS_DOSV && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0) {
 			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
 			cur_row = CURSOR_POS_ROW(page);
 			cur_col = CURSOR_POS_COL(page);
