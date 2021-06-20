@@ -4027,16 +4027,16 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable START command to start programs to run on the host system. On Windows host programs or commands may also be launched directly.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("starttranspath",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Specify whether DOSBox-X should automatically translate all paths in the command-line to host system paths when starting programs to run on the host system.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Specify whether DOSBox-X should wait for the host system applications after they are started.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, before launching host system applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("starttranspath",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Specify whether DOSBox-X should automatically translate all paths in the command-line to host system paths when starting programs to run on the host system.");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
