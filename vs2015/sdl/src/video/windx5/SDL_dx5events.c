@@ -588,7 +588,7 @@ static void handle_mouse(const int numevents, DIDEVICEOBJECTDATA *ptrbuf)
 		return 0; \
 	}
 
-SDL_Event event_keydown;
+extern SDL_Event event_keydown;
 #endif
 
 /* The main Win32 event handler */

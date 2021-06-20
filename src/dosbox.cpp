@@ -1207,6 +1207,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* numopt[] = { "on", "off", "", 0};
     const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+    const char* truefalsequietopts[] = { "true", "false", "1", "0", "quiet", 0 };
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
@@ -1231,10 +1232,6 @@ void DOSBOX_SetupConfigSections(void) {
 
         "mcga", "mda",
 
-        0 };
-
-    const char* automountopts[] = {
-        "true", "false", "quiet", "1", "0",
         0 };
 
     const char* backendopts[] = {
@@ -3789,7 +3786,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("log console",Property::Changeable::WhenIdle,"false");
-    Pstring->Set_values(automountopts);
+    Pstring->Set_values(truefalsequietopts);
     Pstring->Set_help("If set, log DOS CON output to the log file. Setting to \"quiet\" will log DOS CON output only (no debugging output).");
     Pstring->SetBasic(true);
 
@@ -3998,7 +3995,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("automountall",Property::Changeable::WhenIdle,"false");
-    Pstring->Set_values(automountopts);
+    Pstring->Set_values(truefalsequietopts);
     Pstring->Set_help("Automatically mount all available Windows drives at start.");
     Pstring->SetBasic(true);
 

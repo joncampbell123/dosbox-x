@@ -8227,6 +8227,10 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
+    Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Forces a video driver (e.g. windib/windows, directx, x11, fbcon, dummy, etc) for the SDL library to use.");
+    Pstring->SetBasic(true);
+
     Pbool = sdl_sec->Add_bool("maximize",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
     Pbool->SetBasic(true);
@@ -13278,6 +13282,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
         LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
 #endif
+
+        std::string videodriver = static_cast<Section_prop *>(control->GetSection("sdl"))->Get_string("videodriver");
+        if (videodriver.size()) {
+            videodriver = "SDL_VIDEODRIVER="+videodriver;
+            putenv(videodriver.c_str());
+        }
 
 #ifdef WIN32
         /* hack: Encourage SDL to use windib if not otherwise specified */
