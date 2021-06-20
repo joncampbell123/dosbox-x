@@ -33,7 +33,7 @@ against the in-tree copy of the SDL 1.x (Simple Directmedia Libary), or against
 the SDL 2.x library provided by your Linux distribution.
 
 For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
-used. Note that the in-tree SDL 1.x library has been HEAVILY MODIFIED from
+used. Note that the in-tree SDL 1.x library has been heavily modified from
 the original SDL 1.x source code and is thus somewhat incompatible with the
 stock library.
 
@@ -174,7 +174,8 @@ for Windows builds (set ``mididevice=fluidsynth`` in the [midi] section of DOSBo
 configuration file (dosbox-x.conf) along with required soundfont file [e.g.
 ``FluidR3_GM.sf2`` or ``GeneralUser_GS.sf2``] to use it).
 
-The slirp backend is only supported by MinGW builds but not Visual Studio builds.
+The slirp backend for the NE2000 network emulation is only supported by MinGW builds
+but not Visual Studio builds.
 
 Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
@@ -193,6 +194,7 @@ The following libraries are used by DOSBox-X:
 * SDL 1.2.x or SDL 2.0.x
 
     The Simple DirectMedia Library available at https://www.libsdl.org
+
     The SDL1 library distributed with DOSBox-X had been heavily modified
     from the original to support for example native OS menus.
     
@@ -223,7 +225,7 @@ The following libraries are used by DOSBox-X:
 
 * Zlib
 
-    Needed by libpng, and for saving state and CHD support.
+    Needed by libpng, and for save-state and CHD support.
     
     For Windows get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     
