@@ -74,7 +74,7 @@
     to force a video driver (such as windib/windows,
     x11, dummy) for the SDL library to use. The video
     driver "directx" has been enabled for Windows SDL1
-    builds, although without menus. (Wengier)
+    builds (without certain functions). (Wengier)
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)

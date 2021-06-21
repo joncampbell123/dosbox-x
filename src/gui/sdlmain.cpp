@@ -1443,7 +1443,7 @@ HWND GetHWND(void) {
     if(!SDL_GetWMInfo(&wmi)) {
         return NULL;
     }
-    return wmi.window;
+    return GFX_SDLUsingWinDIB()?wmi.window:wmi.child_window;
 #endif
 }
 

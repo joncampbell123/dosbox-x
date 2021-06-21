@@ -50,6 +50,7 @@ static LPDIRECTINPUT dinput = NULL;
 static LPDIRECTINPUTDEVICE2 SDL_DIdev[MAX_INPUTS];
 static HANDLE               SDL_DIevt[MAX_INPUTS];
 static void (*SDL_DIfun[MAX_INPUTS])(const int, DIDEVICEOBJECTDATA *);
+extern void (*SDL1_hax_INITMENU_cb)();
 static int SDL_DIndev = 0;
 static int mouse_lost;
 static int mouse_pressed;
@@ -632,6 +633,10 @@ LRESULT DX5_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 		break;
 #endif /* WM_DISPLAYCHANGE */
 
+		case WM_INITMENU:
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+			break;
 		/* The keyboard is handled via DirectInput */
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:

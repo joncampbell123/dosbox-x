@@ -54,6 +54,9 @@
 #define PC_NOCOLLAPSE	0
 #endif
 
+extern HMENU DIB_SurfaceMenu;
+
+extern unsigned char SDL1_hax_RemoveMinimize;
 
 /* DirectX function pointers for video and events */
 HRESULT (WINAPI *DDrawCreate)( GUID FAR *lpGUID, LPDIRECTDRAW FAR *lplpDD, IUnknown FAR *pUnkOuter );
@@ -1068,9 +1071,9 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	DWORD style;
 	const DWORD directstyle =
 			(WS_POPUP);
-	const DWORD windowstyle = 
+	DWORD windowstyle =
 			(WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX);
-	const DWORD resizestyle =
+	DWORD resizestyle =
 			(WS_THICKFRAME|WS_MAXIMIZEBOX);
 	DDSURFACEDESC ddsd;
 	LPDIRECTDRAWSURFACE  dd_surface1;
@@ -1098,6 +1101,11 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 #endif
 
+	/* Minimizing a window can screw up OpenGL state. */
+	if ((current->flags & SDL_OPENGL) && SDL1_hax_RemoveMinimize) {
+		windowstyle &= ~WS_MINIMIZEBOX;
+		resizestyle |= WS_MINIMIZEBOX;
+	}
 	/* Clean up any GL context that may be hanging around */
 	if ( current->flags & SDL_OPENGL ) {
 		WIN_GL_ShutDown(this);
@@ -1216,6 +1224,12 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		if ( !SDL_windowid )
 			SetWindowLong(SDL_Window, GWL_STYLE, style);
 
+		/* show/hide menu according to fullscreen */
+		if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+			SetMenu(SDL_Window, NULL);
+		else
+			SetMenu(SDL_Window, DIB_SurfaceMenu);
+
 		/* Resize the window (copied from SDL WinDIB driver) */
 		if ( !SDL_windowid && !IsZoomed(SDL_Window) ) {
 			RECT bounds;
@@ -1311,6 +1325,12 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
 		SetWindowLong(SDL_Window, GWL_STYLE, style);
+
+	/* show/hide menu according to fullscreen */
+	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(SDL_Window, NULL);
+	else
+		SetMenu(SDL_Window, DIB_SurfaceMenu);
 
 	/* Set DirectDraw sharing mode.. exclusive when fullscreen */
 	if ( (flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
