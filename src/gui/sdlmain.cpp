@@ -65,7 +65,8 @@ extern bool use_quick_reboot;
 extern bool force_load_state;
 extern bool force_conversion;
 extern bool pc98_force_ibm_layout;
-extern bool enable_config_as_shell_commands;
+extern bool ttfswitch, switch_output_from_ttf;
+extern bool inshell, enable_config_as_shell_commands;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool usesystemcursor = false, enableime = false;
@@ -14590,6 +14591,7 @@ fresh_boot:
 
         if (dos_kernel_shutdown) {
 
+            inshell = false;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
@@ -14683,6 +14685,13 @@ fresh_boot:
 #if defined(WIN32) && !defined(C_SDL2)
         int Reflect_Menu(void);
         Reflect_Menu();
+#endif
+
+#if defined(USE_TTF)
+        if (ttfswitch || switch_output_from_ttf) {
+            ttfswitch = switch_output_from_ttf = false;
+            mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
+        }
 #endif
 
         if (run_machine) {
