@@ -535,6 +535,56 @@ static int DX5_Available(void)
 	return(dinput_ok && ddraw_ok);
 }
 
+void DX5_SetWMCaption(_THIS, const char *title, const char *icon)
+{
+#if !defined(SDL_WIN32_HX_DOS)
+# ifdef _WIN32_WCE
+	/* WinCE uses the UNICODE version */
+	LPWSTR lpszW = SDL_iconv_utf8_ucs2((char *)title);
+	SetWindowText(SDL_Window, lpszW);
+	SDL_free(lpszW);
+# else
+	Uint16 *lpsz = SDL_iconv_utf8_ucs2(title);
+	size_t len = WideCharToMultiByte(CP_ACP, 0, lpsz, -1, NULL, 0, NULL, NULL);
+	char *cvt = SDL_stack_alloc(char, len + 1);
+	WideCharToMultiByte(CP_ACP, 0, lpsz, -1, cvt, (int)len, NULL, NULL);
+	SetWindowText(SDL_Window, cvt);
+	SDL_stack_free(cvt);
+	SDL_free(lpsz);
+# endif
+#endif
+}
+
+int DX5_IconifyWindow(_THIS)
+{
+	ShowWindow(SDL_Window, SW_MINIMIZE);
+	return(1);
+}
+
+int DX5_GetWMInfo(_THIS, SDL_SysWMinfo *info)
+{
+	if ( info->version.major <= SDL_MAJOR_VERSION ) {
+		info->window = SDL_Window;
+		info->child_window = SDL_Window;
+		if ( SDL_VERSIONNUM(info->version.major,
+		                    info->version.minor,
+		                    info->version.patch) >=
+		     SDL_VERSIONNUM(1, 2, 5) ) {
+#if SDL_VIDEO_OPENGL
+			info->hglrc = GL_hrc;
+#else
+			info->hglrc = NULL;
+#endif
+		}
+		return(1);
+	} else {
+		SDL_SetError("Application not compiled with SDL %d.%d\n",
+					SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+		return(-1);
+	}
+}
+
+
 /* Functions for loading the DirectX functions dynamically */
 static HINSTANCE DDrawDLL = NULL;
 static HINSTANCE DInputDLL = NULL;
@@ -648,11 +698,11 @@ static SDL_VideoDevice *DX5_CreateDevice(int devindex)
 	device->GL_MakeCurrent = WIN_GL_MakeCurrent;
 	device->GL_SwapBuffers = WIN_GL_SwapBuffers;
 #endif
-	device->SetCaption = WIN_SetWMCaption;
+	device->SetCaption = DX5_SetWMCaption;
 	device->SetIcon = WIN_SetWMIcon;
-	device->IconifyWindow = WIN_IconifyWindow;
+	device->IconifyWindow = DX5_IconifyWindow;
 	device->GrabInput = WIN_GrabInput;
-	device->GetWMInfo = WIN_GetWMInfo;
+	device->GetWMInfo = DX5_GetWMInfo;
 	device->FreeWMCursor = WIN_FreeWMCursor;
 	device->CreateWMCursor = WIN_CreateWMCursor;
 	device->ShowWMCursor = WIN_ShowWMCursor;
