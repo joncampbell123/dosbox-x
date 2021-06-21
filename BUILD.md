@@ -33,7 +33,7 @@ against the in-tree copy of the SDL 1.x (Simple Directmedia Libary), or against
 the SDL 2.x library provided by your Linux distribution.
 
 For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
-used. Note that the in-tree SDL 1.x library has been HEAVILY MODIFIED from
+used. Note that the in-tree SDL 1.x library has been heavily modified from
 the original SDL 1.x source code and is thus somewhat incompatible with the
 stock library.
 
@@ -58,7 +58,7 @@ How to compile the source code (cross-platform)
 * General Linux compile (SDL1)
 ```
 ./build-debug
-sudo make install`
+sudo make install
 ```
 
 * General Linux compile (SDL2)
@@ -100,7 +100,7 @@ sudo make install
 NOTICE: Use the 32-bit toolchain from the original MinGW project for this build, not the MinGW64 project.
         Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
 
-macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run "make dosbox-x.app".
+macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run ``make dosbox-x.app``.
 
 XCode (on macOS, from the Terminal) to target macOS
 ```
@@ -141,7 +141,7 @@ Then change to the directory where you unpacked the DOSBox-X source code, and ru
  sudo make install
 ```
 
-Alternatively you can also compile the SDL2 version by running the ``./build-debug-sdl2 script``.
+Alternatively you can also compile the SDL2 version by running the ``./build-debug-sdl2`` script.
 
 ## To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora:
 
@@ -174,7 +174,8 @@ for Windows builds (set ``mididevice=fluidsynth`` in the [midi] section of DOSBo
 configuration file (dosbox-x.conf) along with required soundfont file [e.g.
 ``FluidR3_GM.sf2`` or ``GeneralUser_GS.sf2``] to use it).
 
-The slirp backend is only supported by MinGW builds but not Visual Studio builds.
+The slirp backend for the NE2000 network emulation is only supported by MinGW builds
+but not Visual Studio builds.
 
 Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
@@ -193,10 +194,9 @@ The following libraries are used by DOSBox-X:
 * SDL 1.2.x or SDL 2.0.x
 
     The Simple DirectMedia Library available at https://www.libsdl.org
-    The DLL distributed with the Windows SDL1 version of DOSBox-X had
-    been modified from the original. You can find the changes in the
-    source package of DOSBox-X (src/platform/sdl-win32.diff). If you
-    want the patched source tree send us an email. (see README)
+
+    The SDL1 library distributed with DOSBox-X had been heavily modified
+    from the original to support for example native OS menus.
     
     Note that only version 1.2.x (SDL1 version) and version 2.0.x
     (SDL2 version) are currently supported.
@@ -207,9 +207,9 @@ The following libraries are used by DOSBox-X:
 
     If you want to enable the debugger you need a curses library.
     
-    ncurses should be installed on just about every unix distro.
+    ncurses should be installed on just about every Unix/Linux distro.
     
-    For win32 get pdcurses at https://pdcurses.org/
+    For Windows get pdcurses at https://pdcurses.org/
     
     License: Public Domain
 
@@ -217,7 +217,7 @@ The following libraries are used by DOSBox-X:
 
     Needed for the screenshots.
     
-    For win32 get libpng from https://gnuwin32.sourceforge.net/packages.html
+    For Windows get libpng from https://gnuwin32.sourceforge.net/packages.html
     
     See http://www.libpng.org/pub/png/ for more details.
     
@@ -225,9 +225,9 @@ The following libraries are used by DOSBox-X:
 
 * Zlib
 
-    Needed by libpng, and for saving state and CHD support.
+    Needed by libpng, and for save-state and CHD support.
     
-    For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
+    For Windows get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     
     See https://www.zlib.net/ for more details.
     
@@ -255,7 +255,7 @@ The following libraries are used by DOSBox-X:
     
     Get it from https://www.tcpdump.org/index.html#latest-releases
     
-    For win32 get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
+    For Windows get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
 
     License: 3-clause BSD license
 
@@ -269,7 +269,7 @@ The following libraries are used by DOSBox-X:
 
 * SDL_Net (optional)
 
-    For modem/ipx support.
+    For Modem/IPX support.
     
     Get it from https://www.libsdl.org/projects/SDL_net/release-1.2.html
     
@@ -287,7 +287,7 @@ The following libraries are used by DOSBox-X:
 
 * ALSA_Headers (optional)
     
-    for Alsa support under linux. Part of the linux kernel sources
+    For ALSA support under Linux. Part of the Linux kernel sources.
     
     License: LGPLv2+
 
