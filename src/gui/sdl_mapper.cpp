@@ -1236,7 +1236,12 @@ public:
 #if defined(C_SDL2)
         return CreateKeyBind(event->key.keysym.scancode);
 #else
-        return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+		if (event->key.keysym.sym){
+			return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+		}
+		else {
+			return CreateKeyBind(sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
+		}
 #endif
     };
     bool CheckEvent(SDL_Event * event) {
@@ -1244,8 +1249,9 @@ public:
 #if defined(C_SDL2)
         Bitu key = event->key.keysym.scancode;
 #else
-        Bitu key=GetKeyCode(event->key.keysym);
-        assert(Bitu(event->key.keysym.sym)<keys);
+		Bitu key;
+		key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
+        assert(key < keys);
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
@@ -4485,7 +4491,7 @@ void BIND_MappingEvents(void) {
                     s.sym,
                     s.mod,
                     s.unicode,
-                    SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)));
+					(s.sym ? SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)) : SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)sdlkey_map[(s.scancode ? s.scancode : event.key.keysym.scancode)]))));
 #endif
                 while (tmpl < (440/8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
@@ -4503,7 +4509,7 @@ void BIND_MappingEvents(void) {
 
                     nm[0] = 0;
 #if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
-                    GetKeyNameText(s.scancode << 16,nm,sizeof(nm)-1);
+					GetKeyNameText((s.scancode ? s.scancode : event.key.keysym.scancode) << 16, nm, sizeof(nm)-1);
 #endif
 
                     tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",(unsigned int)s.win32_vk,nm);
