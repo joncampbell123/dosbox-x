@@ -2346,13 +2346,16 @@ void DOSBOX_SetupConfigSections(void) {
             "software that assumes direct access to the text mode via segment 0xB800.");
     Pstring->SetBasic(true);
 
-	//for loading a fontx2 Japanese font
+	//For loading FONTX CJK fonts
 	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
@@ -2363,9 +2366,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
-
-	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
 
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");

@@ -365,8 +365,8 @@ begin
 end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
-  vsection: Boolean;
   i, j, k, adv, res: Integer;
+  tsection, vsection: Boolean;
   refname, section, line, linetmp, lineold, linenew: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -498,14 +498,22 @@ begin
         FileLinesnew := TStringList.Create;
         FileLinesnew.LoadFromFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
         FileLinesave := TStringList.Create;
+        tsection := False;
         vsection := False;
         for j := 0 to FileLinesold.Count - 1 do
         begin
           lineold := Trim(FileLinesold[j]);
-          if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'video') then
+          if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'ttf') then
+          begin
+            tsection := True;
+            if (vsection) then
+              break;
+          end
+          else if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'video') then
           begin
             vsection := True;
-            break;
+            if (tsection) then
+              break;
           end
         end;
         section := '';
@@ -519,12 +527,14 @@ begin
             for j := 0 to FileLinesold.Count - 1 do
             begin
               lineold := Trim(FileLinesold[j]);
-              if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and ((((CompareText(section, 'video') <> 0) or (vsection)) and (section = Copy(lineold, 2, Length(lineold)-2))) or ((not vsection) and (CompareText(section, 'video') = 0) and (CompareText(Copy(lineold, 2, Length(lineold)-2), 'dosbox') = 0))) then
+              if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and ((((CompareText(section, 'ttf') <> 0) or (tsection)) and (section = Copy(lineold, 2, Length(lineold)-2))) or ((not tsection) and (CompareText(section, 'ttf') = 0) and (CompareText(Copy(lineold, 2, Length(lineold)-2), 'render') = 0)) or (((CompareText(section, 'video') <> 0) or (vsection)) and (section = Copy(lineold, 2, Length(lineold)-2))) or ((not vsection) and (CompareText(section, 'video') = 0) and (CompareText(Copy(lineold, 2, Length(lineold)-2), 'dosbox') = 0))) then
               begin
                 FileLines := TStringList.Create;
                 for k := j+1 to FileLinesold.Count - 1 do
                 begin
                   lineold := Trim(FileLinesold[k]);
+                  if (Copy(lineold, 1, 4) = 'ttf.') and (CompareText(section, 'ttf') = 0) then
+                    lineold := Copy(lineold, 5, Length(lineold)-4);
                   if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') then
                   begin
                     break;
