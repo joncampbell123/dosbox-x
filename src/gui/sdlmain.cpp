@@ -67,6 +67,7 @@ extern bool force_conversion;
 extern bool pc98_force_ibm_layout;
 extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
+bool tooutttf = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool usesystemcursor = false, enableime = false;
@@ -14689,6 +14690,7 @@ fresh_boot:
 
 #if defined(USE_TTF)
         if (ttfswitch || switch_output_from_ttf) {
+            tooutttf = true;
             ttfswitch = switch_output_from_ttf = false;
             mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         }

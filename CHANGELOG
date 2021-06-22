@@ -78,6 +78,9 @@
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)
+  - Fixed the possible freeze when output was switched
+    from TrueType font (TTF) output and you tried to
+    reset the virtual machine. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
