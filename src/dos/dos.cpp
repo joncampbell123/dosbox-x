@@ -1327,6 +1327,14 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x2b:      /* Set System Date */
+            if(reg_al==3 && reg_cx==0x2442) { // Check DOSBox-X version
+                reg_al = 0;
+                const char * ver = strchr(VERSION, '.');
+                reg_bh = ver == NULL ? 0 : atoi(ver + 1);
+                ver = strchr(ver + 1, '.');
+                reg_bl = ver == NULL ? 0 : atoi(ver + 1);
+                break;
+            }
             if(date_host_forced) {
                 // unfortunately, BIOS does not return whether succeeded
                 // or not, so do a sanity check first

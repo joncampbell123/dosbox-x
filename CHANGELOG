@@ -26,6 +26,10 @@
     (e.g. "config -set turbo=true"). (Wengier)
   - Added value "quiet" to "log console" config option
     to only log DOS console outputs. (Wengier)
+  - You can now check the installed DOSBox-X version by
+    calling Int21h/AX=2B03h/CX=2442h in your program -
+    AL will become 0, and BX will return the DOSBox-X
+    version (e.g. BH = 83, BL = 15). (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool and Mapper Editor interfaces.
     The sizes and/or positions of some buttons in these
