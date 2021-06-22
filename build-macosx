@@ -53,6 +53,10 @@ export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
 export INTERNAL_FREETYPE=1
 
+brew list fluid-synth &>/dev/null || brew install fluid-synth
+brew list libslirp &>/dev/null || brew install libslirp
+brew list pkg-config &>/dev/null || brew install pkg-config
+
 opts=
 
 # if Brew has installed packages, try to use those too
@@ -67,7 +71,7 @@ if [[ -d "$brew" && -d "$brew/include" && -d "$brew/lib" ]]; then
     export CXXFLAGS="$CXXFLAGS$new"
     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$brew/lib/pkgconfig"
 else
-opts+=" --disable-avcodec --disable-libfluidsynth --disable-libslirp"
+opts+=" --disable-avcodec"
 fi
 
 # now compile ourself
