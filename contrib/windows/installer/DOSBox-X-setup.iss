@@ -559,7 +559,7 @@ begin
               FileLinesave.add(FileLinesnew[i]);
             continue;
           end
-          else if (Length(linenew)=0) or ((Copy(linenew, 1, 1) = '#') and (Copy(linenew, 1, 14) <> '#DOSBOX-X-ADV:')) then
+          else if (Length(linenew)=0) or ((Copy(linenew, 1, 1) = '#') and (Copy(linenew, 1, 14) <> '#DOSBOX-X-ADV:') and (Copy(linenew, 1, 18) <> '#DOSBOX-X-ADV-SEE:')) then
           begin
             FileLinesave.add(FileLinesnew[i]);
             continue;
@@ -570,7 +570,13 @@ begin
             FileLinesave.add(linenew);
             continue;
           end
-          else if (Copy(linenew, 1, 15) = '#DOSBOX-X-ADV:#') then
+          else if IsTaskSelected('commonoption') and (Copy(linenew, 1, 19) = '#DOSBOX-X-ADV-SEE:#') then
+          begin
+            Delete(linenew, 1, 18);
+            FileLinesave.add(linenew);
+            continue;
+          end
+          else if (Copy(linenew, 1, 15) = '#DOSBOX-X-ADV:#') or (Copy(linenew, 1, 19) = '#DOSBOX-X-ADV-SEE:#') then
           begin
             continue;
           end

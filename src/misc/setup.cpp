@@ -836,10 +836,10 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             if (!norem)
             while ((p = sec->Get_prop(int(i++)))) {
                 std::string help = p->Get_help();
-                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified()))) {
-                    if (everything==-1 && !p->basic() && !p->modified() && help.size())
+                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified()))) {
+                    if ((everything==-1 || everything==2) && !p->basic() && !p->modified() && help.size())
                         advopts.push_back(p->propname);
-                    continue;
+                    if (everything!=2) continue;
                 }
 
                 std::string pre=everything==2&&!p->basic()?"#DOSBOX-X-ADV:":"";
@@ -869,11 +869,11 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                     fprintf(outfile, "\n");
                 }
             }
-            if (everything==-1 && !advopts.empty()) {
-                fprintf(outfile, "#\n# %s:\n# ->", MSG_Get("CONFIG_ADVANCED_OPTION"));
+            if ((everything==-1 || everything==2) && !advopts.empty()) {
+                fprintf(outfile, everything==2?"#DOSBOX-X-ADV-SEE:#\n#DOSBOX-X-ADV-SEE:# %s:\n#DOSBOX-X-ADV-SEE:# ->":"#\n# %s:\n# ->", MSG_Get("CONFIG_ADVANCED_OPTION"));
                 for (std::vector<std::string>::iterator advopt = advopts.begin(); advopt != advopts.end(); ++advopt)
                     fprintf(outfile, " %s%c", advopt->c_str(), advopt+1 >= advopts.end()?'\n':';');
-                fprintf(outfile, "#\n");
+                fprintf(outfile, everything==2?"#DOSBOX-X-ADV-SEE:#\n":"#\n");
             }
         } else {
             fprintf(outfile,"[%s]\n",temp);

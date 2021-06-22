@@ -69,11 +69,12 @@
     the default fonts will be used for them. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Also added support for Chinese
-    and Korean DOS/V modes. Set "dosv" to "jp", "chs",
-    "cht", or "ko" in [dosv] section of the config file
-    to enable DOS/V for different CJK modes. There are
-    also various font-related options added in [dosv]
-    section for the DOS/V support. (Wengier)
+    and Korean DOS/V modes. Set option "dosv" to "jp",
+    "chs" (or "cn"), "cht" (or "tw"), or "ko" in [dosv]
+    section of the config file to enable DOS/V mode for
+    different CJK languages. There are now also various
+    font-related (and V-text screen mode) options added
+    in [dosv] section for the DOS/V support. (Wengier)
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,
     x11, dummy) for the SDL library to use. The video
@@ -84,6 +85,9 @@
     from [render] section to this section. The Windows
     installer will also automatically transfer previous
     TTF options to the new [ttf] section. (Wengier)
+  - When setting to "auto", config option "allow lmsw
+    to exit protected mode" will be active for Pentium+
+    CPUs instead of 486+ CPUs. (Wengier)
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)

@@ -47,7 +47,7 @@
 #define DBCS24_LEN 65536 * 72
 #define SBCS24_LEN 256 * 48
 
-#if defined(LINUX)
+#if defined(LINUX) && C_X11
 static Display *font_display;
 static Window font_window;
 static Pixmap font_pixmap;
