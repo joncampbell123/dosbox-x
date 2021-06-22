@@ -1327,9 +1327,10 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x2b:      /* Set System Date */
-            if(reg_al==3 && reg_cx==0x4224) { // Check DOSBox-X version (4224 = DBX)
+            if(reg_al==4 && reg_cx==0x4442 && reg_dx==0x2D58) { // Check DOSBox-X version (4442 = 'DB', 2D58 = '-X')
                 reg_al = 0;
                 const char * ver = strchr(VERSION, '.');
+                reg_ah = ver == NULL ? 0 : atoi(std::string(ver).substr(0, strlen(ver) - strlen(VERSION)).c_str()); // AH: e.g. 0
                 reg_bh = ver == NULL ? 0 : atoi(ver + 1); // BH: e.g. 83
                 ver = strchr(ver + 1, '.');
                 reg_bl = ver == NULL ? 0 : atoi(ver + 1); // BL: e.g. 15
