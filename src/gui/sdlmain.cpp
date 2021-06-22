@@ -12983,9 +12983,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					} else
 						strcpy(linestr, line.substr(4).c_str());
 					p=strchr(linestr, '=');
-					if (p!=NULL&&ttf_section->HandleInputline(line)) {
+					if (p!=NULL&&ttf_section->HandleInputline(line.substr(4))) {
 						*p=0;
-						LOG_MSG("Redirected \"%s\" from [render] to [ttf] section\n", trim(linestr));
+						LOG_MSG("Redirected \"%s\" (\"ttf.%s\") from [render] to [ttf] section\n", trim(linestr), trim(linestr));
 					}
 				}
 			}
@@ -13042,7 +13042,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						}
 						if (config_section->HandleInputline(line)) {
 							*p=0;
-							LOG_MSG("Redirected \"%s\" from [dos] to [config] section\n", trim(linestr));
+							LOG_MSG("Redirected \"%s\" (\"%s\") from [dos] to [config] section\n", "dos", trim(linestr));
 						}
 					}
 				}
