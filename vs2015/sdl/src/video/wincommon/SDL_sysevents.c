@@ -96,7 +96,9 @@ DEVMODE SDL_fullscreen_mode;
 #endif
 WORD *gamma_saved = NULL;
 
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 _IM_Context IM_Context; /* patched */
+#endif
 
 /* Functions called by the message processing function */
 LONG (*HandleMessage)(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)=NULL;

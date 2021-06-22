@@ -159,6 +159,7 @@ typedef struct SDL_SysWMinfo {
 	HGLRC hglrc;			/**< The OpenGL context, if any */
 } SDL_SysWMinfo;
 
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 /* The windows custom input method information structure */
 typedef struct SDL_SysIMinfo {
 	SDL_version version;
@@ -171,6 +172,7 @@ typedef struct SDL_SysIMinfo {
 		} win;
 	} info;
 } SDL_SysIMinfo;
+#endif
 
 #elif defined(SDL_VIDEO_DRIVER_RISCOS)
 

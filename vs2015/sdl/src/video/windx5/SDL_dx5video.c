@@ -722,7 +722,9 @@ static SDL_VideoDevice *DX5_CreateDevice(int devindex)
 	device->SetIMValues = DX5_SetIMValues;
 	device->GetIMValues = DX5_GetIMValues;
 	device->FlushIMString = DX5_FlushIMString;
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 	device->GetIMInfo = WIN_GetIMInfo;
+#endif
 	device->free = DX5_DeleteDevice;
 
 	/* We're finally ready */
