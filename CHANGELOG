@@ -1,4 +1,9 @@
 0.83.15
+  - Mac OS X builds will once again have Fluidsynth,
+    libslirp, and FFMPEG support from revised .app
+    building code. For best results support is enabled
+    at compile time only if Brew is installed along
+    with Brew builds of those packages. (joncampbell123)
   - Mac OS X coreaudio MIDI support will continue
     with the default soundfont rather than give up
     if it cannot select the custom soundfont specified
