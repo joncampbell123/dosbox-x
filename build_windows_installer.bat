@@ -152,6 +152,7 @@ echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
 if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
+copy /y %isspath%\WizModernImage.bmp %isspath%\allusers\WizModernImage.bmp
 copy /y %isspath%\DOSBox-X-setup.iss %isspath%\allusers\DOSBox-X-setup.iss
 %isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "}-setup" "}-setup-allusers"
 %isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=lowest" "=admin"
