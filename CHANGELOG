@@ -1,4 +1,12 @@
 0.83.15
+  - Mac OS X coreaudio MIDI support will continue
+    with the default soundfont rather than give up
+    if it cannot select the custom soundfont specified
+    in dosbox.conf (joncampbell123)
+  - Fixed Mac OS X bug where coremidi would attempt
+    MIDI output even if no MIDI destinations are
+    available, which is apparently the case on
+    Big Sur. (joncampbell123)
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
     the drive is not mounted if so. You can make the
