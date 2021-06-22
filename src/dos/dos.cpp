@@ -1327,13 +1327,57 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x2b:      /* Set System Date */
-            if(reg_al==4 && reg_cx==0x4442 && reg_dx==0x2D58) { // Check DOSBox-X version (4442 = 'DB', 2D58 = '-X')
-                reg_al = 0;
+            if (reg_cx==0x4442 && reg_dx==0x2D58 && reg_al < 0x10) { // Special DOSBox-X functions (4442 = 'DB', 2D58 = '-X')
                 const char * ver = strchr(VERSION, '.');
-                reg_ah = ver == NULL ? 0 : atoi(std::string(ver).substr(0, strlen(ver) - strlen(VERSION)).c_str()); // AH: e.g. 0
-                reg_bh = ver == NULL ? 0 : atoi(ver + 1); // BH: e.g. 83
-                ver = strchr(ver + 1, '.');
-                reg_bl = ver == NULL ? 0 : atoi(ver + 1); // BL: e.g. 15
+                switch (reg_al) {
+                    case 0: // DOSBox-X install check
+                        reg_al = 0;
+                        break;
+                    case 1: // DOSBox-X SDL check
+                        reg_al = 0;
+#if defined(C_SDL2)
+                        reg_ah = 2; // SDL2
+#else
+                        reg_ah = 1; // SDL1
+#endif
+                        break;
+                    case 2: // DOSBox-X platform check
+                        reg_al = 0;
+#if defined(HX_DOS)
+                        reg_bh = 4;
+#elif defined(WIN32)
+                        reg_bh = 1;
+#elif defined(LINUX)
+                        reg_bh = 2;
+#elif defined(MACOSX)
+                        reg_bh = 3;
+#elif defined(OS2)
+                        reg_bh = 5;
+#else
+                        reg_bh = 0;
+#endif
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
+                        reg_bl = 2; // 64-bit
+#else
+                        reg_bl = 1; // 32-bit
+#endif
+                        break;
+                    case 3: // DOSBox-X machine check
+                        reg_al = 0;
+                        reg_ah = machine;
+                        break;
+                    case 4: // DOSBox-X version check
+                        reg_al = 0;
+                        reg_ah = ver == NULL ? 0 : atoi(std::string(ver).substr(0, strlen(ver) - strlen(VERSION)).c_str()); // AH: e.g. 0
+                        reg_bh = ver == NULL ? 0 : atoi(ver + 1); // BH: e.g. 83
+                        ver = strchr(ver + 1, '.');
+                        reg_bl = ver == NULL ? 0 : atoi(ver + 1); // BL: e.g. 15
+                        break;
+                    default:
+                        LOG_MSG("DOSBox-X:Illegal subfunction %2X",reg_al);
+                        reg_ax=1;
+                        break;
+                }
                 break;
             }
             if(date_host_forced) {

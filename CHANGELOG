@@ -39,11 +39,16 @@
     (e.g. "config -set turbo=true"). (Wengier)
   - Added value "quiet" to "log console" config option
     to only log DOS console outputs. (Wengier)
-  - You can now check the installed DOSBox-X version by
-    calling Int21h/AX=2B04h/CX=0x4442h('DB')/DX=0x2D58h
-    ('-X') in your program - AL and AH will become 0,
-    and BX will return the DOSBox-X version after "0."
-    (e.g. BH = 83, BL = 15). (Wengier)
+  - There is now a special DOS function for DOSBox-X at
+    Int21h/AH=2B/CX=0x4442h('DB')/DX=0x2D58h('-X'), as
+    follows: AL=0h (DOSBox-X installation check), AL=1h
+    (SDL version check), AL=2h (platform check), AL=3h
+    (machine type check), and AL=4h (DOSBox-X version
+    check). For example, you can get installed DOSBox-X
+    version by calling the function Int21h/AX=2B04h/CX=
+    0x4442h/DX=0x2D58h in your program - AL and AH will
+    become 0, and BX will return the DOSBox-X version
+    number after "0." (e.g. BH=83, BL=15). (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool and Mapper Editor interfaces.
     The sizes and/or positions of some buttons in these
