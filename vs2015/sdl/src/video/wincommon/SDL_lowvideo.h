@@ -88,6 +88,7 @@ extern HINSTANCE SDL_Instance;
 extern HWND SDL_Window;
 extern BOOL SDL_windowid;
 
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 typedef struct {
 	HIMC SDL_IMC;
 	union {
@@ -107,6 +108,7 @@ typedef struct {
 } _IM_Context;
 
 extern _IM_Context IM_Context;
+#endif
 
 /* Variables and functions exported to other parts of the native video
    subsystem (SDL_sysevents.c)
