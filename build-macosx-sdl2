@@ -54,9 +54,26 @@ brew list fluid-synth &>/dev/null || brew install fluid-synth
 brew list libslirp &>/dev/null || brew install libslirp
 brew list pkg-config &>/dev/null || brew install pkg-config
 
+opts=
+
+# if Brew has installed packages, try to use those too
+brew="/opt/homebrew"
+if [[ -d "$brew" && -d "$brew/include" && -d "$brew/lib" ]]; then
+    echo "Brew is installed, I'm going to use it's libraries too"
+    new=" -I$brew/include"
+    nld=" -L$brew/lib"
+    export CFLAGS="$CFLAGS$new"
+    export LDFLAGS="$LDFLAGS$nld"
+    export CPPFLAGS="$CPPFLAGS$new"
+    export CXXFLAGS="$CXXFLAGS$new"
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$brew/lib/pkgconfig"
+else
+opts+=" --disable-avcodec"
+fi
+
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 --disable-avcodec "$@" || exit 1
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 $opts "$@" || exit 1
 make -j3 || exit 1
 
