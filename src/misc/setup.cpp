@@ -1131,7 +1131,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
         default:
             try {
                 if (currentsection) {
-					bool savedata=!strcasecmp(currentsection->GetName(), "pc98")||!strcasecmp(currentsection->GetName(), "4dos")||!strcasecmp(currentsection->GetName(), "config");
+					bool savedata=!strcasecmp(currentsection->GetName(), "pc98")||!strcasecmp(currentsection->GetName(), "ttf")||!strcasecmp(currentsection->GetName(), "4dos")||!strcasecmp(currentsection->GetName(), "config");
 					if (!currentsection->HandleInputline(gegevens)&&strcasecmp(currentsection->GetName(), "autoexec")) savedata=true;
 					if (savedata) {
 						Section_prop *section = static_cast<Section_prop *>(currentsection);

@@ -35,8 +35,8 @@
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found, then DOSBox-X will now use internal
     Japanese fonts in addition to VGA font. (Wengier)
-  - The config option ttf.halfwidthkana (in [render]
-    section will enable low ASCII boxing characters
+  - The config option ttf.halfwidthkana (now in [ttf]
+    section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
     is now enabled by default for JP mode. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
@@ -57,24 +57,27 @@
     (default), it is enabled for Windows SDL1 builds
     only if DOSBox-X is started with a CJK code page
     or in PC-98/JEGA/DOS/V mode. (Wengier)
+  - Added support for Japanese EGA mode (machine=jega)
+    by adopting code from DOSVAXJ3. As with DOS/V, you
+    can optionally set the SBCS and DBCS fonts with
+    fontxsbcs, fontxdbcs (and fontxsbcs19, fontxdbcs24,
+    etc) options in [dosv] section of config file, or
+    the default fonts will be used for them. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Also added support for Chinese
     and Korean DOS/V modes. Set "dosv" to "jp", "chs",
-    "cht", or "ko" in [dos] section of the config file
+    "cht", or "ko" in [dosv] section of the config file
     to enable DOS/V for different CJK modes. There are
-    also various font-related options added in [render]
+    also various font-related options added in [dosv]
     section for the DOS/V support. (Wengier)
-  - Added support for Japanese EGA mode (machine=jega)
-    by adopting code from DOSVAX. You can optionally
-    set SBCS and DBCS fonts with jfontsbcs, jfontdbcs
-    (and jfontsbcs19, jfontdbcs24, etc) config options
-    in [render] section of config file, or the default
-    fonts will be used for them. (Wengier)
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,
     x11, dummy) for the SDL library to use. The video
     driver "directx" has been enabled for Windows SDL1
     builds (without certain functions). (Wengier)
+  - There is a now a [TTF] section in the config file,
+    and TTF-related config options are moved/renamed
+    from [render] section to this section. (Wengier)
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)

@@ -1035,8 +1035,8 @@ void DOSBOX_RealInit() {
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
     dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
-    Section_prop *dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
-    const char *dosvstr = dos_section->Get_string("dosv");
+    Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
+    const char *dosvstr = dosv_section->Get_string("dosv");
     if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
@@ -1049,7 +1049,7 @@ void DOSBOX_RealInit() {
     if (!cp) InitCodePage();
     if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
         JFONT_Init();  // Load DBCS fonts for JEGA etc
-        if (IS_DOSV) DOSV_SetConfig(dos_section);
+        if (IS_DOSV) DOSV_SetConfig(dosv_section);
     }
     dos.loaded_codepage = cp;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
@@ -2334,128 +2334,171 @@ void DOSBOX_SetupConfigSections(void) {
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
 
-	//for loading a fontx2 Japanese font
-	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    secprop=control->AddSection_prop("dosv",&Null_Init,true);
 
-	Pstring = secprop->Add_path("jfontsbcs16",Property::Changeable::OnlyAtStart,"");
+    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
+    Pstring->Set_values(dosv_settings);
+    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
+            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
+            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text.\n"
+            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
+            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
+            "software that assumes direct access to the text mode via segment 0xB800.");
+    Pstring->SetBasic(true);
+
+	//for loading a fontx2 Japanese font
+	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
 
-	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("jfontdbcs14",Property::Changeable::OnlyAtStart,"");
+	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.");
 
-	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
 
-	Pstring = secprop->Add_path("jfontsbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
 
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");
+    Pbool->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
+	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
+	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
+	Pstring->Set_values(fepcontrol_settings);
+	Pstring->Set_help("FEP control API for the DOS/V emulation.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
+	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
+
+	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
+
+    secprop=control->AddSection_prop("ttf",&Null_Init,true);
+
+	Pstring = secprop->Add_string("font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
                     "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
                     "For a font name or relative path, directories such as the working directory and default system font directory will be searched.\n"
                     "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.fontbold", Property::Changeable::Always, "");
+	Pstring = secprop->Add_string("fontbold", Property::Changeable::Always, "");
     Pstring->Set_help("You can optionally specify a bold TrueType font for use with the TTF output that will render the bold text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual bold font will be used for the bold style.\n"
+                    "It requires a word processor be set with the wp option, and this actual bold font will be used for the bold style.\n"
                     "For example, setting it to \"consolab\" or \"consolab.ttf\" will use the Consolab font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.fontital", Property::Changeable::Always, "");
+	Pstring = secprop->Add_string("fontital", Property::Changeable::Always, "");
     Pstring->Set_help("You can optionally specify an italic TrueType font for use with the TTF output that will render the italic text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual italic font will be used for the italic style.\n"
+                    "It requires a word processor be set with the wp option, and this actual italic font will be used for the italic style.\n"
                     "For example, setting it to \"consolai\" or \"consolai.ttf\" will use the Consolai font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.fontboit", Property::Changeable::Always, "");
+	Pstring = secprop->Add_string("fontboit", Property::Changeable::Always, "");
     Pstring->Set_help("You can optionally specify a bold italic TrueType font for use with the TTF output that will render the bold italic text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual bold-italic font will be used for the bold-italic style.\n"
+                    "It requires a word processor be set with the wp option, and this actual bold-italic font will be used for the bold-italic style.\n"
                     "For example, setting it to \"consolaz\" or \"consolaz.ttf\" will use the Consolaz font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.colors", Property::Changeable::Always, "");
+	Pstring = secprop->Add_string("colors", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
                     "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
                     "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)");
+    Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.outputswitch", Property::Changeable::Always, "auto");
+	Pstring = secprop->Add_string("outputswitch", Property::Changeable::Always, "auto");
     Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requiested, or auto for automatic selection.");
     Pstring->Set_values(switchoutputs);
     Pstring->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 60);
-    Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ttf.ptsize setting is specified.");
+	Pint = secprop->Add_int("winperc", Property::Changeable::Always, 60);
+    Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ptsize setting is specified.");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the ttf.winperc setting.");
+	Pint = secprop->Add_int("ptsize", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the winperc setting.");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
+	Pint = secprop->Add_int("lins", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the number of rows on the screen for the TTF output (0 = default).");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 0);
+	Pint = secprop->Add_int("cols", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
     Pint->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
+	Pstring = secprop->Add_string("wp", Property::Changeable::Always, "");
     Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
                     "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
                     "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
                     "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
     Pstring->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
+	Pint = secprop->Add_int("wpbg", Property::Changeable::Always, -1);
     Pint->SetMinMax(-1,15);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
                    "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+    Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.wpfg", Property::Changeable::Always, 7);
+	Pint = secprop->Add_int("wpfg", Property::Changeable::Always, 7);
     Pint->SetMinMax(-1,7);
     Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
                    "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
+    Pint->SetBasic(true);
 
-	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
+	Pbool = secprop->Add_bool("bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
-                    "This is done either with the actual bold font specified by the ttf.fontbold option, or by making it bold automatically.");
-
-	Pbool = secprop->Add_bool("ttf.italic", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.\n"
-                    "This is done either with the actual italic font specified by the ttf.fontital option, or by slanting the characters automatically.");
-
-	Pbool = secprop->Add_bool("ttf.underline", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.strikeout", Property::Changeable::Always, false);
-    Pbool->Set_help("If set, DOSBox-X will display strikeout text visually (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
+                    "This is done either with the actual bold font specified by the fontbold option, or by making it bold automatically.");
     Pbool->SetBasic(true);
 
-	Pbool = secprop->Add_bool("ttf.autodbcs", Property::Changeable::WhenIdle, true);
+	Pbool = secprop->Add_bool("italic", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.\n"
+                    "This is done either with the actual italic font specified by the fontital option, or by slanting the characters automatically.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("underline", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("strikeout", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will display strikeout text visually (requires a word processor be set) for the TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("char512", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("printfont", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via font option) for printing in addition to displaying.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("autodbcs", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+    Pbool->SetBasic(true);
 
-	Pbool = secprop->Add_bool("ttf.autoboxdraw", Property::Changeable::WhenIdle, true);
+	Pbool = secprop->Add_bool("autoboxdraw", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+    Pbool->SetBasic(true);
 
-	Pbool = secprop->Add_bool("ttf.halfwidthkana", Property::Changeable::WhenIdle, true);
+	Pbool = secprop->Add_bool("halfwidthkana", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
+    Pbool->SetBasic(true);
 
-	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
+	Pstring = secprop->Add_string("blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
@@ -3873,27 +3916,6 @@ void DOSBOX_SetupConfigSections(void) {
             "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
             "related to uninitialized variables in extended memory. When enabled this option may\n"
             "incur a slight to moderate performance penalty.");
-
-    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(dosv_settings);
-    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
-            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text.\n"
-            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
-            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
-            "software that assumes direct access to the text mode via segment 0xB800.");
-    Pstring->SetBasic(true);
-
-	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
-	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
-	Pstring->Set_values(fepcontrol_settings);
-	Pstring->Set_help("FEP control API for the DOS/V emulation.");
-
-	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
-	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
-
-	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
 
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);

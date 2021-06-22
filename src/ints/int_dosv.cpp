@@ -31,7 +31,7 @@
 #include "dos_inc.h"
 #define INCJFONT 1
 #include "jfont.h"
-#if defined(LINUX)
+#if defined(LINUX) && C_X11
 #include <X11/Xlib.h>
 #include <X11/Xlocale.h>
 #include <X11/Xutil.h>
@@ -265,7 +265,7 @@ static bool CheckEmptyData(uint8_t *data, Bitu length)
 
 bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 {
-#if defined(LINUX) && !defined(C_SDL2) // Confirmed to work on Linux SDL1 build; seems to not work on Linux SDL2 build
+#if defined(LINUX) && C_X11 && !defined(C_SDL2) // Confirmed to work on Linux SDL1 build; seems to not work on Linux SDL2 build
 	XRectangle ir, lr;
 	wchar_t text[4];
 
@@ -556,7 +556,7 @@ uint8_t *GetSbcs24Font(Bitu code)
 
 void InitFontHandle()
 {
-#if defined(LINUX)
+#if defined(LINUX) && C_X11
 	int missing_count;
 	char **missing_list;
 	char *def_string;
@@ -639,10 +639,10 @@ void JFONT_Init() {
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
 #endif
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
 	yen_flag = section->Get_bool("yen");
 
-	Prop_path* pathprop = section->Get_path("jfontsbcs");
+	Prop_path* pathprop = section->Get_path("fontxsbcs");
 	if (pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
@@ -662,20 +662,20 @@ void JFONT_Init() {
 		if(!MakeSbcs19Font())
 			LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 	}
-	pathprop = section->Get_path("jfontdbcs");
+	pathprop = section->Get_path("fontxdbcs");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
 		LoadFontxFile(path.c_str());
 	}
-	pathprop = section->Get_path("jfontdbcs14");
+	pathprop = section->Get_path("fontxdbcs14");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
 		LoadFontxFile(path.c_str(), 14);
 	}
 	if(IS_DOSV) {
-		pathprop = section->Get_path("jfontsbcs16");
+		pathprop = section->Get_path("fontxsbcs16");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
@@ -695,13 +695,13 @@ void JFONT_Init() {
 				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
 			}
 		}
-		pathprop = section->Get_path("jfontdbcs24");
+		pathprop = section->Get_path("fontxdbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
 			LoadFontxFile(path.c_str());
 		}
-		pathprop = section->Get_path("jfontsbcs24");
+		pathprop = section->Get_path("fontxsbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);

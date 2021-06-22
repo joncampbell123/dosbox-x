@@ -3801,7 +3801,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
 }
 
 void SetBlinkRate(Section_prop* section) {
-    const char * blinkCstr = section->Get_string("ttf.blinkc");
+    const char * blinkCstr = section->Get_string("blinkc");
     unsigned int num=-1;
     if (!strcasecmp(blinkCstr, "false")||!strcmp(blinkCstr, "-1")) blinkCursor = -1;
     else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=7) blinkCursor = num;
@@ -3815,10 +3815,10 @@ void CheckTTFLimit() {
     if (ttf.cols*ttf.lins>16384) {
         if (lastset==1) {
             ttf.lins=16384/ttf.cols;
-            SetVal("render", "ttf.lins", std::to_string(ttf.lins));
+            SetVal("ttf", "lins", std::to_string(ttf.lins));
         } else if (lastset==2) {
             ttf.cols=16384/ttf.lins;
-            SetVal("render", "ttf.cols", std::to_string(ttf.cols));
+            SetVal("ttf", "cols", std::to_string(ttf.cols));
         } else {
             ttf.lins = 25;
             ttf.cols = 80;
@@ -3842,11 +3842,11 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     else if (fsize>=MIN_PTSIZE)
         fontSize = fsize;
     else {
-        Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
-        const char * fName = render_section->Get_string("ttf.font");
-        const char * fbName = render_section->Get_string("ttf.fontbold");
-        const char * fiName = render_section->Get_string("ttf.fontital");
-        const char * fbiName = render_section->Get_string("ttf.fontboit");
+        Section_prop * ttf_section=static_cast<Section_prop *>(control->GetSection("ttf"));
+        const char * fName = ttf_section->Get_string("font");
+        const char * fbName = ttf_section->Get_string("fontbold");
+        const char * fiName = ttf_section->Get_string("fontital");
+        const char * fbiName = ttf_section->Get_string("fontboit");
         LOG_MSG("SDL:TTF activated %s", fName);
         if (!*fName||!readTTF(fName, false, false)) {
             ttfFont = DOSBoxTTFbi;
@@ -3879,15 +3879,15 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 ttfSizebi = 0;
             }
         }
-        const char * colors = render_section->Get_string("ttf.colors");
+        const char * colors = ttf_section->Get_string("colors");
         if (*colors) {
             if (!setColors(colors,-1)) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
         }
-        SetBlinkRate(render_section);
-        const char *wpstr=render_section->Get_string("ttf.wp");
+        SetBlinkRate(ttf_section);
+        const char *wpstr=ttf_section->Get_string("wp");
         wpType=0;
         wpVersion=0;
         if (strlen(wpstr)>1) {
@@ -3897,24 +3897,24 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             else if (!strncasecmp(wpstr, "FE", 2)) wpType=4;
             if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
         }
-        wpBG = render_section->Get_int("ttf.wpbg");
-        wpFG = render_section->Get_int("ttf.wpfg");
+        wpBG = ttf_section->Get_int("wpbg");
+        wpFG = ttf_section->Get_int("wpfg");
         if (wpFG<0) wpFG = 7;
-        winPerc = render_section->Get_int("ttf.winperc");
+        winPerc = ttf_section->Get_int("winperc");
         if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
         if (fsize==1&&winPerc==100) winPerc=60;
-        fontSize = render_section->Get_int("ttf.ptsize");
-        char512 = render_section->Get_bool("ttf.char512");
-        showbold = render_section->Get_bool("ttf.bold");
-        showital = render_section->Get_bool("ttf.italic");
-        showline = render_section->Get_bool("ttf.underline");
-        showsout = render_section->Get_bool("ttf.strikeout");
-        printfont = render_section->Get_bool("ttf.printfont");
-        dbcs_sbcs = render_section->Get_bool("ttf.autodbcs");
-        autoboxdraw = render_section->Get_bool("ttf.autoboxdraw");
-        halfwidthkana = render_section->Get_bool("ttf.halfwidthkana");
-        const char *outputstr=render_section->Get_string("ttf.outputswitch");
+        fontSize = ttf_section->Get_int("ptsize");
+        char512 = ttf_section->Get_bool("char512");
+        showbold = ttf_section->Get_bool("bold");
+        showital = ttf_section->Get_bool("italic");
+        showline = ttf_section->Get_bool("underline");
+        showsout = ttf_section->Get_bool("strikeout");
+        printfont = ttf_section->Get_bool("printfont");
+        dbcs_sbcs = ttf_section->Get_bool("autodbcs");
+        autoboxdraw = ttf_section->Get_bool("autoboxdraw");
+        halfwidthkana = ttf_section->Get_bool("halfwidthkana");
+        const char *outputstr=ttf_section->Get_string("outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))
             switchoutput = 6;
@@ -3934,8 +3934,8 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         else
             switchoutput = -1;
 
-        ttf.lins = render_section->Get_int("ttf.lins");
-        ttf.cols = render_section->Get_int("ttf.cols");
+        ttf.lins = ttf_section->Get_int("lins");
+        ttf.cols = ttf_section->Get_int("cols");
         if (fsize&&!IS_PC98_ARCH&&!IS_EGAVGA_ARCH) ttf.lins = 25;
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
             if (ttf.cols<1) ttf.cols=80;
@@ -10685,7 +10685,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("ttf"));
     assert(section != NULL);
 
 #if !defined(HX_DOS)
@@ -10715,7 +10715,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
         }
 
         if (*name) {
-            SetVal("render", "ttf.font", name);
+            SetVal("ttf", "font", name);
             ttf_reset();
 #if C_PRINTER
             if (TTF_using() && printfont) UpdateDefaultPrinterFont();
@@ -11144,8 +11144,8 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
 
 #if defined(USE_TTF)
 void ttf_setlines(int cols, int lins) {
-    if (cols>0) SetVal("render", "ttf.cols", std::to_string(cols));
-    if (lins>0) SetVal("render", "ttf.lins", std::to_string(lins));
+    if (cols>0) SetVal("ttf", "cols", std::to_string(cols));
+    if (lins>0) SetVal("ttf", "lins", std::to_string(lins));
     firstset=true;
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
@@ -11298,19 +11298,19 @@ bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     const char *mname = menuitem->get_name().c_str();
     if (!strcmp(mname, "ttf_showbold")) {
         showbold=!showbold;
-        SetVal("render", "ttf.bold", showbold?"true":"false");
+        SetVal("ttf", "bold", showbold?"true":"false");
         mainMenu.get_item(mname).check(showbold).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showital")) {
         showital=!showital;
-        SetVal("render", "ttf.italic", showital?"true":"false");
+        SetVal("ttf", "italic", showital?"true":"false");
         mainMenu.get_item(mname).check(showital).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showline")) {
         showline=!showline;
-        SetVal("render", "ttf.underline", showline?"true":"false");
+        SetVal("ttf", "underline", showline?"true":"false");
         mainMenu.get_item(mname).check(showline).refresh_item(mainMenu);
     } else if (!strcmp(mname, "ttf_showsout")) {
         showsout=!showsout;
-        SetVal("render", "ttf.strikeout", showsout?"true":"false");
+        SetVal("ttf", "strikeout", showsout?"true":"false");
         mainMenu.get_item(mname).check(showsout).refresh_item(mainMenu);
     } else
         return true;
@@ -11322,19 +11322,19 @@ bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     if (!strcmp(mname, "ttf_wpno")) {
-        SetVal("render", "ttf.wp", "");
+        SetVal("ttf", "wp", "");
         wpType=0;
     } else if (!strcmp(mname, "ttf_wpwp")) {
-        SetVal("render", "ttf.wp", "wp");
+        SetVal("ttf", "wp", "wp");
         wpType=1;
     } else if (!strcmp(mname, "ttf_wpws")) {
-        SetVal("render", "ttf.wp", "ws");
+        SetVal("ttf", "wp", "ws");
         wpType=2;
     } else if (!strcmp(mname, "ttf_wpxy")) {
-        SetVal("render", "ttf.wp", "xy");
+        SetVal("ttf", "wp", "xy");
         wpType=3;
     } else if (!strcmp(mname, "ttf_wpfe")) {
-        SetVal("render", "ttf.wp", "fe");
+        SetVal("ttf", "wp", "fe");
         wpType=4;
     } else
         return true;
@@ -12960,6 +12960,32 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					if (p!=NULL&&pc98_section->HandleInputline(line)) {
 						*p=0;
 						LOG_MSG("Redirected \"%s\" from [dos] to [pc98] section\n", trim(linestr));
+					}
+				}
+			}
+		}
+
+		// Redirect existing TTF related settings from [render] section to the [ttf] section if the latter is empty
+		Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+		assert(ttf_section != NULL);
+		extra = const_cast<char*>(ttf_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "ttf.", 4)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.substr(4).c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.substr(4).c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&ttf_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [render] to [ttf] section\n", trim(linestr));
 					}
 				}
 			}
