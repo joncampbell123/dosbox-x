@@ -66,12 +66,12 @@
     is now enabled by default for JP mode, and printing
     these characters is also supported. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
-    characters in the SDL-drawn menu (and characters in
-    different SBCS code pages in OpenGL outputs) and
-    the Configuration Tool interface (so for example
-    the DOS command help will show correctly). You can
-    change the DBCS font used by the Configuration Tool
-    interface via jdbcsfont14 config option. (Wengier)
+    characters in the SDL-drawn menu (in addition to
+    characters in different SBCS code pages) and the
+    Configuration Tool interface (so e.g. DOS command
+    help will show correctly for these languages). You
+    can change the DBCS font used by Configuration Tool
+    interface via fontxdbcs14 config option. (Wengier)
   - Added support for inputing DBCS characters using
     system input method (IME) in Windows SDL1 build.
     Chinese (Simplified & Traditional) IME should work
