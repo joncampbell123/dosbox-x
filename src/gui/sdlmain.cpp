@@ -1637,7 +1637,7 @@ bool CheckQuit(void) {
     return true;
 }
 
-static void NewInstanceEvent(bool pressed) {
+void NewInstanceEvent(bool pressed) {
     if (!pressed) return;
 #if defined(MACOSX)
     pid_t p = fork();
