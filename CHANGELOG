@@ -56,8 +56,10 @@
   - Config option "usescancodes=auto" now implies false
     for PC-98 mode in SDL1 builds. (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
-    are not found, then DOSBox-X will now use internal
-    Japanese fonts in addition to VGA font. (Wengier)
+    are not found in the directory, then DOSBox-X will
+    now use internal Japanese font (also used by DOS/V
+    and JEGA systems) in addition to built-in 8x16 SBCS
+    font generated from FREECG98.BMP. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option

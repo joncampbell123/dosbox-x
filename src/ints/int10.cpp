@@ -1412,14 +1412,14 @@ fail:
 }
 
 extern VideoModeBlock PC98_Mode;
-extern uint8_t pc98_sbcs_data[256 * 16];
+extern uint8_t pc98_freecg_sbcs[256 * 16];
 
 bool Load_JFont_As_PC98(void) {
     unsigned int hibyte,lowbyte,r,o,i,i1,i2;
 
     for (lowbyte=0;lowbyte < 256;lowbyte++) {
         for (r=0;r < 16;r++)
-            vga.draw.font[(lowbyte*16)+r] = pc98_sbcs_data[(lowbyte*16)+r];
+            vga.draw.font[(lowbyte*16)+r] = pc98_freecg_sbcs[(lowbyte*16)+r];
     }
     for (lowbyte=33;lowbyte < 125;lowbyte++) {
         for (hibyte=32;hibyte < 128;hibyte++) {
@@ -1556,7 +1556,7 @@ void INT10_Startup(Section *sec) {
             bool ok = Load_FONT_ROM();
             /* We can use ANEX86.BMP from the Anex86 emulator */
             if (!ok) ok = Load_Anex86_Font();
-            /* Failing all else we can use the PC-98 8x16 font and default Japanese font to show text on the screen. */
+            /* Failing all else we can use the internal FREECG 8x16 font and default Japanese font to show text on the screen. */
             if (!ok) ok = Load_JFont_As_PC98();
         }
 
