@@ -48,7 +48,8 @@ extern bool TTF_using(void);
 extern void GFX_CaptureMouse(void);
 extern std::map<int, int> lowboxdrawmap;
 extern uint16_t cpMap[512], cpMap_PC98[256];
-extern bool dbcs_sbcs, autoboxdraw, mouselocked;
+extern bool dbcs_sbcs, autoboxdraw;
+extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
 
@@ -1511,11 +1512,11 @@ void CPrinter::printChar(uint8_t ch, int box)
 	
 	// Find the glyph for the char to render
     uint16_t printch = dbchar?dbchar:curMap[ch];
-    if (dos.loaded_codepage == 932 && !dbchar && !TTF_using() && isJEGAEnabled()) {
+    if (!dbchar && dos.loaded_codepage == 932 && (halfwidthkana || isJEGAEnabled())) {
         if (ch>=0xA1&&ch<=0xDF) printch = cpMap_PC98[ch];
         else {
             std::map<int, int>::iterator it = lowboxdrawmap.find(ch);
-            if (lowboxdrawmap.find(ch)!=lowboxdrawmap.end()) printch = curMap[it->second];
+            if (lowboxdrawmap.find(ch)!=lowboxdrawmap.end()) printch = charmap[0].map[it->second];
         }
     }
 	FT_UInt index = FT_Get_Char_Index(curFont, printch);

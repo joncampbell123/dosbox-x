@@ -63,7 +63,8 @@
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
-    is now enabled by default for JP mode. (Wengier)
+    is now enabled by default for JP mode, and printing
+    these characters is also supported. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
     characters in the SDL-drawn menu (and characters in
     different SBCS code pages in OpenGL outputs) and
