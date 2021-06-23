@@ -1257,9 +1257,10 @@ public:
     CBind * CreateEventBind(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN) return 0;
 #if defined(C_SDL2)
-        return CreateKeyBind(event->key.keysym.scancode);
+	return CreateKeyBind(event->key.keysym.scancode);
 #else
-		return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+	return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+#endif
     };
     bool CheckEvent(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN && event->type!=SDL_KEYUP) return false;
