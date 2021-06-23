@@ -1330,15 +1330,17 @@ static Bitu DOS_21Handler(void) {
             if (reg_cx==0x4442 && reg_dx==0x2D58 && reg_al < 0x10) { // Special DOSBox-X functions (4442 = 'DB', 2D58 = '-X')
                 const char * ver = strchr(VERSION, '.');
                 switch (reg_al) {
-                    case 0: // DOSBox-X install check
+                    case 0: // DOSBox-X installation check
                         reg_al = 0;
                         break;
-                    case 1: // DOSBox-X SDL check
+                    case 1: // DOSBox-X SDL version check
                         reg_al = 0;
 #if defined(C_SDL2)
                         reg_ah = 2; // SDL2
+#elif defined(SDL_DOSBOX_X_SPECIAL)
+                        reg_ah = 1; // SDL1 (modified)
 #else
-                        reg_ah = 1; // SDL1
+                        reg_ah = 0; // SDL1 (original)
 #endif
                         break;
                     case 2: // DOSBox-X platform check
