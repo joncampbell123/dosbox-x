@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include "control.h"
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "bios.h"
@@ -34,6 +35,7 @@
 #include "paging.h"
 #include "callback.h"
 #include "regs.h"
+#include "timer.h"
 #include "menu.h"
 #include "mapper.h"
 #include "drives.h"

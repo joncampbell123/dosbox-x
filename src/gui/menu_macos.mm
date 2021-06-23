@@ -1,6 +1,7 @@
 /* Mac OS X portion of menu.cpp */
 
 #include "config.h"
+#include "dos_inc.h"
 #include "menu.h"
 
 #include "sdlmain.h"

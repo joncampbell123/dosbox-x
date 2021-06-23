@@ -105,6 +105,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 # endif
 #endif
 
+#include "control.h"
 #include "dosbox.h"
 #include "menudef.h"
 #include "pic.h"
