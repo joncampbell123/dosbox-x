@@ -44,9 +44,12 @@ extern bool printfont;
 extern void resetFontSize();
 extern FT_Face GetTTFFace();
 #endif
+extern bool TTF_using(void);
 extern void GFX_CaptureMouse(void);
+extern std::map<int, int> lowboxdrawmap;
+extern uint16_t cpMap[512], cpMap_PC98[256];
 extern bool dbcs_sbcs, autoboxdraw;
-extern bool mouselocked;
+extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
 
@@ -260,8 +263,6 @@ CPrinter::~CPrinter(void)
 #endif
 }
 
-extern uint16_t cpMap[512];
-extern bool TTF_using(void);
 void CPrinter::selectCodepage(uint16_t cp)
 {
 	const uint16_t* mapToUse = NULL;
@@ -1510,7 +1511,15 @@ void CPrinter::printChar(uint8_t ch, int box)
 	if(ch == 0x1) ch = 0x20;
 	
 	// Find the glyph for the char to render
-	FT_UInt index = FT_Get_Char_Index(curFont, dbchar?dbchar:curMap[ch]);
+    uint16_t printch = dbchar?dbchar:curMap[ch];
+    if (!dbchar && dos.loaded_codepage == 932 && (halfwidthkana || isJEGAEnabled())) {
+        if (ch>=0xA1&&ch<=0xDF) printch = cpMap_PC98[ch];
+        else {
+            std::map<int, int>::iterator it = lowboxdrawmap.find(ch);
+            if (lowboxdrawmap.find(ch)!=lowboxdrawmap.end()) printch = charmap[0].map[it->second];
+        }
+    }
+	FT_UInt index = FT_Get_Char_Index(curFont, printch);
 	
 	// Load the glyph 
 	FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);

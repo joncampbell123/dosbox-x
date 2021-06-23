@@ -94,7 +94,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
-void DOSBOX_UnlockSpeed2( bool pressed );
+void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void);
 bool TTF_using();
 int setTTFCodePage();
 
@@ -1237,7 +1237,7 @@ void CONFIG::Run(void) {
 			std::string inputline = pvars[1] + "=" + value;
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1474,20 +1474,20 @@ void CONFIG::Run(void) {
                                 ).refresh_item(mainMenu);
 #endif
                             }
-						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
-                            void GFX_ForceRedrawScreen(void), ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
-							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
+						} else if (!strcasecmp(pvars[0].c_str(), "ttf")) {
+                            void ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
+							if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
 #if defined(USE_TTF)
                                 ttf_reset();
 #if C_PRINTER
                                 if (TTF_using() && printfont) UpdateDefaultPrinterFont();
 #endif
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
+							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
 #if defined(USE_TTF)
-                                bool iscol=!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=");
+                                bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
                                 if (iscol&&IS_PC98_ARCH)
-                                    SetVal("render", "ttf.cols", "80");
+                                    SetVal("render", "cols", "80");
                                 else if (!CurMode)
                                     ;
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
@@ -1500,9 +1500,9 @@ void CONFIG::Run(void) {
                                 ttf_setlines(0, 0);
                                 lastset=0;
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ttf.wp=")) {
+							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
 #if defined(USE_TTF)
-                                const char *wpstr=section->Get_string("ttf.wp");
+                                const char *wpstr=section->Get_string("wp");
                                 wpType=wpVersion=0;
                                 if (strlen(wpstr)>1) {
                                     if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
@@ -1517,76 +1517,78 @@ void CONFIG::Run(void) {
                                 mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
+							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpbg=")) {
 #if defined(USE_TTF)
-                                wpBG = section->Get_int("ttf.wpbg");
+                                wpBG = section->Get_int("wpbg");
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpfg=")) {
+							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpfg=")) {
 #if defined(USE_TTF)
-                                wpFG = section->Get_int("ttf.wpfg");
+                                wpFG = section->Get_int("wpfg");
                                 if (wpFG<0) wpFG = 7;
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.bold=")) {
+							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "bold=")) {
 #if defined(USE_TTF)
-                                showbold = section->Get_bool("ttf.bold");
+                                showbold = section->Get_bool("bold");
                                 mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.italic=")) {
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "italic=")) {
 #if defined(USE_TTF)
-                                showital = section->Get_bool("ttf.italic");
+                                showital = section->Get_bool("italic");
                                 mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.underline=")) {
+							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "underline=")) {
 #if defined(USE_TTF)
-                                showline = section->Get_bool("ttf.underline");
+                                showline = section->Get_bool("underline");
                                 mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.strikeout=")) {
+							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "strikeout=")) {
 #if defined(USE_TTF)
-                                showsout = section->Get_bool("ttf.strikeout");
+                                showsout = section->Get_bool("strikeout");
                                 mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "ttf.char512=")) {
+							} else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
 #if defined(USE_TTF)
-                                char512 = section->Get_bool("ttf.char512");
+                                char512 = section->Get_bool("char512");
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.printfont=")) {
+							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {
 #if defined(USE_TTF) && C_PRINTER
-                                printfont = section->Get_bool("ttf.printfont");
+                                printfont = section->Get_bool("printfont");
                                 mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
                                 UpdateDefaultPrinterFont();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "ttf.autodbcs=")) {
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
 #if defined(USE_TTF)
-                                dbcs_sbcs = section->Get_bool("ttf.autodbcs");
+                                dbcs_sbcs = section->Get_bool("autodbcs");
                                 mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 16).c_str(), "ttf.autoboxdraw=")) {
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
 #if defined(USE_TTF)
-                                autoboxdraw = section->Get_bool("ttf.autoboxdraw");
+                                autoboxdraw = section->Get_bool("autoboxdraw");
                                 mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 18).c_str(), "ttf.halfwidthkana=")) {
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
 #if defined(USE_TTF)
-                                halfwidthkana = section->Get_bool("ttf.halfwidthkana");
+                                halfwidthkana = section->Get_bool("halfwidthkana");
                                 mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
                                 if (TTF_using()) {setTTFCodePage();resetFontSize();}
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "blinkc=")) {
 #if defined(USE_TTF)
                                 SetBlinkRate(section);
                                 mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
 #endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+							}
+                        } else if (!strcasecmp(pvars[0].c_str(), "render")) {
+                            if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
 #if C_OPENGL
                                 std::string LoadGLShader(Section_prop * section);
                                 LoadGLShader(section);

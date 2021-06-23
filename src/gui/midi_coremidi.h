@@ -33,6 +33,12 @@ public:
 //		OSStatus result;
 		Bitu numDests = MIDIGetNumberOfDestinations();
 		Bitu destId = numDests;
+		if (numDests == 0) {
+			/* Mac OS X Big Sur returns zero, nothing we can do */
+			LOG_MSG("coremidi: No MIDI destinations available");
+			return false;
+		}
+		LOG_MSG("coremidi: %u MIDI destinations available",(unsigned int)numDests); // FIXME: Why isn't LOG(..,..)(...) available here?
 		if(conf && *conf) {
 			std::string strconf(conf);
 			std::istringstream configmidi(strconf);

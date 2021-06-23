@@ -100,6 +100,7 @@ void pc98_update_display_page_ptr(void);
 void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
+void change_output(int output);
 void runBoot(const char *str);
 void SetIMPosition(void);
 #if defined(USE_TTF)
@@ -6959,8 +6960,13 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 }
 
 static int bios_pc98_posx = 0;
+extern bool tooutttf;
 
 static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bool boxdraw = false, bool tobold = false) {
+    if (tooutttf) {
+        tooutttf = false;
+        change_output(10);
+    }
     if (control->opt_fastlaunch) return;
     const char *s = msg;
     if (machine != MCH_PC98) {
@@ -8169,8 +8175,6 @@ private:
             config |= bios_post_comport_count() << 9;
 
 #if (C_FPU)
-            extern bool enable_fpu;
-
             //FPU
             if (enable_fpu)
                 config|=0x2;
@@ -8930,8 +8934,6 @@ startfunction:
                     break;
             }
 
-            extern bool enable_fpu;
-
             sprintf(tmp,"%s CPU present",cpuType);
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
             if (enable_fpu) BIOS_Int10RightJustifiedPrint(x,y," with FPU");
@@ -9264,7 +9266,8 @@ startfunction:
             void IDE_CDROM_DetachAll();
             IDE_CDROM_DetachAll();
         }
-		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+		if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+
 		bootvm=false;
 		bootfast=false;
 		bootguest=false;

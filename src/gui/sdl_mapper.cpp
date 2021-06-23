@@ -1259,9 +1259,7 @@ public:
 #if defined(C_SDL2)
         return CreateKeyBind(event->key.keysym.scancode);
 #else
-        return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
-
-#endif
+		return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
     };
     bool CheckEvent(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN && event->type!=SDL_KEYUP) return false;
@@ -1269,6 +1267,7 @@ public:
         Bitu key = event->key.keysym.scancode;
 #else
 		Bitu key;
+
 		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
 		key = GetKeyCode(event->key.keysym);
 		assert(key < keys);

@@ -17,20 +17,18 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
-	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 		dylib=`basename $$Y`; \
 		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
 		install_name_tool -change $$Y @executable_path/$$dylib dosbox-x.app/Contents/MacOS/DosBox; \
 	done
-# and the libs too
+# and the libs too. NTS: Cannot use install_name_tool anymore to change anything about dylib files because that invalidates code signing of those files
 	for pass in 1 2 3 4 5; do \
 		for dolib in dosbox-x.app/Contents/MacOS/*.dylib; do \
-			otool -L "$$dolib" | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+			otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 				dylib=`basename $$Y`; \
 				cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
 				echo "$$Y"; \
-				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib"; \
-				install_name_tool -id @executable_path/$$dylib "$$dolib"; \
 			done; \
 		done; \
 	done

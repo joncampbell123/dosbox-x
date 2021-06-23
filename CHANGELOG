@@ -1,4 +1,22 @@
 0.83.15
+  - Added menu command to spawn a new instance of
+    DOSBox-X to Mac OS X builds to work around the
+    singular app instance model the Finder tends to
+    prefer, so that users can run multiple instances
+    if they wish. (joncampbell123)
+  - Mac OS X builds will once again have Fluidsynth,
+    libslirp, and FFMPEG support from revised .app
+    building code. For best results support is enabled
+    at compile time only if Brew is installed along
+    with Brew builds of those packages. (joncampbell123)
+  - Mac OS X coreaudio MIDI support will continue
+    with the default soundfont rather than give up
+    if it cannot select the custom soundfont specified
+    in dosbox.conf (joncampbell123)
+  - Fixed Mac OS X bug where coremidi would attempt
+    MIDI output even if no MIDI destinations are
+    available, which is apparently the case on
+    Big Sur. (joncampbell123)
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
     the drive is not mounted if so. You can make the
@@ -26,6 +44,16 @@
     (e.g. "config -set turbo=true"). (Wengier)
   - Added value "quiet" to "log console" config option
     to only log DOS console outputs. (Wengier)
+  - There is now a special DOS function for DOSBox-X at
+    Int21h/AH=2B/CX=0x4442h('DB')/DX=0x2D58h('-X'), as
+    follows: AL=0h (DOSBox-X installation check), AL=1h
+    (SDL version check), AL=2h (platform check), AL=3h
+    (machine type check), and AL=4h (DOSBox-X version
+    check). For example, you can get installed DOSBox-X
+    version by calling the function Int21h/AX=2B04h/CX=
+    0x4442h/DX=0x2D58h in your program - AL and AH will
+    become 0, and BX will return the DOSBox-X version
+    number after "0." (e.g. BH=83, BL=15). (Wengier)
   - It is now possible to translate text for graphical
     Configuration Tool and Mapper Editor interfaces.
     The sizes and/or positions of some buttons in these
@@ -33,19 +61,22 @@
   - Config option "usescancodes=auto" now implies false
     for PC-98 mode in SDL1 builds. (Wengier)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
-    are not found, then DOSBox-X will now use internal
-    Japanese fonts in addition to VGA font. (Wengier)
-  - The config option ttf.halfwidthkana (in [render]
-    section will enable low ASCII boxing characters
+    are not found in the directory, then DOSBox-X will
+    now use internal Japanese font (also used by DOS/V
+    and JEGA systems) in addition to built-in 8x16 SBCS
+    font pre-generated from FREECG98.BMP. (Wengier)
+  - The config option ttf.halfwidthkana (now in [ttf]
+    section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
-    is now enabled by default for JP mode. (Wengier)
+    is now enabled by default for JP mode, and printing
+    these characters is also supported. (Wengier)
   - Added support for showing Chinese/Japanese/Korean
-    characters in the SDL-drawn menu (and characters in
-    different SBCS code pages in OpenGL outputs) and
-    the Configuration Tool interface (so for example
-    the DOS command help will show correctly). You can
-    change the DBCS font used by the Configuration Tool
-    interface via jdbcsfont14 config option. (Wengier)
+    characters in the SDL-drawn menu (in addition to
+    characters in different SBCS code pages) and the
+    Configuration Tool interface (so e.g. DOS command
+    help will show correctly for these languages). You
+    can change the DBCS font used by Configuration Tool
+    interface via fontxdbcs14 config option. (Wengier)
   - Added support for inputing DBCS characters using
     system input method (IME) in Windows SDL1 build.
     Chinese (Simplified & Traditional) IME should work
@@ -57,27 +88,39 @@
     (default), it is enabled for Windows SDL1 builds
     only if DOSBox-X is started with a CJK code page
     or in PC-98/JEGA/DOS/V mode. (Wengier)
+  - Added support for Japanese EGA mode (machine=jega)
+    by adopting code from DOSVAXJ3. As with DOS/V, you
+    can optionally set the SBCS and DBCS fonts with
+    fontxsbcs, fontxdbcs (and fontxsbcs19, fontxdbcs24,
+    etc) options in [dosv] section of config file, or
+    the default fonts will be used for them. (Wengier)
   - Added support for DOS/V (Japanese mode) by adopting
     code from DOSVAXJ3. Also added support for Chinese
-    and Korean DOS/V modes. Set "dosv" to "jp", "chs",
-    "cht", or "ko" in [dos] section of the config file
-    to enable DOS/V for different CJK modes. There are
-    also various font-related options added in [render]
-    section for the DOS/V support. (Wengier)
-  - Added support for Japanese EGA mode (machine=jega)
-    by adopting code from DOSVAX. You can optionally
-    set SBCS and DBCS fonts with jfontsbcs, jfontdbcs
-    (and jfontsbcs19, jfontdbcs24, etc) config options
-    in [render] section of config file, or the default
-    fonts will be used for them. (Wengier)
+    and Korean DOS/V modes. Set option "dosv" to "jp",
+    "chs" (or "cn"), "cht" (or "tw"), or "ko" in [dosv]
+    section of the config file to enable DOS/V mode for
+    different CJK languages. There are now also various
+    font-related (and V-text screen mode) options added
+    in [dosv] section for the DOS/V support. (Wengier)
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,
     x11, dummy) for the SDL library to use. The video
     driver "directx" has been enabled for Windows SDL1
     builds (without certain functions). (Wengier)
+  - There is a now a [ttf] section in the config file,
+    and TTF-related config options are moved/renamed
+    from [render] section to this section. The Windows
+    installer will also automatically transfer previous
+    TTF options to the new [ttf] section. (Wengier)
+  - When setting to "auto", config option "allow lmsw
+    to exit protected mode" will be active for Pentium+
+    CPUs instead of 486+ CPUs. (Wengier)
   - Fixed a bug which may lead to crash when pasting
     text via the DOS clipboard API (e.g. the 4DOS CLIP:
     device) in non-Windows platforms. (Wengier)
+  - Fixed the possible freeze when output was switched
+    from TrueType font (TTF) output and you tried to
+    reset the virtual machine. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the

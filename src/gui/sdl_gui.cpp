@@ -786,6 +786,10 @@ std::string CapName(std::string name) {
         dispname="Main";
     else if (name=="pc98")
         dispname="PC-98";
+    else if (name=="dosv")
+        dispname="DOS/V";
+    else if (name=="ttf")
+        dispname="TTF Output";
     else if (name=="vsync")
         dispname="V-Sync";
     else if (name=="4dos")
@@ -835,6 +839,10 @@ std::string RestoreName(std::string name) {
         dispname="dosbox";
     else if (name=="PC-98")
         dispname="pc98";
+    else if (name=="DOS/V")
+        dispname="dosv";
+    else if (name=="TTF Output")
+        dispname="ttf";
     else if (name=="V-Sync")
         dispname="vsync";
     else if (name=="4DOS.INI")
