@@ -59,7 +59,7 @@
     are not found in the directory, then DOSBox-X will
     now use internal Japanese font (also used by DOS/V
     and JEGA systems) in addition to built-in 8x16 SBCS
-    font generated from FREECG98.BMP. (Wengier)
+    font pre-generated from FREECG98.BMP. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option

@@ -187,10 +187,7 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
             if (ic>=0xA1&&ic<=0xDF) wc = cpMap_PC98[ic];
             else {
                 std::map<int, int>::iterator it = lowboxdrawmap.find(ic);
-                if (lowboxdrawmap.find(ic)==lowboxdrawmap.end())
-                    wc = map[ic];
-                else
-                    wc = map[it->second];
+                wc = map[lowboxdrawmap.find(ic)==lowboxdrawmap.end()?ic:it->second];
             }
         } else
 #endif
