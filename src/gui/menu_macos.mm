@@ -1,6 +1,7 @@
 /* Mac OS X portion of menu.cpp */
 
 #include "config.h"
+#include "dos_inc.h"
 #include "menu.h"
 
 #include "sdlmain.h"
@@ -194,6 +195,14 @@ void menu_macosx_set_menuobj(DOSBoxMenu *new_altMenu) {
         /* sorry! */
         mainMenu.mainMenuAction([sender tag]);
     }
+}
+
+- (void)DOSBoxXMenuActionNewInstance:(id)sender
+{
+    (void)sender;
+    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+    void NewInstanceEvent(bool pressed);
+    NewInstanceEvent(true);
 }
 
 - (void)DOSBoxXMenuActionMapper:(id)sender
@@ -467,6 +476,30 @@ void macosx_init_dock_menu(void) {
         [menu addItem:item];
         [title release];
         [item release];
+    }
+
+    {
+        bool enable = false;
+        extern std::string MacOSXEXEPath;
+        if (!MacOSXEXEPath.empty()) {
+            if (MacOSXEXEPath.at(0) == '/') {
+                enable = true;
+            }
+        }
+
+        if (enable) {
+            {
+                NSMenuItem *item = [NSMenuItem separatorItem];
+                [menu addItem:item];
+                [item release];
+            }
+
+            NSString *title = [[NSString alloc] initWithUTF8String: "Start new instance"];
+            NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionNewInstance:) keyEquivalent:@""];
+            [menu addItem:item];
+            [title release];
+            [item release];
+        }
     }
 
     sdl1_hax_set_dock_menu(menu);

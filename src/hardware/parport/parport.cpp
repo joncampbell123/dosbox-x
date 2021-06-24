@@ -20,6 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "control.h"
 #include "dosbox.h"
 
 #include "logging.h"

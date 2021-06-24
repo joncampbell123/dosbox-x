@@ -105,6 +105,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle();
 # endif
 #endif
 
+#include "control.h"
 #include "dosbox.h"
 #include "menudef.h"
 #include "pic.h"
@@ -1635,6 +1636,31 @@ bool CheckQuit(void) {
         return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
 #endif
     return true;
+}
+
+void NewInstanceEvent(bool pressed) {
+    if (!pressed) return;
+#if defined(MACOSX)
+    pid_t p = fork();
+    if (p == 0) {
+        /* child process */
+        char *argv[8];
+        extern std::string MacOSXEXEPath;
+        {
+            int fd = open("/dev/null",O_RDWR);
+            dup2(fd,0);
+            dup2(fd,1);
+            dup2(fd,2);
+            close(fd);
+        }
+        chdir("/");
+        argv[0] = (char*)MacOSXEXEPath.c_str();
+        argv[1] = NULL;
+        execv(argv[0],argv);
+        fprintf(stderr,"Failed to exec to %s\n",argv[0]);
+        _exit(1);
+    }
+#endif
 }
 
 void CPU_Snap_Back_To_Real_Mode();
@@ -5611,6 +5637,22 @@ static void GUI_StartUp() {
 
     MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "Quick launch program", &item);
     item->set_text("Quick launch program...");
+#endif
+
+#if defined(MACOSX)
+    MAPPER_AddHandler(NewInstanceEvent, MK_nothing, 0, "newinst", "Start new instance", &item);
+    item->set_text("Start new instance");
+    {
+        bool enable = false;
+        extern std::string MacOSXEXEPath;
+        if (!MacOSXEXEPath.empty()) {
+            if (MacOSXEXEPath.at(0) == '/') {
+                enable = true;
+            }
+        }
+        item->enable(enable);
+        item->refresh_item(mainMenu);
+    }
 #endif
 
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten

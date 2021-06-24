@@ -11,6 +11,7 @@ extern "C" {
 #include "ppscale.h"
 #include "ppscale.c"
 }
+#include "control.h"
 #include "dosbox.h"
 #include "logging.h"
 #include "menudef.h"

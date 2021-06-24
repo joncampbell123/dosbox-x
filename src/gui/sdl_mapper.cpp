@@ -875,7 +875,7 @@ typedef char assert_right_size [MAX_SCANCODES == (sizeof(sdlkey_map)/sizeof(sdlk
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_UNKNOWN,//0x00
-	SDLK_ESCAPE,//0x01
+	SDLK_ESCAPE,//0x01  
 	/*0x02-0x0b 1-9,0*/
 	SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
 	/* 0x0c: */
@@ -1038,36 +1038,51 @@ bool useScanCode() {
 
 SDLKey MapSDLCode(Bitu skey) {
 //  LOG_MSG("MapSDLCode %d %X",skey,skey);
-    if (useScanCode()) {
-        if (skey<MAX_SCANCODES) return sdlkey_map[skey];
+#if defined(C_SDL2)
+	return (SDLKey)skey;
+#else
+	if (useScanCode()) {
+		if (skey <= SDLK_LAST) return (SDLKey)skey;
         else return SDLK_UNKNOWN;
     } else return (SDLKey)skey;
+#endif
 }
 
+/* Return keysym.sym if non-zero, otherwise, convert keysym.scancode to SDLkey */
 Bitu GetKeyCode(SDL_keysym keysym) {
-//  LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
+    // LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
     if (useScanCode()) {
-        Bitu key=(Bitu)keysym.scancode;
+        SDLKey key = keysym.sym;
 
 #if defined (MACOSX)
         if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = 0x5f;  // zero value makes the keyboar crazy
 #endif
 
         if (key==0
+#if 0
 #if defined (MACOSX)
             /* On Mac on US keyboards, scancode 0 is actually the 'a'
              * key.  For good measure exclude all printables from this
              * condition. */
-            && (keysym.sym < SDLK_SPACE || keysym.sym > SDLK_WORLD_95)
+             && (keysym.sym < SDLK_SPACE || keysym.sym > SDLK_WORLD_95)
 #endif
-            ) {
-            /* try to retrieve key from symbolic key as scancode is zero */
-            if (keysym.sym<MAX_SDLKEYS) key=scancode_map[(Bitu)keysym.sym];
-        } 
+#endif
+			 ) {
+                /* try to retrieve key from scancode as keysym.sym is zero */
+                if (keysym.scancode < MAX_SCANCODES) {
+				    key = sdlkey_map[keysym.scancode]; // FIX ME: Do we need to scancode-8 for Linux users?
+			    }
+                else key = SDLK_UNKNOWN;
+		} 
+
+#if 0
 #if !defined (WIN32) && !defined (MACOSX) && !defined(OS2)
         /* Linux adds 8 to all scancodes */
-        else key-=8;
+        else key-=8; 
 #endif
+#endif
+#if 0
+// I don't think this part is required when useScanCode() is true, you basically already obtain SDLKeys.
 #if defined (WIN32)
         switch (key) {
             case 0x1c:  // ENTER
@@ -1088,9 +1103,16 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x53:  // DELETE
                 if (GFX_SDLUsingWinDIB()) key=scancode_map[(Bitu)keysym.sym];
                 break;
-        }
+		}
 #endif
-        return key;
+#endif
+#if defined (WIN32)
+		/* Special handling for JP Keyboard */
+		if (key == SDLK_BACKQUOTE){
+			key = (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); // Set to Hankaku key if JP Keyboard
+		}
+#endif
+		return key;
     } else {
 #if defined (WIN32)
         /* special handling of 102-key under windows */
@@ -1102,15 +1124,15 @@ Bitu GetKeyCode(SDL_keysym keysym) {
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
-        if (keysym.scancode == 0x29) return (isJPkeyboard ? (Bitu)SDLK_WORLD_12 : (Bitu) SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)
+		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
         /* Muhenkan */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x7B) return (int)SDLK_WORLD_13;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x7B) return (Bitu)SDLK_WORLD_13;
         /* Henkan/Zenkouho */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (int)SDLK_WORLD_14;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (Bitu)SDLK_WORLD_14;
         /* Hiragana/Katakana */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (int)SDLK_WORLD_15;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (Bitu)SDLK_WORLD_15;
 #endif
-        return (Bitu)keysym.sym;
+		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]); // FIX ME: Do we need to scancode-8 for Linux users?
     }
 }
 
@@ -1126,19 +1148,20 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        const char *r=SDL_GetKeyName(key);
         if (!strcmp(r, "left super")) r = "left Windows";
         else if (!strcmp(r, "right super")) r = "right Windows";
         else if (!strcmp(r, "left meta")) r = "left Command";
         else if (!strcmp(r, "right meta")) r = "right Command";
-        sprintf(buf,"Key %s",r);
+		//LOG_MSG("Key %s", r);
+		sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
-        sprintf(buf,"key %d",MapSDLCode((Bitu)key));
+        sprintf(buf,"key %d",(Bitu)key);
 #endif
     }
     virtual std::string GetBindMenuText(void) override {
@@ -1149,7 +1172,7 @@ public:
         s = SDL_GetScancodeName(key);
         if (s != NULL) r = s;
 #else
-        s = SDL_GetKeyName(MapSDLCode((Bitu)key));
+        s = SDL_GetKeyName(key);
 		if (s != NULL) {
 			r = s;
 			if (r.length()>0) {
@@ -1223,10 +1246,10 @@ public:
 #if defined(C_SDL2)
         CBind * bind=CreateKeyBind((SDL_Scancode)code);
 #else
-        if (useScanCode()) {
-            if (code<MAX_SDLKEYS) code=scancode_map[code];
-            else code=0;
-        }
+        //if (useScanCode()) {
+        //    if (code<MAX_SDLKEYS) code=scancode_map[code];
+        //    else code=0;
+        //}
         CBind * bind=CreateKeyBind((SDLKey)code);
 #endif
         return bind;
@@ -1234,12 +1257,9 @@ public:
     CBind * CreateEventBind(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN) return 0;
 #if defined(C_SDL2)
-        return CreateKeyBind(event->key.keysym.scancode);
+	return CreateKeyBind(event->key.keysym.scancode);
 #else
-		if (event->key.keysym.sym)
-			return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
-		else
-			return CreateKeyBind(sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
+	return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
 #endif
     };
     bool CheckEvent(SDL_Event * event) {
@@ -1248,8 +1268,10 @@ public:
         Bitu key = event->key.keysym.scancode;
 #else
 		Bitu key;
-		key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
-        assert(key < keys);
+
+		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
+		key = GetKeyCode(event->key.keysym);
+		assert(key < keys);
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
@@ -1264,7 +1286,7 @@ public:
 #if defined(C_SDL2)
         if (isJPkeyboard && key == 0x35 && event->key.keysym.sym == 0x60)
 #else
-        if (isJPkeyboard && event->key.keysym.scancode == 0x29 /*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
+		if (isJPkeyboard && event->key.keysym.scancode == 0x29 /*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
 #endif
         {
             if (event->type == SDL_KEYDOWN) {
@@ -4489,7 +4511,8 @@ void BIND_MappingEvents(void) {
                     s.sym,
                     s.mod,
                     s.unicode,
-                    (s.sym ? SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)) : SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)sdlkey_map[(s.scancode ? s.scancode : event.key.keysym.scancode)]))));
+					SDL_GetKeyName((SDLKey)GetKeyCode(s)));
+					//(s.sym ? SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)) : SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)sdlkey_map[(s.scancode ? s.scancode : event.key.keysym.scancode)]))));
 #endif
                 while (tmpl < (440/8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
@@ -4507,7 +4530,7 @@ void BIND_MappingEvents(void) {
 
                     nm[0] = 0;
 #if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
-                    GetKeyNameText((s.scancode ? s.scancode : event.key.keysym.scancode) << 16, nm, sizeof(nm)-1);
+					GetKeyNameText((s.scancode ? s.scancode : event.key.keysym.scancode) << 16, nm, sizeof(nm)-1);
 #endif
 
                     tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",(unsigned int)s.win32_vk,nm);
@@ -4909,7 +4932,7 @@ void MAPPER_CheckKeyboardLayout() {
 #if defined(WIN32)
     WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
 
-    isJPkeyboard = true;
+    isJPkeyboard = false;
 
     if (cur_kb_layout == 1041/*JP106*/) {
         isJPkeyboard = true;

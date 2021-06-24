@@ -1,4 +1,9 @@
 0.83.15
+  - Added menu command to spawn a new instance of
+    DOSBox-X to Mac OS X builds to work around the
+    singular app instance model the Finder tends to
+    prefer, so that users can run multiple instances
+    if they wish. (joncampbell123)
   - Mac OS X builds will once again have Fluidsynth,
     libslirp, and FFMPEG support from revised .app
     building code. For best results support is enabled

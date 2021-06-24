@@ -2,7 +2,6 @@
 #ifndef __ISP_UTILS_V4_WIN_WAVEFORMATEX_H
 #define __ISP_UTILS_V4_WIN_WAVEFORMATEX_H
 
-#include "informational.h"
 #include "guid.h"	/* <- need windows_GUID definition below */
 
 #if defined(_MSC_VER)

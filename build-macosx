@@ -70,8 +70,6 @@ if [[ -d "$brew" && -d "$brew/include" && -d "$brew/lib" ]]; then
     export CPPFLAGS="$CPPFLAGS$new"
     export CXXFLAGS="$CXXFLAGS$new"
     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$brew/lib/pkgconfig"
-else
-opts+=" --disable-avcodec"
 fi
 
 # now compile ourself

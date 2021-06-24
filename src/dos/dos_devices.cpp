@@ -18,6 +18,8 @@
 
 
 #include <string.h>
+
+#include "control.h"
 #include "dosbox.h"
 #include "callback.h"
 #include "regs.h"

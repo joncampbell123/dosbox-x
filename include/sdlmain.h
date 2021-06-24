@@ -1,14 +1,9 @@
-#include "dosbox.h"
 
-#include "control.h"
 #include "menu.h"
 #include "mouse.h"
-#include "render.h"
 #include "video.h"
 
-#include "cross.h"
 #include "SDL.h"
-#include "SDL_video.h"
 
 #ifdef __WIN32__
 #include "SDL_syswm.h"

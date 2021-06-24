@@ -1,4 +1,5 @@
 #include "dosbox.h"
+#include "setup.h"
 
 #ifndef DOSBOX_OUTPUT_TOOLS_XBRZ_H
 #define DOSBOX_OUTPUT_TOOLS_XBRZ_H

@@ -23,6 +23,7 @@
 #ifndef DOSBOX_CROSS_H
 #include "cross.h"
 #endif
+#include "string.h"
 #ifndef DOSBOX_SUPPORT_H
 #include "support.h"
 #endif
