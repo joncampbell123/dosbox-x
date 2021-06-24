@@ -53,6 +53,8 @@ extern bool ctrlbrk, gbk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
+char *strrchr_dbcs(char *str, char ch);
+
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -186,7 +188,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
     const char *path;
     if ((path = strrchr(line+completion_index,':'))) completion_index = (uint16_t)(path-line+1);
-    if ((path = strrchr(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
+    if ((path = strrchr_dbcs(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
     if ((path = strrchr(line+completion_index,'/'))) completion_index = (uint16_t)(path-line+1);
 
     // build the completion list
@@ -210,7 +212,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     if (p_completion_start) {
         safe_strncpy(mask, p_completion_start,DOS_PATHLENGTH);
         const char* dot_pos = strrchr(mask, '.');
-        const char* bs_pos = strrchr(mask, '\\');
+        const char* bs_pos = strrchr_dbcs(mask, '\\');
         const char* fs_pos = strrchr(mask, '/');
         const char* cl_pos = strrchr(mask, ':');
         // not perfect when line already contains wildcards, but works
@@ -948,7 +950,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
-		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
+		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }

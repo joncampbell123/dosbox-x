@@ -70,6 +70,8 @@
     now use internal Japanese font (also used by DOS/V
     and JEGA systems) in addition to built-in 8x16 SBCS
     font pre-generated from FREECG98.BMP. (Wengier)
+  - Added support for DBCS aware of the character "\"
+    in CJK code pages. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option

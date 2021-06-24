@@ -120,6 +120,7 @@ extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
 void GetExpandedPath(std::string &path);
+char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
 
 /* support functions */
 static char empty_char = 0;
@@ -247,8 +248,8 @@ __do_command_begin:
 /* This isn't an internal command execute it */
 	char ldir[CROSS_LEN], *p=ldir;
 	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
-		if (!strchr(cmd_buffer, '\\') && strrchr(ldir, '\\'))
-			p=strrchr(ldir, '\\')+1;
+		if (!strchr_dbcs(cmd_buffer, '\\') && strrchr_dbcs(ldir, '\\'))
+			p=strrchr_dbcs(ldir, '\\')+1;
 		if (uselfn&&strchr(p, ' ')&&!DOS_FileExists(("\""+std::string(p)+"\"").c_str())) {
 			bool append=false;
 			if (DOS_FileExists(("\""+std::string(p)+".COM\"").c_str())) {append=true;strcat(p, ".COM");}
@@ -475,7 +476,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 		strcat(args, ".*");
 	} else if (uselfn&&strchr(args, '*')) {
 		char * find_last;
-		find_last=strrchr(args,'\\');
+		find_last=strrchr_dbcs(args,'\\');
 		if (find_last==NULL) find_last=args;
 		else find_last++;
 		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
@@ -531,7 +532,7 @@ first_2:
 continue_1:
 	/* Command uses dta so set it to our internal dta */
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(full, '\\');
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr_dbcs(full, '\\');
 	if (r!=NULL) {
 		*r=0;
 		strcpy(path, full);
@@ -565,8 +566,8 @@ continue_1:
 	lfn_filefind_handle=fbak;
 	//end can't be 0, but if it is we'll get a nice crash, who cares :)
 	strcpy(sfull,full);
-	char * end=strrchr(full,'\\')+1;*end=0;
-	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
+	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
 	dta=dos.dta();
 	bool exist=false;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
@@ -648,7 +649,7 @@ std::vector<std::string> tdirs;
 
 static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bool first) {
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	if (!DOS_Canonicalize(args,full)||strrchr(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
+	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		if (first) shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 		return false;
@@ -672,9 +673,9 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
         }
         return true;
     }
-	*(strrchr(path,'\\')+1)=0;
-	char * end=strrchr(full,'\\')+1;*end=0;
-	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+	*(strrchr_dbcs(path,'\\')+1)=0;
+	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
+	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs, cfiles;
@@ -733,8 +734,8 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
         cfiles.erase(cfiles.begin());
     }
     if (!first&&strlen(args)>4&&!strcmp(args+strlen(args)-4,"\\*.*")) {
-        end=strrchr(full,'\\')+1;*end=0;
-        lend=strrchr(sfull,'\\')+1;*lend=0;
+        end=strrchr_dbcs(full,'\\')+1;*end=0;
+        lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
         if (fdir) {
             strcpy(spath, path);
             strcat(spath, ".\\.");
@@ -771,7 +772,7 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 
 	if (uselfn&&strchr(args, '*')) {
 		char * find_last;
-		find_last=strrchr(args,'\\');
+		find_last=strrchr_dbcs(args,'\\');
 		if (find_last==NULL) find_last=args;
 		else find_last++;
 		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
@@ -840,7 +841,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
     }
     if (level>=200) return false;
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	if (!DOS_Canonicalize(args,full)||strrchr(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return level; }
+	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return level; }
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		if (!level) shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
 		return level;
@@ -848,7 +849,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
 	if (!uselfn||!DOS_GetSFNPath(args,sfull,true)) strcpy(sfull,full);
     if (level&&strlen(sfull)>4&&!strcasecmp(sfull+strlen(sfull)-4, "\\*.*")) {
         *(sfull+strlen(sfull)-4)=0;
-        p=strrchr(sfull, '\\');
+        p=strrchr_dbcs(sfull, '\\');
         char c=optA?(last?'\\':'+'):(last?'À':'Ã');
         cont[level]=!last;
         for (int i=1; i<level; i++) shell->WriteOut("%c   ", cont[i]?(optA?'|':'³'):' ');
@@ -863,9 +864,9 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
     }
     uint16_t attribute=0;
 	strcpy(path,full);
-	*(strrchr(path,'\\')+1)=0;
-	char * end=strrchr(full,'\\')+1;*end=0;
-	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+	*(strrchr_dbcs(path,'\\')+1)=0;
+	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
+	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs;
@@ -1023,7 +1024,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	char * arg2=StripArg(args);
 	StripSpaces(args);
 	if (*args) {SyntaxError();return;}
-	char* slash = strrchr(arg1,'\\');
+	char* slash = strrchr_dbcs(arg1,'\\');
 	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], tname1[LFN_NAMELENGTH+1], tname2[LFN_NAMELENGTH+1], text1[LFN_NAMELENGTH+1], text2[LFN_NAMELENGTH+1], tfull[CROSS_LEN+2];
 	//dir_source and target are introduced for when we support multiple files being renamed.
@@ -1038,7 +1039,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 		 
 		//Copy first and then modify, makes GCC happy
 		safe_strncpy(dir_source,arg1,DOS_PATHLENGTH + 4);
-		char* dummy = strrchr(dir_source,'\\');
+		char* dummy = strrchr_dbcs(dir_source,'\\');
 		if (!dummy) dummy = strrchr(dir_source,':');
 		if (!dummy) { //Possible due to length
 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
@@ -1046,9 +1047,9 @@ void DOS_Shell::CMD_RENAME(char * args){
 		}
 		dummy++;
 		*dummy = 0;
-		if (strchr(arg2,'\\')||strchr(arg2,':')) {
+		if (strchr_dbcs(arg2,'\\')||strchr(arg2,':')) {
 			safe_strncpy(dir_target,arg2,DOS_PATHLENGTH + 4);
-			dummy = strrchr(dir_target,'\\');
+			dummy = strrchr_dbcs(dir_target,'\\');
 			if (!dummy) dummy = strrchr(dir_target,':');
 			if (dummy) {
 				dummy++;
@@ -1058,12 +1059,12 @@ void DOS_Shell::CMD_RENAME(char * args){
 					return;
 				}
 			}
-			arg2=strrchr(arg2,strrchr(arg2,'\\')?'\\':':')+1;
+			arg2=strrchr_dbcs(arg2,strrchr_dbcs(arg2,'\\')?'\\':':')+1;
 		}
 		if (strlen(dummy)&&dummy[strlen(dummy)-1]==':')
 			strcat(dummy, ".\\");
 	} else {
-		if (strchr(arg2,'\\')||strchr(arg2,':')) {SyntaxError();return;};
+		if (strchr_dbcs(arg2,'\\')||strchr(arg2,':')) {SyntaxError();return;};
 		strcpy(dir_source, ".\\");
 	}
 	
@@ -1071,7 +1072,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 
 	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
 	if (!DOS_Canonicalize(arg1,full)) return;
-	r=strrchr(full, '\\');
+	r=strrchr_dbcs(full, '\\');
 	if (r!=NULL) {
 		*r=0;
 		strcpy(path, full);
@@ -1487,7 +1488,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return true;
 	}
-	*(strrchr(path,'\\')+1)=0;
+	*(strrchr_dbcs(path,'\\')+1)=0;
 	if (!DOS_GetSFNPath(path,sargs,false)) {
 		shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return true;
@@ -1667,7 +1668,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				if(result.attr&DOS_ATTR_DIRECTORY && strcmp(result.name, ".")&&strcmp(result.name, "..")) {
 					strcat(sargs, result.name);
 					strcat(sargs, "\\");
-					char *fname = strrchr(args, '\\');
+					char *fname = strrchr_dbcs(args, '\\');
 					if (fname==NULL) fname=args;
 					else fname++;
 					strcat(sargs, fname);
@@ -1836,7 +1837,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
 	}
-	*(strrchr(path,'\\')+1)=0;
+	*(strrchr_dbcs(path,'\\')+1)=0;
 	if (!DOS_GetSFNPath(path,sargs,true)) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
@@ -2128,7 +2129,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 				if (source_x[source_x_len-1]==':') has_drive_spec = true;
 				else if (uselfn&&strchr(source_x, '*')) {
 					char * find_last;
-					find_last=strrchr(source_x,'\\');
+					find_last=strrchr_dbcs(source_x,'\\');
 					if (find_last==NULL) find_last=source_x;
 					else find_last++;
 					if (strlen(find_last)>0&&source_x[source_x_len-1]=='*'&&strchr(find_last, '.')==NULL) strcat(source_x, ".*");
@@ -2198,7 +2199,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		strcpy(pathSource,pathSourcePre);
 		if (uselfn) sprintf(pathSource,"\"%s\"",pathSourcePre);
 		// cut search pattern
-		char* pos = strrchr(pathSource,'\\');
+		char* pos = strrchr_dbcs(pathSource,'\\');
 		if (pos) *(pos+1) = 0;
 
 		if (!DOS_Canonicalize(const_cast<char*>(target.filename.c_str()),pathTarget)) {
@@ -2547,7 +2548,7 @@ void DOS_Shell::CMD_IF(char * args) {
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
 			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
 			if (!DOS_Canonicalize(word,full)) return;
-			r=strrchr(full, '\\');
+			r=strrchr_dbcs(full, '\\');
 			if (r!=NULL) {
 				*r=0;
 				strcpy(path, full);
@@ -2564,7 +2565,7 @@ void DOS_Shell::CMD_IF(char * args) {
 					pattern[k++]=pattern[i];
 			pattern[k]=0;
 			strcpy(spath, path);
-			if (strchr(word,'\"')||uselfn) {
+			if (strchr_dbcs(word,'\"')||uselfn) {
 				if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 			}
@@ -3144,7 +3145,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 
 static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, bool adda, bool adds, bool addh, bool addr, bool suba, bool subs, bool subh, bool subr) {
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	if (!DOS_Canonicalize(args,full)||strrchr(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
+	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 		return false;
@@ -3155,9 +3156,9 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 	if (!res&&!optS) return false;
 	//end can't be 0, but if it is we'll get a nice crash, who cares :)
 	strcpy(path,full);
-	*(strrchr(path,'\\')+1)=0;
-	char * end=strrchr(full,'\\')+1;*end=0;
-	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+	*(strrchr_dbcs(path,'\\')+1)=0;
+	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
+	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
 	while (res) {
@@ -3202,10 +3203,10 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 				DtaResult result;
 				dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
 
-				if(result.attr&DOS_ATTR_DIRECTORY && strcmp(result.name, ".")&&strcmp(result.name, "..")) {
+				if((result.attr&DOS_ATTR_DIRECTORY) && strcmp(result.name, ".")&&strcmp(result.name, "..")) {
 					strcat(path, result.name);
 					strcat(path, "\\");
-					char *fname = strrchr(args, '\\');
+					char *fname = strrchr_dbcs(args, '\\');
 					if (fname!=NULL) fname++;
 					else {
 						fname = strrchr(args, ':');
@@ -3252,7 +3253,7 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 			strcpy(sfull, arg1);
 			if (uselfn&&strchr(sfull, '*')) {
 				char * find_last;
-				find_last=strrchr(sfull,'\\');
+				find_last=strrchr_dbcs(sfull,'\\');
 				if (find_last==NULL) find_last=sfull;
 				else find_last++;
 				if (sfull[strlen(sfull)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(sfull, ".*");
@@ -3759,7 +3760,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 		if (strchr(fp, '?') || strchr(fp, '*')) {
 			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
 			if (!DOS_Canonicalize(fp,full)) return;
-			r=strrchr(full, '\\');
+			r=strrchr_dbcs(full, '\\');
 			if (r!=NULL) {
 				*r=0;
 				strcpy(path, full);

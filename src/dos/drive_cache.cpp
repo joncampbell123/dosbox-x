@@ -41,6 +41,8 @@
 
 int fileInfoCounter = 0;
 
+char *strrchr_dbcs(char *str, char ch);
+
 bool SortByName(DOS_Drive_Cache::CFileInfo* const &a, DOS_Drive_Cache::CFileInfo* const &b) {
     return strcmp(a->shortname,b->shortname)<0;
 }
@@ -179,7 +181,7 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
     work[0] = 0;
     strcpy (dir,path);
 
-    const char* pos = strrchr(path,CROSS_FILESPLIT);
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
     if (pos) dir[pos-path+1] = 0;
     CFileInfo* dirInfo = FindDirInfo(dir, work);

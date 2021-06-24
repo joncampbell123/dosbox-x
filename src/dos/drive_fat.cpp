@@ -48,6 +48,7 @@ static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 void dos_ver_menu(bool start);
+char *strrchr_dbcs(char *str, char ch);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 bool filename_not_8x3(const char *n) {
@@ -2139,12 +2140,12 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 
 		/* NTS: "name" is the full relative path. For LFN creation to work we need only the final element of the path */
 		if (uselfn && !force_sfn) {
-			lfn = strrchr(name,'\\');
+			lfn = strrchr_dbcs((char *)name,'\\');
 
 			if (lfn != NULL) {
 				lfn++; /* step past '\' */
 				strcpy(path, name);
-				*(strrchr(path,'\\')+1)=0;
+				*(strrchr_dbcs(path,'\\')+1)=0;
 			} else {
 				lfn = name; /* no path elements */
 				*path=0;
@@ -2877,12 +2878,12 @@ bool fatDrive::MakeDir(const char *dir) {
 
 	/* NTS: "dir" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
-		lfn = strrchr(dir,'\\');
+		lfn = strrchr_dbcs((char *)dir,'\\');
 
 		if (lfn != NULL) {
 			lfn++; /* step past '\' */
 			strcpy(path, dir);
-			*(strrchr(path,'\\')+1)=0;
+			*(strrchr_dbcs(path,'\\')+1)=0;
 		} else {
 			lfn = dir; /* no path elements */
 			*path=0;
@@ -3047,12 +3048,12 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
 	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
-		lfn = strrchr(newname,'\\');
+		lfn = strrchr_dbcs((char *)newname,'\\');
 
 		if (lfn != NULL) {
 			lfn++; /* step past '\' */
 			strcpy(path, newname);
-			*(strrchr(path,'\\')+1)=0;
+			*(strrchr_dbcs(path,'\\')+1)=0;
 		} else {
 			lfn = newname; /* no path elements */
 			*path=0;

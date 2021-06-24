@@ -35,6 +35,7 @@
 #include <strings.h>
 #endif
 
+void strreplace_dbcs(char * str,char o,char n);
 void strreplace(char * str,char o,char n);
 char *ltrim(char *str);
 char *rtrim(char *str);

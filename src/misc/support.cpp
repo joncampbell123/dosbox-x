@@ -36,6 +36,8 @@
 #include "menu.h"
 #include "SDL.h"
 
+extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+
 void upcase(std::string &str) {
 	int (*tf)(int) = std::toupper;
 	std::transform(str.begin(), str.end(), str.begin(), tf);
@@ -58,6 +60,34 @@ void trim(std::string &str) {
 	str.erase(0, empty_pfx);
 }
 
+char *strchr_dbcs(char *str, char ch) {
+    bool lead = false;
+    int lastpos = -1;
+    if (ch == '\\' && (IS_PC98_ARCH || isDBCSCP())) {
+        for (size_t i=0; i<strlen(str); i++) {
+            if (lead) lead = false;
+            else if ((IS_PC98_ARCH && shiftjis_lead_byte(str[i])) || (isDBCSCP() && isKanji1(str[i]))) lead = true;
+            else if (str[i] == '\\') {lastpos = i;break;}
+        }
+        return lastpos>-1 ? str + lastpos : NULL;
+    } else
+        return strchr(str, ch);
+}
+
+char *strrchr_dbcs(char *str, char ch) {
+    bool lead = false;
+    int lastpos = -1;
+    if (ch == '\\' && (IS_PC98_ARCH || isDBCSCP())) {
+        for (size_t i=0; i<strlen(str); i++) {
+            if (lead) lead = false;
+            else if ((IS_PC98_ARCH && shiftjis_lead_byte(str[i])) || (isDBCSCP() && isKanji1(str[i]))) lead = true;
+            else if (str[i] == '\\') lastpos = i;
+        }
+        return lastpos>-1 ? str + lastpos : NULL;
+    } else
+        return strrchr(str, ch);
+}
+
 /* 
 	Ripped some source from freedos for this one.
 
@@ -68,6 +98,15 @@ void trim(std::string &str) {
  * replaces all instances of character o with character c
  */
 
+void strreplace_dbcs(char * str,char o,char n) {
+    bool lead = false;
+	while (*str) {
+        if (lead) lead = false;
+        else if ((IS_PC98_ARCH && shiftjis_lead_byte(*str)) || (isDBCSCP() && isKanji1(*str))) lead = true;
+		else if (*str==o) *str=n;
+		str++;
+	}
+}
 
 void strreplace(char * str,char o,char n) {
 	while (*str) {

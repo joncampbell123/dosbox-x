@@ -66,8 +66,8 @@ int sdrive = 0;
  * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
-extern uint8_t lead[6];
-bool shiftjis_lead_byte(int c), isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -88,12 +88,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
 	char names[LFN_NAMELENGTH];
 	strcpy(names,name);
 	char * name_int = names;
@@ -137,7 +131,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 			else if (c==' ') continue; /* should be separator */
 		}
 		upname[w++]=(char)c;
-        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isDBCSLB(c, lead))) && r<DOS_PATHLENGTH) {
+        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c))) && r<DOS_PATHLENGTH) {
             /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
             upname[w++]=name_int[r++];
         }
@@ -150,16 +144,22 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 	if (upname[0]!='\\') strcpy(fullname,Drives[*drive]->curdir);
 	else fullname[0]=0;
 	uint32_t lastdir=0;uint32_t t=0;
+	bool lead = false;
 	while (fullname[t]!=0) {
-		if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(fullname[t])) || (isDBCSCP() && isKanji1(fullname[t]))) lead = true;
+		else if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
 		t++;
 	}
 	r=0;w=0;
 	tempdir[0]=0;
+	lead=false;
 	bool stop=false;
 	while (!stop) {
-		if (upname[r]==0) stop=true;
-		if ((upname[r]=='\\') || (upname[r]==0)){
+		if (lead) lead=false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(upname[r])) || (isDBCSCP() && isKanji1(upname[r]))) lead=true;
+		else if ((upname[r]=='\\') || (upname[r]==0)){
+			if (upname[r]==0) stop=true;
 			tempdir[w]=0;
 			if (tempdir[0]==0) { w=0;r++;continue;}
 			if (strcmp(tempdir,".")==0) {
@@ -251,7 +251,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	int fbak=lfn_filefind_handle;
-    for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
+    for (char *s = strchr_dbcs(p,'\\'); s != NULL; s = strchr_dbcs(p,'\\')) {
 		*s = 0;
 		if (SFNPath[strlen(SFNPath)-1]=='\\')
 			sprintf(pdir,"\"%s%s\"",SFNPath,p);
@@ -409,11 +409,11 @@ bool DOS_RemoveDir(char const * const dir) {
 }
 
 static bool PathExists(char const * const name) {
-	const char* leading = strrchr(name,'\\');
+	const char* leading = strrchr_dbcs((char *)name,'\\');
 	if(!leading) return true;
 	char temp[CROSS_LEN];
 	strcpy(temp,name);
-	char * lead = strrchr(temp,'\\');
+	char * lead = strrchr_dbcs(temp,'\\');
 	if (lead == temp) return true;
 	*lead = 0;
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
@@ -436,7 +436,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
         if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
             if (DOS_FindDevice(oldname) == DOS_DEVICES) {
                 const char* find_last;
-                find_last=strrchr(fullnew,'\\');
+                find_last=strrchr_dbcs(fullnew,'\\');
                 if (find_last==NULL) find_last=fullnew;
                 else find_last++;
                 if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
@@ -503,8 +503,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
 	/* Split the search in dir and pattern */
-	char * find_last;
-	find_last=strrchr(fullsearch,'\\');
+	char * find_last = strrchr_dbcs(fullsearch,'\\');
 	if (!find_last) {	/*No dir */
 		strcpy(pattern,fullsearch);
 		dir[0]=0;
@@ -884,7 +883,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		}
 		if (!strchr(name,'\"')||!DOS_GetSFNPath(("\""+std::string(fullname)+"\"").c_str(), fname, false))
 			strcpy(fname, fullname);
-		char * find_last=strrchr(fname,'\\');
+		char * find_last=strrchr_dbcs(fname,'\\');
 		if (!find_last) {
 			dir[0]=0;
 			strcpy(pattern, fname);
@@ -947,7 +946,7 @@ bool DOS_GetFileAttr(char const * const name,uint16_t * attr) {
 #if defined (WIN32)
 	if (!control->SecureMode()&&dos_clipboard_device_access) {
         const char* find_last;
-		find_last=strrchr(fullname,'\\');
+		find_last=strrchr_dbcs(fullname,'\\');
 		if (find_last==NULL) find_last=fullname;
 		else find_last++;
 		if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
@@ -1252,12 +1251,6 @@ static bool isvalid(const char in){
 #define PARSE_RET_BADDRIVE      0xff
 
 uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string, uint8_t *change) {
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
     const char* string_begin = string;
 	uint8_t ret=0;
 	if (!(parser & PARSE_DFLT_DRIVE)) {
@@ -1324,7 +1317,7 @@ uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string,
 	/* Copy the name */	
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isKanji1(nc))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=(char)nc;
                 string++;
@@ -1362,14 +1355,14 @@ checkext:
 	hasext=true;finished=false;fill=' ';index=0;
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
-                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isKanji1(nc))) {
+                /* DBCS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=(char)nc;
                 string++;
                 index++;
                 if (index >= 3) break;
 
-                /* should be trailing byte of Shift-JIS */
+                /* should be trailing byte of DBCS character */
                 if (nc < 32u || nc >= 127u) continue;
 
                 fcb_name.part.ext[index]=(char)nc;
