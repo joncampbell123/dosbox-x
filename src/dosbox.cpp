@@ -139,7 +139,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         sync_time, enableime;
+extern bool         sync_time, enableime, gbk;
 extern int          freesizecap;
 extern unsigned int page;
 
@@ -307,7 +307,7 @@ extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
-extern bool DOSBox_Paused();
+extern bool DOSBox_Paused(), isDBCSCP(), InitCodePage();
 
 //#define DEBUG_CYCLE_OVERRUN_CALLBACK
 
@@ -1035,20 +1035,24 @@ void DOSBOX_RealInit() {
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
     dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
-    Section_prop *dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
-    const char *dosvstr = dos_section->Get_string("dosv");
+    Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
+    const char *dosvstr = dosv_section->Get_string("dosv");
     if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "chs")) dos.set_pdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "cht")) dos.set_cdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
     if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
         LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
     }
-    if (IS_JEGA_ARCH || IS_DOSV) {
-        JFONT_Init();  // Load DBCS fonts for JEGA
-        if (IS_DOSV) DOSV_SetConfig(dos_section);
+    int cp = dos.loaded_codepage;
+    if (!cp) InitCodePage();
+    if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
+        JFONT_Init();  // Load DBCS fonts for JEGA etc
+        if (IS_DOSV) DOSV_SetConfig(dosv_section);
     }
+    gbk = dosv_section->Get_bool("gbk");
+    dos.loaded_codepage = cp;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
         dos.im_enable_flag = true;
@@ -1170,7 +1174,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", 0 };
+    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -1204,6 +1208,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* numopt[] = { "on", "off", "", 0};
     const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+    const char* truefalsequietopts[] = { "true", "false", "1", "0", "quiet", 0 };
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
@@ -1228,10 +1233,6 @@ void DOSBOX_SetupConfigSections(void) {
 
         "mcga", "mda",
 
-        0 };
-
-    const char* automountopts[] = {
-        "true", "false", "quiet", "1", "0",
         0 };
 
     const char* backendopts[] = {
@@ -1746,6 +1747,321 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
 
+    secprop=control->AddSection_prop("render",&Null_Init,true);
+    Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
+    Pint->SetMinMax(0,10);
+    Pint->Set_help("How many frames DOSBox-X skips before drawing one.");
+    Pint->SetBasic(true);
+
+    Pbool = secprop->Add_bool("alt render",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, use a new experimental rendering engine");
+
+    Pstring = secprop->Add_string("aspect", Property::Changeable::Always, "false");
+    Pstring->Set_values(aspectmodes);
+    Pstring->Set_help(
+        "Aspect ratio correction mode. Can be set to the following values:\n"
+        "  'false' (default):\n"
+        "      'direct3d'/opengl outputs: image is simply scaled to full window/fullscreen size, possibly resulting in disproportional image\n"
+        "      'surface' output: it does no aspect ratio correction (default), resulting in disproportional images if VGA mode pixel ratio is not 4:3\n"
+        "  'true':\n"
+        "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
+        "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
+        "          Should have none to negligible impact on performance, mostly being done in hardware\n"
+        "          For the pixel-perfect scaling (output=openglpp), it is recommended to enable this whenever the emulated display has an aspect ratio of 4:3\n"
+        "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
+        "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
+        "          Slightly degrades visual image quality. Has a tiny impact on performance"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
+#endif
+#if C_SURFACE_POSTRENDER_ASPECT
+        "\n"
+        "  'nearest':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
+        "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
+#if C_XBRZ
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
+#endif
+        "  'bilinear':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
+        "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
+        "          Very CPU intensive, high end CPU may be required"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
+#endif
+#endif
+    );
+    Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
+    Pbool->Set_help("Allow 9-pixel wide text mode fonts instead of 8-pixel wide fonts.");
+    Pbool->SetBasic(true);
+
+    Pint = secprop->Add_int("euro",Property::Changeable::Always,-1);
+    Pint->Set_help("Display Euro symbol instead of the specified ASCII character (33-255).\n"
+            "For example, setting it to 128 allows Euro symbol to be displayed instead of C-cedilla.");
+    Pint->SetBasic(true);
+
+    /* NTS: In the original code borrowed from yhkong, this was named "multiscan". All it really does is disable
+     *      the doublescan down-rezzing DOSBox normally does with 320x240 graphics so that you get the full rendition of what a VGA output would emit. */
+    Pbool = secprop->Add_bool("doublescan",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
+            "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
+            "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
+            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n"
+            "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
+    Pbool->SetBasic(true);
+
+    Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
+    Pmulti->SetValue("normal2x",/*init*/true);
+    Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
+                     "then the scaler will be used even if the result might not be desired.\n"
+                     "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
+                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
+                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
+    Pmulti->SetBasic(true);
+    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
+    Pstring->Set_values(scalers);
+
+    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
+    Pstring->Set_values(force);
+
+    Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
+    Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
+                    "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
+                    "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
+                    "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
+    Pstring->SetBasic(true);
+
+    Pmulti = secprop->Add_multi("pixelshader",Property::Changeable::Always," ");
+    Pmulti->SetValue("none",/*init*/true);
+    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
+        "then the pixel shader will be used even if the result might not be desired.");
+    Pmulti->SetBasic(true);
+
+    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
+    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
+
+#if C_XBRZ
+    Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
+    Pint->SetMinMax(1,1024);
+    Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
+
+    Pint = secprop->Add_int("xbrz fixed scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To use fixed xBRZ scale factor (i.e. to attune performance), set it to 2-6, 0 - use automatic calculation (default)");
+
+    Pint = secprop->Add_int("xbrz max scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To cap maximum xBRZ scale factor used (i.e. to attune performance), set it to 2-6, 0 - use scaler allowed maximum (default)");
+#endif
+
+    Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
+    Pbool->Set_help(
+        "Best fits image to window\n"
+        "- Intended for output=direct3d, fullresolution=original, aspect=true");
+    Pbool->SetBasic(true);
+
+    Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
+    Pmulti->SetValue("green",/*init*/true);
+    Pmulti->Set_help("Specify the color of monochrome display.\n"
+        "Possible values: green, amber, gray, white\n"
+        "Append 'bright' for a brighter look.");
+    Pmulti->SetBasic(true);
+    Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
+    const char* monochrome_pal_colors[]={
+      "green","amber","gray","white",0
+    };
+    Pstring->Set_values(monochrome_pal_colors);
+    Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
+    const char* bright[] = { "", "bright", 0 };
+    Pstring->Set_values(bright);
+
+    secprop=control->AddSection_prop("pc98",&Null_Init);
+	Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
+                    "This is needed for Ys II to run without crashing.");
+
+    Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
+                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
+                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
+                    "This option is enabled by default for best compatibility with PC-98 games.");
+
+    Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
+    Pstring->Set_values(pc98fmboards);
+    Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
+    Pstring->SetBasic(true);
+
+    Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
+
+    Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
+    Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
+
+    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
+                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
+
+    Pbool = secprop->Add_bool("pc-98 load sound bios rom file",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, load SOUND.ROM if available and prsent that to the guest instead of trying to emulate directly.\n"
+                    "This is strongly recommended, and is default enabled.\n"
+                    "SOUND.ROM is a snapshot of the FM board BIOS taken from real PC-98 hardware.");
+
+    Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
+                    "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
+
+    Pbool = secprop->Add_bool("pc-98 enable 256-color planar",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
+                    "This is a form of memory access in 256-color mode that existed for a short\n"
+                    "time before later PC-9821 models removed it. This option must be enabled\n"
+                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
+
+    Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("pc-98 enable 16-color",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 16-color graphics mode if set, disable if not set");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("pc-98 enable grcg",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow GRCG graphics functions if set, disable if not set");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("pc-98 enable 188 user cg",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 188+ user-defined CG cells if set");
+
+    Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
+
+    Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
+                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
+                    "numbered scanlines are blanked instead of doubled");
+
+    Pbool = secprop->Add_bool("pc-98 bus mouse",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.");
+    Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
+    Pstring->Set_values(pc98videomodeopt);
+    Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
+                      "Valid values are 15, 24, or 31 for each specific horizontal refresh rate on the platform.\n"
+                      "24khz is default and best supported at this time.\n"
+                      "15khz is not implemented at this time.\n"
+                      "31khz is experimental at this time.");
+
+    Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("This controls PIT 1 PC speaker behavior related to turning the output on and off.\n"
+                      "Default setting is 'auto' to let the emulator choose for you.\n"
+                      "true:  PIT 1 will always cycle whether or not the speaker is on (PC-9801 behavior).\n"
+                      "false: PIT 1 will only cycle when the speaker is on (PC-9821 behavior).\n"
+                      "Some older games will require the PC-9801 behavior to function properly.");
+
+    Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,2457600);
+    Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
+                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
+                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
+                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+                   "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
+                   "    0: Use default (auto)\n"
+                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
+                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
+
+    Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,1);
+    Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
+                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
+                   "   -1: Default (choose automatically)\n"
+                   "    0: Disable\n"
+                   "    1: Enable");
+
+    Pstring = secprop->Add_string("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
+                    "Will only work with apps and games using BIOS for keyboard.");
+    Pstring->SetBasic(true);
+
+    /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
+     *              Some games by "Orange House" assume this behavior and do not make any effort on their
+     *              own to show and enable graphics. Without this option, those games will not show any
+     *              graphics. PC-98 systems have been confirmed to boot up with the graphics layer disabled
+     *              and set to 640x200 8-color planar mode. This has been confirmed on real hardware.
+     *              See also [https://github.com/joncampbell123/dosbox-x/issues/1305] */
+    Pbool = secprop->Add_bool("pc-98 show graphics layer on initialize",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If PC-98 mode and INT 33h emulation is enabled, the graphics layer will be automatically enabled\n"
+                    "at driver startup AND when INT 33h AX=0 is called. This is NEC MOUSE.COM behavior and default\n"
+                    "enabled. To emulate other drivers like QMOUSE that do not follow this behavior, set to false.");
+
+    secprop=control->AddSection_prop("dosv",&Null_Init,true);
+
+    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
+    Pstring->Set_values(dosv_settings);
+    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
+            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
+            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text.\n"
+            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
+            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
+            "software that assumes direct access to the text mode via segment 0xB800.");
+    Pstring->SetBasic(true);
+
+	//For loading FONTX CJK fonts
+	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
+
+	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese DOS/V emulation or TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the yen symbol (¥) at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
+    Pbool->SetBasic(true);
+
+	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
+	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
+	Pstring->Set_values(fepcontrol_settings);
+	Pstring->Set_help("FEP control API for the DOS/V emulation.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
+	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
+
+	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
+
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,1000000);
@@ -2073,390 +2389,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "Setting this option can correct for that and render the demo properly.\n"
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
 
-    secprop=control->AddSection_prop("pc98",&Null_Init);
-	Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
-                    "This is needed for Ys II to run without crashing.");
-
-    Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
-                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
-                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
-                    "This option is enabled by default for best compatibility with PC-98 games.");
-
-    Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
-    Pstring->Set_values(pc98fmboards);
-    Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
-    Pstring->SetBasic(true);
-
-    Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
-
-    Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
-    Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
-
-    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
-                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
-
-    Pbool = secprop->Add_bool("pc-98 load sound bios rom file",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, load SOUND.ROM if available and prsent that to the guest instead of trying to emulate directly.\n"
-                    "This is strongly recommended, and is default enabled.\n"
-                    "SOUND.ROM is a snapshot of the FM board BIOS taken from real PC-98 hardware.");
-
-    Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
-                    "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
-
-    Pbool = secprop->Add_bool("pc-98 enable 256-color planar",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
-                    "This is a form of memory access in 256-color mode that existed for a short\n"
-                    "time before later PC-9821 models removed it. This option must be enabled\n"
-                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
-
-    Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("pc-98 enable 16-color",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 16-color graphics mode if set, disable if not set");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("pc-98 enable grcg",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow GRCG graphics functions if set, disable if not set");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
-    Pbool->SetBasic(true);
-
-    Pbool = secprop->Add_bool("pc-98 enable 188 user cg",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 188+ user-defined CG cells if set");
-
-    Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
-
-    Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
-                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
-                    "numbered scanlines are blanked instead of doubled");
-
-    Pbool = secprop->Add_bool("pc-98 bus mouse",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.");
-    Pbool->SetBasic(true);
-
-    Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
-    Pstring->Set_values(pc98videomodeopt);
-    Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
-                      "Valid values are 15, 24, or 31 for each specific horizontal refresh rate on the platform.\n"
-                      "24khz is default and best supported at this time.\n"
-                      "15khz is not implemented at this time.\n"
-                      "31khz is experimental at this time.");
-
-    Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("This controls PIT 1 PC speaker behavior related to turning the output on and off.\n"
-                      "Default setting is 'auto' to let the emulator choose for you.\n"
-                      "true:  PIT 1 will always cycle whether or not the speaker is on (PC-9801 behavior).\n"
-                      "false: PIT 1 will only cycle when the speaker is on (PC-9821 behavior).\n"
-                      "Some older games will require the PC-9801 behavior to function properly.");
-
-    Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,2457600);
-    Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
-                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
-                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
-                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
-                   "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
-                   "    0: Use default (auto)\n"
-                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
-                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
-
-    Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,1);
-    Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
-                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
-                   "   -1: Default (choose automatically)\n"
-                   "    0: Disable\n"
-                   "    1: Enable");
-
-    Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
-                    "Will only work with apps and games using BIOS for keyboard.");
-    Pbool->SetBasic(true);
-
-    /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
-     *              Some games by "Orange House" assume this behavior and do not make any effort on their
-     *              own to show and enable graphics. Without this option, those games will not show any
-     *              graphics. PC-98 systems have been confirmed to boot up with the graphics layer disabled
-     *              and set to 640x200 8-color planar mode. This has been confirmed on real hardware.
-     *              See also [https://github.com/joncampbell123/dosbox-x/issues/1305] */
-    Pbool = secprop->Add_bool("pc-98 show graphics layer on initialize",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If PC-98 mode and INT 33h emulation is enabled, the graphics layer will be automatically enabled\n"
-                    "at driver startup AND when INT 33h AX=0 is called. This is NEC MOUSE.COM behavior and default\n"
-                    "enabled. To emulate other drivers like QMOUSE that do not follow this behavior, set to false.");
-
-    secprop=control->AddSection_prop("render",&Null_Init,true);
-    Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
-    Pint->SetMinMax(0,10);
-    Pint->Set_help("How many frames DOSBox-X skips before drawing one.");
-    Pint->SetBasic(true);
-
-    Pbool = secprop->Add_bool("alt render",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, use a new experimental rendering engine");
-
-    Pstring = secprop->Add_string("aspect", Property::Changeable::Always, "false");
-    Pstring->Set_values(aspectmodes);
-    Pstring->Set_help(
-        "Aspect ratio correction mode. Can be set to the following values:\n"
-        "  'false' (default):\n"
-        "      'direct3d'/opengl outputs: image is simply scaled to full window/fullscreen size, possibly resulting in disproportional image\n"
-        "      'surface' output: it does no aspect ratio correction (default), resulting in disproportional images if VGA mode pixel ratio is not 4:3\n"
-        "  'true':\n"
-        "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
-        "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
-        "          Should have none to negligible impact on performance, mostly being done in hardware\n"
-        "          For the pixel-perfect scaling (output=openglpp), it is recommended to enable this whenever the emulated display has an aspect ratio of 4:3\n"
-        "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
-        "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
-        "          Slightly degrades visual image quality. Has a tiny impact on performance"
-#if C_XBRZ
-        "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
-#endif
-#if C_SURFACE_POSTRENDER_ASPECT
-        "\n"
-        "  'nearest':\n"
-        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
-        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
-        "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
-#if C_XBRZ
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
-#endif
-        "  'bilinear':\n"
-        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
-        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
-        "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
-        "          Very CPU intensive, high end CPU may be required"
-#if C_XBRZ
-        "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
-#endif
-#endif
-    );
-    Pstring->SetBasic(true);
-
-    Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow 9-pixel wide text mode fonts instead of 8-pixel wide fonts.");
-    Pbool->SetBasic(true);
-
-    Pint = secprop->Add_int("euro",Property::Changeable::Always,-1);
-    Pint->Set_help("Display Euro symbol instead of the specified ASCII character (33-255).\n"
-            "For example, setting it to 128 allows Euro symbol to be displayed instead of C-cedilla.");
-    Pint->SetBasic(true);
-
-    /* NTS: In the original code borrowed from yhkong, this was named "multiscan". All it really does is disable
-     *      the doublescan down-rezzing DOSBox normally does with 320x240 graphics so that you get the full rendition of what a VGA output would emit. */
-    Pbool = secprop->Add_bool("doublescan",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
-            "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
-            "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
-            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n"
-            "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
-    Pbool->SetBasic(true);
-
-    Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
-    Pmulti->SetValue("normal2x",/*init*/true);
-    Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
-                     "then the scaler will be used even if the result might not be desired.\n"
-                     "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
-                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
-                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
-    Pmulti->SetBasic(true);
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
-    Pstring->Set_values(scalers);
-
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-    Pstring->Set_values(force);
-
-    Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
-    Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
-                    "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
-                    "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
-                    "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
-    Pstring->SetBasic(true);
-
-    Pmulti = secprop->Add_multi("pixelshader",Property::Changeable::Always," ");
-    Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the pixel shader will be used even if the result might not be desired.");
-    Pmulti->SetBasic(true);
-
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-
-#if C_XBRZ
-    Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
-    Pint->SetMinMax(1,1024);
-    Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
-
-    Pint = secprop->Add_int("xbrz fixed scale factor",Property::Changeable::OnlyAtStart, 0);
-    Pint->SetMinMax(0,6);
-    Pint->Set_help("To use fixed xBRZ scale factor (i.e. to attune performance), set it to 2-6, 0 - use automatic calculation (default)");
-
-    Pint = secprop->Add_int("xbrz max scale factor",Property::Changeable::OnlyAtStart, 0);
-    Pint->SetMinMax(0,6);
-    Pint->Set_help("To cap maximum xBRZ scale factor used (i.e. to attune performance), set it to 2-6, 0 - use scaler allowed maximum (default)");
-#endif
-
-    Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
-    Pbool->Set_help(
-        "Best fits image to window\n"
-        "- Intended for output=direct3d, fullresolution=original, aspect=true");
-    Pbool->SetBasic(true);
-
-    Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
-    Pmulti->SetValue("green",/*init*/true);
-    Pmulti->Set_help("Specify the color of monochrome display.\n"
-        "Possible values: green, amber, gray, white\n"
-        "Append 'bright' for a brighter look.");
-    Pmulti->SetBasic(true);
-    Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
-    const char* monochrome_pal_colors[]={
-      "green","amber","gray","white",0
-    };
-    Pstring->Set_values(monochrome_pal_colors);
-    Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
-    const char* bright[] = { "", "bright", 0 };
-    Pstring->Set_values(bright);
-
-	//for loading a fontx2 Japanese font
-	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
-
-	Pstring = secprop->Add_path("jfontsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
-
-	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
-
-	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
-
-	Pstring = secprop->Add_path("jfontsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
-
-	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");
-
-	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
-    Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
-                    "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
-                    "For a font name or relative path, directories such as the working directory and default system font directory will be searched.\n"
-                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
-    Pstring->SetBasic(true);
-
-	Pstring = secprop->Add_string("ttf.fontbold", Property::Changeable::Always, "");
-    Pstring->Set_help("You can optionally specify a bold TrueType font for use with the TTF output that will render the bold text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual bold font will be used for the bold style.\n"
-                    "For example, setting it to \"consolab\" or \"consolab.ttf\" will use the Consolab font; similar for other TTF fonts.");
-
-	Pstring = secprop->Add_string("ttf.fontital", Property::Changeable::Always, "");
-    Pstring->Set_help("You can optionally specify an italic TrueType font for use with the TTF output that will render the italic text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual italic font will be used for the italic style.\n"
-                    "For example, setting it to \"consolai\" or \"consolai.ttf\" will use the Consolai font; similar for other TTF fonts.");
-
-	Pstring = secprop->Add_string("ttf.fontboit", Property::Changeable::Always, "");
-    Pstring->Set_help("You can optionally specify a bold italic TrueType font for use with the TTF output that will render the bold italic text style.\n"
-                    "It requires a word processor be set with the ttf.wp option, and this actual bold-italic font will be used for the bold-italic style.\n"
-                    "For example, setting it to \"consolaz\" or \"consolaz.ttf\" will use the Consolaz font; similar for other TTF fonts.");
-
-	Pstring = secprop->Add_string("ttf.colors", Property::Changeable::Always, "");
-    Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
-                    "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
-                    "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)");
-
-	Pstring = secprop->Add_string("ttf.outputswitch", Property::Changeable::Always, "auto");
-    Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requiested, or auto for automatic selection.");
-    Pstring->Set_values(switchoutputs);
-    Pstring->SetBasic(true);
-
-	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 60);
-    Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ttf.ptsize setting is specified.");
-    Pint->SetBasic(true);
-
-	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the ttf.winperc setting.");
-    Pint->SetBasic(true);
-
-	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the number of rows on the screen for the TTF output (0 = default).");
-    Pint->SetBasic(true);
-
-	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
-    Pint->SetBasic(true);
-
-	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
-    Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
-                    "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
-                    "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
-                    "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
-    Pstring->SetBasic(true);
-
-	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
-    Pint->SetMinMax(-1,15);
-    Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
-                   "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
-
-	Pint = secprop->Add_int("ttf.wpfg", Property::Changeable::Always, 7);
-    Pint->SetMinMax(-1,7);
-    Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
-                   "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
-
-	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
-                    "This is done either with the actual bold font specified by the ttf.fontbold option, or by making it bold automatically.");
-
-	Pbool = secprop->Add_bool("ttf.italic", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.\n"
-                    "This is done either with the actual italic font specified by the ttf.fontital option, or by slanting the characters automatically.");
-
-	Pbool = secprop->Add_bool("ttf.underline", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.strikeout", Property::Changeable::Always, false);
-    Pbool->Set_help("If set, DOSBox-X will display strikeout text visually (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
-
-	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
-    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
-    Pbool->SetBasic(true);
-
-	Pbool = secprop->Add_bool("ttf.autodbcs", Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
-                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
-                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
-
-	Pbool = secprop->Add_bool("ttf.autoboxdraw", Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
-                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
-                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
-
-	Pbool = secprop->Add_bool("ttf.halfwidthkana", Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
-
-	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
-    Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
-                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
-    Pstring->SetBasic(true);
-
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");
@@ -2655,6 +2587,120 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
     Pstring->Set_values(auxdevices);
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
+    Pstring->SetBasic(true);
+
+    secprop=control->AddSection_prop("ttf",&Null_Init,true);
+
+	Pstring = secprop->Add_string("font", Property::Changeable::Always, "");
+    Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
+                    "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
+                    "For a font name or relative path, directories such as the working directory and default system font directory will be searched.\n"
+                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("fontbold", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify a bold TrueType font for use with the TTF output that will render the bold text style.\n"
+                    "It requires a word processor be set with the wp option, and this actual bold font will be used for the bold style.\n"
+                    "For example, setting it to \"consolab\" or \"consolab.ttf\" will use the Consolab font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("fontital", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify an italic TrueType font for use with the TTF output that will render the italic text style.\n"
+                    "It requires a word processor be set with the wp option, and this actual italic font will be used for the italic style.\n"
+                    "For example, setting it to \"consolai\" or \"consolai.ttf\" will use the Consolai font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("fontboit", Property::Changeable::Always, "");
+    Pstring->Set_help("You can optionally specify a bold italic TrueType font for use with the TTF output that will render the bold italic text style.\n"
+                    "It requires a word processor be set with the wp option, and this actual bold-italic font will be used for the bold-italic style.\n"
+                    "For example, setting it to \"consolaz\" or \"consolaz.ttf\" will use the Consolaz font; similar for other TTF fonts.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("colors", Property::Changeable::Always, "");
+    Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
+                    "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
+                    "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("outputswitch", Property::Changeable::Always, "auto");
+    Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requiested, or auto for automatic selection.");
+    Pstring->Set_values(switchoutputs);
+    Pstring->SetBasic(true);
+
+	Pint = secprop->Add_int("winperc", Property::Changeable::Always, 60);
+    Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ptsize setting is specified.");
+    Pint->SetBasic(true);
+
+	Pint = secprop->Add_int("ptsize", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the winperc setting.");
+    Pint->SetBasic(true);
+
+	Pint = secprop->Add_int("lins", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the number of rows on the screen for the TTF output (0 = default).");
+    Pint->SetBasic(true);
+
+	Pint = secprop->Add_int("cols", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
+    Pint->SetBasic(true);
+
+	Pstring = secprop->Add_string("wp", Property::Changeable::Always, "");
+    Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
+                    "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
+                    "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
+                    "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
+    Pstring->SetBasic(true);
+
+	Pint = secprop->Add_int("wpbg", Property::Changeable::Always, -1);
+    Pint->SetMinMax(-1,15);
+    Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+
+	Pint = secprop->Add_int("wpfg", Property::Changeable::Always, 7);
+    Pint->SetMinMax(-1,7);
+    Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
+
+	Pbool = secprop->Add_bool("bold", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
+                    "This is done either with the actual bold font specified by the fontbold option, or by making it bold automatically.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("italic", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.\n"
+                    "This is done either with the actual italic font specified by the fontital option, or by slanting the characters automatically.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("underline", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("strikeout", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will display strikeout text visually (requires a word processor be set) for the TTF output.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("char512", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
+
+	Pbool = secprop->Add_bool("printfont", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via font option) for printing in addition to displaying.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("autodbcs", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
+                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
+                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+
+	Pbool = secprop->Add_bool("autoboxdraw", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
+                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
+                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+
+	Pbool = secprop->Add_bool("halfwidthkana", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
+
+	Pstring = secprop->Add_string("blinkc", Property::Changeable::Always, "true");
+    Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
+                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
@@ -3767,6 +3813,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
+    Pbool = secprop->Add_bool("drive z expand path",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will automatically expand the %PATH% environment variable to include the subdirectories on the Z drive.");
+
     Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/TEXTUTIL\\25.COM /TEXTUTIL\\28.COM /TEXTUTIL\\50.COM");
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
                       "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
@@ -3779,8 +3828,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "NOTE: This option has no effect in PC-98 mode where MS-DOS systems integrate ANSI.SYS into the DOS kernel.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("log console",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, log DOS CON output to the log file.");
+    Pstring = secprop->Add_string("log console",Property::Changeable::WhenIdle,"false");
+    Pstring->Set_values(truefalsequietopts);
+    Pstring->Set_help("If set, log DOS CON output to the log file. Setting to \"quiet\" will log DOS CON output only (no debugging output).");
+    Pstring->SetBasic(true);
 
     Pint = secprop->Add_int("dos sda size",Property::Changeable::WhenIdle,0);
     Pint->Set_help("SDA (swappable data area) size, in bytes. Set to 0 to use a reasonable default.");
@@ -3865,28 +3916,6 @@ void DOSBOX_SetupConfigSections(void) {
             "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
             "related to uninitialized variables in extended memory. When enabled this option may\n"
             "incur a slight to moderate performance penalty.");
-
-    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(dosv_settings);
-    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
-            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs or cht), or Korean (ko) text.\n"
-            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
-            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
-            "software that assumes direct access to the text mode via segment 0xB800.\n"
-            "Note: Only Japanese DOS/V extension is supported at this time.");
-    Pstring->SetBasic(true);
-
-	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
-	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
-	Pstring->Set_values(fepcontrol_settings);
-	Pstring->Set_help("FEP control API for the DOS/V emulation.");
-
-	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
-	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
-
-	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
 
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);
@@ -3988,7 +4017,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("automountall",Property::Changeable::WhenIdle,"false");
-    Pstring->Set_values(automountopts);
+    Pstring->Set_values(truefalsequietopts);
     Pstring->Set_help("Automatically mount all available Windows drives at start.");
     Pstring->SetBasic(true);
 
@@ -4018,6 +4047,10 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
     ,false);
     Pbool->Set_help("Enable START command to start programs to run on the host system. On Windows host programs or commands may also be launched directly.");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("starttranspath",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Specify whether DOSBox-X should automatically translate all paths in the command-line to host system paths when starting programs to run on the host system.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
@@ -4408,6 +4441,59 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
+    MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
+    MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
+    MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
+    MSG_Add("SAVE_MAPPER_FILE","Save mapper file");
+    MSG_Add("WARNING","Warning");
+    MSG_Add("YES","Yes");
+    MSG_Add("NO","No");
+    MSG_Add("OK","OK");
+    MSG_Add("CANCEL","Cancel");
+    MSG_Add("CLOSE","Close");
+    MSG_Add("ADD","Add");
+    MSG_Add("DEL","Del");
+    MSG_Add("NEXT","Next");
+    MSG_Add("SAVE","Save");
+    MSG_Add("EXIT","Exit");
+    MSG_Add("CAPTURE","Capture");
+    MSG_Add("SAVE_CONFIGURATION","Save configuration");
+    MSG_Add("SAVE_LANGUAGE","Save language file");
+    MSG_Add("SAVE_RESTART","Save & Restart");
+    MSG_Add("PASTE_CLIPBOARD","Paste Clipboard");
+    MSG_Add("APPEND_HISTORY","Append History");
+    MSG_Add("EXECUTE_NOW","Execute Now");
+    MSG_Add("ADDITION_CONTENT","Additional Content:");
+    MSG_Add("CONTENT","Content:");
+    MSG_Add("EDIT_FOR","Edit %s");
+    MSG_Add("HELP_FOR","Help for %s");
+    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
+    MSG_Add("CONFIGURATION","Configuration");
+    MSG_Add("SETTINGS","Settings");
+    MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
+    MSG_Add("GET_STARTED","Getting Started");
+    MSG_Add("CDROM_SUPPORT","CD-ROM Support");
+    MSG_Add("DRIVE_INFORMATION","Drive information");
+    MSG_Add("MOUNTED_DRIVE_NUMBER","Mounted drive numbers");
+    MSG_Add("IDE_CONTROLLER_ASSIGNMENT","IDE controller assignment");
+    MSG_Add("HELP_COMMAND","Help on DOS command");
+    MSG_Add("CURRENT_VOLUME","Current sound mixer volumes");
+    MSG_Add("CURRENT_SBCONFIG","Sound Blaster configuration");
+    MSG_Add("CURRENT_MIDICONFIG","Current MIDI configuration");
+    MSG_Add("CREATE_IMAGE","Create blank disk image");
+    MSG_Add("NETWORK_LIST","Network interface list");
+    MSG_Add("PRINTER_LIST","Printer device list");
+    MSG_Add("INTRODUCTION","Introduction");
+    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
+    MSG_Add("SHOW_ADVOPT", "Show advanced options");
+    MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
+    MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
+    MSG_Add("USE_USERCONFIG", "Use user config file");
+    MSG_Add("CONFIG_SAVETO", "Enter filename for the configuration file to save to:");
+    MSG_Add("CONFIG_SAVEALL", "Save all (including advanced) config options to the configuration file");
+    MSG_Add("LANG_FILENAME", "Enter filename for language file:");
+    MSG_Add("LANG_LANGNAME", "Language name (optional):");
+    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.");
     MSG_Add("DRIVE","Drive");
     MSG_Add("TYPE","Type");
     MSG_Add("LABEL","Label");
@@ -4417,6 +4503,13 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("SWAP_SLOT","Swap slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
     MSG_Add("SLOT","Slot");
+    MSG_Add("PREVIOUS_PAGE","< Previous Page");
+    MSG_Add("NEXT_PAGE","    Next Page >");
+    MSG_Add("SELECT_EVENT", "Select an event to change.");
+    MSG_Add("SELECT_DIFFERENT_EVENT", "Select a different event or hit the Add/Del/Next buttons.");
+    MSG_Add("PRESS_JOYSTICK_KEY", "Press a key/joystick button or move the joystick.");
+    MSG_Add("CAPTURE_ENABLED", "Capture enabled. Hit ESC to release capture.");
+    MSG_Add("MAPPER_FILE_SAVED", "Mapper file saved");
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");

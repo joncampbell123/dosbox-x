@@ -49,9 +49,11 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
-extern bool ctrlbrk;
+extern bool ctrlbrk, gbk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
+
+char *strrchr_dbcs(char *str, char ch);
 
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
@@ -186,7 +188,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
     const char *path;
     if ((path = strrchr(line+completion_index,':'))) completion_index = (uint16_t)(path-line+1);
-    if ((path = strrchr(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
+    if ((path = strrchr_dbcs(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
     if ((path = strrchr(line+completion_index,'/'))) completion_index = (uint16_t)(path-line+1);
 
     // build the completion list
@@ -210,7 +212,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     if (p_completion_start) {
         safe_strncpy(mask, p_completion_start,DOS_PATHLENGTH);
         const char* dot_pos = strrchr(mask, '.');
-        const char* bs_pos = strrchr(mask, '\\');
+        const char* bs_pos = strrchr_dbcs(mask, '\\');
         const char* fs_pos = strrchr(mask, '/');
         const char* cl_pos = strrchr(mask, ':');
         // not perfect when line already contains wildcards, but works
@@ -296,7 +298,6 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     return true;
 }
 
-extern uint8_t lead[6];
 extern bool isDBCSCP();
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
@@ -310,12 +311,6 @@ void DOS_Shell::InputCommand(char * line) {
     inshell = true;
     input_eof = false;
 	line[0] = '\0';
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
 
 	std::list<std::string>::iterator it_history = l_history.begin(), it_completion = l_completion.begin();
 
@@ -443,7 +438,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0) {
                     backone();
                     str_index --;
                     MoveCaretBackwards();
@@ -501,7 +496,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32)) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40)) {
                     outc((uint8_t)line[str_index++]);
                 }
                 if (str_index < str_len) {
@@ -595,7 +590,7 @@ void DOS_Shell::InputCommand(char * line) {
                 {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32))
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -639,7 +634,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 {
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0)
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
@@ -955,7 +950,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
-		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
+		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }

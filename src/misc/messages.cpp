@@ -28,16 +28,17 @@
 #include "control.h"
 #include "menu.h"
 #include "jfont.h"
+#include <map>
 #include <list>
 #include <string>
 using namespace std;
 
+int msgcodepage = 0;
+std::string langname = "", langnote = "";
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-std::string langname = "", langnote = "";
-int msgcodepage = 0;
-void menu_update_autocycle(void);
+void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -118,7 +119,7 @@ void LoadMessageFile(const char * fname) {
     msgcodepage = 0;
     langname = langnote = "";
 	char linein[LINE_IN_MAXLEN+1024];
-	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN];
+	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN], mapper_name[LINE_IN_MAXLEN];
 	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
@@ -162,9 +163,15 @@ void LoadMessageFile(const char * fname) {
                 }
             } else if (!strncasecmp(linein+1, "MENU:", 5)&&strlen(linein+6)<LINE_IN_MAXLEN) {
                 *name=0;
+                *mapper_name=0;
                 strcpy(menu_name,linein+6);
+            } else if (!strncasecmp(linein+1, "MAPPER:", 7)&&strlen(linein+8)<LINE_IN_MAXLEN) {
+                *name=0;
+                *menu_name=0;
+                strcpy(mapper_name,linein+8);
             } else {
                 *menu_name=0;
+                *mapper_name=0;
                 strcpy(name,linein+1);
             }
 		/* End of string marker */
@@ -175,8 +182,17 @@ void LoadMessageFile(const char * fname) {
 			if(ll && string[ll - 1] == '\n') string[ll - 1] = 0; //Second if should not be needed, but better be safe.
             if (strlen(name))
                 MSG_Replace(name,string);
-            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name))
+            else if (strlen(menu_name)>6&&!strncmp(menu_name, "drive_", 6))
+                for (char c='A'; c<='Z'; c++) {
+                    std::string mname = "drive_"+std::string(1, c)+(menu_name+5);
+                    if (mainMenu.item_exists(mname)) mainMenu.get_item(mname).set_text(string);
+                }
+            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name)) {
                 mainMenu.get_item(menu_name).set_text(string);
+                if (strlen(menu_name)>7&&!strncmp(menu_name, "mapper_", 7)) set_eventbutton_text(menu_name+7, string);
+            }
+            else if (strlen(mapper_name))
+                set_eventbutton_text(mapper_name, string);
 		} else {
 			/* Normal string to be added */
             if (!CodePageHostToGuestUTF8(temp,linein))
@@ -189,6 +205,7 @@ void LoadMessageFile(const char * fname) {
 	morelen=false;
 	fclose(mfile);
     menu_update_autocycle();
+    update_bindbutton_text();
     dos.loaded_codepage=cp;
 }
 
@@ -220,18 +237,27 @@ bool MSG_Write(const char * location, const char * name) {
 	}
 	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
 	for (auto &id : master_list) {
-		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&id.get_name()!="mapper_cycauto") {
+		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&!(id.get_name().size()==6&&id.get_name().substr(0,5)=="Drive"&&id.get_name().back()>='A'&&id.get_name().back()<='Z')&&!(id.get_name().size()>9&&id.get_name().substr(0,6)=="drive_"&&id.get_name()[6]>='B'&&id.get_name()[6]<='Z'&&id.get_name()[7]=='_')&&id.get_name()!="mapper_cycauto") {
             std::string text = id.get_text();
             if (id.get_name()=="hostkey_mapper"||id.get_name()=="clipboard_device") {
                 std::size_t found = text.find(":");
                 if (found!=std::string::npos) text = text.substr(0, found);
             }
+            std::string idname = id.get_name().size()>9&&id.get_name().substr(0,8)=="drive_A_"?"drive_"+id.get_name().substr(8):id.get_name();
             if (!CodePageGuestToHostUTF8(temp,text.c_str()))
-                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),text.c_str());
+                fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),text.c_str());
             else
-                fprintf(out,":MENU:%s\n%s\n.\n",id.get_name().c_str(),temp);
+                fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),temp);
         }
 	}
+    std::map<std::string,std::string> get_event_map(), event_map = get_event_map();
+    for (auto it=event_map.begin();it!=event_map.end();++it) {
+        if (mainMenu.item_exists("mapper_"+it->first) && mainMenu.get_item("mapper_"+it->first).get_text() == it->second) continue;
+        if (!CodePageGuestToHostUTF8(temp,it->second.c_str()))
+            fprintf(out,":MAPPER:%s\n%s\n.\n",it->first.c_str(),it->second.c_str());
+        else
+            fprintf(out,":MAPPER:%s\n%s\n.\n",it->first.c_str(),temp);
+    }
 	morelen=false;
 	fclose(out);
 	return true;

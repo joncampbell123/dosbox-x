@@ -48,6 +48,7 @@ static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 void dos_ver_menu(bool start);
+char *strrchr_dbcs(char *str, char ch), *strtok_dbcs(char *s, const char *d);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 bool filename_not_8x3(const char *n) {
@@ -698,14 +699,14 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	strcpy(dirtoken,fullname);
 
 	//LOG_MSG("Testing for filename %s", fullname);
-	findDir = strtok(dirtoken,"\\");
+	findDir = strtok_dbcs(dirtoken,"\\");
 	if (findDir==NULL) {
 		return true;	// root always exists
 	}
 	findFile = findDir;
 	while(findDir != NULL) {
 		findFile = findDir;
-		findDir = strtok(NULL,"\\");
+		findDir = strtok_dbcs(NULL,"\\");
 	}
 	int j=0;
 	for (int i=0; i<(int)strlen(findFile); i++)
@@ -858,7 +859,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
-		findDir = strtok(dirtoken,"\\");
+		findDir = strtok_dbcs(dirtoken,"\\");
 		findFile = findDir;
 		while(findDir != NULL) {
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
@@ -874,7 +875,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
 
 				char * findNext;
-				findNext = strtok(NULL,"\\");
+				findNext = strtok_dbcs(NULL,"\\");
 				if (findNext == NULL && dirOk) break; /* dirOk means that if the last element is a directory, then refer to the directory itself */
 				findDir = findNext;
 			}
@@ -917,12 +918,12 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
         }
 
 		//LOG_MSG("Testing for dir %s", dir);
-		char * findDir = strtok(dirtoken,"\\");
+		char * findDir = strtok_dbcs(dirtoken,"\\");
 		while(findDir != NULL) {
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_IMG:LFN_FILEFIND_NONE;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
-			findDir = strtok(NULL,"\\");
+			findDir = strtok_dbcs(NULL,"\\");
 			if(parDir && (findDir == NULL)) {lfn_filefind_handle=fbak;break;}
 
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
@@ -2139,12 +2140,12 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 
 		/* NTS: "name" is the full relative path. For LFN creation to work we need only the final element of the path */
 		if (uselfn && !force_sfn) {
-			lfn = strrchr(name,'\\');
+			lfn = strrchr_dbcs((char *)name,'\\');
 
 			if (lfn != NULL) {
 				lfn++; /* step past '\' */
 				strcpy(path, name);
-				*(strrchr(path,'\\')+1)=0;
+				*(strrchr_dbcs(path,'\\')+1)=0;
 			} else {
 				lfn = name; /* no path elements */
 				*path=0;
@@ -2877,12 +2878,12 @@ bool fatDrive::MakeDir(const char *dir) {
 
 	/* NTS: "dir" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
-		lfn = strrchr(dir,'\\');
+		lfn = strrchr_dbcs((char *)dir,'\\');
 
 		if (lfn != NULL) {
 			lfn++; /* step past '\' */
 			strcpy(path, dir);
-			*(strrchr(path,'\\')+1)=0;
+			*(strrchr_dbcs(path,'\\')+1)=0;
 		} else {
 			lfn = dir; /* no path elements */
 			*path=0;
@@ -3047,12 +3048,12 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
 	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
-		lfn = strrchr(newname,'\\');
+		lfn = strrchr_dbcs((char *)newname,'\\');
 
 		if (lfn != NULL) {
 			lfn++; /* step past '\' */
 			strcpy(path, newname);
-			*(strrchr(path,'\\')+1)=0;
+			*(strrchr_dbcs(path,'\\')+1)=0;
 		} else {
 			lfn = newname; /* no path elements */
 			*path=0;

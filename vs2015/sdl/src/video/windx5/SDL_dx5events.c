@@ -50,6 +50,7 @@ static LPDIRECTINPUT dinput = NULL;
 static LPDIRECTINPUTDEVICE2 SDL_DIdev[MAX_INPUTS];
 static HANDLE               SDL_DIevt[MAX_INPUTS];
 static void (*SDL_DIfun[MAX_INPUTS])(const int, DIDEVICEOBJECTDATA *);
+extern void (*SDL1_hax_INITMENU_cb)();
 static int SDL_DIndev = 0;
 static int mouse_lost;
 static int mouse_pressed;
@@ -73,7 +74,7 @@ static WNDPROCTYPE userWindowProc = NULL;
 int DX5_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 /* data field required by DX5_HandleComposition */
 static COMPOSITIONFORM form;
-static DWORD end_ticks;
+extern Uint32 end_ticks;
 extern wchar_t CompositionFontName[LF_FACESIZE];
 #define	IME_MESSAGE_WAIT	1
 #define	IME_END_CR_WAIT		50
@@ -588,7 +589,7 @@ static void handle_mouse(const int numevents, DIDEVICEOBJECTDATA *ptrbuf)
 		return 0; \
 	}
 
-SDL_Event event_keydown;
+extern SDL_Event event_keydown;
 #endif
 
 /* The main Win32 event handler */
@@ -632,6 +633,10 @@ LRESULT DX5_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 		break;
 #endif /* WM_DISPLAYCHANGE */
 
+		case WM_INITMENU:
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+			break;
 		/* The keyboard is handled via DirectInput */
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:

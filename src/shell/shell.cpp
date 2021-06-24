@@ -51,7 +51,7 @@
 
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
-extern bool halfwidthkana, force_conversion;
+extern bool halfwidthkana, force_conversion, nokanji;
 extern bool addovl, addipx, enableime;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
@@ -559,6 +559,19 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
+void GetExpandedPath(std::string &path) {
+    if (path=="Z:\\"||path=="z:\\")
+        path=path_string+5;
+    else if (path.size()>3&&(path.substr(0, 4)=="Z:\\;"||path.substr(0, 4)=="z:\\;")&&path.substr(4).find("Z:\\")==std::string::npos&&path.substr(4).find("z:\\")==std::string::npos)
+        path=std::string(path_string+5)+path.substr(3);
+    else if (path.size()>3) {
+        size_t pos = path.find(";Z:\\");
+        if (pos == std::string::npos) pos = path.find(";z:\\");
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find("Z:\\")==std::string::npos&&path.substr(pos+4).find("z:\\")==std::string::npos))
+            path=path.substr(0, pos+1)+std::string(path_string+5)+path.substr(pos+4);
+    }
+}
+
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -592,9 +605,11 @@ void DOS_Shell::Prepare(void) {
                     "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"));
                 WriteOut(ParseMsg((std::string("\033[1m\033[32m")+MSG_Get("SHELL_STARTUP_LAST")+"\033[0m\n").c_str()));
             } else {
+                nokanji=true;
                 WriteOut(ParseMsg("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"));
+                nokanji=false;
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string(" \033[33m%*s\033[37m \xBA\033[0m")).c_str()),45,verstr.c_str());
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
@@ -616,9 +631,11 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                nokanji=true;
                 WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
+                nokanji=false;
                 WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
             }
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
@@ -629,6 +646,8 @@ void DOS_Shell::Prepare(void) {
 #endif
             if (IS_PC98_ARCH || IS_JEGA_ARCH)
                 countryNo = 81;
+            else if (IS_DOSV)
+                countryNo = IS_PDOSV?86:(IS_CDOSV?886:(IS_KDOSV?82:81));
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
@@ -638,6 +657,8 @@ void DOS_Shell::Prepare(void) {
 			else
 				countryNo = 1;
 		}
+		section = static_cast<Section_prop *>(control->GetSection("dos"));
+		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig) {
@@ -703,12 +724,7 @@ void DOS_Shell::Prepare(void) {
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
 							ResolvePath(vstr);
-							if (!strcmp(cmd, "set path")) {
-								if (vstr=="Z:\\"||vstr=="z:\\")
-									vstr=path_string+5;
-								else if (vstr.size()>3&&(vstr.substr(0, 4)=="Z:\\;"||vstr.substr(0, 4)=="z:\\;")&&vstr.substr(4).find("Z:\\")==std::string::npos&&vstr.substr(4).find("z:\\")==std::string::npos)
-									vstr=vstr.substr(0, 3)+std::string(path_string+8)+vstr.substr(3);
-							}
+							if (zdirpath && !strcmp(cmd, "set path")) GetExpandedPath(vstr);
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							vstr=std::string(val);
@@ -1206,7 +1222,6 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP_END2","Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
-	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
@@ -1535,7 +1550,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
-	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
+	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME [/H] file\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 #if C_DEBUG

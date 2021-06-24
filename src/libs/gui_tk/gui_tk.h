@@ -1832,7 +1832,7 @@ public:
 	/// Menu callback function
 	virtual void actionExecuted(ActionEventSource *src, const String &item) {
         (void)src;
-		if (item == String("Close")) close();
+		if (item == String(MSG_Get("CLOSE"))) close();
 	}
 
 	/// Add a window event handler.
@@ -2603,7 +2603,7 @@ public:
 		ToplevelWindow(parent, x, y, width, 1, title) {
         wiw = new WindowInWindow(this, 5, 5, width-border_left-border_right-10, 70);
 		message = new Label(wiw, 0, 0, text, width-border_left-border_right-10);
-		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, "Close", 70);
+		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, MSG_Get("CLOSE"), 70);
 		close->addActionHandler(this);
 		setText(text);
 
@@ -2679,7 +2679,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 	systemMenu->addItem("Restore");
 	systemMenu->addItem("");
 #endif
-	systemMenu->addItem("Close");
+	systemMenu->addItem(MSG_Get("CLOSE"));
 	systemMenu->addActionHandler(this);
     toplevel = true;
 }

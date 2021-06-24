@@ -347,6 +347,7 @@ extern DECLSPEC SDL_EventFilter SDLCALL SDL_GetEventFilter(void);
 */
 extern DECLSPEC Uint8 SDLCALL SDL_EventState(Uint8 type, int state);
 
+extern DECLSPEC int SDL_IM_Composition();
 extern DECLSPEC int SDL_SetIMPosition( int x, int y );
 extern DECLSPEC char *SDL_SetIMValues(SDL_imvalue value, ...);
 extern DECLSPEC char *SDL_GetIMValues(SDL_imvalue value, ...);

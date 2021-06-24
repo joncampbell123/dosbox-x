@@ -305,6 +305,7 @@ int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 	}
 }
 
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 int WIN_GetIMInfo(_THIS, SDL_SysIMinfo *info)
 {
 	if ( info->version.major <= SDL_MAJOR_VERSION ) {
@@ -331,3 +332,4 @@ int WIN_GetIMInfo(_THIS, SDL_SysIMinfo *info)
 		return(-1);
 	}
 }
+#endif

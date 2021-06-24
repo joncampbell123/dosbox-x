@@ -2,8 +2,10 @@
 #include <assert.h>
 #include <math.h>
 
+#include "control.h"
 #include "dosbox.h"
 #include "logging.h"
+#include "render.h"
 #include "sdlmain.h"
 
 using namespace std;

@@ -576,7 +576,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	
 	char isoPath[ISO_MAXPATHNAME], longname[ISO_MAXPATHNAME];
 	safe_strncpy(isoPath, path, ISO_MAXPATHNAME);
-	strreplace(isoPath, '\\', '/');
+	strreplace_dbcs(isoPath, '\\', '/');
 	
 	// iterate over all path elements (name), and search each of them in the current de
 	for(char* name = strtok(isoPath, "/"); NULL != name; name = strtok(NULL, "/")) {

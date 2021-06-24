@@ -76,9 +76,9 @@ emptyline:
 				if (((cmd_write - temp) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
 			} else if (c!=0x1a) {
-                            if (c != '\n' && c != '\r')
-					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
-                        }
+				if (c != '\n' && c != '\r')
+					LOG(LOG_MISC,LOG_DEBUG)("Encountered non-standard control character in batch file: Dec %03u and Hex %#04x.\n", c, c);
+			}
 		}
 	} while (c!='\n' && n);
 	*cmd_write=0;
@@ -203,9 +203,9 @@ again:
 				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
 			} else if (c!=0x1a && c!=0x1b && c!='\t' && c!=7 && c!=8) {
-                                if (c != '\n' && c != '\r')
-					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
-                        }
+					if (c != '\n' && c != '\r')
+					LOG(LOG_MISC,LOG_DEBUG)("Encountered non-standard control character in batch file: Dec %03u and Hex %#04x.\n", c, c);
+			}
 		}
 	} while (c!='\n' && n);
 	*cmd_write++ = 0;

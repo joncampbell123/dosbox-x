@@ -19,6 +19,8 @@ You do not necessarily need to be versed in coding; there are other ways to cont
 
 ## Code
 
+Information on building/compiling the DOSBox-X source code can be found in the [BUILD](BUILD.md) page.
+
 For the code style, please refer to the .editorconfig file, your development environment probably supports it (see https://editorconfig.org/).
 
 The emphasis is put on code clarity, simplicity and documented whenever possible.
@@ -32,7 +34,7 @@ Recommendations about coding:
 
 Obviously when you'll dig in, you will quickly spot that there are many places where these rules are simply not followed ! Over the years, hundreds of people have worked on DOSBox (which DOSBox-X is a fork of), while that helped to raise this project to where it is today, it certainly didn't in terms of clean code. But keep the faith, a huge code cleanup endeavor has started with the goal to raise the metrics of DOSBox-X guts, hopefully ASAP.
 
-For details of the source code, please take a look at the [DOSBox-X source code description](README.source-code-description) page. Information about the debugger is also available in the [DOSBox-X Debugger](README.debugger) page.
+For more descriptions of the source code, please take a look at the [DOSBox-X source code description](README.source-code-description) page. Information about the debugger is also available in the [DOSBox-X Debugger](README.debugger) page.
 
 
 ## Code of Conduct

@@ -46,6 +46,7 @@ using namespace std;
 
 bool log_int21 = false;
 bool log_fileio = false;
+extern bool logging_con;
 
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
@@ -55,6 +56,7 @@ bool logBuffSuppressConsole = false;
 bool logBuffSuppressConsoleNeedUpdate = false;
 
 int debuggerrun = 0;
+int log_dev_con = 0;
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
@@ -645,7 +647,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
-    if (format==NULL) return;
+    if (format==NULL || (log_dev_con == 2 && !logging_con)) return;
     in_debug_showmsg = true;
 
     // in case of runaway error from the CPU core, user responsiveness can be helpful
@@ -774,7 +776,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 /* callback function when DOSBox-X exits */
 void LOG::Exit() {
 	if (debuglog != NULL) {
-		fprintf(debuglog,"--END OF LOG--\n");
+		if (log_dev_con != 2) fprintf(debuglog,"--END OF LOG--\n");
 		fclose(debuglog);
 		debuglog = NULL;
 	}
@@ -837,8 +839,13 @@ void LOG::Init() {
 	/* announce */
 	LOG_MSG("Logging init: beginning logging proper. This is the end of the early init logging");
 
+	const Section_prop *sect = static_cast<Section_prop *>(control->GetSection("dos"));
+	assert(sect != NULL);
+    std::string logstr = sect->Get_string("log console");
+    log_dev_con = control->opt_log_con || logstr == "true" || logstr == "1" ? 1 : (logstr == "quiet" ? 2 : 0);
+
 	/* get the [log] section */
-	const Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
+	sect = static_cast<Section_prop *>(control->GetSection("log"));
 	assert(sect != NULL);
 
 	/* do we write to a logfile, or not? */

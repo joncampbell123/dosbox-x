@@ -6,6 +6,7 @@
 #include "logging.h"
 #include "menudef.h"
 #include "sdlmain.h"
+#include "render.h"
 #include "vga.h"
 
 using namespace std;

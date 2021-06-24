@@ -152,10 +152,11 @@ public:
 					if (!err) {
 						LOG_MSG("MIDI:coreaudio: loaded soundfont: %s",soundfont);
 					} else {
-						LOG_MSG("Error loading CoreAudio SoundFont %s",soundfont);
-						// after trying and failing to load a soundfont it's better
-						// to fail initializing the CoreAudio driver or it might crash
-						return false;
+						// NTS: Prior comments said that continuing to use the core audio synth at this point
+						//      could cause a crash. Maybe that was an issue 10 years ago with Mac OS X 10.6
+						//      but as far as I can tell with Big Sur, the synth will correctly use the default
+						//      sound font in this case without any issue. --J.C.
+						LOG_MSG("MIDI:coreaudio: Error loading CoreAudio SoundFont %s, using MIDI synth with default soundfont",soundfont);
 					}
 				}		
 

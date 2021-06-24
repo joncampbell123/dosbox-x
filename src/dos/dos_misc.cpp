@@ -490,9 +490,10 @@ static bool DOS_MultiplexFunctions(void) {
                     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
                     last = head;
                 }
-                text[size]=0;
+				text[size]=0;
 				reg_ax=(uint16_t)size;
 				reg_dx=(uint16_t)(size/65536);
+				free(text);
 			} else
 				reg_dx=0;
 #endif
@@ -527,8 +528,10 @@ static bool DOS_MultiplexFunctions(void) {
                     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
                     last = head;
                 }
-				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(strlen((char *)text)+1));
+				text[size]=0;
+				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(size+1));
 				reg_ax++;
+				free(text);
             }
 #endif
 		}

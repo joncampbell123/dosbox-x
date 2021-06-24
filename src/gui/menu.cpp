@@ -141,6 +141,10 @@ static const char *def_menu_main[] =
     "mapper_reset",
     "mapper_reboot",
 #endif
+#if defined(MACOSX)
+    "--",
+    "mapper_newinst",
+#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "--",
     "restartconf",
@@ -582,6 +586,7 @@ static const char *def_menu_dos_ems[] =
 static const char *def_menu_dos_win[] =
 {
     "dos_win_autorun",
+    "dos_win_transpath",
     "dos_win_wait",
     "dos_win_quiet",
     NULL

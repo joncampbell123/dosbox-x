@@ -49,6 +49,7 @@
 #include "SDL_syswm.h"
 #include "sdlmain.h"
 #include "shell.h"
+#include "jfont.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -205,6 +206,7 @@ static CKeyEvent*                               caps_lock_event = NULL;
 static CKeyEvent*                               num_lock_event = NULL;
 
 static std::map<std::string, size_t>            name_to_events;
+static std::map<std::string, std::string>       event_map;
 
 static SDL_Color                                map_pal[7] =
 {
@@ -871,45 +873,123 @@ typedef char assert_right_size [MAX_SCANCODES == (sizeof(sdlkey_map)/sizeof(sdlk
 #else // !MACOSX
 
 #define MAX_SCANCODES 0xdf
-static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
-    SDLK_1,SDLK_2,SDLK_3,SDLK_4,SDLK_5,SDLK_6,SDLK_7,SDLK_8,SDLK_9,SDLK_0,
-    /* 0x0c: */
-    SDLK_MINUS,SDLK_EQUALS,SDLK_BACKSPACE,SDLK_TAB,
-    SDLK_q,SDLK_w,SDLK_e,SDLK_r,SDLK_t,SDLK_y,SDLK_u,SDLK_i,SDLK_o,SDLK_p,
-    SDLK_LEFTBRACKET,SDLK_RIGHTBRACKET,SDLK_RETURN,SDLK_LCTRL,
-    SDLK_a,SDLK_s,SDLK_d,SDLK_f,SDLK_g,SDLK_h,SDLK_j,SDLK_k,SDLK_l,
-    SDLK_SEMICOLON,SDLK_QUOTE,SDLK_BACKQUOTE,SDLK_LSHIFT,SDLK_BACKSLASH,
-    SDLK_z,SDLK_x,SDLK_c,SDLK_v,SDLK_b,SDLK_n,SDLK_m,
-    /* 0x33: */
-    SDLK_COMMA,SDLK_PERIOD,SDLK_SLASH,SDLK_RSHIFT,SDLK_KP_MULTIPLY,
-    SDLK_LALT,SDLK_SPACE,SDLK_CAPSLOCK,
-    SDLK_F1,SDLK_F2,SDLK_F3,SDLK_F4,SDLK_F5,SDLK_F6,SDLK_F7,SDLK_F8,SDLK_F9,SDLK_F10,
-    /* 0x45: */
-    SDLK_NUMLOCK,SDLK_SCROLLOCK,
-    SDLK_KP7,SDLK_KP8,SDLK_KP9,SDLK_KP_MINUS,SDLK_KP4,SDLK_KP5,SDLK_KP6,SDLK_KP_PLUS,
-    SDLK_KP1,SDLK_KP2,SDLK_KP3,SDLK_KP0,SDLK_KP_PERIOD,
-    SDLK_UNKNOWN,SDLK_UNKNOWN,
-    SDLK_LESS,SDLK_F11,SDLK_F12, Z, Z, Z, Z, Z, Z, Z,
-    /* 0x60: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0x70: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0x80: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0x90: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0xA0: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0xB0: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0xC0: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0xD0: */
-    Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z//,Z,Z,
-    /* 0xE0: */
-    //Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
-    /* 0xF0: */
-//  Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z//,Z,Z
+static SDLKey sdlkey_map[MAX_SCANCODES] = {
+	SDLK_UNKNOWN,//0x00
+	SDLK_ESCAPE,//0x01  
+	/*0x02-0x0b 1-9,0*/
+	SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
+	/* 0x0c: */
+	SDLK_MINUS, //0x0c
+	SDLK_EQUALS, //0x0d
+	SDLK_BACKSPACE,//0x0e
+	SDLK_TAB,//0x0f
+	SDLK_q,//0x10
+	SDLK_w,//0x11
+	SDLK_e,//0x12
+	SDLK_r,//0x13
+	SDLK_t,//0x14
+	SDLK_y,//0x15
+	SDLK_u,//0x16
+	SDLK_i,//0x17
+	SDLK_o,//0x18
+	SDLK_p,//0x19
+	SDLK_LEFTBRACKET,//0x1a  [ and {
+	SDLK_RIGHTBRACKET,//0x1b ] and }
+	SDLK_RETURN,//0x1c Enter
+	SDLK_LCTRL,//0x1d  Left-Control
+	SDLK_a,//0x1e
+	SDLK_s,//0x1f
+	SDLK_d,//0x20
+	SDLK_f,//0x21
+	SDLK_g,//0x22
+	SDLK_h,//0x23
+	SDLK_j,//0x24
+	SDLK_k,//0x25
+	SDLK_l,//0x26
+	SDLK_SEMICOLON,//0x27  ; and :
+	SDLK_QUOTE,//0x28 ' and "
+	SDLK_BACKQUOTE,//0x29 Grave Accent and Tilde
+	SDLK_LSHIFT,//0x2a left-shift
+	SDLK_BACKSLASH,//0x2b \ and |
+	SDLK_z,//0x2c
+	SDLK_x,//0x2d
+	SDLK_c,//0x2e
+	SDLK_v,//0x2f
+	SDLK_b,//0x30
+	SDLK_n,//0x31
+	SDLK_m,//0x32
+	/* 0x33: */
+	SDLK_COMMA,//0x33  , and <
+	SDLK_PERIOD,//0x34 . and >
+	SDLK_SLASH,//0x35 / and ?
+	SDLK_RSHIFT,//0x36 Right-Shift
+	SDLK_KP_MULTIPLY,//0x37 Keypad *
+	SDLK_LALT,//0x38 Left-Alt
+	SDLK_SPACE,//0x39 Spacebar
+	SDLK_CAPSLOCK,//0x3a CapsLock
+	/*0x3b-0x44 F1-F10*/
+	SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
+	/* 0x45: */
+	SDLK_NUMLOCK, //0x45 Keypad Num Lock and Clear
+	SDLK_SCROLLOCK, //0x46 Scroll-lock
+	SDLK_KP7, //0x47 Keypad 7 and Home
+	SDLK_KP8, //0x48 Keypad 8 and Up Arrow
+	SDLK_KP9, //0x49 Keypad 9 and PageUp
+	SDLK_KP_MINUS, //0x4a Keypad -
+	SDLK_KP4, //0x4b Keypad 4 Left-arrow
+	SDLK_KP5, //0x4c Keypad 5
+	SDLK_KP6, //0x4d Keypad 6 Right-arrow
+	SDLK_KP_PLUS, //0x4e Keypad +
+	SDLK_KP1, //0x4f Keypad 1 and End
+	SDLK_KP2, //0x50 Keypad 2 and Down Arrow
+	SDLK_KP3, //0x51 Keypad 3 and PageDn
+	SDLK_KP0, //0x52 Keypad 0 and Insert
+	SDLK_KP_PERIOD, //0x53 Keypad . and Delete
+	Z, //0x54
+	Z, //0x55
+	SDLK_LESS, //0x56 Non-US \ and |
+	SDLK_F11, //0x57
+	SDLK_F12, //0x58
+	Z, //0x59 Keypad =
+	Z, Z, //0x5a-0x5b unknown
+	Z, //0x5c Keyboard International6
+	Z, Z, Z, //0x5d-0x5f unknown
+	/* 0x60: */
+	Z, Z, Z, Z,	//0x60-0x63 unknown
+	/* 0x64-0x6e F13-F23 */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	Z, // 0x6F unknown
+	/* 0x70: */
+	SDLK_WORLD_15,//0x70 Keyboard International2 Hiragana/Katakana
+	Z, Z, //0x71-0x72 unknown
+	SDLK_JP_RO, //0x73 Keyboard International1 \ and _
+	Z, Z,//0x74-0x75 unknown
+	Z, //0x76 F24 or Keyboard LANG5
+	Z, //0x77 Keyboard Lang4
+	Z, //0x78 Keyboard Lang3
+	SDLK_WORLD_14, //0x79 Keyboard International4 Henkan
+	Z, //0x7a unknown
+	SDLK_WORLD_13, //0x7b Keyboard International5 Muhenkan
+	Z, //0x7c unknown
+	SDLK_JP_YEN, //0x7d Keyboard International3 \ and |
+	Z, //0x7e Keypad Comma
+	Z, //0x7f unknown
+	/* 0x80-0x8f unknown */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	/* 0x90: */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	/* 0xA0: */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	/* 0xB0: */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	/* 0xC0: */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
+	/* 0xD0: */
+	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z//,Z,Z,
+	/* 0xE0: */
+	//Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z,
+	/* 0xF0: */
+	//Z,Z,Z,Z, Z,Z,Z,Z, Z,Z,Z,Z, Z,Z//,Z,Z
 
 };
 #endif
@@ -941,7 +1021,7 @@ bool useScanCode() {
 		return false;
 	else {
 		const char* layout_name = DOS_GetLoadedLayout();
-		bool ret = layout_name != NULL;
+		bool ret = layout_name != NULL && !IS_PC98_ARCH;
 		if (!load)
 			prev_ret=ret;
 		else if (ret != prev_ret) {
@@ -958,36 +1038,51 @@ bool useScanCode() {
 
 SDLKey MapSDLCode(Bitu skey) {
 //  LOG_MSG("MapSDLCode %d %X",skey,skey);
-    if (useScanCode()) {
-        if (skey<MAX_SCANCODES) return sdlkey_map[skey];
+#if defined(C_SDL2)
+	return (SDLKey)skey;
+#else
+	if (useScanCode()) {
+		if (skey <= SDLK_LAST) return (SDLKey)skey;
         else return SDLK_UNKNOWN;
     } else return (SDLKey)skey;
+#endif
 }
 
+/* Return keysym.sym if non-zero, otherwise, convert keysym.scancode to SDLkey */
 Bitu GetKeyCode(SDL_keysym keysym) {
-//  LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
+    // LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
     if (useScanCode()) {
-        Bitu key=(Bitu)keysym.scancode;
+        SDLKey key = keysym.sym;
 
 #if defined (MACOSX)
         if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = 0x5f;  // zero value makes the keyboar crazy
 #endif
 
         if (key==0
+#if 0
 #if defined (MACOSX)
             /* On Mac on US keyboards, scancode 0 is actually the 'a'
              * key.  For good measure exclude all printables from this
              * condition. */
-            && (keysym.sym < SDLK_SPACE || keysym.sym > SDLK_WORLD_95)
+             && (keysym.sym < SDLK_SPACE || keysym.sym > SDLK_WORLD_95)
 #endif
-            ) {
-            /* try to retrieve key from symbolic key as scancode is zero */
-            if (keysym.sym<MAX_SDLKEYS) key=scancode_map[(Bitu)keysym.sym];
-        } 
+#endif
+			 ) {
+                /* try to retrieve key from scancode as keysym.sym is zero */
+                if (keysym.scancode < MAX_SCANCODES) {
+				    key = sdlkey_map[keysym.scancode]; // FIX ME: Do we need to scancode-8 for Linux users?
+			    }
+                else key = SDLK_UNKNOWN;
+		} 
+
+#if 0
 #if !defined (WIN32) && !defined (MACOSX) && !defined(OS2)
         /* Linux adds 8 to all scancodes */
-        else key-=8;
+        else key-=8; 
 #endif
+#endif
+#if 0
+// I don't think this part is required when useScanCode() is true, you basically already obtain SDLKeys.
 #if defined (WIN32)
         switch (key) {
             case 0x1c:  // ENTER
@@ -1008,9 +1103,16 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x53:  // DELETE
                 if (GFX_SDLUsingWinDIB()) key=scancode_map[(Bitu)keysym.sym];
                 break;
-        }
+		}
 #endif
-        return key;
+#endif
+#if defined (WIN32)
+		/* Special handling for JP Keyboard */
+		if (key == SDLK_BACKQUOTE){
+			key = (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); // Set to Hankaku key if JP Keyboard
+		}
+#endif
+		return key;
     } else {
 #if defined (WIN32)
         /* special handling of 102-key under windows */
@@ -1022,15 +1124,15 @@ Bitu GetKeyCode(SDL_keysym keysym) {
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
-        if (isJPkeyboard && keysym.sym == SDLK_BACKQUOTE) return (int)SDLK_WORLD_12;
+		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
         /* Muhenkan */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x7B) return (int)SDLK_WORLD_13;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x7B) return (Bitu)SDLK_WORLD_13;
         /* Henkan/Zenkouho */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (int)SDLK_WORLD_14;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (Bitu)SDLK_WORLD_14;
         /* Hiragana/Katakana */
-        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (int)SDLK_WORLD_15;
+        if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (Bitu)SDLK_WORLD_15;
 #endif
-        return (Bitu)keysym.sym;
+		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]); // FIX ME: Do we need to scancode-8 for Linux users?
     }
 }
 
@@ -1046,19 +1148,20 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
-        const char *r=SDL_GetKeyName(MapSDLCode((Bitu)key));
+        const char *r=SDL_GetKeyName(key);
         if (!strcmp(r, "left super")) r = "left Windows";
         else if (!strcmp(r, "right super")) r = "right Windows";
         else if (!strcmp(r, "left meta")) r = "left Command";
         else if (!strcmp(r, "right meta")) r = "right Command";
-        sprintf(buf,"Key %s",r);
+		//LOG_MSG("Key %s", r);
+		sprintf(buf,"Key %s",r);
 #endif
     }
     virtual void ConfigName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
-        sprintf(buf,"key %d",MapSDLCode((Bitu)key));
+        sprintf(buf,"key %d",(Bitu)key);
 #endif
     }
     virtual std::string GetBindMenuText(void) override {
@@ -1069,7 +1172,7 @@ public:
         s = SDL_GetScancodeName(key);
         if (s != NULL) r = s;
 #else
-        s = SDL_GetKeyName(MapSDLCode((Bitu)key));
+        s = SDL_GetKeyName(key);
 		if (s != NULL) {
 			r = s;
 			if (r.length()>0) {
@@ -1143,10 +1246,10 @@ public:
 #if defined(C_SDL2)
         CBind * bind=CreateKeyBind((SDL_Scancode)code);
 #else
-        if (useScanCode()) {
-            if (code<MAX_SDLKEYS) code=scancode_map[code];
-            else code=0;
-        }
+        //if (useScanCode()) {
+        //    if (code<MAX_SDLKEYS) code=scancode_map[code];
+        //    else code=0;
+        //}
         CBind * bind=CreateKeyBind((SDLKey)code);
 #endif
         return bind;
@@ -1154,9 +1257,9 @@ public:
     CBind * CreateEventBind(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN) return 0;
 #if defined(C_SDL2)
-        return CreateKeyBind(event->key.keysym.scancode);
+	return CreateKeyBind(event->key.keysym.scancode);
 #else
-        return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+	return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
 #endif
     };
     bool CheckEvent(SDL_Event * event) {
@@ -1164,25 +1267,33 @@ public:
 #if defined(C_SDL2)
         Bitu key = event->key.keysym.scancode;
 #else
-        Bitu key=GetKeyCode(event->key.keysym);
-        assert(Bitu(event->key.keysym.sym)<keys);
+		Bitu key;
+
+		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
+		key = GetKeyCode(event->key.keysym);
+		assert(key < keys);
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32)
         /* HACK: When setting up the Japanese keyboard layout, I'm seeing some bizarre keyboard handling
                  from within Windows when pressing the ~ ` (grave) aka Hankaku key. I know it's not hardware
                  because when you switch back to English the key works normally as the tilde/grave key.
                  What I'm seeing is that pressing the key only sends the "down" event (even though you're
                  not holding the key down). When you press the key again, an "up" event is sent immediately
                  followed by a "down" event. This is confusing to the mapper, so we work around it here. */
-        if (isJPkeyboard && key == SDLK_WORLD_12/*Hankaku*/) {
+
+#if defined(C_SDL2)
+        if (isJPkeyboard && key == 0x35 && event->key.keysym.sym == 0x60)
+#else
+		if (isJPkeyboard && event->key.keysym.scancode == 0x29 /*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
+#endif
+        {
             if (event->type == SDL_KEYDOWN) {
                 // send down, then up (right?)
                 ActivateBindList(&lists[key], 0x7fff, true);
                 DeactivateBindList(&lists[key], true);
             }
-
             return 0; // ignore up event
         }
 #endif
@@ -2193,7 +2304,11 @@ static CButton *press_select = NULL;
 
 class CTextButton : public CButton {
 public:
-    CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text; invertw=0; }
+    CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) {
+        if (strlen(_text)<100) strcpy(text, _text);
+        else {strncpy(text, _text, 99);text[99]=0;}
+        invertw=0;
+    }
     virtual ~CTextButton() {}
     void Draw(void) {
         uint8_t fg,bg;
@@ -2234,7 +2349,8 @@ public:
         }
     }
     void SetText(const char *_text) {
-        text = _text;
+        if (strlen(_text)<100) strcpy(text, _text);
+        else {strncpy(text, _text, 99);text[99]=0;}
     }
     void SetPartialInvert(double a) {
         if (a < 0) a = 0;
@@ -2244,7 +2360,7 @@ public:
         mapper.redraw=true;
     }
 protected:
-    const char * text;
+    char text[100];
     Bitu invertw;
 };
 
@@ -2268,6 +2384,9 @@ public:
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_DARKGREEN : CLR_GREEN);
         SetActiveEvent(event);
         last_clicked=this;
+    }
+    CEvent *GetEvent() {
+        return event;
     }
     void RebindRedraw(void) {
         Click();//HACK!
@@ -2313,7 +2432,7 @@ public:
         case BB_Add: 
             mapper.addbind=true;
             SetActiveBind(0);
-            change_action_text("Press a key/joystick button or move the joystick.",CLR_RED);
+            change_action_text(MSG_Get("PRESS_JOYSTICK_KEY"),CLR_RED);
             break;
         case BB_Del:
             assert(mapper.aevent != NULL);
@@ -2353,7 +2472,7 @@ public:
             break;
         case BB_Capture:
             GFX_CaptureMouse();
-            if (mouselocked) change_action_text("Capture enabled. Hit ESC to release capture.",CLR_WHITE);
+            if (mouselocked) change_action_text(MSG_Get("CAPTURE_ENABLED"),CLR_WHITE);
             break;
         }
     }
@@ -2722,8 +2841,12 @@ public:
     };
 
     //! \brief Retrieve the button name (for display in the mapper UI)
-    const char * ButtonName(void) {
+    const char * ButtonName() {
         return buttonname;
+    }
+
+    void SetButtonName(const char *name) {
+        buttonname = name;
     }
 
     //! \brief Generate a default binding from the MapKeys enumeration
@@ -3223,6 +3346,11 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
     return NULL;
 }
 
+unsigned char prvmc = 0;
+extern bool font_14_init;
+extern uint8_t int10_font_14_init[256 * 14];
+uint8_t *GetDbcs14Font(Bitu code, bool &is14);
+bool isDBCSCP();
 static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor/*=CLR_BLACK*/) {
 #if defined(C_SDL2)
     uint8_t * draw=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -3230,23 +3358,47 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
     uint8_t * draw=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
     while (*text) {
-        uint8_t * font=&int10_font_14[(*text)*14];
-        Bitu i,j;uint8_t * draw_line=draw;
-        for (i=0;i<14;i++) {
-            uint8_t map=*font++;
-            for (j=0;j<8;j++) {
-                if (map & 0x80) *(draw_line+j)=color;
-                else *(draw_line+j)=bkcolor;
-                map<<=1;
-            }
+        unsigned char c = *text;
+        uint8_t * font;
+        bool is14 = false;
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+            if (isKanji1(c) && prvmc == 0) {
+                prvmc = c;
+                text++;
+                continue;
+            } else if (isKanji2(c) && prvmc > 1) {
+                font = GetDbcs14Font(prvmc*0x100+c, is14);
+                prvmc = 1;
+            } else if (prvmc < 0x81)
+                prvmc = 0;
+        } else
+            prvmc = 0;
+        if (font_14_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&prvmc!=1)
+            font = &int10_font_14_init[c*14];
+        else if (prvmc!=1)
+            font = &int10_font_14[c*14];
+        Bitu i,j;
+        for (int k=0; k<(prvmc?2:1); k++) {
+            uint8_t * draw_line = draw;
+            for (i=0;i<14;i++) {
+                uint8_t map=*(font+(prvmc==1?(i*2+k):i));
+                for (j=0;j<8;j++) {
+                    if (map & 0x80) *(draw_line+j)=color;
+                    else *(draw_line+j)=bkcolor;
+                    map<<=1;
+                }
 #if defined(C_SDL2)
-            draw_line+=mapper.draw_surface->w;
+                draw_line+=mapper.draw_surface->w;
 #else
-            draw_line+=mapper.surface->pitch;
+                draw_line+=mapper.surface->pitch;
 #endif
+            }
+            draw+=8;
         }
-        text++;draw+=8;
+        text++;
+        prvmc = 0;
     }
+    prvmc = 0;
 }
 
 void RedrawMapperEventButtons() {
@@ -3309,11 +3461,11 @@ static void SetActiveEvent(CEvent * event) {
     mapper.addbind=false;
     bind_but.event_title->Change("EVENT:%s",event ? event->GetName(): "none");
     if (!event) {
-        change_action_text("Select an event to change.",CLR_WHITE);
+        change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
         SetActiveBind(0);
     } else {
-        change_action_text("Select a different event or hit the Add/Del/Next buttons.",CLR_WHITE);
+        change_action_text(MSG_Get("SELECT_DIFFERENT_EVENT"),CLR_WHITE);
         mapper.abindit=event->bindlist.begin();
         if (mapper.abindit!=event->bindlist.end()) {
             SetActiveBind(*(mapper.abindit));
@@ -3472,9 +3624,8 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
 
     /* Arrow Keys */
-#define XO 18
+#define XO 19
 #define YO 0
-
     AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
     AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
     AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
@@ -3484,14 +3635,12 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"DEL","delete",KBD_delete);
     AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"END","end",KBD_end);
     AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"PDN","pagedown",KBD_pagedown);
-    AddKeyButtonEvent(PX(XO-4),PY(YO),BW,BH,"NEQ","kp_equals",KBD_kpequals);
+    AddKeyButtonEvent(PX(XO-2),PY(YO+3),BW,BH,"NEQ","kp_equals",KBD_kpequals);
     AddKeyButtonEvent(PX(XO-2),PY(YO),BW,BH,"\x18 U","up",KBD_up);
     AddKeyButtonEvent(PX(XO-3),PY(YO+1),BW,BH,"\x1B L","left",KBD_left);
     AddKeyButtonEvent(PX(XO-2),PY(YO+1),BW,BH,"\x19 D","down",KBD_down);
     AddKeyButtonEvent(PX(XO-1),PY(YO+1),BW,BH,"\x1A R","right",KBD_right);
-#undef XO
 #undef YO
-#define XO 18
 #define YO 5
 	/* Mouse Buttons */
 	new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Mouse keys");
@@ -3695,7 +3844,7 @@ static void CreateLayout(void) {
         if ((xpos+columns-1)>6) {
             xpos=3;ypos++;
         }
-        CEventButton *button=new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
+        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5?BW/2:0),PY(ypos),BW*3*columns+BW/2,BH,(*hit)->ButtonName(),(*hit));
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
         button->Enable(page==cpage);
@@ -3709,8 +3858,8 @@ static void CreateLayout(void) {
             page++;
         }
     }
-    bind_but.prevpage=new CBindButton(280,388,130,BH,"< Previous Page",BB_Prevpage);
-    bind_but.nextpage=new CBindButton(470,388,100,BH," Next Page >",BB_Nextpage);
+    bind_but.prevpage=new CBindButton(280,388,130,BH,MSG_Get("PREVIOUS_PAGE"),BB_Prevpage);
+    bind_but.nextpage=new CBindButton(470,388,130,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
     bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
     bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
     if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
@@ -3734,18 +3883,18 @@ static void CreateLayout(void) {
     bind_but.host=new CCheckButton(100,410,60,BH,"host",BC_Host);
     bind_but.hold=new CCheckButton(100,432,60,BH,"hold",BC_Hold);
 
-    bind_but.add=new CBindButton(20,384,50,BH,"Add",BB_Add);
-    bind_but.del=new CBindButton(70,384,50,BH,"Del",BB_Del);
-    bind_but.next=new CBindButton(120,384,50,BH,"Next",BB_Next);
+    bind_but.add=new CBindButton(20,384,50,BH,MSG_Get("ADD"),BB_Add);
+    bind_but.del=new CBindButton(70,384,50,BH,MSG_Get("DEL"),BB_Del);
+    bind_but.next=new CBindButton(120,384,50,BH,MSG_Get("NEXT"),BB_Next);
 
-    bind_but.save=new CBindButton(180,444,50,BH,"Save",BB_Save);
-    bind_but.exit=new CBindButton(230,444,50,BH,"Exit",BB_Exit);
-    bind_but.cap=new CBindButton(280,444,50,BH,"Capt",BB_Capture);
+    bind_but.save=new CBindButton(180,444,60,BH,MSG_Get("SAVE"),BB_Save);
+    bind_but.exit=new CBindButton(240,444,60,BH,MSG_Get("EXIT"),BB_Exit);
+    bind_but.cap=new CBindButton(300,444,85,BH,MSG_Get("CAPTURE"),BB_Capture);
 
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(330, 444, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(390, 444, 310, 20); // right next to the Save button
     bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
@@ -4149,7 +4298,8 @@ static void MAPPER_SaveBinds(void) {
     char path[PATH_MAX];
     if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
 #endif
-    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
+    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+mapper.filename;
+    change_action_text(msg.c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
@@ -4361,7 +4511,8 @@ void BIND_MappingEvents(void) {
                     s.sym,
                     s.mod,
                     s.unicode,
-                    SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)));
+					SDL_GetKeyName((SDLKey)GetKeyCode(s)));
+					//(s.sym ? SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)) : SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)sdlkey_map[(s.scancode ? s.scancode : event.key.keysym.scancode)]))));
 #endif
                 while (tmpl < (440/8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
@@ -4379,7 +4530,7 @@ void BIND_MappingEvents(void) {
 
                     nm[0] = 0;
 #if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
-                    GetKeyNameText(s.scancode << 16,nm,sizeof(nm)-1);
+					GetKeyNameText((s.scancode ? s.scancode : event.key.keysym.scancode) << 16, nm, sizeof(nm)-1);
 #endif
 
                     tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",(unsigned int)s.win32_vk,nm);
@@ -4585,6 +4736,20 @@ void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("MapperMenu");
+        item.set_text(mainMenu.get_item("mapper_mapper").get_text());
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("ExitMapper");
+        item.set_text(MSG_Get("MAPPER_EDITOR_EXIT"));
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
+        item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
+    }
     mapperMenu.rebuild();
 #endif
 
@@ -4767,7 +4932,7 @@ void MAPPER_CheckKeyboardLayout() {
 #if defined(WIN32)
     WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
 
-    isJPkeyboard = true;
+    isJPkeyboard = false;
 
     if (cur_kb_layout == 1041/*JP106*/) {
         isJPkeyboard = true;
@@ -5034,19 +5199,19 @@ void MAPPER_StartUp() {
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MapperMenu");
-        item.set_text("Mapper");
+        item.set_text(mainMenu.get_item("mapper_mapper").get_text());
     }
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
         item.set_callback_function(mapper_menu_exit);
-        item.set_text("Exit mapper");
+        item.set_text(MSG_Get("MAPPER_EDITOR_EXIT"));
     }
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
         item.set_callback_function(mapper_menu_save);
-        item.set_text("Save mapper file");
+        item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
 
     mapperMenu.displaylist_clear(mapperMenu.display_list);
@@ -5156,4 +5321,37 @@ std::string get_mapper_shortcut(const char *name) {
         if ((*it)!=NULL&&!strcmp(name, (*it)->eventname.c_str()))
             return (*it)->GetBindMenuText();
     return "";
+}
+
+std::map<std::string,std::string> get_event_map() {
+    event_map.clear();
+    for (CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();++it)
+        event_map.insert(std::pair<std::string,std::string>((*it)->eventname,(*it)->ButtonName()));
+    return event_map;
+}
+
+void update_bindbutton_text() {
+    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
+    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
+    if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
+    if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
+    if (bind_but.save) bind_but.save->SetText(MSG_Get("SAVE"));
+    if (bind_but.exit) bind_but.exit->SetText(MSG_Get("EXIT"));
+    if (bind_but.cap) bind_but.cap->SetText(MSG_Get("CAPTURE"));
+}
+
+void set_eventbutton_text(const char *eventname, const char *buttonname) {
+    for (CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();++it)
+        if ((*it)!=NULL&&!strcmp(eventname, (*it)->eventname.c_str())) {
+            (*it)->SetButtonName(buttonname);
+            break;
+        }
+    for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
+        CEventButton *button = (CEventButton *)*it;
+        if (button!=NULL&&!strcmp(eventname, button->GetEvent()->eventname.c_str())) {
+            button->SetText(buttonname);
+            break;
+        }
+    }
 }

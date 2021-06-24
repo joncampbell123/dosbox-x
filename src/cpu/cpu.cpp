@@ -3724,10 +3724,10 @@ public:
 			 * Did Intel drop the set-only PE behavior during the 486 era? Perhaps the programmer and
 			 * his userbase only ever used it in cases where EMM386.EXE or Windows was running, and there
 			 * fore under virtual 8086 mode where the code to do that was skipped? */
-			/* In any case, the assumption here is that if the target CPU is a 486 or higher, LMSW can
+			/* In any case, the assumption here is that if the target CPU is a Pentium or higher, LMSW can
 			 * clear the PE bit. There is a ticket open in DOSLIB with a task to write a program that
 			 * can verify this behavior on real hardware. */
-			if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) /* maybe the original 486 retained the behavior? */
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM && CPU_ArchitectureType != CPU_ARCHTYPE_MIXED) /* maybe the original 486 retained the behavior? */
 				lmsw_allow_clear_pe_bit = true;
 			else
 				lmsw_allow_clear_pe_bit = false;

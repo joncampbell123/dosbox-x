@@ -56,6 +56,7 @@
 #include "render.h"
 #include "mouse.h"
 #include "../ints/int10.h"
+#include "../output/output_opengl.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
@@ -86,13 +87,14 @@ bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
 bool startquiet = false;
+bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool inshell, mountfro[26], mountiro[26];
-
+extern int lastcp;
+extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), UpdateSDLDrawTexture();
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -5987,6 +5989,10 @@ void KEYB::Run(void) {
                     WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
                 SetupDBCSTable();
                 runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                UpdateSDLDrawTexture();
+#endif
                 return;
             }
             if (cp_string.size()) {
@@ -6985,6 +6991,7 @@ void EndStartProcess() {
 }
 #endif
 
+const char * TranslateHostPath(const char * arg, bool next = false);
 class START : public Program {
 public:
     void Run() {
@@ -7084,14 +7091,14 @@ public:
             strcpy(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
             strcat(dir, cmd);
             strcat(dir, " ");
-            if (cmdstr!=NULL) strcat(dir, cmdstr);
+            if (cmdstr!=NULL) strcat(dir, TranslateHostPath(cmdstr));
             if (!strcasecmp(cmd,"for")) strcat(dir, ")");
             strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
             lpExecInfo.lpFile = "CMD.EXE";
             lpExecInfo.lpParameters = dir;
         } else {
-            lpExecInfo.lpFile = cmd;
-            lpExecInfo.lpParameters = cmdstr;
+            lpExecInfo.lpFile = cmd==NULL?NULL:TranslateHostPath(cmd);
+            lpExecInfo.lpParameters = cmdstr==NULL?NULL:TranslateHostPath(cmdstr, true);
         }
         bool setdir=false;
         char winDirCur[512], winDirNew[512];
@@ -7141,7 +7148,7 @@ public:
             open=true;
             cmd+=5;
         }
-        cmd=trim(cmd);
+        cmd=trim((char *)TranslateHostPath(cmd));
         int ret=0;
 #if defined(LINUX) || defined(MACOSX)
         ret=system(((open?

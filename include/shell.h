@@ -20,9 +20,6 @@
 #ifndef DOSBOX_SHELL_H
 #define DOSBOX_SHELL_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif

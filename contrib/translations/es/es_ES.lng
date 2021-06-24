@@ -3,16 +3,175 @@
 :DOSBOX-X:VERSION:0.83.15
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
-Las líneas en esta sección se iniciaran al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
+Las líneas de esta sección se iniciarán al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
 .
 :CONFIGFILE_INTRO
-# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versión si puedes)◙# Lineas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas l¡neas se usan para documentar brevemente el efecto de cada opcion.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
+# Este es el archivo de configuración de DOSBox-X %s. (Usa la última versión si puedes)◙# Líneas con un # al principio son comentarios y se ignoran por DOSBox-X.◙# Estas líneas se usan para documentar brevemente el efecto de cada opción.◙# Para escribir TODAS las opciones, usa el comando 'config -all' con -wc o -writeconf.◙
 .
 :CONFIG_SUGGESTED_VALUES
 Valores posibles
 .
 :CONFIG_ADVANCED_OPTION
-Opciones avanzadas (ver archivo de referencia configuración completo [dosbox-x.reference.full.conf] para más detalles)
+Opciones avanzadas (ver archivo de referencias de configuración completo [dosbox-x.reference.full.conf] para más detalles)
+.
+:CONFIG_TOOL
+Herramienta de configuración de DOSBox-X
+.
+:CONFIG_TOOL_EXIT
+Salir de la herramienta de configuración
+.
+:MAPPER_EDITOR_EXIT
+Abandonar editor de mapeo
+.
+:SAVE_MAPPER_FILE
+Salvar archivo de mapeo
+.
+:WARNING
+Aviso
+.
+:YES
+Sí
+.
+:NO
+No
+.
+:OK
+Aceptar
+.
+:CANCEL
+Cancelar
+.
+:CLOSE
+Cerrar
+.
+:ADD
+Añadir
+.
+:DEL
+Suprimir
+.
+:NEXT
+Siguiente
+.
+:SAVE
+Guardar
+.
+:EXIT
+Salir
+.
+:CAPTURE
+Capturar
+.
+:SAVE_CONFIGURATION
+Guarda configuración
+.
+:SAVE_LANGUAGE
+Exportar archivo de idioma
+.
+:SAVE_RESTART
+Guarda/Reinicia
+.
+:PASTE_CLIPBOARD
+Pegar del portapapeles
+.
+:APPEND_HISTORY
+Agregar historial
+.
+:EXECUTE_NOW
+Ejecutar ahora
+.
+:ADDITION_CONTENT
+Contenido adicional:
+.
+:CONTENT
+Contenido:
+.
+:EDIT_FOR
+Editar %s
+.
+:HELP_FOR
+Ayuda de %s
+.
+:CONFIGURATION_FOR
+Configuración de %s
+.
+:CONFIGURATION
+Configuración
+.
+:SETTINGS
+Ajustes
+.
+:VISIT_HOMEPAGE
+Visitar página de DosBox-X
+.
+:GET_STARTED
+Primeros pasos en DosBox-X
+.
+:CDROM_SUPPORT
+Soporte de CD-ROM
+.
+:DRIVE_INFORMATION
+Información de unidad
+.
+:MOUNTED_DRIVE_NUMBER
+Nº de unidad montada
+.
+:IDE_CONTROLLER_ASSIGNMENT
+Asignación de controlador IDE
+.
+:HELP_COMMAND
+Ayuda de comandos DOS
+.
+:CURRENT_VOLUME
+Valores actuales del mezclador
+.
+:CURRENT_SBCONFIG
+Configuración de Sound Blaster
+.
+:CURRENT_MIDICONFIG
+Configuración actual de MIDI
+.
+:CREATE_IMAGE
+Crear imagen de disco en blanco
+.
+:NETWORK_LIST
+Lista de adaptadores de red
+.
+:PRINTER_LIST
+Lista de dispositivos de impresión
+.
+:INTRODUCTION
+Introducción
+.
+:CONFIGURE_GROUP
+Elija un grupo de ajustes a configurar:
+.
+:SHOW_ADVOPT
+Incluir avanzados
+.
+:USE_PRIMARYCONFIG
+Usa config primario
+.
+:USE_PORTABLECONFIG
+Usa config portable
+.
+:USE_USERCONFIG
+Usa config de usuario
+.
+:CONFIG_SAVETO
+Nombre del archivo config a guardar:
+.
+:CONFIG_SAVEALL
+Guardar todo (incluyendo ajustes avanzados) al archivo config
+.
+:LANG_FILENAME
+Introduce el nombre del archivo de idioma:
+.
+:LANG_LANGNAME
+Nombre del lenguaje (opcional):
+.
+:INTRO_MESSAGE
+Bienvenido a DOSBox-X, un emulador de DOS completamente libre.◙DOSBox-X crea una consola DOS que funciona como un DOS real.◙También puedes ejecutar Windows 3.x y 95/98 bajo la máquina DOS.
 .
 :DRIVE
 Disco
@@ -40,6 +199,27 @@ Slot vacío
 .
 :SLOT
 Slot
+.
+:PREVIOUS_PAGE
+< Pág anterior
+.
+:NEXT_PAGE
+Pág siguiente >
+.
+:SELECT_EVENT
+Elige evento a cambiar.
+.
+:SELECT_DIFFERENT_EVENT
+Usa otro evento o usa Add/Del/Next.
+.
+:PRESS_JOYSTICK_KEY
+Pulsa una tecla o usa el joystick.
+.
+:CAPTURE_ENABLED
+Captura activada. Pulsa ESC para liberar.
+.
+:MAPPER_FILE_SAVED
+Archivo de mapeado guardado.
 .
 :AUTO_CYCLE_MAX
 Ciclos automáticos [máximo]
@@ -496,16 +676,16 @@ Traducido por Carlos Romero, para más software visita:←[34;1m
 ←[32mmount c c:\dosgames\←[37m crea una unidad C con el contenido de c:\dosgames. 
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m es un ejemplo. Cambialo con tu propio directorio de juegos.←[37m
+c:\dosgames\←[37m es un ejemplo. Cámbialo con tu propio directorio de juegos.←[37m
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
 ←[32mmount c ~/dosgames←[37m creará una unidad C con el contenido de ~/dosgames.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m es un ejemplo. Cambialo con tu directorio con juegos.←[37m  
+←[32m~/dosgames←[37m es un ejemplo. Cámbialo con tu directorio con juegos.←[37m
 .
 :PROGRAM_INTRO_MOUNT_END
-◙Cuando mount se haya completado correctamente puedes teclear ←[34;1mc:←[0m para ir a◙tu unidad montada C: teclea ←[34;1mdir←[0m para listar su contenido, ←[34;1mcd←[0m te permite◙entrar en un directorio (van entre corchetes ←[33;1m[]←[0m en el listado de unidad).◙Puedes ejecutar programas terminados en ←[31m.exe .bat←[0m y ←[31m.com←[0m.◙
+◙←[0mCuando mount se haya completado correctamente puedes teclear ←[34;1mc:←[0m para ir a◙tu unidad montada C: teclea ←[34;1mdir←[0m para listar su contenido, ←[34;1mcd←[0m te permite◙entrar en un directorio (van entre corchetes ←[33;1m[]←[0m en el listado de unidad).◙Puedes ejecutar programas terminados en ←[31m.exe .bat←[0m y ←[31m.com←[0m.◙
 .
 :PROGRAM_INTRO_CDROM
 ←[2J←[32;1mMontando un CD-ROM real o virtual en DOSBox-X:←[0m
@@ -855,9 +1035,6 @@ ECHO está activado.◙
 .
 :SHELL_CMD_ECHO_OFF
 ECHO está desactivado.◙
-.
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-Carácter de control inesperado: Dec %03u y Hex %#04x.◙
 .
 :SHELL_ILLEGAL_SWITCH
 Parámetro no válido - %s◙
@@ -1447,7 +1624,7 @@ MORE [unidad:][ruta][nombrearchivo]◙MORE < [unidad:][ruta][nombrearchivo]◙no
 Busca el nombre completamente expandido de un archivo.◙
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME archivo◙
+TRUENAME [/H] archivo◙
 .
 :SHELL_CMD_DXCAPTURE_HELP
 Ejecuta un programa con captura de video o audio.◙
@@ -1489,10 +1666,10 @@ Edicion rápida: Copiar texto al seleccionar y pegarlo
 Copiar todo el texto de la ventana DOS
 .
 :MENU:mapper_paste
-Pegar desde el portapapeles
+Pegar desde portapapeles
 .
 :MENU:mapper_pasteend
-Detener el pegado del portapapeles
+Detener pegado de portapapeles
 .
 :MENU:mapper_pause
 Pausar emulación
@@ -1504,19 +1681,19 @@ Pausar con interrupciones activadas
 Herramienta de configuración
 .
 :MENU:mapper_mapper
-Editor de Mapper
+Editor de mapeador
 .
 :MENU:mapper_fullscr
-Pasar a pantalla completa
+Pantalla completa
 .
 :MENU:mapper_resetsize
 Restaurar ventana
 .
 :MENU:mapper_incsize
-Aumentar tamaño de fuente TTF
+Aumentar tamaño TTF
 .
 :MENU:mapper_decsize
-Reducir tamaño de fuente TTF
+Reducir tamaño TTF
 .
 :MENU:mapper_togmenu
 Ocultar/mostrar barra de menú
@@ -2040,6 +2217,9 @@ Aplicaciones de host
 :MENU:dos_win_autorun
 Lanzar para ejecutar en host Windows
 .
+:MENU:dos_win_transpath
+Traducir rutas a rutas del sistema host
+.
 :MENU:dos_win_wait
 Esperar a la aplicación si es posible
 .
@@ -2109,1115 +2289,50 @@ Ir a última página de slots
 :MENU:DriveMenu
 Unidad
 .
-:MENU:DriveA
-A
-.
-:MENU:drive_A_mountauto
+:MENU:drive_mountauto
 Auto-montar unidad Windows
 .
-:MENU:drive_A_mounthd
+:MENU:drive_mounthd
 Montar carpeta como disco duro
 .
-:MENU:drive_A_mountcd
+:MENU:drive_mountcd
 Montar carpeta como CD
 .
-:MENU:drive_A_mountfd
+:MENU:drive_mountfd
 Montar carpeta como disquetera 
 .
-:MENU:drive_A_mountfro
+:MENU:drive_mountfro
 Opción: Montar carpeta sólo lectura
 .
-:MENU:drive_A_mountarc
+:MENU:drive_mountarc
 Montar un fichero comprimido (Zip/7z)
 .
-:MENU:drive_A_mountimg
+:MENU:drive_mountimg
 Montar una imagen de disco o CD
 .
-:MENU:drive_A_mountimgs
+:MENU:drive_mountimgs
 Montar multiples imagenes de disco/CD
 .
-:MENU:drive_A_mountiro
+:MENU:drive_mountiro
 Opción: montar imagenes solo lectura
 .
-:MENU:drive_A_unmount
+:MENU:drive_unmount
 Desmontar unidad
 .
-:MENU:drive_A_rescan
+:MENU:drive_rescan
 Volver a explorar la unidad
 .
-:MENU:drive_A_swap
+:MENU:drive_swap
 Intercambiar disco
 .
-:MENU:drive_A_info
+:MENU:drive_info
 Información de unidad
 .
-:MENU:drive_A_boot
+:MENU:drive_boot
 Arrancar desde unidad
 .
-:MENU:drive_A_bootimg
+:MENU:drive_bootimg
 Arrancar desde imagen de disco
-.
-:MENU:DriveB
-B
-.
-:MENU:drive_B_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_B_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_B_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_B_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_B_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_B_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_B_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_B_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_B_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_B_unmount
-Desmontar unidad
-.
-:MENU:drive_B_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_B_swap
-Intercambiar disco
-.
-:MENU:drive_B_info
-Información de unidad
-.
-:MENU:DriveC
-C
-.
-:MENU:drive_C_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_C_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_C_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_C_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_C_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_C_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_C_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_C_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_C_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_C_unmount
-Desmontar unidad
-.
-:MENU:drive_C_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_C_swap
-Intercambiar disco
-.
-:MENU:drive_C_info
-Información de unidad
-.
-:MENU:drive_C_boot
-Arrancar desde unidad
-.
-:MENU:drive_C_bootimg
-Arrancar desde imagen de disco
-.
-:MENU:DriveD
-D
-.
-:MENU:drive_D_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_D_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_D_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_D_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_D_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_D_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_D_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_D_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_D_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_D_unmount
-Desmontar unidad
-.
-:MENU:drive_D_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_D_swap
-Intercambiar disco
-.
-:MENU:drive_D_info
-Información de unidad
-.
-:MENU:drive_D_boot
-Arrancar desde unidad
-.
-:MENU:drive_D_bootimg
-Arrancar desde imagen de disco
-.
-:MENU:DriveE
-E
-.
-:MENU:drive_E_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_E_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_E_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_E_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_E_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_E_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_E_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_E_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_E_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_E_unmount
-Desmontar unidad
-.
-:MENU:drive_E_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_E_swap
-Intercambiar disco
-.
-:MENU:drive_E_info
-Información de unidad
-.
-:MENU:DriveF
-F
-.
-:MENU:drive_F_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_F_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_F_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_F_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_F_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_F_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_F_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_F_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_F_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_F_unmount
-Desmontar unidad
-.
-:MENU:drive_F_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_F_swap
-Intercambiar disco
-.
-:MENU:drive_F_info
-Información de unidad
-.
-:MENU:DriveG
-G
-.
-:MENU:drive_G_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_G_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_G_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_G_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_G_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_G_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_G_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_G_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_G_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_G_unmount
-Desmontar unidad
-.
-:MENU:drive_G_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_G_swap
-Intercambiar disco
-.
-:MENU:drive_G_info
-Información de unidad
-.
-:MENU:DriveH
-H
-.
-:MENU:drive_H_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_H_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_H_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_H_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_H_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_H_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_H_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_H_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_H_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_H_unmount
-Desmontar unidad
-.
-:MENU:drive_H_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_H_swap
-Intercambiar disco
-.
-:MENU:drive_H_info
-Información de unidad
-.
-:MENU:DriveI
-I
-.
-:MENU:drive_I_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_I_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_I_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_I_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_I_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_I_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_I_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_I_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_I_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_I_unmount
-Desmontar unidad
-.
-:MENU:drive_I_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_I_swap
-Intercambiar disco
-.
-:MENU:drive_I_info
-Información de unidad
-.
-:MENU:DriveJ
-J
-.
-:MENU:drive_J_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_J_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_J_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_J_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_J_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_J_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_J_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_J_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_J_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_J_unmount
-Desmontar unidad
-.
-:MENU:drive_J_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_J_swap
-Intercambiar disco
-.
-:MENU:drive_J_info
-Información de unidad
-.
-:MENU:DriveK
-K
-.
-:MENU:drive_K_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_K_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_K_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_K_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_K_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_K_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_K_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_K_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_K_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_K_unmount
-Desmontar unidad
-.
-:MENU:drive_K_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_K_swap
-Intercambiar disco
-.
-:MENU:drive_K_info
-Información de unidad
-.
-:MENU:DriveL
-L
-.
-:MENU:drive_L_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_L_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_L_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_L_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_L_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_L_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_L_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_L_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_L_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_L_unmount
-Desmontar unidad
-.
-:MENU:drive_L_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_L_swap
-Intercambiar disco
-.
-:MENU:drive_L_info
-Información de unidad
-.
-:MENU:DriveM
-M
-.
-:MENU:drive_M_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_M_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_M_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_M_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_M_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_M_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_M_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_M_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_M_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_M_unmount
-Desmontar unidad
-.
-:MENU:drive_M_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_M_swap
-Intercambiar disco
-.
-:MENU:drive_M_info
-Información de unidad
-.
-:MENU:DriveN
-N
-.
-:MENU:drive_N_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_N_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_N_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_N_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_N_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_N_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_N_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_N_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_N_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_N_unmount
-Desmontar unidad
-.
-:MENU:drive_N_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_N_swap
-Intercambiar disco
-.
-:MENU:drive_N_info
-Información de unidad
-.
-:MENU:DriveO
-O
-.
-:MENU:drive_O_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_O_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_O_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_O_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_O_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_O_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_O_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_O_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_O_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_O_unmount
-Desmontar unidad
-.
-:MENU:drive_O_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_O_swap
-Intercambiar disco
-.
-:MENU:drive_O_info
-Información de unidad
-.
-:MENU:DriveP
-P
-.
-:MENU:drive_P_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_P_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_P_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_P_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_P_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_P_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_P_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_P_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_P_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_P_unmount
-Desmontar unidad
-.
-:MENU:drive_P_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_P_swap
-Intercambiar disco
-.
-:MENU:drive_P_info
-Información de unidad
-.
-:MENU:DriveQ
-Q
-.
-:MENU:drive_Q_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_Q_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_Q_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_Q_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_Q_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_Q_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_Q_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_Q_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_Q_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_Q_unmount
-Desmontar unidad
-.
-:MENU:drive_Q_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_Q_swap
-Intercambiar disco
-.
-:MENU:drive_Q_info
-Información de unidad
-.
-:MENU:DriveR
-R
-.
-:MENU:drive_R_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_R_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_R_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_R_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_R_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_R_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_R_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_R_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_R_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_R_unmount
-Desmontar unidad
-.
-:MENU:drive_R_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_R_swap
-Intercambiar disco
-.
-:MENU:drive_R_info
-Información de unidad
-.
-:MENU:DriveS
-S
-.
-:MENU:drive_S_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_S_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_S_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_S_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_S_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_S_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_S_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_S_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_S_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_S_unmount
-Desmontar unidad
-.
-:MENU:drive_S_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_S_swap
-Intercambiar disco
-.
-:MENU:drive_S_info
-Información de unidad
-.
-:MENU:DriveT
-T
-.
-:MENU:drive_T_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_T_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_T_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_T_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_T_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_T_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_T_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_T_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_T_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_T_unmount
-Desmontar unidad
-.
-:MENU:drive_T_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_T_swap
-Intercambiar disco
-.
-:MENU:drive_T_info
-Información de unidad
-.
-:MENU:DriveU
-U
-.
-:MENU:drive_U_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_U_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_U_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_U_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_U_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_U_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_U_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_U_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_U_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_U_unmount
-Desmontar unidad
-.
-:MENU:drive_U_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_U_swap
-Intercambiar disco
-.
-:MENU:drive_U_info
-Información de unidad
-.
-:MENU:DriveV
-V
-.
-:MENU:drive_V_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_V_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_V_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_V_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_V_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_V_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_V_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_V_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_V_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_V_unmount
-Desmontar unidad
-.
-:MENU:drive_V_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_V_swap
-Intercambiar disco
-.
-:MENU:drive_V_info
-Información de unidad
-.
-:MENU:DriveW
-W
-.
-:MENU:drive_W_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_W_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_W_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_W_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_W_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_W_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_W_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_W_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_W_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_W_unmount
-Desmontar unidad
-.
-:MENU:drive_W_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_W_swap
-Intercambiar disco
-.
-:MENU:drive_W_info
-Información de unidad
-.
-:MENU:DriveX
-X
-.
-:MENU:drive_X_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_X_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_X_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_X_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_X_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_X_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_X_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_X_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_X_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_X_unmount
-Desmontar unidad
-.
-:MENU:drive_X_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_X_swap
-Intercambiar disco
-.
-:MENU:drive_X_info
-Información de unidad
-.
-:MENU:DriveY
-Y
-.
-:MENU:drive_Y_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_Y_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_Y_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_Y_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_Y_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_Y_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_Y_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_Y_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_Y_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_Y_unmount
-Desmontar unidad
-.
-:MENU:drive_Y_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_Y_swap
-Intercambiar disco
-.
-:MENU:drive_Y_info
-Información de unidad
-.
-:MENU:DriveZ
-Z
-.
-:MENU:drive_Z_mountauto
-Auto-montar unidad Windows
-.
-:MENU:drive_Z_mounthd
-Montar carpeta como disco duro
-.
-:MENU:drive_Z_mountcd
-Montar carpeta como CD
-.
-:MENU:drive_Z_mountfd
-Montar carpeta como disquetera
-.
-:MENU:drive_Z_mountfro
-Opción: montar carpeta solo lectura
-.
-:MENU:drive_Z_mountarc
-Montar un fichero comprimido (Zip/7z)
-.
-:MENU:drive_Z_mountimg
-Montar una imagen de disco o CD
-.
-:MENU:drive_Z_mountimgs
-Montar multiples imagenes de disco/CD
-.
-:MENU:drive_Z_mountiro
-Opción: montar imagenes solo lectura
-.
-:MENU:drive_Z_unmount
-Desmontar unidad
-.
-:MENU:drive_Z_rescan
-Volver a explorar la unidad
-.
-:MENU:drive_Z_swap
-Intercambiar disco
-.
-:MENU:drive_Z_info
-Información de unidad
 .
 :MENU:HelpMenu
 Ayuda
@@ -3235,10 +2350,10 @@ Guía Wiki de DOSBox-X
 Soporte de DOSBox-X
 .
 :MENU:help_nic
-Lista de interfaces de red
+Lista de dispositivos de red
 .
 :MENU:help_prt
-Lista de dispositivos de impresora
+Lista de dispositivos de impresión
 .
 :MENU:help_about
 Acerca de DOSBox-X
@@ -3390,6 +2505,9 @@ TRUENAME
 :MENU:DebugMenu
 Depurador
 .
+:MENU:HelpDebugMenu
+Consola de registro
+.
 :MENU:debug_blankrefreshtest
 Prueba de refresco (pantalla en blanco)
 .
@@ -3406,7 +2524,7 @@ Registrar llamadas INT 21h
 Archivo de registros E/S
 .
 :MENU:mapper_speedlock2
-Modo Turbo   (Avance rápido)
+Modo Turbo (Avance rápido)
 .
 :MENU:mapper_speednorm
 Normal
@@ -3436,13 +2554,13 @@ Seleccionar slot de guardado anterior
 Seleccionar slot de guardado siguiente
 .
 :MENU:mapper_decfskip
-Disminuir salto de fotogramas
+Reducir frameskip
 .
 :MENU:mapper_incfskip
-Incrementar salto de fotogramas
+Aumentar frameskip
 .
 :MENU:mapper_aspratio
-Ajustar a relación de aspecto
+Relación de aspecto
 .
 :MENU:mapper_recwave
 Grabar audio en WAV
@@ -3553,16 +2671,16 @@ Depuración de cambio de página
 Mejoras en traceado de debug
 .
 :MENU:mapper_swapimg
-Intercambiar disqueteras
+Intercambiar FDD
 .
 :MENU:mapper_swapcd
-Intercambiar unidad de CD
+Intercambiar CDROMs
 .
 :MENU:mapper_ejectpage
-Enviar salto de página (Form-feed)
+Enviar Form-feed
 .
 :MENU:mapper_rescanall
-Volver a escanear todas las unidades
+Actualizar unidades
 .
 :MENU:hostkey_mapper
 Definido por Mapeador: F11
@@ -3696,6 +2814,87 @@ Mostrar número de las unidades montadas
 :MENU:list_ideinfo
 Mostrar estado de disco IDE o CD
 .
+:MENU:print_textscreen
+Imprimir texto de pantalla DOS
+.
 :MENU:pc98_use_uskb
 Usar distribución de teclado US
+.
+:MAPPER:caprawopl
+Graba salida FM/OPL
+.
+:MAPPER:copyall
+Copia a portapapeles
+.
+:MAPPER:cycauto
+Activa auto ciclos
+.
+:MAPPER:debugger
+Activa depurador
+.
+:MAPPER:decsize
+Reducir tamaño TTF
+.
+:MAPPER:dynamic
+CPU: Core dinámico
+.
+:MAPPER:fastedit
+Edición rápida
+.
+:MAPPER:full
+CPU: full core
+.
+:MAPPER:incsize
+Aumentar tamaño TTF
+.
+:MAPPER:loadmap
+Carga archivo mapper
+.
+:MAPPER:nextslot
+Slot guardado sig.
+.
+:MAPPER:normal
+CPU: normal core
+.
+:MAPPER:paste
+Pegar portapapeles
+.
+:MAPPER:pasteend
+Detener portapapeles
+.
+:MAPPER:pauseints
+Pausa con interrupción
+.
+:MAPPER:prevslot
+Slot guardado previo
+.
+:MAPPER:quickrun
+Lanzar prog. rápido
+.
+:MAPPER:reboot
+Reinicia sistema DOS
+.
+:MAPPER:recmtwave
+Grabar a M.T. AVI
+.
+:MAPPER:recvoldown
+Bajar vol. grabación
+.
+:MAPPER:recvolup
+Subir vol. grabación
+.
+:MAPPER:rescanall
+Actualizar unidades
+.
+:MAPPER:reset
+Resetea DOSBox-X
+.
+:MAPPER:showstate
+Ver info de estado
+.
+:MAPPER:simple
+CPU: núcleo simple
+.
+:MAPPER:togmenu
+Activar barra de menú
 .

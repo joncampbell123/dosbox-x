@@ -47,7 +47,7 @@
 #define CROSS_FILESPLIT '\\'
 #define F_OK 0
 #else
-#define	CROSS_FILENAME(blah) strreplace(blah,'\\','/')
+#define	CROSS_FILENAME(blah) strreplace_dbcs(blah,'\\','/')
 #define CROSS_FILESPLIT '/'
 #endif
 

@@ -96,6 +96,7 @@ static WNDPROCTYPE userWindowProc = NULL;
 int DIB_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 /* data field required by DIB_HandleComposition */
 static COMPOSITIONFORM form;
+extern Uint32 end_ticks;
 extern wchar_t CompositionFontName[LF_FACESIZE];
 #endif
 
@@ -248,6 +249,8 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				wParam = rotateKey(wParam, this->hidden->gapiInfo->coordinateTransform);
 			}
 #endif 
+			/* Ignore repeated keys */
+			// if ( lParam&REPEATED_KEYMASK ) return(0);
 			switch (wParam) {
 				case VK_CONTROL:
 					if ( lParam&EXTENDED_KEYMASK )
@@ -421,6 +424,7 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 			//FLIP_BREAK;
 		case WM_IME_ENDCOMPOSITION:
+			end_ticks = GetTickCount();
 			IM_Context.bCompos = 0;
 			FLIP_BREAK;
 		case WM_IME_NOTIFY:

@@ -1099,16 +1099,16 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 			uint16_t seg = GetTextSeg();
 			uint16_t width = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 			real_writeb(seg, row * width * 2 + col * 2, chr);
-			if(useattr) {
+			if (useattr)
 				real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
-			}
-			if (isKanji1(chr) && prevchr == 0) {
+			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width-1)) {
 				prevchr = chr;
-			} else if (isKanji2(chr) && prevchr != 0) {
+			} else if (isKanji2(chr) && prevchr != 0 && (IS_JDOSV || col)) {
 				WriteCharDOSVDbcs(col - 1, row, (prevchr << 8) | chr, attr);
 				prevchr = 0;
 				return;
-			}
+			} else
+				prevchr = 0;
 			WriteCharDOSVSbcs(col, row, chr, attr);
 			return;
 		}
@@ -1259,9 +1259,8 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         }
         chr=' ';
     default:
-		/* Return if the char code is DBCS at the end of the line (for AX) */
-		if (cur_col + 1 == ncols && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0)
-		{ 
+		/* Return if the char code is DBCS at the end of the line (for DOS/V) */
+		if (cur_col + 1 == ncols && IS_DOSV && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0) {
 			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
 			cur_row = CURSOR_POS_ROW(page);
 			cur_col = CURSOR_POS_COL(page);
@@ -1316,11 +1315,21 @@ void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt 
     while (count>0) {
         uint8_t chr=mem_readb(string);
         string++;
-        if (flag&2) {
+        if ((flag & 2) != 0 || (DOSV_CheckCJKVideoMode() && flag == 0x20)) {
             attr=mem_readb(string);
             string++;
         }
-        INT10_TeletypeOutputAttr(chr,attr,true,page);
+        if (DOSV_CheckCJKVideoMode() && flag == 0x20) {
+            WriteChar(col, row, page, chr, attr, true);
+            col++;
+            if (col == real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)) {
+                col = 0;
+                if(row == real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1)
+                    break;
+                row++;
+            }
+        } else
+            INT10_TeletypeOutputAttr(chr,attr,true,page);
         count--;
     }
     if (!(flag&1)) {
