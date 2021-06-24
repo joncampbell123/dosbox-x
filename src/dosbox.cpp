@@ -1992,10 +1992,11 @@ void DOSBOX_SetupConfigSections(void) {
                    "    0: Disable\n"
                    "    1: Enable");
 
-    Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
+    Pstring = secprop->Add_string("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
-    Pbool->SetBasic(true);
+    Pstring->SetBasic(true);
 
     /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
      *              Some games by "Orange House" assume this behavior and do not make any effort on their

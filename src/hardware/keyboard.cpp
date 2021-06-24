@@ -34,6 +34,7 @@
 #include <math.h>
 #include "8255.h"
 #include "jfont.h"
+#include "keymap.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -51,7 +52,9 @@ static void KEYBOARD_SetPort60(uint16_t val);
 void KEYBOARD_AddBuffer(uint16_t data);
 static void KEYBOARD_Add8042Response(uint8_t data);
 void KEYBOARD_SetLEDs(uint8_t bits);
+void KeyboardLayoutDetect(void);
 
+extern unsigned int host_keyboard_layout;
 bool enable_pc98_bus_mouse = true;
 
 static unsigned int aux_warning = 0;
@@ -1253,9 +1256,9 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_o:             ret=0x18;break;     // o  O  ラ
     case KBD_p:             ret=0x19;break;     // p  P  セ
     case KBD_atsign:        ret=0x1A;break;     // @  ~  ﾞ
-    case KBD_leftbracket:   ret=0x1A;break;     // @  ~  ﾞ
-	case KBD_rightbracket:  ret=0x1B;break;     // [  {  ﾟ  ｢
-	case KBD_enter:         ret=0x1C; break;    // ENTER/RETURN
+    case KBD_leftbracket:   ret=pc98_force_ibm_layout?0x1B:0x1A;break;     // @  ~  ﾞ
+    case KBD_rightbracket:  ret=pc98_force_ibm_layout?0x28:0x1B;break;     // [  {  ﾟ  ｢ / ]  }  ム ｣
+    case KBD_enter:         ret=0x1C;break;    // ENTER/RETURN
     case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
     case KBD_a:             ret=0x1D;break;     // a  A  チ
     case KBD_s:             ret=0x1E;break;     // s  S  ト
@@ -1269,9 +1272,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_semicolon:     ret=0x26;break;     // ;  +  レ
     case KBD_quote:         ret=0x27;break;     // :  *  ケ         American US keyboard layout hack
     case KBD_colon:         ret=0x27;break;     // :  *  ケ
-//    case KBD_rightbracket:  ret=0x28;break;   // ]  }  ム ｣
-    case KBD_backslash:     ret=0x28;break;     // ]  }  ム ｣
-	case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
+    case KBD_backslash:     ret=pc98_force_ibm_layout?0x0D:0x28;break;     // ¥  |  ｰ
+    case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
     case KBD_x:             ret=0x2A;break;     // x  X  サ
     case KBD_c:             ret=0x2B;break;     // c  C  ソ
     case KBD_v:             ret=0x2C;break;     // v  V  ヒ
@@ -1282,11 +1284,9 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_period:        ret=0x31;break;     // .  >  ル ｡
     case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
     case KBD_jp_ro:         ret=0x33;break;     //    _  ロ
-	case KBD_jp_backslash:  ret=0x33;break;     //    _  ロ
-	case KBD_space:         ret=0x34;break;     // SPACEBAR
+    case KBD_space:         ret=0x34;break;     // SPACEBAR
     case KBD_xfer:          ret=0x35;break;     // XFER
-	case KBD_jp_henkan:     ret=0x35;break;     // XFER
-	case KBD_pageup:        ret=0x36;break;     // ROLL UP
+    case KBD_pageup:        ret=0x36;break;     // ROLL UP
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
     case KBD_insert:        ret=0x38;break;     // INS
     case KBD_delete:        ret=0x39;break;     // DEL
@@ -1296,8 +1296,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_down:          ret=0x3D;break;     // DOWN ARROW
     case KBD_home:          ret=0x3E;break;     // HOME / CLR
     case KBD_help:          ret=0x3F;break;     // HELP
-	case KBD_end:           ret=0x3F;break;     // HELP  
-	case KBD_kpminus:       ret=0x40;break;     // - (KEYPAD)
+    case KBD_kpminus:       ret=0x40;break;     // - (KEYPAD)
     case KBD_kpdivide:      ret=0x41;break;     // / (KEYPAD)
     case KBD_kp7:           ret=0x42;break;     // 7 (KEYPAD)
     case KBD_kp8:           ret=0x43;break;     // 8 (KEYPAD)
@@ -1315,16 +1314,14 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_kpcomma:       ret=0x4F;break;     // , (KEYPAD)
     case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
     case KBD_nfer:          ret=0x51;break;     // NFER
-	case KBD_jp_muhenkan:   ret=0x51;break;     // NFER
-	case KBD_vf1:           ret=0x52;break;     // vf･1
+    case KBD_vf1:           ret=0x52;break;     // vf･1
     case KBD_vf2:           ret=0x53;break;     // vf･2
     case KBD_vf3:           ret=0x54;break;     // vf･3
     case KBD_vf4:           ret=0x55;break;     // vf･4
     case KBD_vf5:           ret=0x56;break;     // vf･5
     case KBD_stop:          ret=0x60;break;     // STOP
     case KBD_copy:          ret=0x61;break;     // COPY
-	case KBD_printscreen:   ret=0x61;break;     // COPY
-	case KBD_f1:            ret=0x62;break;     // f･1
+    case KBD_f1:            ret=0x62;break;     // f･1
     case KBD_f2:            ret=0x63;break;     // f･2
     case KBD_f3:            ret=0x64;break;     // f･3
     case KBD_f4:            ret=0x65;break;     // f･4
@@ -1367,6 +1364,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         }
         return;
 
+    case KBD_jp_backslash:  if (!pc98_force_ibm_layout) {ret=0x33;break;}     //    _  ロ
+    case KBD_jp_henkan:     if (!pc98_force_ibm_layout) {ret=0x35;break;}     // XFER
+    case KBD_end:           if (!pc98_force_ibm_layout) {ret=0x3F;break;}     // HELP
+    case KBD_jp_muhenkan:   if (!pc98_force_ibm_layout) {ret=0x51;break;}     // NFER
+    case KBD_printscreen:   if (!pc98_force_ibm_layout) {ret=0x61;break;}     // COPY
     default: return;
     }
 
@@ -1617,9 +1619,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
     case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
     case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
-	case KBD_colon:ret = 0x28; break; /*JP106-key : or * same postion with Quote key */
-	case KBD_caret:ret = 0x0d; break; /*JP106-key ^ or ~ same postion with Equals key */
-	case KBD_atsign:ret = 0x1a; break; /*JP106-key @ or ` same postion with Left-bracket key */
+	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same postion with Quote key */
+	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same postion with Equals key */
+	case KBD_atsign:if (!pc98_force_ibm_layout) {ret = 0x1a; break;} /*JP106-key @ or ` same postion with Left-bracket key */
 	default:
         LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
         return;
@@ -2466,11 +2468,17 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
             WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
-        pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
-        if(pc98_force_ibm_layout)
+        const char *layoutstr = pc98_section->Get_string("pc-98 force ibm keyboard layout");
+        if (!strcasecmp(layoutstr, "true")||!strcasecmp(layoutstr, "1")) {
+            pc98_force_ibm_layout = true;
+            mainMenu.get_item("pc98_use_uskb").check(true).refresh_item(mainMenu);
+        } else if (!strcasecmp(layoutstr, "false")||!strcasecmp(layoutstr, "0")) {
+            pc98_force_ibm_layout = false;
+            mainMenu.get_item("pc98_use_uskb").check(false).refresh_item(mainMenu);
+        } else
+            KeyboardLayoutDetect();
+        if (pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
-        mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
-
     }
 
     if (!IS_PC98_ARCH) {

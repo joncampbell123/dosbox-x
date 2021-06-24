@@ -60,6 +60,11 @@
     interfaces are adjusted accordingly too. (Wengier)
   - Config option "usescancodes=auto" now implies false
     for PC-98 mode in SDL1 builds. (Wengier)
+  - Config option "pc-98 force ibm keyboard layout" now
+    defaults to "auto", which implies "true" if a U.S.
+    keyboard layout is detected and implies "false"
+    otherwise. Also fixed some input keys for the PC-98
+    mode. (Wengier & maron2000)
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found in the directory, then DOSBox-X will
     now use internal Japanese font (also used by DOS/V

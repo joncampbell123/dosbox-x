@@ -1121,6 +1121,15 @@ void KeyboardLayoutDetect(void) {
     LOG_MSG("Host keyboard layout is now %s (%s)",
         DKM_to_string(host_keyboard_layout),
         DKM_to_descriptive_string(host_keyboard_layout));
+
+    if (IS_PC98_ARCH) {
+        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
+        const char *layoutstr = pc98_section->Get_string("pc-98 force ibm keyboard layout");
+        if (!strcasecmp(layoutstr, "auto")) {
+            pc98_force_ibm_layout = host_keyboard_layout == DKM_US;
+            mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+        }
+    }
 }
 
 void SetMapperKeyboardLayout(const unsigned int dkm) {
