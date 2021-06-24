@@ -106,6 +106,8 @@ static void dyn_string(STRING_OP op) {
 			gen_call_function((void*)&IO_WriteW,"%Dw%Dw",DREG(EDX),tmp_reg);break;
 		case STR_OUTSD:
 			gen_call_function((void*)&IO_WriteD,"%Dw%Dd",DREG(EDX),tmp_reg);break;
+        default:
+            break;
 		}
 	}
 	if (usedi) {

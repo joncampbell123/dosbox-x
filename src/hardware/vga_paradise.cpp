@@ -18,6 +18,7 @@
 
 
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "vga.h"
 #include "inout.h"
@@ -231,13 +232,6 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	} else {
 		pvga1a.PR1 = 2<<6;
 	}
-
-	// Paradise ROM signature
-	PhysPt rom_base=PhysMake(0xc000,0);
-	phys_writeb(rom_base+0x007d,'V');
-	phys_writeb(rom_base+0x007e,'G');
-	phys_writeb(rom_base+0x007f,'A');
-	phys_writeb(rom_base+0x0080,'=');
 
 	IO_Write(0x3cf, 0x05); // Enable!
 }

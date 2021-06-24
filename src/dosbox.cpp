@@ -44,6 +44,7 @@
  *      up the code? The less spurious memory leaks, the easier it is to identify
  *      actual leaks among the noise and to patch them up. Thus, "valgrind hunting" --J.C. */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -53,6 +54,8 @@
 #include "dosbox.h"
 #include "debug.h"
 #include "cpu.h"
+#include "logging.h"
+#include "menudef.h"
 #include "video.h"
 #include "pic.h"
 #include "cpu.h"
@@ -70,6 +73,7 @@
 #include "mapper.h"
 #include "ints/int10.h"
 #include "menu.h"
+#include "jfont.h"
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
@@ -117,7 +121,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper();
+extern void         AddSaveStateMapper(), JFONT_Init();
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -135,14 +139,14 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         sync_time;
+extern bool         sync_time, enableime;
 extern int          freesizecap;
 extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
-
+bool                jp_ega = false;
 bool                want_fm_towns = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -176,6 +180,7 @@ Config*             control;
 MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
+S3Card              s3Card;
 bool                SDLNetInited;
 int32_t              ticksDone;
 uint32_t              ticksScheduled;
@@ -284,10 +289,10 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
     /* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
      * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
-    s  = (signed long long)((unsigned long long)PIC_Ticks * (unsigned long long)dst.freq);
-    s += (signed long long)(((unsigned long long)PIC_TickIndexND() * (unsigned long long)dst.freq) / (unsigned long long)CPU_CycleMax);
+    s  = (signed long long)((unsigned long long)PIC_Ticks * dst.freq);
+    s += (signed long long)(((unsigned long long)PIC_TickIndexND() * dst.freq) / (unsigned long long)CPU_CycleMax);
     /* convert down to frequency counts, not freq x 1000 */
-    s /= (signed long long)(1000ULL * (unsigned long long)dst.freq_div);
+    s /= (signed long long)(1000ULL * dst.freq_div);
 
     /* guard against time going backwards slightly (as PIC_TickIndexND() will do sometimes by tiny amounts) */
     if (dst.counter < (unsigned long long)s) dst.counter = (unsigned long long)s;
@@ -400,18 +405,28 @@ static Bitu Normal_Loop(void) {
         dosbox_allow_nonrecursive_page_fault = false;
         CPU_Exception(EXCEPTION_PF, pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
-    }
-    catch (int x) {
-        dosbox_allow_nonrecursive_page_fault = saved_allow;
-        if (x == 4/*CMOS shutdown*/) {
-            ret = 0;
+	}
+	catch (const GuestGenFaultException& gpf) {
+        (void)gpf;//UNUSED
+		Bitu FillFlags(void);
+
+		ret = 0;
+		FillFlags();
+		dosbox_allow_nonrecursive_page_fault = false;
+		CPU_Exception(EXCEPTION_GP, 0);
+		dosbox_allow_nonrecursive_page_fault = saved_allow;
+	}
+	catch (int x) {
+		dosbox_allow_nonrecursive_page_fault = saved_allow;
+		if (x == 4/*CMOS shutdown*/) {
+			ret = 0;
 //          LOG_MSG("CMOS shutdown reset acknowledged");
-        }
-        else {
-            throw;
-        }
-    }
-    return 0;
+		}
+		else {
+			throw;
+		}
+	}
+	return 0;
 }
 
 void increaseticks() { //Make it return ticksRemain and set it in the function above to remove the global variable.
@@ -618,6 +633,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
             CPU_CycleAutoAdjust = false;
             CPU_CycleMax /= 3;
             if (CPU_CycleMax<1000) CPU_CycleMax=1000;
+            GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
         }
     } else {
         LOG_MSG("Fast Forward OFF");
@@ -625,6 +641,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
         if (autoadjust) {
             autoadjust = false;
             CPU_CycleAutoAdjust = true;
+            GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
         }
     }
     GFX_SetTitle(-1,-1,-1,false);
@@ -742,9 +759,10 @@ std::string dosbox_title;
 
 void DOSBOX_InitTickLoop() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing tick loop management");
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("cpu"));
 
     ticksRemain = 0;
-    ticksLocked = false;
+    ticksLocked = section->Get_bool("turbo");
     ticksLastRTtime = 0;
     ticksLast = GetTicks();
     ticksLastRTcounter = GetTicks();
@@ -835,8 +853,8 @@ void Init_VGABIOS() {
         VGA_BIOS_use_rom = false;
     }
 
-    VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
-    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
+    int size_override = video_section->Get_int("vga bios size override");
+    if (size_override > 0) VGA_BIOS_Size_override = ((Bitu)size_override+0x7FFU)&(~0xFFFU);
 
     VGA_BIOS_dont_duplicate_CGA_first_half = video_section->Get_bool("video bios dont duplicate cga first half rom font");
     VIDEO_BIOS_always_carry_14_high_font = video_section->Get_bool("video bios always offer 14-pixel high rom font");
@@ -850,7 +868,9 @@ void Init_VGABIOS() {
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
         VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
-    if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
+    if (size_override <= -512 && size_override >= -65536) // Force size override by a leading minus sign (-)
+        VGA_BIOS_Size = -size_override;
+    else if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (rom_sz != 0) {
         VGA_BIOS_Size = rom_sz;
@@ -862,7 +882,9 @@ void Init_VGABIOS() {
             VGA_BIOS_Size = 0x4000; // FIXME: Why does 0x3800 cause Windows 3.0 386 enhanced mode to hang?
     }
     else if (machine == MCH_EGA) {
-        if (VIDEO_BIOS_always_carry_16_high_font)
+        if (jp_ega)
+            VGA_BIOS_Size = 0x3500;
+        else if (VIDEO_BIOS_always_carry_16_high_font)
             VGA_BIOS_Size = 0x3000;
         else
             VGA_BIOS_Size = 0x2000;
@@ -962,6 +984,8 @@ void DOSBOX_RealInit() {
         section->HandleInputline(std::string("machine=") + cmd_machine);
     }
 
+    // NTS: svga_s3 means S3 Trio64 emulation to match general DOSBox SVN emulation behavior.
+
     // TODO: should be parsed by...? perhaps at some point we support machine= for backwards compat
     //       but translate it into two separate params that specify what machine vs what video hardware.
     //       or better yet as envisioned, a possible dosbox-x.conf schema that allows a machine with no
@@ -969,7 +993,9 @@ void DOSBOX_RealInit() {
     //       provides video.
     std::string mtype(section->Get_string("machine"));
     svgaCard = SVGA_None;
+    s3Card = S3_Generic;
     machine = MCH_VGA;
+    jp_ega = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
     if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
@@ -983,9 +1009,18 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
-    else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; }
-    else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; int10.vesa_nolfb = true;}
-    else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; int10.vesa_oldvbe = true;}
+    else if (mtype == "jega")          { machine = MCH_EGA; jp_ega = true;}
+    else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; } /* DOSBox SVN behavior */
+    else if (mtype == "svga_s386c928") { svgaCard = SVGA_S3Trio; s3Card = S3_86C928; }
+    else if (mtype == "svga_s3vision864"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision864; }
+    else if (mtype == "svga_s3vision868"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision868; }
+    else if (mtype == "svga_s3trio32") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; }
+    else if (mtype == "svga_s3trio64") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; }
+    else if (mtype == "svga_s3trio64v+"){svgaCard = SVGA_S3Trio; s3Card = S3_Trio64V; }
+    else if (mtype == "svga_s3virge")  { svgaCard = SVGA_S3Trio; s3Card = S3_ViRGE; }
+    else if (mtype == "svga_s3virgevx"){ svgaCard = SVGA_S3Trio; s3Card = S3_ViRGEVX; }
+    else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
+    else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
     else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
@@ -997,8 +1032,33 @@ void DOSBOX_RealInit() {
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
 
-    else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
+    else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    Section_prop *dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
+    const char *dosvstr = dos_section->Get_string("dosv");
+    if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "chs")) dos.set_pdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")) dos.set_cdosv_enabled = true;
+    if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
+        LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
+        dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    }
+    if (IS_JEGA_ARCH || IS_DOSV) {
+        JFONT_Init();  // Load DBCS fonts for JEGA
+        if (IS_DOSV) DOSV_SetConfig(dos_section);
+    }
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+    if (enableime && !control->opt_silent) {
+        dos.im_enable_flag = true;
+        SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+        SDL_EnableUNICODE(1);
+    } else if (!control->opt_silent) {
+        dos.im_enable_flag = false;
+        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
+#endif
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
 #endif
@@ -1052,8 +1112,8 @@ void DOSBOX_RealInit() {
     LOG_MSG("%s BCLK: %.3fHz (%llu/%llu)",
         IS_PC98_ARCH ? "C-BUS" : "ISA",
         (double)clockdom_ISA_BCLK.freq / clockdom_ISA_BCLK.freq_div,
-        (unsigned long long)clockdom_ISA_BCLK.freq,
-        (unsigned long long)clockdom_ISA_BCLK.freq_div);
+        clockdom_ISA_BCLK.freq,
+        clockdom_ISA_BCLK.freq_div);
 
     clockdom_ISA_OSC.set_name("ISA OSC");
     clockdom_ISA_BCLK.set_name("ISA BCLK");
@@ -1098,6 +1158,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
+    const char *mt32models[] = {"cm32l", "mt32", "auto",0};
     const char *mt32partials[] = {"8", "9", "32", "255", "256",0};
     const char *mt32DACModes[] = {"0", "1", "2", "3",0};
     const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
@@ -1109,7 +1170,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
+    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -1133,10 +1194,10 @@ void DOSBOX_SetupConfigSections(void) {
     const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
     const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
-    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
+    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
-    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board","opl3duoboard" ,0 };
+    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", 0 };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", 0 };
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
@@ -1159,8 +1220,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
-        "vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
+        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
+        "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
@@ -1169,14 +1230,28 @@ void DOSBOX_SetupConfigSections(void) {
 
         0 };
 
+    const char* automountopts[] = {
+        "true", "false", "quiet", "1", "0",
+        0 };
+
+    const char* backendopts[] = {
+        "pcap", "slirp", "auto", "none",
+        0 };
+
+    const char* workdiropts[] = {
+        "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
+        0 };
+
+    const char* resolveopts[] = {
+        "true", "false", "dosvar", "tilde", "1", "0",
+        0 };
+
     const char* switchoutputs[] = {
         "auto", "surface",
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
-#if C_DIRECT3D
         "direct3d",
-#endif
         0 };
 
     const char* scalers[] = {
@@ -1219,7 +1294,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
     Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
-    Pstring->Set_help("Select another language file.");
+    Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or a DOS code page.\n"
+                      "You can set code page either in the language file or with \"country\" setting in [config] section.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
@@ -1250,16 +1326,43 @@ void DOSBOX_SetupConfigSections(void) {
             "on higher resolution monitors which is probably not what you want.");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
+    Pstring = secprop->Add_string("quit warning",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(quit_settings);
     Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when the user tries to close its window.\n"
             "If set to auto (default), DOSBox-X will warn if a DOS program, game or a guest system is currently running.\n"
             "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"default");
+    Pstring->Set_values(workdiropts);
+    Pstring->Set_help("Select an option for DOSBox-X's working directory when it runs.\n"
+            "autoprompt: DOSBox-X will auto-decide whether to prompt for a working directory.\n"
+            "config: DOSBox-X will use the primary config file directory as the working directory.\n"
+            "custom: Specify a working directory via the \"working directory default\" option.\n"
+            "default: Similar to autoprompt, but DOSBox-X will ask whether to save the selected folder.\n"
+            "force: Similar to \"custom\", while overriding -defaultdir command-line option if used.\n"
+            "noprompt: DOSBox-X uses the current directory and never prompts for a working directory.\n"
+            "program: DOSBox-X will use the DOSBox-X program directory as the working directory.\n"
+            "prompt: DOSBox-X will always ask the user to select a working directory when it runs.\n"
+            "userconfig: DOSBox-X will use its user configuration directory as the working directory.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_path("working directory default",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("The default directory to act as DOSBox-X's working directory. See also the setting \"working directory option\".\n"
+            "For working directory option=prompt, the specified directory becomes the default directory for the folder selection.");
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("resolve config path", Property::Changeable::OnlyAtStart, "true");
+    Pstring->Set_help("If set to true, DOSBox-X will resolve options containing paths in the config file (except [autoexec] section).\n"
+                      "This includes environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS] and tilde (~) in Linux/macOS.\n"
+                      "If set to dosvar, DOSBox-X forces to resolve DOS-style environment variables (%VAR%) in all platforms (and tilde).\n"
+                      "If set to tilde, DOSBox-X will only resolve tilde (~) in Linux/macOS but will not resolve environment variables.");
+    Pstring->Set_values(resolveopts);
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("hostkey", Property::Changeable::Always, "mapper");
     Pstring->Set_help("By default, DOSBox-X uses the mapper-defined host key, which defaults to F11 on Windows and F12 on other platforms.\n"
@@ -1271,6 +1374,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
     Pstring->Set_help("Select the key the mapper SendKey function will send.");
     Pstring->Set_values(sendkeys);
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("ime",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_help("Enables support for the system input methods (IME) for inputting characters in Windows SDL1 builds.\n"
+                      "If set to auto, this feature is only enabled if DOSBox-X starts with a Chinese/Japanese/Korean code page.");
+    Pstring->Set_values(truefalseautoopt);
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("synchronize time", Property::Changeable::Always, false);
@@ -1322,6 +1431,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X will load a saved state even if it finds there is a mismatch in the DOSBox-X version, machine type, program name and/or the memory size.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("compresssaveparts", Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will compress components of saved states.");
+
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Unchanged frames will not be sent to the video codec as a possible performance and bandwidth optimization.");
@@ -1367,6 +1479,7 @@ void DOSBOX_SetupConfigSections(void) {
               "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
               "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
               "  on_fake                      Lock A20 gate on but allow bit to toggle");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
@@ -1495,7 +1608,7 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 #endif
-    Pint->SetMinMax(1,3584); // 3.5GB
+    Pint->SetMinMax(0,3584); // 3.5GB
     Pint->Set_help(
         "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
@@ -1511,7 +1624,9 @@ void DOSBOX_SetupConfigSections(void) {
         "If nonzero, it is added to the memsize parameter.\n"
         "Finer grained control of total memory may be useful in\n"
         "emulating ancient DOS machines with less than 640KB of\n"
-        "RAM or early 386 systems with odd extended memory sizes.");
+        "RAM or early 386 systems with odd extended memory sizes.\n"
+        "For Tandy and PCjr emulation, it is strongly recommended.\n"
+        "to specify a size that is a multiple of 32 (kb).\n");
 
     Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1023);
@@ -1698,7 +1813,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
 
     Pstring = secprop->Add_string("vga bios rom image", Property::Changeable::OnlyAtStart, "");
-    Pbool->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
+    Pstring->Set_help("If set, load the VGA BIOS from the specified file (must be 1KB to 64KB in size).\n"
                     "If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name\n"
                     "is chosen automatically from the machine type. For example, Tseng ET4000 emulation\n"
                     "(machine=svga_et4000) will look for et4000.bin. VGA BIOS ROM images can be dumped\n"
@@ -1708,7 +1823,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "machine=svga_et4000        et4000.bin");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(512,65536);
+    Pint->SetMinMax(-65536,65536);
     Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
     Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
@@ -1749,7 +1864,8 @@ void DOSBOX_SetupConfigSections(void) {
             "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
 
     Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
+    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode.\n"
+                    "This parameter is also changeable from the builtin CGASNOW command in CGA mode.");
 
     /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
     Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);
@@ -2135,7 +2251,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
+    Pbool->Set_help("Allow 9-pixel wide text mode fonts instead of 8-pixel wide fonts.");
+    Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("euro",Property::Changeable::Always,-1);
     Pint->Set_help("Display Euro symbol instead of the specified ASCII character (33-255).\n"
@@ -2217,6 +2334,25 @@ void DOSBOX_SetupConfigSections(void) {
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
 
+	//for loading a fontx2 Japanese font
+	Pstring = secprop->Add_path("jfontsbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontsbcs16",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("jfontdbcs",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+
+	Pstring = secprop->Add_path("jfontdbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
+
+	Pstring = secprop->Add_path("jfontsbcs24",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
+
+	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");
+
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
                     "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
@@ -2254,7 +2390,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
-    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 10), it will override the ttf.winperc setting.");
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the ttf.winperc setting.");
     Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
@@ -2266,14 +2402,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
-    Pstring->Set_help("You can specify a word processor for the TTF output (WP=WordPerfect, WS=WordStar, XY=XyWrite) and optionally also a version number.\n"
+    Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
+                    "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
                     "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
                     "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
     Pstring->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
+    Pint->SetMinMax(-1,15);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
-                   "Use the DOS color number (0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+                   "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
+
+	Pint = secprop->Add_int("ttf.wpfg", Property::Changeable::Always, 7);
+    Pint->SetMinMax(-1,7);
+    Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
+                   "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
 
 	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
@@ -2291,6 +2434,23 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.printfont", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via ttf.font) for printing in addition to displaying.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("ttf.autodbcs", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
+                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
+                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+
+	Pbool = secprop->Add_bool("ttf.autoboxdraw", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
+                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
+                    "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+
+	Pbool = secprop->Add_bool("ttf.halfwidthkana", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
 
 	Pstring = secprop->Add_string("ttf.blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
@@ -2334,6 +2494,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("always report triple fault",Property::Changeable::Always,false);
     Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
+
+    Pstring = secprop->Add_string("allow lmsw to exit protected mode",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Controls whether the processor will allow the guest to exit protected mode using the 286 LMSW instruction (clear the PE bit)");
 
     Pbool = secprop->Add_bool("report fdiv bug",Property::Changeable::Always,false);
     Pbool->Set_help("If set, the FDIV bug will be reported with the cputype=pentium setting.");
@@ -2379,12 +2543,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
     Pmulti_remain->Set_help(
-        "Amount of instructions DOSBox-X tries to emulate each millisecond.\n"
+        "Number of instructions DOSBox-X tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"
         "Cycles can be set in 3 ways:\n"
         "  'auto'          tries to guess what a game needs.\n"
         "                  It usually works, but can fail for certain games.\n"
-        "  'fixed #number' will set a fixed amount of cycles. This is what you usually\n"
+        "  'fixed #number' will set a fixed number of cycles. This is what you usually\n"
         "                  need if 'auto' fails (Example: fixed 4000).\n"
         "  'max'           will allocate as much cycles as your computer is able to\n"
         "                  handle.");
@@ -2410,6 +2574,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("cycle emulation percentage adjust",Property::Changeable::Always,0);
     Pint->SetMinMax(-50,50);
     Pint->Set_help("The percentage adjustment for use with the \"Emulate CPU speed\" feature. Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.");
+
+    Pbool = secprop->Add_bool("turbo",Property::Changeable::Always,false);
+    Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);
@@ -2472,6 +2640,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through the keyboard controller.\n"
             "This option is required to allow Windows ME to reboot properly, whereas Windows 9x and earlier\n"
             "will reboot without this option using INT 19h");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("controllertype",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(controllertypes);
@@ -2497,7 +2666,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
                     "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
-		            "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
+                    "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
+    Pbool->SetBasic(true);
+
 	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable Glide emulation (Glide API passthrough to the host).\n"
                     "Requires a Glide wrapper - glide2x.dll (Windows), libglide2x.so (Linux), or libglide2x.dylib (macOS).");
@@ -2508,6 +2679,8 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("lfb",Property::Changeable::WhenIdle,"full_noaux");
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
+	Pstring->SetBasic(true);
+
 	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Show 3dfx splash screen for Glide emulation (Windows; requires 3dfxSpl2.dll).");
     Pbool->SetBasic(true);
@@ -2518,9 +2691,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("sample accurate",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos that\n"
-            "require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
-            "errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
+    Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos\n"
+            "that require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate\n"
+            "minor errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Swaps the left and right stereo channels.");
@@ -2539,6 +2713,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
     Pint->SetMinMax(0,250);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
+    Pint->SetBasic(true);
 
     secprop=control->AddSection_prop("midi",&Null_Init,true);//done
 
@@ -2586,6 +2761,11 @@ void DOSBOX_SetupConfigSections(void) {
         "  Accepted file names are as follows:\n"
         "    MT32_CONTROL.ROM or CM32L_CONTROL.ROM - control ROM file.\n"
         "    MT32_PCM.ROM or CM32L_PCM.ROM - PCM ROM file.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("mt32.model",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_help("Model of the MT-32 synthesizer to use.");
+    Pstring->Set_values(mt32models);
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("mt32.reverse.stereo",Property::Changeable::WhenIdle,false);
@@ -2710,7 +2890,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.soundfont",Property::Changeable::WhenIdle,"");
-	Pstring->Set_help("Soundfont to use with Fluidsynth. One must be specified.");
+	Pstring->Set_help("Soundfont (.SF2 or .SF3) to use with Fluidsynth. One must be specified (e.g. GeneralUser_GS.sf2).");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fluid.samplerate",Property::Changeable::WhenIdle,"48000");
@@ -2787,7 +2967,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
     Pint->Set_values(irqssb);
-    Pint->Set_help("The IRQ number of the Sound Blaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
+    Pint->Set_help("The IRQ number of the Sound Blaster (usually 5 or 7, depending on the sound card type and the game).\n"
+            "Set to 0 for the default setting of the sound card, or set to -1 to start DOSBox-X with the IRQ unassigned.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
@@ -2909,7 +3090,18 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
-	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("retrowave_bus", Property::Changeable::WhenIdle, "serial");
+    Pstring->Set_help("Bus of the Retrowave series board (serial/spi). SPI is only supported on Linux.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("retrowave_spi_cs", Property::Changeable::WhenIdle, "0,6");
+    Pstring->Set_help("SPI chip select pin of the Retrowave series board. Only supported on Linux.");
+
+    Pstring = secprop->Add_string("retrowave_port", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Serial port of the Retrowave series board.");
     Pstring->SetBasic(true);
 
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
@@ -3522,6 +3714,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Start the specified program to open the output file if an error had occurred.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("printdbcs", Property::Changeable::WhenIdle, "auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when these code pages are active.\n"
+                    "If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.\n"
+                    "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)");
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("shellhide", Property::Changeable::WhenIdle, false);
     Pbool->Set_help("If set, the command window will be hidden for openwith/openerror options on the Windows platform.");
     Pbool->SetBasic(true);
@@ -3557,7 +3756,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
     Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
-                   "Set to 0 to disable the limit, or -1 to use a reasonable default.");
+                   "Set to 0 to disable the limit, or -1 (default) to use a reasonable limit.\n"
+                   "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
+    Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
@@ -3566,9 +3767,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
-    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/A20GATE.COM /BIOSTEST.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /INT2FDBG.COM /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM");
-    Pstring->Set_help("The files listed here (separated by space) will be either hidden or removed from the Z drive.\n"
-                      "Files with leading forward slashs (e.g. \"/A20GATE.COM\") will be hidden files (DIR /A will list them).");
+    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/TEXTUTIL\\25.COM /TEXTUTIL\\28.COM /TEXTUTIL\\50.COM");
+    Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
+                      "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
@@ -3668,13 +3869,24 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
     Pstring->Set_values(dosv_settings);
     Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from Asia that use the double byte character set\n"
-            "encodings and the DOS/V extensions to display Japanese, Chinese, or Korean text.\n"
+            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
+            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs or cht), or Korean (ko) text.\n"
             "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
             "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
             "software that assumes direct access to the text mode via segment 0xB800.\n"
-            "WARNING: This option is very experimental at this time.");
+            "Note: Only Japanese DOS/V extension is supported at this time.");
     Pstring->SetBasic(true);
+
+	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
+	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
+	Pstring->Set_values(fepcontrol_settings);
+	Pstring->Set_help("FEP control API for the DOS/V emulation.");
+
+	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
+	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
+
+	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
 
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);
@@ -3775,11 +3987,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Automatically mount all available Windows drives at start.");
-    Pbool->SetBasic(true);
+    Pstring = secprop->Add_string("automountall",Property::Changeable::WhenIdle,"false");
+    Pstring->Set_values(automountopts);
+    Pstring->Set_help("Automatically mount all available Windows drives at start.");
+    Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("mountwarning",Property::Changeable::OnlyAtStart,true);
+    Pbool = secprop->Add_bool("mountwarning",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
     Pbool->SetBasic(true);
 
@@ -3797,16 +4010,22 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Allow starting Windows programs or commands to run on the Windows host including the use of START command.");
+    Pbool = secprop->Add_bool("startcmd",Property::Changeable::
+#if defined(WIN32) && !defined(HX_DOS)
+    WhenIdle
+#else
+    OnlyAtStart
+#endif
+    ,false);
+    Pbool->Set_help("Enable START command to start programs to run on the host system. On Windows host programs or commands may also be launched directly.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows applications after they are started.");
+    Pbool->Set_help("Specify whether DOSBox-X should wait for the host system applications after they are started.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, before launching Windows applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
+    Pbool->Set_help("If set, before launching host system applications to run on the host DOSBox-X will not show messages like \"Now run it as a Windows application\".");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
@@ -3856,8 +4075,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable DBCS table.\n"
-            "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.\n");
+    Pbool->Set_help("Enable DBCS table and Chinese, Japanese, Korean support for the TrueType font (TTF) output.\n"
+            "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable filename char table");
@@ -3918,11 +4138,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
         "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
-        "private use, so modify the last three number blocks.\n"
-        "I.e. AC:DE:48:88:99:AB.");
+        "private use, so modify the last three number blocks, e.g. AC:DE:48:88:99:AB.");
+    Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "pcap");
-    Pstring->Set_help("The backend used for Ethernet emulation.");
+    Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");
+    Pstring->Set_help("The backend (either pcap or slirp is supported) used for the NE2000 Ethernet emulation.\n"
+        "If set to \"auto\", then \"slirp\" is selected when available, otherwise \"pcap\" is selected when available.\n"
+        "NE2000 Ethernet emulation will be disabled if no backend is available (or the specified backend if unavailble).");
+    Pstring->Set_values(backendopts);
     Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("ethernet, pcap", &Null_Init, true);
@@ -3937,6 +4160,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("timeout", Property::Changeable::WhenIdle,"default");
     Pstring->Set_help("Specifies the read timeout for the device in milliseconds for the pcap backend, or the default value will be used.");
+    Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("ethernet, slirp", &Null_Init, true);
 
@@ -4164,10 +4388,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("The country code for date/time formats and optionally the code page for TTF output.");
+    Pstring->Set_help("Country code for date/time formats and optionally code page for TTF output and language files.");
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
-	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
+	Pstring->Set_help("The maximum drive letter (A-Z) that can be accessed by programs.");
     Pstring->Set_values(driveletters);
     Pstring->SetBasic(true);
 
@@ -4183,7 +4407,19 @@ void DOSBOX_SetupConfigSections(void) {
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+    MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
+    MSG_Add("DRIVE","Drive");
+    MSG_Add("TYPE","Type");
+    MSG_Add("LABEL","Label");
+    MSG_Add("DRIVE_NUMBER","Drive number");
+    MSG_Add("DISK_NAME","Disk name");
+    MSG_Add("IDE_POSITION","IDE position");
+    MSG_Add("SWAP_SLOT","Swap slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
+    MSG_Add("SLOT","Slot");
+    MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
+    MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
+    MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
 }
 
 extern void POD_Save_Sdlmain( std::ostream& stream );

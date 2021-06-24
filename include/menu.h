@@ -17,8 +17,6 @@
  */
 
 #include <string>
-#include "config.h"
-#include "menudef.h"
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 
 #include <SDL_video.h>
@@ -36,7 +34,6 @@ void Mount_Img_HDD(char drive, std::string realpath);
 void DOSBox_SetMenu(void);
 void DOSBox_NoMenu(void);
 void DOSBox_RefreshMenu(void);
-void ToggleMenu(bool pressed);
 void DOSBox_CheckOS(int &id, int &major, int &minor);
 void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type);

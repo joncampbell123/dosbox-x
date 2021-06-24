@@ -9,7 +9,9 @@
 #include "menu.h"
 #include "shell.h"
 #include "cross.h"
+#include "render.h"
 #include "mapper.h"
+#include "control.h"
 #include "logging.h"
 #include "build_timestamp.h"
 #ifdef WIN32
@@ -44,7 +46,7 @@ bool noremark_save_state = false;
 bool force_load_state = false;
 std::string saveloaderr="";
 void refresh_slots(void);
-void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
+void GFX_LosingFocus(void), GFX_ReleaseMouse(void), MAPPER_ReleaseAllKeys(void), resetFontSize(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 namespace
 {
@@ -184,10 +186,14 @@ void LoadGameState(bool pressed) {
 //        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
 //        return;
 //    }
+    if (!GFX_IsFullscreen()&&render.aspect) GFX_LosingFocus();
     try
     {
         LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
         SaveState::instance().load(currentSlot);
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
     }
     catch (const SaveState::Error& err)
     {
@@ -264,6 +270,8 @@ std::string GetPlatform(bool save) {
     "Unix "
 #elif defined(MACOSX)
     "macOS "
+#elif defined(OS2)
+    "OS/2 "
 #else
     save?"Other ":""
 #endif
@@ -539,7 +547,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     }
 
     size_buf = 8192;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");
@@ -956,7 +964,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
 	opt_compress_level = 9;
 
     size_buf = 16384;
-    buf = (void*)malloc(size_buf);
+    buf = malloc(size_buf);
     if (buf==NULL)
     {
         //printf("Error allocating memory\n");
@@ -1111,6 +1119,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
+    bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
     const char *save_remark = "";
 #if !defined(HX_DOS)
     if (auto_save_state)
@@ -1126,7 +1135,15 @@ void SaveState::save(size_t slot) { //throw (Error)
          *      has been changed to const char* and the return value of tinyfd_inputBox() is given to
          *      a local temporary char* string where the modification can be made, and *then* assigned
          *      to the const char* string for the rest of this function. */
+        bool fs=GFX_IsFullscreen();
+        if (fs) GFX_SwitchFullScreen();
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GFX_ReleaseMouse();
         char *new_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the Cancel button to cancel the saving.", " ");
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        if (fs&&!GFX_IsFullscreen()) GFX_SwitchFullScreen();
         if (new_remark==NULL) return;
         new_remark=trim(new_remark);
         if (strlen(new_remark)>30) new_remark[30]=0;
@@ -1178,6 +1195,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 				std::string tempname = temp+"DOSBox-X_Version";
 				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
 				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
+				if (!compresssaveparts) emulatorversion << std::endl << "No compression";
 				create_version=true;
 				emulatorversion.close();
 			}
@@ -1225,7 +1243,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
-			outfile << (Util::compress(ss.str()));
+			outfile << (compresssaveparts?Util::compress(ss.str()):ss.str());
 			//compress all other saved states except position "slot"
 			//const std::vector<RawBytes>& rb = i->second.rawBytes;
 			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
@@ -1321,6 +1339,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	bool read_title=false;
 	bool read_memorysize=false;
 	bool read_machinetype=false;
+	bool decompressparts=true;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -1381,7 +1400,13 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_version.read (buffer, length);
 			check_version.close();
 			buffer[length]='\0';
-			char *p=strrchr(buffer, '\n');
+            char *p;
+			if (strstr(buffer, "\nNo compression") != NULL) {
+				decompressparts = false;
+				p=strrchr(buffer, '\n');
+                if (p!=NULL) *p=0;
+			}
+			p=strrchr(buffer, '\n');
 			if (p!=NULL) *p=0;
 			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform(true);
 			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
@@ -1513,7 +1538,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
 		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
 		std::stringstream mystream;
-		mystream << (Util::decompress(str));
+		mystream << (decompressparts?Util::decompress(str):str);
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
 			savestatecorrupt(i->first.c_str());

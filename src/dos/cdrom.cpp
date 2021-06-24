@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "SDL.h"
 #include "support.h"
 #include "cdrom.h"
@@ -107,7 +108,6 @@ bool CDROM_Interface_SDL::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut) 
 		FRAMES_TO_MSF(cd->track[cd->numtracks].offset,&leadOut.min,&leadOut.sec,&leadOut.fr);
 	}
 	return CD_INDRIVE(SDL_CDStatus(cd));
-    return false;
 }
 
 bool CDROM_Interface_SDL::GetAudioTrackInfo(int track, TMSF& start, unsigned char& attr) {
@@ -118,7 +118,7 @@ bool CDROM_Interface_SDL::GetAudioTrackInfo(int track, TMSF& start, unsigned cha
 		FRAMES_TO_MSF(cd->track[track-1].offset,&start.min,&start.sec,&start.fr);
 		attr	= cd->track[track-1].type<<4;//sdl uses 0 for audio and 4 for data. instead of 0x00 and 0x40
 	}
-	return CD_INDRIVE(SDL_CDStatus(cd));	
+	return CD_INDRIVE(SDL_CDStatus(cd));
 }
 
 bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos) {
@@ -134,8 +134,7 @@ bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track,
 		FRAMES_TO_MSF((unsigned int)cd->cur_frame,&relPos.min,&relPos.sec,&relPos.fr);
 		FRAMES_TO_MSF((unsigned int)cd->cur_frame+cd->track[track].offset,&absPos.min,&absPos.sec,&absPos.fr);
 	}
-	return CD_INDRIVE(SDL_CDStatus(cd));		
-    return false;
+	return CD_INDRIVE(SDL_CDStatus(cd));
 }
 
 bool CDROM_Interface_SDL::GetAudioStatus(bool& playing, bool& pause){
@@ -222,8 +221,24 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 	}
 	
 	// Detect ISO
-	struct pref_stat file_stat;
+    struct pref_stat file_stat;
+#if defined(WIN32)
+# if defined(__MINGW32__)
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64
+#  define ht_stat(x,y) _wstat64(x,y)
+# endif
+    ht_stat_t hfile_stat;
+    typedef wchar_t host_cnv_char_t;
+    host_cnv_char_t *CodePageGuestToHost(const char *s);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(path);
+    int pstat = pref_stat(path, &file_stat), hstat = host_name == NULL ? 1 : ht_stat(host_name, &hfile_stat);
+    if ((!pstat && (file_stat.st_mode & S_IFREG)) || (pstat && !hstat && (hfile_stat.st_mode & S_IFREG))) return 1;
+#else
 	if ((pref_stat(path, &file_stat) == 0) && (file_stat.st_mode & S_IFREG)) return 1;
+#endif
 	return 2;
 }
 

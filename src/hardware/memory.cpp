@@ -21,7 +21,9 @@
 #include <assert.h>
 #include "dosbox.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include "mem.h"
+#include "menu.h"
 #include "inout.h"
 #include "setup.h"
 #include "paging.h"
@@ -65,6 +67,7 @@ bool has_Init_MemHandles = false;
 bool has_Init_MemoryAccessArray = false;
 
 extern Bitu rombios_minimum_location;
+extern bool force_conversion;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
@@ -543,9 +546,9 @@ PageHandler* lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
     (void)co;//UNUSED
     if (memory.lfb.start_page == 0 || memory.lfb.pages == 0)
         return NULL;
-    if (phys_page >= memory.lfb.start_page || phys_page < memory.lfb.end_page)
+    if (phys_page >= memory.lfb.start_page && phys_page < memory.lfb.end_page)
         return memory.lfb.handler;
-    if (phys_page >= memory.lfb_mmio.start_page || phys_page < memory.lfb_mmio.end_page)
+    if (phys_page >= memory.lfb_mmio.start_page && phys_page < memory.lfb_mmio.end_page)
         return memory.lfb_mmio.handler;
 
     return NULL;
@@ -618,9 +621,20 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
     memory.lfb_mmio.handler=mmiohandler;
     if (mmiohandler != NULL) {
         /* FIXME: Why is this hard-coded? There's more than just S3 emulation in this code's future! */
-        memory.lfb_mmio.start_page=page+(0x01000000/4096);
-        memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
-        memory.lfb_mmio.pages=16;
+        if (svgaCard == SVGA_S3Trio && (s3Card == S3_Trio64V || s3Card == S3_Vision868 || s3Card == S3_ViRGE || s3Card == S3_ViRGEVX)) {
+            /* 64MB BAR. According to the datasheet, this 64MB region is split into two 32MB halves,
+             * the lower half "little endian" and the upper half "big endian". Within the 32MB region,
+             * the low 16MB is video memory and the high 16MB is MMIO. */
+            memory.lfb_mmio.start_page=page+(0x01000000/4096);
+            memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
+            memory.lfb_mmio.pages=16;
+        }
+        else {
+            /* 8MB BAR, MMIO at +16MB */
+            memory.lfb_mmio.start_page=page+(0x01000000/4096);
+            memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
+            memory.lfb_mmio.pages=16;
+        }
     }
     else {
         memory.lfb_mmio.start_page=0;
@@ -710,8 +724,8 @@ void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
-    uint8_t const* read = reinterpret_cast<uint8_t const*>(data);
+void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
+    const uint8_t* read = static_cast<const uint8_t *>(data);
     if (size==0)
         return;
 
@@ -1090,8 +1104,12 @@ void MEM_A20_Enable(bool enabled) {
     if (memory.a20.enabled != enabled)
         LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
-    if (a20_guest_changeable || a20_fake_changeable)
+    if (a20_guest_changeable || a20_fake_changeable) {
         memory.a20.enabled = enabled;
+        force_conversion = true;
+        mainMenu.get_item("enable_a20gate").check(enabled).refresh_item(mainMenu);
+        force_conversion = false;
+    }
 
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {
         if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
@@ -1134,7 +1152,7 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
-    *val=(uint16_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
+    *val=(uint16_t)(rval1 | (rval2 << 8));
     return false;
 }
 
@@ -1144,7 +1162,7 @@ bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     if (mem_readb_checked(address+1, &rval2)) return true;
     if (mem_readb_checked(address+2, &rval3)) return true;
     if (mem_readb_checked(address+3, &rval4)) return true;
-    *val=(uint32_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
+    *val=(uint32_t)(rval1 | (rval2 << 8) | (rval3 << 16) | (rval4 << 24));
     return false;
 }
 
@@ -1668,10 +1686,12 @@ public:
         else if (cmd->FindExist("ON")) {
             WriteOut("Enabling A20 gate...\n");
             MEM_A20_Enable(true);
+            if (!MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be enabled.\n");
         }
         else if (cmd->FindExist("OFF")) {
             WriteOut("Disabling A20 gate...\n");
             MEM_A20_Enable(false);
+            if (MEM_A20_Enabled()) WriteOut("Error: A20 gate cannot be disabled.\n");
         }
         else {
             WriteOut("A20 gate is currently %s.\n", MEM_A20_Enabled()?"ON":"OFF");
@@ -1909,6 +1929,7 @@ void A20Gate_OnReset(Section *sec) {
 void A20Gate_OverrideOn(Section *sec) {
     (void)sec;//UNUSED
     memory.a20.enabled = 1;
+    mainMenu.get_item("enable_a20gate").check(true).refresh_item(mainMenu);
     a20_fake_changeable = false;
     a20_guest_changeable = true;
 }
@@ -1960,6 +1981,7 @@ void A20Gate_TakeUserSetting(Section *sec) {
         LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
         a20_guest_changeable = true;
     }
+    mainMenu.get_item("enable_a20gate").check(memory.a20.enabled).refresh_item(mainMenu);
 }
 
 void Init_A20_Gate() {

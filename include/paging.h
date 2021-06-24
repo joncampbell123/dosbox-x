@@ -20,10 +20,6 @@
 #ifndef DOSBOX_PAGING_H
 #define DOSBOX_PAGING_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include <iostream>
-#include "dosbox.h"
-#endif
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
@@ -517,6 +513,15 @@ public:
 	PhysPt lin_addr;
 	Bitu page_addr;
 	Bitu faultcode;
+};
+
+class GuestGenFaultException : public std::exception {
+public:
+	virtual const char *what() const throw() {
+		return "Guest general protection fault exception";
+	}
+	GuestGenFaultException() {
+	}
 };
 
 #endif

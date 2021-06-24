@@ -20,10 +20,13 @@
 @end
 
 #if !defined(C_SDL2)
-extern "C" void* sdl1_hax_stock_osx_menu(void);
-extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
+extern "C" void* sdl1_hax_stock_macosx_menu(void);
+extern "C" void sdl1_hax_stock_macosx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
+
+char tempstr[4096];
+bool InitCodePage(), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 void GetClipboard(std::string* result) {
 	NSPasteboard* pb = [NSPasteboard generalPasteboard];
@@ -62,7 +65,14 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 		}
 
 		{
-			NSString *title = [[NSString alloc] initWithUTF8String:ft.c_str()];
+			NSString *title;
+            int cp = dos.loaded_codepage;
+            InitCodePage();
+            if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
+                title = [[NSString alloc] initWithUTF8String:tempstr];
+            else
+                title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",ft.c_str()]];
+            dos.loaded_codepage = cp;
 			[ns_item setTitle:title];
 			[title release];
 		}
@@ -72,7 +82,14 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 }
 
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {
-	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
 	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
 	[title release];
 	[menu setAutoenablesItems:NO];
@@ -91,7 +108,7 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 	else {
 #if !defined(C_SDL2)
 		/* switch back to the menu SDL 1.x made */
-		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_osx_menu())];
+		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_macosx_menu())];
 #endif
 	}
 }
@@ -105,7 +122,14 @@ void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
 }
 
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
-	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
 	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:@selector(DOSBoxXMenuAction:) keyEquivalent:@""];
 	[title release];
 	return (void*)item;
@@ -140,7 +164,7 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	[appMenu release];
 #else
     /* Re-use the application menu from SDL1 */
-    sdl1_hax_stock_osx_menu_additem((NSMenu*)nsMenu);
+    sdl1_hax_stock_macosx_menu_additem((NSMenu*)nsMenu);
 #endif
 }
 
@@ -152,7 +176,7 @@ extern bool GUI_IsRunning(void);
 
 static DOSBoxMenu *altMenu = NULL;
 
-void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
+void menu_macosx_set_menuobj(DOSBoxMenu *new_altMenu) {
     if (new_altMenu != NULL && new_altMenu != &mainMenu)
         altMenu = new_altMenu;
     else
@@ -216,7 +240,7 @@ void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
 
 bool has_touch_bar_support = false;
 
-bool osx_detect_nstouchbar(void) {
+bool macosx_detect_nstouchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
 #else
@@ -333,7 +357,7 @@ extern void ext_signal_host_key(bool enable);
 @end
 #endif
 
-void osx_reload_touchbar(void) {
+void macosx_reload_touchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
     NSWindow *wnd = nil;
 
@@ -348,7 +372,7 @@ void osx_reload_touchbar(void) {
 }
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
-NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
+NSTouchBar* macosx_on_make_touch_bar(NSWindow *wnd) {
     (void)wnd;
 
     NSTouchBar* touchBar = [[NSTouchBar alloc] init];
@@ -398,11 +422,11 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
 }
 #endif
 
-void osx_init_touchbar(void) {
+void macosx_init_touchbar(void) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 # if !defined(C_SDL2)
     if (has_touch_bar_support)
-        sdl1_hax_make_touch_bar_set_callback(osx_on_make_touch_bar);
+        sdl1_hax_make_touch_bar_set_callback(macosx_on_make_touch_bar);
 # endif
 #endif
 }
@@ -411,12 +435,12 @@ void osx_init_touchbar(void) {
 extern "C" void sdl1_hax_set_dock_menu(NSMenu *menu);
 #endif
 
-void osx_init_dock_menu(void) {
+void macosx_init_dock_menu(void) {
 #if !defined(C_SDL2)
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Mapper"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Mapper editor"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionMapper:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];
@@ -424,7 +448,7 @@ void osx_init_dock_menu(void) {
     }
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Configuration GUI"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Configuration tool"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionCfgGUI:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];
@@ -438,7 +462,7 @@ void osx_init_dock_menu(void) {
     }
 
     {
-        NSString *title = [[NSString alloc] initWithUTF8String: "Pause"];
+        NSString *title = [[NSString alloc] initWithUTF8String: "Pause emulation"];
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionPause:) keyEquivalent:@""];
         [menu addItem:item];
         [title release];
@@ -458,7 +482,7 @@ extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *d
 
 int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd);
 
-void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
+void macosx_GetWindowDPI(ScreenSizeInfo &info) {
     NSWindow *wnd = nil;
 
     info.clear();
@@ -557,4 +581,70 @@ void qz_set_match_monitor_cb(void) {
 #endif
 }
 
+// WARNING! You must initialize the SDL Video subsystem *FIRST*
+// before calling this function, or else strange errors and
+// malfunctions occur in the Cocoa framework (at least in Big Sur).
+// You can quit the SDL Video subsystem and reinitialize later
+// after this function is done.
+std::string macosx_prompt_folder(const char *default_folder) {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    NSModalResponse r;
+    std::string res;
 
+    [panel setPrompt:@"Choose"];
+    [panel setCanChooseFiles:false];
+    [panel setCanChooseDirectories:true];
+    [panel setAllowsMultipleSelection:false];
+    [panel setMessage:@"Select folder where to run emulation, which will become DOSBox-X's working directory:"];
+    [panel setCanCreateDirectories:true]; /* sure, why not? */
+    if (default_folder != NULL) [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithFormat:@"%s",default_folder]]];
+
+    r = [panel runModal];
+    if (r == NSFileHandlingPanelOKButton) {
+        NSArray *urls = [panel URLs];
+        if ([urls count] > 0) {
+            NSURL *url = urls[0];
+            if ([[url scheme] isEqual: @"file"]) {
+                /* NTS: /path/to/file is returned as file:///path/to/file */
+                res = [[url relativePath] UTF8String];
+            }
+            else {
+                fprintf(stderr,"WARNING: Rejecting returned protocol '%s', no selection accepted\n",
+                    [[url scheme] UTF8String]);
+            }
+        }
+    }
+
+    [panel release];
+
+    return res;
+}
+
+void macosx_alert(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    [alert runModal];
+}
+
+int macosx_yesno(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert addButtonWithTitle:@"No"];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    return [alert runModal];
+}
+
+int macosx_yesnocancel(const char *title, const char *message) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert addButtonWithTitle:@"No"];
+    [alert addButtonWithTitle:@"Cancel"];
+    [alert setMessageText:[NSString stringWithFormat:@"%s",title]];
+    [alert setInformativeText:[NSString stringWithFormat:@"%s",message]];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    return [alert runModal];
+}

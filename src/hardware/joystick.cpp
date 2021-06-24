@@ -20,6 +20,7 @@
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "setup.h"
 #include "joystick.h"
 #include "pic.h"

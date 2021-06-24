@@ -34,6 +34,8 @@
 
 #include "sha1.h"
 
+namespace sha1
+{
     namespace // local
     {
         // Rotate an integer value to left.
@@ -180,3 +182,4 @@
         }
         hexstring[40] = 0;
     }
+} // namespace sha1

@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
@@ -30,6 +31,7 @@
 #include "render.h"
 #include "menu.h"
 #include "regs.h"
+#include "jfont.h"
 #include "callback.h"
 
 #define SEQ_REGS 0x05
@@ -138,10 +140,10 @@ VideoModeBlock ModeList_VGA[]={
 { 0x118  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
 /* RGBX 8:8:8:8 modes. These were once the M_LIN32 modes DOSBox mapped to 0x10F-0x11B prior to implementing M_LIN24. */
-{ 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
-{ 0x211  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
-{ 0x212  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
-{ 0x21A  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+{ 0x1F0  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
+{ 0x1F1  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
+{ 0x1F2  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
+{ 0x1F3  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
 { 0x215  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 { 0x216  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
@@ -195,18 +197,19 @@ VideoModeBlock ModeList_VGA[]={
 { 0x192  ,M_LIN32  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 ,_UNUSUAL_MODE },
 
 // S3 specific modes (OEM modes). See also [http://www.ctyme.com/intr/rb-0275.htm]
-{ 0x201  ,M_LIN8    ,640 ,480, 80,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _VGA_PIXEL_DOUBLE },
-{ 0x202  ,M_LIN4    ,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	},
-{ 0x203  ,M_LIN8    ,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	}, // Line Wars II, S3 accelerated 800x600
-{ 0x204  ,M_LIN4    ,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
-{ 0x205  ,M_LIN8    ,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
-{ 0x206  ,M_LIN4    ,1280,960,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1024,160,960 ,0	}, // TODO VERIFY THIS
+{ 0x201  ,M_LIN8	,640 ,480, 80,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _VGA_PIXEL_DOUBLE },
+{ 0x202  ,M_LIN4	,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	},
+{ 0x203  ,M_LIN8	,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	}, // Line Wars II, S3 accelerated 800x600
+{ 0x204  ,M_LIN4	,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+{ 0x205  ,M_LIN8	,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+{ 0x206  ,M_LIN4	,1280,960,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1024,160,960 ,0	}, // TODO VERIFY THIS
 { 0x207  ,M_LIN8	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
-{ 0x208  ,M_LIN4    ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
+{ 0x208  ,M_LIN4	,1280,1024,160,64,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
 { 0x209  ,M_LIN15	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20A  ,M_LIN16	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20B  ,M_LIN32	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
-{ 0x213  ,M_LIN32   ,640 ,400,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0	},
+{ 0x212  ,M_LIN24	,640 ,480,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,512 ,80 ,480 ,0	}, // Windows 3.1 + S386C928 driver expects this AND a stride of 2048 bytes per scanline
+{ 0x213  ,M_LIN32	,640 ,400,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0	},
 
 // Some custom modes
 
@@ -440,6 +443,23 @@ VideoModeBlock ModeList_EGA[]={
 { 0x010  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,96  ,366 ,80 ,350 ,0	},
 
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
+};
+
+VideoModeBlock ModeList_JEGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+	{ 0x000  ,M_TEXT   ,360 ,400 ,40 ,25 ,9 ,16 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK },
+	{ 0x001  ,M_TEXT   ,360 ,400 ,40 ,25 ,9 ,16 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK },
+	{ 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK | _DOUBLESCAN },
+	{ 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK | _DOUBLESCAN },
+	{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,100 ,449 ,80 ,400 ,_DOUBLESCAN },
+	{ 0x007  ,M_TEXT   ,720 ,400 ,80 ,25 ,9 ,16 ,8 ,0xB0000 ,0x1000 ,100 ,449 ,80 ,400 ,0 },
+	{ 0x010  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,100 ,449 ,80 ,350 ,0 },
+// JEGA modes for AX
+//{ 0x002  ,M_JEGA_TEXT   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xB8000 ,0x1000 ,96  ,525 ,80 ,480 ,0	},//AX-2 is not implemented;
+{ 0x003  ,M_TEXT   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xB8000 ,0x1000 ,96  ,525 ,80 ,480 ,0	},
+//{ 0x052  ,M_JEGA_GFX   ,640 ,480 ,80 ,25 ,8 ,19 ,8 ,0xA0000 ,0x10000 ,96  ,525 ,80 ,480 ,0	},//AX-2 is not implemented;
+//{ 0x053  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0 },
+{ 0x053  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0 },
 };
 
 VideoModeBlock ModeList_OTHER[]={
@@ -790,8 +810,8 @@ static void FinishSetMode(bool clearmem) {
 #if defined(USE_TTF)
     if (TTF_using() && CurMode->type==M_TEXT) {
         if (ttf.inUse) {
-            ttf.cols = CurMode->twidth;
-            ttf.lins = CurMode->theight;
+            ttf.cols = (int)CurMode->twidth;
+            ttf.lins = (int)CurMode->theight;
         } else if (ttf.lins && ttf.cols && !IS_PC98_ARCH && !IS_VGA_ARCH && CurMode->mode == 3) {
             CurMode->twidth = ttf.cols;
             CurMode->theight = ttf.lins;
@@ -801,38 +821,59 @@ static void FinishSetMode(bool clearmem) {
 	real_writew(BIOSMEM_SEG,BIOSMEM_NB_COLS,(uint16_t)CurMode->twidth);
 	real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)CurMode->plength);
 	real_writew(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS,((CurMode->mode==7 )|| (CurMode->mode==0x0f)) ? 0x3b4 : 0x3d4);
-	real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
-	real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint16_t)CurMode->cheight);
-	real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x60|(clearmem?0:0x80)));
-	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
 
-	// this is an index into the dcc table:
+	if (IS_EGAVGA_ARCH) {
+		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
+		real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint16_t)CurMode->cheight);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x60|(clearmem?0:0x80)));
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
+		// this is an index into the dcc table:
 #if C_DEBUG
-	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
+		if(IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
 #else
-	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
+		if(IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
 #endif
+
+		/* Set font pointer */
+		if ((isJEGAEnabled()) && (CurMode->mode == 0x03 || CurMode->mode == 0x53))
+			RealSetVec(0x43, int10.rom.font_19);
+		else if (CurMode->mode<=3 || CurMode->mode==7)
+			RealSetVec(0x43,int10.rom.font_8_first);
+		else {
+			switch (CurMode->cheight) {
+			case 8:RealSetVec(0x43,int10.rom.font_8_first);break;
+			case 14:RealSetVec(0x43,int10.rom.font_14);break;
+			case 16:RealSetVec(0x43,int10.rom.font_16);break;
+			}
+		}
+	}
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
-		INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
+		if (machine==MCH_HERC || machine==MCH_MDA)
+			INT10_SetCursorShape(0x0c,0x0d);
+		else
+			INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 	}
 	// Set cursor pos for page 0..7
 	for (uint8_t ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
 	// Set active page 0
 	INT10_SetActivePage(0);
-	/* Set some interrupt vectors */
-	if (CurMode->mode<=3 || CurMode->mode==7) {
-		RealSetVec(0x43,int10.rom.font_8_first);
-	} else {
-		switch (CurMode->cheight) {
-		case 8:RealSetVec(0x43,int10.rom.font_8_first);break;
-		case 14:RealSetVec(0x43,int10.rom.font_14);break;
-		case 16:RealSetVec(0x43,int10.rom.font_16);break;
-		}
-	}
+	int10.text_row = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
+}
+
+uint8_t TandyGetCRTPage(void) {
+	uint16_t tom = mem_readw(BIOS_MEMORY_SIZE+2);
+
+	if (CurMode->mode>=0x9)
+		tom -= 32;
+	else
+		tom -= 16;
+
+	const uint8_t bank = (tom >> 4u) & 7; /* KB to 16KB bank paying attention only to 16KB page in 128KB region */
+	return ((CurMode->mode>=0x9) ? 0xc0 : 0x00) + (bank * 0x09);    /* 0x09 = 001001 equiv bank | (bank << 3) */
 }
 
 extern bool en_int33;
@@ -908,7 +949,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	else if(CurMode->hdispend==80) syncwidth = 0xc;
 	else syncwidth = 0x6;
 	
-	IO_WriteW(crtc_base,(uint16_t)(0x03 | (syncwidth) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x03 | syncwidth << 8));
 	////Vertical total
 	IO_WriteW(crtc_base,(uint16_t)(0x04 | (CurMode->vtotal) << 8));
 	//Vertical total adjust, 6 for cga,hercules,tandy
@@ -1033,7 +1074,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
             if (CurMode->mode == 2 || CurMode->mode == 3)
                 mcga_mode |= 0x80;
 
-            IO_WriteW(crtc_base,0x10 | (mcga_mode) << 8);
+            IO_WriteW(crtc_base,0x10 | mcga_mode << 8);
         }
 		break;
 	case MCH_TANDY:
@@ -1062,7 +1103,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 		//Clear monitor mode
 		IO_WriteB(0x3da,0x8);
 		IO_WriteB(0x3de,0x0);
-		crtpage=(CurMode->mode>=0x9) ? 0xf6 : 0x3f;
+		crtpage=TandyGetCRTPage();
 		IO_WriteB(0x3df,crtpage);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CRTCPU_PAGE,crtpage);
 		mode_control=mode_control_list[CurMode->mode];
@@ -1180,7 +1221,7 @@ void ttf_switch_off(bool ss=true) {
 }
 
 void ttf_switch_on(bool ss=true) {
-    if (ss&&ttfswitch||!ss&&switch_output_from_ttf) {
+    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
         uint16_t oldax=reg_ax;
         reg_ax=0x1600;
         CALLBACK_RunRealInt(0x2F);
@@ -1195,7 +1236,7 @@ void ttf_switch_on(bool ss=true) {
         mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         if (ttf.fullScrn) {
             if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-            OUTPUT_TTF_Select(2);
+            OUTPUT_TTF_Select(3);
             resetreq = true;
         }
         resetFontSize();
@@ -1254,7 +1295,31 @@ bool INT10_SetVideoMode(uint16_t mode) {
 //	uint8_t vga_switches=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES);
 	uint8_t modeset_ctl=real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
 
-	if (IS_VGA_ARCH) {
+	if (IS_JEGA_ARCH) {
+		IO_WriteB(0x3d4, 0xb9);
+		Bitu tmp = IO_ReadB(0x3d5);
+		tmp |= 0x40;
+		IO_WriteB(0x3d5, tmp);
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD1, tmp);
+	}
+	if (INT10_AX_GetCRTBIOSMode() == 0x51) {
+		if (mode == 0x02) mode = 0x03;//Video mode 02h redirect to 03h (AX-1)
+		if (mode == 0x52) mode = 0x53;//Video mode 52h redirect to 53h (AX-1)
+		if (mode == 0x03 || mode == 0x53)
+		{
+			//Enable JEGA Display Out only in video mode 03h or 53h
+			IO_WriteB(0x3d4, 0xb9);
+			Bitu tmp = IO_ReadB(0x3d5);
+			tmp &= 0xbf;
+			IO_WriteB(0x3d5, tmp);
+			real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD1, tmp);;
+		}
+		if (!SetCurMode(ModeList_JEGA, mode)) {
+			LOG(LOG_INT10, LOG_ERROR)("JEGA:Trying to set illegal mode %X", mode);
+			return false;
+		}
+	}
+	else if (IS_VGA_ARCH) {
 		if (svga.accepts_mode) {
 			if (!svga.accepts_mode(mode)) return false;
 		}
@@ -1858,6 +1923,13 @@ att_text16:
     case M_PACKED4:
 		for (uint8_t ct=0;ct<16;ct++) att_data[ct]=ct;
 		att_data[0x10]=0x41;		//Color Graphics 8-bit
+
+		// Tseng ET3000/ET4000 256-color mode sets 256-color mode in the graphics controller
+		// but turns off the 8BIT bit in the attribute controller. Furthermore to work with
+		// Windows 98 I/O virtualization the setting must be applied through CPU I/O.
+		if (CurMode->type == M_LIN8 && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K))
+			att_data[0x10]&=~0x40;	// turn off 8BIT
+
 		break;
 	default:
 		break;
@@ -2202,6 +2274,63 @@ Bitu VideoModeMemSize(Bitu mode) {
 	}
 	// Return 0 for all other types, those always fit in memory
 	return 0;
+}
+
+VideoModeBlock ModeList_DOSV[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x003  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+{ 0x070  ,M_EGA    ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+{ 0x072  ,M_EGA    ,640 ,480 ,80 ,25 ,8 ,19 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SVGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,800 ,600 ,100 ,37 ,8 ,16 ,1 ,0xA0000 ,0x10000 ,128 ,663 ,100 ,600 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_XGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,128 ,48 ,8 ,16 ,1 ,0xA0000 ,0xA000  ,128 ,800 ,128 ,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_XGA_24[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,85  ,32 ,12,24 ,1 ,0xA0000 ,0xA000  ,128 ,800 ,128 ,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4  ,1280,1024,160  ,64 ,8 ,16 ,1 ,0xA0000 ,0xA000, 160 ,1152,160  ,1024,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA_24[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4  ,1280,1024,106  ,42 ,12,24 ,1 ,0xA0000 ,0xA000, 160 ,1152,160  ,1024,0	},
+};
+
+static VideoModeBlock *ModeListVtext[] = {
+	ModeList_DOSV,
+	ModeList_DOSV,
+	ModeList_DOSV_SVGA,
+	ModeList_DOSV_XGA,
+	ModeList_DOSV_XGA_24,
+	ModeList_DOSV_SXGA,
+	ModeList_DOSV_SXGA_24,
+};
+
+bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
+{
+	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
+		FinishSetMode(true);
+		INT10_SetCursorShape(6, 7);
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+		SDL_SetIMValues(SDL_IM_FONT_SIZE, CurMode->cheight, NULL);
+#endif
+	} else {
+		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);
+		return false;
+	}
+	return true;
 }
 
 Bitu INT10_WriteVESAModeList(Bitu max_modes);

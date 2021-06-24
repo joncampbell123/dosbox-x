@@ -26,11 +26,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
-
+#include <limits.h>
 
 #include "SDL.h"
 
 #include "dosbox.h"
+#include "logging.h"
+#include "menudef.h"
 #include "video.h"
 #include "keyboard.h"
 #include "mouse.h"
@@ -296,6 +298,10 @@ void                                            GFX_ForceRedrawScreen(void);    
 void                                            DOSBox_SetSysMenu(void);
 void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
 void                                            WindowsTaskbarResetPreviewRegion(void); // external
+#endif
+
+#if defined(MACOSX)
+void                        macosx_reload_touchbar(void);
 #endif
 
 //! \brief Base CEvent class for mapper events
@@ -4136,7 +4142,14 @@ static void MAPPER_SaveBinds(void) {
             fprintf(savefile,"%s \n",line.c_str());
     }
     fclose(savefile);
-    change_action_text("Mapper file saved.",CLR_WHITE);
+#if defined(WIN32)
+    char path[MAX_PATH];
+    if (GetFullPathName(mapper.filename.c_str(), MAX_PATH, path, NULL)) LOG_MSG("Saved mapper file: %s", path);
+#elif defined(HAVE_REALPATH)
+    char path[PATH_MAX];
+    if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
+#endif
+    change_action_text(("Mapper file saved: "+mapper.filename).c_str(),CLR_WHITE);
 }
 
 static bool MAPPER_LoadBinds(void) {
@@ -4638,8 +4651,7 @@ void MAPPER_RunInternal() {
 #endif
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
     /* Go in the event loop */
@@ -4736,8 +4748,7 @@ void MAPPER_RunInternal() {
     mapper.running = false;
 
 #if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
+    macosx_reload_touchbar();
 #endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
@@ -4756,7 +4767,7 @@ void MAPPER_CheckKeyboardLayout() {
 #if defined(WIN32)
     WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
 
-    isJPkeyboard = false;
+    isJPkeyboard = true;
 
     if (cur_kb_layout == 1041/*JP106*/) {
         isJPkeyboard = true;
@@ -5069,15 +5080,6 @@ void MAPPER_StartUp() {
 #if !defined(C_SDL2)
 	load=true;
 #endif
-
-    {
-        DOSBoxMenu::item *itemp = NULL;
-
-        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&itemp);
-        itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
-        itemp->set_description("Bring up the mapper UI");
-        itemp->set_text("Mapper editor");
-    }
 }
 
 void MAPPER_Shutdown() {

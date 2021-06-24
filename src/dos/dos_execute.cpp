@@ -19,13 +19,16 @@
 
 #include <string.h>
 #include <ctype.h>
+
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "dos_inc.h"
 #include "regs.h"
 #include "callback.h"
 #include "debug.h"
 #include "cpu.h"
+#include "menu.h"
 
 const char * RunningProgram="DOSBOX-X";
 
@@ -94,7 +97,7 @@ static void RestoreRegisters(void) {
 }
 
 extern uint8_t ZDRIVE_NUM;
-extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), menu_update_autocycle(void);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
 	static char name[9];
@@ -112,7 +115,7 @@ void DOS_UpdatePSPName(void) {
 void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 
 	dos.return_code=exitcode;
-	dos.return_mode=(tsr)?(uint8_t)RETURN_TSR:(uint8_t)RETURN_EXIT;
+	dos.return_mode=tsr?(uint8_t)RETURN_TSR:(uint8_t)RETURN_EXIT;
 	
 	DOS_PSP curpsp(pspseg);
 	if (pspseg==curpsp.GetParent()) return;
@@ -151,12 +154,15 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 		CPU_Cycles=0;
 		CPU_CycleMax=CPU_OldCycleMax;
 		GFX_SetTitle((int32_t)CPU_OldCycleMax,-1,-1,false);
+		menu_update_autocycle();
 	} else {
 		GFX_SetTitle(-1,-1,-1,false);
 	}
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 		cpudecoder=&CPU_Core_Normal_Run;
+        mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 	}
@@ -305,7 +311,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
         int16_t fLen = (int16_t)strlen(name);
         bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
-        char z4dos[]="Z:\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
+        char z4dos[]="Z:\\4DOS\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
         if (ZDRIVE_NUM!=25) {
             z4dos[0]='A'+ZDRIVE_NUM;
             zcmd[0]='A'+ZDRIVE_NUM;
@@ -346,7 +352,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
-	uint8_t * loadbuf=(uint8_t *)new uint8_t[0x10000u];
+	uint8_t * loadbuf=new uint8_t[0x10000u];
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
@@ -390,6 +396,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			}
 			if (maxfree<minsize) {
 				DOS_CloseFile(fhandle);
+                delete[] loadbuf;
 				DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 				DOS_FreeMemory(envseg);
 				return false;

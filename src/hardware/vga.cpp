@@ -116,7 +116,10 @@
  *   chained 256-color modes differently.
  */
 
+#include <assert.h>
+
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "video.h"
 #include "pic.h"
@@ -137,6 +140,7 @@
 #include "menu.h"
 #include "mem.h"
 #include "render.h"
+#include "jfont.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -195,7 +199,6 @@ extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
-extern std::string                  hidefiles;
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
@@ -484,57 +487,69 @@ void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
     }
 }
 
+void SetRate(char *x) {
+    if (!strncasecmp(x,"off",3))
+        vga_force_refresh_rate = -1;
+    else if (!strncasecmp(x,"ntsc",4))
+        vga_force_refresh_rate = 60000.0/1001;
+    else if (!strncasecmp(x,"pal",3))
+        vga_force_refresh_rate = 50;
+    else if (strchr(x,'.'))
+        vga_force_refresh_rate = atof(x);
+    else {
+        /* fraction */
+        int major = -1,minor = 0;
+        major = strtol(x,&x,0);
+        if (*x == '/' || *x == ':') {
+            x++; minor = strtol(x,NULL,0);
+        }
+
+        if (major > 0) {
+            vga_force_refresh_rate = (double)major;
+            if (minor > 1) vga_force_refresh_rate /= minor;
+        }
+    }
+
+    VGA_SetupHandlers();
+    VGA_StartResize();
+}
+
+#if defined(USE_TTF)
+void resetFontSize();
+static void resetSize(Bitu /*val*/) {
+    resetFontSize();
+}
+#endif
+
 class VFRCRATE : public Program {
 public:
     void Run(void) {
-        WriteOut("Locks or unlocks the video refresh rate.\n\n");
         if (cmd->FindExist("/?", false)) {
+			WriteOut("Locks or unlocks the video refresh rate.\n\n");
 			WriteOut("VFRCRATE [SET [OFF|PAL|NTSC|rate]\n");
 			WriteOut("  SET OFF   Unlock the refresh rate\n");
 			WriteOut("  SET PAL   Lock to PAL frame rate\n");
 			WriteOut("  SET NTSC  Lock to NTSC frame rate\n");
 			WriteOut("  SET rate  Lock to integer frame rate, e.g. 15\n");
 			WriteOut("  SET rate  Lock to decimal frame rate, e.g. 29.97\n");
-			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n");
+			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n\n");
+			WriteOut("Type VFRCRATE without a parameter to show the current status.\n");
 			return;
 		}
-        if (cmd->FindString("SET",temp_line,false)) {
-            char *x = (char*)temp_line.c_str();
-
-            if (!strncasecmp(x,"off",3))
-                vga_force_refresh_rate = -1;
-            else if (!strncasecmp(x,"ntsc",4))
-                vga_force_refresh_rate = 60000.0/1001;
-            else if (!strncasecmp(x,"pal",3))
-                vga_force_refresh_rate = 50;
-            else if (strchr(x,'.'))
-                vga_force_refresh_rate = atof(x);
-            else {
-                /* fraction */
-                int major = -1,minor = 0;
-                major = strtol(x,&x,0);
-                if (*x == '/' || *x == ':') {
-                    x++; minor = strtol(x,NULL,0);
-                }
-
-                if (major > 0) {
-                    vga_force_refresh_rate = (double)major;
-                    if (minor > 1) vga_force_refresh_rate /= minor;
-                }
-            }
-
-            VGA_SetupHandlers();
-            VGA_StartResize();
-        }
-
+        if (cmd->FindString("SET",temp_line,false))
+            SetRate((char *)temp_line.c_str());
+#if defined(USE_TTF)
+        bool TTF_using();
+        if (TTF_using()) PIC_AddEvent(&resetSize, 1);
+#endif
         if (vga_force_refresh_rate > 0)
-            WriteOut("Locked to %.3f fps\n",vga_force_refresh_rate);
+            WriteOut("Video refresh rate is locked to %.3f fps.\n",vga_force_refresh_rate);
         else
-            WriteOut("Unlocked\n");
+            WriteOut("Video refresh rate is unlocked.\n");
     }
 };
 
-static void VFRCRATE_ProgramStart(Program * * make) {
+void VFRCRATE_ProgramStart(Program * * make) {
     *make=new VFRCRATE;
 }
 
@@ -549,8 +564,16 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) {
+        if (cmd->FindExist("/?", false)) {
+			WriteOut("Turns CGA snow emulation on or off.\n\n");
+			WriteOut("CGASNOW [ON|OFF]\n");
+			WriteOut("  ON   Turns on CGA snow emulation.\n");
+			WriteOut("  OFF  Turns off CGA snow emulation.\n\n");
+			WriteOut("Type CGASNOW without a parameter to show the current status.\n");
+			return;
+		}
         if(cmd->FindExist("ON")) {
-            WriteOut("CGA snow enabled\n");
+            WriteOut("CGA snow enabled.\n");
             enableCGASnow = 1;
             if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
                 VGA_SetupHandlers();
@@ -558,7 +581,7 @@ public:
             }
         }
         else if(cmd->FindExist("OFF")) {
-            WriteOut("CGA snow disabled\n");
+            WriteOut("CGA snow disabled.\n");
             enableCGASnow = 0;
             if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
                 VGA_SetupHandlers();
@@ -566,13 +589,12 @@ public:
             }
         }
         else {
-            WriteOut("CGA snow currently %s\n",
-                enableCGASnow ? "enabled" : "disabled");
+            WriteOut("CGA snow is currently %s.\n", enableCGASnow ? "enabled" : "disabled");
         }
     }
 };
 
-static void CGASNOW_ProgramStart(Program * * make) {
+void CGASNOW_ProgramStart(Program * * make) {
     *make=new CGASNOW;
 }
 
@@ -1047,13 +1069,6 @@ void VGA_Reset(Section*) {
 
     vsync.period = (1000.0F)/vsyncrate;
 
-    // TODO: Code to remove programs added by PROGRAMS_MakeFile
-
-    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
-    hidefiles = dos_section->Get_string("drive z hide files");
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
-    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
-
     if (IS_PC98_ARCH) {
         void VGA_OnEnterPC98(Section *sec);
         void VGA_OnEnterPC98_phase2(Section *sec);
@@ -1473,6 +1488,233 @@ void VGA_Init() {
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 }
 
+JEGA_DATA jega;
+
+// Store font
+void JEGA_writeFont() {
+	jega.RSTAT &= ~0x02;
+	Bitu chr = jega.RDFFB;
+	Bitu chr_2 = jega.RDFSB;
+	// Check the char code is in Wide charset of Shift-JIS
+	if ((chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc)) {
+		if (jega.fontIndex >= 32) jega.fontIndex = 0;
+		chr <<= 8;
+		//fix vertical char position
+		chr |= chr_2;
+		if (jega.fontIndex < 16)
+			// read font from register and store it
+			jfont_dbcs_16[chr * 32 + jega.fontIndex * 2] = jega.RDFAP;// w16xh16 font
+		else
+			jfont_dbcs_16[chr * 32 + (jega.fontIndex - 16) * 2 + 1] = jega.RDFAP;// w16xh16 font
+	}
+	else
+	{
+		if (jega.fontIndex >= 19) jega.fontIndex = 0;
+		jfont_sbcs_19[chr * 19 + jega.fontIndex] = jega.RDFAP;// w16xh16 font
+	}
+	jega.fontIndex++;
+	jega.RSTAT |= 0x02;
+}
+
+// Read font
+void JEGA_readFont() {
+	jega.RSTAT &= ~0x02;
+	Bitu chr = jega.RDFFB;
+	Bitu chr_2 = jega.RDFSB;
+	// Check the char code is in Wide charset of Shift-JIS
+	if ((chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc)) {
+		if (jega.fontIndex >= 32) jega.fontIndex = 0;
+		chr <<= 8;
+		//fix vertical char position
+		chr |= chr_2;
+		if (jega.fontIndex < 16)
+			// get font and set to register
+			jega.RDFAP = jfont_dbcs_16[chr * 32 + jega.fontIndex * 2];// w16xh16 font
+		else
+			jega.RDFAP = jfont_dbcs_16[chr * 32 + (jega.fontIndex - 16) * 2 + 1];
+	}
+	else
+	{
+		if (jega.fontIndex >= 19) jega.fontIndex = 0;
+		jega.RDFAP = jfont_sbcs_19[chr * 19 + jega.fontIndex];// w16xh16 font
+	}
+	jega.fontIndex++;
+	jega.RSTAT |= 0x02;
+}
+
+void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
+	switch (reg) {
+	case 0xb9://Mode register 1
+		jega.RMOD1 = val;
+		break;
+	case 0xba://Mode register 2
+		jega.RMOD2 = val;
+		break;
+	case 0xbb://ANK Group sel
+		jega.RDAGS = val;
+		break;
+	case 0xbc:// Font access first byte
+		if (jega.RDFFB != val) {
+			jega.RDFFB = val;
+			jega.fontIndex = 0;
+		}
+		break;
+	case 0xbd:// Font access Second Byte
+		if (jega.RDFSB != val) {
+			jega.RDFSB = val;
+			jega.fontIndex = 0;
+		}
+		break;
+	case 0xbe:// Font Access Pattern
+		jega.RDFAP = val;
+		JEGA_writeFont();
+		break;
+	//case 0x09:// end scan line
+	//	jega.RPESL = val;
+	//	break;
+	//case 0x14:// under scan line
+	//	jega.RPULP = val;
+	//	break;
+	case 0xdb:
+		jega.RPSSC = val;
+		break;
+	case 0xd9:
+		jega.RPSSU = val;
+		break;
+	case 0xda:
+		jega.RPSSL = val;
+		break;
+	case 0xdc://super imposed (only AX-2 system, not implemented)
+		jega.RPPAJ = val;
+		break;
+	case 0xdd:
+		jega.RCMOD = val;
+		break;
+	//case 0x0e://Cursor location Upper bits
+	//	jega.RCCLH = val;
+	//	break;
+	//case 0x0f://Cursor location Lower bits
+	//	jega.RCCLL = val;
+	//	break;
+	//case 0x0a://Cursor Start Line
+	//	jega.RCCSL = val;
+	//	break;
+	//case 0x0b://Cursor End Line
+	//	jega.RCCEL = val;
+	//	break;
+	case 0xde://Cursor Skew control
+		jega.RCSKW = val;
+		break;
+	case 0xdf://Unused?
+		jega.ROMSL = val;
+		break;
+	case 0xbf://font r/w register
+		jega.RSTAT = val;
+		break;
+	default:
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Write to illegal index %2X", reg);
+		break;
+	}
+}
+//CRT Control Register can be read from I/O 3D5h, after setting index at I/O 3D4h
+Bitu read_p3d5_jega(Bitu reg, Bitu iolen) {
+	switch (reg) {
+	case 0xb9:
+		return jega.RMOD1;
+	case 0xba:
+		return jega.RMOD2;
+	case 0xbb:
+		return jega.RDAGS;
+	case 0xbc:// BCh RDFFB Font access First Byte
+		return jega.RDFFB;
+	case 0xbd:// BDh RDFFB Font access Second Byte
+		return jega.RDFSB;
+	case 0xbe:// BEh RDFAP Font Access Pattern
+		JEGA_readFont();
+		return jega.RDFAP;
+	//case 0x09:
+	//	return jega.RPESL;
+	//case 0x14:
+	//	return jega.RPULP;
+	case 0xdb:
+		return jega.RPSSC;
+	case 0xd9:
+		return jega.RPSSU;
+	case 0xda:
+		return jega.RPSSL;
+	case 0xdc:
+		return jega.RPPAJ;
+	case 0xdd:
+		return jega.RCMOD;
+	//case 0x0e:
+	//	return jega.RCCLH;
+	//case 0x0f:
+	//	return jega.RCCLL;
+	//case 0x0a:
+	//	return jega.RCCSL;
+	//case 0x0b:
+	//	return jega.RCCEL;
+	case 0xde:
+		return jega.RCSKW;
+	case 0xdf:
+		return jega.ROMSL;
+	case 0xbf:
+		return 0x03;//Font always read/writeable
+	default:
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Read from illegal index %2X", reg);
+		break;
+	}
+	return 0x0;
+}
+
+void JEGA_setupAX(void) {
+	memset(&jega, 0, sizeof(JEGA_DATA));
+	jega.RMOD1 = 0xC8;//b9: Mode register 1
+	jega.RMOD2 = 0x00;//ba: Mode register 2
+	jega.RDAGS = 0x00;//bb: ANK Group sel (not implemented)
+	jega.RDFFB = 0x00;//bc: Font access first byte
+	jega.RDFSB = 0x00;//bd: second
+	jega.RDFAP = 0x00;//be: Font Access Pattern
+	jega.RPESL = 0x00;//09: end scan line (superceded by EGA)
+	jega.RPULP = 0x00;//14: under scan line (superceded by EGA)
+	jega.RPSSC = 1;//db: DBCS start scan line
+	jega.RPSSU = 3;//d9: 2x DBCS upper start scan
+	jega.RPSSL = 0;//da: 2x DBCS lower start scan
+	jega.RPPAJ = 0x00;//dc: super imposed (only AX-2 system, not implemented)
+	jega.RCMOD = 0x00;//dd: Cursor Mode (not implemented)
+	jega.RCCLH = 0x00;//0e: Cursor location Upper bits (superceded by EGA)
+	jega.RCCLL = 0x00;//0f: Cursor location Lower bits (superceded by EGA)
+	jega.RCCSL = 0x00;//0a: Cursor Start Line (superceded by EGA)
+	jega.RCCEL = 0x00;//0b: Cursor End Line (superceded by EGA)
+	jega.RCSKW = 0x20;//de: Cursor Skew control (not implemented)
+	jega.ROMSL = 0x00;//df: Unused?
+	jega.RSTAT = 0x03;//bf: Font register accessible status
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, 0);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD1, jega.RMOD1);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JEGA_RMOD2, jega.RMOD2);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_GRAPH_ATTR, 0);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_GRAPH_CHAR, 0);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR, 0);
+	real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_KBDSTATUS, 0x00);
+}
+
+void SVGA_Setup_JEGA(void) {
+	JEGA_setupAX();
+	svga.write_p3d5 = &write_p3d5_jega;
+	svga.read_p3d5 = &read_p3d5_jega;
+
+	// Adjust memory to 256K
+	vga.mem.memsize = 256 * 1024;
+
+	/* JEGA BIOS ROM signature for AX architecture
+	To run MS-DOS, signature ("JA") must be 
+	put at C000h:N*512-18+2 ;N=Number of ROM blocks (rom_base+2)
+	*/
+	PhysPt rom_base = PhysMake(0xc000, 0);
+	phys_writeb(rom_base + 0x40 * 512 - 18 + 2, 'J');
+	phys_writeb(rom_base + 0x40 * 512 - 18 + 3, 'A');
+}
+
 void SVGA_Setup_Driver(void) {
     memset(&svga, 0, sizeof(SVGA_Driver));
 
@@ -1490,6 +1732,7 @@ void SVGA_Setup_Driver(void) {
         SVGA_Setup_ParadisePVGA1A();
         break;
     default:
+        if (IS_JEGA_ARCH) SVGA_Setup_JEGA();
         break;
     }
 }

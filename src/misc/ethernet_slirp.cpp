@@ -21,9 +21,12 @@
 #if C_SLIRP
 
 #include "ethernet_slirp.h"
+#include "logging.h"
 #include <time.h>
 #include <algorithm>
 #include "dosbox.h"
+
+extern std::string niclist;
 
 #ifdef WIN32
 #if _WIN32_WINNT < 0x600
@@ -182,6 +185,7 @@ bool SlirpEthernetConnection::Initialize(Section* dosbox_config)
 	if(slirp)
 	{
 		LOG_MSG("SLIRP: Successfully initialized");
+        niclist = "You have currently enabled the slirp backend for NE2000 Ethernet emulation.\nTo show a list of network interfaces please enable the pcap backend instead.\nCheck [ne2000] and [ethernet, pcap] sections of the DOSBox-X configuration.";
 		return true;
 	}
 	else

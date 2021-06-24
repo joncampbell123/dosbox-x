@@ -20,15 +20,13 @@
 #ifndef DOSBOX_DOS_INC_H
 #define DOSBOX_DOS_INC_H
 
-#include <stddef.h>
 #define CTBUF 127
 
 #ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
 #endif
-#ifndef DOSBOX_MEM_H
-#include "mem.h"
-#endif
+
+#include <list>
 #include <stddef.h> //for offsetof
 
 #ifdef _MSC_VER
@@ -41,6 +39,16 @@ struct CommandTail{
 #ifdef _MSC_VER
 #pragma pack ()
 #endif
+
+#define IS_DOS_JAPANESE (mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F)
+#define IS_DOS_CJK ((mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs)) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0xFE))
+#define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_cdosv_enabled || dos.set_pdosv_enabled)
+#define IS_JDOSV (dos.set_jdosv_enabled)
+#define IS_KDOSV (dos.set_kdosv_enabled)
+#define IS_CDOSV (dos.set_cdosv_enabled)
+#define IS_PDOSV (dos.set_pdosv_enabled)
+
+#define	EXT_DEVICE_BIT				0x0200
 
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
@@ -164,7 +172,7 @@ enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 /* Routines for File Class */
 void DOS_SetupFiles (void);
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount, bool fcb = false);
-bool DOS_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb = false);
+bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb = false);
 bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb = false);
 /* ert, 20100711: Locking extensions */
 bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size);
@@ -181,7 +189,7 @@ bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr
 bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
 bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
-bool DOS_FindFirst(char *search,uint16_t attr,bool fcb_findfirst=false);
+bool DOS_FindFirst(const char *search,uint16_t attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
 bool DOS_Canonicalize(char const * const name,char * const big);
 bool DOS_CreateTempFile(char * const name,uint16_t * entry);
@@ -213,6 +221,9 @@ bool DOS_IOCTL(void);
 bool DOS_GetSTDINStatus();
 uint8_t DOS_FindDevice(char const * name);
 void DOS_SetupDevices(void);
+void DOS_ClearKeyMap(void);
+void DOS_SetConKey(uint16_t src, uint16_t dst);
+uint32_t DOS_CheckExtDevice(const char *name, bool already_flag);
 
 /* Execute and new process creation */
 bool DOS_NewPSP(uint16_t segment,uint16_t size);
@@ -357,7 +368,7 @@ public:
 		switch (size) {
 		case 1:mem_writeb(pt+addr,(uint8_t)val);break;
 		case 2:mem_writew(pt+addr,(uint16_t)val);break;
-		case 4:mem_writed(pt+addr,(uint32_t)val);break;
+		case 4:mem_writed(pt+addr,val);break;
 		}
 	}
     inline void SetPt(const uint16_t seg) { pt=PhysMake(seg,0);}
@@ -563,7 +574,7 @@ public:
 	void	SetDirID(uint16_t entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };
 	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
-	uint32_t	GetDirIDCluster(void)		{ return (uint32_t)sGet(sDTA,dirCluster); };
+	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
     uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
 private:
 	#ifdef _MSC_VER
@@ -684,7 +695,7 @@ public:
 	void SetPSP(uint16_t _psp) { sSave(sSDA,current_psp, _psp); }
 	uint8_t GetDrive(void) { return (uint8_t)sGet(sSDA,current_drive); }
 	uint16_t GetPSP(void) { return (uint16_t)sGet(sSDA,current_psp); }
-	uint32_t GetDTA(void) { return (uint32_t)sGet(sSDA,current_dta); }
+	uint32_t GetDTA(void) { return sGet(sSDA,current_dta); }
 	
 	
 private:
@@ -745,6 +756,12 @@ struct DOS_Block {
         uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
     uint16_t loaded_codepage = 0;
+    bool set_cdosv_enabled = false;
+    bool set_jdosv_enabled = false;
+    bool set_kdosv_enabled = false;
+    bool set_pdosv_enabled = false;
+    bool im_enable_flag;
+    uint16_t dcp;	// Device command packet
 };
 
 extern DOS_Block dos;

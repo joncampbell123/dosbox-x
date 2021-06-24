@@ -417,6 +417,28 @@ static DIOBJECTDATAFORMAT JOY_fmt[] = {
 
 const DIDATAFORMAT c_dfDIJoystick = { sizeof(DIDATAFORMAT), sizeof(DIOBJECTDATAFORMAT), 0x00000001, 80, 44, JOY_fmt };
 
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime();
+static void free_ime();
+static int setup_ime(_THIS, LPDIRECTDRAWSURFACE3 lpFrontBuffer, Uint32 flags);
+int _FSIM_Init(HWND hwndApp, IDirectDraw *dd, IDirectDrawSurface *FrontBuffer,
+			   IDirectDrawSurface *BackBuffer);
+HWND _FSIM_Begin(HWND hwnd);
+void _FSIM_End(void);
+HRESULT _FSIM_Update(void);
+int _FSIM_IsActive(void);
+
+/**
+ * Local definitions specific to IM
+ */
+static IDirectDraw *ddObject = NULL;
+static IDirectDrawSurface3 *ddFrontBuffer = NULL;
+static IDirectDrawSurface3 *ddBackBuffer = NULL;
+static IDirectDrawClipper  *ddClipper = NULL;
+static HWND hFSIME = NULL;
+
+#endif
 
 /* Initialization/Query functions */
 static int DX5_VideoInit(_THIS, SDL_PixelFormat *vformat);
@@ -643,6 +665,11 @@ static SDL_VideoDevice *DX5_CreateDevice(int devindex)
 	WIN_WinPAINT = DX5_WinPAINT;
 	HandleMessage = DX5_HandleMessage;
 
+	device->SetIMPosition = DX5_SetIMPosition;
+	device->SetIMValues = DX5_SetIMValues;
+	device->GetIMValues = DX5_GetIMValues;
+	device->FlushIMString = DX5_FlushIMString;
+	device->GetIMInfo = WIN_GetIMInfo;
 	device->free = DX5_DeleteDevice;
 
 	/* We're finally ready */
@@ -1247,6 +1274,11 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 		SDL_resizing = 0;
 
+#ifdef ENABLE_IM_EVENT
+		if (!setup_ime(this, SDL_primary, flags))
+			SDL_SetError("setup_ime fail.");
+#endif
+
 		/* Set up for OpenGL */
 		if ( WIN_GL_SetupWindow(this) < 0 ) {
 			return(NULL);
@@ -1645,6 +1677,10 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	SetForegroundWindow(SDL_Window);
 	SDL_resizing = 0;
 
+#ifdef ENABLE_IM_EVENT
+	if (!setup_ime(this, SDL_primary, flags))
+		SDL_SetError("setup_ime fail.");
+#endif
 	/* JC 14 Mar 2006
 		Flush the message loop or this can cause big problems later
 		Especially if the user decides to use dialog boxes or assert()!
@@ -2103,8 +2139,36 @@ static int DX5_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 	/* to prevent big slowdown on fast computers, wait here instead of driver ring 0 code */
 	/* Dmitry Yakimov (ftech@tula.net) */
+#ifdef ENABLE_IM_EVENT
+	while(IDirectDrawSurface3_GetFlipStatus(ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+#else
 	while(IDirectDrawSurface3_GetFlipStatus(dd_surface, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+#endif
 
+#ifdef ENABLE_IM_EVENT
+	if (_FSIM_IsActive()) {
+		result = _FSIM_Update();
+		if (result == DDERR_SURFACELOST) {
+			result = IDirectDrawSurface3_Restore(ddFrontBuffer);
+			while(IDirectDrawSurface3_GetFlipStatus(ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+			result = _FSIM_Update();
+		}
+	}
+	else {
+		if (IM_Context.video_flags & SDL_DOUBLEBUF) {
+			IDirectDrawSurface3_SetClipper(ddFrontBuffer, NULL);
+			result = IDirectDrawSurface3_Blt(
+				ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+			if ( result == DDERR_SURFACELOST ) {
+				result = IDirectDrawSurface3_Restore(ddFrontBuffer);
+				while(IDirectDrawSurface3_GetFlipStatus(
+					ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING)
+					;
+				result = IDirectDrawSurface3_Blt(ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+			}
+		}
+		else {
+#endif
 	result = IDirectDrawSurface3_Flip(dd_surface, NULL, DDFLIP_WAIT);
 	if ( result == DDERR_SURFACELOST ) {
 		result = IDirectDrawSurface3_Restore(
@@ -2112,6 +2176,12 @@ static int DX5_FlipHWSurface(_THIS, SDL_Surface *surface)
 		while(IDirectDrawSurface3_GetFlipStatus(dd_surface, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
 		result = IDirectDrawSurface3_Flip(dd_surface, NULL, DDFLIP_WAIT);
 	}
+
+#ifdef ENABLE_IM_EVENT
+		}
+	}
+#endif
+
 	if ( result != DD_OK ) {
 		SetDDerror("DirectDrawSurface3::Flip", result);
 		return(-1);
@@ -2412,6 +2482,10 @@ void DX5_VideoQuit(_THIS)
 		}
 	}
 
+#ifdef ENABLE_IM_EVENT
+	free_ime();
+#endif
+
 	/* Free any palettes we used */
 	if ( SDL_palette != NULL ) {
 		IDirectDrawPalette_Release(SDL_palette);
@@ -2535,3 +2609,155 @@ void DX5_WinPAINT(_THIS, HDC hdc)
 {
 	SDL_UpdateRect(SDL_PublicSurface, 0, 0, 0, 0);
 }
+
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime() 
+{
+//	IM_Context.SDL_IMC = ImmGetContext(SDL_Window);
+
+	IM_Context.im_buffer_sz = 0;
+	IM_Context.im_compose_sz = 0;
+	IM_Context.string.im_multi_byte_buffer = 0;
+
+	IM_Context.bFlip = 1;
+	IM_Context.bEnable = 1;
+
+	IM_Context.notify_data = NULL;
+	IM_Context.notify_func = NULL;
+}
+
+static void free_ime() 
+{
+	if (IM_Context.string.im_wide_char_buffer) {
+		free(IM_Context.string.im_wide_char_buffer);
+		IM_Context.string.im_wide_char_buffer = 0;
+		IM_Context.im_buffer_sz = 0;
+		IM_Context.im_compose_sz = 0;
+	}
+	_FSIM_End();
+}
+
+static int setup_ime(_THIS, LPDIRECTDRAWSURFACE3 lpFrontBuffer, Uint32 flags)
+{
+	/*DDSCAPS2                    ddscaps;*/
+	DDSCAPS                    ddscaps;
+	LPDIRECTDRAW2 _ddraw2 = NULL;
+	static IDirectDrawSurface3 *ddFrontBuffer = NULL;
+	static IDirectDrawSurface3 *ddBackBuffer = NULL;
+
+	int i;
+
+	init_ime();
+	IM_Context.video_flags = flags;
+
+	SendMessage(SDL_Window, WM_IME_SETCONTEXT, TRUE, ISC_SHOWUIALL);
+
+	if ((flags & SDL_FULLSCREEN) && (flags & SDL_DOUBLEBUF)) {
+		if(i = IDirectDrawSurface3_QueryInterface(lpFrontBuffer, &IID_IDirectDrawSurface3,
+					(LPVOID *)&ddFrontBuffer) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_QueryInterface", i);
+			printf("%s\n", SDL_GetError());
+		}
+
+		if(i = IDirectDrawSurface3_GetDDInterface(ddFrontBuffer, &_ddraw2) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_GetDDInterface", i);
+			printf("%s\n", SDL_GetError());
+		}
+
+		memset(&ddscaps, 0, sizeof(ddscaps));
+		ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
+		if (i = IDirectDrawSurface3_GetAttachedSurface(ddFrontBuffer, 
+					(LPDDSCAPS)&ddscaps, &ddBackBuffer) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_GetAttachedSurface", i);
+			printf("%s\n", SDL_GetError());
+		}
+		else {
+			if (!_FSIM_Init(SDL_Window, (IDirectDraw*)_ddraw2, (IDirectDrawSurface*)ddFrontBuffer, (IDirectDrawSurface*)ddBackBuffer))
+				return 0;
+			_FSIM_Begin(ImmGetDefaultIMEWnd(SDL_Window));
+		}
+	}
+
+	return 1;
+}
+
+int _FSIM_Init(HWND hwndApp, IDirectDraw *dd, IDirectDrawSurface *FrontBuffer,
+			  IDirectDrawSurface *BackBuffer)
+{
+	/*DDSURFACEDESC2 ddsd;*/
+	DDSURFACEDESC ddsd;
+	DDCAPS ddcaps;
+
+	memset(&ddcaps, 0, sizeof(ddcaps));
+	ddcaps.dwSize = sizeof(ddcaps);
+	IDirectDraw2_GetCaps(dd,&ddcaps, NULL);
+	/*
+	if (!(ddcaps.dwCaps2 & DDCAPS2_CANRENDERWINDOWED))
+			return 0;*/
+
+	/* Save DirectDraw object passed in */
+	ddObject = dd;
+
+	/* Save buffers passed in */
+	ddFrontBuffer = (IDirectDrawSurface3*)FrontBuffer;
+	ddBackBuffer = (IDirectDrawSurface3*)BackBuffer;
+
+	/* Get DirectDraw surface dimensions */
+	memset(&ddsd, 0, sizeof(ddsd));
+	ddsd.dwSize = sizeof(ddsd);
+	ddsd.dwFlags = DDSD_HEIGHT | DDSD_WIDTH;
+	IDirectDrawSurface3_GetSurfaceDesc(ddBackBuffer, (LPDDSURFACEDESC)&ddsd);
+	return 1;
+}
+
+HWND _FSIM_Begin(HWND hwnd)
+{
+	/* If no handle passed in, assume existing content window */
+	if (hwnd == NULL)
+		hwnd = SDL_Window;
+
+	if (hwnd == NULL)
+		return NULL;
+
+	/* Create a clipper (used in IDirectDrawSurface::Blt call) */
+	if (IDirectDraw_CreateClipper(ddObject, 0, &ddClipper, NULL) == DD_OK)
+		IDirectDrawClipper_SetHWnd(ddClipper, 0, SDL_Window);
+
+	/* Normal GDI device, so just flip to GDI so content window can be seen */
+	IDirectDraw_FlipToGDISurface(ddObject);
+
+	hFSIME = hwnd;
+	return hFSIME;
+}
+
+void _FSIM_End(void)
+{
+	if (hFSIME)
+		hFSIME = NULL;
+
+	/* Get rid of clipper object */
+	if (ddClipper) {
+		IDirectDrawClipper_Release(ddClipper);
+		ddClipper = NULL;
+	}
+}
+
+HRESULT _FSIM_Update(void)
+{
+	/**
+	 * GDI hardware
+	 * Update the surface with a blt
+	 */
+	IDirectDrawSurface3_SetClipper(ddFrontBuffer, ddClipper);
+	return IDirectDrawSurface3_Blt(ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+}
+
+int _FSIM_IsActive(void)
+{
+	if (IM_Context.bFlip)
+		return (hFSIME != NULL);
+	return 0;
+}
+
+#endif /* ENABLE_IM_EVENT */

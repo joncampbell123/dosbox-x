@@ -135,7 +135,7 @@ public:
 			CFStringRef midiname = 0;
 			if(MIDIObjectGetStringProperty(dest, kMIDIPropertyDisplayName, &midiname) == noErr) {
 				const char * s = CFStringGetCStringPtr(midiname, kCFStringEncodingMacRoman);
-				if (s) base->WriteOut("%02d\t%s\n",i,s);
+				if (s) base->WriteOut("  %02d - %s\n",i,s);
 			}
 			//This is for EndPoints created by us.
 			//MIDIEndpointDispose(dest);

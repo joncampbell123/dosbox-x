@@ -21,6 +21,7 @@
 
 #if C_DIRECTSERIAL
 
+#include "logging.h"
 #include "serialport.h"
 #include "directserial.h"
 #include "misc_util.h"

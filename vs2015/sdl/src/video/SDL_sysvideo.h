@@ -259,6 +259,26 @@ struct SDL_VideoDevice {
 	void (*PumpEvents)(_THIS);
 
 	/* * * */
+	/* IM manager function */
+
+	/* set im position to (x,y) */
+	int (*SetIMPosition)(_THIS, int x, int y);
+
+	/* set im value */
+	char *(*SetIMValues)(_THIS, SDL_imvalue value, int alt);
+
+    /* get im value */
+	char *(*GetIMValues)(_THIS, SDL_imvalue value, int *alt);
+
+	/* get im string */
+	int (*FlushIMString)(_THIS, void *buffer);
+
+#ifdef ENABLE_IM_EVENT
+	/* get im handle information */
+	int (*GetIMInfo)(_THIS, SDL_SysIMinfo *info);
+#endif
+
+	/* * * */
 	/* Data common to all drivers */
 	SDL_Surface *screen;
 	SDL_Surface *shadow;

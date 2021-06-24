@@ -22,15 +22,11 @@
 // set to 1 for debug messages and debugging log:
 #define PARALLEL_DEBUG 0
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
 #ifndef DOSBOX_INOUT_H
 #include "inout.h"
 #endif
 
 #include "control.h"
-#include "dos_inc.h"
 
 class device_LPT : public DOS_Device {
 public:

@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "cpu.h"
 #include "bios.h"

@@ -31,19 +31,26 @@ mkdir "$subdir" unless -d "$subdir";
 
 die "bin directory not exist" unless -d "bin";
 
-my $zipname = "dosbox-x-$suffix-win-$datestr.zip";
-exit 0 if -f $zipname;
 die unless -f $ziptool;
 
 print "$zipname\n";
-
-my @filelist = ();
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
 my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
 
 foreach $platform (@platforms) {
+	$plat = $platform;
+	$plat = 'win32' if $plat eq 'Win32';
+	$plat = 'win64' if $plat eq 'x64';
+	$plat = 'arm32' if $plat eq 'ARM';
+	$plat = 'arm64' if $plat eq 'ARM64';
+	$zipname = "dosbox-x-$suffix-$plat-$datestr.zip";
+
+	next if -f $zipname;
+
+	my @filelist = ();
+
 	foreach $build (@builds) {
 		foreach $file (@files) {
 			$addfile = "bin/$platform/$build/$file";
@@ -52,8 +59,8 @@ foreach $platform (@platforms) {
 			push(@filelist, $addfile);
 		}
 	}
-}
 
-# do it
-$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
-exit 1 unless $r == 0;
+	# do it
+	$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
+	exit 1 unless $r == 0;
+}

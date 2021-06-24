@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 #ifndef MT32EMU_SYNTH_H
 #define MT32EMU_SYNTH_H
 
-#define MT32EMU_VERSION "2.4.0"
+#define MT32EMU_VERSION "2.5.0"
 #define MT32EMU_VERSION_MAJOR 2
-#define MT32EMU_VERSION_MINOR 4
+#define MT32EMU_VERSION_MINOR 5
 #define MT32EMU_VERSION_PATCH 0
 
 #include <cstdarg>
@@ -296,8 +296,8 @@ public:
 	MT32EMU_EXPORT ~Synth();
 
 	// Used to initialise the MT-32. Must be called before any other function.
-	// Returns true if initialization was sucessful, otherwise returns false.
-	// controlROMImage and pcmROMImage represent Control and PCM ROM images for use by synth.
+	// Returns true if initialization was successful, otherwise returns false.
+	// controlROMImage and pcmROMImage represent full Control and PCM ROM images for use by synth.
 	// usePartialCount sets the maximum number of partials playing simultaneously for this session (optional).
 	// analogOutputMode sets the mode for emulation of analogue circuitry of the hardware units (optional).
 	MT32EMU_EXPORT bool open(const ROMImage &controlROMImage, const ROMImage &pcmROMImage, uint32_t usePartialCount = DEFAULT_MAX_PARTIALS, AnalogOutputMode analogOutputMode = AnalogOutputMode_COARSE);
@@ -396,7 +396,7 @@ public:
 	MT32EMU_EXPORT bool isMT32ReverbCompatibilityMode() const;
 	// Returns whether default reverb compatibility mode is the old MT-32 compatibility mode.
 	MT32EMU_EXPORT bool isDefaultReverbMT32Compatible() const;
-	// If enabled, reverb buffers for all modes are keept around allocated all the time to avoid memory
+	// If enabled, reverb buffers for all modes are kept around allocated all the time to avoid memory
 	// allocating/freeing in the rendering thread, which may be required for realtime operation.
 	// Otherwise, reverb buffers that are not in use are deleted to save memory (the default behaviour).
 	MT32EMU_EXPORT void preallocateReverbMemory(bool enabled);

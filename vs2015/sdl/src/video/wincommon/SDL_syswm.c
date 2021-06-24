@@ -304,3 +304,30 @@ int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 		return(-1);
 	}
 }
+
+int WIN_GetIMInfo(_THIS, SDL_SysIMinfo *info)
+{
+	if ( info->version.major <= SDL_MAJOR_VERSION ) {
+		if ( SDL_VERSIONNUM(info->version.major,
+			info->version.minor,
+			info->version.patch) >=
+			SDL_VERSIONNUM(1, 2, 8) ) {
+#ifdef ENABLE_IM_EVENT
+				info->ime = ImmGetDefaultIMEWnd(SDL_Window);
+				info->imc = IM_Context.SDL_IMC;
+				info->info.win.notify_data = &IM_Context.notify_data;
+				info->info.win.notify_func = &IM_Context.notify_func;
+#else
+				info->ime = NULL;
+				info->imc = NULL;
+				info->info.win.notify_data = NULL;
+				info->info.win.notify_func = NULL;
+#endif
+			}
+			return(1);
+	} else {
+		SDL_SetError("Application not compiled with SDL %d.%d\n",
+			SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+		return(-1);
+	}
+}

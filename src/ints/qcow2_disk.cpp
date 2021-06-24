@@ -140,7 +140,7 @@ using namespace std;
 
 
 //Public function to a write a sector.
-	uint8_t QCow2Image::write_sector(uint32_t sectnum, uint8_t* data){
+	uint8_t QCow2Image::write_sector(uint32_t sectnum, const uint8_t* data){
 		const uint64_t address = (uint64_t)sectnum * sector_size;
 		if (address >= header.size){
 			return 0x05;
@@ -385,7 +385,7 @@ using namespace std;
 
 
 //Write data of arbitrary length to the image file.
-	uint8_t QCow2Image::write_data(uint64_t file_offset, uint8_t* data, uint64_t data_size){
+	uint8_t QCow2Image::write_data(uint64_t file_offset, const uint8_t* data, uint64_t data_size){
 		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
 			return 0x05;
 		}
@@ -433,7 +433,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, (const char*)imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, (const char*)imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
 	}
 
 
@@ -450,5 +450,5 @@ using namespace std;
 
 //Public function to a write a sector.
 	uint8_t QCow2Disk::Write_AbsoluteSector(uint32_t sectnum,const void* data){
-		return qcowImage.write_sector(sectnum, (uint8_t*)data);
+		return qcowImage.write_sector(sectnum, (const uint8_t*)data);
 	}

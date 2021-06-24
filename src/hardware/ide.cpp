@@ -22,6 +22,7 @@
 #include "callback.h"
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
+#include "bios.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -2280,7 +2281,7 @@ void IDE_CDROM_DetachAll() {
 }
 
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
-void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index/*not INT13h, the index into DOSBox's BIOS drive emulation*/) {
+void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index/*not INT13h, the index into DOSBox-X's BIOS drive emulation*/) {
     IDEController *c;
     IDEATADevice *dev;
 
@@ -2352,6 +2353,16 @@ std::string GetIDEInfo() {
         }
     }
     return info;
+}
+
+void Get_IDECD_drives(std::vector<int> &v) {
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = GetIDEController(index);
+        if (c) for (int slave = 0; slave < 2; slave++) {
+            IDEATAPICDROMDevice* d = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+            if (d) v.push_back(d->drive_index);
+        }
+    }
 }
 
 static IDEController* GetIDEController(Bitu idx) {

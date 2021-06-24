@@ -263,11 +263,13 @@ static void FPU_FST_F80(PhysPt addr) {
 }
 
 static void FPU_FST_I16(PhysPt addr) {
-	mem_writew(addr,(uint16_t)static_cast<int16_t>(FROUND(fpu.regs[TOP].d)));
+	double val = FROUND(fpu.regs[TOP].d);
+	mem_writew(addr,(val < 32768.0 && val >= -32768.0)?static_cast<int16_t>(val):0x8000);
 }
 
 static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,(uint32_t)static_cast<int32_t>(FROUND(fpu.regs[TOP].d)));
+	double val = FROUND(fpu.regs[TOP].d);
+	mem_writed(addr,(val < 2147483648.0 && val >= -2147483648.0)?static_cast<int32_t>(val):0x80000000);
 }
 
 static void FPU_FST_I64(PhysPt addr) {
@@ -280,7 +282,9 @@ static void FPU_FST_I64(PhysPt addr) {
 		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
 	}
 	else {
-		blah.ll = static_cast<int64_t>(FROUND(fpu.regs[TOP].d));
+		double val = FROUND(fpu.regs[TOP].d);
+		blah.ll = (val < 9223372036854775808.0 && val >= -9223372036854775808.0)?static_cast<int64_t>(val):LONGTYPE(0x8000000000000000);
+
 		mem_writed(addr,(uint32_t)blah.l.lower);
 		mem_writed(addr+4,(uint32_t)blah.l.upper);
 	}

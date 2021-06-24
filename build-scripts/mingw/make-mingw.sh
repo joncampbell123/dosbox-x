@@ -52,6 +52,8 @@ git reset --hard
 strip src/dosbox-x.exe || exit 1
 cp src/dosbox-x.exe "$buildtarget/dosbox-x.exe" || exit 1
 cp CHANGELOG "$buildtarget/CHANGELOG.txt" || exit 1
+cp dosbox-x.reference.conf "$buildtarget/dosbox-x.reference.conf" || exit 1
+cp dosbox-x.reference.full.conf "$buildtarget/dosbox-x.reference.full.conf" || exit 1
 done
 
 cd "$top" || exit 1

@@ -169,6 +169,7 @@ struct SDL_Block {
     bool using_windib = false;
     // Time when sdl regains focus (alt-tab) in windowed mode
     uint32_t focus_ticks = 0;
+    uint32_t ime_ticks;
 #endif
     // state of alt-keys for certain special handlings
     uint16_t laltstate = 0, raltstate = 0;

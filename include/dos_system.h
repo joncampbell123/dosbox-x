@@ -20,10 +20,6 @@
 #ifndef DOSBOX_DOS_SYSTEM_H
 #define DOSBOX_DOS_SYSTEM_H
 
-#include <vector>
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
 #ifndef DOSBOX_CROSS_H
 #include "cross.h"
 #endif
@@ -33,7 +29,6 @@
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
-#include <ctype.h>
 
 #define DOS_NAMELENGTH 12u
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)
@@ -78,7 +73,7 @@ public:
     DOS_File() :flags(0) { name = 0; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
-	virtual	~DOS_File(){if(name) delete [] name;};
+	virtual ~DOS_File(){ delete [] name;};
 	virtual bool	Read(uint8_t * data,uint16_t * size)=0;
 	virtual bool	Write(const uint8_t * data,uint16_t * size)=0;
 	virtual bool	Seek(uint32_t * pos,uint32_t type)=0;
@@ -86,7 +81,7 @@ public:
 	/* ert, 20100711: Locking extensions */
 	virtual bool    LockFile(uint8_t mode, uint32_t pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
 	virtual uint16_t	GetInformation(void)=0;
-	virtual void	SetName(const char* _name)	{ if (name) delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
+	virtual void	SetName(const char* _name)	{ delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
 	virtual char*	GetName(void)				{ return name; };
 	virtual bool	IsOpen()					{ return open; };
 	virtual bool	IsName(const char* _name)	{ if (!name) return false; return strcasecmp(name,_name)==0; };
@@ -343,6 +338,6 @@ void DOS_AddDevice(DOS_Device * adddev);
 /* DelDevice destroys the device that is pointed to. */
 void DOS_DelDevice(DOS_Device * dev);
 
-void VFILE_Register(const char * name,uint8_t * data,uint32_t size);
-void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b);
+void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *dir = "");
+void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b,const char *dir = "");
 #endif

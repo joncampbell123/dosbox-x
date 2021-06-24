@@ -1,6 +1,6 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.12"
-#define MyAppPublisher "joncampbell123"
+#define MyAppVersion "0.83.14"
+#define MyAppPublisher "joncampbell123 [DOSBox-X Team]"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
 #define MyAppBuildDate GetDateTimeString('yyyymmdd_hhnnss', '', '')
@@ -37,6 +37,8 @@ AlwaysShowDirOnReadyPage=yes
 AlwaysShowGroupOnReadyPage=yes
 ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=lowest
+;PrivilegesRequiredOverridesAllowed=commandline
+UninstallDisplayName={#MyAppName} {#MyAppVersion}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 WizardSmallImageFile=..\..\icons\dosbox-x.bmp
 
@@ -145,6 +147,9 @@ Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 drawn.lnk"; Ch
 Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL2.lnk"; Check: IsWin64; Components: typical compact
 
 [Registry]
+Root: HKCU; Subkey: "Software\DOSBox-X"; Flags: uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\DOSBox-X"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%v """; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
@@ -241,7 +246,7 @@ begin
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
       PageBuild.CheckListBox.ItemEnabled[3] := False;
-    end
+    end;
     if IsARM64 then
       begin
         PageBuild.Values[2] := True;
@@ -253,12 +258,12 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
-    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
+    msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
     PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
     PageOutput.Add('Default output (Direct3D)');
     PageOutput.Add('OpenGL with pixel-perfect scaling');
-    PageOutput.Add('TrueType font output for text-mode applications');
-    PageOutput.Values[0] := True;
+    PageOutput.Add('TrueType font (TTF) / Direct3D output');
+    PageOutput.Values[2] := True;
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(101, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
@@ -337,9 +342,9 @@ begin
         if (PageOutput.Values[1]) then
           msg:='OpenGL with pixel-perfect scaling';
         if (PageOutput.Values[2]) then
-          msg:='TrueType font output for text-mode applications';
+          msg:='TrueType font (TTF) / Direct3D output';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
-      end
+      end;
       if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
       begin
         Wizardform.ReadyMemo.Lines.Add('');
@@ -375,13 +380,13 @@ begin
     else if IsTaskSelected('commonoption') then
     begin
        refname:='{app}\dosbox-x.reference.conf';
-    end
+    end;
     if not FileExists(ExpandConstant(refname)) then
     begin
       MsgBox('Cannot find the ' + Copy(refname, 7, 33) + ' file.', mbError, MB_OK);
       DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
       Exit;
-    end
+    end;
     refname:='{app}\dosbox-x.reference.full.conf';
     if IsTaskSelected('commonoption') then
       refname:='{app}\dosbox-x.reference.conf';
@@ -408,9 +413,9 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
-      end
+      end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
       begin
         FileLines := TStringList.Create;
@@ -434,9 +439,9 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
-      end
+      end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3]) then
       begin
         FileLines := TStringList.Create;
@@ -464,7 +469,7 @@ begin
               break;
             end
           end
-        end
+        end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end
     end
@@ -478,7 +483,7 @@ begin
       else
       begin
         res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
-      end
+      end;
       if (res = IDNO) then
       begin
         FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
@@ -502,7 +507,7 @@ begin
             vsection := True;
             break;
           end
-        end
+        end;
         section := '';
         for i := 0 to FileLinesnew.Count - 1 do
         begin
@@ -523,7 +528,7 @@ begin
                   if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') then
                   begin
                     break;
-                  end
+                  end;
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
                     if (Length(lineold)>0) or (FileLines.Count>0) then
@@ -533,7 +538,7 @@ begin
                   end
                   else if (Length(lineold)>0) and (Copy(lineold, 1, 1) <> '#') then
                     FileLines.add(lineold);
-                end
+                end;
                 break;
               end
             end
@@ -566,7 +571,7 @@ begin
             begin
               Delete(linenew, 1, 14);
               adv := 1;
-            end
+            end;
             res := 0;
             linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
             for j := 0 to FileLines.Count - 1 do
@@ -580,17 +585,17 @@ begin
                 FileLines.Delete(j);
                 break;
               end
-            end
+            end;
             if (res = 0) and ((adv = 0) or not IsTaskSelected('commonoption')) then
               FileLinesave.add(linenew);
           end
-        end
+        end;
         FileLinesave.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
         FileLinesold.free;
         FileLinesnew.free;
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf.old'));
       end
-    end
+    end;
     DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
   end;
 end;
@@ -602,7 +607,7 @@ begin
       if FileExists(ExpandConstant('{app}\dosbox-x.conf.old')) then
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf.old'));
       msg:='Do you want to keep the configuration file dosbox-x.conf?';
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO) then
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (IsVerySilent() or (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO)) then
         DeleteFile(ExpandConstant('{app}\dosbox-x.conf'));
     end
   end;
@@ -634,7 +639,7 @@ begin
           dir:=dir+'ARM_Release';
         if (PageBuild.Values[3]) then
           dir:=dir+'ARM_Release_SDL2';
-      end
+      end;
     if (PageBuild.Values[4]) then
       dir:=dir+'mingw';
     if (PageBuild.Values[5]) then

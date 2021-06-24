@@ -16,13 +16,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "dosbox.h"
 #include "control.h"
 #include "hardware.h"
+#include "logging.h"
 #include "setup.h"
 #include "support.h"
 #include "mem.h"

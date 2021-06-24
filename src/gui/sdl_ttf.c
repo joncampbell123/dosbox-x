@@ -1064,7 +1064,7 @@ int TTF_SizeText(TTF_Font *font, const char *text, int *w, int *h)
 	int status;
 
 	/* Copy the Latin-1 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1088,7 +1088,7 @@ int TTF_SizeUTF8(TTF_Font *font, const char *text, int *w, int *h)
 	int status;
 
 	/* Copy the UTF-8 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1251,7 +1251,7 @@ SDL_Surface *TTF_RenderText_Solid(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the Latin-1 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1278,7 +1278,7 @@ SDL_Surface *TTF_RenderUTF8_Solid(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the UTF-8 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1510,7 +1510,7 @@ SDL_Surface *TTF_RenderText_Shaded(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the Latin-1 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1537,7 +1537,7 @@ SDL_Surface *TTF_RenderUTF8_Shaded(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the UTF-8 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1787,7 +1787,7 @@ SDL_Surface *TTF_RenderText_Blended(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the Latin-1 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");
@@ -1814,7 +1814,7 @@ SDL_Surface *TTF_RenderUTF8_Blended(TTF_Font *font,
 	int unicode_len;
 
 	/* Copy the UTF-8 text to a UNICODE text buffer */
-	unicode_len = strlen(text);
+	unicode_len = (int)strlen(text);
 	unicode_text = (Uint16 *)ALLOCA((1+unicode_len+1)*(sizeof *unicode_text));
 	if ( unicode_text == NULL ) {
 		TTF_SetError("Out of memory");

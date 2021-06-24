@@ -1001,6 +1001,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\ints\bios_vhd.cpp" />
+    <ClCompile Include="..\src\ints\int_dosv.cpp" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c" />
     <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c" />
@@ -1244,6 +1245,11 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp" />
     <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp" />
     <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave_DOSBoX.cpp" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Board\OPL3.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c" />
     <ClCompile Include="..\src\hardware\sblaster.cpp" />
     <ClCompile Include="..\src\hardware\serialport\directserial.cpp" />
     <ClCompile Include="..\src\hardware\serialport\libserial.cpp" />

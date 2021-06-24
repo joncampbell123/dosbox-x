@@ -22,7 +22,7 @@
 
 #include "dosbox.h"
 #include "cross.h"
-
+#include "logging.h"
 #include "vga.h"
 #include "pic.h"
 #include "paging.h"

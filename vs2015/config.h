@@ -124,6 +124,9 @@
 /* Define to 1 if you have libpng */
 #define C_LIBPNG 1
 
+/* Define to 1 if you have libz */
+#define C_LIBZ 1
+
 /* Define to 1 to enable internal modem support, requires SDL_net */
 #define C_MODEM 1
 

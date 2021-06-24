@@ -33,9 +33,6 @@
 #endif
 #endif
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif

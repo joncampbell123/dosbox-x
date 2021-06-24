@@ -25,8 +25,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+
 #include "programs.h"
 #include "callback.h"
+#include "logging.h"
 #include "regs.h"
 #include "support.h"
 #include "cross.h"
@@ -35,6 +38,7 @@
 #include "hardware.h"
 #include "mapper.h"
 #include "menu.h"
+#include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
 #if defined(WIN32)
@@ -48,8 +52,9 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, lastset;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime;
+extern std::string langname;
+extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -88,7 +93,10 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize();
+void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
+void DOSBOX_UnlockSpeed2( bool pressed );
+bool TTF_using();
+int setTTFCodePage();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -102,7 +110,7 @@ void PROGRAMS_Shutdown(void) {
 	internal_progs.clear();
 }
 
-void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
+void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *dir) {
 	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
 	uint8_t *comdata;
@@ -124,7 +132,7 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
 	ipe->comsize = size;
 	ipe->comdata = comdata;
 	internal_progs.push_back(ipe);
-	VFILE_Register(name,ipe->comdata,ipe->comsize);
+	VFILE_Register(name,ipe->comdata,ipe->comsize,dir);
 }
 
 static Bitu PROGRAMS_Handler(void) {
@@ -515,7 +523,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	return true;
 }
 
-bool MSG_Write(const char *);
+bool MSG_Write(const char *, const char *);
 
 /*! \brief          CONFIG.COM utility to control configuration and files
  *
@@ -562,7 +570,7 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program, bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
 
 void CONFIG::Run(void) {
@@ -571,8 +579,9 @@ void CONFIG::Run(void) {
 		"-l", "-rmconf", "-h", "-help", "-?", "-axclear", "-axadd", "-axtype",
 		"-avistart","-avistop",
 		"-startmapper",
-		"-get", "-set",
-		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+		"-get", "-set", "-setf",
+		"-writelang", "-wl", "-langname", "-ln",
+		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -583,8 +592,8 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_REC_AVI_START, P_REC_AVI_STOP,
 		P_START_MAPPER,
-		P_GETPROP, P_SETPROP,
-		P_WRITELANG, P_WRITELANG2,
+		P_GETPROP, P_SETPROP, P_SETFORCE,
+		P_WRITELANG, P_WRITELANG2, P_LANGNAME, P_LANGNAME2,
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
@@ -622,6 +631,14 @@ void CONFIG::Run(void) {
 			GUI_Run(false);
 			break;
 
+		case P_LANGNAME: case P_LANGNAME2:
+			if (pvars.size() < 1) {
+				WriteOut("%s\n", langname.c_str());
+				return;
+			} else
+				langname=pvars[0];
+			break;
+
 		case P_ERRTEST:
 			exit_status = 1;
 			WriteExitStatus();
@@ -636,6 +653,9 @@ void CONFIG::Run(void) {
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
+			char cwd[512] = {0};
+			char *res = getcwd(cwd,sizeof(cwd)-1);
+			if (res!=NULL) WriteOut(MSG_Get("PROGRAM_CONFIG_WORKDIR"), cwd);
 			if (size==0) WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			else {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_PRIMARY_CONF"),control->configfiles.front().c_str());
@@ -815,7 +835,7 @@ void CONFIG::Run(void) {
 							if (pv[k].ToString() =="%u")
 								propvalues += MSG_Get("PROGRAM_CONFIG_HLP_POSINT");
 							else propvalues += pv[k].ToString();
-							if ((k+1) < pv.size()) propvalues += ", ";
+							if ((k+1) < pv.size() && (strcmp(pvars[0].c_str(), "config") || p->propname != "numlock" || pv[k+1].ToString() != "")) propvalues += ", ";
 						}
 
 						WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_PROPHLP"),
@@ -913,7 +933,7 @@ void CONFIG::Run(void) {
 							p->GetValue().ToString().c_str());
 					}
 					if (!strcasecmp(pvars[0].c_str(), "config")||!strcasecmp(pvars[0].c_str(), "4dos")) {
-						const char * extra = const_cast<char*>(psec->data.c_str());
+						const char * extra = psec->data.c_str();
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
@@ -998,6 +1018,51 @@ void CONFIG::Run(void) {
                             WriteOut("%d\n",rect.bottom-rect.top);
                             first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
+                        } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
+                            const char *hostos =
+#if defined(HX_DOS)
+                            "DOS"
+#elif defined(WIN32)
+                            "Windows"
+#elif defined(LINUX)
+                            "Linux"
+#elif defined(MACOSX)
+                            "macOS"
+#elif defined(OS2)
+                            "OS/2"
+#else
+                            "Other"
+#endif
+                            ;
+                            WriteOut("%s\n",hostos);
+                            first_shell->SetEnv("CONFIG",hostos);
+                        } else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
+                            if (securemode_check()) return;
+                            char cwd[512] = {0};
+                            char *res = getcwd(cwd,sizeof(cwd)-1);
+                            WriteOut("%s\n",res==NULL?"":cwd);
+                            first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
+                        } else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
+                            if (securemode_check()) return;
+                            std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
+                            WriteOut("%s\n",exepath.c_str());
+                            first_shell->SetEnv("CONFIG",exepath.c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
+                            if (securemode_check()) return;
+                            std::string config_path;
+                            Cross::GetPlatformConfigDir(config_path);
+                            WriteOut("%s\n",config_path.c_str());
+                            first_shell->SetEnv("CONFIG",config_path.c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
+                            if (securemode_check()) return;
+                            std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
+                            if (configdir.size()) {
+                                std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
+                                if(pos == std::string::npos) pos = 0;
+                                configdir.erase(pos);
+                            }
+                            WriteOut("%s\n",configdir.c_str());
+                            first_shell->SetEnv("CONFIG",configdir.c_str());
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
@@ -1020,7 +1085,7 @@ void CONFIG::Run(void) {
 				if (val == NO_SUCH_PROPERTY) {
 					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
 						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
-						const char * extra = const_cast<char*>(psec->data.c_str());
+						const char * extra = psec->data.c_str();
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
@@ -1060,7 +1125,7 @@ void CONFIG::Run(void) {
 			}
 			return;
 		}
-		case P_SETPROP:	{
+		case P_SETPROP: case P_SETFORCE:	{
 			// Code for the configuration changes
 			// Official format: config -set "section property=value"
 			// Accepted: with or without -set, 
@@ -1157,6 +1222,11 @@ void CONFIG::Run(void) {
 					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
 				return;
 			}
+			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
+			if ((p==NULL||p->getChange()==Property::Changeable::OnlyAtStart)&&presult!=P_SETFORCE) {
+				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
+				return;
+			}
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
 			// now execute
 			Section* tsec = control->GetSection(pvars[0]);
@@ -1165,10 +1235,9 @@ void CONFIG::Run(void) {
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
 			std::string inputline = pvars[1] + "=" + value;
-			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1203,6 +1272,10 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
@@ -1218,6 +1291,10 @@ void CONFIG::Run(void) {
                                 if (output == "default") output=GetDefaultOutput();
                                 GFX_LosingFocus();
                                 toOutput(output.c_str());
+#if defined(WIN32) && !defined(HX_DOS)
+                                void DOSBox_SetSysMenu(void);
+                                DOSBox_SetSysMenu();
+#endif
                             }
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
@@ -1324,8 +1401,11 @@ void CONFIG::Run(void) {
                             }
 
 #if defined(USE_TTF)
-							resetFontSize();
+							if (TTF_using()) resetFontSize();
 #endif
+						} else if (!strcasecmp(pvars[0].c_str(), "cpu")) {
+							bool turbo = section->Get_bool("turbo");
+                            if (turbo != ticksLocked) DOSBOX_UnlockSpeed2(true);
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							mountwarning = section->Get_bool("mountwarning");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
@@ -1339,34 +1419,50 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								char *ver = (char *)section->Get_string("ver");
+								const char *ver = section->Get_string("ver");
 								if (!*ver) {
 									dos.version.minor=0;
 									dos.version.major=5;
 									dos_ver_menu(false);
-								} else if (set_ver(ver))
+								} else if (set_ver((char *)ver))
 									dos_ver_menu(false);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
 								EMS_DoShutDown();
 								EMS_Startup(NULL);
-                                update_dos_ems_menu();
+								update_dos_ems_menu();
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+                            } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
+                                clipboard_dosapi = section->Get_bool("dos clipboard api");
+                                mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
                             } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
-                                if (section->Get_bool("automountall")) MountAllDrives(this);
-                            } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
-                                clipboard_dosapi = section->Get_bool("dos clipboard api");          
+                                const char *automountstr = section->Get_string("automountall");
+                                if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet"));
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
 								winautorun = section->Get_bool("startcmd");
 								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
 								startwait = section->Get_bool("startwait");
-								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+                                mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                                true
+#else
+                                startcmd
+#endif
+                                ).refresh_item(mainMenu);
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
 								startquiet = section->Get_bool("startquiet");
-								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
+								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                                true
+#else
+                                startcmd
+#endif
+                                ).refresh_item(mainMenu);
 #endif
                             }
 						} else if (!strcasecmp(pvars[0].c_str(), "render")) {
@@ -1374,6 +1470,9 @@ void CONFIG::Run(void) {
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.font=")) {
 #if defined(USE_TTF)
                                 ttf_reset();
+#if C_PRINTER
+                                if (TTF_using() && printfont) UpdateDefaultPrinterFont();
+#endif
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.lins=")||!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.cols=")) {
 #if defined(USE_TTF)
@@ -1385,7 +1484,7 @@ void CONFIG::Run(void) {
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
                                     WriteOut("[2J");
                                 else {
-                                    reg_ax=(uint16_t)CurMode->mode;
+                                    reg_ax=CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);
                                 }
                                 lastset=iscol?2:1;
@@ -1406,11 +1505,77 @@ void CONFIG::Run(void) {
                                 mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
                                 mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
                                 mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
-                                resetFontSize();
+                                mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpbg=")) {
+#if defined(USE_TTF)
+                                wpBG = section->Get_int("ttf.wpbg");
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.wpfg=")) {
+#if defined(USE_TTF)
+                                wpFG = section->Get_int("ttf.wpfg");
+                                if (wpFG<0) wpFG = 7;
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "ttf.bold=")) {
+#if defined(USE_TTF)
+                                showbold = section->Get_bool("ttf.bold");
+                                mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.italic=")) {
+#if defined(USE_TTF)
+                                showital = section->Get_bool("ttf.italic");
+                                mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.underline=")) {
+#if defined(USE_TTF)
+                                showline = section->Get_bool("ttf.underline");
+                                mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.strikeout=")) {
+#if defined(USE_TTF)
+                                showsout = section->Get_bool("ttf.strikeout");
+                                mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "ttf.char512=")) {
+#if defined(USE_TTF)
+                                char512 = section->Get_bool("ttf.char512");
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "ttf.printfont=")) {
+#if defined(USE_TTF) && C_PRINTER
+                                printfont = section->Get_bool("ttf.printfont");
+                                mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
+                                UpdateDefaultPrinterFont();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "ttf.autodbcs=")) {
+#if defined(USE_TTF)
+                                dbcs_sbcs = section->Get_bool("ttf.autodbcs");
+                                mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 16).c_str(), "ttf.autoboxdraw=")) {
+#if defined(USE_TTF)
+                                autoboxdraw = section->Get_bool("ttf.autoboxdraw");
+                                mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 18).c_str(), "ttf.halfwidthkana=")) {
+#if defined(USE_TTF)
+                                halfwidthkana = section->Get_bool("ttf.halfwidthkana");
+                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+                                if (TTF_using()) {setTTFCodePage();resetFontSize();}
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "ttf.blinkc=")) {
 #if defined(USE_TTF)
                                 SetBlinkRate(section);
+                                mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
 #if C_OPENGL
@@ -1432,13 +1597,19 @@ void CONFIG::Run(void) {
 			// Who knows which kind of file we would overwrite.
 			if (securemode_check()) return;
 			if (pvars.size() < 1) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_MISSINGPARAM"));
-				return;
-			}
-			if (!MSG_Write(pvars[0].c_str())) {
+				if (control->opt_lang == "") {
+					WriteOut(MSG_Get("PROGRAM_CONFIG_MISSINGPARAM"));
+					return;
+				} else if (!MSG_Write(control->opt_lang.c_str(), NULL)) {
+					WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),control->opt_lang.c_str());
+					return;
+				} else
+					WriteOut(MSG_Get("PROGRAM_LANGUAGE_FILE_WHICH"),control->opt_lang.c_str());
+			} else if (!MSG_Write(pvars[0].c_str(), NULL)) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),pvars[0].c_str());
 				return;
-			}
+			} else
+				WriteOut(MSG_Get("PROGRAM_LANGUAGE_FILE_WHICH"),pvars[0].c_str());
 			break;
 
 		case P_SECURE:
@@ -1462,7 +1633,7 @@ static void CONFIG_ProgramStart(Program * * make) {
 }
 
 void PROGRAMS_DOS_Boot(Section *) {
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart);
+	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
 }
 
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism
@@ -1480,39 +1651,38 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NOCONFIGFILE","No config file loaded!\n");
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
-	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s user configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");
 	
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
+	MSG_Add("PROGRAM_LANGUAGE_FILE_WHICH","Written to language file %s\n");
 	
 	// help
 	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
+		"-ln (or -langname) Displays (without arguments) or specifies the language name.\n"\
 		"-wcp [filename] Writes file to program directory (dosbox-x.conf or filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
-		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
-		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-all, -mod Use with -wc, -wcp, or -wcd to write ALL or only modified options.\n"\
 		"-wcboot, -wcpboot, or -wcdboot will reboot DOSBox-X after writing the file.\n"\
 		"-bootconf (or -bc) reboots with specified config file (or primary loaded file).\n"\
 		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
-		"-gui Starts DOSBox-X's graphical configuration tool.\n"
-		"-l Lists DOSBox-X configuration parameters.\n"\
-		"-h, -help, -? sections / sectionname / propertyname\n"\
-		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
-		" For info about a specific section or property add its name behind.\n"\
+		"-l Lists DOSBox-X's configuration parameters.\n"\
+		"-h, -help, -? Shows this help; add the word \"sections\" for a list of sections.\n"\
+		"-h, -help, -? section / property Shows info on a specific section or property.\n"\
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-		" disabled as well as the ability to create config and language files.\n"\
-		"-avistart starts AVI recording.\n"\
-		"-avistop stops AVI recording.\n"\
-		"-startmapper starts the keymapper.\n"\
-		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value of the property.\n");
+		"-avistart, -avistop Starts or stops AVI recording.\n"\
+		"-securemode Enables secure mode where features like mounting will be disabled.\n"\
+		"-startmapper Starts the DOSBox-X mapper editor.\n"\
+		"-gui Starts the graphical configuration tool.\n"
+		"-get \"section property\" returns the value of the property (also to %%CONFIG%%).\n"\
+		"-set (-setf for force) \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
@@ -1529,6 +1699,6 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
-	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s");
-	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");
+	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s\n");
+	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.\n");
 }

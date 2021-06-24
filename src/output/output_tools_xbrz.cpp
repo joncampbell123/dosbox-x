@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "sdlmain.h"
 
 using namespace std;

@@ -19,7 +19,6 @@
 
 #ifndef DOSBOX_DMA_H
 #define DOSBOX_DMA_H
-#include <fstream>
 
 enum DMAEvent {
 	DMA_REACHED_TC,

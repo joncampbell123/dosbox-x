@@ -152,6 +152,9 @@ static void DrawVariables(void);
 static void LogDOSKernMem(void);
 static void LogBIOSMem(void);
 
+extern int debuggerrun;
+int debugrunmode=0;
+bool runnormal=false;
 bool inhibit_int_breakpoint=false;
 
 void DEBUG_DrawInput(void) {
@@ -208,7 +211,7 @@ static void LogEMUMem(void) {
 
     DEBUG_ShowMsg("Emulator memory:");
     DEBUG_ShowMsg("A20 gate:                    %s",MEM_A20_Enabled() ? "ON" : "OFF");
-    DEBUG_ShowMsg("CPU address bits:            %u",(unsigned int)MEM_get_address_bits());
+    DEBUG_ShowMsg("CPU address bits:            %u",MEM_get_address_bits());
     DEBUG_ShowMsg("CPU address mask:            0x%lx",((unsigned long)MEM_PageMask() << 12UL) | 0xFFFUL);
     DEBUG_ShowMsg("CPU address mask current:    0x%lx",((unsigned long)MEM_PageMaskActive() << 12UL) | 0xFFFUL);
     DEBUG_ShowMsg("Memory reported size:        %lu bytes",(unsigned long)MEM_TotalPages() << 12UL);
@@ -288,6 +291,10 @@ bool IsDebuggerRunwatch(void) {
     return debug_running;
 }
 
+bool IsDebuggerRunNormal(void) {
+    return runnormal;
+}
+
 static void SetColor(Bitu test) {
 	if (test) {
 		if (has_colors()) { wattrset(dbg.win_reg,COLOR_PAIR(PAIR_BYELLOW_BLACK));}
@@ -357,7 +364,7 @@ static bool F80TestUpdate(int regIndex) {
 #endif
 }
 
-static const uint64_t mem_no_address = (uint64_t)(~0ULL);
+static const uint64_t mem_no_address = (~0ULL);
 
 uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 {
@@ -488,7 +495,7 @@ public:
 	CBreakpoint(void);
 	void					SetAddress		(uint16_t seg, uint32_t off)	{ location = (PhysPt)GetAddress(seg,off); type = BKPNT_PHYSICAL; segment = seg; offset = off; };
 	void					SetAddress		(PhysPt adr)				{ location = adr; type = BKPNT_PHYSICAL; };
-	void					SetInt			(uint8_t _intNr, uint16_t ah, uint16_t al)	{ intNr = _intNr, ahValue = ah; alValue = al; type = BKPNT_INTERRUPT; };
+	void					SetInt			(uint8_t _intNr, uint16_t ah, uint16_t al)	{ intNr = _intNr; ahValue = ah; alValue = al; type = BKPNT_INTERRUPT; };
 	void					SetOnce			(bool _once)				{ once = _once; };
 	void					SetType			(EBreakpoint _type)			{ type = _type; };
 	void					SetValue		(uint8_t value)				{ ahValue = value; };
@@ -542,6 +549,9 @@ private:
 	bool		once;
 
 	static std::list<CBreakpoint*>	BPoints;
+#if C_HEAVY_DEBUG
+	friend bool DEBUG_HeavyIsBreakpoint(void);
+#endif
 };
 
 CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),
@@ -657,12 +667,12 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 	if (BPoints.empty()) return false;
 
 	// Search matching breakpoint
-	std::list<CBreakpoint*>::iterator i;
-	CBreakpoint* bp;
-	for(i=BPoints.begin(); i != BPoints.end(); ++i) {
-		bp = (*i);
-		if ((bp->GetType()==BKPNT_PHYSICAL) && bp->IsActive() && (bp->GetSegment()==seg) && (bp->GetOffset()==off)) {
-			// Found, 
+	for (auto i = BPoints.begin(); i != BPoints.end(); ++i) {
+		CBreakpoint *bp = (*i);
+
+		if ((bp->GetType() == BKPNT_PHYSICAL) && bp->IsActive() &&
+		    (bp->GetLocation() == GetAddress(seg, off))) {
+			// Found
 			if (bp->GetOnce()) {
 				// delete it, if it should only be used once
 				(BPoints.erase)(i);
@@ -678,7 +688,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 				}
 			}
 			return true;
-		} 
+		}
 #if C_HEAVY_DEBUG
 		// Memory breakpoint support
 		else if (bp->IsActive()) {
@@ -962,9 +972,16 @@ static void DrawData(void) {
                 wattrset (dbg.win_data,0);
                 mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
                 if(showPrintable) {
-                    if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-                    mvwprintw (dbg.win_data,y,63+x,"%c",ch);
-                } else mvwaddch(dbg.win_data,y,63+x,ch);
+                    if (ch<32 || !isprint(ch)) ch='.';
+                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+                } else {
+#ifdef __PDCURSES__
+                    mvwaddrawch(dbg.win_data, y, 63 + x, ch);
+#else
+                    if(ch < 32) ch = '.';
+                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+#endif
+                }
 
                 add++;
             }
@@ -981,7 +998,7 @@ static void DrawData(void) {
                         wattrset (dbg.win_data,0);
                         mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
                         if(showPrintable) {
-                            if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                            if (ch<32 || !isprint(ch)) ch='.';
                             mvwprintw (dbg.win_data,y,63+x,"%c",ch);
                         } else mvwaddch(dbg.win_data,y,63+x,ch);
                     }
@@ -1206,7 +1223,7 @@ static void DrawCode(void) {
 		return;
 
 	uint32_t disEIP = codeViewData.useEIP;
-	char dline[200];Bitu size;Bitu c;
+	char dline[200];Bitu size;
 	static char line20[21] = "                    ";
     int w,h;
 
@@ -1266,7 +1283,7 @@ static void DrawCode(void) {
 		if (drawsize>10) { toolarge = true; drawsize = 9; }
  
         if (start != mem_no_address) {
-            for (c=0;c<drawsize;c++) {
+            for (Bitu c=0;c<drawsize;c++) {
                 uint8_t value;
                 if (!mem_readb_checked((PhysPt)(start+c),&value)) {
                     wattrset (dbg.win_code,0);
@@ -1819,7 +1836,8 @@ bool ParseCommand(char* str) {
 
     if (command == "RUN") {
         DrawRegistersUpdateOld();
-        debugging=false;
+        debugging = false;
+        runnormal = true;
 
         logBuffSuppressConsole = false;
         if (logBuffSuppressConsoleNeedUpdate) {
@@ -1840,7 +1858,9 @@ bool ParseCommand(char* str) {
         DEBUG_DrawScreen();
 
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
         return true;
@@ -1848,6 +1868,10 @@ bool ParseCommand(char* str) {
 
     if (command == "RUNWATCH") {
         debug_running = true;
+        runnormal = false;
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
         DEBUG_DrawScreen();
         return true;
     }
@@ -2020,7 +2044,9 @@ bool ParseCommand(char* str) {
 		CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip-1);
 		debugging = false;
 		DrawCode();
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		CPU_HW_Interrupt(intNr);
 		return true;
@@ -2176,7 +2202,7 @@ bool ParseCommand(char* str) {
                 (unsigned long)vga.draw.lines_done,(unsigned long)vga.draw.split_line);
             DEBUG_ShowMsg("byte-pan-shft=%lu render-stop=%lu render-max=%lu scrn-ratio=%.3f",
                 (unsigned long)vga.draw.byte_panning_shift,(unsigned long)vga.draw.render_step,
-                (unsigned long)vga.draw.render_max,(double)vga.draw.screen_ratio);
+                (unsigned long)vga.draw.render_max,vga.draw.screen_ratio);
             DEBUG_ShowMsg("blinking=%lu blink=%u char9dot=%u has-split=%u vret-trig=%u",
                 (unsigned long)vga.draw.blinking,vga.draw.blink?1:0,
                 vga.draw.char9dot?1:0,vga.draw.has_split?1:0,
@@ -2220,13 +2246,13 @@ bool ParseCommand(char* str) {
                 (unsigned int)vga.config.data_rotate,
                 (unsigned int)vga.config.raster_op);
             DEBUG_ShowMsg("fbmsk=%x fmmsk=%x fnmmsk=%x fsr=%x fnesr=%x fesr=%x feasr=%x",
-                (unsigned int)vga.config.full_bit_mask,
-                (unsigned int)vga.config.full_map_mask,
-                (unsigned int)vga.config.full_not_map_mask,
-                (unsigned int)vga.config.full_set_reset,
-                (unsigned int)vga.config.full_not_enable_set_reset,
-                (unsigned int)vga.config.full_enable_set_reset,
-                (unsigned int)vga.config.full_enable_and_set_reset);
+                vga.config.full_bit_mask,
+                vga.config.full_map_mask,
+                vga.config.full_not_map_mask,
+                vga.config.full_set_reset,
+                vga.config.full_not_enable_set_reset,
+                vga.config.full_enable_set_reset,
+                vga.config.full_enable_and_set_reset);
         }
         else {
             return false;
@@ -2532,7 +2558,7 @@ bool ParseCommand(char* str) {
 
     if (command == "OUTD") {
         uint16_t port = (uint16_t)GetHexValue(found,found);
-        uint32_t r = (uint32_t)GetHexValue(found,found);
+        uint32_t r = GetHexValue(found,found);
         IO_WriteD(port,r);
         return true;
     }
@@ -2918,6 +2944,19 @@ void win_code_ui_up(int count) {
 extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 #endif
 
+int32_t DEBUG_Run(int32_t amount,bool quickexit) {
+	skipFirstInstruction = true;
+	CPU_Cycles = amount;
+	int32_t ret = (int32_t)(*cpudecoder)();
+	if (quickexit) SetCodeWinStart();
+	else {
+		// ensure all breakpoints are activated
+		CBreakpoint::ActivateBreakpoints();
+		DOSBOX_SetNormalLoop();
+	}
+	return ret;
+}
+
 uint32_t DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	bool numberrun = false;
@@ -2949,14 +2988,10 @@ uint32_t DEBUG_CheckKeys(void) {
         return 0;
     }
 	
-	if (key >='1' && key <='5' && strlen(codeViewData.inputStr) == 0) {
-		const int32_t v[] ={5,500,1000,5000,10000};
-		CPU_Cycles= v[key - '1'];
+	if (key >='0' && key <='5' && strlen(codeViewData.inputStr) == 0) {
+		const int32_t v[] ={1,5,500,1000,5000,10000};
 
-		skipFirstInstruction = true;
-
-		ret = (*cpudecoder)();
-		SetCodeWinStart();
+		ret = DEBUG_Run(v[key - '0'],true);
 
 		/* Setup variables so we end up at the proper ret processing */
 		numberrun = true;
@@ -2976,6 +3011,16 @@ uint32_t DEBUG_CheckKeys(void) {
 		case PADSTAR:	key='*';	break;
 		case PADMINUS:	key='-';	break;
 		case PADPLUS:	key='+';	break;
+		case PADSTOP:	key=KEY_DC;		break;
+		case PAD0:		key=KEY_IC;		break;
+		case KEY_A1:	key=KEY_HOME;	break;
+		case KEY_A2:	key=KEY_UP;		break;
+		case KEY_A3:	key=KEY_PPAGE;	break;
+		case KEY_B1:	key=KEY_LEFT;	break;
+		case KEY_B3:	key=KEY_RIGHT;	break;
+		case KEY_C1:	key=KEY_END;	break;
+		case KEY_C2:	key=KEY_DOWN;	break;
+		case KEY_C3:	key=KEY_NPAGE;	break;
 		case ALT_D:
 			if (ungetch('D') != ERR) key=27;
 			break;
@@ -3189,25 +3234,16 @@ uint32_t DEBUG_CheckKeys(void) {
 
                 Bits DEBUG_NullCPUCore(void);
 
-				CPU_Cycles = 1;
                 inhibit_int_breakpoint = true;
-                if (cpudecoder == DEBUG_NullCPUCore)
+				ret = DEBUG_Run(1,false);
+                if(cpudecoder == DEBUG_NullCPUCore)
                     ret = -1; /* DEBUG_Loop() must exit */
-                else
-                    ret = (*cpudecoder)();
-
                 inhibit_int_breakpoint = false;
-                mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
-
-				skipFirstInstruction = true; // for heavy debugger
-				CPU_Cycles = 1;
-
-				// ensure all breakpoints are activated
-				CBreakpoint::ActivateBreakpoints();
+                mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+                mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+                mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
 				skipDraw = true; // don't update screen after this instruction
-
-				DOSBOX_SetNormalLoop();
 				break;
 		case KEY_F(8):	// Toggle printable characters
 				showPrintable = !showPrintable;
@@ -3229,30 +3265,20 @@ uint32_t DEBUG_CheckKeys(void) {
 				if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
-                    skipFirstInstruction = true; // for heavy debugger
-					CPU_Cycles = 1;
-					ret=(*cpudecoder)();
+					ret = DEBUG_Run(1,false);
                     inhibit_int_breakpoint = false;
 					mustCompleteInstruction = false;
-
-					DOSBOX_SetNormalLoop();
-
-					// ensure all breakpoints are activated
-					CBreakpoint::ActivateBreakpoints();
 					skipDraw = true;
 					break;
 				}
 				// If we aren't stepping over something, do a normal step.
-				// NB: Fall-through
+				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
                 DrawRegistersUpdateOld();
 				exitLoop = false;
-				skipFirstInstruction = true; // for heavy debugger
 				mustCompleteInstruction = true;
-				CPU_Cycles = 1;
-				ret = (*cpudecoder)();
+				ret = DEBUG_Run(1,true);
 				mustCompleteInstruction = false;
-				SetCodeWinStart();
 				break;
         case 0x09: //TAB
                 void DBGUI_NextWindow(void);
@@ -3264,7 +3290,7 @@ uint32_t DEBUG_CheckKeys(void) {
                     if(ParseCommand(codeViewData.inputStr)) {
                         char* cmd = ltrim(codeViewData.inputStr);
                         if (histBuff.empty() || *--histBuff.end()!=cmd)
-                            histBuff.push_back(cmd);
+                            histBuff.emplace_back(cmd);
                         if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
                         histBuffPos = histBuff.end();
                         ClearInputLine();
@@ -3383,7 +3409,9 @@ Bitu DEBUG_Loop(void) {
                 DEBUG_RefreshPage(0);
             }
 
-			mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+            mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
             DOSBOX_SetNormalLoop();
             DrawRegistersUpdateOld();
             return 0;
@@ -3421,17 +3449,29 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
+bool tohide=true;
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed || control->opt_display2)
 		return;
 
-#if defined(WIN32)
     if (hidedebugger) {
-        ShowWindow(GetConsoleWindow(), SW_SHOW);
         hidedebugger=false;
-    }
+#if defined(WIN32)
+        ShowWindow(GetConsoleWindow(), SW_SHOW);
 #endif
+    } else if (tohide && (runnormal||debug_running||debugging)) {
+        hidedebugger=true;
+#if defined(WIN32)
+        ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
+        debugrunmode=debuggerrun;
+        mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_rundebug").check(debugrunmode==0).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runnormal").check(debugrunmode==1).refresh_item(mainMenu);
+        mainMenu.get_item("debugger_runwatch").check(debugrunmode==2).refresh_item(mainMenu);
+        if (runnormal) return;
+    }
 
     /* this command is now a toggle! */
     /* However this should break back into the debugger if RUNWATCH is active */
@@ -3440,16 +3480,11 @@ void DEBUG_Enable_Handler(bool pressed) {
         DrawRegistersUpdateOld();
         SetCodeWinStart();
         DEBUG_DrawScreen();
-        return;
+        if (tohide&&!debugging) return;
     }
-    else if (debugging) {
+    if (debugging) {
         DrawRegistersUpdateOld();
         debugging=false;
-#if defined(WIN32)
-        hidedebugger=true;
-        ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
-
         logBuffSuppressConsole = false;
         if (logBuffSuppressConsoleNeedUpdate) {
             logBuffSuppressConsoleNeedUpdate = false;
@@ -3460,10 +3495,9 @@ void DEBUG_Enable_Handler(bool pressed) {
         DEBUG_DrawScreen();
 
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
-        return;
+        if (tohide) return;
     }
 
 	static bool showhelp=false;
@@ -3495,7 +3529,7 @@ void DEBUG_Enable_Handler(bool pressed) {
     LoopHandler *ol = DOSBOX_GetLoop();
     if (ol != DEBUG_Loop) old_loop = ol;
 
-	debugging=true;
+    debugging=true;
     debug_running=false;
     check_rescroll=true;
     DrawRegistersUpdateOld();
@@ -3505,12 +3539,15 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-	if(!showhelp) { 
+	if (!showhelp) {
 		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
 	KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
+    runnormal = false;
+    if (debugrunmode==1) ParseCommand("RUN");
+    else if (debugrunmode==2) ParseCommand("RUNWATCH");
 }
 
 void DEBUG_DrawScreen(void) {
@@ -3707,11 +3744,13 @@ static void LogXMS(void) {
     DEBUG_ShowMsg("Handle Status Location Size (bytes)");
     for (Bitu h = 1; h < XMS_GetTotalHandles(); h++) {
         if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free, h)) {
-            DEBUG_ShowMsg("%6lu %s 0x%08lx %lu",
-                (unsigned long)h,
-                free ? "FREE " : "ALLOC ",
-                (unsigned long)phys_location,
-                (unsigned long)size << 10UL); /* KB -> bytes */
+            if (!free || phys_location != 0 || size != 0) {
+                DEBUG_ShowMsg("%6lu %s 0x%08lx %lu",
+                        (unsigned long)h,
+                        free ? "FREE " : "ALLOC ",
+                        (unsigned long)phys_location,
+                        (unsigned long)size << 10UL); /* KB -> bytes */
+            }
         }
     }
 
@@ -3859,12 +3898,12 @@ void LogPages(char* selname) {
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
 			for (unsigned int i=0; i<0xfffff; i++) {
-				Bitu table_addr=((Bitu)paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
+				Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
 				X86PageEntry table;
 				table.load=phys_readd((PhysPt)table_addr);
 				if (table.block.p) {
 					X86PageEntry entry;
-                    PhysPt entry_addr=((PhysPt)table.block.base<<12u)+(i & 0x3ffu)* 4u;
+                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
 					entry.load=phys_readd(entry_addr);
 					if (entry.block.p) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
@@ -3915,7 +3954,7 @@ const char *FPU_tag(unsigned int i) {
 static void LogFPUInfo(void) {
     DEBUG_BeginPagedContent();
 
-    DEBUG_ShowMsg("FPU TOP=%u",(unsigned int)fpu.top);
+    DEBUG_ShowMsg("FPU TOP=%u",fpu.top);
 
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
@@ -4212,14 +4251,16 @@ void DEBUG_Init() {
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
 	/* Add some keyhandlers */
+	MAPPER_AddHandler(DEBUG_Enable_Handler,
 	#if defined(MACOSX)
-		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
+		// MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
 		// which is not easy to input on a modern mac laptop
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_f12,MMOD2,"debugger","Show debugger", &item);
+		MK_f12
 	#else
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Show debugger",&item);
+		MK_pause
 	#endif
-	item->set_text("Show debugger");
+        ,MMOD2,"debugger","Show debugger",&item);
+	item->set_text("Start DOSBox-X Debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
@@ -4256,7 +4297,7 @@ void CDebugVar::DeleteAll(void)
 {
 	std::vector<CDebugVar*>::iterator i;
 	for(i=varList.begin(); i != varList.end(); ++i) {
-		CDebugVar* bp = static_cast<CDebugVar*>(*i);
+		CDebugVar* bp = *i;
 		delete bp;
 	}
 	(varList.clear)();
@@ -4268,7 +4309,7 @@ CDebugVar* CDebugVar::FindVar(PhysPt pt)
 
 	std::vector<CDebugVar*>::size_type s = varList.size();
 	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
-		CDebugVar* bp = static_cast<CDebugVar*>(varList[i]);
+		CDebugVar* bp = varList[i];
 		if (bp->GetAdr() == pt) return bp;
 	}
 	return 0;
@@ -4287,7 +4328,7 @@ bool CDebugVar::SaveVars(char* name) {
 	std::vector<CDebugVar*>::iterator i;
 	CDebugVar* bp;
 	for(i=varList.begin(); i != varList.end(); ++i) {
-		bp = static_cast<CDebugVar*>(*i);
+		bp = *i;
 		// name
 		fwrite(bp->GetName(),1,16,f);
 		// adr
@@ -4408,7 +4449,7 @@ static void DrawVariables(void) {
 			break;
 		}
 
-		CDebugVar *dv = static_cast<CDebugVar*>(CDebugVar::varList[i]);
+		CDebugVar *dv = CDebugVar::varList[i];
 		uint16_t value;
 		bool varchanges = false;
 		bool has_no_value = mem_readw_checked(dv->GetAdr(),&value);
@@ -4596,7 +4637,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		skipFirstInstruction = false;
 		return false;
 	}
-	if (CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
+	if (!CBreakpoint::BPoints.empty() && CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
 		return true;
 	}
 	return false;

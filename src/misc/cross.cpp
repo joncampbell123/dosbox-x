@@ -20,11 +20,13 @@
 #include "dosbox.h"
 #include "cross.h"
 #include "support.h"
+#include "dos_inc.h"
 #include <string>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <regex>
 
 #if defined(MACOSX)
 std::string MacOSXEXEPath;
@@ -47,17 +49,37 @@ std::string MacOSXResPath;
 #define _mkdir(x) mkdir(x)
 #endif
 
+int resolveopt = 1;
+void autoExpandEnvironmentVariables(std::string & text, bool dosvar) {
+    static std::regex env(dosvar?"\\%([^%]+)%":"\\$\\{([^}]+)\\}");
+    std::smatch match;
+    while (std::regex_search(text, match, env)) {
+        const char * s = getenv(match[1].str().c_str());
+        const std::string var(s == NULL ? "" : s);
+        text.replace(match[0].first, match[0].second, var);
+    }
+}
+
+// Resolve environment variables (%VAR% [DOS/Windows] or ${VAR} [Linux/macOS]), and tilde (~) in Linux/macOS
 void ResolvePath(std::string& in) {
+    if (!resolveopt) return;
 #if defined(WIN32)
+    if (resolveopt==3) return;
+    if (resolveopt==2) {autoExpandEnvironmentVariables(in, true);return;}
     char path[300],temp[300],*tempd=temp;
     strcpy(tempd, in.c_str());
     if (strchr(tempd, '%')&&ExpandEnvironmentStrings(tempd,path,300))
         tempd=path;
     in=std::string(tempd);
+#elif defined(OS2)
+    if (resolveopt==3) return;
+    autoExpandEnvironmentVariables(in, true);
 #else
     struct stat test;
     if (stat(in.c_str(),&test))
         Cross::ResolveHomedir(in);
+    if (resolveopt==3) return;
+    autoExpandEnvironmentVariables(in, resolveopt==2);
 #endif
 }
 
@@ -204,6 +226,7 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 #if defined (WIN32)
 typedef wchar_t host_cnv_char_t;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
+extern bool isDBCSCP();
 
 /* does the filename fit the 8.3 format? */
 static bool is_filename_8by3w(const wchar_t* fname) {
@@ -214,7 +237,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     i=0;
     while (*fname != 0 && *fname != L'.') {
 		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++; 
 	}
     if (i > 8) return false;
@@ -225,7 +248,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     i=0;
     while (*fname != 0 && *fname != L'.') {
 		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++;
 	}
     if (i > 3) return false;

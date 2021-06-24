@@ -26,6 +26,7 @@
 //#define SPKR_DEBUGGING
 #include <math.h>
 #include "dosbox.h"
+#include "logging.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
@@ -706,7 +707,7 @@ public:
 	PCSPEAKER(Section* configuration):Module_base(configuration){
 		spkr.chan=0;
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("pcspeaker")) return;
+		if(!section->Get_bool("pcspeaker")||control->opt_silent) return;
 		spkr.pit_output_enabled = 0;
 		spkr.pit_clock_gate_enabled = 0;
 		spkr.pit_mode1_waiting_for_trigger = 1;

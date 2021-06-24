@@ -33,6 +33,7 @@
 #include "support.h"
 #include "control.h"
 #include "zipfile.h"
+#include "logging.h"
 
 /* dynamic core, policy, method, and flags.
  * We're going to make dynamic core more flexible, AND make sure
@@ -61,6 +62,8 @@ public:
 # define LOG(X,Y) CPU_LOG
 # define CPU_LOG(...)
 # endif
+
+bool lmsw_allow_clear_pe_bit = false;
 
 bool enable_weitek = false;
 
@@ -413,11 +416,11 @@ void menu_update_core(void) {
 void menu_update_autocycle(void) {
     DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
     if (CPU_CycleAutoAdjust)
-        item.set_text("Auto cycles [max]");
+        item.set_text(MSG_Get("AUTO_CYCLE_MAX"));
     else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)
-        item.set_text("Auto cycles [auto]");
+        item.set_text(MSG_Get("AUTO_CYCLE_AUTO"));
     else
-        item.set_text("Auto cycles [off]");
+        item.set_text(MSG_Get("AUTO_CYCLE_OFF"));
 
     item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
     item.refresh_item(mainMenu);
@@ -1019,7 +1022,7 @@ doexception:
 
 void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
   cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
-  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,oldeip);
+  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,(uint32_t)oldeip);
 }
 
 #include <stack>
@@ -2397,12 +2400,16 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 #if (C_DYNREC)
 				if (GetDynamicType()==2 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dynrec_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dynrec_Run;
+                    mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 				}
 #endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
@@ -2561,7 +2568,7 @@ Bitu CPU_SMSW(void) {
 bool CPU_LMSW(Bitu word) {
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	word&=0xf;
-	if (cpu.cr0 & 1) word|=1; 
+	if ((cpu.cr0&1/*PE bit*/) && !lmsw_allow_clear_pe_bit) word|=1/*PE bit, stuck on, cannot exit protected mode, 286 style*/;
 	word|=(cpu.cr0&0xfffffff0);
 	CPU_SET_CRX(0,word);
 	return false;
@@ -3275,7 +3282,7 @@ public:
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: imple core",&item);
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: simple core",&item);
 		item->set_text("Simple core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
 		item->set_text("Full core");
@@ -3461,6 +3468,10 @@ public:
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
+            mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+            mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
 #if (C_DYNAMIC_X86)
 		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
@@ -3690,6 +3701,37 @@ public:
             LOG_MSG("CPU change requires guest system reboot");
             throw int(3);
         }
+
+		const char *lmsw_allow_pe_clear = section->Get_string("allow lmsw to exit protected mode");
+		if (!strcmp(lmsw_allow_pe_clear,"true") || !strcmp(lmsw_allow_pe_clear,"1")) {
+			lmsw_allow_clear_pe_bit = true;
+		}
+		else if (!strcmp(lmsw_allow_pe_clear,"false") || !strcmp(lmsw_allow_pe_clear,"0")) {
+			lmsw_allow_clear_pe_bit = false;
+		}
+		else {
+			/* auto */
+			/* This is not yet fully confirmed, but Intel 386 programming guides suggest that the 386
+			 * does not allow LMSW to clear PE, while the 486DX documentation does not mention it at all,
+			 * therefore the guess here is that sometime around the 486/Pentium era it became possible to
+			 * exit protected mode with LMSW. The reason for this guess is a music unpacker file from
+			 * scene.org, MMCMP.EXE / MMUNCMP.EXE, which appears to use LMSW and SMSW to save the machine
+			 * status word, jump into protected mode briefly, load FS and GS with 4GB limits, then use
+			 * LMSW to restore the original machine status word (to return to real mode). Since LMSW is
+			 * a privileged instruction, the code is written to skip that protected mode jump if the PE
+			 * bit is already set. However, if LMSW is not supposed to let you clear the PE bit, then
+			 * how is code like that supposed to work? Did the programmer write it on non-Intel hardware?
+			 * Did Intel drop the set-only PE behavior during the 486 era? Perhaps the programmer and
+			 * his userbase only ever used it in cases where EMM386.EXE or Windows was running, and there
+			 * fore under virtual 8086 mode where the code to do that was skipped? */
+			/* In any case, the assumption here is that if the target CPU is a 486 or higher, LMSW can
+			 * clear the PE bit. There is a ticket open in DOSLIB with a task to write a program that
+			 * can verify this behavior on real hardware. */
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) /* maybe the original 486 retained the behavior? */
+				lmsw_allow_clear_pe_bit = true;
+			else
+				lmsw_allow_clear_pe_bit = false;
+		}
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);

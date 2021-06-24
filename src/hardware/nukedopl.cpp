@@ -471,7 +471,7 @@ static void OPL3_EnvelopeCalc(opl3_slot *slot)
         }
         else if (slot->key && shift > 0 && rate_hi != 0x0f)
         {
-            eg_inc = ((~slot->eg_rout) << shift) >> 4;
+            eg_inc = ~slot->eg_rout >> (4 - shift);
         }
         break;
     case envelope_gen_num_decay:

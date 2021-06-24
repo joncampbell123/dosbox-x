@@ -16,6 +16,12 @@ echo Sorry, cannot identify Linux distro
 exit 1
 fi
 
+if [ ! -x /usr/bin/rpmbuild ]; then
+echo "Could not locate /usr/bin/rpmbuild"
+echo "Please install rpm-build package to continue."
+exit 1
+fi
+
 echo "Making RPM for $dist"
 
 dir="release/linux-$dist"

@@ -34,7 +34,208 @@
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
-extern char * dos_clipboard_device_name;
+extern const char * dos_clipboard_device_name;
+
+struct ExtDeviceData {
+	uint16_t attribute;
+	uint16_t segment;
+	uint16_t strategy;
+	uint16_t interrupt;
+};
+
+class DOS_ExtDevice : public DOS_Device {
+public:
+	DOS_ExtDevice(const char *name, uint16_t seg, uint16_t off) {
+		SetName(name);
+		ext.attribute = real_readw(seg, off + 4);
+		ext.segment = seg;
+		ext.strategy = real_readw(seg, off + 6);
+		ext.interrupt = real_readw(seg, off + 8);
+	}
+	virtual bool	Read(uint8_t * data,uint16_t * size);
+	virtual bool	Write(const uint8_t * data,uint16_t * size);
+	virtual bool	Seek(uint32_t * pos,uint32_t type);
+	virtual bool	Close();
+	virtual uint16_t	GetInformation(void);
+	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual uint8_t	GetStatus(bool input_flag);
+	bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
+private:
+	struct ExtDeviceData ext;
+
+	uint16_t CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size);
+};
+
+bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off) {
+	if(seg == ext.segment && s_off == ext.strategy && i_off == ext.interrupt) {
+		return true;
+	}
+	return false;
+}
+
+uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size) {
+	uint16_t oldbx = reg_bx;
+	uint16_t oldes = SegValue(es);
+
+	real_writeb(dos.dcp, 0, length);
+	real_writeb(dos.dcp, 1, 0);
+	real_writeb(dos.dcp, 2, command);
+	real_writew(dos.dcp, 3, 0);
+	real_writed(dos.dcp, 5, 0);
+	real_writed(dos.dcp, 9, 0);
+	real_writeb(dos.dcp, 13, 0);
+	real_writew(dos.dcp, 14, (uint16_t)(bufptr & 0x000f));
+	real_writew(dos.dcp, 16, (uint16_t)(bufptr >> 4));
+	real_writew(dos.dcp, 18, size);
+
+	reg_bx = 0;
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(ext.segment, ext.strategy);
+	CALLBACK_RunRealFar(ext.segment, ext.interrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+
+	return real_readw(dos.dcp, 3);
+}
+
+bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
+	if(ext.attribute & 0x4000) {
+		// IOCTL INPUT
+		if((CallDeviceFunction(3, 26, bufptr, size) & 0x8000) == 0) {
+			*retcode = real_readw(dos.dcp, 18);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+	if(ext.attribute & 0x4000) {
+		// IOCTL OUTPUT
+		if((CallDeviceFunction(12, 26, bufptr, size) & 0x8000) == 0) {
+			*retcode = real_readw(dos.dcp, 18);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
+	PhysPt bufptr = (dos.dcp << 4) | 32;
+	for(uint16_t no = 0 ; no < *size ; no++) {
+		// INPUT
+		if((CallDeviceFunction(4, 26, bufptr, 1) & 0x8000)) {
+			return false;
+		} else {
+			if(real_readw(dos.dcp, 18) != 1) {
+				return false;
+			}
+			*data++ = mem_readb(bufptr);
+		}
+	}
+	return true;
+}
+
+bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
+	PhysPt bufptr = (dos.dcp << 4) | 32;
+	for(uint16_t no = 0 ; no < *size ; no++) {
+		mem_writeb(bufptr, *data);
+		// OUTPUT
+		if((CallDeviceFunction(8, 26, bufptr, 1) & 0x8000)) {
+			return false;
+		} else {
+			if(real_readw(dos.dcp, 18) != 1) {
+				return false;
+			}
+		}
+		data++;
+	}
+	return true;
+}
+
+bool DOS_ExtDevice::Close() {
+	return true;
+}
+
+bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
+	return true;
+}
+
+uint16_t DOS_ExtDevice::GetInformation(void) {
+	// bit9=1 .. ExtDevice
+	return (ext.attribute & 0xc07f) | 0x0080 | EXT_DEVICE_BIT;
+}
+
+uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
+	uint16_t status;
+	if(input_flag) {
+		// NON-DESTRUCTIVE INPUT NO WAIT
+		status = CallDeviceFunction(5, 14, 0, 0);
+	} else {
+		// OUTPUT STATUS
+		status = CallDeviceFunction(10, 13, 0, 0);
+	}
+	// check NO ERROR & BUSY
+	if((status & 0x8200) == 0) {
+		return 0xff;
+	}
+	return 0x00;
+}
+
+uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
+	uint32_t addr = dos_infoblock.GetDeviceChain();
+	uint16_t seg, off;
+	uint16_t next_seg, next_off;
+	uint16_t no;
+	char devname[8 + 1];
+
+	seg = addr >> 16;
+	off = addr & 0xffff;
+	while(1) {
+		no = real_readw(seg, off + 4);
+		next_seg = real_readw(seg, off + 2);
+		next_off = real_readw(seg, off);
+		if(next_seg == 0xffff && next_off == 0xffff) {
+			break;
+		}
+		if(no & 0x8000) {
+			for(no = 0 ; no < 8 ; no++) {
+				if((devname[no] = real_readb(seg, off + 10 + no)) <= 0x20) {
+					devname[no] = 0;
+					break;
+				}
+			}
+			devname[8] = 0;
+			if(!strcmp(name, devname)) {
+				if(already_flag) {
+					for(no = 0 ; no < DOS_DEVICES ; no++) {
+						if(Devices[no]) {
+							if(Devices[no]->GetInformation() & EXT_DEVICE_BIT) {
+								if(((DOS_ExtDevice *)Devices[no])->CheckSameDevice(seg, real_readw(seg, off + 6), real_readw(seg, off + 8))) {
+									return 0;
+								}
+							}
+						}
+					}
+				}
+				return (uint32_t)seg << 16 | (uint32_t)off;
+			}
+		}
+		seg = next_seg;
+		off = next_off;
+	}
+	return 0;
+}
+
+static void DOS_CheckOpenExtDevice(const char *name) {
+	uint32_t addr;
+
+	if((addr = DOS_CheckExtDevice(name, true)) != 0) {
+		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
+		DOS_AddDevice(device);
+	}
+}
 
 class device_NUL : public DOS_Device {
 public:
@@ -136,19 +337,55 @@ uint16_t cpMap[512] = { // Codepage is standard 437
 	0x0111, 0x0110, 0x0127, 0x0126, 0x0167, 0x0166, 0x0142, 0x0141, 0x0140, 0x013f, 0x00fe, 0x00de, 0x014a, 0x014b, 0x0149, 0x0000
 };
 
+uint16_t cpMap_PC98[256] = {
+//  0       1       2       3       4       5       6       7
+    0x0020, 0x2401, 0x2402, 0x2403, 0x2404, 0x2405, 0x2406, 0x2407,                 // 0x00-0x07   Except NUL, control chars have small letters spelling out the ASCII control code
+    0x2408, 0x2409, 0x240A, 0x240B, 0x240C, 0x240D, 0x240E, 0x240F,                 // 0x08-0x0F   i.e. CR is ␍. The mapping here does not EXACTLY render as it does on real hardware.
+    0x2410, 0x2411, 0x2412, 0x2413, 0x2414, 0x2415, 0x2416, 0x2417,                 // 0x10-0x17
+    0x2418, 0x2419, 0x241A, 0x241B, 0x2192, 0x2190, 0x2191, 0x2193,                 // 0x18-0x1F   The last 4 are single-wide arrows
+    0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,                 // 0x20-0x27
+    0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,                 // 0x28-0x2F
+    0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,                 // 0x30-0x37
+    0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,                 // 0x38-0x3F
+    0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,                 // 0x40-0x47
+    0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,                 // 0x48-0x4F
+    0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,                 // 0x50-0x57
+    0x0058, 0x0059, 0x005A, 0x005B, 0x00A5, 0x005D, 0x005E, 0x005F,                 // 0x58-0x5F   0x5C = Yen
+    0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,                 // 0x60-0x67
+    0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,                 // 0x68-0x6F
+    0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,                 // 0x70-0x77
+    0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x0020,                 // 0x78-0x7F   0x7F = Does not display as anything
+    0x2581, 0x2582, 0x2583, 0x2584, 0x2585, 0x2586, 0x2587, 0x2588,                 // 0x80-0x87   Block characters, vertical 1/8 to 8/8
+    0x258F, 0x258E, 0x258D, 0x258C, 0x258B, 0x258A, 0x2589, 0x253C,                 // 0x88-0x8F   Block characters, horizontal 1/8 to 7/8
+    0x2534, 0x252C, 0x2524, 0x251C, 0x0020, 0x2500, 0x2502, 0x2595,                 // 0x90-0x97
+    0x250C, 0x2510, 0x2514, 0x2518, 0x256D, 0x256E, 0x2570, 0x256F,                 // 0x98-0x9F
+    0x0020, 0xFF61, 0xFF62, 0xFF63, 0xFF64, 0xFF65, 0xFF66, 0xFF67,                 // 0xA0-0xA7   0xA0 = Nothing. 0xA1-0xDF = Single-wide Katakana
+    0xFF68, 0xFF69, 0xFF6A, 0xFF6B, 0xFF6C, 0xFF6D, 0xFF6E, 0xFF6F,                 // 0xA8-0xAF
+    0xFF70, 0xFF71, 0xFF72, 0xFF73, 0xFF74, 0xFF75, 0xFF76, 0xFF77,                 // 0xB0-0xB7
+    0xFF78, 0xFF79, 0xFF7A, 0xFF7B, 0xFF7C, 0xFF7D, 0xFF7E, 0xFF7F,                 // 0xB8-0xBF
+    0xFF80, 0xFF81, 0xFF82, 0xFF83, 0xFF84, 0xFF85, 0xFF86, 0xFF87,                 // 0xC0-0xC7
+    0xFF88, 0xFF89, 0xFF8A, 0xFF8B, 0xFF8C, 0xFF8D, 0xFF8E, 0xFF8F,                 // 0xC8-0xCF
+    0xFF90, 0xFF91, 0xFF92, 0xFF93, 0xFF94, 0xFF95, 0xFF96, 0xFF97,                 // 0xD0-0xD7
+    0xFF98, 0xFF99, 0xFF9A, 0xFF9B, 0xFF9C, 0xFF9D, 0xFF9E, 0xFF9F,                 // 0xD8-0xDF
+    0x2550, 0x255E, 0x256A, 0x2561, 0x0020, 0x0020, 0x0020, 0x0020,                 // 0xE0-0xE7   FIXME: E0h-E3h is an approximation. Find Unicode approx. for E4h-E7h
+    0x2660, 0x2665, 0x2666, 0x2663, 0x25CF, 0x25CB, 0x2571, 0x2572,                 // 0xE8-0xEF
+    0x2573, 0x0020, 0x5E74, 0x6708, 0x65E5, 0x0020, 0x5206, 0x0020,                 // 0xF0-0xF7   FIXME: What is F1h, F5h, F7h?
+    0x0020, 0x0020, 0x0020, 0x0020, 0x005C, 0x0020, 0x0020, 0x0020                  // 0xF8-0xFF   0xFC = Backslash
+};
+
 bool lastwrite = false;
 uint8_t *clipAscii = NULL;
 uint32_t clipSize = 0, cPointer = 0, fPointer;
 
 #if defined(WIN32)
 void Unicode2Ascii(const uint16_t* unicode) {
-	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
+	int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
 		return;
 	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
 		return;
 	// Untranslated characters will be set to 0x07 (BEL), and later stripped
-	if (WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
+	if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
 		{																			// Can't actually happen of course
 		free(clipAscii);
 		clipAscii = NULL;
@@ -191,7 +428,8 @@ bool getClipboard() {
     unsigned int extra = 0;
     unsigned char head, last=13;
     for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-	if (clipAscii = (uint8_t *)malloc(strPasteBuffer.length()+extra))
+    clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
+    if (clipAscii)
         while (strPasteBuffer.length()) {
             head = strPasteBuffer[0];
             if (head == 10 && last != 13) clipAscii[clipSize++] = 13;
@@ -440,15 +678,15 @@ bool DOS_Device::Close() {
 	return Devices[devnum]->Close();
 }
 
-uint16_t DOS_Device::GetInformation(void) { 
+uint16_t DOS_Device::GetInformation(void) {
 	return Devices[devnum]->GetInformation();
 }
 
-bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	return Devices[devnum]->ReadFromControlChannel(bufptr,size,retcode);
 }
 
-bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
@@ -569,6 +807,32 @@ bool ANSI_SYS_installed() {
         return DOS_CON->ANSI_SYS_installed();
 
     return false;
+}
+
+void DOS_ClearKeyMap()
+{
+	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
+		if(Devices[i]) {
+			if(Devices[i]->IsName("CON")) {
+				device_CON *con = (device_CON *)Devices[i];
+				con->ClearKeyMap();
+				break;
+			}
+		}
+	}
+}
+
+void DOS_SetConKey(uint16_t src, uint16_t dst)
+{
+	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
+		if(Devices[i]) {
+			if(Devices[i]->IsName("CON")) {
+				device_CON *con = (device_CON *)Devices[i];
+				con->SetKeyMap(src, dst);
+				break;
+			}
+		}
+	}
 }
 
 void DOS_SetupDevices(void) {

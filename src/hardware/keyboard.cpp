@@ -16,9 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 #include "dosbox.h"
 #include "keyboard.h"
+#include "logging.h"
 #include "support.h"
 #include "setup.h"
 #include "inout.h"
@@ -31,6 +33,7 @@
 #include "timer.h"
 #include <math.h>
 #include "8255.h"
+#include "jfont.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -1584,6 +1587,25 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_lwindows:extend=true;ret=0x5B;break;
     case KBD_rwindows:extend=true;ret=0x5C;break;
     case KBD_rwinmenu:extend=true;ret=0x5D;break;
+	case KBD_underscore:ret = 86; break;//for AX layout
+	case KBD_yen:ret = 43; break;//for AX layout
+	case KBD_conv:ret = (INT16_AX_GetKBDBIOSMode() == 0x51)? 0x5b: 57; break;//for AX layout
+	case KBD_nconv:ret = (INT16_AX_GetKBDBIOSMode() == 0x51) ? 0x5a: 57; break;//for AX layout
+	case KBD_ax:ret = (INT16_AX_GetKBDBIOSMode() == 0x51) ? 0x5c: 0; break;//for AX layout
+		/* System Scan Code for AX keys 
+		JP mode  Make    Break    US mode  Make    Break
+		–³•ÏŠ·   5Ah     DAh      Space    39h(57) B9h
+		•ÏŠ·     5Bh     DBh      Space    39h(57) B9h
+		Š¿Žš     E0h-38h E0h-B8h  RAlt     (status flag)
+		AX       5Ch     DCh      (unused)
+		*/
+		/* Character code in JP mode (implemented in KBD BIOS)
+		Key         Ch Sh Ct Al
+		5A –³•ÏŠ· - AB AC AD AE
+		5B •ÏŠ·   - A7 A8 A9 AA
+		38 Š¿Žš   - 3A 3A
+		5c AX     - D2 D3 D4 D5
+		*/ 
     case KBD_jp_muhenkan:ret=0x7B;break;
     case KBD_jp_henkan:ret=0x79;break;
     case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */

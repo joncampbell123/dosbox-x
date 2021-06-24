@@ -95,13 +95,16 @@ extern uint32_t S3_LFB_BASE;
 
 /* FIXME: Wait, what?? What the hell kind of preprocessor macro is this??? Kill these macros! --J.C. */
 #define BIOS_NCOLS uint16_t ncols=IS_PC98_ARCH ? 80 : real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-#define BIOS_NROWS uint16_t nrows=IS_PC98_ARCH ? (uint16_t)(real_readb(0x60,0x112)+1u) : (uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1u;
+#define BIOS_NROWS uint16_t nrows=IS_PC98_ARCH ? (uint16_t)(real_readb(0x60,0x112)+1u) : IS_EGAVGA_ARCH?((uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1):25;
+#define BIOS_CHEIGHT uint8_t cheight=IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT):8;
 
 extern uint8_t int10_font_08[256 * 8];
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern uint8_t int10_font_14_alternate[20 * 15 + 1];
 extern uint8_t int10_font_16_alternate[19 * 17 + 1];
+extern uint8_t int10_font_14_init[256 * 14];
+extern uint8_t int10_font_16_init[256 * 16];
 
 struct VideoModeBlock {
 	uint16_t	mode;
@@ -127,6 +130,7 @@ typedef struct {
 		RealPt font_16;
 		RealPt font_14_alternate;
 		RealPt font_16_alternate;
+		RealPt font_19;
 		RealPt static_state;
 		RealPt video_save_pointers;
         RealPt video_dynamic_save_area;
@@ -148,6 +152,7 @@ typedef struct {
 	uint16_t vesa_setmode;
 	bool vesa_nolfb;
 	bool vesa_oldvbe;
+	uint8_t text_row;
 } Int10Data;
 
 #define _EGA_HALF_CLOCK			0x0001

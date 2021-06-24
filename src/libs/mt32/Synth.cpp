@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -542,7 +542,7 @@ bool Synth::loadPCMROM(const ROMImage &pcmROMImage) {
 		int order[16] = {0, 9, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 8};
 
 		int16_t log = 0;
-		for (int u = 0; u < 15; u++) {
+		for (int u = 0; u < 16; u++) {
 			int bit;
 			if (order[u] < 8) {
 				bit = (s >> (7 - order[u])) & 0x1;
@@ -1673,6 +1673,8 @@ void Synth::writeMemoryRegion(const MemoryRegion *region, uint32_t addr, uint32_
 		break;
 	case MR_Reset:
 		reset();
+		break;
+	default:
 		break;
 	}
 }

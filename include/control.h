@@ -28,27 +28,7 @@
 #ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
 #endif
-#ifndef DOSBOX_SETUP_H
 #include "setup.h"
-#endif
-
-#ifndef CH_LIST
-#define CH_LIST
-#include <list>
-#endif
-
-#ifndef CH_VECTOR
-#define CH_VECTOR
-#include <vector>
-#endif
-
-#ifndef CH_STRING
-#define CH_STRING
-#include <string>
-#endif
-
-
-
 
 class Config{
 public:
@@ -67,16 +47,19 @@ public:
     std::vector<std::string> startup_params;
     std::vector<std::string> configfiles;
     Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
-        startup_params.push_back(cmdline->GetFileName());
+        startup_params.emplace_back(cmdline->GetFileName());
         cmdline->FillVector(startup_params);
         opt_exit = false;
         opt_debug = false;
         opt_nogui = false;
         opt_nomenu = false;
         opt_showrt = false;
+        opt_silent = false;
         opt_startui = false;
         initialised = false;
         opt_console = false;
+        opt_log_con = false;
+        opt_time_limit = -1;
         opt_display2 = false;
         opt_logint21 = false;
         opt_userconf = false;
@@ -86,6 +69,7 @@ public:
         opt_eraseconf = false;
         opt_resetconf = false;
         opt_printconf = false;
+        opt_promptfolder = -1;
         opt_noautoexec = false;
         opt_securemode = false;
         opt_fastlaunch = false;
@@ -100,11 +84,10 @@ public:
         opt_fastbioslogo = false;
         opt_defaultmapper = false;
         opt_alt_vga_render = false;
+        opt_used_defaultdir = false;
         opt_date_host_forced = false;
         opt_disable_numlock_check = false;
         opt_disable_dpi_awareness = false;
-        opt_time_limit = -1;
-        opt_log_con = false;
     }
     ~Config();
 
@@ -120,17 +103,19 @@ public:
     void ParseEnv(char ** envp);
     bool SecureMode() const { return secure_mode; }
     void SwitchToSecureMode() { secure_mode = true; }//can't be undone
+    void ClearExtraData() { Section_prop *sec_prop; Section_line *sec_line; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec_prop = dynamic_cast<Section_prop *>(*tel); sec_line = dynamic_cast<Section_line *>(*tel); if (sec_prop) sec_prop->data = ""; else if (sec_line) sec_line->data = "";} }
 public:
-    bool opt_log_con;
-    double opt_time_limit;
     std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
     std::vector<std::string> config_file_list;
     std::vector<std::string> opt_c;
     std::vector<std::string> opt_set;
 
+    double opt_time_limit;
+    signed char opt_promptfolder;
     bool opt_disable_dpi_awareness;
     bool opt_disable_numlock_check;
     bool opt_date_host_forced;
+    bool opt_used_defaultdir;
     bool opt_alt_vga_render;
     bool opt_defaultmapper;
     bool opt_fastbioslogo;
@@ -154,8 +139,10 @@ public:
     bool opt_display2;
     bool opt_userconf;
     bool opt_noconfig;
+    bool opt_log_con;
     bool opt_console;
     bool opt_startui;
+    bool opt_silent;
     bool opt_showrt;
     bool opt_nomenu;
     bool opt_debug;

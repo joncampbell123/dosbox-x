@@ -19,9 +19,12 @@
 
 #include "dosbox.h"
 #include "cross.h"
+#include "logging.h"
 #include "setup.h"
 #include "control.h"
 #include "support.h"
+
+#include <assert.h>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -377,8 +380,9 @@ bool Prop_string::SetValue(std::string const& input) {
     //If there are none then it can be paths and such which are case sensitive
     if (!suggested_values.empty()) lowcase(temp);
     Value val(temp,Value::V_STRING);
-    return SetVal(val,false,true);
+    return SetVal(val,false,true)||(!suggested_values.empty()&&!input.size());
 }
+
 bool Prop_string::CheckValue(Value const& in, bool warn) {
     if (suggested_values.empty()) return true;
     for(const_iter it = suggested_values.begin();it != suggested_values.end();++it) {
@@ -419,7 +423,7 @@ bool Prop_path::SetValue(std::string const& input) {
 bool Prop_bool::SetValue(std::string const& input) {
     Value val;
     if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_BOOL)) return false;
-    return SetVal(val,false,/*warn*/true)&&input.size();
+    return SetVal(val,false,/*warn*/true);
 }
 
 bool Prop_hex::SetValue(std::string const& input) {
@@ -786,8 +790,10 @@ string Section_line::GetPropValue(string const& /* _property*/) const {
     return NO_SUCH_PROPERTY;
 }
 
+#define HELPLINE_SIZE 256
 bool Config::PrintConfig(char const * const configfilename,int everything,bool norem) const {
-    char temp[50];char helpline[256];
+    char temp[50];
+    char helpline[HELPLINE_SIZE] = { 0 };
     FILE* outfile = fopen(configfilename,"w+t");
     if (outfile == NULL) return false;
 
@@ -825,14 +831,19 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             i=0;
             char prefix[80];
             int intmaxwidth = (maxwidth > 60) ? 60 : static_cast<int>(maxwidth);
+            std::vector<std::string> advopts;
+            advopts.clear();
             if (!norem)
             while ((p = sec->Get_prop(int(i++)))) {
-                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                std::string help = p->Get_help();
+                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified()))) {
+                    if (everything==-1 && !p->basic() && !p->modified() && help.size())
+                        advopts.push_back(p->propname);
                     continue;
+                }
 
                 std::string pre=everything==2&&!p->basic()?"#DOSBOX-X-ADV:":"";
                 snprintf(prefix,80, "\n%s#%*s     ", pre.c_str(), intmaxwidth, "");
-                std::string help = p->Get_help();
                 std::string::size_type pos = std::string::npos;
                 while ((pos = help.find('\n', pos+1)) != std::string::npos) {
                     help.replace(pos, 1, prefix);
@@ -847,7 +858,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                         fprintf(outfile, "%s%s:", prefix, MSG_Get("CONFIG_SUGGESTED_VALUES"));
                         std::vector<Value>::const_iterator it = values.begin();
                         while (it != values.end()) {
-                            if ((*it).ToString() != "%u") { //Hack hack hack. else we need to modify GetValues, but that one is const...
+                            if ((*it).ToString() != "%u" && (strcmp(temp, "config") || p->propname != "numlock" || (*it).ToString() != "")) { //Hack hack hack. else we need to modify GetValues, but that one is const...
                                 if (it != values.begin()) fputs(",", outfile);
                                 fprintf(outfile, " %s", (*it).ToString().c_str());
                             }
@@ -858,6 +869,12 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                     fprintf(outfile, "\n");
                 }
             }
+            if (everything==-1 && !advopts.empty()) {
+                fprintf(outfile, "#\n# %s:\n# ->", MSG_Get("CONFIG_ADVANCED_OPTION"));
+                for (std::vector<std::string>::iterator advopt = advopts.begin(); advopt != advopts.end(); ++advopt)
+                    fprintf(outfile, " %s%c", advopt->c_str(), advopt+1 >= advopts.end()?'\n':';');
+                fprintf(outfile, "#\n");
+            }
         } else {
             fprintf(outfile,"[%s]\n",temp);
 
@@ -867,7 +884,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                 const char * helpstr = MSG_Get(temp);
                 const char * linestart = helpstr;
                 char * helpwrite = helpline;
-                while (*helpstr && helpstr - linestart < sizeof(helpline)) {
+                while (*helpstr && helpstr - linestart < HELPLINE_SIZE - 2) {
                     *helpwrite++ = *helpstr;
                     if (*helpstr == '\n') {
                         *helpwrite = 0;
@@ -881,7 +898,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
 
         (*tel)->PrintData(outfile,everything,norem);
 		if (!strcmp(temp, "config")||!strcmp(temp, "4dos")) {
-			const char * extra = const_cast<char*>(sec->data.c_str());
+			const char * extra = sec->data.c_str();
 			bool used1=false, used2=false;
 			char linestr[CROSS_LEN+1], *lin=linestr;
 			if (extra&&strlen(extra)) {
@@ -911,7 +928,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
 			}
 			if (!strcmp(temp, "config")) {
 				if (everything&&!used1) {
-					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
+					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL");
 					fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
 					fprintf(outfile, "%-11s = %s\n", "set temp", "");
 				}
@@ -968,14 +985,14 @@ void Null_Init(Section *sec);
 
 void AddExitFunction(SectionFunction func,const char *name,bool canchange) {
     /* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
-    exitfunctions.push_front(Function_wrapper(func,canchange,name));
+    exitfunctions.emplace_front(Function_wrapper(func,canchange,name));
 }
 
 void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange) {
     assert(event < VM_EVENT_MAX);
 
     /* NTS: First In First Out order */
-    vm_event_functions[event].push_back(Function_wrapper(func,canchange,name));
+    vm_event_functions[event].emplace_back(Function_wrapper(func,canchange,name));
 }
 
 const char *VM_EVENT_string[VM_EVENT_MAX] = {
@@ -1071,7 +1088,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     if (!in) return false;
     const char * settings_type;
     settings_type = (configfiles.size() == 0)? "primary":"additional";
-    configfiles.push_back(configfilename);
+    configfiles.emplace_back(configfilename);
 
     LOG(LOG_MISC,LOG_NORMAL)("Loading %s settings from config file %s", settings_type,configfilename);
 
@@ -1525,7 +1542,7 @@ CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) 
         if (!raw_cmdline.empty()) raw_cmdline += " ";
         raw_cmdline += argv[i];
 
-        cmds.push_back(argv[i]);
+        cmds.emplace_back(argv[i]);
         i++;
     }
 }

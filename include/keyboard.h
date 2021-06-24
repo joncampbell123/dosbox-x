@@ -59,6 +59,8 @@ enum KBD_KEYS {
 	KBD_jp_muhenkan,	/* Muhenkan (No conversion from kana to kanji) */
 	KBD_jp_henkan,		/* Henkan/zenkouho (Conversion from kana to kanji, shifted: previous candidate, alt: all candidates) */
 	KBD_jp_hiragana,	/* Hiragana/Katakana (Hiragana, shifted: Katakana, alt: romaji) */
+	KBD_yen, KBD_underscore,   /* JP layout */
+	KBD_ax,KBD_conv,KBD_nconv, /* for AX */
 
 	/* Korean */
 	KBD_kor_hancha,		/* Hancha */

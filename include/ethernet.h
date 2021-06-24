@@ -19,9 +19,7 @@
 #ifndef DOSBOX_ETHERNET_H
 #define DOSBOX_ETHERNET_H
 
-#include "config.h"
 #include "control.h"
-#include <functional>
 
 /** A virtual Ethernet connection
  * While emulated Ethernet adapters provide the ability for the guest OS to
@@ -88,6 +86,6 @@ class EthernetConnection
  * @param backend The name of the connection backend
  * @return An initialized Ethernet connection, nullptr otherwise
  */
-EthernetConnection* OpenEthernetConnection(const std::string& backend);
+EthernetConnection* OpenEthernetConnection(std::string backendstr);
 
 #endif

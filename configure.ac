@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.12,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.15,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -386,18 +386,26 @@ AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
 dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
 AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
 
-dnl Some stuff for the icon.
+dnl Some stuff for the icon and other makefile platform stuff.
+dnl Slightly double with the above, but that deals more with compiled features.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
        LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
+       DBPLATFORM="win"
+    ;;
+    *-*-darwin*)
+       WINDRES=":"
+       DBPLATFORM="mac"
     ;;
     *)
        WINDRES=":"
+       DBPLATFORM="other"
     ;;
 esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
+       AM_CONDITIONAL(MACOSX, test "x$DBPLATFORM" = "xmac")
        AC_SUBST(WINDRES)
 
 dnl LIBRARY TEST: SDL 2.x
@@ -867,7 +875,7 @@ AC_MSG_CHECKING(whether recompiling cpu core will be enabled)
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
 # test for MIPS32 is missing from this Dynamic Recompiler whitelist
-elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = arm; then
+elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
 else
@@ -994,23 +1002,33 @@ esac
 
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
-if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
+AC_ARG_ENABLE(libslirp,AC_HELP_STRING([--disable-libslirp],[Disable libslirp support]),enable_libslirp=$enableval,enable_libslirp=yes)
+if test x$enable_libslirp == xyes ; then
+  case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp_h = xyes; then
+         have_slirp_lib=yes
+       fi
+    ;;
+  esac
+  if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
     LIBS="$LIBS "`pkg-config slirp --libs`
     CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
     CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
-else
+  else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
-fi
-case "$host" in
+  fi
+  case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        if test x$have_slirp = xyes; then
          LIBS="$LIBS -lintl -liconv"
        fi
     ;;
-esac
+  esac
+fi
 
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
@@ -1116,12 +1134,6 @@ AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
 dnl FEATURE: Direct3D9 shaders
 AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
 AC_ARG_ENABLE(d3d-shaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
-
-# HACK: Don't enable Direct 3D 9 on SDL2
-if test -n "$SDL2_LIBS"; then
-    enable_d3d9=no
-    enable_d3d_shaders=no
-fi
 
 if test x$enable_d3d9 = xyes; then
     case "$host" in

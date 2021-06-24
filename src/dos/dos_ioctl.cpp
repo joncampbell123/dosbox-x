@@ -20,6 +20,7 @@
 #include <string.h>
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "regs.h"
 #include "bios_disk.h"
@@ -754,7 +755,6 @@ bool DOS_IOCTL(void) {
 				return false;
 			}
 		}
-		break;
 	case 0x0E:			/* Get Logical Drive Map */
 		if (drive < 2) {
 			if (Drives[drive]) reg_al=drive+1;

@@ -32,6 +32,10 @@
 #include "../joystick/SDL_joystick_c.h"
 #endif
 
+#ifdef ENABLE_IM_EVENT
+#include <stdarg.h>
+#endif
+
 /* Public data -- the event filter */
 SDL_EventFilter SDL_EventOK = NULL;
 Uint8 SDL_ProcessEvents[SDL_NUMEVENTS];
@@ -499,4 +503,108 @@ int SDL_PrivateSysWMEvent(SDL_SysWMmsg *message)
 	}
 	/* Update internal event state */
 	return(posted);
+}
+
+int SDL_SetIMPosition( int x, int y )
+{
+#ifdef ENABLE_IM_EVENT
+	SDL_VideoDevice *video = current_video;
+	SDL_VideoDevice *this  = current_video;
+
+	if ( video && video->SetIMPosition != NULL ) {
+		return video->SetIMPosition(this, x, y);
+	}
+#endif
+	return -1;
+
+}
+
+char *SDL_SetIMValues(SDL_imvalue value, ...)
+{
+#ifdef ENABLE_IM_EVENT
+	va_list ap;
+	SDL_imvalue t1;
+	static char *ret = 0;
+	int t2;
+	SDL_VideoDevice *video = current_video;
+	SDL_VideoDevice *this  = current_video;
+	if (video && value && video->SetIMValues != NULL) {
+		va_start(ap, value);
+		t2 = va_arg(ap, int);
+		ret = video->SetIMValues(this, value, t2);
+		if (ret)
+			return ret;
+		while ((t1 = va_arg(ap, SDL_imvalue)) != 0) {
+			t2 = va_arg(ap, int);
+			ret = video->SetIMValues(this, t1, t2);
+			if (ret)
+				return ret;
+		}
+	}
+	else {
+		SDL_SetError("video or argument is NULL");
+		return "video or argument is NULL";
+	}
+	va_end(ap);
+#endif
+	return NULL;
+}
+
+char *SDL_GetIMValues(SDL_imvalue value, ...)
+{
+#ifdef ENABLE_IM_EVENT
+	va_list ap;
+	SDL_imvalue t1;
+	static char *ret = 0;
+	static int *t2;
+	SDL_VideoDevice *video = current_video;
+	SDL_VideoDevice *this  = current_video;
+
+	if (video && value && video->GetIMValues != NULL ) {
+		va_start(ap, value);
+		t2 = va_arg(ap, int*);
+		ret = video->GetIMValues(this, value, t2);
+		if (ret)
+			return ret;
+		while ((t1 = va_arg(ap, SDL_imvalue)) != 0) {
+			t2 = va_arg(ap, int*);
+			ret = video->GetIMValues(this, t1, t2);
+			if (ret)
+				return ret;
+		}
+	}
+	else {
+		SDL_SetError("video or argument is NULL");
+		return "video or argument is NULL";
+	}
+	va_end(ap);
+#endif
+	return NULL;
+}
+
+int SDL_FlushIMString(void *buffer)
+{
+#ifdef ENABLE_IM_EVENT
+	SDL_VideoDevice *video = current_video;
+	SDL_VideoDevice *this  = current_video;
+
+	if ( video && video->FlushIMString != NULL ) {
+		return video->FlushIMString(this, buffer);
+	}
+#endif
+	return 0;
+}
+
+#ifdef WIN32
+wchar_t CompositionFontName[LF_FACESIZE];
+#endif
+
+void SDL_SetCompositionFontName(const char *name)
+{
+#ifdef WIN32
+	int len = MultiByteToWideChar(CP_ACP, 0, name, -1, NULL, 0);
+	if(len < LF_FACESIZE) {
+		MultiByteToWideChar(CP_ACP, 0, name, -1, CompositionFontName, len);
+	}
+#endif
 }

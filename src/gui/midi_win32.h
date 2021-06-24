@@ -74,10 +74,8 @@ private:
 	void MidiHelper_End()
 	{
 		void (*func_ptr)(void);
-
-
-    func_ptr = (void(*)(void))GetProcAddress( hMidiHelper,"MIDIHelper_CloseMidiOut" );
- 		if (!func_ptr ) return;
+		func_ptr = (void(*)(void))GetProcAddress( hMidiHelper,"MIDIHelper_CloseMidiOut" );
+		if (!func_ptr) return;
 
 		func_ptr();
 	}
@@ -218,7 +216,7 @@ public:
 		for(unsigned int i = 0;i < total;i++) {
 			MIDIOUTCAPS mididev;
 			midiOutGetDevCaps(i, &mididev, sizeof(MIDIOUTCAPS));
-			base->WriteOut("%2d\t \"%s\"\n",i,mididev.szPname);
+			base->WriteOut("  %2d - \"%s\"\n",i,mididev.szPname);
 		}
 #endif
 	}

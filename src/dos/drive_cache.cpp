@@ -19,6 +19,7 @@
 
 #include "drives.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include "support.h"
 #include "cross.h"
 
@@ -530,13 +531,28 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     RemoveTrailingDot(shortName);
     // Search long name and return array number of element
     Bits res;
-	if (strlen(shortName))
-		for (Bitu i=0; i<filelist_size; i++) {
-			if (!strcasecmp(shortName,curDir->fileList[i]->orgname) || !strcasecmp(shortName,curDir->fileList[i]->shortname)) {
-				strcpy(shortName,curDir->fileList[i]->orgname);
-				return (Bits)i;
-			}
-		}
+    if (!uselfn) {
+        Bits low	= 0;
+        Bits high	= (Bits)(filelist_size-1);
+        Bits mid;
+        while (low<=high) {
+            mid = (low+high)/2;
+            res = strcmp(shortName,curDir->fileList[mid]->shortname);
+            if (res>0)	low  = mid+1; else
+            if (res<0)	high = mid-1; else
+            {	// Found
+                strcpy(shortName,curDir->fileList[mid]->orgname);
+                return mid;
+            };
+        }
+    } else if (strlen(shortName)) {
+        for (Bitu i=0; i<filelist_size; i++) {
+            if (!strcasecmp(shortName,curDir->fileList[i]->orgname) || !strcasecmp(shortName,curDir->fileList[i]->shortname)) {
+                strcpy(shortName,curDir->fileList[i]->orgname);
+                return (Bits)i;
+            }
+        }
+    }
 
 #ifdef WINE_DRIVE_SUPPORT
     if (strlen(shortName) < 8 || shortName[4] != '~' || shortName[5] == '.' || shortName[6] == '.' || shortName[7] == '.') return -1; // not available
@@ -568,7 +584,7 @@ bool DOS_Drive_Cache::RemoveSpaces(char* str) {
     return (curpos!=chkpos);
 }
 
-char * shiftjis_upcase(char * str);
+char * DBCS_upcase(char * str);
 
 void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     Bits    len         = 0;
@@ -581,7 +597,7 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     // Remove Spaces
     strcpy(tmpName,info->orgname);
     if (IS_PC98_ARCH)
-        shiftjis_upcase(tmpName);
+        DBCS_upcase(tmpName);
     else
         upcase(tmpName);
 

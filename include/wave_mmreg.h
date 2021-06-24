@@ -2,8 +2,6 @@
 #ifndef __ISP_UTILS_V4_WAVEMMREG_H
 #define __ISP_UTILS_V4_WAVEMMREG_H
 
-#include <stdint.h>
-
 /* [doc] windows_WAVE_FORMAT_... constants
  * 
  * windows_WAVE_FORMAT_PCM              8 & 16-bit PCM

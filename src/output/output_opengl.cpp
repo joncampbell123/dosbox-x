@@ -12,6 +12,8 @@ extern "C" {
 #include "ppscale.c"
 }
 #include "dosbox.h"
+#include "logging.h"
+#include "menudef.h"
 #include <output/output_opengl.h>
 
 #include <algorithm>
@@ -108,8 +110,8 @@ static void PPScale (
     int    sx, sy, orig_w, orig_h, min_w, min_h;
     double par, par_sq;
 
-    orig_w = min_w = render.src.width;
-    orig_h = min_h = render.src.height;
+    orig_w = min_w = (int)render.src.width;
+    orig_h = min_h = (int)render.src.height;
 
     par = ( double) orig_w / orig_h * 3 / 4;
     /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
@@ -495,16 +497,14 @@ Bitu OUTPUT_OPENGL_SetSize()
     sdl_opengl.framebuf = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#if !defined(C_SDL2)
-# if SDL_VERSION_ATLEAST(1, 2, 11)
-    {
-        Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
-
-        if (sec)
-            SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
-    }
-# endif
+    Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
+    if (sec) {
+#if defined(C_SDL2)
+        SDL_GL_SetSwapInterval((!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
+#elif SDL_VERSION_ATLEAST(1, 2, 11)
+        SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
 #endif
+    }
 
     // try 32 bits first then 16
 #if defined(C_SDL2)
@@ -905,7 +905,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
                 }
                 else
                 {
-                    trgTex = reinterpret_cast<uint32_t*>(static_cast<void*>(sdl_opengl.framebuf));
+                    trgTex = reinterpret_cast<uint32_t*>(sdl_opengl.framebuf);
                 }
 
                 if (trgTex)

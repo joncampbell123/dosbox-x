@@ -21,6 +21,7 @@
 #define DOSBOX_SERIALMODEM_H
 
 #include "dosbox.h"
+#include "logging.h"
 #if C_MODEM
 #include "serialport.h"
 

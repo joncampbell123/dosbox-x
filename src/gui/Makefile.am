@@ -20,6 +20,6 @@ endif
 
 if MACOSX
 libgui_a_SOURCES += \
-	menu_osx.mm
+	menu_macos.mm
 endif
 

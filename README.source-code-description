@@ -150,6 +150,8 @@ and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also includ
 (set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
 (dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it).
 
+The slirp backend is only supported by MinGW builds but not Visual Studio builds.
+
 Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
 As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
@@ -187,10 +189,31 @@ Libpng (optional)
     License: zlib/libpng
 
 Zlib
-    Needed by libpng, save state and CHD support.
+    Needed by libpng, and for saving state and CHD support.
     For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See https://www.zlib.net/ for more details.
     License: zlib
+
+FreeType (optional)
+    Needed for TrueType font (TTF) output and printing support.
+    It is available from https://www.freetype.org/download.html
+    License: FTL or GPLv2+
+
+FluidSynth (optional)
+    For soundfont support.
+    It is available from https://www.fluidsynth.org/download/
+    License: LGPLv2+
+    
+libpcap (optional)
+    For pcap backend of NE2000 networking support.
+    Get it from https://www.tcpdump.org/index.html#latest-releases
+    For win32 get Npcap (WinPcap for Windows 10) from https://nmap.org/download.html
+    License: 3-clause BSD license
+
+libslirp (optional)
+    For slirp backend of NE2000 networking support.
+    Get it from https://gitlab.freedesktop.org/slirp/libslirp
+    License: Modified 4-clause BSD license
 
 SDL_Net (optional)
     For modem/ipx support.
@@ -351,14 +374,14 @@ src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
                                 DIR         CD/CHDIR    ADDKEY      ALIAS
                                 ATTRIB      BREAK       CALL        CHOICE
                                 CLS         COPY        COUNTRY     CTTY
-                                DATE        DEL/ERASE   DELTREE     ECHO
-                                EXIT        FOR         GOTO        HELP
-                                IF          LFNFOR      LH/LOADHIGH MD/MKDIR
-                                MORE        PATH        PAUSE       PROMPT
+                                DATE        DEBUGBOX    DEL/ERASE   DELTREE
+                                DX-CAPTURE  ECHO        EXIT        FOR
+                                GOTO        HELP        IF          LFNFOR
+                                LH/LOADHIGH MD/MKDIR    MORE        PATH
+                                PAUSE       POPD        PROMPT      PUSHD
                                 RD/RMDIR    REM         REN/RENAME  SET
                                 SHIFT       SUBST       TIME        TYPE
                                 VER         VERIFY      VOL         TRUENAME
-                                DX-CAPTURE  DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
@@ -419,7 +442,7 @@ src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
 src/gui/midi.cpp            MIDI output framework. Header files include
                             additional platform-specific code.
 
-src/gui/menu_osx.mm         macOS Objective C++ code to bridge Objective C
+src/gui/menu_macos.mm       macOS Objective C++ code to bridge Objective C
                             and C++ so that the menu manipulation code can
                             work correctly.
 

@@ -40,7 +40,8 @@ if not exist %isspath%\ISCC.exe (
 	goto error
 )
 
-set datestr=
+set datestr=%1
+if "%datestr:~0,2%"=="20" if not "%datestr:~7%"=="" if "%datestr:~8%"=="" goto hasdate
 for /f %%i in ('%isspath%\date.exe +%%Y%%m%%d') do set datestr=%%i
 
 if "%datestr%"=="" (
@@ -48,16 +49,38 @@ if "%datestr%"=="" (
 	goto error
 )
 
-set vsbzip=
+:hasdate
+set vwin32zip=
+set vwin64zip=
+set varm32zip=
+set varm64zip=
 set m32zip=
 set m64zip=
 
-for %%i in (%vsbinpath%\dosbox-x-vsbuild-win-%datestr%*.zip) do set vsbzip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-win32-%datestr%*.zip) do set vwin32zip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-win64-%datestr%*.zip) do set vwin64zip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-arm32-%datestr%*.zip) do set varm32zip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-arm64-%datestr%*.zip) do set varm64zip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
-if not exist "%vsbzip%" (
-	echo Couldn't find dosbox-x-vsbuild-win-%datestr%*.zip at %vsbinpath%
+if not exist "%vwin32zip%" (
+	echo Couldn't find dosbox-x-vsbuild-win32-%datestr%*.zip at %vsbinpath%
+	goto error
+)
+
+if not exist "%vwin64zip%" (
+	echo Couldn't find dosbox-x-vsbuild-win64-%datestr%*.zip at %vsbinpath%
+	goto error
+)
+
+if not exist "%varm32zip%" (
+	echo Couldn't find dosbox-x-vsbuild-arm32-%datestr%*.zip at %vsbinpath%
+	goto error
+)
+
+if not exist "%varm64zip%" (
+	echo Couldn't find dosbox-x-vsbuild-arm64-%datestr%*.zip at %vsbinpath%
 	goto error
 )
 
@@ -77,14 +100,14 @@ echo * Extract DOSBox-X executables ...    *
 echo ***************************************
 if exist %isspath%\Win32_builds\nul rd %isspath%\Win32_builds /s /q
 if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\x86_Release %vsbzip% "bin\Win32\Release\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\x86_Release_SDL2 %vsbzip% "bin\Win32\Release SDL2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\ARM_Release %vsbzip% "bin\ARM\Release\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\ARM_Release_SDL2 %vsbzip% "bin\ARM\Release SDL2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\x64_Release %vsbzip% "bin\x64\Release\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\x64_Release_SDL2 %vsbzip% "bin\x64\Release SDL2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release %vsbzip% "bin\ARM64\Release\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release_SDL2 %vsbzip% "bin\ARM64\Release SDL2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\x86_Release %vwin32zip% "bin\Win32\Release\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\x86_Release_SDL2 %vwin32zip% "bin\Win32\Release SDL2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\ARM_Release %varm32zip% "bin\ARM\Release\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\ARM_Release_SDL2 %varm32zip% "bin\ARM\Release SDL2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win64_builds\x64_Release %vwin64zip% "bin\x64\Release\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win64_builds\x64_Release_SDL2 %vwin64zip% "bin\x64\Release SDL2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release %varm64zip% "bin\ARM64\Release\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release_SDL2 %varm64zip% "bin\ARM64\Release SDL2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw %m32zip% "mingw-build\mingw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend %m32zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-sdl2 %m32zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
@@ -125,9 +148,11 @@ echo * Building DOSBox-X installers ...    *
 echo ***************************************
 if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
-if exist %isspath%\dosbox-x-windows-*-setup.exe (
-	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
+%isspath%\allusers\ISCC.exe %isspath%\allusers\DOSBox-X-setup.iss
+if exist %isspath%\dosbox-x-windows-*-setup.exe if exist exist %isspath%\dosbox-x-windows-*-setup-allusers.exe (
+	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe %isspath%\dosbox-x-windows-*-setup-allusers.exe) do echo Copying to %vsbinpath%\%%~nxi...
 	copy /y %isspath%\dosbox-x-windows-*-setup.exe %vsbinpath%
+	copy /y %isspath%\dosbox-x-windows-*-setup-allusers.exe %vsbinpath%
 	goto success
 )
 
@@ -151,6 +176,9 @@ set rootdir=
 set isspath=
 set vsbinpath=
 set mgbinpath=
-set vsbzip=
+set vwin32zip=
+set vwin64zip=
+set varm32zip=
+set varm64zip=
 set m32zip=
 set m64zip=
