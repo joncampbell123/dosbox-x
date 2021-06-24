@@ -26,6 +26,7 @@
 #include "control.h"
 #include <assert.h>
 
+extern bool gbk;
 extern int maxfcb;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
@@ -222,7 +223,7 @@ void SetupDBCSTable() {
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFC);
             mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
         } else if (IS_PDOSV || dos.loaded_codepage == 936) { // Simplified Chinese
-            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0xA1);   // low/high DBCS pair
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,gbk?0x81:0xA1);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+1,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+2,0);
         } else if (IS_KDOSV || dos.loaded_codepage == 949) { // Korean

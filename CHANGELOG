@@ -96,7 +96,15 @@
     section of the config file to enable DOS/V mode for
     different CJK languages. There are now also various
     font-related (and V-text screen mode) options added
-    in [dosv] section for the DOS/V support. (Wengier)
+    in [dosv] section for the DOS/V support. For the
+    Simplified Chinese (code page 936), you can also
+    enable GBK extension of the standard GB2312 charset
+    with "gbk" option for Simplified Chinese DOS/V and
+    the TrueType font (TTF) output. (Wengier)
+  - The "Unexpected control character" error message
+    which may appear when executing certain batch files
+    is now a debug message (belong to "dosmisc" type)
+    instead of showing to the DOS console output.
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,
     x11, dummy) for the SDL library to use. The video

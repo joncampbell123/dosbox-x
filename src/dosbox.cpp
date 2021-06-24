@@ -139,7 +139,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         sync_time, enableime;
+extern bool         sync_time, enableime, gbk;
 extern int          freesizecap;
 extern unsigned int page;
 
@@ -1051,6 +1051,7 @@ void DOSBOX_RealInit() {
         JFONT_Init();  // Load DBCS fonts for JEGA etc
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
     }
+    gbk = dosv_section->Get_bool("gbk");
     dos.loaded_codepage = cp;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
@@ -2040,8 +2041,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
 
+	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese DOS/V emulation or TTF output.");
+    Pbool->SetBasic(true);
+
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the Japanese yen at 5ch in DOS/V or JEGA mode if it is found at 7fh in a custom SBCS font.");
+	Pbool->Set_help("Enables the yen symbol (¥) at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
 
 	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
@@ -2648,13 +2653,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,15);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.\n"
                    "Use the DOS color number (0-15: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White, etc) for this.");
-    Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("wpfg", Property::Changeable::Always, 7);
     Pint->SetMinMax(-1,7);
     Pint->Set_help("You can optionally specify a color to match the foreground color of the specified word processor for the TTF output.\n"
                    "Use the DOS color number (0-7: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Yellow, 7=White) for this.");
-    Pint->SetBasic(true);
 
 	Pbool = secprop->Add_bool("bold", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.\n"
@@ -2676,7 +2679,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
-    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("printfont", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will force to use the current TrueType font (set via font option) for printing in addition to displaying.");
@@ -2686,17 +2688,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
-    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("autoboxdraw", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
-    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("halfwidthkana", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X enables half-width Katakana to replace upper ASCII characters for the Japanese code page (932) of a non-PC98 machine type in the TTF output.");
-    Pbool->SetBasic(true);
 
 	Pstring = secprop->Add_string("blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"

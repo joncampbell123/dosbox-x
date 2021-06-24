@@ -94,6 +94,7 @@ static HFONT jfont_16;
 static HFONT jfont_24;
 #endif
 
+bool gbk = false;
 bool nokanji = false;
 bool yen_flag = false;
 bool jfont_init = false;
@@ -109,7 +110,7 @@ extern uint8_t lead[6];
 bool isKanji1(uint8_t chr) {
     if (nokanji) return false;
     else if (dos.loaded_codepage == 936 || IS_PDOSV)
-        return (chr >= 0xa1 && chr <= 0xfe);
+        return (chr >= (gbk?0x81:0xa1) && chr <= 0xfe);
     else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_CDOSV || IS_KDOSV)
         return (chr >= 0x81 && chr <= 0xfe);
     else
@@ -654,7 +655,7 @@ void JFONT_Init() {
 					memcpy(&jfont_sbcs_19[ct * 19 + 1], &int10_font_16[ct * 16], 16);
 #endif
 			}
-		} else if(yen_flag) {
+		} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
 			if(!CheckEmptyData(&jfont_sbcs_19[0x7f * 19], 19))
 				memcpy(&jfont_sbcs_19[0x5c * 19], &jfont_sbcs_19[0x7f * 19], 19);
 		}
@@ -686,7 +687,7 @@ void JFONT_Init() {
 					memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
 #endif
 				}
-			} else if(yen_flag) {
+			} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
 				if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
 					memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
 			}
@@ -709,7 +710,7 @@ void JFONT_Init() {
 				if(!MakeSbcs24Font()) {
 					LOG_MSG("MSG: SBCS 12x24 font file path is not specified.\n");
 				}
-			} else if(yen_flag) {
+			} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
 				if(!CheckEmptyData(&jfont_sbcs_24[0x7f * 2 * 24], 2 * 24))
 					memcpy(&jfont_sbcs_24[0x5c * 2 * 24], &jfont_sbcs_24[0x7f * 2 * 24], 2 * 24);
 			}
