@@ -1237,10 +1237,6 @@ ECHO は <ON> です。
 ECHO は <OFF> です。
 
 .
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-無効なコントロール文字: 10進 %03u 16進 %#04x.
-
-.
 :SHELL_ILLEGAL_SWITCH
 無効なスイッチ - %s
 

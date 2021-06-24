@@ -1262,10 +1262,6 @@ ECHO状态为开.
 ECHO状态为关.
 
 .
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-未预期的控制字符: 10进制 %03u - 16进制 %#04x.
-
-.
 :SHELL_ILLEGAL_SWITCH
 开关非法 - %s
 

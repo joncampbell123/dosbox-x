@@ -776,9 +776,6 @@ ECHO is on.◙
 :SHELL_CMD_ECHO_OFF
 ECHO is off.◙
 .
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-Unexpected control character: Dec %03u and Hex %#04x.◙
-.
 :SHELL_ILLEGAL_SWITCH
 Invalid switch - %s◙
 .

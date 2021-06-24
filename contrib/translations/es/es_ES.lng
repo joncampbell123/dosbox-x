@@ -1036,9 +1036,6 @@ ECHO está activado.◙
 :SHELL_CMD_ECHO_OFF
 ECHO está desactivado.◙
 .
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-Carácter de control inesperado: Dec %03u y Hex %#04x.◙
-.
 :SHELL_ILLEGAL_SWITCH
 Parámetro no válido - %s◙
 .
