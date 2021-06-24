@@ -88,6 +88,32 @@ char *strrchr_dbcs(char *str, char ch) {
         return strrchr(str, ch);
 }
 
+char* strtok_dbcs(char *s, const char *d) {
+    if (!IS_PC98_ARCH && !isDBCSCP()) return strtok(s, d);
+    static char* input = NULL;
+    if (s != NULL) input = s;
+    if (input == NULL) return NULL;
+    char* result = new char[strlen(input) + 1];
+    int i = 0;
+    bool lead = false;
+    for (; input[i] != '\0'; i++) {
+        if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(input[i])) || (isDBCSCP() && isKanji1(input[i])))) {
+            result[i] = input[i];
+            lead = true;
+        } else if (input[i] != d[0] || lead) {
+            result[i] = input[i];
+            lead = false;
+        } else {
+            result[i] = '\0';
+            input = input + i + 1;
+            return result;
+        }
+    }
+    result[i] = '\0';
+    input = NULL;
+    return result;
+}
+
 /* 
 	Ripped some source from freedos for this one.
 

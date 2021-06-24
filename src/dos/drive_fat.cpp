@@ -48,7 +48,7 @@ static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 void dos_ver_menu(bool start);
-char *strrchr_dbcs(char *str, char ch);
+char *strrchr_dbcs(char *str, char ch), *strtok_dbcs(char *s, const char *d);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 bool filename_not_8x3(const char *n) {
@@ -699,14 +699,14 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	strcpy(dirtoken,fullname);
 
 	//LOG_MSG("Testing for filename %s", fullname);
-	findDir = strtok(dirtoken,"\\");
+	findDir = strtok_dbcs(dirtoken,"\\");
 	if (findDir==NULL) {
 		return true;	// root always exists
 	}
 	findFile = findDir;
 	while(findDir != NULL) {
 		findFile = findDir;
-		findDir = strtok(NULL,"\\");
+		findDir = strtok_dbcs(NULL,"\\");
 	}
 	int j=0;
 	for (int i=0; i<(int)strlen(findFile); i++)
@@ -859,7 +859,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
-		findDir = strtok(dirtoken,"\\");
+		findDir = strtok_dbcs(dirtoken,"\\");
 		findFile = findDir;
 		while(findDir != NULL) {
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
@@ -875,7 +875,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
 
 				char * findNext;
-				findNext = strtok(NULL,"\\");
+				findNext = strtok_dbcs(NULL,"\\");
 				if (findNext == NULL && dirOk) break; /* dirOk means that if the last element is a directory, then refer to the directory itself */
 				findDir = findNext;
 			}
@@ -918,12 +918,12 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
         }
 
 		//LOG_MSG("Testing for dir %s", dir);
-		char * findDir = strtok(dirtoken,"\\");
+		char * findDir = strtok_dbcs(dirtoken,"\\");
 		while(findDir != NULL) {
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_IMG:LFN_FILEFIND_NONE;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
-			findDir = strtok(NULL,"\\");
+			findDir = strtok_dbcs(NULL,"\\");
 			if(parDir && (findDir == NULL)) {lfn_filefind_handle=fbak;break;}
 
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
