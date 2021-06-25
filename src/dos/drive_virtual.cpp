@@ -46,21 +46,104 @@ struct VFILE_Block {
 
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
-char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII],ondirs[MAX_VFILES][CROSS_LEN];
+char ondirs[MAX_VFILES][CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
+char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
 extern char * DBCS_upcase(char * str);
-extern char sfn[DOS_NAMELENGTH_ASCII];
 std::string hidefiles="";
+
 /* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
-char* Generate_SFN(const char *name) {
+void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
+    char *n=lfn;
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+        i=0;
+        *sfn=0;
+        while (*n == '.'||*n == ' ') n++;
+        while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
+        bool lead = false;
+        unsigned int m = k<10?6u:(k<100?5u:(k<1000?4:3u));
+        while (*n != 0 && *n != '.' && i < m) {
+            if (*n == ' ') {
+                n++;
+                lead = false;
+                continue;
+            }
+            if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+                if (i==m-1) break;
+                sfn[i++]=*(n++);
+                lead = true;
+            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+                sfn[i++]='_';
+                n++;
+                lead = false;
+            } else {
+                sfn[i++]=lead?*n:toupper(*n);
+                n++;
+                lead = false;
+            }
+        }
+        sfn[i++]='~';
+        t=i;
+    } else
+        i=t;
+    if (k<10)
+        sfn[i++]='0'+k;
+    else if (k<100) {
+        sfn[i++]='0'+(k/10);
+        sfn[i++]='0'+(k%10);
+    } else if (k<1000) {
+        sfn[i++]='0'+(k/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
+    } else {
+        sfn[i++]='0'+(k/1000);
+        sfn[i++]='0'+((k%1000)/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
+    }
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+        char *p=strrchr(n, '.');
+        if (p!=NULL) {
+            sfn[i++]='.';
+            n=p+1;
+            while (*n == '.') n++;
+            int j=0;
+            bool lead = false;
+            while (*n != 0 && j++<3) {
+                if (*n == ' ') {
+                    n++;
+                    lead = false;
+                    continue;
+                }
+                if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+                    if (j==3) break;
+                    sfn[i++]=*(n++);
+                    lead = true;
+                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+                    sfn[i++]='_';
+                    n++;
+                    lead = false;
+                } else {
+                    sfn[i++]=lead?*n:toupper(*n);
+                    n++;
+                    lead = false;
+                }
+            }
+        }
+        sfn[i++]=0;
+    }
+}
+
+char* VFILE_Generate_SFN(const char *name) {
 	if (!filename_not_8x3(name)) {
-		strcpy(sfn, DBCS_upcase((char *)name));
+		strcpy(sfn, name);
+		DBCS_upcase(sfn);
 		return sfn;
 	}
-	char lfn[LFN_NAMELENGTH+1], *n;
+	char lfn[LFN_NAMELENGTH+1];
 	if (name==NULL||!*name) return NULL;
 	if (strlen(name)>LFN_NAMELENGTH) {
 		strncpy(lfn, name, LFN_NAMELENGTH);
@@ -69,86 +152,9 @@ char* Generate_SFN(const char *name) {
 		strcpy(lfn, name);
 	if (!strlen(lfn)) return NULL;
 	unsigned int k=1, i, t=10000;
-    const VFILE_Block* cur_file;
+	const VFILE_Block* cur_file;
 	while (k<10000) {
-		n=lfn;
-		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
-			i=0;
-			*sfn=0;
-			while (*n == '.'||*n == ' ') n++;
-			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
-			bool lead = false;
-			unsigned int m = k<10?6u:(k<100?5u:(k<1000?4:3u));
-			while (*n != 0 && *n != '.' && i < m) {
-				if (*n == ' ') {
-					n++;
-					lead = false;
-					continue;
-				}
-				if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
-					if (i==m-1) break;
-					sfn[i++]=*(n++);
-					lead = true;
-				} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
-					sfn[i++]='_';
-					n++;
-					lead = false;
-				} else {
-					sfn[i++]=lead?*n:toupper(*n);
-					n++;
-					lead = false;
-				}
-			}
-			sfn[i++]='~';
-			t=i;
-		} else
-			i=t;
-		if (k<10)
-			sfn[i++]='0'+k;
-		else if (k<100) {
-			sfn[i++]='0'+(k/10);
-			sfn[i++]='0'+(k%10);
-		} else if (k<1000) {
-			sfn[i++]='0'+(k/100);
-			sfn[i++]='0'+((k%100)/10);
-			sfn[i++]='0'+(k%10);
-		} else {
-			sfn[i++]='0'+(k/1000);
-			sfn[i++]='0'+((k%1000)/100);
-			sfn[i++]='0'+((k%100)/10);
-			sfn[i++]='0'+(k%10);
-		}
-		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
-			char *p=strrchr(n, '.');
-			if (p!=NULL) {
-				sfn[i++]='.';
-				n=p+1;
-				while (*n == '.') n++;
-				int j=0;
-				bool lead = false;
-				while (*n != 0 && j++<3) {
-					if (*n == ' ') {
-						n++;
-						lead = false;
-						continue;
-					}
-					if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
-						if (j==3) break;
-						sfn[i++]=*(n++);
-						lead = true;
-					} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
-						sfn[i++]='_';
-						n++;
-						lead = false;
-					} else {
-						sfn[i++]=lead?*n:toupper(*n);
-						n++;
-						lead = false;
-					}
-				}
-			}
-			sfn[i++]=0;
-		}
+        GenerateSFN(lfn, k, i, t);
         cur_file = first_file;
         bool found=false;
         while (cur_file) {
@@ -160,7 +166,6 @@ char* Generate_SFN(const char *name) {
 	}
 	return 0;
 }
-
 
 void VFILE_Shutdown(void) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Shutting down VFILE system");
@@ -202,7 +207,7 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
 		if (onpos==cur_file->onpos&&(strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0))) return;
 		cur_file=cur_file->next;
 	}
-    std::string sname=filename_not_strict_8x3(name)?Generate_SFN(name):name;
+    std::string sname=filename_not_strict_8x3(name)?VFILE_Generate_SFN(name):name;
     if (in)	for (std::string file; in >> file; ) {
         if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
             strncpy(fullname, dir+1, strlen(dir)-2);
