@@ -2526,7 +2526,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2558,7 +2558,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2644,7 +2644,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2676,7 +2676,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2743,9 +2743,14 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 }
 
 void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
+    bool use0 = false;
 #if C_OPENGL
     if (OpenGL_using()) {
-        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
+        if (check&&(text[0]&0xFF)==0xFB) {
+            use0 = true;
+            UpdateSDLDrawDBCSTexture(0);
+        }
+        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
 
         glPushMatrix();
 
@@ -2766,12 +2771,12 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
     prevc = 0;
     while (*text != 0) {
         if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color,check);
+            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
         else
-            MenuDrawTextChar(x,y,(unsigned char)(*text++),color,check);
+            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
+        text++;
     }
     if (prevc>1) {
-        prevc = 0;
         if (mainMenu.fontCharScale >= 2)
             MenuDrawTextChar2x(x,y,prevc,color,true);
         else
