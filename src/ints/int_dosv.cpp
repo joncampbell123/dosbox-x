@@ -101,10 +101,10 @@ bool jfont_init = false;
 uint8_t TrueVideoMode;
 void ResolvePath(std::string& in);
 void SetIMPosition();
+bool isDBCSCP();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
 extern uint8_t lead[6];
 
 bool isKanji1(uint8_t chr) {

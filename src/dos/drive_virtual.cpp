@@ -51,13 +51,13 @@ static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
+extern char * DBCS_upcase(char * str);
 extern char sfn[DOS_NAMELENGTH_ASCII];
 std::string hidefiles="";
 /* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
 char* Generate_SFN(const char *name) {
 	if (!filename_not_8x3(name)) {
-		strcpy(sfn, name);
-		upcase(sfn);
+		strcpy(sfn, DBCS_upcase((char *)name));
 		return sfn;
 	}
 	char lfn[LFN_NAMELENGTH+1], *n;

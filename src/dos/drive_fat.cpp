@@ -48,6 +48,7 @@ static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 void dos_ver_menu(bool start);
+extern char * DBCS_upcase(char * str);
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
@@ -97,8 +98,7 @@ char sfn[DOS_NAMELENGTH_ASCII];
 /* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
 char* fatDrive::Generate_SFN(const char *path, const char *name) {
 	if (!filename_not_8x3(name)) {
-		strcpy(sfn, name);
-		upcase(sfn);
+		strcpy(sfn, DBCS_upcase((char *)name));
 		return sfn;
 	}
 	char lfn[LFN_NAMELENGTH+1], fullname[DOS_PATHLENGTH+DOS_NAMELENGTH_ASCII], *n;
