@@ -7370,7 +7370,7 @@ void SetIMPosition() {
 	uint8_t x, y;
 	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	INT10_GetCursorPos(&y, &x, page);
-    int nrows=25, ncols=80;
+	int nrows=25, ncols=80;
 	if (IS_PC98_ARCH)
 		nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	else {
@@ -7381,6 +7381,7 @@ void SetIMPosition() {
         if (y>=nrows-1) y=nrows-8;
         if (x>=ncols-4) x=ncols-4;
     } else {
+        if (IS_PC98_ARCH && x<ncols-3) x+=2;
         x--;
         y--;
     }
