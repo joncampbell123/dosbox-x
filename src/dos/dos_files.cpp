@@ -34,6 +34,7 @@
 #include "drives.h"
 #include "cross.h"
 #include "control.h"
+#include "support.h"
 #include "dos_network2.h"
 #include "menu.h"
 #include "cdrom.h"
@@ -67,7 +68,6 @@ int sdrive = 0;
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();

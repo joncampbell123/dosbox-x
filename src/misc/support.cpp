@@ -88,7 +88,7 @@ char *strrchr_dbcs(char *str, char ch) {
         return strrchr(str, ch);
 }
 
-char* strtok_dbcs(char *s, const char *d) {
+char *strtok_dbcs(char *s, const char *d) {
     if (!IS_PC98_ARCH && !isDBCSCP()) return strtok(s, d);
     static char* input = NULL;
     if (s != NULL) input = s;

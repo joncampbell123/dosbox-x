@@ -35,6 +35,9 @@
 #include <strings.h>
 #endif
 
+char *strchr_dbcs(char *str, char ch);
+char *strrchr_dbcs(char *str, char ch);
+char *strtok_dbcs(char *s, const char *d);
 void strreplace_dbcs(char * str,char o,char n);
 void strreplace(char * str,char o,char n);
 char *ltrim(char *str);

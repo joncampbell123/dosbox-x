@@ -53,8 +53,6 @@ extern bool ctrlbrk, gbk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
-char *strrchr_dbcs(char *str, char ch);
-
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)

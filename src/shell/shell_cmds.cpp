@@ -120,7 +120,6 @@ extern unsigned long freec;
 extern uint16_t countryNo;
 void DOS_SetCountry(uint16_t countryNo);
 void GetExpandedPath(std::string &path);
-char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
 
 /* support functions */
 static char empty_char = 0;

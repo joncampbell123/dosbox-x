@@ -135,7 +135,6 @@ static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe, isDBCSCP();
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
-char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN - 1;

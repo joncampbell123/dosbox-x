@@ -41,8 +41,6 @@
 
 int fileInfoCounter = 0;
 
-char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
-
 bool SortByName(DOS_Drive_Cache::CFileInfo* const &a, DOS_Drive_Cache::CFileInfo* const &b) {
     return strcmp(a->shortname,b->shortname)<0;
 }
