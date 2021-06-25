@@ -29,6 +29,8 @@
 #include "cross.h"
 #include "regs.h"
 
+extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+
 struct VFILE_Block {
 	const char * name;
 	const char * lname;
@@ -75,16 +77,25 @@ char* Generate_SFN(const char *name) {
 			*sfn=0;
 			while (*n == '.'||*n == ' ') n++;
 			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
+			bool lead = false;
 			while (*n != 0 && *n != '.' && i<(k<10?6u:(k<100?5u:(k<1000?4:3u)))) {
 				if (*n == ' ') {
 					n++;
+					lead = false;
 					continue;
 				}
-				if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+				if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+					sfn[i++]=*(n++);
+					lead = true;
+				} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
 					sfn[i++]='_';
 					n++;
-				} else
-					sfn[i++]=toupper(*(n++));
+					lead = false;
+				} else {
+					sfn[i++]=lead?*n:toupper(*n);
+					n++;
+					lead = false;
+				}
 			}
 			sfn[i++]='~';
 			t=i;
@@ -112,16 +123,25 @@ char* Generate_SFN(const char *name) {
 				n=p+1;
 				while (*n == '.') n++;
 				int j=0;
+				bool lead = false;
 				while (*n != 0 && j++<3) {
 					if (*n == ' ') {
 						n++;
+						lead = false;
 						continue;
 					}
-					if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+					if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+						sfn[i++]=*(n++);
+						lead = true;
+					} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
 						sfn[i++]='_';
 						n++;
-					} else
-						sfn[i++]=toupper(*(n++));
+						lead = false;
+					} else {
+						sfn[i++]=lead?*n:toupper(*n);
+						n++;
+						lead = false;
+					}
 				}
 			}
 			sfn[i++]=0;

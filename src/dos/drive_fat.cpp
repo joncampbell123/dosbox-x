@@ -48,6 +48,7 @@ static uint32_t dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 void dos_ver_menu(bool start);
+extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 bool filename_not_8x3(const char *n) {
@@ -56,7 +57,7 @@ bool filename_not_8x3(const char *n) {
 	i = 0;
 	while (*n != 0) {
 		if (*n == '.') break;
-		if (*n<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
+		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
 		i++;
 		n++;
 	}
@@ -70,7 +71,7 @@ bool filename_not_8x3(const char *n) {
 	i = 0;
 	while (*n != 0) {
 		if (*n == '.') return true; /* another '.' means LFN */
-		if (*n<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
+		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
 		i++;
 		n++;
 	}
@@ -83,9 +84,12 @@ bool filename_not_8x3(const char *n) {
  * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
 bool filename_not_strict_8x3(const char *n) {
 	if (filename_not_8x3(n)) return true;
-	for (unsigned int i=0; i<strlen(n); i++)
-		if (n[i]>='a' && n[i]<='z')
-			return true;
+	bool lead = false;
+	for (unsigned int i=0; i<strlen(n); i++) {
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
+		else if (n[i]>='a' && n[i]<='z') return true;
+	}
 	return false; /* it is strict 8.3 upper case */
 }
 
@@ -115,16 +119,25 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 			*sfn=0;
 			while (*n == '.'||*n == ' ') n++;
 			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
+			bool lead = false;
 			while (*n != 0 && *n != '.' && i<(k<10?6u:(k<100?5u:(k<1000?4:3u)))) {
 				if (*n == ' ') {
 					n++;
+					lead = false;
 					continue;
 				}
-				if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+				if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+					sfn[i++]=*(n++);
+					lead = true;
+				} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
 					sfn[i++]='_';
 					n++;
-				} else
-					sfn[i++]=toupper(*(n++));
+					lead = false;
+				} else {
+					sfn[i++]=lead?*n:toupper(*n);
+					n++;
+					lead = false;
+				}
 			}
 			sfn[i++]='~';
 			t=i;
@@ -152,16 +165,25 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 				n=p+1;
 				while (*n == '.') n++;
 				int j=0;
+				bool lead = false;
 				while (*n != 0 && j++<3) {
 					if (*n == ' ') {
 						n++;
+						lead = false;
 						continue;
 					}
-					if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+					if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+						sfn[i++]=*(n++);
+						lead = true;
+					} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
 						sfn[i++]='_';
 						n++;
-					} else
-						sfn[i++]=toupper(*(n++));
+						lead = false;
+					} else {
+						sfn[i++]=lead?*n:toupper(*n);
+						n++;
+						lead = false;
+					}
 				}
 			}
 			sfn[i++]=0;
