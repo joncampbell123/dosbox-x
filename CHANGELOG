@@ -22,6 +22,9 @@
     the drive is not mounted if so. You can make the
     message shorter with the -q option, and filter out
     non-local drives with "-o local" option. (Wengier)
+  - Added NE2000.COM (packet driver for NE2000 network
+    card) which will appear in Z:\SYSTEM directory when
+    NE2000 networking feature is enabled. (Wengier)
   - Added /H option to TRUENAME command to return the
     full filename on the host system for a specified
     file/directory on a mounted local drive. (Wengier)

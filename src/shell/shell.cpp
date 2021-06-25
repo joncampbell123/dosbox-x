@@ -52,7 +52,7 @@
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
 extern bool halfwidthkana, force_conversion, nokanji;
-extern bool addovl, addipx, enableime, gbk;
+extern bool addovl, addipx, addne2k, enableime, gbk;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -1649,6 +1649,7 @@ void SHELL_Init() {
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
+	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
