@@ -2552,7 +2552,7 @@ PHYSFS_sint64 PHYSFS_fileLength(const char *name) {
 /* Need to strip "/.." components and transform '\\' to '/' for physfs */
 static char *normalize(char * name, const char *basedir) {
 	int last = (int)(strlen(name)-1);
-	strreplace(name,'\\','/');
+	strreplace_dbcs(name,'\\','/');
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (last > 0 && name[last] == '.' && name[last-1] == '/') name[last-1] = 0;
 	if (last > 1 && name[last] == '.' && name[last-1] == '.' && name[last-2] == '/') {
@@ -2560,7 +2560,7 @@ static char *normalize(char * name, const char *basedir) {
 		char *slash = strrchr(name,'/');
 		if (slash) *slash = 0;
 	}
-	if (strlen(basedir) > strlen(name)) { strcpy(name,basedir); strreplace(name,'\\','/'); }
+	if (strlen(basedir) > strlen(name)) { strcpy(name,basedir); strreplace_dbcs(name,'\\','/'); }
 	last = (int)(strlen(name)-1);
 	while (last >= 0 && name[last] == '/') name[last--] = 0;
 	if (name[0] == 0) name[0] = '/';
