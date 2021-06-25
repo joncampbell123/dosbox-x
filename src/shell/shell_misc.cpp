@@ -162,7 +162,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     }
     char c[]={'<','>','|'};
     for (unsigned int j=0; j<sizeof(c); j++) {
-        const char *sp = strrchr(line, c[j]);
+        const char *sp = strrchr_dbcs(line, c[j]);
         while (sp) {
             q=0;
             char *i;
@@ -170,7 +170,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
                 if (*i=='\"') q++;
             if (q/2*2==q) break;
             *i=0;
-            sp = strrchr(line, c[j]);
+            sp = strrchr_dbcs(line, c[j]);
             *i=c[j];
         }
         if (!p_completion_start || p_completion_start<sp)

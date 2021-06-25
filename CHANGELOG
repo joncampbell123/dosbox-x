@@ -70,7 +70,7 @@
     now use internal Japanese font (also used by DOS/V
     and JEGA systems) in addition to built-in 8x16 SBCS
     font pre-generated from FREECG98.BMP. (Wengier)
-  - Added support for DBCS aware of the character "\"
+  - Added support for DBCS aware of characters \ and |
     in Chinese/Japanese/Korean code pages. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
@@ -115,7 +115,7 @@
     the TrueType font (TTF) output. (Wengier)
   - The "Unexpected control character" error message
     which may appear when executing certain batch files
-    is now a debug message (belong to "dosmisc" type)
+    is now a debug message (belong to the "misc" type)
     instead of showing to the DOS console output.
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,

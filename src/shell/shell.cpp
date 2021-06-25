@@ -52,7 +52,7 @@
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
 extern bool halfwidthkana, force_conversion, nokanji;
-extern bool addovl, addipx, enableime;
+extern bool addovl, addipx, enableime, gbk;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -64,7 +64,6 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 void SetIMPosition(void);
-bool InitCodePage(void);
 void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
@@ -72,6 +71,7 @@ void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -262,6 +262,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	char ch;
 	Bitu num=0;
 	bool quote = false;
+	bool lead1 = false, lead2 = false;
 	char* t;
 	int q;
 
@@ -270,7 +271,13 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			*lw++ = ch;
 			continue;
 		}
-
+        if (lead1) {
+            lead1=false;
+            if (ch=='|') {
+                *lw++=ch;
+                continue;
+            }
+        } else if ((IS_PC98_ARCH && shiftjis_lead_byte(ch)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(ch))) lead1 = true;
 		switch (ch) {
 		case '"':
 			quote = !quote;
@@ -284,7 +291,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 				free(*ofn);
 			*ofn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
@@ -302,7 +314,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			lr = ltrim(lr);
 			*ifn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
