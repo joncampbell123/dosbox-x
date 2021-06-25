@@ -78,13 +78,15 @@ char* Generate_SFN(const char *name) {
 			while (*n == '.'||*n == ' ') n++;
 			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
 			bool lead = false;
-			while (*n != 0 && *n != '.' && i<(k<10?6u:(k<100?5u:(k<1000?4:3u)))) {
+			unsigned int m = k<10?6u:(k<100?5u:(k<1000?4:3u));
+			while (*n != 0 && *n != '.' && i < m) {
 				if (*n == ' ') {
 					n++;
 					lead = false;
 					continue;
 				}
 				if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+					if (i==m-1) break;
 					sfn[i++]=*(n++);
 					lead = true;
 				} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
@@ -131,6 +133,7 @@ char* Generate_SFN(const char *name) {
 						continue;
 					}
 					if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+						if (j==3) break;
 						sfn[i++]=*(n++);
 						lead = true;
 					} else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
