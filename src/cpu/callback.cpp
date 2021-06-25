@@ -17,14 +17,11 @@
  */
 
 #include <assert.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "dosbox.h"
 #include "callback.h"
 #include "logging.h"
 #include "bios.h"
-#include "mem.h"
 #include "cpu.h"
 
 #if C_EMSCRIPTEN
