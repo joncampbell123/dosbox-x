@@ -1139,83 +1139,8 @@ static Bitu INT2E_Handler(void) {
 }
 
 extern unsigned int dosbox_shell_env_size;
-extern uint16_t fztime, fzdate;
 void IPXNET_ProgramStart(Program * * make);
-void drivezRegister(std::string path, std::string dir) {
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-                    names.emplace_back(fd.cFileName);
-                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
-                    names.push_back(std::string(fd.cFileName)+"/");
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG)
-                names.push_back(dir->d_name);
-              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
-                names.push_back(std::string(dir->d_name)+"/");
-            closedir(d);
-        }
-#endif
-    }
-    int res;
-    long f_size;
-    uint8_t *f_data;
-    struct stat temp_stat;
-    const struct tm* ltime;
-    for (std::string name: names) {
-        if (!name.size()) continue;
-        if (name.back()=='/' && dir=="/") {
-            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
-            fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
-            continue;
-        }
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
-
-        if (f != NULL) {
-            res=fstat(fileno(f),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
-        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
-        fztime = fzdate = 0;
-    }
-}
+void drivezRegister(std::string path, std::string dir);
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!

@@ -115,6 +115,10 @@
     enable GBK extension of the standard GB2312 charset
     with "gbk" option for Simplified Chinese DOS/V and
     the TrueType font (TTF) output. (Wengier)
+  - Added support for codepage conversion of file names
+    in "drivez" folder (for customization of Virtual
+    Drive Z:) so that they will appear properly on this
+    drive according to the code page set. (Wengier)
   - The "Unexpected control character" error message
     which may appear when executing certain batch files
     is now a debug message (belong to the "misc" type)

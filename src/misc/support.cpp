@@ -68,7 +68,7 @@ char *strchr_dbcs(char *str, char ch) {
         for (size_t i=0; i<strlen(str); i++) {
             if (lead) lead = false;
             else if ((IS_PC98_ARCH && shiftjis_lead_byte(str[i])) || (isDBCSCP() && isKanji1(str[i]))) lead = true;
-            else if (str[i] == '\\') {lastpos = i;break;}
+            else if (str[i] == ch) {lastpos = i;break;}
         }
         return lastpos>-1 ? str + lastpos : NULL;
     } else
@@ -82,7 +82,7 @@ char *strrchr_dbcs(char *str, char ch) {
         for (size_t i=0; i<strlen(str); i++) {
             if (lead) lead = false;
             else if ((IS_PC98_ARCH && shiftjis_lead_byte(str[i])) || (isDBCSCP() && isKanji1(str[i]))) lead = true;
-            else if (str[i] == '\\') lastpos = i;
+            else if (str[i] == ch) lastpos = i;
         }
         return lastpos>-1 ? str + lastpos : NULL;
     } else

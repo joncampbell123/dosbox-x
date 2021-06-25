@@ -724,6 +724,121 @@ char *CodePageHostToGuestL(const host_cnv_char_t *s) {
     return (char*)cpcnv_ltemp;
 }
 
+extern uint16_t fztime, fzdate;
+extern bool force_conversion, InitCodePage();
+std::string GetDOSBoxXPath(bool withexe=false);
+void drivezRegister(std::string path, std::string dir) {
+    int cp = dos.loaded_codepage;
+    force_conversion = true;
+    InitCodePage();
+    force_conversion = false;
+    char exePath[CROSS_LEN];
+    std::vector<std::string> names;
+    if (path.size()) {
+#if defined(WIN32)
+        HANDLE hFind;
+        WIN32_FIND_DATA fd;
+        WIN32_FIND_DATAW fdw;
+        host_cnv_char_t *host_name = CodePageGuestToHost((path+"\\*.*").c_str());
+        if (host_name != NULL) hFind = FindFirstFileW(host_name, &fdw);
+        else hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
+        if (hFind != INVALID_HANDLE_VALUE) {
+            do {
+                const char* temp_name = NULL;
+                if (host_name != NULL) temp_name = CodePageHostToGuest(fdw.cFileName);
+                if (!((host_name != NULL ? fdw.dwFileAttributes : fd.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY)) {
+                    if (host_name == NULL)
+                        names.emplace_back(fd.cFileName);
+                    else if (temp_name != NULL)
+                        names.emplace_back(temp_name);
+                } else if ((host_name == NULL || temp_name != NULL) && strcmp(host_name != NULL ? temp_name : fd.cFileName, ".") && strcmp(host_name != NULL ? temp_name : fd.cFileName, ".."))
+                    names.push_back(std::string(host_name == NULL ? fd.cFileName : temp_name)+"/");
+            } while(host_name != NULL ? FindNextFileW(hFind, &fdw) : FindNextFile(hFind, &fd));
+            FindClose(hFind);
+        }
+#else
+        struct dirent *dir;
+        host_cnv_char_t *host_name = CodePageGuestToHost(path.c_str());
+        DIR *d = opendir(host_name != NULL ? host_name : path.c_str());
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
+                if (dir->d_type == DT_REG)
+                    names.push_back(temp_name!=NULL?temp_name:dir->d_name);
+                else if (dir->d_type == DT_DIR && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
+                    names.push_back(std::string(temp_name != NULL ? temp_name : dir->d_name) + "/");
+            }
+            closedir(d);
+        }
+#endif
+    }
+    int res;
+    long f_size;
+    uint8_t *f_data;
+    struct stat temp_stat;
+    const struct tm* ltime;
+    const host_cnv_char_t* host_name;
+    for (std::string name: names) {
+        if (!name.size()) continue;
+        if (name.back()=='/' && dir=="/") {
+            ht_stat_t temp_stat;
+            host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());
+            res = host_name == NULL ? 1 : ht_stat(host_name,&temp_stat);
+            if (res) {
+                host_name = CodePageGuestToHost((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str());
+                res = ht_stat(host_name,&temp_stat);
+            }
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            fztime = fzdate = 0;
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            continue;
+        }
+        FILE * f = NULL;
+        host_cnv_char_t *host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());
+        if (host_name != NULL) {
+#ifdef host_cnv_use_wchar
+            f = _wfopen(host_name, L"rb");
+#else
+            f = fopen(host_name, "rb");
+#endif
+        }
+        if (f == NULL) {
+            strcpy(exePath, GetDOSBoxXPath().c_str());
+            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
+            host_name = CodePageGuestToHost(exePath);
+            if (host_name != NULL) {
+#ifdef host_cnv_use_wchar
+                f = _wfopen(host_name, L"rb");
+#else
+                f = fopen(host_name, "rb");
+#endif
+            }
+        }
+        f_size = 0;
+        f_data = NULL;
+        if (f != NULL) {
+            res=fstat(fileno(f),&temp_stat);
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
+            }
+            fseek(f, 0, SEEK_END);
+            f_size=ftell(f);
+            f_data=(uint8_t*)malloc(f_size);
+            fseek(f, 0, SEEK_SET);
+            fread(f_data, sizeof(char), f_size, f);
+            fclose(f);
+        }
+        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        fztime = fzdate = 0;
+    }
+    dos.loaded_codepage = cp;
+}
+
 bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
     if (nocachedir) EmptyCache();
 
