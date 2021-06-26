@@ -1286,7 +1286,8 @@ public:
 #if defined(C_SDL2)
         if (isJPkeyboard && key == 0x35 && event->key.keysym.sym == 0x60)
 #else
-		if (isJPkeyboard && event->key.keysym.scancode == 0x29 /*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
+        //if (isJPkeyboard && event->key.keysym.scancode == 0x29 /*Hankaku*/ || (useScanCode() && key == 0x29 && event->key.keysym.sym == 0))
+        if (isJPkeyboard && (key == SDLK_BACKQUOTE || key == SDLK_WORLD_12))
 #endif
         {
             if (event->type == SDL_KEYDOWN) {
