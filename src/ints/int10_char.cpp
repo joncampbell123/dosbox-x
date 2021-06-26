@@ -990,14 +990,13 @@ void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t a
 	x = (pos%CurMode->twidth - 1) * 8;//move right 1 column.
 	y = (pos / CurMode->twidth)*cheight;
 
-	GetDbcsFont(sjischr);
-
 	uint16_t ty = (uint16_t)y;
+	uint8_t *font = GetDbcsFont(sjischr);
 	for (uint8_t h = 0; h<16 ; h++) {
 		uint16_t bitsel = 0x8000;
-		uint16_t bitline = jfont_dbcs_16[sjischr * 32 + h * 2];
+		uint16_t bitline = font[h * 2];
 		bitline <<= 8;
-		bitline |= jfont_dbcs_16[sjischr * 32 + h * 2 + 1];
+		bitline |= font[h * 2 + 1];
 		uint16_t tx = (uint16_t)x;
 		while (bitsel) {
 			INT10_PutPixel(tx, ty, page, (bitline&bitsel) ? attr : back);
@@ -1098,13 +1097,12 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 				SetVTRAMChar(col, row, chr, attr);
 			if (isKanji1(chr) && prevchr == 0)
 				prevchr = chr;
-			else if (isKanji2(chr) && prevchr != 0)
-			{
+			else if (isKanji2(chr) && prevchr != 0) {
 				WriteCharJ(col, row, page, chr, attr, useattr);
 				prevchr = 0;
 				return;
 			}
-		} else if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+		} else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
 			DOSV_OffCursor();
 			uint16_t seg = GetTextSeg();
 			uint16_t width = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);

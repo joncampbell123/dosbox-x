@@ -37,7 +37,6 @@
 #include "dos_inc.h"
 #include "support.h"
 #include "setup.h"
-#include "render.h"
 #include "control.h"
 #include "SDL.h"
 
@@ -600,6 +599,7 @@ static inline bool GFX_IsFullscreen(void) {
     return false;
 }
 #endif
+#include "render.h"
 
 void KEYBOARD_AUX_LowerIRQ() {
     if (MOUSE_IRQ != 0)
