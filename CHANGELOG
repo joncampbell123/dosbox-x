@@ -122,8 +122,9 @@
     in "drivez" folder (for customization of Virtual
     Drive Z:) so that they will appear properly on this
     drive according to the code page set. (Wengier)
-  - Improved clipboard copy for DBCS characters in True
-    Type font (TTF) output in standard mode. (Wengier)
+  - Improved support for DBCS characters on mounted FAT
+    drives and clipboard copy for DBCS characters with
+    TrueType font output in standard mode. (Wengier)
   - The "Unexpected control character" error message
     which may appear when executing certain batch files
     is now a debug message (belong to the "misc" type)

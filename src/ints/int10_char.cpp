@@ -528,17 +528,17 @@ void WriteCharTopView(uint16_t off, int count) {
 	uint16_t width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 	col = (off / 2) % width;
 	row = (off / 2) / width;
-	while(count > 0) {
+	while (count > 0) {
 		code = real_readb(seg, off);
 		attr = real_readb(seg, off + 1);
-		if (isKanji1(code) && isKanji2(real_readb(seg, off + 2) && (IS_JDOSV || dos.loaded_codepage == 932 || col < width - 1))) {
+		if (isKanji1(code) && isKanji2(real_readb(seg, off + 2)) && (IS_JDOSV || dos.loaded_codepage == 932 || col < width - 1)) {
 			real_writeb(seg, row * width * 2 + col * 2, code);
 			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
 			off += 2;
 			WriteCharDOSVDbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
 			count--;
 			col++;
-			if(col >= width) {
+			if (col >= width) {
 				col = 0;
 				row++;
 			}
