@@ -138,7 +138,7 @@ extern bool         VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
-extern bool         allow_more_than_640kb;
+extern bool         allow_more_than_640kb, del_flag;
 extern bool         sync_time, enableime, gbk;
 extern int          freesizecap;
 extern unsigned int page;
@@ -1037,6 +1037,7 @@ void DOSBOX_RealInit() {
     dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
+    del_flag = dosv_section->Get_bool("del");
     if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
@@ -2049,6 +2050,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the yen symbol (¥) at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Maps the undefined del symbol (0x7F) to the next character (0x80) for the Japanese DOS/V and other Japanese mode emulations.");
 
 	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
 	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");

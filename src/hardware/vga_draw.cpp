@@ -39,6 +39,7 @@
 #include "timer.h"
 #include "config.h"
 #include "control.h"
+#include "shiftjis.h"
 #include "../ints/int10.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
@@ -2025,20 +2026,20 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             if (exattr & 0x10) fline = (fline >> 1) + 8;
                             else fline = fline >> 1;
                         }
-                        GetDbcsFont(chr);
+                        uint8_t *f = GetDbcsFont(chr);
                         if (exattr & 0x40) {
-                            Bitu font = jfont_dbcs_16[chr * 32 + fline * 2];
+                            Bitu font = f[fline * 2];
                             if (!(exattr & 0x08))
-                                font = jfont_dbcs_16[chr * 32 + fline * 2 + 1];
+                                font = f[fline * 2 + 1];
                             for (Bitu n = 0; n < 8; n++) {
                                 *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
                                 *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
                                 font <<= 1;
                             }
                         } else {
-                            Bitu font = jfont_dbcs_16[chr * 32 + fline * 2];
+                            Bitu font = f[fline * 2];
                             font <<= 8;
-                            font |= jfont_dbcs_16[chr * 32 + fline * 2 + 1];
+                            font |= f[fline * 2 + 1];
                             if (exattr &= 0x80)
                             {
                                 Bitu font2 = font;
@@ -3881,6 +3882,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             text[2]=0;
                             uname[0]=0;
                             uname[1]=0;
+                            if (del_flag && text[1] == 0x7F) text[1] = 0x80;
                             CodePageGuestToHostUTF16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
                                 (*draw).chr=uname[0];
@@ -3977,6 +3979,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1] = 0x80;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
@@ -4036,6 +4039,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1] = 0x80;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];

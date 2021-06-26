@@ -95,6 +95,7 @@ static HFONT jfont_24;
 #endif
 
 bool gbk = false;
+bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
 uint8_t TrueVideoMode;
@@ -119,7 +120,7 @@ bool isKanji2(uint8_t chr) {
     if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
         return chr >= 0x40 && chr <= 0xfe;
     else
-        return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
+        return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
 }
 
 Bitu getfontx2header(FILE *fp, fontx_h *header)
@@ -424,6 +425,7 @@ Bitu GetConvertedCode(Bitu code) {
 uint8_t *GetDbcsFont(Bitu code)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
+	if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
 	if(jfont_cache_dbcs_16[code] == 0) {
 		if(code >= 0x849f && code <= 0x84be) {
 			GetDbcsFrameFont(code, jfont_dbcs);
@@ -463,6 +465,7 @@ uint8_t *GetDbcsFont(Bitu code)
 uint8_t *GetDbcs14Font(Bitu code, bool &is14)
 {
     memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
+    if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
     if(jfont_cache_dbcs_14[code] == 0) {
         if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
             code = GetConvertedCode(code);
@@ -497,6 +500,7 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
 uint8_t *GetDbcs24Font(Bitu code)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
+	if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
 	if(jfont_cache_dbcs_24[code] == 0) {
 		if(code >= 0x809e && code < 0x80fe) {
 			if(GetWindowsFont(code - 0x807e, jfont_dbcs, 12, 24)) {
