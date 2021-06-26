@@ -130,7 +130,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw, del_flag;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -3882,7 +3882,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             text[2]=0;
                             uname[0]=0;
                             uname[1]=0;
-                            if (del_flag && text[1] == 0x7F) text[1] = 0x80;
+                            if (del_flag && text[1] == 0x7F) text[1]++;
                             CodePageGuestToHostUTF16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
                                 (*draw).chr=uname[0];
@@ -3979,7 +3979,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
-                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1] = 0x80;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
@@ -4039,7 +4039,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
-                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1] = 0x80;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
@@ -4585,7 +4585,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
 
     /* clip display end to stay within vtotal ("Monolith" demo part 4 320x570 mode fix) */
-    if (vdend > vtotal) {
+    if (vdend > vtotal && !IS_JEGA_ARCH) {
         LOG(LOG_VGA,LOG_WARN)("VGA display end greater than vtotal!");
         vdend = vtotal;
     }
@@ -5010,7 +5010,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         // if char9_set is true, allow 9-pixel wide fonts
 		if (isJEGAEnabled()) { //if Kanji Text Disable is off
 			vga.draw.char9dot = false;
-			height = 480;
 			bpp = 16;
 		}
         if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {

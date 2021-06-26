@@ -1704,7 +1704,7 @@ void SVGA_Setup_JEGA(void) {
 	svga.read_p3d5 = &read_p3d5_jega;
 
 	// Adjust memory to 256K
-	vga.mem.memsize = 256 * 1024;
+	if (vga.mem.memsize < 256 * 1024) vga.mem.memsize = 256 * 1024;
 
 	/* JEGA BIOS ROM signature for AX architecture
 	To run MS-DOS, signature ("JA") must be 
