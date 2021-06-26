@@ -7206,12 +7206,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
 				PasteClipboard(true);
 			else {
+				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5)
+					PasteClipboard(true);
+				else
+					CopyClipboard(0);
 				if (fx >= 0 && fy >= 0)
 					Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
-				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
-					PasteClipboard(true);
-				} else
-					CopyClipboard(0);
 			}
 			mouse_start_x = -1;
 			mouse_start_y = -1;

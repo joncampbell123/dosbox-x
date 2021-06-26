@@ -37,6 +37,7 @@
 #include "dos_inc.h"
 #include "support.h"
 #include "setup.h"
+#include "render.h"
 #include "control.h"
 #include "SDL.h"
 
@@ -752,6 +753,28 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r2=t;
 	}
 	text[0]=0;
+#if defined(USE_TTF)
+    if (ttf.inUse&&isDBCSCP()&&!(c1==0&&c2==ttf.cols-1&&r1==0&&r2==ttf.lins-1)) {
+        ttf_cell *curAC = curAttrChar;
+        for (int y = 0; y < ttf.lins; y++) {
+            if (y>=r1&&y<=r2)
+                for (int x = 0; x < ttf.cols; x++)
+                    if (x>=c1&&x<=c2&&curAC[x].selected) {
+                        if (x==c1&&c1>0&&curAC[x].skipped&&!curAC[x-1].selected&&curAC[x-1].doublewide) {
+                            ReadCharAttr(x-1,y,page,&result);
+                            text[len++]=result;
+                        }
+                        ReadCharAttr(x,y,page,&result);
+                        text[len++]=result;
+                        if (x==c2&&c2<ttf.cols-1&&curAC[x].doublewide&&!curAC[x+1].selected&&curAC[x+1].skipped) {
+                            ReadCharAttr(x+1,y,page,&result);
+                            text[len++]=result;
+                        }
+                    }
+            curAC += ttf.cols;
+        }
+    } else
+#endif
 	if (!IS_DOSV)
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
@@ -789,7 +812,6 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 }
 
 #if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
-#include "render.h"
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
     uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
