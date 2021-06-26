@@ -95,7 +95,6 @@ static HFONT jfont_24;
 #endif
 
 bool gbk = false;
-bool nokanji = false;
 bool yen_flag = false;
 bool jfont_init = false;
 uint8_t TrueVideoMode;
@@ -105,11 +104,10 @@ bool isDBCSCP();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern uint8_t lead[6];
+extern bool autoboxdraw;
 
 bool isKanji1(uint8_t chr) {
-    if (nokanji) return false;
-    else if (dos.loaded_codepage == 936 || IS_PDOSV)
+    if (dos.loaded_codepage == 936 || IS_PDOSV)
         return (chr >= (gbk?0x81:0xa1) && chr <= 0xfe);
     else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_CDOSV || IS_KDOSV)
         return (chr >= 0x81 && chr <= 0xfe);
@@ -118,8 +116,7 @@ bool isKanji1(uint8_t chr) {
 }
 
 bool isKanji2(uint8_t chr) {
-    if (nokanji) return false;
-    else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
         return chr >= 0x40 && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (chr >= 0x80 && chr <= 0xfc);
@@ -676,6 +673,7 @@ void JFONT_Init() {
 		LoadFontxFile(path.c_str(), 14);
 	}
 	if(IS_DOSV) {
+		autoboxdraw = true;
 		pathprop = section->Get_path("fontxsbcs16");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
