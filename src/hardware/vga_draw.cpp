@@ -1994,7 +1994,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                         foreground = tmp;
                     }
                 }
-                if(isKanji1(chr) && blocks > 1) {
+                if(isKanji1(chr) && blocks > 0) {
                     chr_left=chr;
                     chr_wide=true;
                     blocks++;

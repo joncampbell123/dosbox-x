@@ -514,12 +514,15 @@ MOUNTのその他の使用例:
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
 %c ドライブはマウントされていません。
+
 .
 :PROGRAM_MOUNT_UMOUNT_SUCCESS
 %c ドライブのマウントを解除しました。
+
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
 ドライブ番号 %c のマウントを解除しました。
+
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
 仮想ドライブのマウントを解除することはできません。

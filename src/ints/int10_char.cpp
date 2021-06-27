@@ -1122,7 +1122,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width - 1))
 				prevchr = chr;
 			else if (isKanji2(chr) && prevchr != 0 && (IS_JDOSV || col)) {
-				WriteCharDOSVDbcs((col ? col:cols) - 1, row - (col?0:1), (prevchr << 8) | chr, attr);
+				WriteCharDOSVDbcs((col?col:cols) - 1, row - (!row||col?0:1), (prevchr << 8) | chr, attr);
 				prevchr = 0;
 				return;
 			} else
