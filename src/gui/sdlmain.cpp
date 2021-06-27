@@ -74,7 +74,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle();
+void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen();
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -6543,7 +6543,7 @@ void ClipKeySelect(int sym) {
         }
         return;
     }
-    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return;
+    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_DOSV && !IS_PC98_ARCH)) return;
     if (sym==SDLK_HOME) {
         if (selsrow==-1 || selscol==-1) {
             int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -11112,6 +11112,7 @@ bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         uint16_t oldax=reg_ax;
         reg_ax=(uint16_t)CurMode->mode;
         CALLBACK_RunRealInt(0x10);
+        if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
         reg_ax = oldax;
     }
     if (!strcmp(mname, "clear_screen") && !dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {

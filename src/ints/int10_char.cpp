@@ -32,7 +32,7 @@
 #include "regs.h"
 #include <string.h>
 
-uint8_t prevchr = 0, pattr = 0;
+uint8_t prevchr = 0;
 uint16_t pcol = 0, prow = 0, pchr = 0;
 bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 uint8_t DefaultANSIAttr();
@@ -348,6 +348,11 @@ uint8_t *GetSbcsFont(Bitu code);
 uint8_t *GetSbcs19Font(Bitu code);
 uint8_t *GetDbcsFont(Bitu code);
 
+void DOSV_FillScreen() {
+    BIOS_NCOLS;BIOS_NROWS;
+    for (int i=0; i<nrows; i++) DOSV_Text_FillRow(0,ncols,i,7);
+}
+
 void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	Bitu off;
 	uint8_t data, select;
@@ -431,12 +436,12 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 }
 
 void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
-	if (IS_DOSV && !IS_JDOSV && col == pcol+2 && row == prow && attr == pattr && CheckBoxDrawing(pchr / 0x100, pchr & 0xFF, chr / 0x100, chr & 0xFF)) {
+	if (IS_DOSV && !IS_JDOSV && col == pcol+2 && row == prow && CheckBoxDrawing(pchr / 0x100, pchr & 0xFF, chr / 0x100, chr & 0xFF)) {
 		WriteCharDOSVSbcs(col - 2, row, pchr / 0x100, attr);
 		WriteCharDOSVSbcs(col - 1, row, pchr & 0xFF, attr);
 		WriteCharDOSVSbcs(col, row, chr / 0x100, attr);
 		WriteCharDOSVSbcs(col + 1, row, chr & 0xFF, attr);
-		pcol = col;prow = row;pchr = chr;pattr = attr;
+		pcol = col;prow = row;pchr = chr;
 		return;
 	}
 	Bitu off;
@@ -518,7 +523,7 @@ void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 			IO_Write(0x3cd, select);
 		}
 	}
-	pcol = col;prow = row;pchr = chr;pattr = attr;
+	pcol = col;prow = row;pchr = chr;
 }
 
 void WriteCharTopView(uint16_t off, int count) {

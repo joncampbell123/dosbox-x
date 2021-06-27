@@ -886,7 +886,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 			} else if (IS_DOSV) {
 				uint8_t attr = real_readb(seg,(i*c+j)*2+1);
 				real_writeb(seg,(i*c+j)*2+1,attr/0x10+(attr&0xF)*0x10);
-				if (j==c2) WriteCharTopView(c*i*2,j);
+				if (j==c2) WriteCharTopView(c*i*2,j+1);
 			} else
 				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
 		}

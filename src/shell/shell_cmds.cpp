@@ -118,8 +118,8 @@ extern int enablelfn, lfn_filefind_handle, file_access_tries;
 extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo;
-void DOS_SetCountry(uint16_t countryNo);
 void GetExpandedPath(std::string &path);
+void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 
 /* support functions */
 static char empty_char = 0;
@@ -418,9 +418,10 @@ void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
        WriteOut("[2J");
-   else { 
-      reg_ax=(uint16_t)CurMode->mode; 
-      CALLBACK_RunRealInt(0x10); 
+   else {
+      reg_ax=(uint16_t)CurMode->mode;
+      CALLBACK_RunRealInt(0x10);
+      if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
    } 
 }
 
