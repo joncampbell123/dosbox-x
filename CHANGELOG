@@ -77,6 +77,10 @@
     "\" and "|" in Chinese/Japanese/Korean code pages
     so that they will be treated properly as trailing
     bytes of double-byte characters. (Wengier)
+  - Improved handling of clipboard copy/paste involving
+    DBCS characters with TrueType font (TTF) output in
+    standard mode. The clipboard copy/paste feature is
+    also supported in DOS/V and JEGA modes. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
@@ -122,9 +126,9 @@
     in "drivez" folder (for customization of Virtual
     Drive Z:) so that they will appear properly on this
     drive according to the code page set. (Wengier)
-  - Improved support for DBCS characters on mounted FAT
-    drives and clipboard copy for DBCS characters with
-    TrueType font output in standard mode. (Wengier)
+  - Improved support for DBCS (double-byte) characters
+    on mounted FAT drives with Chinese/Japanese/Korean
+    codepages (932/936/949/950). (Wengier)
   - The "Unexpected control character" error message
     which may appear when executing certain batch files
     is now a debug message (belong to the "misc" type)
