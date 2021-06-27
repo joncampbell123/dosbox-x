@@ -47,6 +47,7 @@
 
 /* ints/bios.cpp */
 void bios_enable_ps2();
+uint16_t GetTextSeg();
 
 /* hardware/keyboard.cpp */
 void AUX_INT33_Takeover();
@@ -755,6 +756,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r2=t;
 	}
 	text[0]=0;
+    uint16_t seg = IS_DOSV?GetTextSeg():0;
 #if defined(USE_TTF)
     if (ttf.inUse&&isDBCSCP()&&!(c1==0&&c2==ttf.cols-1&&r1==0&&r2==ttf.lins-1)) {
         ttf_cell *curAC = curAttrChar;
@@ -777,7 +779,6 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
         }
     } else
 #endif
-	if (!IS_DOSV)
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
 			if (IS_PC98_ARCH) {
@@ -797,7 +798,10 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                         text[len++]=result;
                 } else
 					text[len++]=result;
-			} else {
+			} else if (IS_DOSV) {
+                result=real_readb(seg,(i*c+j)*2);
+                text[len++]=result;
+            } else {
                 if (!isJEGAEnabled()||j>c1||std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) == jtbs.end()) {
                     ReadCharAttr(j,i,page,&result);
                     text[len++]=result;
@@ -867,7 +871,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 				uint16_t address=((i*80)+j)*2;
 				PhysPt where = CurMode->pstart+address;
 				mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
-			} else
+			} else if (!IS_DOSV)
 				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
 		}
 }
