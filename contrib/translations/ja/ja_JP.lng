@@ -1514,8 +1514,7 @@ DOSBox-Xへようこそ !
 エミュレーション速度の調整      [31mF11 [37m+ [31mプラス[37m[37m または [31mF11 [37m+ [31mマイナス[37m
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X は日本の NEC PC-98 エミュレーションモードで動作中です。[37m  
-[31mPC-98 エミュレーションは不完全で開発進行中です。           [37m       
+[36mDOSBox-X は日本の [32mNEC PC-98[36m エミュレーションモードで動作中です。[37m  
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mプロジェクト ページ[37m: [33mhttps://dosbox-x.com/ [36mComplete DOS emulations[37m

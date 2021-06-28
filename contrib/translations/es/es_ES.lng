@@ -1241,7 +1241,7 @@ Usa ←[32mHELP←[37m para ver la lista de comandos, ←[32mINTRO←[37m para u
 Para lanzar ←[33m"Configuration Tool"←[37m usa ←[31mhost+C←[37m. La tecla HOST es ←[32mF11←[37m.◙Para activar el ←[33m"Mapper Editor"←[37m para asignar teclas, usa ←[31mhost+M←[37m.  ◙Para conmutar entre pantalla completa o modo ventana, usa ←[31mhost+F←[37m. ◙Para ajustar la velocidad de CPU, usa ←[31mhost+MAS←[37m o ←[31mhost+MENOS←[37m.      
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X funcionando en modo NEC PC-98xx.                    ←[37m     ◙←[31mEMULACION DE PC98 ACTUALMENTE INCOMPLETA Y BAJO FUERTE DESARROLLO.←[37m
+←[36mDOSBox-X funcionando en modo ←[32mNEC PC-98xx←[36m.                    ←[37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
 ←[32mWeb de DOSBox-X  ←[33mhttps://dosbox-x.com/    ←[36mEmulacion completa DOS  ←[37m◙←[32mGuia y manuales  ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS Windows 3.x y Win9x←[37m◙←[32mSoporte DOSBox-X ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m◙←[32mTraduccion←[37m       ←[33mhttps://github.com/Dalekamistoso/dosbox-x        ←[37m

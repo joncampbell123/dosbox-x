@@ -2104,8 +2104,7 @@ To switch between windowed and full-screen mode, use [31mhost+F[37m.
 To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[37m.   
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.[37m     
-[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.[37m       
+[36mDOSBox-X is now running in [32mJapanese NEC PC-98[36m emulation mode.[37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mDOSBox-X project [33mhttps://dosbox-x.com/     [36mComplete DOS emulations[37m
