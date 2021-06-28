@@ -112,6 +112,81 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 	return false;
 }
 
+ bool Network_MakeDir(char const * const dir)
+{
+    std::string name = dir;
+    if (dir[0]=='"') {
+        name=dir+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	if (CreateDirectory(name.c_str(), NULL))
+		return true;
+	uint16_t error=(uint16_t)GetLastError();
+	DOS_SetError(error==ERROR_ALREADY_EXISTS?DOSERR_ACCESS_DENIED:error);
+	return false;
+}
+
+ bool Network_RemoveDir(char const * const dir)
+{
+    std::string name = dir;
+    if (dir[0]=='"') {
+        name=dir+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	if (RemoveDirectory(name.c_str()))
+		return true;
+	uint16_t error=(uint16_t)GetLastError();
+	DOS_SetError((error==ERROR_DIRECTORY||error==ERROR_DIR_NOT_EMPTY)?DOSERR_ACCESS_DENIED:error);
+	return false;
+}
+
+ bool Network_Rename(char const * const oldname,char const * const newname)
+{
+    std::string name1 = oldname, name2 = newname;
+    if (oldname[0]=='"') {
+        name1=oldname+1;
+        if (name1.back()=='"') name1.pop_back();
+    }
+    if (newname[0]=='"') {
+        name2=newname+1;
+        if (name2.back()=='"') name2.pop_back();
+    }
+	if (MoveFile(name1.c_str(), name2.c_str()))
+		return true;
+	uint16_t error=(uint16_t)GetLastError();
+	if (error == ERROR_ALREADY_EXISTS)												// Not kwnown by DOS
+		error = DOSERR_ACCESS_DENIED;
+	DOS_SetError(error);
+	return false;
+}
+
+bool Network_UnlinkFile(char const * const filename) {
+    std::string name = filename;
+    if (filename[0]=='"') {
+        name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	if (DeleteFile(name.c_str()))
+		return true;
+	DOS_SetError((uint16_t)GetLastError());
+	if (dos.errorcode == 0x20)														// Sharing violation
+		dos.errorcode = 5;															// Should be reported as Access denied
+	return false;
+}
+
+bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
+    std::string name = filename;
+    if (filename[0]=='"') {
+        name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	if (!SetFileAttributes(name.c_str(), attr)) {
+		DOS_SetError((uint16_t)GetLastError());
+		return false;
+	}
+	return true;
+}
+
  bool Network_GetFileAttr(const char * filename,uint16_t * attr)
 {
     std::string name = filename;
@@ -138,6 +213,34 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
     DWORD dwAttrib = GetFileAttributes(name.c_str());
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+ bool Network_CreateFile(char const * filename,uint16_t attributes,uint16_t * entry)
+{
+	int attribs = FILE_ATTRIBUTE_NORMAL;
+	if (attributes&3)																		// Read-only (1), Hidden (2), System (4) are the same in DOS and Windows
+		attribs = attributes&3;															// We dont want (Windows) system files
+
+    std::string name = filename;
+    if (filename[0]=='"') {
+        name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	int	handle=_sopen(name.c_str(),_O_CREAT|_O_TRUNC|O_RDWR,_SH_DENYNO,_S_IREAD|_S_IWRITE);
+
+	if(handle!=-1)
+	{
+		DOS_PSP		psp(dos.psp());
+		*entry = psp.FindFreeFileEntry();
+		psp.SetFileHandle(*entry,handle);
+
+		NetworkHandleList[*entry]=handle;
+
+		return	true;
+	}
+	else	dos.errorcode=(uint16_t)_doserrno;
+
+	return false;
+}//bool	Network_CreateFile(char const * filename,uint16_t attributes,uint16_t * entry)
 
  bool Network_OpenFile(const char * filename,uint8_t flags,uint16_t * entry)
 {
@@ -281,7 +384,5 @@ extern "C" int _nhandle;
 		}
 		return (towrite!=-1);
 }//bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
-
-
 
 #endif // defined(WIN32) && !defined(__MINGW32__)

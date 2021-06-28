@@ -1,10 +1,10 @@
 0.83.15
   - Improved the network redirector functions for the
     Windows platform, so that you can for example list,
-    open, and execute files in a network path in the
-    form \\COMPUTER\FOLDER directly when the network
-    redirector is enabled and secure mode is disabled
-    on Windows systems. (Wengier)
+    open, write, copy, and execute files in a network
+    path in the form \\COMPUTER\FOLDER directly when
+    network redirector function is enabled and secure
+    mode is disabled on Windows systems. (Wengier)
   - MOUNT command followed by a drive letter only will
     show the current status of the drive, or show that
     the drive is not mounted if so. You can make the

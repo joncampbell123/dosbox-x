@@ -406,6 +406,9 @@ bool DOS_MakeDir(char const * const dir) {
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	while (strlen(fulldir)&&(*(fulldir+strlen(fulldir)-1)=='.'||*(fulldir+strlen(fulldir)-1)==' ')) *(fulldir+strlen(fulldir)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(dir)) return Network_MakeDir(dir);
+#endif
 	if(Drives[drive]->MakeDir(fulldir)) return true;
 
 	/* Determine reason for failing */
@@ -424,6 +427,9 @@ bool DOS_RemoveDir(char const * const dir) {
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	/* Check if exists */
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(dir)) return Network_RemoveDir(dir);
+#endif
 	if(!Drives[drive]->TestDir(fulldir)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
@@ -465,6 +471,9 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	if (!DOS_MakeName(oldname,fullold,&driveold)) return false;
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
 	while (strlen(fullnew)&&(*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ')) *(fullnew+strlen(fullnew)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(oldname)) return Network_Rename(oldname,newname);
+#endif
 
 	/* No tricks with devices */
 	bool clip=false;
@@ -757,6 +766,10 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	DOS_PSP psp(dos.psp());
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	while (strlen(fullname)&&(*(fullname+strlen(fullname)-1)=='.'||*(fullname+strlen(fullname)-1)==' ')) *(fullname+strlen(fullname)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		return Network_CreateFile(name,attributes,entry);
+#endif
 
 	/* Check for a free file handle */
 	uint8_t handle=(uint8_t)DOS_FILES;uint8_t i;
@@ -928,6 +941,9 @@ bool DOS_UnlinkFile(char const * const name) {
 		return false;
 	}
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
+#endif
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
 	} else if(uselfn&&!force_sfn&&(strchr(fullname, '*')||strchr(fullname, '?'))) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*" in LFN mode
@@ -1047,11 +1063,11 @@ HANDLE DOS_CreateOpenFile(char const* const name)
 }
 #endif
 
-bool DOS_SetFileAttr(char const * const name,uint16_t attr) 
+bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 // returns false when using on cdrom (stonekeep)
 {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
-	if (!DOS_MakeName(name,fullname,&drive)) return false;	
+	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	if (strncmp(Drives[drive]->GetInfo(),"CDRom ",6)==0 || strncmp(Drives[drive]->GetInfo(),"isoDrive ",9)==0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -1060,7 +1076,12 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 	/* This function must prevent changing a file into a directory, volume label into a file, etc.
 	 * Also Windows 95 setup likes to create WINBOOT.INI as a file and then chattr it into a directory for some stupid reason. */
 	uint16_t old_attr;
-	if (!Drives[drive]->GetFileAttr(fullname,&old_attr)) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr)||!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr))
+#else
+	if (!Drives[drive]->GetFileAttr(fullname,&old_attr))
+#endif
+	{
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
@@ -1078,6 +1099,9 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 
 	attr = (attr & ~attr_mask) | (old_attr & attr_mask);
 
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+    if (Network_IsNetworkResource(name)) return Network_SetFileAttr(name,attr);
+#endif
 	return Drives[drive]->SetFileAttr(fullname,attr);
 }
 
