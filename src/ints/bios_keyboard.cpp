@@ -1287,7 +1287,26 @@ static Bitu IRQ1_Handler_PC98(void) {
                     add_key(scan_add + ' ');
                 }
                 break;
-
+            case 0x35: // XFER
+                if (pressed) {//TODO: Shift state?
+                    if (ctrl)
+                        add_key(0xB500);
+                    else if (modflags & 1) /* shift */
+                        add_key(0xA500);
+                    else
+                        add_key(0x3500);
+                }
+                break;
+            case 0x3E: // HOME/CLR
+                if (pressed) {//TODO: Shift state?
+                    if (ctrl)
+                        break;
+                    else if (modflags & 1) /* shift */
+                        add_key(0xAE00);
+                    else
+                        add_key(0x3E00);
+                }
+                break;
             case 0x40: // keypad minus
                 if (pressed) {//TODO: Shift state?
                     add_key(scan_add + '-');
@@ -1373,7 +1392,16 @@ static Bitu IRQ1_Handler_PC98(void) {
                     add_key(scan_add + '.');
                 }
                 break;
-
+            case 0x51: // NFER
+                if (pressed) {//TODO: Shift state?
+                    if (ctrl)
+                        add_key(0xB100);
+                    else if (modflags & 1) /* shift */
+                        add_key(0xA100);
+                    else
+                        add_key(0x5100);
+                }
+                break;
             case 0x52: // VF1           vf･1    ???     ???     ???     ???
             case 0x53: // VF2           vf･2    ???     ???     ???     ???
             case 0x54: // VF3           vf･3    ???     ???     ???     ???

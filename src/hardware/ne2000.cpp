@@ -52,6 +52,7 @@
 EthernetConnection* ethernet = nullptr;
 
 static void NE2000_TX_Event(Bitu val);
+void VFILE_Remove(const char *name,const char *dir = "");
 
 //Never completely fill the ne2k ring so that we never
 // hit the unclear completely full buffer condition.
@@ -66,6 +67,7 @@ static void NE2000_TX_Event(Bitu val);
 #define BX_RESET_HARDWARE 0
 #define BX_RESET_SOFTWARE 1
 
+bool addne2k = false;
 static char bxtmp[1024];
 
 static inline void BX_INFO(const char *msg,...) {
@@ -1474,6 +1476,7 @@ public:
 		// enabled?
 
 		if(!section->Get_bool("ne2000")) {
+			addne2k = false;
 			load_success = false;
 			return;
 		}
@@ -1483,6 +1486,7 @@ public:
 		if(!ethernet)
 		{
 			LOG_MSG("NE2000: Failed to open Ethernet backend %s", backendstring);
+			addne2k = false;
 			load_success = false;
 			return;
 		}
@@ -1531,7 +1535,8 @@ public:
 				dosbox_write,IO_MB|IO_MW);
 		}
 		TIMER_AddTickHandler(NE2000_Poller);
-	}	
+		addne2k = true;
+	}
 	
 	~NE2K() {
 		if(ethernet != 0) delete ethernet;
@@ -1540,7 +1545,8 @@ public:
 		theNE2kDevice=0;
 		TIMER_DelTickHandler(NE2000_Poller);
 		PIC_RemoveEvents(NE2000_TX_Event);
-	}	
+		if (addne2k) VFILE_Remove("NE2000.COM","SYSTEM");
+	}
 };
 
 static NE2K* test = NULL;

@@ -118,9 +118,9 @@ extern int enablelfn, lfn_filefind_handle, file_access_tries;
 extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo;
-void DOS_SetCountry(uint16_t countryNo);
 void GetExpandedPath(std::string &path);
-char *strchr_dbcs(char *str, char ch), *strrchr_dbcs(char *str, char ch);
+bool Network_IsNetworkResource(const char * filename);
+void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 
 /* support functions */
 static char empty_char = 0;
@@ -419,9 +419,10 @@ void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
        WriteOut("[2J");
-   else { 
-      reg_ax=(uint16_t)CurMode->mode; 
-      CALLBACK_RunRealInt(0x10); 
+   else {
+      reg_ax=(uint16_t)CurMode->mode;
+      CALLBACK_RunRealInt(0x10);
+      if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
    } 
 }
 
@@ -1844,13 +1845,21 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
     if (!optB) {
-		if (strlen(sargs)>2&&sargs[1]==':') {
-			char c[]=" _:";
-			c[1]=toupper(sargs[0]);
-			CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+		if (Network_IsNetworkResource(args)) {
+			WriteOut("\n");
+			if (optP) p_count+=optW?5:1;
 		} else
-			CMD_VOL(empty_string);
-		if (optP) p_count+=optW?15:3;
+#endif
+		{
+			if (strlen(sargs)>2&&sargs[1]==':') {
+				char c[]=" _:";
+				c[1]=toupper(sargs[0]);
+				CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+			} else
+				CMD_VOL(empty_string);
+			if (optP) p_count+=optW?15:3;
+		}
 	}
 
 	/* Command uses dta so set it to our internal dta */
@@ -1897,9 +1906,14 @@ void DOS_Shell::CMD_DIR(char * args) {
 				rsize=false;
 			}
 		}
-		FormatNumber(free_space,numformat);
-		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
-		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+		if (!Network_IsNetworkResource(args))
+#endif
+		{
+			FormatNumber(free_space,numformat);
+			WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
+			if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
+		}
 	}
 	dos.dta(save_dta);
 }
@@ -3145,9 +3159,14 @@ void DOS_Shell::CMD_CHOICE(char * args){
 
 static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, bool adda, bool adds, bool addh, bool addr, bool suba, bool subs, bool subh, bool subr) {
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
+	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) {
+        shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+        if (!optS) ctrlbrk=true;
+        return false;
+    }
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		if (!optS) ctrlbrk=true;
 		return false;
 	}
 	if (!uselfn||!DOS_GetSFNPath(args,sfull,true)) strcpy(sfull,full);
@@ -3275,14 +3294,13 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 		ctrlbrk=false;
 		if (doAttrib(this, (char *)adirs.begin()->c_str(), dta, optS, adda, adds, addh, addr, suba, subs, subh, subr))
 			found=true;
-		else if (ctrlbrk) {
-			ctrlbrk=false;
+		else if (ctrlbrk)
 			break;
-		}
 		adirs.erase(adirs.begin());
 	}
+	if (!found&&!ctrlbrk) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 	inshell=false;
-	if (!found) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+	ctrlbrk=false;
 	dos.dta(save_dta);
 }
 

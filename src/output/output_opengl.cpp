@@ -502,7 +502,7 @@ void UpdateSDLDrawTexture() {
         {
             unsigned char *bmp;
             if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437)
-                bmp = (c==0xFB?int10_font_16:int10_font_16_init) + (c * 16);
+                bmp = int10_font_16_init + (c * 16);
             else
                 bmp = int10_font_16 + (c * 16);
             for (y = 0; y < 16; y++)
@@ -540,12 +540,12 @@ void UpdateSDLDrawDBCSTexture(Bitu code) {
         uint32_t tmp[8 * 16];
         unsigned int x, y, c;
 
-        for (c = 0; c < 2; c++)
+        for (c = 0; c < (code?2:1); c++)
         {
-            unsigned char *bmp = GetDbcsFont(code);
+            unsigned char *bmp = code?GetDbcsFont(code):(int10_font_16 + 0xFB * 16);
             for (y = 0; y < 16; y++)
                 for (x = 0; x < 8; x++)
-                    tmp[(y * 8) + x] = (bmp[y*2+c] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
+                    tmp[(y * 8) + x] = (bmp[code?(y*2+c):y] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
 
             glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)(c * 8), /*y*/0,
                 8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);

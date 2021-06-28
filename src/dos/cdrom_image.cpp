@@ -985,7 +985,7 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 
 #if defined(WIN32)
 static string dirname(char * file) {
-	char * sep = strrchr(file, '\\');
+	char * sep = strrchr_dbcs(file, '\\');
 	if (sep == nullptr)
 		sep = strrchr(file, '/');
 	if (sep == nullptr)

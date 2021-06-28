@@ -51,8 +51,8 @@
 
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
-extern bool halfwidthkana, force_conversion, nokanji;
-extern bool addovl, addipx, enableime;
+extern bool halfwidthkana, force_conversion, gbk;
+extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
@@ -64,7 +64,6 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 void SetIMPosition(void);
-bool InitCodePage(void);
 void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
@@ -72,6 +71,7 @@ void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -262,6 +262,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	char ch;
 	Bitu num=0;
 	bool quote = false;
+	bool lead1 = false, lead2 = false;
 	char* t;
 	int q;
 
@@ -270,7 +271,13 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			*lw++ = ch;
 			continue;
 		}
-
+        if (lead1) {
+            lead1=false;
+            if (ch=='|') {
+                *lw++=ch;
+                continue;
+            }
+        } else if ((IS_PC98_ARCH && shiftjis_lead_byte(ch)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(ch))) lead1 = true;
 		switch (ch) {
 		case '"':
 			quote = !quote;
@@ -284,7 +291,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 				free(*ofn);
 			*ofn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
@@ -302,7 +314,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			lr = ltrim(lr);
 			*ifn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
@@ -605,11 +622,9 @@ void DOS_Shell::Prepare(void) {
                     "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"));
                 WriteOut(ParseMsg((std::string("\033[1m\033[32m")+MSG_Get("SHELL_STARTUP_LAST")+"\033[0m\n").c_str()));
             } else {
-                nokanji=true;
                 WriteOut(ParseMsg("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"));
-                nokanji=false;
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string(" \033[33m%*s\033[37m \xBA\033[0m")).c_str()),45,verstr.c_str());
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
@@ -631,11 +646,9 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                nokanji=true;
                 WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
-                nokanji=false;
                 WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
             }
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
@@ -1122,83 +1135,8 @@ static Bitu INT2E_Handler(void) {
 }
 
 extern unsigned int dosbox_shell_env_size;
-extern uint16_t fztime, fzdate;
 void IPXNET_ProgramStart(Program * * make);
-void drivezRegister(std::string path, std::string dir) {
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-                    names.emplace_back(fd.cFileName);
-                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
-                    names.push_back(std::string(fd.cFileName)+"/");
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG)
-                names.push_back(dir->d_name);
-              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
-                names.push_back(std::string(dir->d_name)+"/");
-            closedir(d);
-        }
-#endif
-    }
-    int res;
-    long f_size;
-    uint8_t *f_data;
-    struct stat temp_stat;
-    const struct tm* ltime;
-    for (std::string name: names) {
-        if (!name.size()) continue;
-        if (name.back()=='/' && dir=="/") {
-            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
-            fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
-            continue;
-        }
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
-
-        if (f != NULL) {
-            res=fstat(fileno(f),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
-        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
-        fztime = fzdate = 0;
-    }
-}
+void drivezRegister(std::string path, std::string dir);
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
@@ -1707,6 +1645,7 @@ void SHELL_Init() {
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
+	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */

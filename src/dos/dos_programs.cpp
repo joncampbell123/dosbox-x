@@ -840,7 +840,7 @@ void MenuBrowseProgramFile() {
             uselfn=true;
             sprintf(name3,"\"%s\"",filename.c_str());
             if (DOS_GetSFNPath(name3,name2,false)) {
-                char *p=strrchr(name2, '\\');
+                char *p=strrchr_dbcs(name2, '\\');
                 strcpy(name1,p==NULL?name2:p+1);
             }
             uselfn=olduselfn;

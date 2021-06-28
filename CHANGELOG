@@ -1,4 +1,21 @@
 0.83.15
+  - Improved the network redirector functions for the
+    Windows platform, so that you can for example list,
+    open, write, copy, and execute files in UNC network
+    paths in the form \\COMPUTER\FOLDER directly when
+    network redirector function is enabled and secure
+    mode is disabled on Windows systems. (Wengier)
+  - MOUNT command followed by a drive letter only will
+    show the current status of the drive, or show that
+    the drive is not mounted if so. You can make the
+    message shorter with the -q option, and filter out
+    non-local drives with "-o local" option. (Wengier)
+  - Added NE2000.COM (packet driver for NE2000 network
+    card) which will appear in Z:\SYSTEM directory when
+    NE2000 networking feature is enabled. (Wengier)
+  - Added /H option to TRUENAME command to return the
+    full filename on the host system for a specified
+    file/directory on a mounted local drive. (Wengier)
   - Added menu command to spawn a new instance of
     DOSBox-X to Mac OS X builds to work around the
     singular app instance model the Finder tends to
@@ -12,19 +29,11 @@
   - Mac OS X coreaudio MIDI support will continue
     with the default soundfont rather than give up
     if it cannot select the custom soundfont specified
-    in dosbox.conf (joncampbell123)
+    in dosbox-x.conf (joncampbell123)
   - Fixed Mac OS X bug where coremidi would attempt
     MIDI output even if no MIDI destinations are
     available, which is apparently the case on
     Big Sur. (joncampbell123)
-  - MOUNT command followed by a drive letter only will
-    show the current status of the drive, or show that
-    the drive is not mounted if so. You can make the
-    message shorter with the -q option, and filter out
-    non-local drives with "-o local" option. (Wengier)
-  - Added /H option to TRUENAME command to return the
-    full filename on the host system for a specified
-    file/directory on a mounted local drive. (Wengier)
   - The names of advanced config options will now be
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
@@ -68,10 +77,16 @@
   - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
     are not found in the directory, then DOSBox-X will
     now use internal Japanese font (also used by DOS/V
-    and JEGA systems) in addition to built-in 8x16 SBCS
-    font pre-generated from FREECG98.BMP. (Wengier)
-  - Added support for DBCS aware of the character "\"
-    in Chinese/Japanese/Korean code pages. (Wengier)
+    and JEGA systems) and the built-in 8x16 SBCS font
+    pre-generated from FREECG98.BMP. (Wengier)
+  - Added DBCS awareness support for special characters
+    "\" and "|" in Chinese/Japanese/Korean code pages
+    so that they will be treated properly as trailing
+    bytes of double-byte characters. (Wengier)
+  - Improved handling of clipboard copy/paste involving
+    DBCS characters with TrueType font (TTF) output in
+    standard mode. The clipboard copy/paste feature is
+    also supported in DOS/V and JEGA modes. (Wengier)
   - The config option ttf.halfwidthkana (now in [ttf]
     section) will enable low ASCII boxing characters
     for the TrueType font (TTF) output too. This option
@@ -87,14 +102,15 @@
   - Added support for inputing DBCS characters using
     system input method (IME) in Windows SDL1 build.
     Chinese (Simplified & Traditional) IME should work
-    with the default setting and a Chinese code page.
-    Japanese IME may require DirectX mode for the SDL1
-    library (set option "videodriver" to "directx" for
-    this). There is a new config option "ime" in the
+    with the default video setting and a Chinese code
+    page or Chinese DOS/V mode. Japanese and Korean IME
+    may require DirectX mode for the SDL1 library (set
+    option "videodriver" to "directx" in [sdl] section
+    for this). There is a new config option "ime" in
     [dosbox] section to control it. When set to "auto"
     (default), it is enabled for Windows SDL1 builds
-    only if DOSBox-X is started with a CJK code page
-    or in PC-98/JEGA/DOS/V mode. (Wengier)
+    only if DOSBox-X is started with a CJK code page or
+    in PC-98, JEGA or DOS/V mode. (Wengier)
   - Added support for Japanese EGA mode (machine=jega)
     by adopting code from DOSVAXJ3. As with DOS/V, you
     can optionally set the SBCS and DBCS fonts with
@@ -113,9 +129,16 @@
     enable GBK extension of the standard GB2312 charset
     with "gbk" option for Simplified Chinese DOS/V and
     the TrueType font (TTF) output. (Wengier)
+  - Added support for codepage conversion of file names
+    in "drivez" folder (for customization of Virtual
+    Drive Z:) so that they will appear properly on this
+    drive according to the code page set. (Wengier)
+  - Improved support for DBCS (double-byte) characters
+    on mounted FAT drives with Chinese/Japanese/Korean
+    codepages (932/936/949/950). (Wengier)
   - The "Unexpected control character" error message
     which may appear when executing certain batch files
-    is now a debug message (belong to "dosmisc" type)
+    is now a debug message (belong to the "misc" type)
     instead of showing to the DOS console output.
   - Added "videodriver" config option in [sdl] section
     to force a video driver (such as windib/windows,

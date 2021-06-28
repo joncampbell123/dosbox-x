@@ -24,6 +24,7 @@
 #include "regs.h"
 #include "dos_inc.h"
 #include "control.h"
+#include "support.h"
 #include <list>
 #include <SDL.h>
 
@@ -176,7 +177,7 @@ static bool DOS_MultiplexFunctions(void) {
 			// fill in filename in fcb style
 			// (space-padded name (8 chars)+space-padded extension (3 chars))
 			const char* filename=(const char*)Files[reg_bx]->GetName();
-			if (strrchr(filename,'\\')) filename=strrchr(filename,'\\')+1;
+			if (strrchr_dbcs((char *)filename,'\\')) filename=strrchr_dbcs((char *)filename,'\\')+1;
 			if (strrchr(filename,'/')) filename=strrchr(filename,'/')+1;
 			if (!filename) return true;
 			const char* dotpos=strrchr(filename,'.');

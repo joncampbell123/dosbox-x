@@ -74,7 +74,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle();
+void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen();
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -2526,7 +2526,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2558,7 +2558,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2644,7 +2644,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2676,7 +2676,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size()) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2743,9 +2743,14 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 }
 
 void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
+    bool use0 = false;
 #if C_OPENGL
     if (OpenGL_using()) {
-        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
+        if (check&&(text[0]&0xFF)==0xFB) {
+            use0 = true;
+            UpdateSDLDrawDBCSTexture(0);
+        }
+        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
 
         glPushMatrix();
 
@@ -2766,12 +2771,12 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
     prevc = 0;
     while (*text != 0) {
         if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color,check);
+            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
         else
-            MenuDrawTextChar(x,y,(unsigned char)(*text++),color,check);
+            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
+        text++;
     }
     if (prevc>1) {
-        prevc = 0;
         if (mainMenu.fontCharScale >= 2)
             MenuDrawTextChar2x(x,y,prevc,color,true);
         else
@@ -6538,7 +6543,7 @@ void ClipKeySelect(int sym) {
         }
         return;
     }
-    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return;
+    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_DOSV && !IS_PC98_ARCH)) return;
     if (sym==SDLK_HOME) {
         if (selsrow==-1 || selscol==-1) {
             int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -7201,12 +7206,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
 				PasteClipboard(true);
 			else {
+				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5)
+					PasteClipboard(true);
+				else
+					CopyClipboard(0);
 				if (fx >= 0 && fy >= 0)
 					Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
-				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
-					PasteClipboard(true);
-				} else
-					CopyClipboard(0);
 			}
 			mouse_start_x = -1;
 			mouse_start_y = -1;
@@ -7258,7 +7263,7 @@ bool GFX_IsFullscreen(void) {
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x20 || key.keysym.sym == 0x113 || key.keysym.sym == 0x114))) {
+	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7D || key.keysym.sym == 0x113 || key.keysym.sym == 0x114))) {
 		// BS, <-, ->
 		return true;
 	}
@@ -7365,7 +7370,7 @@ void SetIMPosition() {
 	uint8_t x, y;
 	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	INT10_GetCursorPos(&y, &x, page);
-    int nrows=25, ncols=80;
+	int nrows=25, ncols=80;
 	if (IS_PC98_ARCH)
 		nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	else {
@@ -7376,6 +7381,7 @@ void SetIMPosition() {
         if (y>=nrows-1) y=nrows-8;
         if (x>=ncols-4) x=ncols-4;
     } else {
+        if (IS_PC98_ARCH && x<ncols-3) x+=2;
         x--;
         y--;
     }
@@ -11106,6 +11112,7 @@ bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         uint16_t oldax=reg_ax;
         reg_ax=(uint16_t)CurMode->mode;
         CALLBACK_RunRealInt(0x10);
+        if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
         reg_ax = oldax;
     }
     if (!strcmp(mname, "clear_screen") && !dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
@@ -13273,7 +13280,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
     if (!strcasecmp(imestr, "auto")) {
         const char *machine = section->Get_string("machine");
-        if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || strcasecmp(static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("dosv"), "off")) enableime = true;
+        if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || strcasecmp(static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("dosv"), "off")) enableime = true;
         else {
             force_conversion = true;
             int cp=dos.loaded_codepage;
