@@ -3145,9 +3145,14 @@ void DOS_Shell::CMD_CHOICE(char * args){
 
 static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, bool adda, bool adds, bool addh, bool addr, bool suba, bool subs, bool subh, bool subr) {
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
+	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) {
+        shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+        if (!optS) ctrlbrk=true;
+        return false;
+    }
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		if (!optS) ctrlbrk=true;
 		return false;
 	}
 	if (!uselfn||!DOS_GetSFNPath(args,sfull,true)) strcpy(sfull,full);
@@ -3275,14 +3280,13 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 		ctrlbrk=false;
 		if (doAttrib(this, (char *)adirs.begin()->c_str(), dta, optS, adda, adds, addh, addr, suba, subs, subh, subr))
 			found=true;
-		else if (ctrlbrk) {
-			ctrlbrk=false;
+		else if (ctrlbrk)
 			break;
-		}
 		adirs.erase(adirs.begin());
 	}
+	if (!found&&!ctrlbrk) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 	inshell=false;
-	if (!found) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+	ctrlbrk=false;
 	dos.dta(save_dta);
 }
 

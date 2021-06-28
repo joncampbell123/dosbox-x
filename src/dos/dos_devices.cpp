@@ -37,6 +37,7 @@
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
+bool Network_IsNetworkResource(const char * filename);
 
 struct ExtDeviceData {
 	uint16_t attribute;
@@ -727,6 +728,11 @@ uint8_t DOS_FindDevice(char const * name) {
 	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 
 	char* name_part = strrchr_dbcs(fullname,'\\');
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		name_part = fullname;
+	else
+#endif
 	if(name_part) {
 		*name_part++ = 0;
 		//Check validity of leading directory.

@@ -12,7 +12,7 @@ August 8 2005		cyberwalker
 
 */
 
-#if defined(WIN32) && !defined(__MINGW32__)
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 
 #include <windows.h>
 
@@ -30,25 +30,55 @@ August 8 2005		cyberwalker
 #include <io.h>
 #include <fcntl.h>
 #include <share.h>
+#include <sys/stat.h>
 
+extern bool enable_network_redirector;
 extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
- bool	Network_IsNetworkResource(const char * filename)
+ bool Network_IsNetworkResource(const char * filename)
 {
-	if(strlen(filename)>1)
-			return (filename[0]=='\\' && filename[1]=='\\');
-	else	return false;
+	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode())
+		return (filename[0]=='\\' && filename[1]=='\\' || strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\');
+	else
+		return false;
 }//bool	Network_IsNetworkFile(uint16_t entry)
 
 
- bool	Network_IsActiveResource(uint16_t entry)
+ bool Network_IsActiveResource(uint16_t entry)
 {
+    if (!enable_network_redirector || control->SecureMode()) return false;
 	uint32_t		handle=RealHandle(entry);
 	return	(NetworkHandleList[entry]==handle);
 }//bool	Network_IsNetworkFile(uint16_t entry)
 
+ bool Network_GetFileAttr(const char * filename,uint16_t * attr)
+{
+    std::string name = filename;
+    if (filename[0]=='"') {
+        std::string name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	Bitu attribs = GetFileAttributes(name.c_str());
+	if (attribs == INVALID_FILE_ATTRIBUTES) {
+		DOS_SetError((uint16_t)GetLastError());
+		return false;
+	}
+	*attr = attribs&0x3f;
+	return true;
+}
 
- bool	Network_OpenFile(const char * filename,uint8_t flags,uint16_t * entry)
+ bool Network_FileExists(const char* filename)
+{
+    std::string name = filename;
+    if (filename[0]=='"') {
+        std::string name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+    DWORD dwAttrib = GetFileAttributes(name.c_str());
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+ bool Network_OpenFile(const char * filename,uint8_t flags,uint16_t * entry)
 {
 	int oflag=_O_BINARY;
 	int shflag=0;
@@ -89,7 +119,12 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 		break;
 	}
 
-	int	handle=_sopen(filename,oflag,shflag,_S_IREAD|_S_IWRITE);
+    std::string name = filename;
+    if (filename[0]=='"') {
+        std::string name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+	int	handle=_sopen(name.c_str(),oflag,shflag,_S_IREAD|_S_IWRITE);
 
 	if(handle!=-1)
 	{
@@ -106,10 +141,13 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 	return false;
 }//bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
 
-extern "C"
-int _nhandle;
+#if defined(__MINGW64_VERSION_MAJOR)
+#define _nhandle 32
+#else
+extern "C" int _nhandle;
+#endif
 
- bool	Network_CloseFile(uint16_t entry)
+ bool Network_CloseFile(uint16_t entry)
 {
 		uint32_t handle=RealHandle(entry);
 		int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
@@ -144,8 +182,8 @@ int _nhandle;
 
 	toread=_read(handle,data,toread);
 	if (toread>=0) 
-			*amount=toread;
-	else	
+		*amount=toread;
+	else
 	{
 		*amount=0;
 		dos.errorcode=(uint16_t)_doserrno;
@@ -154,6 +192,18 @@ int _nhandle;
 	return	(toread>=0);
 }//bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 
+ bool Network_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type)
+{
+	uint32_t handle=RealHandle(entry);
+	long topos=*pos;
+
+	topos=_lseek(handle,*pos,type);
+	if (topos!=-1)
+		*pos=topos;
+	else
+		dos.errorcode=(uint16_t)_doserrno;
+	return (topos!=-1);
+}//bool Network_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type)
 
  bool	Network_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount)
 {
