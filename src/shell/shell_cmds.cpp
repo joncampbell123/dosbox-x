@@ -119,6 +119,7 @@ extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo;
 void GetExpandedPath(std::string &path);
+bool Network_IsNetworkResource(const char * filename);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 
 /* support functions */
@@ -1844,13 +1845,21 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
     if (!optB) {
-		if (strlen(sargs)>2&&sargs[1]==':') {
-			char c[]=" _:";
-			c[1]=toupper(sargs[0]);
-			CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+		if (Network_IsNetworkResource(args)) {
+			WriteOut("\n");
+			if (optP) p_count+=optW?5:1;
 		} else
-			CMD_VOL(empty_string);
-		if (optP) p_count+=optW?15:3;
+#endif
+		{
+			if (strlen(sargs)>2&&sargs[1]==':') {
+				char c[]=" _:";
+				c[1]=toupper(sargs[0]);
+				CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+			} else
+				CMD_VOL(empty_string);
+			if (optP) p_count+=optW?15:3;
+		}
 	}
 
 	/* Command uses dta so set it to our internal dta */
@@ -1897,9 +1906,14 @@ void DOS_Shell::CMD_DIR(char * args) {
 				rsize=false;
 			}
 		}
-		FormatNumber(free_space,numformat);
-		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
-		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+		if (!Network_IsNetworkResource(args))
+#endif
+		{
+			FormatNumber(free_space,numformat);
+			WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
+			if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
+		}
 	}
 	dos.dta(save_dta);
 }

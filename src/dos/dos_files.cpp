@@ -274,6 +274,12 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
     uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(fulldir)) {
+		strcpy(SFNPath,fulldir);
+		return true;
+	}
+#endif
     sprintf(SFNPath,"%c:\\",drive+'A');
     strcpy(LFNPath,SFNPath);
     p = fulldir;
@@ -572,8 +578,10 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		return true;
 	}
    
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(dir)) return Network_FindFirst(dir,dta);
+#endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
-	
 	return false;
 }
 
@@ -587,6 +595,10 @@ bool DOS_FindNext(void) {
 		DOS_SetError(DOSERR_NO_MORE_FILES); 
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+    unsigned int pos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
+	if (pos==65534) return Network_FindNext(dta);
+#endif
 	if (Drives[i]->FindNext(dta)) return true;
 	return false;
 }
