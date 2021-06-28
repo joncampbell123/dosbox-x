@@ -102,14 +102,15 @@
   - Added support for inputing DBCS characters using
     system input method (IME) in Windows SDL1 build.
     Chinese (Simplified & Traditional) IME should work
-    with the default setting and a Chinese code page.
-    Japanese IME may require DirectX mode for the SDL1
-    library (set option "videodriver" to "directx" for
-    this). There is a new config option "ime" in the
+    with the default video setting and a Chinese code
+    page or Chinese DOS/V mode. Japanese and Korean IME
+    may require DirectX mode for the SDL1 library (set
+    option "videodriver" to "directx" in [sdl] section
+    for this). There is a new config option "ime" in
     [dosbox] section to control it. When set to "auto"
     (default), it is enabled for Windows SDL1 builds
-    only if DOSBox-X is started with a CJK code page
-    or in PC-98/JEGA/DOS/V mode. (Wengier)
+    only if DOSBox-X is started with a CJK code page or
+    in PC-98, JEGA or DOS/V mode. (Wengier)
   - Added support for Japanese EGA mode (machine=jega)
     by adopting code from DOSVAXJ3. As with DOS/V, you
     can optionally set the SBCS and DBCS fonts with
