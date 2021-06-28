@@ -3868,6 +3868,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report DOS network redirector as resident. This will allow the host name to be returned unless the secure mode is enabled.\n"
+            "You can also directly access UNC network paths in the form \\MACHINE\\SHARE even if they are not mounted as drives on Windows systems.\n"
             "Set either \"ipx=true\" in [ipx] section or \"ne2000=true\" in [ne2000] section for a full network redirector environment.");
     Pbool->SetBasic(true);
 
