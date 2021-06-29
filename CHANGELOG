@@ -51,6 +51,8 @@
     Turbo (Fast Forward) mode at start. You can also
     change it from the command-line via CONFIG command
     (e.g. "config -set turbo=true"). (Wengier)
+  - Command "CONFIG -L" will now list the global config
+    file for DOSBox-X (if any). (Wengier)
   - Added value "quiet" to "log console" config option
     to only log DOS console outputs. (Wengier)
   - There is now a special DOS function for DOSBox-X at

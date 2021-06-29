@@ -1662,8 +1662,8 @@ void PROGRAMS_Init() {
 	// listconf
 	MSG_Add("PROGRAM_CONFIG_NOCONFIGFILE","No config file loaded!\n");
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
-	MSG_Add("PROGRAM_CONFIG_GLOBAL_CONF","\nGlobal config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
+	MSG_Add("PROGRAM_CONFIG_GLOBAL_CONF","\nGlobal config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s user configuration directory: \n%s\n\n");
 	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");
 	
