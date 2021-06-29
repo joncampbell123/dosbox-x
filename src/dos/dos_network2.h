@@ -358,7 +358,12 @@ extern "C" int _nhandle;
  bool Network_FlushFile(uint16_t entry)
 {
 	uint32_t handle=RealHandle(entry);
-	if (FlushFileBuffers((HANDLE)_get_osfhandle(handle)))
+	HANDLE hand = (HANDLE)_get_osfhandle(handle);
+	if (hand == INVALID_HANDLE_VALUE) {
+		dos.errorcode = DOSERR_INVALID_HANDLE;
+		return false;
+	}
+	if (FlushFileBuffers(hand))
 		return true;
 	else {
 		dos.errorcode=(uint16_t)GetLastError();

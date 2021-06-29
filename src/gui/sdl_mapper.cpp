@@ -1055,7 +1055,7 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         SDLKey key = keysym.sym;
 
 #if defined (MACOSX)
-        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = 0x5f;  // zero value makes the keyboar crazy
+        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = (SDLKey)0x5f;  // zero value makes the keyboard crazy
 #endif
 
         if (key==0
