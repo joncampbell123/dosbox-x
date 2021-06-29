@@ -1284,7 +1284,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	}
 	
 	uint8_t sAttr;
-	dta.GetSearchParams(sAttr,tempDir,uselfn);
+	dta.GetSearchParams(sAttr,tempDir,false);
 
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
@@ -1327,7 +1327,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
     uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH];
 	uint8_t find_attr;
 
-    dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
+    dta.GetSearchParams(srch_attr,srch_pattern,false);
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
@@ -3096,7 +3096,7 @@ bool physfsDrive::FindNext(DOS_DTA & dta) {
 	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
 	uint8_t find_attr;
 
-    dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
+    dta.GetSearchParams(srch_attr,srch_pattern,false);
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
@@ -4434,7 +4434,7 @@ bool Overlay_Drive::FindNext(DOS_DTA & dta) {
 	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
 	uint8_t find_attr;
 
-	dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
+	dta.GetSearchParams(srch_attr,srch_pattern,false);
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:

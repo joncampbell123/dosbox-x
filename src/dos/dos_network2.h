@@ -56,17 +56,25 @@ WIN32_FIND_DATA fdw;
 HANDLE hFind = INVALID_HANDLE_VALUE;
  bool Network_FindNext(DOS_DTA & dta)
  {
-	uint8_t attr;char pattern[CROSS_LEN];
-	uint16_t date, time;
+	uint8_t fattr;char pattern[CROSS_LEN];
+	uint16_t date, time, attr;
+	std::string name;
 	SYSTEMTIME lt;
-	dta.GetSearchParams(attr,pattern,uselfn);
+	dta.GetSearchParams(fattr,pattern,true);
     if (hFind != INVALID_HANDLE_VALUE) {
         while (FindNextFile(hFind, &fdw)) {
-            if ((attr & DOS_ATTR_DIRECTORY)||!(fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+            if ((fattr & DOS_ATTR_DIRECTORY)||!(fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
                 FileTimeToSystemTime(&fdw.ftLastWriteTime, &lt);
+                if (*fdw.cAlternateFileName)
+                    name = fdw.cAlternateFileName;
+                else {
+                    name = fdw.cFileName;
+                    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+                }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
-                dta.SetResult(*fdw.cAlternateFileName?fdw.cAlternateFileName:fdw.cFileName,fdw.cFileName,fdw.nFileSizeLow,date,time,fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY?DOS_ATTR_DIRECTORY:DOS_ATTR_ARCHIVE);
+                attr = (fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | (fdw.dwFileAttributes & 0x3f);
+                dta.SetResult(name.c_str(),fdw.cFileName,fdw.nFileSizeLow,date,time,attr);
                 return true;
             }
         }
@@ -81,25 +89,33 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 
  bool Network_FindFirst(const char * _dir,DOS_DTA & dta)
 {
-	uint8_t attr;char pattern[CROSS_LEN];
-	uint16_t date, time;
+	uint8_t fattr;char pattern[CROSS_LEN];
+	uint16_t date, time, attr;
+	std::string name;
 	SYSTEMTIME lt;
-	dta.GetSearchParams(attr,pattern,uselfn);
+	dta.GetSearchParams(fattr,pattern,true);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		dta.SetDirID(65534);
 	else
 		lfn_id[lfn_filefind_handle]=65534;
-	if (attr == DOS_ATTR_VOLUME)
-        return false;
+	if (fattr == DOS_ATTR_VOLUME) return false;
     std::string search = std::string(_dir)+"\\"+std::string(pattern);
+    if (search.size() > 4 && search[0]=='\\' && search[1]=='\\' && search[2]!='\\' && std::count(search.begin()+3, search.end(), '\\')==1) search += "\\";
     hFind = FindFirstFile(search.c_str(), &fdw);
     if (hFind != INVALID_HANDLE_VALUE) {
         do {
-            if ((attr & DOS_ATTR_DIRECTORY)||!(fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+            if ((fattr & DOS_ATTR_DIRECTORY)||!(fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
                 FileTimeToSystemTime(&fdw.ftLastWriteTime, &lt);
+                if (*fdw.cAlternateFileName)
+                    name = fdw.cAlternateFileName;
+                else {
+                    name = fdw.cFileName;
+                    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+                }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
-                dta.SetResult(*fdw.cAlternateFileName?fdw.cAlternateFileName:fdw.cFileName,fdw.cFileName,fdw.nFileSizeLow,date,time,fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY?DOS_ATTR_DIRECTORY:DOS_ATTR_ARCHIVE);
+                attr = (fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | (fdw.dwFileAttributes & 0x3f);
+                dta.SetResult(name.c_str(),fdw.cFileName,fdw.nFileSizeLow,date,time,attr);
                 return true;
             }
         } while (FindNextFile(hFind, &fdw));
@@ -225,7 +241,7 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
         name=filename+1;
         if (name.back()=='"') name.pop_back();
     }
-	int	handle=_sopen(name.c_str(),_O_CREAT|_O_TRUNC|O_RDWR,_SH_DENYNO,_S_IREAD|_S_IWRITE);
+	int	handle=_sopen(name.c_str(),_O_CREAT|_O_TRUNC|O_RDWR|O_BINARY,_SH_DENYNO,_S_IREAD|_S_IWRITE);
 
 	if(handle!=-1)
 	{
@@ -313,31 +329,42 @@ extern "C" int _nhandle;
 
  bool Network_CloseFile(uint16_t entry)
 {
-		uint32_t handle=RealHandle(entry);
-		int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
-		//_ASSERT_EXPR( ( _Expr_val ), _CRT_WIDE(#(handle >= 0 && (unsigned)handle < (unsigned)_nhandle)) );
-		if (!(handle > 0) || ( !( _Expr_val ))) {
-			_doserrno = 0L;
-			errno = EBADF;
-			dos.errorcode=(uint16_t)_doserrno;
-			return false;
-		}
+	uint32_t handle=RealHandle(entry);
+	int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
+	//_ASSERT_EXPR( ( _Expr_val ), _CRT_WIDE(#(handle >= 0 && (unsigned)handle < (unsigned)_nhandle)) );
+	if (!(handle > 0) || ( !( _Expr_val ))) {
+		_doserrno = 0L;
+		errno = EBADF;
+		dos.errorcode=(uint16_t)_doserrno;
+		return false;
+	}
 
-		if(close(handle)==0)
-		{
-			NetworkHandleList[entry]=0;
+	if(close(handle)==0)
+	{
+		NetworkHandleList[entry]=0;
 
-			DOS_PSP		psp(dos.psp());
-			psp.SetFileHandle(entry,0xff);
+		DOS_PSP		psp(dos.psp());
+		psp.SetFileHandle(entry,0xff);
 
-			return	true;
-		}
-		else
-		{
-			dos.errorcode=(uint16_t)_doserrno;
-			return	false;
-		}
+		return true;
+	}
+	else
+	{
+		dos.errorcode=(uint16_t)_doserrno;
+		return false;
+	}
 }//bool	Network_CloseFile(uint16_t entry)
+
+ bool Network_FlushFile(uint16_t entry)
+{
+	uint32_t handle=RealHandle(entry);
+	if (FlushFileBuffers((HANDLE)_get_osfhandle(handle)))
+		return true;
+	else {
+		dos.errorcode=(uint16_t)GetLastError();
+		return false;
+	}
+}//bool	Network_FlushFile(uint16_t entry)
 
  bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 {

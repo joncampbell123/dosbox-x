@@ -463,7 +463,7 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
         }
     }
 	uint8_t attr;char pattern[CROSS_LEN];
-	dta.GetSearchParams(attr,pattern,uselfn);
+	dta.GetSearchParams(attr,pattern,false);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(onpos);
 		search_file=(attr & DOS_ATTR_DIRECTORY) && onpos>0?parent_dir:first_file;
@@ -490,7 +490,7 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 
 bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	uint8_t attr;char pattern[CROSS_LEN];
-	dta.GetSearchParams(attr,pattern,uselfn);
+	dta.GetSearchParams(attr,pattern,false);
     unsigned int pos=lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
 
     if ((lfn_filefind_handle>=LFN_FILEFIND_MAX&&search_file==parent_dir) || (lfn_filefind_handle<LFN_FILEFIND_MAX&&lfn_search[lfn_filefind_handle]==parent_dir)) {

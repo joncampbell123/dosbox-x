@@ -279,7 +279,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 	uint8_t attr;
 	char pattern[CROSS_LEN];
-    dta.GetSearchParams(attr, pattern, uselfn);
+    dta.GetSearchParams(attr, pattern, false);
    
 	if (attr == DOS_ATTR_VOLUME) {
 		dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
@@ -298,7 +298,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 bool isoDrive::FindNext(DOS_DTA &dta) {
 	uint8_t attr;
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
-    dta.GetSearchParams(attr, pattern, uselfn);
+    dta.GetSearchParams(attr, pattern, false);
 	
 	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():sdid[lfn_filefind_handle];
 	bool isRoot = dirIterators[dirIterator].root;

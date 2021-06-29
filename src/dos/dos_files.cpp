@@ -533,6 +533,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	return false;
 }
 
+bool forcelfn = false;
 bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
@@ -549,11 +550,15 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
 	/* Split the search in dir and pattern */
-    char * find_last = strrchr_dbcs(
+	forcelfn = false;
+	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	fullsearch+(Network_IsNetworkResource(fullsearch)?(fullsearch[0]=='"'?3:2):0), '\\');
+	bool net = Network_IsNetworkResource(search);
+	if (net) forcelfn = true;
+	char *p = net ? strchr_dbcs(fullsearch+(fullsearch[0]=='"'?3:2), '\\') : NULL;
+	find_last = strrchr_dbcs(p != NULL ? p + 1 : fullsearch, '\\');
 #else
-	fullsearch,'\\');
+	find_last = strrchr_dbcs(fullsearch,'\\');
 #endif
 	if (!find_last) {	/*No dir */
 		strcpy(pattern,fullsearch);
@@ -564,7 +569,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		strcpy(dir,fullsearch);
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) return false;
+	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) {forcelfn=false;return false;}
 #endif
 
 	// Silence CHKDSK "Invalid sub-directory entry"
@@ -577,6 +582,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 
 	sdrive=drive;
 	dta.SetupSearch(drive,(uint8_t)attr,pattern);
+    forcelfn = false;
 
 	if(device) {
 		find_last = strrchr(pattern,'.');
@@ -588,7 +594,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	}
    
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (Network_IsNetworkResource(dir)) return Network_FindFirst(dir,dta);
+	if (net) return Network_FindFirst(dir,dta);
 #endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
 	return false;
@@ -614,15 +620,15 @@ bool DOS_FindNext(void) {
 
 
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
-		return Network_ReadFile(entry,data,amount);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_ReadFile(entry,data,amount);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -644,15 +650,15 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 }
 
 bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
-		return Network_WriteFile(entry,data,amount);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_WriteFile(entry,data,amount);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -674,15 +680,15 @@ bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fc
 }
 
 bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb) {
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
-		return Network_SeekFile(entry,pos,type);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_SeekFile(entry,pos,type);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -705,15 +711,15 @@ bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
 }
 
 bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
-		return Network_CloseFile(entry);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_CloseFile(entry);
+#endif
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -743,6 +749,10 @@ bool DOS_FlushFile(uint16_t entry) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_FlushFile(entry);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -813,10 +823,6 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 }
 
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsNetworkResource(name))
-		return Network_OpenFile(name,flags,entry);
-#endif
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
 	else LOG(LOG_FILES,LOG_NORMAL)("file open command %X file %s",flags,name);
@@ -836,6 +842,10 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;uint8_t i;
 	/* First check if the name is correct */
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		return Network_OpenFile(name,flags,entry);
+#endif
 	uint8_t handle=255;		
 	/* Check for a free file handle */
 	for (i=0;i<DOS_FILES;i++) {
