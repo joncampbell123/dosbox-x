@@ -52,7 +52,7 @@ typedef struct {
 
 Bitu call_program;
 extern const char *modifier;
-extern std::string langname;
+extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
 
@@ -656,7 +656,7 @@ void CONFIG::Run(void) {
 			char cwd[512] = {0};
 			char *res = getcwd(cwd,sizeof(cwd)-1);
 			if (res!=NULL) WriteOut(MSG_Get("PROGRAM_CONFIG_WORKDIR"), cwd);
-			if (size==0) WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+			if (size==0&&!configfile.size()) WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			else {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_PRIMARY_CONF"),control->configfiles.front().c_str());
 				if (size > 1) {
@@ -664,6 +664,7 @@ void CONFIG::Run(void) {
 					for(Bitu i = 1; i < size; i++)
 						WriteOut("%s\n",control->configfiles[i].c_str());
 				}
+				if (configfile.size()) WriteOut(MSG_Get("PROGRAM_CONFIG_GLOBAL_CONF"),configfile.c_str());
 			}
 			if (control->startup_params.size() > 0) {
 				std::string test;
@@ -1661,6 +1662,7 @@ void PROGRAMS_Init() {
 	// listconf
 	MSG_Add("PROGRAM_CONFIG_NOCONFIGFILE","No config file loaded!\n");
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
+	MSG_Add("PROGRAM_CONFIG_GLOBAL_CONF","\nGlobal config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
 	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s user configuration directory: \n%s\n\n");
 	MSG_Add("PROGRAM_CONFIG_WORKDIR","DOSBox-X's working directory: \n%s\n\n");

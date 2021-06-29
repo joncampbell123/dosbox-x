@@ -93,6 +93,9 @@ static enum DOSV_FEP_CTRL dosv_fep_ctrl;
 static HFONT jfont_16;
 static HFONT jfont_24;
 #endif
+#if defined(USE_TTF)
+extern bool autoboxdraw;
+#endif
 
 bool gbk = false;
 bool del_flag = true;
@@ -105,7 +108,6 @@ bool isDBCSCP();
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool autoboxdraw;
 
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
@@ -677,7 +679,9 @@ void JFONT_Init() {
 		LoadFontxFile(path.c_str(), 14);
 	}
 	if(IS_DOSV) {
+#if defined(USE_TTF)
 		autoboxdraw = true;
+#endif
 		pathprop = section->Get_path("fontxsbcs16");
 		if(pathprop) {
 			std::string path=pathprop->realpath;

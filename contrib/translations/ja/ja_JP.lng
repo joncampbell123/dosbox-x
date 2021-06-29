@@ -262,6 +262,12 @@ Config ファイルが読み込まれていません!
 追加の設定ファイル:
 
 .
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+グローバル設定ファイル:
+%s
+
+.
 :PROGRAM_CONFIG_CONFDIR
 DOSBox-X %s 設定用ディレクトリ:
 %s
@@ -358,9 +364,9 @@ DOSBox-X configuration に含まれるセクション:
 文法が違います: config -get "セクション プロパティ".
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
+
 DOSBox-X は以下のコマンドラインパラメータを指定して起動されました:
 %s
-
 
 .
 :PROGRAM_CONFIG_MISSINGPARAM

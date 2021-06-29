@@ -248,6 +248,9 @@ Archivo config primario: ◙%s◙
 :PROGRAM_CONFIG_ADDITIONAL_CONF
 Ficheros config adicionales:◙
 .
+:PROGRAM_CONFIG_GLOBAL_CONF
+◙Archivo config global: ◙%s◙
+.
 :PROGRAM_CONFIG_CONFDIR
 Directorio de user configuración DOSBox-X %s: ◙%s◙◙
 .

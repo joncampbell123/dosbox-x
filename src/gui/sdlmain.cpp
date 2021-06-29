@@ -300,6 +300,7 @@ Bitu frames = 0;
 unsigned int page=0;
 unsigned int hostkeyalt=0;
 unsigned int sendkeymap=0;
+std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
@@ -12638,9 +12639,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 #endif
 
+    configfile = "";
     std::string workdiropt = "default";
     std::string workdirdef = "";
-    std::string configfile = "";
     std::string exepath=GetDOSBoxXPath();
     struct stat st;
     if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {

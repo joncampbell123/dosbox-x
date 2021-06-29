@@ -261,6 +261,12 @@ IDE 位置
 附加配置文件:
 
 .
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+全局配置文件:
+%s
+
+.
 :PROGRAM_CONFIG_CONFDIR
 DOSBox-X %s 用户配置文件目录: 
 %s
