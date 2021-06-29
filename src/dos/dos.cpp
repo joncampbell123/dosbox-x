@@ -464,6 +464,7 @@ void DOS_Int21_71a8(char* name1, const char* name2);
 void DOS_Int21_71aa(char* name1, const char* name2);
 Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
+bool Network_IsNetworkResource(const char * filename);
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &cs,Bitu &ip);
 
 #define DOSNAMEBUF 256
@@ -619,7 +620,7 @@ typedef struct {
 char res1[CROSS_LEN] = {0}, res2[CROSS_LEN], *result;
 const char * TranslateHostPath(const char * arg, bool next = false) {
     result = next ? res2: res1;
-    if (!starttranspath) {
+    if (!starttranspath||!*arg) {
         strcpy(result, arg);
         return result;
     }
@@ -642,9 +643,10 @@ const char * TranslateHostPath(const char * arg, bool next = false) {
             epos = args.substr(spos).find_first_of(' ');
             if (epos == std::string::npos) epos = args.size() - spos;
         }
-        char fullname[DOS_PATHLENGTH];
         uint8_t drive;
-        if (DOS_MakeName(args.substr(spos, epos).c_str(), fullname, &drive) && (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+        char fullname[DOS_PATHLENGTH];
+        std::string name = args.substr(spos, epos);
+        if (DOS_MakeName(name.c_str(), fullname, &drive) && (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
            localDrive *ldp = dynamic_cast<localDrive*>(Drives[drive]);
            Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
            std::string hostname = "";
@@ -655,9 +657,9 @@ const char * TranslateHostPath(const char * arg, bool next = false) {
                strcat(result, hostname.c_str());
                if (arg[spos] == '"') strcat(result, "\"");
            } else
-               strcat(result, args.substr(spos, epos).c_str());
+               strcat(result, name.c_str());
         } else
-            strcat(result, args.substr(spos, epos).c_str());
+            strcat(result, name.c_str());
     }
     return result;
 }
@@ -680,17 +682,24 @@ void HostAppRun() {
     char *fullname=appname;
     uint8_t drive;
     if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
-    if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+    bool net = false;
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+    if (Network_IsNetworkResource(fullname)) {
+        net = true;
+        strcpy(winName, fullname);
+    }
+#endif
+    if (GetCurrentDirectory(512, winDirCur)&&(net||!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
         bool useoverlay=false;
         Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
-        if (odp != NULL) {
+        if (odp != NULL && !net) {
             strcpy(winName, odp->getOverlaydir());
             strcat(winName, winDirNew);
             struct stat tempstat;
             if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
                 useoverlay=true;
         }
-        if (!useoverlay) {
+        if (!useoverlay && !net) {
             strcpy(winName, Drives[drive]->GetBaseDir());
             strcat(winName, winDirNew);
             if (!PathFileExists(winName)) {
@@ -720,7 +729,7 @@ void HostAppRun() {
             strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
             strcat(winDirNew, Drives[drive]->curdir);
         }
-        if (SetCurrentDirectory(winDirNew)) {
+        if (SetCurrentDirectory(winDirNew)||net) {
             SHELLEXECUTEINFO lpExecInfo;
             strcpy(comline, appargs);
             strcpy(comline, trim((char *)TranslateHostPath(p)));
