@@ -38,7 +38,11 @@ std::string MacOSXResPath;
 #define _WIN32_IE 0x0400
 #endif
 #include <shlobj.h>
+typedef wchar_t host_cnv_char_t;
+#else
+typedef char host_cnv_char_t;
 #endif
+extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 
 #if defined HAVE_SYS_TYPES_H && defined HAVE_PWD_H
 #include <sys/types.h>
@@ -224,8 +228,6 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 }
 
 #if defined (WIN32)
-typedef wchar_t host_cnv_char_t;
-extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 extern bool isDBCSCP();
 
 /* does the filename fit the 8.3 format? */
@@ -395,10 +397,11 @@ dir_information* open_directory(const char* dirname) {
 
 bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {	
 	if (!dirp) return false;
-	struct dirent* dentry = readdir(dirp->dir);
-	if (dentry==NULL) {
-		return false;
-	}
+	struct dirent* dentry;
+	do {
+		dentry = readdir(dirp->dir);
+		if (dentry==NULL) return false;
+	} while (CodePageHostToGuest(dentry->d_name)==NULL);
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
@@ -428,15 +431,15 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 
 bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	if (!dirp) return false;
-	struct dirent* dentry = readdir(dirp->dir);
-	if (dentry==NULL) {
-		return false;
-	}
+	struct dirent* dentry;
+	do {
+		dentry = readdir(dirp->dir);
+		if (dentry==NULL) return false;
+	} while (CodePageHostToGuest(dentry->d_name)==NULL);
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
 	entry_sname[0]=0;
-
 
 #ifdef DIRENT_HAS_D_TYPE
 	if(dentry->d_type == DT_DIR) {

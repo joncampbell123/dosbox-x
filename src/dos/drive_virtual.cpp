@@ -137,7 +137,7 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
     }
 }
 
-char* VFILE_Generate_SFN(const char *name) {
+char* VFILE_Generate_SFN(const char *name, unsigned int onpos) {
 	if (!filename_not_8x3(name)) {
 		strcpy(sfn, name);
 		DBCS_upcase(sfn);
@@ -158,7 +158,7 @@ char* VFILE_Generate_SFN(const char *name) {
         cur_file = first_file;
         bool found=false;
         while (cur_file) {
-            if (strcasecmp(sfn,cur_file->name)==0||(uselfn&&strcasecmp(sfn,cur_file->lname)==0)) {found=true;break;}
+            if (onpos==cur_file->onpos&&(strcasecmp(sfn,cur_file->name)==0||(uselfn&&strcasecmp(sfn,cur_file->lname)==0))) {found=true;break;}
             cur_file=cur_file->next;
         }
         if (!found) return sfn;
@@ -207,7 +207,7 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
 		if (onpos==cur_file->onpos&&(strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0))) return;
 		cur_file=cur_file->next;
 	}
-    std::string sname=filename_not_strict_8x3(name)?VFILE_Generate_SFN(name):name;
+    std::string sname=filename_not_strict_8x3(name)?VFILE_Generate_SFN(name,onpos):name;
     if (in)	for (std::string file; in >> file; ) {
         if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
             strncpy(fullname, dir+1, strlen(dir)-2);

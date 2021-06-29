@@ -1227,7 +1227,7 @@ bool pc98_force_ibm_layout = false;
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     uint8_t ret=0;
     bool usesdl1dib = false;
-#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if defined(WIN32) && !defined(C_SDL2)
     if (GFX_SDLUsingWinDIB()) usesdl1dib = true;
 #endif
 

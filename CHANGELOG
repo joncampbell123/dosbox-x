@@ -161,6 +161,11 @@
   - Fixed the possible freeze when output was switched
     from TrueType font (TTF) output and you tried to
     reset the virtual machine. (Wengier)
+  - Fixed non-representative filenames on local drives
+    in current code page causing memory corruption for
+    e.g. Windows 3.1 Setup on non-Windows platforms.
+    These entries will no longer appear to DOS guest
+    system in incompatible code pages. (Wengier)
 0.83.14
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
