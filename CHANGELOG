@@ -1,4 +1,6 @@
 0.83.15
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.15.html
   - Improved the network redirector functions for the
     Windows platform, so that you can for example list,
     open, write, copy, and execute files in UNC network
@@ -16,6 +18,24 @@
   - Added /H option to TRUENAME command to return the
     full filename on the host system for a specified
     file/directory on a mounted local drive. (Wengier)
+  - Added option "starttranspath" which if set to true
+    will automatically translath all paths in command-
+    line to host system paths when starting programs to
+    run on the host system. You can also toggle this
+    function dynamically from the drop-down menu ("DOS"
+    => "Host system applications" => "Translate paths
+    to host system paths". (Wengier)
+  - Added option "drive z expand path" which when set
+    to true (default) will automatically expand %PATH%
+    environment variable to include the subdirectories
+    on the Z drive when only the Z:\ path is specified
+    for compatibility purposes. (Wengier)
+  - Added option "turbo" in [cpu] section to enable
+    Turbo (Fast Forward) mode at start. You can also
+    change it from the command-line via CONFIG command
+    (e.g. "config -set turbo=true"). (Wengier)
+  - Added value "quiet" to "log console" config option
+    to only log DOS console outputs. (Wengier)
   - Added menu command to spawn a new instance of
     DOSBox-X to Mac OS X builds to work around the
     singular app instance model the Finder tends to
@@ -29,7 +49,7 @@
   - Mac OS X coreaudio MIDI support will continue
     with the default soundfont rather than give up
     if it cannot select the custom soundfont specified
-    in dosbox-x.conf (joncampbell123)
+    in the config file. (joncampbell123)
   - Fixed Mac OS X bug where coremidi would attempt
     MIDI output even if no MIDI destinations are
     available, which is apparently the case on
@@ -38,23 +58,8 @@
     listed in the common config reference file (i.e.
     dosbox-x.reference.conf) too. Several previously
     advanced options are now common options. (Wengier)
-  - Added option "starttranspath" which if set to true
-    will automatically translath all paths in command-
-    line to host system paths when starting programs to
-    run on the host system. (Wengier)
-  - Added option "drive z expand path" which when set
-    to true (default) will automatically expand %PATH%
-    environment variable to include the subdirectories
-    on the Z drive when only the Z:\ path is specified
-    for compatibility purposes. (Wengier)
-  - Added option "turbo" in [cpu] section to enable
-    Turbo (Fast Forward) mode at start. You can also
-    change it from the command-line via CONFIG command
-    (e.g. "config -set turbo=true"). (Wengier)
   - Command "CONFIG -L" will now list the global config
     file for DOSBox-X (if any). (Wengier)
-  - Added value "quiet" to "log console" config option
-    to only log DOS console outputs. (Wengier)
   - There is now a special DOS function for DOSBox-X at
     Int21h/AH=2B/CX=0x4442h('DB')/DX=0x2D58h('-X'), as
     follows: AL=0h (DOSBox-X installation check), AL=1h
@@ -167,6 +172,8 @@
     These entries will no longer appear to DOS guest
     system in incompatible code pages. (Wengier)
 0.83.14
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.14.html
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
     root directory of Z drive any more. Only one-level
@@ -372,6 +379,8 @@
     - r4456: The numeric keypad can now be used to
     navigate the debugger when Num Lock is off.
 0.83.13
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.13.html
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
     Windows platforms (e.g. ${HOME}..) as well. A new
@@ -526,6 +535,8 @@
     machine. Fixes EGA display of older Super Pac-Man
     release.
 0.83.12
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.12.html
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
     registers, which is needed for the tweaked
@@ -636,6 +647,8 @@
     recording, and to start keymapper, from config.
     - r4405: Smarter clearing of the dynrec cache.
 0.83.11
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.11.html
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).
@@ -810,6 +823,8 @@
     of DOS Navigator 1.51 when playing past track 15.
     - r4318: Add LOGC debug command to log cs:ip only.
 0.83.10
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.10.html
   - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and the "meta"
@@ -1004,6 +1019,8 @@
     IRQ is raised when not in autodma mode.
 
 0.83.9
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.9.html
   - Physical CD drives are now mountable in SDL2 builds
     just like SDL1 builds, so commands like "MOUNT -CD"
     should work in both SDL1 and SDL2 builds. Some code
@@ -1195,6 +1212,8 @@
     configuration if desired. Set the config option
     "oplemu=opl3duoboard" to use it. (josephillips85)
 0.83.8
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.8.html
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"
     and optionally a monospaced TTF font (such as
@@ -1348,6 +1367,8 @@
     latest versions (versions 0.12.22, 0.6.19, 0.12.14
     respectively). Thanks to mackron & kcgen. (Wengier)
 0.83.7
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.7.html
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
@@ -1612,6 +1633,8 @@
     - r4257: Add simple program that allows you to boot
       into a bios image for running cpu tester bios.
 0.83.6
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.6.html
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
     of Tomb Raider when using non-Glide mode. Portions
@@ -1785,6 +1808,8 @@
     For subdirectories support please use MOUNT command
     to mount local directory instead. (Wengier).
 0.83.5
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.5.html
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
     latest version format automatically while keeping
