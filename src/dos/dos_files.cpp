@@ -211,6 +211,13 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				int32_t cDots = templen - 1;
 				for(iDown=(int32_t)strlen(fullname)-1;iDown>=0;iDown--) {
 					if(fullname[iDown]=='\\' || iDown==0) {
+                        if (iDown > 0 && (IS_PC98_ARCH || isDBCSCP())) {
+                            char c = fullname[iDown+1];
+                            fullname[iDown+1] = 0;
+                            char *p = strrchr_dbcs(fullname, '\\');
+                            fullname[iDown+1] = c;
+                            if (p==NULL || p-fullname<iDown) continue;
+                        }
 						lastdir = (uint32_t)iDown;
 						cDots--;
 						if(cDots==0)
@@ -219,8 +226,11 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				}
 				fullname[lastdir]=0;
 				t=0;lastdir=0;
+				bool lead2 = false;
 				while (fullname[t]!=0) {
-					if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
+					if (lead2) lead2=false;
+					else if ((IS_PC98_ARCH && shiftjis_lead_byte(upname[r])) || (isDBCSCP() && isKanji1(upname[r]))) lead2=true;
+					else if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
 					t++;
 				}
 				tempdir[0]=0;

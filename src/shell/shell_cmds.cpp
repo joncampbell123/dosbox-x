@@ -852,10 +852,10 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
     if (level&&strlen(sfull)>4&&!strcasecmp(sfull+strlen(sfull)-4, "\\*.*")) {
         *(sfull+strlen(sfull)-4)=0;
         p=strrchr_dbcs(sfull, '\\');
-        char c=optA?(last?'\\':'+'):(last?'À':'Ã');
+        char c=optA?(last?'\\':'+'):(last?0xc0:0xc3);
         cont[level]=!last;
-        for (int i=1; i<level; i++) shell->WriteOut("%c   ", cont[i]?(optA?'|':'³'):' ');
-        shell->WriteOut(optA?"%c---%s\n":"%cÄÄÄ%s\n", c, p?p+1:sfull);
+        for (int i=1; i<level; i++) shell->WriteOut("%c   ", cont[i]?(optA?'|':0xb3):' ');
+        shell->WriteOut(("%c"+std::string(3, optA?'-':0xc4)+"%s\n").c_str(), c, p?p+1:sfull);
         *(sfull+strlen(sfull))='\\';
     }
     sprintf(sargs,"\"%s\"",spath);
@@ -890,7 +890,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
                         found=true;
                     }
                 } else if (optF) {
-                    for (int i=1; i<=level; i++) shell->WriteOut("%c   ", (i==1&&level>1?!plast:cont[i])?(optA?'|':'³'):' ');
+                    for (int i=1; i<=level; i++) shell->WriteOut("%c   ", (i==1&&level>1?!plast:cont[i])?(optA?'|':0xb3):' ');
                     shell->WriteOut("    %s\n", uselfn?lname:name);
                 }
             }
