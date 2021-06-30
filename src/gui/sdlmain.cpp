@@ -13166,6 +13166,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				pvars[0].erase(equpos);
 				// As we had a = the first thing must be a property now
 				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
+				if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
+					pvars[0].erase(0,4);
+					sec = control->GetSectionFromProperty(pvars[0].c_str());
+				}
 				if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 				else {
 					LOG_MSG("%s", MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
