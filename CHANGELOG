@@ -1,7 +1,7 @@
 0.83.15
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.15.html
-  - Improved the network redirector functions for the
+  - Enhanced the network redirector functions for the
     Windows platform, so that you can for example list,
     open, write, copy, and execute files in UNC network
     paths in the form \\COMPUTER\FOLDER directly when
@@ -41,16 +41,16 @@
     singular app instance model the Finder tends to
     prefer, so that users can run multiple instances
     if they wish. (joncampbell123)
-  - Mac OS X builds will once again have Fluidsynth,
+  - MacOS builds will once again have Fluidsynth,
     libslirp, and FFMPEG support from revised .app
     building code. For best results support is enabled
     at compile time only if Brew is installed along
     with Brew builds of those packages. (joncampbell123)
-  - Mac OS X coreaudio MIDI support will continue
-    with the default soundfont rather than give up
+  - MacOS coreaudio MIDI support will continue with
+    the default soundfont rather than giving up
     if it cannot select the custom soundfont specified
     in the config file. (joncampbell123)
-  - Fixed Mac OS X bug where coremidi would attempt
+  - Fixed MacOS bug where coremidi would attempt
     MIDI output even if no MIDI destinations are
     available, which is apparently the case on
     Big Sur. (joncampbell123)
@@ -154,7 +154,9 @@
     builds (without certain functions). (Wengier)
   - There is a now a [ttf] section in the config file,
     and TTF-related config options are moved/renamed
-    from [render] section to this section. The Windows
+    from [render] section to this section (previous
+    config options "ttf.*" in [render] section become
+    * (with "ttf." dropped) in [ttf] section). Windows
     installer will also automatically transfer previous
     TTF options to the new [ttf] section. (Wengier)
   - When setting to "auto", config option "allow lmsw
