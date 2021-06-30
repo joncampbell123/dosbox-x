@@ -37,7 +37,9 @@
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
+bool isDBCSCP(), shiftjis_lead_byte(int c);
 bool Network_IsNetworkResource(const char * filename);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 struct ExtDeviceData {
 	uint16_t attribute;
@@ -475,9 +477,34 @@ private:
 			fh = fopen(tmpUnicode, "w+b");			// The same for Unicode file (it's eventually read)
 			if (fh)
 				{
+				char text[3];
+				bool lead = false;
+				uint16_t uname[4];
+				uint8_t pchr = 0;
 				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
 				for (uint32_t i = 0; i < rawdata.size(); i++)
 					{
+					if (lead) {
+						lead = false;
+						if (pchr && isKanji2(rawdata[i]&0xff)) {
+							text[0]=pchr&0xff;
+							text[1]=rawdata[i]&0xff;
+							text[2]=0;
+							uname[0]=0;
+							uname[1]=0;
+							if (CodePageGuestToHostUTF16(uname,text)) {
+								fwrite(uname, 1, 2, fh);
+								continue;
+							} else
+								fwrite(cpMap+pchr, 1, 2, fh);
+						} else
+							fwrite(cpMap+pchr, 1, 2, fh);
+						pchr = 0;
+					} else if ((IS_PC98_ARCH && shiftjis_lead_byte(rawdata[i]&0xff)) || (isDBCSCP() && isKanji1(rawdata[i]&0xff))) {
+						pchr = rawdata[i];
+						lead = true;
+						continue;
+					}
 					uint16_t textChar =  (uint8_t)rawdata[i];
 					switch (textChar)
 						{
