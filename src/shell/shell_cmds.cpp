@@ -121,6 +121,7 @@ extern uint16_t countryNo;
 void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
+extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 /* support functions */
 static char empty_char = 0;
@@ -2276,7 +2277,13 @@ void DOS_Shell::CMD_COPY(char * args) {
 						// save the offset in the source names
 
 						replacementOffset = source.filename.find('*');
-						size_t lastSlash = source.filename.rfind('\\');
+						size_t lastSlash = std::string::npos;
+						bool lead = false;
+						for (unsigned int i=0; i<source.filename.size(); i++) {
+							if (lead) lead = false;
+							else if ((IS_PC98_ARCH && shiftjis_lead_byte(source.filename[i])) || (isDBCSCP() && isKanji1(source.filename[i]))) lead = true;
+							else if (source.filename[i]=='\\') lastSlash = i;
+						}
 						if (std::string::npos == lastSlash)
 							lastSlash = 0;
 						else
