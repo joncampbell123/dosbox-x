@@ -108,9 +108,9 @@
     interface via fontxdbcs14 config option. (Wengier)
   - Added support for inputing DBCS characters using
     system input method (IME) in Windows SDL1 build.
-    Chinese (Simplified & Traditional) IME should work
+    Chinese (Simplified and Traditional) IMEs may work
     with the default video setting and a Chinese code
-    page or Chinese DOS/V mode. Japanese and Korean IME
+    page or Chinese DOS/V mode. Japanese & Korean IMEs
     may require DirectX mode for the SDL1 library (set
     option "videodriver" to "directx" in [sdl] section
     for this). There is a new config option "ime" in
