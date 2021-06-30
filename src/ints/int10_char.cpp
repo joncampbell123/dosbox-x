@@ -1119,9 +1119,10 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 			real_writeb(seg, row * width * 2 + col * 2, chr);
 			if (useattr)
 				real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
-			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width - 1))
+			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width - 1)) {
 				prevchr = chr;
-			else if (isKanji2(chr) && prevchr != 0 && (IS_JDOSV || col)) {
+				prow = row;
+			} else if (isKanji2(chr) && prevchr != 0 && ((IS_JDOSV & !col) || (col && row == prow))) {
 				WriteCharDOSVDbcs((col?col:cols) - 1, row - (!row||col?0:1), (prevchr << 8) | chr, attr);
 				prevchr = 0;
 				return;
