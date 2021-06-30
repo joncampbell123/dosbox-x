@@ -885,7 +885,7 @@ void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 }
 
-bool filename_not_8x3(const char *n);
+bool filename_not_8x3(const char *n), isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 class AUTOEXEC:public Module_base {
 private:
 	AutoexecObject autoexec[17];
@@ -898,6 +898,10 @@ public:
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
 		bool secure = control->opt_securemode;
+        force_conversion = true;
+        int cp=dos.loaded_codepage;
+        InitCodePage();
+        force_conversion = false;
 
         /* The user may have given .BAT files to run on the command line */
         if (!control->auto_bat_additional.empty()) {
@@ -909,11 +913,16 @@ public:
                     cmd += "@c:\n";
                 } else {
                     std::string batname;
-                    /* NTS: this code might have problems with DBCS filenames - yksoft1 */
                     //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
                     std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
-                    size_t pos = control->auto_bat_additional[i].find_last_of('\\');
+                    size_t pos = std::string::npos;
+                    bool lead = false;
+                    for (unsigned int j=0; j<control->auto_bat_additional[i].size(); j++) {
+                        if (lead) lead = false;
+                        else if ((IS_PC98_ARCH && shiftjis_lead_byte(control->auto_bat_additional[i][j])) || (isDBCSCP() && isKanji1(control->auto_bat_additional[i][j]))) lead = true;
+                        else if (control->auto_bat_additional[i][j]=='\\') pos = j;
+                    }
                     if(pos == std::string::npos) {  //Only a filename, mount current directory
                         batname = control->auto_bat_additional[i];
                         cmd += "@mount c: . -q\n";
@@ -944,6 +953,7 @@ public:
 
             autoexec_auto_bat.Install(cmd);
         }
+        dos.loaded_codepage = cp;
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		const char * extra = section->data.c_str();

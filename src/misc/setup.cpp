@@ -1531,7 +1531,6 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
     return retval;
 }
 
-
 CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) {
     if (argc>0) {
         file_name=argv[0];
@@ -1558,7 +1557,6 @@ uint16_t CommandLine::Get_arglength() {
         i+=(*it).size() + 1;
     return --i;
 }
-
 
 CommandLine::CommandLine(char const * const name,char const * const cmdline,enum opt_style opt, bool squote) {
     if (name) file_name=name;

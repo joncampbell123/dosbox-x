@@ -724,6 +724,15 @@ char *CodePageHostToGuestL(const host_cnv_char_t *s) {
     return (char*)cpcnv_ltemp;
 }
 
+int FileDirExist(const char *name) {
+    ht_stat_t st;
+    host_cnv_char_t *host_name = CodePageGuestToHost(name);
+    if (host_name == NULL || ht_stat(host_name, &st)) return 0;
+    if ((st.st_mode & S_IFREG) == S_IFREG) return 1;
+    else if (st.st_mode & S_IFDIR) return 2;
+    return 0;
+}
+
 extern uint16_t fztime, fzdate;
 extern bool force_conversion, InitCodePage();
 std::string GetDOSBoxXPath(bool withexe=false);
