@@ -237,7 +237,7 @@ static SDL_VideoDevice *DIB_CreateDevice(int devindex)
 	device->SetIMValues = DIB_SetIMValues;
 	device->GetIMValues = DIB_GetIMValues;
 	device->FlushIMString = DIB_FlushIMString;
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if ENABLE_IM_EVENT
 	device->GetIMInfo = WIN_GetIMInfo;
 #endif
 	device->free = DIB_DeleteDevice;
