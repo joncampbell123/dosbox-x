@@ -13,7 +13,7 @@ toc::[]
 
 DOSBox-X has support for copying to and pasting from the host system clipboard in several ways. For example, you can copy to or paste from to the clipboard inside DOSBox-X using the right/middle mouse buttons, arrow keys or mapped keyboard shortcuts, and you can also use a DOS device or DOS program to communicate bidirectionally with the host clipboard. You will find a menu group "Shared clipboard functions" under the "Main" menu to control the various options for the clipboard feature.
 
-Note that clipboard copying and pasting using mouse buttons or arrow keys is not available for the Linux SDL1 build.
+As of DOSBox-X version 0.83.15, clipboard support for double-byte (DBCS) characters used by Chinese/Japanese/Korean languages is fully supported when using these code pages, although clipboard copying and pasting using mouse buttons or arrow keys is not available for the Linux SDL1 build.
 
 ### Select, copy and paste text using a mouse button
 Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for other platforms (except Linux SDL1 build) also.

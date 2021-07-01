@@ -390,6 +390,15 @@ Note: It uses the MOVE command from FreeDOS.
 Media player for a variety of audio file formats such as FLAC, MP3, OGG and WAV.
 +
 Usage: MPXPLAY audio_file [options]
+
+* **NE2000** (external command)
++
+Loads the NE2000 packet driver for the NE2000 networking feature.
++
+Usage: NE2000 [options]
++
+
+Note: This command is available when the NE2000 networking emulation is enabled.
 * **PATH** (internal command)
 +
 Displays/Sets a search patch for executable files.

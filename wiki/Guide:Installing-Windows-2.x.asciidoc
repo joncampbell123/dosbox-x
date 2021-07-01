@@ -11,15 +11,14 @@ toc::[]
 # Overview
 ## Editions this applies to
 
-* *Windows/386 2.01*
+* *Windows/386 2.01* (OEM release)
 ** Only meant for Compaq 386 computers.
 ** Introduces 386 extensions (protected mode).
 ** LIM EMS 4.0 support.
 ** Supplies EMS emulation.
 ** Support for overlapping windows.
-* *Windows 2.03*
+* *Windows 2.03* and *Windows/386 2.03*
 ** Adds support for non-Compaq computers.
-** Runs on 8086 or 286.
 * *Windows/286 2.10* and *Windows/386 2.10*
 ** Adds HIMEM.SYS support for HMA (High Memory Area).
 * *Windows/286 2.11* and *Windows/386 2.11*
@@ -27,35 +26,46 @@ toc::[]
 ** AppleTalk Support.
 ** Faster printing and updated printer drivers.
 
+Windows 2.x available as both Retail and OEM editions.
+A runtime edition was also included with some applications.
+
+## Naming
+Naming of Windows 2.x versions can be confusing.
+Versions ending in */386* are meant for 386 class computers, while the *Windows 2.03* release could also run on 8086/8088 and 286 class computers.
+
+But with 2.10 they appended */286* to this version because ``HIMEM.SYS`` was included which requires at least a 286 class computer.
+
+Despite the */286* or */386* suffixes, all versions could be run on older computers.
+For the */286* editions this meant not using ``HIMEM.SYS``, while for the */386* versions it meant starting windows with ``win86.com`` instead of ``win386.exe``.
+
+## Limitations
+
 |===
-|Edition|Min CPU|Min DOS|HMA
+|Edition|Official Min. CPU|Actual Min. CPU|Min. DOS|HMA driver
 
-|Windows/386 2.01|386|3.10|No
-|Windows 2.03|8086|2.0|No
-|Windows/386 2.03|386|3.10|No
-|Windows/286 2.10|8086|3.00|Yes
-|Windows/386 2.10|386|3.10|Yes
-|Windows/286 2.11|8086|3.00|Yes
-|Windows/386 2.11|386|3.10|Yes
+|Windows/386 2.01|386      |8086/8088|3.10|No
+|Windows 2.03    |8086/8088|8086/8088|2.0 |No
+|Windows/386 2.03|386      |8086/8088|3.10|No
+|Windows/286 2.10|286      |8086/8088|3.00|Yes
+|Windows/386 2.10|386      |8086/8088|3.10|Yes
+|Windows/286 2.11|286      |8086/8088|3.00|Yes
+|Windows/386 2.11|386      |8086/8088|3.10|Yes
 |===
-Windows 2.x was available for both Retail and via OEM.
-A limited runtime version was also included with some applications.
 
-*Windows 2.03* was followed by *Windows/286 2.10* and *Windows/286 2.11*.
-The reason for the name change, is that version 2.10 includes HIMEM.SYS which requires at least a 286.
-However, despite the 286 in the name, it will also run on 8086/8088 CPUs.
-
+* At least 512KB RAM was required
+* Officially requires a HDD
 * Running Windows 2.03 requires at least DOS 2.0.
 * Running a Windows/286 edition requires at least DOS 3.0.
 * Running a Windows/386 edition requires at least DOS 3.1.
 
-## README.1ST
 Windows 2.x has problems starting if the reported DOS version is 5.0 or higher.
 Therefore, it is necessary to set the reported DOS version to something like 4.0.
 
-Windows/386 2.01 was the first Windows 2.x release and meant for Compaq 386 computers.
-As such it has a very small selection of drivers, and for instance no driver for a PS/2 mouse.
+As Windows/386 2.01 was the first Windows 2.x release and meant only for Compaq 386 computers, it has a very small selection of drivers, and for instance no driver for a PS/2 mouse.
 Therefore, if you want to run this version in DOSBox-X, you should enable ``serial1=serialmouse`` support.
+
+If given the option during installation, do not select the "IBM Personal Systems/2 Mouse", as it seems to cause Windows to hang at the title screen.
+Instead select the "Microsoft Mouse connected to PS/2 Mouse Port".
 
 Windows 2.1x will complain if the High Memory Area (HMA) is used.
 This can be resolved by setting ``DOS=LOW`` in the [config] section of the DOSBox-X config file.
@@ -67,12 +77,10 @@ Windows/386 also has a ``win86.com`` executable, which is effectively a renamed 
 IMPORTANT: Unfortunately, at this moment only *Windows 2.03* works in the integrated DOS that DOSBox-X provides.
 All other Windows/286 and Windows/386 editions need to be run from a real DOS in DOSBox-X.
 
-### Useful links
+## Useful links
 
 * link:https://en.wikipedia.org/wiki/Windows_2.0[Wikipedia: Windows 2.0]
 * link:https://en.wikipedia.org/wiki/Windows_2.1x[Wikipedia: Windows 2.1x]
-* link:https://microsoft.fandom.com/wiki/Windows_2.0[Fandom: Windows 2.0]
-* link:https://microsoft.fandom.com/wiki/Windows_2.1[Fandom: Windows 2.1]
 * link:https://betawiki.net/wiki/Windows_2.x[BetaWiki: Windows 2.x]
 * link:http://www.os2museum.com/wp/windows386-2-01/[os2museum: Windows/386 2.01]
 
@@ -291,6 +299,8 @@ image::images/Windows:Windows_2.03_SETUP_06.png[Windows 2.03 SETUP Keyboard]
 *Mouse selection*
 
 Select "**Microsoft Mouse connected to PS/2 Mouse Port**" and press Enter to continue.
+
+NOTE: Do not use the **IBM Personal Systems/2 Mouse** option, as it seems to cause Windows to hang at the title screen.
 
 NOTE: If installing Windows/386 2.01, you will need to select the **Microsoft serial mouse** instead and activate serial mouse support in your dosbox-x config file.
 

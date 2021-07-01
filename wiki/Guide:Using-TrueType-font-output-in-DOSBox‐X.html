@@ -490,10 +490,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>You can also switch from a different output (such as the standard surface/opengl/direct3d outputs) to the TrueType font output from DOSBox-X&#8217;s drop-down menu. Under "Video" menu, from the "Output" menu group select "TrueType font". Then DOSBox-X will automatically switch to the TTF output from another output. You can switch back and forth between these outputs by selecting a output from the "Output" menu group.</p>
 </div>
 <div class="paragraph">
-<p>Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the <code>ttf.outputswitch</code> config option (which defaults to auto) in the [render] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.</p>
+<p>Note that the TrueType font output only works in the text-mode; for graphical mode DOSBox-X will automatically switch to a different output for rendering graphics. You can specify an output for DOSBox-X to switch to with the <code>outputswitch</code> config option (which defaults to auto) in the [ttf] section of the configuration, or DOSBox-X will switch to a different output automatically otherwise.</p>
 </div>
 <div class="paragraph">
-<p>The blinking cursor in the TrueType output can be optionally disabled with the setting <code>ttf.blinkc=false</code> in the [render] section of the configuration, or you can change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor, with the default value being 6 on PC-98 systems and 4 elsewhere. The cursor blinking can also be toggled from the menu ("Video" &#8658; "TTF options" &#8658; "Display TTF blinking cursor").</p>
+<p>The blinking cursor in the TrueType output can be optionally disabled with the setting <code>blinkc=false</code> in the [ttf] section of the configuration, or you can change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor, with the default value being 6 on PC-98 systems and 4 elsewhere. The cursor blinking can also be toggled from the menu ("Video" &#8658; "TTF options" &#8658; "Display TTF blinking cursor").</p>
 </div>
 <div class="paragraph">
 <p>A screenshot showing the TrueType output with the default TTF font:</p>
@@ -515,15 +515,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>). These can also be used for rendering texts in the TrueType output.</p>
 </div>
 <div class="paragraph">
-<p>For example, assuming the file <code>Nouveau_IBM.ttf</code> is in the DOSBox-X working directory or in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [render] section of the DOSBox-X configuration:</p>
+<p>For example, assuming the file <code>Nouveau_IBM.ttf</code> is in the DOSBox-X working directory or in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [ttf] section of the DOSBox-X configuration:</p>
 </div>
 <div class="paragraph">
 <p><code>
-ttf.font=Nouveau_IBM
+font=Nouveau_IBM
 </code></p>
 </div>
 <div class="paragraph">
-<p>If the file extension is .ttf you can either omit the extension or put the full file name (e.g. <code>ttf.font=Nouveau_IBM.ttf</code>).</p>
+<p>If the file extension is .ttf you can either omit the extension or put the full file name (e.g. <code>font=Nouveau_IBM.ttf</code>).</p>
 </div>
 <div class="paragraph">
 <p>On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:</p>
@@ -546,10 +546,10 @@ ttf.font=Nouveau_IBM
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>ttf.font=Consola
-ttf.font=Lucon
-ttf.font=vgasys.fon
-ttf.font=msgothic.ttc</code></pre>
+<pre class="highlight"><code>font=Consola
+font=Lucon
+font=vgasys.fon
+font=msgothic.ttc</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -565,8 +565,8 @@ ttf.font=msgothic.ttc</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>CONFIG -set ttf.font=Consola
-CONFIG -set ttf.font=</code></pre>
+<pre class="highlight"><code>CONFIG -set font=Consola
+CONFIG -set font=</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -579,7 +579,7 @@ CONFIG -set ttf.font=</code></pre>
 <p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Simplified or Traditional Chinese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a> or a TTF font like <code>simkai.ttf</code> (included in some language versions of Windows). Automatic detection of box-drawing characters is enabled for CJK mode by default, but can be disabled with the <code>ttf.autoboxdraw</code> config option. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
+<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Simplified or Traditional Chinese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a> or a TTF font like <code>simkai.ttf</code> (included in some language versions of Windows). Automatic detection of box-drawing characters is enabled for CJK mode by default, but can be disabled with the <code>autoboxdraw</code> config option. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -595,18 +595,18 @@ CONFIG -set ttf.font=</code></pre>
 <h2 id="_modifying_the_screen_dimension_for_the_output">Modifying the screen dimension for the output</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [render] section to achieve this, namely <code>ttf.winperc</code> and <code>ttf.ptsize</code>, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, <code>ttf.winperc=75</code> will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with <code>ttf.ptsize</code>, and in such case <code>ttf.winperc</code> will be ignored. For example, <code>ttf.ptsize=25</code> will set the TTF font size to 25px.</p>
+<p>You may want to change the font size or the window size from the default for the TrueType font output. There are two config options in the [ttf] section to achieve this, namely <code>winperc</code> and <code>ptsize</code>, which can be used to set the window percentage and TTF font size respectively. The default window percentage is 60%, but you can change it to a different percentage. For example, <code>winperc=75</code> will enlarge the window size to 75% of the screen. Alternatively, you can specify a TTF font size with <code>ptsize</code>, and in such case <code>winperc</code> will be ignored. For example, <code>ptsize=25</code> will set the TTF font size to 25px.</p>
 </div>
 <div class="paragraph">
 <p>The window size for the TrueType font output can also be increased or decreased dynamically from the menu ("Video" &#8658; "TTF options" &#8658; "Increase TTF font size"/"Decrease TTF font size"), or using keyboard shortcuts.</p>
 </div>
 <div class="paragraph">
-<p>Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options "ttf.lins" and "ttf.cols". For example, the following will set the text screen to be 100 columns and 50 rows:</p>
+<p>Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options "lins" and "cols". For example, the following will set the text screen to be 100 columns and 50 rows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>ttf.cols=100
-ttf.lins=50</code></pre>
+<pre class="highlight"><code>cols=100
+lins=50</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -625,12 +625,12 @@ MODE CON LINES=60 COLS=132</code></pre>
 <p>The above commands will change the screen dimension to 50 lines and 132x60 respectively.</p>
 </div>
 <div class="paragraph">
-<p>With CONFIG command, you can change the values of ttf.cols and ttf.lins dynamically, but one at a time. For example:</p>
+<p>With CONFIG command, you can change the values of cols and lins dynamically, but one at a time. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>CONFIG -set ttf.lins=30
-CONFIG -set ttf.cols=100</code></pre>
+<pre class="highlight"><code>CONFIG -set lins=30
+CONFIG -set cols=100</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -646,34 +646,34 @@ CONFIG -set ttf.cols=100</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>ttf.wp=XY</code></pre>
+<pre class="highlight"><code>wp=XY</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set <code>ttf.strikeout=true</code> to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.</p>
+<p>Then bold, italic, and underlined texts will be displayed visually by default. For strikeout text, you will need to set <code>strikeout=true</code> to enable such texts to be rendered visually. These options can also be selected from the "TTF options" menu group under the "Video" menu.</p>
 </div>
 <div class="paragraph">
 <p>For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>ttf.font=Consola
-ttf.fontbold=Consolab
-ttf.fontital=Consolai
-ttf.fontboit=Consolaz</code></pre>
+<pre class="highlight"><code>font=Consola
+fontbold=Consolab
+fontital=Consolai
+fontboit=Consolaz</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Then the regular text will be rendered using the Consola.ttf font, whereas the bold text, italic text, and bold-italic text in XyWrite (as specified by <code>ttf.wp=XY</code> in this case) will be rendered using the Consolab.ttf, Consolai.ttf, Consolaz.ttf respectively.</p>
+<p>Then the regular text will be rendered using the Consola.ttf font, whereas the bold text, italic text, and bold-italic text in XyWrite (as specified by <code>wp=XY</code> in this case) will be rendered using the Consolab.ttf, Consolai.ttf, Consolaz.ttf respectively.</p>
 </div>
 <div class="paragraph">
-<p>If you set <code>ttf.wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>ttf.char512=false</code> in the [render] section of the configuration.</p>
+<p>If you set <code>wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>char512=false`</code> in the [ttf] section of the configuration.</p>
 </div>
 <div class="paragraph">
-<p>If you set <code>ttf.wp=WS</code> (or <code>ttf.wp=FE</code>) which sets WordStar (or FastEdit) as the word processor, then you probably want to set <code>high intensity blinking</code> to <code>false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
+<p>If you set <code>wp=WS</code> (or <code>wp=FE</code>) which sets WordStar (or FastEdit) as the word processor, then you probably want to set <code>high intensity blinking</code> to <code>false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
 </div>
 <div class="paragraph">
-<p>There is additionally a <code>ttf.wpbg</code> option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option. Similarly, there is a <code>ttf.wpfg</code> option which you can specify a foreground color (0-7).</p>
+<p>There is additionally a <code>wpbg</code> option which you can specify a color to match the background color of the specified word processor, in case you use a customized background color for the word processor. Use the DOS color number (0-15) for this option. Similarly, there is a <code>wpfg</code> option which you can specify a foreground color (0-7).</p>
 </div>
 </div>
 </div>
@@ -703,14 +703,14 @@ ttf.fontboit=Consolaz</code></pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>There is a <code>ttf.colors</code> config option which you can use to optionally specify the different color scheme for the TrueType font output. All 16 color values either in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB are to be supplied in this case.</p>
+<p>There is a <code>colors</code> config option which you can use to optionally specify the different color scheme for the TrueType font output. All 16 color values either in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB are to be supplied in this case.</p>
 </div>
 <div class="paragraph">
 <p>The default color scheme is:</p>
 </div>
 <div class="paragraph">
 <p><code>
-ttf.colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
+colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
 </code></p>
 </div>
 <div class="paragraph">
@@ -718,7 +718,7 @@ ttf.colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #5555
 </div>
 <div class="paragraph">
 <p><code>
-ttf.colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff
+colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff
 </code></p>
 </div>
 <div class="paragraph">
@@ -726,7 +726,7 @@ ttf.colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #8080
 </div>
 <div class="paragraph">
 <p><code>
-ttf.colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
+colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
 </code></p>
 </div>
 <div class="paragraph">
@@ -759,7 +759,7 @@ SETCOLOR 1 -
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-06-01 14:29:17 -0400
+Last updated 2021-07-01 18:35:45 -0400
 </div>
 </div>
 </body>

@@ -462,11 +462,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
 <li><a href="#_editions_this_applies_to">Editions this applies to</a></li>
-<li><a href="#_readme_1st">README.1ST</a>
-<ul class="sectlevel2">
+<li><a href="#_naming">Naming</a></li>
+<li><a href="#_limitations">Limitations</a></li>
 <li><a href="#_useful_links">Useful links</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
@@ -494,7 +492,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Windows/386 2.01</strong></p>
+<p><strong>Windows/386 2.01</strong> (OEM release)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -516,14 +514,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows 2.03</strong></p>
+<p><strong>Windows 2.03</strong> and <strong>Windows/386 2.03</strong></p>
 <div class="ulist">
 <ul>
 <li>
 <p>Adds support for non-Compaq computers.</p>
-</li>
-<li>
-<p>Runs on 8086 or 286.</p>
 </li>
 </ul>
 </div>
@@ -556,77 +551,108 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>Windows 2.x available as both Retail and OEM editions.
+A runtime edition was also included with some applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_naming">Naming</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Naming of Windows 2.x versions can be confusing.
+Versions ending in <strong>/386</strong> are meant for 386 class computers, while the <strong>Windows 2.03</strong> release could also run on 8086/8088 and 286 class computers.</p>
+</div>
+<div class="paragraph">
+<p>But with 2.10 they appended <strong>/286</strong> to this version because <code>HIMEM.SYS</code> was included which requires at least a 286 class computer.</p>
+</div>
+<div class="paragraph">
+<p>Despite the <strong>/286</strong> or <strong>/386</strong> suffixes, all versions could be run on older computers.
+For the <strong>/286</strong> editions this meant not using <code>HIMEM.SYS</code>, while for the <strong>/386</strong> versions it meant starting windows with <code>win86.com</code> instead of <code>win386.exe</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations">Limitations</h2>
+<div class="sectionbody">
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Edition</th>
-<th class="tableblock halign-left valign-top">Min CPU</th>
-<th class="tableblock halign-left valign-top">Min DOS</th>
-<th class="tableblock halign-left valign-top">HMA</th>
+<th class="tableblock halign-left valign-top">Official Min. CPU</th>
+<th class="tableblock halign-left valign-top">Actual Min. CPU</th>
+<th class="tableblock halign-left valign-top">Min. DOS</th>
+<th class="tableblock halign-left valign-top">HMA driver</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/386 2.01</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">386</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows 2.03</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2.0</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/386 2.03</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">386</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/286 2.10</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.00</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/386 2.10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">386</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/286 2.11</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.00</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Windows/386 2.11</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">386</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086/8088</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Windows 2.x was available for both Retail and via OEM.
-A limited runtime version was also included with some applications.</p>
-</div>
-<div class="paragraph">
-<p><strong>Windows 2.03</strong> was followed by <strong>Windows/286 2.10</strong> and <strong>Windows/286 2.11</strong>.
-The reason for the name change, is that version 2.10 includes HIMEM.SYS which requires at least a 286.
-However, despite the 286 in the name, it will also run on 8086/8088 CPUs.</p>
-</div>
 <div class="ulist">
 <ul>
+<li>
+<p>At least 512KB RAM was required</p>
+</li>
+<li>
+<p>Officially requires a HDD</p>
+</li>
 <li>
 <p>Running Windows 2.03 requires at least DOS 2.0.</p>
 </li>
@@ -638,19 +664,17 @@ However, despite the 286 in the name, it will also run on 8086/8088 CPUs.</p>
 </li>
 </ul>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_readme_1st">README.1ST</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>Windows 2.x has problems starting if the reported DOS version is 5.0 or higher.
 Therefore, it is necessary to set the reported DOS version to something like 4.0.</p>
 </div>
 <div class="paragraph">
-<p>Windows/386 2.01 was the first Windows 2.x release and meant for Compaq 386 computers.
-As such it has a very small selection of drivers, and for instance no driver for a PS/2 mouse.
+<p>As Windows/386 2.01 was the first Windows 2.x release and meant only for Compaq 386 computers, it has a very small selection of drivers, and for instance no driver for a PS/2 mouse.
 Therefore, if you want to run this version in DOSBox-X, you should enable <code>serial1=serialmouse</code> support.</p>
+</div>
+<div class="paragraph">
+<p>If given the option during installation, do not select the "IBM Personal Systems/2 Mouse", as it seems to cause Windows to hang at the title screen.
+Instead select the "Microsoft Mouse connected to PS/2 Mouse Port".</p>
 </div>
 <div class="paragraph">
 <p>Windows 2.1x will complain if the High Memory Area (HMA) is used.
@@ -674,8 +698,11 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 </tr>
 </table>
 </div>
-<div class="sect2">
-<h3 id="_useful_links">Useful links</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_useful_links">Useful links</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
@@ -685,19 +712,12 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 <p><a href="https://en.wikipedia.org/wiki/Windows_2.1x">Wikipedia: Windows 2.1x</a></p>
 </li>
 <li>
-<p><a href="https://microsoft.fandom.com/wiki/Windows_2.0">Fandom: Windows 2.0</a></p>
-</li>
-<li>
-<p><a href="https://microsoft.fandom.com/wiki/Windows_2.1">Fandom: Windows 2.1</a></p>
-</li>
-<li>
 <p><a href="https://betawiki.net/wiki/Windows_2.x">BetaWiki: Windows 2.x</a></p>
 </li>
 <li>
 <p><a href="http://www.os2museum.com/wp/windows386-2-01/">os2museum: Windows/386 2.01</a></p>
 </li>
 </ul>
-</div>
 </div>
 </div>
 </div>
@@ -1076,6 +1096,18 @@ In particular, OEM or Runtime versions may have a different number of disks and 
 <div class="title">Note</div>
 </td>
 <td class="content">
+Do not use the <strong>IBM Personal Systems/2 Mouse</strong> option, as it seems to cause Windows to hang at the title screen.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
 If installing Windows/386 2.01, you will need to select the <strong>Microsoft serial mouse</strong> instead and activate serial mouse support in your dosbox-x config file.
 </td>
 </tr>
@@ -1269,7 +1301,7 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 2.x, remove the <
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-06-01 14:29:17 -0400
+Last updated 2021-07-01 18:35:45 -0400
 </div>
 </div>
 </body>
