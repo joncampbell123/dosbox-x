@@ -19,8 +19,6 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 ## Windows Packages (Installer or Portable)
 
-(Coming soon for DOSBox-X 0.83.15 installer)
-
 You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installers for the current DOSBox-X version 0.83.15 are available from:
 
 * [dosbox-x-windows-0.83.15-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-windows-0.83.15-setup.exe) (Standard install mode; Windows XP or later)
@@ -42,8 +40,8 @@ Apart from the Windows installers, you can find six zip packages (three before 0
 * [osbox-x-vsbuild-win64-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-win64-20210701083944.zip) (Visual Studio Win64 builds)
 * [dosbox-x-vsbuild-arm32-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-arm32-20210701083944.zip) (Visual Studio ARM32 builds)
 * [dosbox-x-vsbuild-win64-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-win64-20210701083944.zip) (Visual Studio ARM64 builds)
-* [dosbox-x-mingw-win32-20210601022419.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-mingw-win32-20210601022419.zip) (MinGW Win32 builds)
-* [dosbox-x-mingw-win64-20210601074604.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-mingw-win64-20210601074604.zip) (MinGW Win64 builds)
+* [dosbox-x-mingw-win32-20210701094904.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-win32-20210701094904.zip) (MinGW Win32 builds)
+* [dosbox-x-mingw-win64-20210701114008.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-win64-20210701114008.zip) (MinGW Win64 builds)
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). The MinGW builds will be required if you are running Windows XP. You may also want to use one of the MinGW builds (plain, lowend, etc) if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features (particularly related to input handling) such as better international keyboard support.
 
@@ -144,9 +142,9 @@ For the current DOSBox-X version 0.83.15, the official DOS version is available 
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.14 using this approach is available from:
+Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.15 using this approach is available from:
 
-* [dosbox-x-dos-0.83.14-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-dos-0.83.14-loadlin.zip)
+* [dosbox-x-dos-0.83.15-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-dos-0.83.15-loadlin.zip)
 
 With this LOADLIN DOS package you can run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true``` and/or ```autolock=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 
