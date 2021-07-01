@@ -164,7 +164,12 @@ typedef unsigned int uintptr_t;
 #endif
 #ifndef _WIN32_WCE
 // FIXME: DirectX/DirectDraw video driver needs to be fixed to work with the async mode
+#if defined(_M_ARM) && !defined(_M_ARM64)
+/* FIXME: Build failures on VS2019 ARM SDL1: Unresolved external GUID_XAxis, etc.
+   Your ARM-based Surface tablets will have to go without DX/DDraw support for now, sorry --J.C. */
+#else
 #define SDL_VIDEO_DRIVER_DDRAW	1
+#endif
 #endif
 #define SDL_VIDEO_DRIVER_DUMMY	1
 #define SDL_VIDEO_DRIVER_WINDIB	1
