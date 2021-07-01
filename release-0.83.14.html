@@ -55,7 +55,7 @@
 
 <li><div style="font-weight: 600">Significantly improved multi-language support including UTF-8 language file support</div>Multi-language support has been improved significantly in this version, especially for the drop-down menus. Language files encoded with UTF-8 are now supported (and will be automatically saved so) in addition to those encoded with DOS code pages. The welcome banner messages etc have been cleaned up for easier language translations too.</li>
 
-<li><div style="font-weight: 600">Full support for Chinese/Japanese/Korean code pages and displaying CJK characters in TTF output</div>There are huge improvements for Chinese/Japanese/Korean language support in this version. With a CJK code page (932: Japanese, 936: Simplified Chinese, 949: Korean; 950: Traditional Chinese) files/directories with CJK characters can be loaded and mounted properly, and when using the TrueType font (TTF) output and a suitable TTF font (e.g. GNU Unifont), CJK characters can be displayed directly in DOSBox-X without any helper programs, with auto-detection of box-drawing characters and the ability to switch between DBCS and SBCS modes. Even printing is supported (see below). Simplified Chinese and Japanese language files are added as well.</li>
+<li><div style="font-weight: 600">Full support for Chinese/Japanese/Korean code pages and displaying CJK characters in TTF output</div>There are huge improvements for Chinese/Japanese/Korean language support in this version. With a CJK code page (932: Japanese, 936: Simplified Chinese, 949: Korean; 950: Traditional Chinese) files/directories with CJK characters can be loaded and mounted properly, and when using the TrueType font (TTF) output and a suitable TTF font (e.g. GNU Unifont), CJK characters can be displayed directly in DOSBox-X without any helper programs, with auto-detection of box-drawing characters and the ability to switch between DBCS and SBCS modes. Even printing is supported (see below). <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng">Chinese (Simplified) language file</a> and <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng">Japanese language file</a> are added as well.</li>
 
 <li><div style="font-weight: 600">Improved printing features including DBCS support for CJK languages</div>The printing features have been once again improved, including menu option to print the current DOS text screen, and for TTF output the current TrueType font will be used for printing as well by default. Also, support for printing Chinese/Japanese/Korean DBCS (double-byte) characters (when these code pages are active) is added, and you can see the new "printdbcs" config option in [printer] section for more information.</li>
 
@@ -377,9 +377,8 @@ There are also many bugfixes and other improvements, including fixes and improve
     output in CGA/EGA modes since 0.83.12. (Wengier)
 </li>
 <li>
-    Updated Windows installer to use the latest Inno
-    Setup 6, allowing features such as administrative
-    install mode via /ALLUSERS option. (Wengier)
+    Added alternative Windows installer for administrative
+    install mode on Windows Vista or later. (Wengier)
 </li>
 <li>
     Integrated SVN commits (Allofich)
@@ -397,7 +396,7 @@ There are also many bugfixes and other improvements, including fixes and improve
 </li>
 </ul>
             </td><td></td></tr>
-            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.13 (<a href="release-0.83.13.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.13 (<a href="release-0.83.13.html">release notes</a>)<b></td><td width="50%">Next release: 0.83.15 (<a href="release-0.83.15.html">release notes</a>)</td></tr></table></td><td style="border: hidden"></td></tr>
             <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
             </table>            
         </div>
@@ -407,4 +406,5 @@ There are also many bugfixes and other improvements, including fixes and improve
     <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
 
   </body>
+
 </html>
