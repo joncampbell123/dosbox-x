@@ -492,6 +492,7 @@ private:
 							text[2]=0;
 							uname[0]=0;
 							uname[1]=0;
+							if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (text[1] & 0xFF) == 0x7F) text[1]++;
 							if (CodePageGuestToHostUTF16(uname,text)) {
 								fwrite(uname, 1, 2, fh);
 								continue;
