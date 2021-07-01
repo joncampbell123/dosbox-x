@@ -3486,6 +3486,11 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
                if (hostname.size()) WriteOut("%s\n", hostname.c_str());
            }
         } else
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+            if (Network_IsNetworkResource(fullname))
+                WriteOut("%s\r\n", name);
+            else
+#endif
             WriteOut("%c:\\%s\r\n", drive+'A', fullname);
     }
 	else
