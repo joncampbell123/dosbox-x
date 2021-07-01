@@ -44,6 +44,7 @@ A list of features ported from DOSVAXJ3:
 
 * Support for JEGA/AX machine type (improved since then by Wengier)
 * Support for DOS/V service (cleaned up and improved by Wengier, including support for non-Japanese DOS/V modes)
+* Support for system input methods (IMEs) in Windows SDL1 builds (from SDL-IM-plus, cleaned up and improved by Wengier)
 
 A list of features ported from vDosPlus by Wengier:
 
