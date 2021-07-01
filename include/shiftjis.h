@@ -1,3 +1,4 @@
+extern bool del_flag;
 
 struct ShiftJISDecoder {
                         ShiftJISDecoder();

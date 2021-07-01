@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
 #include "mem.h"
 #include "bios.h"
 #include "keyboard.h"
@@ -27,6 +28,7 @@
 #include "dos_inc.h"
 #include "SDL.h"
 #include "int10.h"
+#include "jfont.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -42,105 +44,255 @@
 #endif
 
 static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0;
+static uint8_t fep_line = 0x01;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
-static struct {
+typedef struct {
   uint16_t normal;
   uint16_t shift;
   uint16_t control;
   uint16_t alt;
-  } scan_to_scanascii[MAX_SCAN_CODE + 1] = {
-      {   none,   none,   none,   none },
-      { 0x011b, 0x011b, 0x011b, 0x01f0 }, /* escape */
-      { 0x0231, 0x0221,   none, 0x7800 }, /* 1! */
-      { 0x0332, 0x0340, 0x0300, 0x7900 }, /* 2@ */
-      { 0x0433, 0x0423,   none, 0x7a00 }, /* 3# */
-      { 0x0534, 0x0524,   none, 0x7b00 }, /* 4$ */
-      { 0x0635, 0x0625,   none, 0x7c00 }, /* 5% */
-      { 0x0736, 0x075e, 0x071e, 0x7d00 }, /* 6^ */
-      { 0x0837, 0x0826,   none, 0x7e00 }, /* 7& */
-      { 0x0938, 0x092a,   none, 0x7f00 }, /* 8* */
-      { 0x0a39, 0x0a28,   none, 0x8000 }, /* 9( */
-      { 0x0b30, 0x0b29,   none, 0x8100 }, /* 0) */
-      { 0x0c2d, 0x0c5f, 0x0c1f, 0x8200 }, /* -_ */
-      { 0x0d3d, 0x0d2b,   none, 0x8300 }, /* =+ */
-      { 0x0e08, 0x0e08, 0x0e7f, 0x0ef0 }, /* backspace */
-      { 0x0f09, 0x0f00, 0x9400,   none }, /* tab */
-      { 0x1071, 0x1051, 0x1011, 0x1000 }, /* Q */
-      { 0x1177, 0x1157, 0x1117, 0x1100 }, /* W */
-      { 0x1265, 0x1245, 0x1205, 0x1200 }, /* E */
-      { 0x1372, 0x1352, 0x1312, 0x1300 }, /* R */
-      { 0x1474, 0x1454, 0x1414, 0x1400 }, /* T */
-      { 0x1579, 0x1559, 0x1519, 0x1500 }, /* Y */
-      { 0x1675, 0x1655, 0x1615, 0x1600 }, /* U */
-      { 0x1769, 0x1749, 0x1709, 0x1700 }, /* I */
-      { 0x186f, 0x184f, 0x180f, 0x1800 }, /* O */
-      { 0x1970, 0x1950, 0x1910, 0x1900 }, /* P */
-      { 0x1a5b, 0x1a7b, 0x1a1b, 0x1af0 }, /* [{ */
-      { 0x1b5d, 0x1b7d, 0x1b1d, 0x1bf0 }, /* ]} */
-      { 0x1c0d, 0x1c0d, 0x1c0a,   none }, /* Enter */
-      {   none,   none,   none,   none }, /* L Ctrl */
-      { 0x1e61, 0x1e41, 0x1e01, 0x1e00 }, /* A */
-      { 0x1f73, 0x1f53, 0x1f13, 0x1f00 }, /* S */
-      { 0x2064, 0x2044, 0x2004, 0x2000 }, /* D */
-      { 0x2166, 0x2146, 0x2106, 0x2100 }, /* F */
-      { 0x2267, 0x2247, 0x2207, 0x2200 }, /* G */
-      { 0x2368, 0x2348, 0x2308, 0x2300 }, /* H */
-      { 0x246a, 0x244a, 0x240a, 0x2400 }, /* J */
-      { 0x256b, 0x254b, 0x250b, 0x2500 }, /* K */
-      { 0x266c, 0x264c, 0x260c, 0x2600 }, /* L */
-      { 0x273b, 0x273a,   none, 0x27f0 }, /* ;: */
-      { 0x2827, 0x2822,   none, 0x28f0 }, /* '" */
-      { 0x2960, 0x297e,   none, 0x29f0 }, /* `~ */
-      {   none,   none,   none,   none }, /* L shift */
-      { 0x2b5c, 0x2b7c, 0x2b1c, 0x2bf0 }, /* |\ */
-      { 0x2c7a, 0x2c5a, 0x2c1a, 0x2c00 }, /* Z */
-      { 0x2d78, 0x2d58, 0x2d18, 0x2d00 }, /* X */
-      { 0x2e63, 0x2e43, 0x2e03, 0x2e00 }, /* C */
-      { 0x2f76, 0x2f56, 0x2f16, 0x2f00 }, /* V */
-      { 0x3062, 0x3042, 0x3002, 0x3000 }, /* B */
-      { 0x316e, 0x314e, 0x310e, 0x3100 }, /* N */
-      { 0x326d, 0x324d, 0x320d, 0x3200 }, /* M */
-      { 0x332c, 0x333c,   none, 0x33f0 }, /* ,< */
-      { 0x342e, 0x343e,   none, 0x34f0 }, /* .> */
-      { 0x352f, 0x353f,   none, 0x35f0 }, /* /? */
-      {   none,   none,   none,   none }, /* R Shift */
-      { 0x372a, 0x372a, 0x9600, 0x37f0 }, /* * */
-      {   none,   none,   none,   none }, /* L Alt */
-      { 0x3920, 0x3920, 0x3920, 0x3920 }, /* space */
-      {   none,   none,   none,   none }, /* caps lock */
-      { 0x3b00, 0x5400, 0x5e00, 0x6800 }, /* F1 */
-      { 0x3c00, 0x5500, 0x5f00, 0x6900 }, /* F2 */
-      { 0x3d00, 0x5600, 0x6000, 0x6a00 }, /* F3 */
-      { 0x3e00, 0x5700, 0x6100, 0x6b00 }, /* F4 */
-      { 0x3f00, 0x5800, 0x6200, 0x6c00 }, /* F5 */
-      { 0x4000, 0x5900, 0x6300, 0x6d00 }, /* F6 */
-      { 0x4100, 0x5a00, 0x6400, 0x6e00 }, /* F7 */
-      { 0x4200, 0x5b00, 0x6500, 0x6f00 }, /* F8 */
-      { 0x4300, 0x5c00, 0x6600, 0x7000 }, /* F9 */
-      { 0x4400, 0x5d00, 0x6700, 0x7100 }, /* F10 */
-      {   none,   none,   none,   none }, /* Num Lock */
-      {   none,   none,   none,   none }, /* Scroll Lock */
-      { 0x4700, 0x4737, 0x7700, 0x0007 }, /* 7 Home */
-      { 0x4800, 0x4838, 0x8d00, 0x0008 }, /* 8 UP */
-      { 0x4900, 0x4939, 0x8400, 0x0009 }, /* 9 PgUp */
-      { 0x4a2d, 0x4a2d, 0x8e00, 0x4af0 }, /* - */
-      { 0x4b00, 0x4b34, 0x7300, 0x0004 }, /* 4 Left */
-      { 0x4cf0, 0x4c35, 0x8f00, 0x0005 }, /* 5 */
-      { 0x4d00, 0x4d36, 0x7400, 0x0006 }, /* 6 Right */
-      { 0x4e2b, 0x4e2b, 0x9000, 0x4ef0 }, /* + */
-      { 0x4f00, 0x4f31, 0x7500, 0x0001 }, /* 1 End */
-      { 0x5000, 0x5032, 0x9100, 0x0002 }, /* 2 Down */
-      { 0x5100, 0x5133, 0x7600, 0x0003 }, /* 3 PgDn */
-      { 0x5200, 0x5230, 0x9200, 0x0000 }, /* 0 Ins */
-      { 0x5300, 0x532e, 0x9300,   none }, /* Del */
-      {   none,   none,   none,   none },
-      {   none,   none,   none,   none },
-      { 0x565c, 0x567c,   none,   none }, /* (102-key) */
-      { 0x8500, 0x8700, 0x8900, 0x8b00 }, /* F11 */
-      { 0x8600, 0x8800, 0x8a00, 0x8c00 }  /* F12 */
+  uint16_t kana;
+  uint16_t kana_shift;
+} scancode_tbl;
+
+static scancode_tbl scan_to_scanascii[MAX_SCAN_CODE + 1] = {
+//      normal, shift , ctrl  , alt    ,kana  , kana_shift
+      {   none,   none,   none,   none,   none,   none  },
+      { 0x011b, 0x011b, 0x011b, 0x01f0 ,0x011b, 0x011b }, /*  1 escape */
+      { 0x0231, 0x0221,   none, 0x7800 ,0x02c7, 0x0200 }, /*  2 1! */
+      { 0x0332, 0x0340, 0x0300, 0x7900 ,0x03cc, 0x0300 }, /*  3 2@ */
+      { 0x0433, 0x0423,   none, 0x7a00 ,0x04b1, 0x04a7 }, /*  4 3# */
+      { 0x0534, 0x0524,   none, 0x7b00 ,0x05b3, 0x05a9 }, /*  5 4$ */
+      { 0x0635, 0x0625,   none, 0x7c00 ,0x06b4, 0x06aa }, /*  6 5% */
+      { 0x0736, 0x075e, 0x071e, 0x7d00 ,0x07b5, 0x07ab }, /*  7 6^ */
+      { 0x0837, 0x0826,   none, 0x7e00 ,0x08d4, 0x08ac }, /*  8 7& */
+      { 0x0938, 0x092a,   none, 0x7f00 ,0x09d5, 0x09ad }, /*  9 8* */
+      { 0x0a39, 0x0a28,   none, 0x8000 ,0x0ad6, 0x0aae }, /* 0a 9( */
+      { 0x0b30, 0x0b29,   none, 0x8100 ,0x0bdc, 0x0ba6 }, /* 0b 0) */
+      { 0x0c2d, 0x0c5f, 0x0c1f, 0x8200 ,0x0cce, 0x0c00 }, /* 0c -_ */
+      { 0x0d3d, 0x0d2b,   none, 0x8300 ,0x0dcd, 0x0d00 }, /* 0d =+ */
+      { 0x0e08, 0x0e08, 0x0e7f, 0x0ef0 ,0x0e08, 0x0e08 }, /* 0e backspace */
+      { 0x0f09, 0x0f00, 0x9400,   none ,0x0f09, 0x0f09 }, /* 0f tab */
+      { 0x1071, 0x1051, 0x1011, 0x1000 ,0x10c0, 0x1000 }, /* 10 Q */
+      { 0x1177, 0x1157, 0x1117, 0x1100 ,0x11c3, 0x1100 }, /* 11 W */
+      { 0x1265, 0x1245, 0x1205, 0x1200 ,0x12b2, 0x12a8 }, /* 12 E */
+      { 0x1372, 0x1352, 0x1312, 0x1300 ,0x13bd, 0x1300 }, /* 13 R */
+      { 0x1474, 0x1454, 0x1414, 0x1400 ,0x14b6, 0x1400 }, /* 14 T */
+      { 0x1579, 0x1559, 0x1519, 0x1500 ,0x15dd, 0x1500 }, /* 15 Y */
+      { 0x1675, 0x1655, 0x1615, 0x1600 ,0x16c5, 0x1600 }, /* 16 U */
+      { 0x1769, 0x1749, 0x1709, 0x1700 ,0x17c6, 0x1700 }, /* 17 I */
+      { 0x186f, 0x184f, 0x180f, 0x1800 ,0x18d7, 0x1800 }, /* 18 O */
+      { 0x1970, 0x1950, 0x1910, 0x1900 ,0x19be, 0x1900 }, /* 19 P */
+      { 0x1a5b, 0x1a7b, 0x1a1b, 0x1af0 ,0x1ade, 0x1a00 }, /* 1a [{ */
+      { 0x1b5d, 0x1b7d, 0x1b1d, 0x1bf0 ,0x1bdf, 0x1ba2 }, /* 1b ]} */
+      { 0x1c0d, 0x1c0d, 0x1c0a,   none ,0x1c0d, 0x1c0d }, /* 1c Enter */
+      {   none,   none,   none,   none ,   none,   none }, /*  1d L Ctrl */
+      { 0x1e61, 0x1e41, 0x1e01, 0x1e00 ,0x1ec1, 0x1e00 }, /* 1e A */
+      { 0x1f73, 0x1f53, 0x1f13, 0x1f00 ,0x1fc4, 0x1f00 }, /* 1f S */
+      { 0x2064, 0x2044, 0x2004, 0x2000 ,0x20bc, 0x2000 }, /* 20 D */
+      { 0x2166, 0x2146, 0x2106, 0x2100 ,0x21ca, 0x2100 }, /* 21 F */
+      { 0x2267, 0x2247, 0x2207, 0x2200 ,0x22b7, 0x2200 }, /* 22 G */
+      { 0x2368, 0x2348, 0x2308, 0x2300 ,0x23b8, 0x2300 }, /* 23 H */
+      { 0x246a, 0x244a, 0x240a, 0x2400 ,0x24cf, 0x2400 }, /* 24 J */
+      { 0x256b, 0x254b, 0x250b, 0x2500 ,0x25c9, 0x2500 }, /* 25 K */
+      { 0x266c, 0x264c, 0x260c, 0x2600 ,0x26d8, 0x2600 }, /* 26 L */
+      { 0x273b, 0x273a,   none, 0x27f0 ,0x27da, 0x2700 }, /* 27 ;: */
+      { 0x2827, 0x2822,   none, 0x28f0 ,0x28b9, 0x2800 }, /* 28 '" */
+      { 0x2960, 0x297e,   none, 0x29f0 ,0x29d1, 0x29a3 }, /* 29 `~ */ //29h `~ﾑ｣
+      {   none,   none,   none,   none,   none,   none }, /*  2a L shift */
+      { 0x2b5c, 0x2b7c, 0x2b1c, 0x2bf0 ,0x2bb0, 0x2bf0 }, /* 2b */ //2bh \|ｰ
+      { 0x2c7a, 0x2c5a, 0x2c1a, 0x2c00 ,0x2cc2, 0x2caf }, /* 2c Z */
+      { 0x2d78, 0x2d58, 0x2d18, 0x2d00 ,0x2dbb, 0x2d00 }, /* 2d X */
+      { 0x2e63, 0x2e43, 0x2e03, 0x2e00 ,0x2ebf, 0x2e00 }, /* 2e C */
+      { 0x2f76, 0x2f56, 0x2f16, 0x2f00 ,0x2fcb, 0x2f00 }, /* 2f V */
+      { 0x3062, 0x3042, 0x3002, 0x3000 ,0x30ba, 0x3000 }, /* 30 B */
+      { 0x316e, 0x314e, 0x310e, 0x3100 ,0x31d0, 0x3100 }, /* 31 N */
+      { 0x326d, 0x324d, 0x320d, 0x3200 ,0x32d3, 0x3200 }, /* 32 M */
+      { 0x332c, 0x333c,   none, 0x33f0 ,0x33c8, 0x33a4 }, /* 33 ,< */
+      { 0x342e, 0x343e,   none, 0x34f0 ,0x34d9, 0x34a1 }, /* 34 .> */
+      { 0x352f, 0x353f,   none, 0x35f0 ,0x35d2, 0x35a5 }, /* 35 /? */
+      {   none,   none,   none,   none ,   none,   none }, /*  36 R Shift */
+      { 0x372a, 0x372a, 0x9600, 0x37f0 , 0x372a, 0x3700 }, /* 37 * */
+      {   none,   none,   none,   none ,   none,   none }, /*  38 L Alt */
+      { 0x3920, 0x3920, 0x3920, 0x3920 , 0x3920, 0x3920 }, /* 39 space */
+      {   none,   none,   none,   none ,   none,   none }, /*  3a caps lock */
+//    { 0x3a00, 0x3a00,   none,   none , 0x3a00, 0x3a00 }, /* 3a Kanji */
+      { 0x3b00, 0x5400, 0x5e00, 0x6800 ,0x3b00, 0x5400 }, /* 3b F1 */
+      { 0x3c00, 0x5500, 0x5f00, 0x6900 ,0x3c00, 0x5500 }, /* 3c F2 */
+      { 0x3d00, 0x5600, 0x6000, 0x6a00 ,0x3d00, 0x5600 }, /* 3d F3 */
+      { 0x3e00, 0x5700, 0x6100, 0x6b00 ,0x3e00, 0x5700 }, /* 3e F4 */
+      { 0x3f00, 0x5800, 0x6200, 0x6c00 ,0x3f00, 0x5800 }, /* 3f F5 */
+      { 0x4000, 0x5900, 0x6300, 0x6d00 ,0x4000, 0x5900 }, /* 40 F6 */
+      { 0x4100, 0x5a00, 0x6400, 0x6e00 ,0x4100, 0x5a00 }, /* 41 F7 */
+      { 0x4200, 0x5b00, 0x6500, 0x6f00 ,0x4200, 0x5b00 }, /* 42 F8 */
+      { 0x4300, 0x5c00, 0x6600, 0x7000 ,0x4300, 0x5c00 }, /* 43 F9 */
+      { 0x4400, 0x5d00, 0x6700, 0x7100 ,0x4400, 0x5d00 }, /* 44 F10 */
+      {   none,   none,   none,   none ,   none,   none }, /*  45 Num Lock */
+      {   none,   none,   none,   none ,   none,   none }, /*  46 Scroll Lock */
+      { 0x4700, 0x4737, 0x7700, 0x0007 ,0x4700, 0x4737 }, /* 47 7 Home */
+      { 0x4800, 0x4838, 0x8d00, 0x0008 ,0x4800, 0x4838 }, /* 48 8 UP */
+      { 0x4900, 0x4939, 0x8400, 0x0009 ,0x4900, 0x4939 }, /* 49 9 PgUp */
+      { 0x4a2d, 0x4a2d, 0x8e00, 0x4af0 ,0x4a00, 0x4a2d }, /* 4a - */
+      { 0x4b00, 0x4b34, 0x7300, 0x0004 ,0x4b00, 0x4b34 }, /* 4b 4 Left */
+      { 0x4cf0, 0x4c35, 0x8f00, 0x0005 ,0x4c00, 0x4c35 }, /* 4c 5 */
+      { 0x4d00, 0x4d36, 0x7400, 0x0006 ,0x4d00, 0x4d36 }, /* 4d 6 Right */
+      { 0x4e2b, 0x4e2b, 0x9000, 0x4ef0 ,0x4e00, 0x4e2b }, /* 4e + */
+      { 0x4f00, 0x4f31, 0x7500, 0x0001 ,0x4f00, 0x4f31 }, /* 4f 1 End */
+      { 0x5000, 0x5032, 0x9100, 0x0002 ,0x5000, 0x5032 }, /* 50 2 Down */
+      { 0x5100, 0x5133, 0x7600, 0x0003 ,0x5100, 0x5133 }, /* 51 3 PgDn */
+      { 0x5200, 0x5230, 0x9200, 0x0000 ,0x5200, 0x5230 }, /* 52 0 Ins */
+      { 0x5300, 0x532e, 0x9300,   none ,0x5300, 0x532e }, /* 53 Del */
+      {   none,   none,   none,   none ,   none,   none },
+      {   none,   none,   none,   none ,   none,   none },
+//	  { 0x565c, 0x567c,   none,   none ,0x565c, 0x567c }, /* 56 (102-key) */
+//      normal, shift , ctrl  , alt    ,kana  , kana_shift
+      { 0x565c, 0x567c,   none,   none   ,0x56db, 0x56f0 }, /* 56 (102-key), \_ロ| for AX */ //56h \|ﾛ underscore
+      { 0x8500, 0x8700, 0x8900, 0x8b00 ,0x8500, 0x8700 }, /* 57 F11 */
+      { 0x8600, 0x8800, 0x8a00, 0x8c00 ,0x8600, 0x8800 },  /* 58 F12 */
+	  { 0xab00, 0xac00, 0xad00, 0xae00, 0xab00, 0xac00 },  /* 5a 無変換 (non-conversion) for AX */
+	  { 0xa700, 0xa800, 0xa900, 0xaa00, 0xa700, 0xa800 },  /* 5b 変換 (conversion) for AX */
+	  { 0xd200, 0xd300, 0xd400, 0xd500, 0xd200, 0xd300 }   /* 5c AX (additional function key) for AX */
       };
+
+static scancode_tbl scan_to_scanascii_pc98[0x80] = {
+    //normal,  shift,   CTRL, GRPH, Kana, Kana+shift
+    { 0x001b, 0x001b, 0x0016, 0x001b, 0x001b, 0x001b }, /* 00 escape */
+    { 0x0131, 0x0121,   none,   none, 0x01c7, 0x01c7 }, /* 01 1! */
+    { 0x0232, 0x0222,   none,   none, 0x02cc, 0x02cc }, /* 02 2" */
+    { 0x0333, 0x0323,   none,   none, 0x03b1, 0x03a7 }, /* 03 3# */
+    { 0x0434, 0x0424,   none,   none, 0x04b3, 0x04a9 }, /* 04 4$ */
+    { 0x0535, 0x0525,   none, 0x05f2, 0x05b4, 0x05aa }, /* 05 5% */
+    { 0x0636, 0x0626,   none, 0x06f3, 0x06b5, 0x06ab }, /* 06 6& */
+    { 0x0737, 0x0727,   none, 0x07f4, 0x07d4, 0x07ac }, /* 07 7' */
+    { 0x0838, 0x0828,   none, 0x08f5, 0x08d5, 0x08ad }, /* 08 8( */
+    { 0x0939, 0x0929,   none, 0x09f6, 0x09d6, 0x09ae }, /* 09 9) */
+    { 0x0a30, 0x0a30,   none, 0x0af7, 0x0adc, 0x0aa6 }, /* 0a 0  */
+    { 0x0b2d, 0x0b3d,   none, 0x0b8c, 0x0bce, 0x0bce }, /* 0b -= */
+    { 0x0c5e, 0x0c60, 0x0c1e, 0x0c8b, 0x0ccd, 0x0ccd }, /* 0c ^~ */
+    { 0x0d5c, 0x0d7c, 0x0d1c, 0x0df1, 0x0db0, 0x0db0 }, /* 0d \| */
+    { 0x0e08, 0x0e08, 0x0e08, 0x0e08, 0x0e08, 0x0e08 }, /* 0e backspace */
+    { 0x0f09, 0x0f09, 0x0f09, 0x0f09, 0x0f09, 0x0f09 }, /* 0f tab */
+    //normal, shift,CTRL, GRPH, Kana, Kana+shift
+    { 0x1071, 0x1051, 0x1011, 0x109c, 0x10c0, 0x10c0 }, /* 10 Q */
+    { 0x1177, 0x1157, 0x1117, 0x119d, 0x11c3, 0x11c3 }, /* 11 W */
+    { 0x1265, 0x1245, 0x1205, 0x12e4, 0x12b2, 0x12a8 }, /* 12 E */
+    { 0x1372, 0x1352, 0x1312, 0x13e5, 0x13bd, 0x13bd }, /* 13 R */
+    { 0x1474, 0x1454, 0x1414, 0x14ee, 0x14b6, 0x14b6 }, /* 14 T */
+    { 0x1579, 0x1559, 0x1519, 0x15ef, 0x15dd, 0x15dd }, /* 15 Y */
+    { 0x1675, 0x1655, 0x1615, 0x16f0, 0x16c5, 0x16c5 }, /* 16 U */
+    { 0x1769, 0x1749, 0x1709, 0x17e8, 0x17c6, 0x17c6 }, /* 17 I */
+    { 0x186f, 0x184f, 0x180f, 0x18e9, 0x18d7, 0x18c7 }, /* 18 O */
+    { 0x1970, 0x1950, 0x1910, 0x198d, 0x19be, 0x19be }, /* 19 P */
+    { 0x1a40, 0x1a7e, 0x1a00, 0x1a8a, 0x1ade, 0x1ade }, /* 1a [{ */
+    { 0x1b5b, 0x1b7b, 0x1b1b,   none, 0x1bdf, 0x1ba2 }, /* 1b ]} */
+    { 0x1c0d, 0x1c0d, 0x1c0d, 0x1c0d, 0x1c0d, 0x1c0d }, /* 1c Enter */
+    { 0x1d61, 0x1d41, 0x1d01, 0x1d9e, 0x1dc1, 0x1dc1 }, /* 1d A */
+    { 0x1e73, 0x1e53, 0x1e13, 0x1e9f, 0x1ec4, 0x1ec4 }, /* 1e S */
+    { 0x1f64, 0x1f44, 0x1f04, 0x1fe6, 0x1fbc, 0x1fbc }, /* 1f D */
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
+    { 0x2066, 0x2046, 0x2006, 0x20e7, 0x20ca, 0x20ca }, /* 20 F */
+    { 0x2167, 0x2147, 0x2107, 0x21ec, 0x21b7, 0x21b7 }, /* 21 G */
+    { 0x2268, 0x2248, 0x2208, 0x22ed, 0x22b8, 0x22b8 }, /* 22 H */
+    { 0x236a, 0x234a, 0x230a, 0x23ea, 0x23cf, 0x23cf }, /* 23 J */
+    { 0x246b, 0x244b, 0x240b, 0x24eb, 0x24c9, 0x24c9 }, /* 24 K */
+    { 0x256c, 0x254c, 0x250c, 0x258e, 0x25d8, 0x25d8 }, /* 25 L */
+    { 0x263b, 0x262b,   none, 0x2689, 0x26da, 0x26da }, /* 26 ;: */
+    { 0x273a, 0x272a,   none, 0x279f, 0x27b9, 0x27b9 }, /* 27 '" */
+    { 0x285d, 0x287d, 0x281d,   none, 0x28d1, 0x28a3 }, /* 28 `~ */ //29h `~ﾑ｣
+    { 0x297a, 0x295a, 0x291a, 0x2980, 0x29c2, 0x29af }, /* 29 Z */
+    { 0x2a78, 0x2a58, 0x2a18, 0x2a81, 0x2abb, 0x2abb }, /* 2a X */
+    { 0x2b63, 0x2b43, 0x2b03, 0x2b82, 0x2bbf, 0x2bbf }, /* 2b C */
+    { 0x2c76, 0x2c56, 0x2c16, 0x2c83, 0x2ccb, 0x2ccb }, /* 2c V */
+    { 0x2d62, 0x2d42, 0x2d02, 0x2d84, 0x2dba, 0x2dba }, /* 2d B */
+    { 0x2e6e, 0x2e4e, 0x2e0e, 0x2e85, 0x2ed0, 0x2ed0 }, /* 2e N */
+    { 0x2f6d, 0x2f4d, 0x2f0d, 0x2f86, 0x2fd3, 0x2fd3 }, /* 2f M */
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
+    { 0x302c, 0x303c,   none, 0x30f0, 0x30c8, 0x30a4 }, /* 30 ,< */
+    { 0x312e, 0x313e,   none, 0x31f0, 0x31d9, 0x31a1 }, /* 31 .> */
+    { 0x322f, 0x323f,   none, 0x32f0, 0x32d2, 0x32a5 }, /* 32 /? */
+    {   none, 0x335f, 0x331f,   none, 0x33db, 0x33db }, /* 33  _ */
+    { 0x3420, 0x3420, 0x3420, 0x3420, 0x3420, 0x3420 }, /* 34 space */
+    { 0x3500, 0xa500, 0xb500, 0x3500, 0x3500, 0xa500 }, /* 35 XFER */
+    { 0x3600, 0x3600, 0x3600, 0x3600, 0x3600, 0x3600 }, /* 36 ROLL UP */
+    { 0x3700, 0x3700, 0x3700, 0x3700, 0x3700, 0x3700 }, /* 37 ROLL DOWN */
+    { 0x3800, 0x3800, 0x3800, 0x3800, 0x3800, 0x3800 }, /* 38 INS */
+    { 0x3900, 0x3900, 0x3900, 0x3900, 0x3900, 0x3900 }, /* 39 DEL */
+    { 0x3a00, 0x3a00, 0x3a00, 0x3a00, 0x3a00, 0x3a00 }, /* 3a up arrow */
+    { 0x3b00, 0x3b00, 0x3b00, 0x3b00, 0x3b00, 0x3b00 }, /* 3b left arrow */
+    { 0x3c00, 0x3c00, 0x3c00, 0x3c00, 0x3c00, 0x3c00 }, /* 3c right arrow */
+    { 0x3d00, 0x3d00, 0x3d00, 0x3d00, 0x3d00, 0x3d00 }, /* 3d down arrow */
+    { 0x3e00, 0xae00,   none,   none, 0x3e00, 0xae00 }, /* 3e HOME CLR */
+    { 0x3f00, 0x3f00, 0x3f00, 0x3f00, 0x3f00, 0x3f00 }, /* 3f HELP */
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
+    { 0x402d, 0x402d, 0x402d, 0x402d, 0x402d, 0x402d }, /* 40 - */
+    { 0x412f, 0x412f, 0x412f, 0x412f, 0x412f, 0x412f }, /* 41 / */
+    { 0x4237, 0x4237, 0x4237, 0x4237, 0x4237, 0x4237 }, /* 42 7 */
+    { 0x4338, 0x4338, 0x4338, 0x4338, 0x4338, 0x4338 }, /* 43 8 */
+    { 0x4439, 0x4439, 0x4439, 0x4439, 0x4439, 0x4439 }, /* 44 9 */
+    { 0x452a, 0x452a, 0x452a, 0x452a, 0x452a, 0x452a }, /* 45 * */
+    { 0x4634, 0x4634, 0x4634, 0x4634, 0x4634, 0x4634 }, /* 46 4 */
+    { 0x4735, 0x4735, 0x4735, 0x4735, 0x4735, 0x4735 }, /* 47 5 */
+    { 0x4836, 0x4836, 0x4836, 0x4836, 0x4836, 0x4836 }, /* 48 6 */
+    { 0x492b, 0x492b, 0x492b, 0x492b, 0x492b, 0x492b }, /* 49 + */
+    { 0x4a31, 0x4a31, 0x4a31, 0x4a31, 0x4a31, 0x4a31 }, /* 4a 1 */
+    { 0x4b32, 0x4b32, 0x4b32, 0x4b32, 0x4b32, 0x4b32 }, /* 4b 2 */
+    { 0x4c33, 0x4c33, 0x4c33, 0x4c33, 0x4c33, 0x4c33 }, /* 4c 3 */
+    { 0x4d3d, 0x4d3d, 0x4d3d, 0x4d3d, 0x4d3d, 0x4d3d }, /* 4d = */
+    { 0x4e30, 0x4e30, 0x4e30, 0x4e30, 0x4e30, 0x4e30 }, /* 4e 0 */
+    { 0x4f2c, 0x4f2c, 0x4f2c, 0x4f2c, 0x4f2c, 0x4f2c }, /* 4f , */
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
+    { 0x502e, 0x502e, 0x502e, 0x509e, 0x502e, 0x502e }, /* 50 .    */
+    { 0x5100, 0xa100, 0xb100, 0x5100, 0x5100, 0xa100 }, /* 51 NFER */
+    { 0x5200, 0xc200, 0x5200, 0xd200, 0x5200, 0xc200 }, /* 52 vf1  */
+    { 0x5300, 0xc300, 0x5300, 0xd300, 0x5300, 0xc300 }, /* 53 vf2  */
+    { 0x5400, 0xc400, 0x5400, 0xd400, 0x5400, 0xc400 }, /* 54 vf3  */
+    { 0x5500, 0xc500, 0x5500, 0xd500, 0x5500, 0xc500 }, /* 55 vf4  */
+    { 0x5600, 0xc600, 0x5600, 0xd600, 0x5600, 0xc600 }, /* 56 vf5  */
+    {   none,   none,   none,   none,   none,   none }, /* 57      */
+    {   none,   none,   none,   none,   none,   none }, /* 58      */
+    {   none,   none,   none,   none,   none,   none }, /* 59      */
+    {   none,   none,   none,   none,   none,   none }, /* 5a      */
+    {   none,   none,   none,   none,   none,   none }, /* 5b      */
+    {   none,   none,   none,   none,   none,   none }, /* 5c      */
+    {   none,   none,   none,   none,   none,   none }, /* 5d      */
+    {   none,   none,   none,   none,   none,   none }, /* 5e      */
+    {   none,   none,   none,   none,   none,   none }, /* 5f      */
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
+    {   none,   none,   none,   none,   none,   none }, /* 60 STOP */
+    {   none,   none,   none,   none,   none,   none }, /* 61 COPY */
+    { 0x6200, 0x8200, 0x9200,   none, 0x6200, 0x8200 }, /* 62 f1   */
+    { 0x6300, 0x8300, 0x9300,   none, 0x6300, 0x8300 }, /* 63 f2   */
+    { 0x6400, 0x8400, 0x9400,   none, 0x6400, 0x8400 }, /* 64 f3   */
+    { 0x6500, 0x8500, 0x9500,   none, 0x6500, 0x8500 }, /* 65 f4   */
+    { 0x6600, 0x8600, 0x9600,   none, 0x6600, 0x8600 }, /* 66 f5   */
+    { 0x6700, 0x8700, 0x9700,   none, 0x6700, 0x8700 }, /* 67 f6   */
+    { 0x6800, 0x8800, 0x9800,   none, 0x6800, 0x8800 }, /* 68 f7   */
+    { 0x6900, 0x8900, 0x9900,   none, 0x6900, 0x8900 }, /* 69 f8   */
+    { 0x6a00, 0x8a00, 0x9a00,   none, 0x6a00, 0x8a00 }, /* 6a f9   */
+    { 0x6b00, 0x8b00, 0x9b00,   none, 0x6b00, 0x8b00 }, /* 6b f10  */
+    {   none,   none,   none,   none,   none,   none }, /* 6c      */
+    {   none,   none,   none,   none,   none,   none }, /* 6d      */
+    {   none,   none,   none,   none,   none,   none }, /* 6e      */
+    {   none,   none,   none,   none,   none,   none }, /* 6f      */
+    {   none,   none,   none,   none,   none,   none }, /* 70 SHIFT*/
+    {   none,   none,   none,   none,   none,   none }, /* 71 CAPS */
+    {   none,   none,   none,   none,   none,   none }, /* 72 KANA */
+    {   none,   none,   none,   none,   none,   none }, /* 73 GRAPH*/
+    {   none,   none,   none,   none,   none,   none }, /* 74 CTRL */
+    {   none,   none,   none,   none,   none,   none }, /* 75      */
+    {   none,   none,   none,   none,   none,   none }, /* 76      */
+    {   none,   none,   none,   none,   none,   none }, /* 77      */
+    {   none,   none,   none,   none,   none,   none }, /* 78      */
+    {   none,   none,   none,   none,   none,   none }, /* 79      */
+    {   none,   none,   none,   none,   none,   none }, /* 7a      */
+    {   none,   none,   none,   none,   none,   none }, /* 7b      */
+    {   none,   none,   none,   none,   none,   none }, /* 7c      */
+    {   none,   none,   none,   none,   none,   none }, /* 7d      */
+    {   none,   none,   none,   none,   none,   none }, /* 7e      */
+    {   none,   none,   none,   none,   none,   none }  /* 7f      */
+};
 
 bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
@@ -270,6 +422,18 @@ static bool check_key(uint16_t &code) {
     return true;
 }
 
+void trimKana(void) {
+    uint8_t kana_status = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS);
+    if (kana_status & 0x02) { //Kana locked
+        LOG(LOG_KEYBOARD, LOG_NORMAL)("Kana shift OFF");
+        mem_writeb(BIOS_KEYBOARD_AX_KBDSTATUS, 0xfc & kana_status);//Kana status LED=on and Shift=on
+    }
+    else {
+        LOG(LOG_KEYBOARD, LOG_NORMAL)("Kana shift ON");
+        mem_writeb(BIOS_KEYBOARD_AX_KBDSTATUS, 0x03 | kana_status);//Kana status LED=on and Shift=on
+    }
+}
+
 bool INT16_peek_key(uint16_t &code) {
     return check_key(code);
 }
@@ -320,10 +484,11 @@ static Bitu IRQ1_Handler(void) {
  * states for numlock capslock. 
  */
     Bitu scancode=reg_al;
-    uint8_t flags1,flags2,flags3,leds,leds_orig;
+    uint8_t flags1,flags2,flags3,kanafl,leds,leds_orig;
     flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
     flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
     flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
+    kanafl= mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS);
     leds  =mem_readb(BIOS_KEYBOARD_LEDS); 
     leds_orig = leds;
 #ifdef CAN_USE_LOCK
@@ -344,13 +509,16 @@ static Bitu IRQ1_Handler(void) {
         flags3 |=0x02;
         break;
     case 0x1d:                      /* Ctrl Pressed */
-        if (!(flags3 &0x01)) {
+        if (INT16_AX_GetKBDBIOSMode() == 0x51 && (flags3 & 0x02))
+            trimKana();//英数カナ keycode not assignged in AX
+        else if (!(flags3 &0x01)) {
             flags1 |=0x04;
             if (flags3 &0x02) flags3 |=0x04;
             else flags2 |=0x01;
         }   /* else it's part of the pause scancodes */
         break;
     case 0x9d:                      /* Ctrl Released */
+        if (INT16_AX_GetKBDBIOSMode() == 0x51 && (flags3 & 0x02)) break;// for AX: Skip if AX KBDBIOS is in JP mode (for AX)
         if (!(flags3 &0x01)) {
             if (flags3 &0x02) flags3 &=~0x04;
             else flags2 &=~0x01;
@@ -377,11 +545,19 @@ static Bitu IRQ1_Handler(void) {
         if (!(flags3 & 0x02)) goto normal_key;
         break;
     case 0x38:                      /* Alt Pressed */
-        flags1 |=0x08;
-        if (flags3 &0x02) flags3 |=0x08;
-        else flags2 |=0x02;
+        /* Key      Scan   Ch Sh Ct Al US mode
+           漢字   - E0 38  3A 3A -  -  RAlt	*/
+        if (INT16_AX_GetKBDBIOSMode() == 0x51 && (flags3 & 0x02)) {// for AX: Is AX KBDBIOS in JP mode AND R-Alt pressed?
+            if (!(flags1 & 0x0c))//neither Shift nor Ctrl pressed?
+                add_key(0x3a00);//add 漢字 (Kanji) to key buffer
+        } else {
+            flags1 |=0x08;
+            if (flags3 &0x02) flags3 |=0x08;
+            else flags2 |=0x02;
+        }
         break;
     case 0xb8:                      /* Alt Released */
+        if (INT16_AX_GetKBDBIOSMode() == 0x51 && (flags3 & 0x02)) break;// for AX: Skip if AX KBDBIOS is in JP mode (for AX)
         if (flags3 &0x02) flags3 &= ~0x08;
         else flags2 &= ~0x02;
         if( !( (flags3 &0x08) || (flags2 &0x02) ) ) { /* Both alt released */
@@ -531,8 +707,12 @@ static Bitu IRQ1_Handler(void) {
 #endif
         } else if (flags1 & 0x04) {                 /* Ctrl is being pressed */
             asciiscan=scan_to_scanascii[scancode].control;
+        } else if ((flags1 & 0x03) && (kanafl & 0x02)) { //for AX: Kana is active + Shift is being pressed
+            asciiscan = scan_to_scanascii[scancode].kana_shift; //for AX
         } else if (flags1 & 0x03) {                 /* Either shift is being pressed */
             asciiscan=scan_to_scanascii[scancode].shift;
+        } else if (kanafl & 0x02) {
+            asciiscan = scan_to_scanascii[scancode].kana; //for AX: Kana is active
         } else {
             asciiscan=scan_to_scanascii[scancode].normal;
         }
@@ -661,7 +841,11 @@ static Bitu IRQ1_Handler_PC98(void) {
          */
         uint8_t modflags = mem_readb(0x52A + 0xE);
 
-        bool ctrl = !!(modflags & 0x10);
+        bool shift = modflags & 0x01; //bit 0
+        bool caps = modflags & 0x02;  //bit 1
+        bool kana = modflags & 0x04;  //bit 2
+        bool grph = modflags & 0x08;  //bit 3
+        bool ctrl = !!(modflags & 0x10);  //bit 4
         bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
 
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
@@ -724,697 +908,136 @@ static Bitu IRQ1_Handler_PC98(void) {
         //
         //                  KEY         UNSHIFT SHIFT   CTRL    KANA
         //                  ----------------------------------------
-        switch (sc_8251) {
-            case 0x00: //   ESC         ESC     ???     ???     ???
-                if (pressed) {
-                    add_key(scan_add + 27);
-                }
-                break;
-            case 0x01: //   1           1       !       ???     ヌ
-                if (pressed) {
-                    if (modflags & 1) /* either shift */
-                        add_key(scan_add + '!');
-                    else
-                        add_key(scan_add + '1');
-                }
-                break;
-            case 0x02:  //  2           2       "       ???     フ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '\"');
-                        else
-                            add_key(scan_add + '@');
-                    }
-                    else {
-                        add_key(scan_add + '2');
-                    }
-                }
-                break;
-            case 0x03:  //  3           3       #       ???     ア
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '#');
-                    else
-                        add_key(scan_add + '3');
-                }
-                break;
-            case 0x04:  //  4           4       $       ???     ウ
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '$');
-                    else
-                        add_key(scan_add + '4');
-                }
-                break;
-            case 0x05:  //  5           5       %       ???     エ
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '%');
-                    else
-                        add_key(scan_add + '5');
-                }
-                break;
-            case 0x06:  //  6           6       &       ???     オ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '&');
-                        else
-                            add_key(scan_add + '^');
-                    }
-                    else {
-                        add_key(scan_add + '6');
-                    }
-                }
-                break;
-            case 0x07:  //  7           7       '       ???     ヤ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '\'');
-                        else
-                            add_key(scan_add + '&');
-                    }
-                    else {
-                        add_key(scan_add + '7');
-                    }
-                }
-                break;
-            case 0x08:  //  8           8       (       ???     ユ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '(');
-                        else
-                            add_key(scan_add + '*');
-                    }
-                    else {
-                        add_key(scan_add + '8');
-                    }
-                }
-                break;
-            case 0x09:  //  9           9       )       ???     ヨ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + ')');
-                        else
-                            add_key(scan_add + '(');
-                    }
-                    else {
-                        add_key(scan_add + '9');
-                    }
-                }
-                break;
-            case 0x0A:  //  0           0       ---     ???     ワ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            { /* nothing */ }
-                        else
-                            add_key(scan_add + ')');
-                    }
-                    else {
-                        add_key(scan_add + '0');
-                    }
-                }
-                break;
-            case 0x0B:  //  -           -       =       ???     ホ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '=');
-                        else
-                            add_key(scan_add + '_');
-                    }
-                    else {
-                        add_key(scan_add + '-');
-                    }
-                }
-                break;
-            case 0x0C:  //  ^           ^       `       ???     ヘ
-                if (pressed) {
-                    if(!pc98_force_ibm_layout) {
-                        if (modflags & 1) /* shift */
-                            add_key(scan_add + '`');
-                        else
-                            add_key(scan_add + '^');
-                    } else {
-                        if (modflags & 1) /* shift */
-                            add_key(scan_add + '+');
-                        else
-                            add_key(scan_add + '=');                    
-                    }
-                }
-                break;
-            case 0x0D:  //  ¥           ¥       |       ???     ???
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '|');
-                    else
-                        add_key(scan_add + '\\'); /* In Shift-JIS, backslash becomes the Yen symbol */
-                }
-                break;
-            case 0x0E: // backspace
-                if (pressed) {
-                    add_key(scan_add + 8);
-                }
-                break;
-            case 0x0F: // tab
-                if (pressed) {
-                    add_key(scan_add + 9);
-                }
-                break;
-            case 0x10: // q
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'q' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'Q');
-                    else
-                        add_key(scan_add + 'q');
-                }
-                break;
-            case 0x11: // w
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'w' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'W');
-                    else
-                        add_key(scan_add + 'w');
-                }
-                break;
-            case 0x12: // e
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'e' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'E');
-                    else
-                        add_key(scan_add + 'e');
-                }
-                break;
-            case 0x13: // r
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'r' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'R');
-                    else
-                        add_key(scan_add + 'r');
-                }
-                break;
-            case 0x14: // t
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 't' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'T');
-                    else
-                        add_key(scan_add + 't');
-                }
-                break;
-            case 0x15: // y
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'y' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'Y');
-                    else
-                        add_key(scan_add + 'y');
-                }
-                break;
-            case 0x16: // u
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'u' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'U');
-                    else
-                        add_key(scan_add + 'u');
-                }
-                break;
-            case 0x17: // i
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'i' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'I');
-                    else
-                        add_key(scan_add + 'i');
-                }
-                break;
-            case 0x18: // o
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'o' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'O');
-                    else
-                        add_key(scan_add + 'o');
-                }
-                break;
-            case 0x19: // p
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'p' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'P');
-                    else
-                        add_key(scan_add + 'p');
-                }
-                break;
-            case 0x1A: // @             @       ~       --      ﾞ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        add_key(scan_add + '~');
-                    }
-                    else {
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '@');
-                        else
-                            add_key(scan_add + '`');
-                    }
-                }
-                break;
-            case 0x1B: // [             [       {       --      ﾟ       ｢
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '{');
-                    else
-                        add_key(scan_add + '[');
-                }
-                break;
-            case 0x1C: // Enter
-                if (pressed) {
-                    add_key(scan_add + 13);
-                }
-                break;
-            case 0x1D: // A
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'a' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'A');
-                    else
-                        add_key(scan_add + 'a');
-                }
-                break;
-            case 0x1E: // S
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 's' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'S');
-                    else
-                        add_key(scan_add + 's');
-                }
-                break;
-            case 0x1F: // D
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'd' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'D');
-                    else
-                        add_key(scan_add + 'd');
-                }
-                break;
-            case 0x20: // F
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'f' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'F');
-                    else
-                        add_key(scan_add + 'f');
-                }
-                break;
-            case 0x21: // G
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'g' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'G');
-                    else
-                        add_key(scan_add + 'g');
-                }
-                break;
-            case 0x22: // H
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'h' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'H');
-                    else
-                        add_key(scan_add + 'h');
-                }
-                break;
-            case 0x23: // J
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'j' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'J');
-                    else
-                        add_key(scan_add + 'j');
-                }
-                break;
-            case 0x24: // K
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'k' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'K');
-                    else
-                        add_key(scan_add + 'k');
-                }
-                break;
-            case 0x25: // L
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'l' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'L');
-                    else
-                        add_key(scan_add + 'l');
-                }
-                break;
-            case 0x26: //   ;           ;       +       ---     レ
-                if (pressed) {
-                    if (modflags & 1) { /* shift */
-                        if(!pc98_force_ibm_layout)
-                            add_key(scan_add + '+');
-                        else
-                            add_key(scan_add + ':');
-                    }
-                    else {
-                        add_key(scan_add + ';');
-                    }
-                }
-                break;
-            case 0x27: //   :           :       *       ---     ケ
-                if (pressed) {
-                    if(!pc98_force_ibm_layout) {
-                        if (modflags & 1) /* shift */
-                            add_key(scan_add + '*');
-                        else
-                            add_key(scan_add + ':');
-                    } else {
-                        if (modflags & 1) /* shift */
-                            add_key(scan_add + '\"');
-                        else
-                            add_key(scan_add + '\'');
-                    }
-                }
-                break;
-            case 0x28: //   ]           ]       }       ---     ム      ｣
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '}');
-                    else
-                        add_key(scan_add + ']');
-                }
-                break;
-            case 0x29: // Z
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'z' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'Z');
-                    else
-                        add_key(scan_add + 'z');
-                }
-                break;
-            case 0x2A: // X
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'x' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'X');
-                    else
-                        add_key(scan_add + 'x');
-                }
-                break;
-            case 0x2B: // C
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'c' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'C');
-                    else
-                        add_key(scan_add + 'c');
-                }
-                break;
-            case 0x2C: // V
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'v' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'V');
-                    else
-                        add_key(scan_add + 'v');
-                }
-                break;
-            case 0x2D: // B
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'b' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'B');
-                    else
-                        add_key(scan_add + 'b');
-                }
-                break;
-            case 0x2E: // N
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'n' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'N');
-                    else
-                        add_key(scan_add + 'n');
-                }
-                break;
-            case 0x2F: // M
-                if (pressed) {
-                    if (ctrl)
-                        add_key(scan_add + 'm' + 1 - 'a');
-                    else if (caps_capitals) /* shift */
-                        add_key(scan_add + 'M');
-                    else
-                        add_key(scan_add + 'm');
-                }
-                break;
-            case 0x30: //   ,           ,       <       ---     ネ      ､
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '<');
-                    else
-                        add_key(scan_add + ',');
-                }
-                break;
-            case 0x31: //   .           .       >       ---     ル      ｡
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '>');
-                    else
-                        add_key(scan_add + '.');
-                }
-                break;
-            case 0x32: //   /           /       ?       ---     メ      ･
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '?');
-                    else
-                        add_key(scan_add + '/');
-                }
-                break;
-            case 0x33: //  _ / Ro
-                if (pressed) {
-                    if (modflags & 1) /* shift */
-                        add_key(scan_add + '_');
-                    else
-                        { /*nothing*/ }
-                }
-                break;
-            case 0x34: // <space>
-                if (pressed) {
-                    add_key(scan_add + ' ');
-                }
-                break;
-
-            case 0x40: // keypad minus
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '-');
-                }
-                break;
-            case 0x41: // keypad divide
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '/');
-                }
-                break;
-            case 0x42: // keypad 7
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '7');
-                }
-                break;
-            case 0x43: // keypad 8
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '8');
-                }
-                break;
-            case 0x44: // keypad 9
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '9');
-                }
-                break;
-            case 0x45: // keypad multiply
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '*');
-                }
-                break;
-            case 0x46: // keypad 4
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '4');
-                }
-                break;
-            case 0x47: // keypad 5
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '5');
-                }
-                break;
-            case 0x48: // keypad 6
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '6');
-                }
-                break;
-            case 0x49: // keypad +
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '+');
-                }
-                break;
-            case 0x4A: // keypad 1
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '1');
-                }
-                break;
-            case 0x4B: // keypad 2
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '2');
-                }
-                break;
-            case 0x4C: // keypad 3
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '3');
-                }
-                break;
-            case 0x4D: // keypad =
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '=');
-                }
-                break;
-            case 0x4E: // keypad 0
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '0');
-                }
-                break;
-            case 0x4F: // keypad ,
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + ',');
-                }
-                break;
-            case 0x50: // keypad .
-                if (pressed) {//TODO: Shift state?
-                    add_key(scan_add + '.');
-                }
-                break;
-
-            case 0x52: // VF1           vf･1    ???     ???     ???     ???
-            case 0x53: // VF2           vf･2    ???     ???     ???     ???
-            case 0x54: // VF3           vf･3    ???     ???     ???     ???
-            case 0x55: // VF4           vf･4    ???     ???     ???     ???
-            case 0x56: // VF5           vf･5    ???     ???     ???     ???
-                if (pressed) {
-                    if (modflags & 0x10) /* CTRL */
-                        add_key(scan_add + 0x8000); /* 0xD2-0xD6 */
-                    else if (modflags & 1) /* SHIFT */
-                        add_key(scan_add + 0x7000); /* 0xC2-0xC6 */
-                    else
-                        add_key(scan_add + 0x0000); /* 0x52-0x56 */
-                }
-                break;
-
-            case 0x60: // STOP
+        if (pressed && sc_8251 <= 0x6f) { // skip shift-keys (0x70-0x74)
+            if (sc_8251 == 0x60) { // STOP
                 // does not pass it on.
                 // According to Neko Project II source code, STOP invokes INT 6h
                 // which is PC-98's version of the break interrupt IBM maps to INT 1Bh.
                 // Obviously defined before Intel decided that INT 6h is the Invalid
                 // Opcode exception. Booting PC-98 MS-DOS and looking at the INT 6h
                 // interrupt handler in the debugger confirms this.
-                if (pressed) {
-                    /* push an IRET frame pointing at INT 06h. */
+                /* push an IRET frame pointing at INT 06h. */
 
-                    /* we can't just CALLBACK_RunRealInt() here because we're in the
-                     * middle of an ISR and we need to acknowledge the interrupt to
-                     * the PIC before we call INT 06h. Funny things happen otherwise,
-                     * including an unresponsive keyboard. */
+                /* we can't just CALLBACK_RunRealInt() here because we're in the
+                * middle of an ISR and we need to acknowledge the interrupt to
+                * the PIC before we call INT 06h. Funny things happen otherwise,
+                * including an unresponsive keyboard. */
 
-                    /* I noticed that Neko Project II has the code to emulate this,
-                     * as a direct call to run a CPU interrupt, but it's commented
-                     * out for probably the same issue. */
-                    const uint32_t cb = real_readd(0,0x06u * 4u);
+                /* I noticed that Neko Project II has the code to emulate this,
+                * as a direct call to run a CPU interrupt, but it's commented
+                * out for probably the same issue. */
+                const uint32_t cb = real_readd(0, 0x06u * 4u);
 
-                    CPU_PUSHF(0);
-                    CPU_Push16((uint16_t)(cb >> 16u));
-                    CPU_Push16((uint16_t)(cb & 0xFFFFu));
+                CPU_PUSHF(0);
+                CPU_Push16((uint16_t)(cb >> 16u));
+                CPU_Push16((uint16_t)(cb & 0xFFFFu));
+                break;
+            }
+            else if (sc_8251 == 0x61){
+                // COPY (INT5 shall be called)
+            }
+            if (grph) { /* Alt is being pressed */
+                if (scan_to_scanascii_pc98[sc_8251].alt) add_key(scan_to_scanascii_pc98[sc_8251].alt);
+            }
+            else if (ctrl) { /* Ctrl is being pressed */
+                if (scan_to_scanascii_pc98[sc_8251].control) add_key(scan_to_scanascii_pc98[sc_8251].control);
+            }
+            else if (kana && shift) { // Kana is active + Shift is being pressed
+                if (scan_to_scanascii_pc98[sc_8251].kana_shift)add_key(scan_to_scanascii_pc98[sc_8251].kana_shift);
+            }
+            else if (kana) {
+                if (scan_to_scanascii_pc98[sc_8251].kana) add_key(scan_to_scanascii_pc98[sc_8251].kana); // Kana is active
+            }
+            else if ((sc_8251 >= 0x10 && sc_8251 <= 0x19) ||
+                (sc_8251 >= 0x1d && sc_8251 <= 0x25) || (sc_8251 >= 0x29 && sc_8251 <= 0x2f)){
+                /* is alphabet*/
+                if (shift ^ caps) { /* Upper case letters */
+                    add_key(scan_to_scanascii_pc98[sc_8251].shift);
                 }
-                break;
-
-            case 0x62: // F1            f･1     ???     ???     ???     ???
-            case 0x63: // F2            f･2     ???     ???     ???     ???
-            case 0x64: // F3            f･3     ???     ???     ???     ???
-            case 0x65: // F4            f･4     ???     ???     ???     ???
-            case 0x66: // F5            f･5     ???     ???     ???     ???
-            case 0x67: // F6            f･6     ???     ???     ???     ???
-            case 0x68: // F7            f･7     ???     ???     ???     ???
-            case 0x69: // F8            f･8     ???     ???     ???     ???
-            case 0x6A: // F9            f･9     ???     ???     ???     ???
-            case 0x6B: // F10           f･10    ???     ???     ???     ???
-                if (pressed) {
-                    if (modflags & 0x10) /* CTRL */
-                        add_key(scan_add + 0x3000); /* 0x92-0x9B */
-                    else if (modflags & 1) /* SHIFT */
-                        add_key(scan_add + 0x2000); /* 0x82-0x8B */
-                    else
-                        add_key(scan_add + 0x0000); /* 0x62-0x6B */
+                else {
+                    add_key(scan_to_scanascii_pc98[sc_8251].normal);
                 }
-                break;
 
-            case 0x70: // left/right shift. do nothing
-                break;
-
-            case 0x71: // caps. do nothing
-                break;
-
-            case 0x72: // kana. do nothing
-                break;
-
-            case 0x73: // graph. do nothing
-                break;
-
-            case 0x74: // left/right ctrl. do nothing
-                break;
-
-            default:
-                if (pressed) {
-                    add_key(scan_add + 0x00); /* zero low byte */
+            }
+            else {
+                if (!pc98_force_ibm_layout){
+                    if (shift){
+                        if (scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
+                    }
+                    else{
+                        if (scan_to_scanascii_pc98[sc_8251].normal){
+                            add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        }
+                    }
                 }
-                break;
+                else {
+                    switch (sc_8251) {
+                    case 0x02:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '@');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x06:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '^');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x07:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '&');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x08:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '*');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x09:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '(');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x0A:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + ')');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x0B:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '_');
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x0C:  // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + '+');
+                        else add_key(scan_add + '=');
+                        break;
+                    case 0x1A: // pc98_force_ibm_layout
+                        if (!modflags){
+                            add_key(scan_add + '`');
+                            break;
+                        }
+                        break;
+                    case 0x26: // pc98_force_ibm_layout
+                        if (shift) add_key(scan_add + ':'); // Shift - semicolon = ':'
+                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        break;
+                    case 0x27: // pc98_force_ibm_layout
+                        // quote key
+                        if (shift) {
+                            add_key(scan_add + '\"');
+                            break;
+                        }
+                        else {
+                            add_key(scan_add + '\'');
+                            break;
+                        }
+                        break;
+                    default:
+                        if (shift){
+                            if (scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
+                        }
+                        else{
+                            if (scan_to_scanascii_pc98[sc_8251].normal){
+                                add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                            }
+                        }
+                    }
+                }
+            }
         }
-
         if (--patience == 0) break; /* in case of stuck 8251 */
         status = IO_ReadB(0x43); /* 8251 status */
     }
@@ -1437,6 +1060,21 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
     return CBRET_NONE;
 }
 
+static bool IsKanjiCode(uint16_t key)
+{
+	if(isJEGAEnabled() || IS_DOSV) {
+		// Kanji
+		if((key & 0xff00) == 0xf000 || (key & 0xff00) == 0xf100) {
+			return true;
+		}
+		// Framework II
+		if(key == 0x8500 || key == 0x8600 || key == 0x9c00 || key == 0x9e00
+		  || key == 0xa500 || key == 0xa600 || key == 0x8a00 || key == 0x8900) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /* check whether key combination is enhanced or not,
    translate key if necessary */
@@ -1458,10 +1096,10 @@ static bool IsEnhancedKey(uint16_t &key) {
     } else if (((key>>8)>0x84) || (((key&0xff)==0xf0) && (key>>8))) {
         /* key is enhanced key (either scancode part>0x84 or
            specially-marked keyboard combination, low part==0xf0) */
-        return true;
+        if(!IsKanjiCode(key)) return true;
     }
     /* convert key if necessary (extended keys) */
-    if ((key>>8) && ((key&0xff)==0xe0))  {
+    if (!IsKanjiCode(key) && (key>>8) && ((key&0xff)==0xe0))  {
         key&=0xff00;
     }
     return false;
@@ -1509,7 +1147,7 @@ Bitu INT16_Handler(void) {
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
                 /* special enhanced key, clear low part before returning key */
-                temp&=0xff00;
+                if(!IsKanjiCode(temp)) temp&=0xff00;
             }
             reg_ax=temp;
         } else {
@@ -1594,6 +1232,62 @@ Bitu INT16_Handler(void) {
         reg_ah = (mem_readb(BIOS_KEYBOARD_FLAGS2)&0x73)   |
                  ((mem_readb(BIOS_KEYBOARD_FLAGS2)&4)<<5) | // SysReq pressed, bit 7
                  (mem_readb(BIOS_KEYBOARD_FLAGS3)&0x0c);    // Right Ctrl/Alt pressed, bits 2,3
+        break;
+    case 0x13:
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+            if(reg_al == 0x00) {
+                if(reg_dl & 0x81)
+                    SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
+                else
+                    SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+            } else if(reg_al == 0x01) {
+                int onoff;
+                reg_dl = 0x00;
+                if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+                    if(onoff)
+                        reg_dl = 0x81;
+                }
+            }
+        }
+#endif
+        break;
+    case 0x14:
+        if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+            if(reg_al == 0x02) {
+                // get
+                reg_al = fep_line;
+            } else if(reg_al == 0x00 || reg_al == 0x01) {
+                // set
+                fep_line = reg_al;
+            }
+        }
+        break;
+    case 0x50:// Set/Get JP/US mode in KBD BIOS
+        if (!IS_JEGA_ARCH) break;
+        switch (reg_al) {
+            case 0x00:
+                LOG(LOG_BIOS, LOG_NORMAL)("AX KBD BIOS 5000h is called.");
+                if (INT16_AX_SetKBDBIOSMode(reg_bx)) reg_al = 0x00;
+                else reg_al = 0x01;
+                break;
+            case 0x01:
+                LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 5001h is called.");
+                reg_bx = INT16_AX_GetKBDBIOSMode();
+                reg_al = 0;
+                break;
+            default:
+                LOG(LOG_BIOS,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+                reg_al=0x2;//return unknown error
+                break;
+        }
+        break;
+    case 0x51:// Get the shift status
+        if (!IS_JEGA_ARCH) break;
+        if (INT16_AX_GetKBDBIOSMode() != 0x51) break;//exit if not in JP mode
+        LOG(LOG_BIOS,LOG_NORMAL)("AX KBD BIOS 51xxh is called.");
+        reg_al = mem_readb(BIOS_KEYBOARD_FLAGS1);
+        reg_ah = mem_readb(BIOS_KEYBOARD_AX_KBDSTATUS) & 0x02;
         break;
     case 0x55:
         /* Weird call used by some dos apps */
@@ -1785,4 +1479,3 @@ void BIOS_SetupKeyboard(void) {
         //  iret
     }
 }
-

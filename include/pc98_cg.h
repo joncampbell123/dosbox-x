@@ -1,6 +1,4 @@
 
-#include "vga.h" /* uses VGA font RAM as CG ROM */
-
 /* mapping function from 16-bit WORD to font RAM offset */
 /* in: code = 16-bit JIS code word (unshifted)
  *     line = scan line within character cell

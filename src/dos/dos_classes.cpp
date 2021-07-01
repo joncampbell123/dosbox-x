@@ -28,6 +28,7 @@
 uint8_t sdriv[260], sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
 extern int lfn_filefind_handle;
+extern bool forcelfn;
 
 struct finddata {
        uint8_t attr;
@@ -388,11 +389,10 @@ bool DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return true;
 }
 
-
 void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
 	unsigned int i;
 
-	if (lfn_filefind_handle<LFN_FILEFIND_NONE) {
+	if (lfn_filefind_handle<LFN_FILEFIND_NONE || forcelfn) {
 		sdriv[lfn_filefind_handle]=_sdrive;
 		sattr[lfn_filefind_handle]=_sattr;
 		for (i=0;i<LFN_NAMELENGTH;i++) {
@@ -478,7 +478,7 @@ uint8_t DOS_DTA::GetSearchDrive(void) {
 }
 
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
-    if (lfn&&lfn_filefind_handle<LFN_FILEFIND_NONE) {
+    if (lfn||uselfn&&lfn_filefind_handle<LFN_FILEFIND_NONE) {
 		attr=sattr[lfn_filefind_handle];
         memcpy(pattern,sname[lfn_filefind_handle],LFN_NAMELENGTH);
         pattern[LFN_NAMELENGTH]=0;

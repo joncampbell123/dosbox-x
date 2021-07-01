@@ -54,6 +54,9 @@
 #define PC_NOCOLLAPSE	0
 #endif
 
+extern HMENU DIB_SurfaceMenu;
+
+extern unsigned char SDL1_hax_RemoveMinimize;
 
 /* DirectX function pointers for video and events */
 HRESULT (WINAPI *DDrawCreate)( GUID FAR *lpGUID, LPDIRECTDRAW FAR *lplpDD, IUnknown FAR *pUnkOuter );
@@ -417,6 +420,28 @@ static DIOBJECTDATAFORMAT JOY_fmt[] = {
 
 const DIDATAFORMAT c_dfDIJoystick = { sizeof(DIDATAFORMAT), sizeof(DIOBJECTDATAFORMAT), 0x00000001, 80, 44, JOY_fmt };
 
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime();
+static void free_ime();
+static int setup_ime(_THIS, LPDIRECTDRAWSURFACE3 lpFrontBuffer, Uint32 flags);
+int _FSIM_Init(HWND hwndApp, IDirectDraw *dd, IDirectDrawSurface *FrontBuffer,
+			   IDirectDrawSurface *BackBuffer);
+HWND _FSIM_Begin(HWND hwnd);
+void _FSIM_End(void);
+HRESULT _FSIM_Update(void);
+int _FSIM_IsActive(void);
+
+/**
+ * Local definitions specific to IM
+ */
+static IDirectDraw *ddObject = NULL;
+static IDirectDrawSurface3 *ddFrontBuffer = NULL;
+static IDirectDrawSurface3 *ddBackBuffer = NULL;
+static IDirectDrawClipper  *ddClipper = NULL;
+static HWND hFSIME = NULL;
+
+#endif
 
 /* Initialization/Query functions */
 static int DX5_VideoInit(_THIS, SDL_PixelFormat *vformat);
@@ -509,6 +534,56 @@ static int DX5_Available(void)
 	}
 	return(dinput_ok && ddraw_ok);
 }
+
+void DX5_SetWMCaption(_THIS, const char *title, const char *icon)
+{
+#if !defined(SDL_WIN32_HX_DOS)
+# ifdef _WIN32_WCE
+	/* WinCE uses the UNICODE version */
+	LPWSTR lpszW = SDL_iconv_utf8_ucs2((char *)title);
+	SetWindowText(SDL_Window, lpszW);
+	SDL_free(lpszW);
+# else
+	Uint16 *lpsz = SDL_iconv_utf8_ucs2(title);
+	size_t len = WideCharToMultiByte(CP_ACP, 0, lpsz, -1, NULL, 0, NULL, NULL);
+	char *cvt = SDL_stack_alloc(char, len + 1);
+	WideCharToMultiByte(CP_ACP, 0, lpsz, -1, cvt, (int)len, NULL, NULL);
+	SetWindowText(SDL_Window, cvt);
+	SDL_stack_free(cvt);
+	SDL_free(lpsz);
+# endif
+#endif
+}
+
+int DX5_IconifyWindow(_THIS)
+{
+	ShowWindow(SDL_Window, SW_MINIMIZE);
+	return(1);
+}
+
+int DX5_GetWMInfo(_THIS, SDL_SysWMinfo *info)
+{
+	if ( info->version.major <= SDL_MAJOR_VERSION ) {
+		info->window = SDL_Window;
+		info->child_window = SDL_Window;
+		if ( SDL_VERSIONNUM(info->version.major,
+		                    info->version.minor,
+		                    info->version.patch) >=
+		     SDL_VERSIONNUM(1, 2, 5) ) {
+#if SDL_VIDEO_OPENGL
+			info->hglrc = GL_hrc;
+#else
+			info->hglrc = NULL;
+#endif
+		}
+		return(1);
+	} else {
+		SDL_SetError("Application not compiled with SDL %d.%d\n",
+					SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+		return(-1);
+	}
+}
+
 
 /* Functions for loading the DirectX functions dynamically */
 static HINSTANCE DDrawDLL = NULL;
@@ -623,11 +698,11 @@ static SDL_VideoDevice *DX5_CreateDevice(int devindex)
 	device->GL_MakeCurrent = WIN_GL_MakeCurrent;
 	device->GL_SwapBuffers = WIN_GL_SwapBuffers;
 #endif
-	device->SetCaption = WIN_SetWMCaption;
+	device->SetCaption = DX5_SetWMCaption;
 	device->SetIcon = WIN_SetWMIcon;
-	device->IconifyWindow = WIN_IconifyWindow;
+	device->IconifyWindow = DX5_IconifyWindow;
 	device->GrabInput = WIN_GrabInput;
-	device->GetWMInfo = WIN_GetWMInfo;
+	device->GetWMInfo = DX5_GetWMInfo;
 	device->FreeWMCursor = WIN_FreeWMCursor;
 	device->CreateWMCursor = WIN_CreateWMCursor;
 	device->ShowWMCursor = WIN_ShowWMCursor;
@@ -643,6 +718,13 @@ static SDL_VideoDevice *DX5_CreateDevice(int devindex)
 	WIN_WinPAINT = DX5_WinPAINT;
 	HandleMessage = DX5_HandleMessage;
 
+	device->SetIMPosition = DX5_SetIMPosition;
+	device->SetIMValues = DX5_SetIMValues;
+	device->GetIMValues = DX5_GetIMValues;
+	device->FlushIMString = DX5_FlushIMString;
+#if ENABLE_IM_EVENT
+	device->GetIMInfo = WIN_GetIMInfo;
+#endif
 	device->free = DX5_DeleteDevice;
 
 	/* We're finally ready */
@@ -1041,9 +1123,9 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	DWORD style;
 	const DWORD directstyle =
 			(WS_POPUP);
-	const DWORD windowstyle = 
+	DWORD windowstyle =
 			(WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX);
-	const DWORD resizestyle =
+	DWORD resizestyle =
 			(WS_THICKFRAME|WS_MAXIMIZEBOX);
 	DDSURFACEDESC ddsd;
 	LPDIRECTDRAWSURFACE  dd_surface1;
@@ -1071,6 +1153,11 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 #endif
 
+	/* Minimizing a window can screw up OpenGL state. */
+	if ((current->flags & SDL_OPENGL) && SDL1_hax_RemoveMinimize) {
+		windowstyle &= ~WS_MINIMIZEBOX;
+		resizestyle |= WS_MINIMIZEBOX;
+	}
 	/* Clean up any GL context that may be hanging around */
 	if ( current->flags & SDL_OPENGL ) {
 		WIN_GL_ShutDown(this);
@@ -1189,6 +1276,12 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		if ( !SDL_windowid )
 			SetWindowLong(SDL_Window, GWL_STYLE, style);
 
+		/* show/hide menu according to fullscreen */
+		if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+			SetMenu(SDL_Window, NULL);
+		else
+			SetMenu(SDL_Window, DIB_SurfaceMenu);
+
 		/* Resize the window (copied from SDL WinDIB driver) */
 		if ( !SDL_windowid && !IsZoomed(SDL_Window) ) {
 			RECT bounds;
@@ -1247,6 +1340,11 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 		SDL_resizing = 0;
 
+#ifdef ENABLE_IM_EVENT
+		if (!setup_ime(this, SDL_primary, flags))
+			SDL_SetError("setup_ime fail.");
+#endif
+
 		/* Set up for OpenGL */
 		if ( WIN_GL_SetupWindow(this) < 0 ) {
 			return(NULL);
@@ -1279,6 +1377,12 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
 		SetWindowLong(SDL_Window, GWL_STYLE, style);
+
+	/* show/hide menu according to fullscreen */
+	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(SDL_Window, NULL);
+	else
+		SetMenu(SDL_Window, DIB_SurfaceMenu);
 
 	/* Set DirectDraw sharing mode.. exclusive when fullscreen */
 	if ( (flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
@@ -1641,10 +1745,14 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 
 	}
-//	ShowWindow(SDL_Window, SW_SHOW);
+	ShowWindow(SDL_Window, SW_SHOW);
 	SetForegroundWindow(SDL_Window);
 	SDL_resizing = 0;
 
+#ifdef ENABLE_IM_EVENT
+	if (!setup_ime(this, SDL_primary, flags))
+		SDL_SetError("setup_ime fail.");
+#endif
 	/* JC 14 Mar 2006
 		Flush the message loop or this can cause big problems later
 		Especially if the user decides to use dialog boxes or assert()!
@@ -2103,8 +2211,36 @@ static int DX5_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 	/* to prevent big slowdown on fast computers, wait here instead of driver ring 0 code */
 	/* Dmitry Yakimov (ftech@tula.net) */
+#ifdef ENABLE_IM_EVENT
+	while(IDirectDrawSurface3_GetFlipStatus(ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+#else
 	while(IDirectDrawSurface3_GetFlipStatus(dd_surface, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+#endif
 
+#ifdef ENABLE_IM_EVENT
+	if (_FSIM_IsActive()) {
+		result = _FSIM_Update();
+		if (result == DDERR_SURFACELOST) {
+			result = IDirectDrawSurface3_Restore(ddFrontBuffer);
+			while(IDirectDrawSurface3_GetFlipStatus(ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
+			result = _FSIM_Update();
+		}
+	}
+	else {
+		if (IM_Context.video_flags & SDL_DOUBLEBUF) {
+			IDirectDrawSurface3_SetClipper(ddFrontBuffer, NULL);
+			result = IDirectDrawSurface3_Blt(
+				ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+			if ( result == DDERR_SURFACELOST ) {
+				result = IDirectDrawSurface3_Restore(ddFrontBuffer);
+				while(IDirectDrawSurface3_GetFlipStatus(
+					ddFrontBuffer, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING)
+					;
+				result = IDirectDrawSurface3_Blt(ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+			}
+		}
+		else {
+#endif
 	result = IDirectDrawSurface3_Flip(dd_surface, NULL, DDFLIP_WAIT);
 	if ( result == DDERR_SURFACELOST ) {
 		result = IDirectDrawSurface3_Restore(
@@ -2112,6 +2248,12 @@ static int DX5_FlipHWSurface(_THIS, SDL_Surface *surface)
 		while(IDirectDrawSurface3_GetFlipStatus(dd_surface, DDGBS_ISBLTDONE) == DDERR_WASSTILLDRAWING);
 		result = IDirectDrawSurface3_Flip(dd_surface, NULL, DDFLIP_WAIT);
 	}
+
+#ifdef ENABLE_IM_EVENT
+		}
+	}
+#endif
+
 	if ( result != DD_OK ) {
 		SetDDerror("DirectDrawSurface3::Flip", result);
 		return(-1);
@@ -2412,6 +2554,10 @@ void DX5_VideoQuit(_THIS)
 		}
 	}
 
+#ifdef ENABLE_IM_EVENT
+	free_ime();
+#endif
+
 	/* Free any palettes we used */
 	if ( SDL_palette != NULL ) {
 		IDirectDrawPalette_Release(SDL_palette);
@@ -2535,3 +2681,155 @@ void DX5_WinPAINT(_THIS, HDC hdc)
 {
 	SDL_UpdateRect(SDL_PublicSurface, 0, 0, 0, 0);
 }
+
+#ifdef ENABLE_IM_EVENT
+
+static void init_ime() 
+{
+//	IM_Context.SDL_IMC = ImmGetContext(SDL_Window);
+
+	IM_Context.im_buffer_sz = 0;
+	IM_Context.im_compose_sz = 0;
+	IM_Context.string.im_multi_byte_buffer = 0;
+
+	IM_Context.bFlip = 1;
+	IM_Context.bEnable = 1;
+
+	IM_Context.notify_data = NULL;
+	IM_Context.notify_func = NULL;
+}
+
+static void free_ime() 
+{
+	if (IM_Context.string.im_wide_char_buffer) {
+		free(IM_Context.string.im_wide_char_buffer);
+		IM_Context.string.im_wide_char_buffer = 0;
+		IM_Context.im_buffer_sz = 0;
+		IM_Context.im_compose_sz = 0;
+	}
+	_FSIM_End();
+}
+
+static int setup_ime(_THIS, LPDIRECTDRAWSURFACE3 lpFrontBuffer, Uint32 flags)
+{
+	/*DDSCAPS2                    ddscaps;*/
+	DDSCAPS                    ddscaps;
+	LPDIRECTDRAW2 _ddraw2 = NULL;
+	static IDirectDrawSurface3 *ddFrontBuffer = NULL;
+	static IDirectDrawSurface3 *ddBackBuffer = NULL;
+
+	int i;
+
+	init_ime();
+	IM_Context.video_flags = flags;
+
+	SendMessage(SDL_Window, WM_IME_SETCONTEXT, TRUE, ISC_SHOWUIALL);
+
+	if ((flags & SDL_FULLSCREEN) && (flags & SDL_DOUBLEBUF)) {
+		if(i = IDirectDrawSurface3_QueryInterface(lpFrontBuffer, &IID_IDirectDrawSurface3,
+					(LPVOID *)&ddFrontBuffer) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_QueryInterface", i);
+			printf("%s\n", SDL_GetError());
+		}
+
+		if(i = IDirectDrawSurface3_GetDDInterface(ddFrontBuffer, &_ddraw2) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_GetDDInterface", i);
+			printf("%s\n", SDL_GetError());
+		}
+
+		memset(&ddscaps, 0, sizeof(ddscaps));
+		ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
+		if (i = IDirectDrawSurface3_GetAttachedSurface(ddFrontBuffer, 
+					(LPDDSCAPS)&ddscaps, &ddBackBuffer) != DD_OK) {
+			SetDDerror("IDirectDrawSurface3_GetAttachedSurface", i);
+			printf("%s\n", SDL_GetError());
+		}
+		else {
+			if (!_FSIM_Init(SDL_Window, (IDirectDraw*)_ddraw2, (IDirectDrawSurface*)ddFrontBuffer, (IDirectDrawSurface*)ddBackBuffer))
+				return 0;
+			_FSIM_Begin(ImmGetDefaultIMEWnd(SDL_Window));
+		}
+	}
+
+	return 1;
+}
+
+int _FSIM_Init(HWND hwndApp, IDirectDraw *dd, IDirectDrawSurface *FrontBuffer,
+			  IDirectDrawSurface *BackBuffer)
+{
+	/*DDSURFACEDESC2 ddsd;*/
+	DDSURFACEDESC ddsd;
+	DDCAPS ddcaps;
+
+	memset(&ddcaps, 0, sizeof(ddcaps));
+	ddcaps.dwSize = sizeof(ddcaps);
+	IDirectDraw2_GetCaps(dd,&ddcaps, NULL);
+	/*
+	if (!(ddcaps.dwCaps2 & DDCAPS2_CANRENDERWINDOWED))
+			return 0;*/
+
+	/* Save DirectDraw object passed in */
+	ddObject = dd;
+
+	/* Save buffers passed in */
+	ddFrontBuffer = (IDirectDrawSurface3*)FrontBuffer;
+	ddBackBuffer = (IDirectDrawSurface3*)BackBuffer;
+
+	/* Get DirectDraw surface dimensions */
+	memset(&ddsd, 0, sizeof(ddsd));
+	ddsd.dwSize = sizeof(ddsd);
+	ddsd.dwFlags = DDSD_HEIGHT | DDSD_WIDTH;
+	IDirectDrawSurface3_GetSurfaceDesc(ddBackBuffer, (LPDDSURFACEDESC)&ddsd);
+	return 1;
+}
+
+HWND _FSIM_Begin(HWND hwnd)
+{
+	/* If no handle passed in, assume existing content window */
+	if (hwnd == NULL)
+		hwnd = SDL_Window;
+
+	if (hwnd == NULL)
+		return NULL;
+
+	/* Create a clipper (used in IDirectDrawSurface::Blt call) */
+	if (IDirectDraw_CreateClipper(ddObject, 0, &ddClipper, NULL) == DD_OK)
+		IDirectDrawClipper_SetHWnd(ddClipper, 0, SDL_Window);
+
+	/* Normal GDI device, so just flip to GDI so content window can be seen */
+	IDirectDraw_FlipToGDISurface(ddObject);
+
+	hFSIME = hwnd;
+	return hFSIME;
+}
+
+void _FSIM_End(void)
+{
+	if (hFSIME)
+		hFSIME = NULL;
+
+	/* Get rid of clipper object */
+	if (ddClipper) {
+		IDirectDrawClipper_Release(ddClipper);
+		ddClipper = NULL;
+	}
+}
+
+HRESULT _FSIM_Update(void)
+{
+	/**
+	 * GDI hardware
+	 * Update the surface with a blt
+	 */
+	IDirectDrawSurface3_SetClipper(ddFrontBuffer, ddClipper);
+	return IDirectDrawSurface3_Blt(ddFrontBuffer, NULL, ddBackBuffer, NULL, DDBLT_WAIT, NULL);
+}
+
+int _FSIM_IsActive(void)
+{
+	if (IM_Context.bFlip)
+		return (hFSIME != NULL);
+	return 0;
+}
+
+#endif /* ENABLE_IM_EVENT */

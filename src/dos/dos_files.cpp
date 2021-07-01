@@ -27,13 +27,14 @@
 
 #include "dosbox.h"
 #include "bios.h"
+#include "logging.h"
 #include "mem.h"
 #include "regs.h"
 #include "dos_inc.h"
 #include "drives.h"
 #include "cross.h"
 #include "control.h"
-#include "dos_network2.h"
+#include "support.h"
 #include "menu.h"
 #include "cdrom.h"
 #include "ide.h"
@@ -65,8 +66,21 @@ int sdrive = 0;
  * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
-extern uint8_t lead[6];
-bool shiftjis_lead_byte(int c), isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+
+bool DOS_GetFileAttrEx(char const* const name, struct stat *status, uint8_t hdrive)
+{
+	char fullname[DOS_PATHLENGTH];
+	uint8_t drive;
+	bool usehdrive=/*hdrive>=0&&(always true)*/hdrive<DOS_FILES;
+	if (usehdrive)
+		strcpy(fullname,name);
+	else if (!DOS_MakeName(name, fullname, &drive))
+		return false;
+	return Drives[usehdrive?hdrive:drive]->GetFileAttrEx(fullname, status);
+}
+
+#include "dos_network2.h"
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -87,12 +101,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
 	char names[LFN_NAMELENGTH];
 	strcpy(names,name);
 	char * name_int = names;
@@ -106,7 +114,25 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				name_int[i+4]=0;
 				break;
 			} else if (i<10) name_int[i]=toupper(name_int[i]);
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	} else if (Network_IsNetworkResource(name)) {
+		int j=0, k=name[0]=='"'?1:0;
+		if (strlen(name)==2+k||name[2+k]=='*'||name[2+k]=='?'||name[2+k]=='\\'||strlen(name)==3+k&&name[2+k]=='"') {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+		if (!strchr(name+k+2,'\\')) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
+		for (unsigned int i=0;i<strlen(name);i++)
+			if (name[i]!='"') fullname[j++]=name[i];
+		fullname[j]=0;
+		*drive=DOS_GetDefaultDrive();
+		return true;
+#endif
 	}
+
 	char tempdir[DOS_PATHLENGTH];
 	char upname[DOS_PATHLENGTH];
     Bitu r,w, q=0;
@@ -136,7 +162,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 			else if (c==' ') continue; /* should be separator */
 		}
 		upname[w++]=(char)c;
-        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isDBCSLB(c, lead))) && r<DOS_PATHLENGTH) {
+        if (((IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c))) && r<DOS_PATHLENGTH) {
             /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
             upname[w++]=name_int[r++];
         }
@@ -149,16 +175,22 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 	if (upname[0]!='\\') strcpy(fullname,Drives[*drive]->curdir);
 	else fullname[0]=0;
 	uint32_t lastdir=0;uint32_t t=0;
+	bool lead = false;
 	while (fullname[t]!=0) {
-		if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(fullname[t])) || (isDBCSCP() && isKanji1(fullname[t]))) lead = true;
+		else if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
 		t++;
 	}
 	r=0;w=0;
 	tempdir[0]=0;
+	lead=false;
 	bool stop=false;
 	while (!stop) {
-		if (upname[r]==0) stop=true;
-		if ((upname[r]=='\\') || (upname[r]==0)){
+		if (lead) lead=false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(upname[r])) || (isDBCSCP() && isKanji1(upname[r]))) lead=true;
+		else if ((upname[r]=='\\') || (upname[r]==0)){
+			if (upname[r]==0) stop=true;
 			tempdir[w]=0;
 			if (tempdir[0]==0) { w=0;r++;continue;}
 			if (strcmp(tempdir,".")==0) {
@@ -179,6 +211,13 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				int32_t cDots = templen - 1;
 				for(iDown=(int32_t)strlen(fullname)-1;iDown>=0;iDown--) {
 					if(fullname[iDown]=='\\' || iDown==0) {
+                        if (iDown > 0 && (IS_PC98_ARCH || isDBCSCP())) {
+                            char c = fullname[iDown+1];
+                            fullname[iDown+1] = 0;
+                            char *p = strrchr_dbcs(fullname, '\\');
+                            fullname[iDown+1] = c;
+                            if (p==NULL || p-fullname<iDown) continue;
+                        }
 						lastdir = (uint32_t)iDown;
 						cDots--;
 						if(cDots==0)
@@ -187,8 +226,11 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				}
 				fullname[lastdir]=0;
 				t=0;lastdir=0;
+				bool lead2 = false;
 				while (fullname[t]!=0) {
-					if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
+					if (lead2) lead2=false;
+					else if ((IS_PC98_ARCH && shiftjis_lead_byte(upname[r])) || (isDBCSCP() && isKanji1(upname[r]))) lead2=true;
+					else if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
 					t++;
 				}
 				tempdir[0]=0;
@@ -242,6 +284,12 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
     uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(fulldir)) {
+		strcpy(SFNPath,fulldir);
+		return true;
+	}
+#endif
     sprintf(SFNPath,"%c:\\",drive+'A');
     strcpy(LFNPath,SFNPath);
     p = fulldir;
@@ -250,7 +298,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	int fbak=lfn_filefind_handle;
-    for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
+    for (char *s = strchr_dbcs(p,'\\'); s != NULL; s = strchr_dbcs(p,'\\')) {
 		*s = 0;
 		if (SFNPath[strlen(SFNPath)-1]=='\\')
 			sprintf(pdir,"\"%s%s\"",SFNPath,p);
@@ -368,6 +416,9 @@ bool DOS_MakeDir(char const * const dir) {
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	while (strlen(fulldir)&&(*(fulldir+strlen(fulldir)-1)=='.'||*(fulldir+strlen(fulldir)-1)==' ')) *(fulldir+strlen(fulldir)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(dir)) return Network_MakeDir(dir);
+#endif
 	if(Drives[drive]->MakeDir(fulldir)) return true;
 
 	/* Determine reason for failing */
@@ -386,6 +437,9 @@ bool DOS_RemoveDir(char const * const dir) {
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	/* Check if exists */
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(dir)) return Network_RemoveDir(dir);
+#endif
 	if(!Drives[drive]->TestDir(fulldir)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
@@ -408,11 +462,11 @@ bool DOS_RemoveDir(char const * const dir) {
 }
 
 static bool PathExists(char const * const name) {
-	const char* leading = strrchr(name,'\\');
+	const char* leading = strrchr_dbcs((char *)name,'\\');
 	if(!leading) return true;
 	char temp[CROSS_LEN];
 	strcpy(temp,name);
-	char * lead = strrchr(temp,'\\');
+	char * lead = strrchr_dbcs(temp,'\\');
 	if (lead == temp) return true;
 	*lead = 0;
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
@@ -427,6 +481,9 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	if (!DOS_MakeName(oldname,fullold,&driveold)) return false;
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
 	while (strlen(fullnew)&&(*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ')) *(fullnew+strlen(fullnew)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(oldname)) return Network_Rename(oldname,newname);
+#endif
 
 	/* No tricks with devices */
 	bool clip=false;
@@ -435,7 +492,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
         if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
             if (DOS_FindDevice(oldname) == DOS_DEVICES) {
                 const char* find_last;
-                find_last=strrchr(fullnew,'\\');
+                find_last=strrchr_dbcs(fullnew,'\\');
                 if (find_last==NULL) find_last=fullnew;
                 else find_last++;
                 if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
@@ -486,6 +543,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	return false;
 }
 
+bool forcelfn = false;
 bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
@@ -502,8 +560,16 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
 	/* Split the search in dir and pattern */
-	char * find_last;
-	find_last=strrchr(fullsearch,'\\');
+	forcelfn = false;
+	char *find_last = NULL;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	bool net = Network_IsNetworkResource(search);
+	if (net) forcelfn = true;
+	char *p = net ? strchr_dbcs(fullsearch+(fullsearch[0]=='"'?3:2), '\\') : NULL;
+	find_last = strrchr_dbcs(p != NULL ? p + 1 : fullsearch, '\\');
+#else
+	find_last = strrchr_dbcs(fullsearch,'\\');
+#endif
 	if (!find_last) {	/*No dir */
 		strcpy(pattern,fullsearch);
 		dir[0]=0;
@@ -512,6 +578,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		strcpy(pattern,find_last+1);
 		strcpy(dir,fullsearch);
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) {forcelfn=false;return false;}
+#endif
 
 	// Silence CHKDSK "Invalid sub-directory entry"
 	if (fcb_findfirst && !strcmp(search+1, ":????????.???") && attr==30) {
@@ -523,6 +592,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 
 	sdrive=drive;
 	dta.SetupSearch(drive,(uint8_t)attr,pattern);
+    forcelfn = false;
 
 	if(device) {
 		find_last = strrchr(pattern,'.');
@@ -533,8 +603,10 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		return true;
 	}
    
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (net) return Network_FindFirst(dir,dta);
+#endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
-	
 	return false;
 }
 
@@ -547,22 +619,26 @@ bool DOS_FindNext(void) {
 		LOG(LOG_FILES,LOG_ERROR)("Corrupt search!!!!");
 		DOS_SetError(DOSERR_NO_MORE_FILES); 
 		return false;
-	} 
+	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+    unsigned int pos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
+	if (pos==65534) return Network_FindNext(dta);
+#endif
 	if (Drives[i]->FindNext(dta)) return true;
 	return false;
 }
 
 
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
-#if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsActiveResource(entry))
-		return Network_ReadFile(entry,data,amount);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_ReadFile(entry,data,amount);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -584,15 +660,15 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 }
 
 bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
-#if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsActiveResource(entry))
-		return Network_WriteFile(entry,data,amount);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_WriteFile(entry,data,amount);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -619,6 +695,10 @@ bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_SeekFile(entry,pos,type);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -641,15 +721,15 @@ bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
 }
 
 bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
-#if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsActiveResource(entry))
-		return Network_CloseFile(entry);
-#endif
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_CloseFile(entry);
+#endif
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -679,6 +759,10 @@ bool DOS_FlushFile(uint16_t entry) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_FlushFile(entry);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -702,6 +786,10 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	DOS_PSP psp(dos.psp());
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	while (strlen(fullname)&&(*(fullname+strlen(fullname)-1)=='.'||*(fullname+strlen(fullname)-1)==' ')) *(fullname+strlen(fullname)-1)=0;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		return Network_CreateFile(name,attributes,entry);
+#endif
 
 	/* Check for a free file handle */
 	uint8_t handle=(uint8_t)DOS_FILES;uint8_t i;
@@ -745,10 +833,6 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 }
 
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
-#if defined(WIN32) && !defined(__MINGW32__)
-	if(Network_IsNetworkResource(name))
-		return Network_OpenFile(name,flags,entry);
-#endif
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
 	else LOG(LOG_FILES,LOG_NORMAL)("file open command %X file %s",flags,name);
@@ -768,6 +852,10 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;uint8_t i;
 	/* First check if the name is correct */
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		return Network_OpenFile(name,flags,entry);
+#endif
 	uint8_t handle=255;		
 	/* Check for a free file handle */
 	for (i=0;i<DOS_FILES;i++) {
@@ -873,6 +961,9 @@ bool DOS_UnlinkFile(char const * const name) {
 		return false;
 	}
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
+#endif
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
 	} else if(uselfn&&!force_sfn&&(strchr(fullname, '*')||strchr(fullname, '?'))) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*" in LFN mode
@@ -883,7 +974,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		}
 		if (!strchr(name,'\"')||!DOS_GetSFNPath(("\""+std::string(fullname)+"\"").c_str(), fname, false))
 			strcpy(fname, fullname);
-		char * find_last=strrchr(fname,'\\');
+		char * find_last=strrchr_dbcs(fname,'\\');
 		if (!find_last) {
 			dir[0]=0;
 			strcpy(pattern, fname);
@@ -946,31 +1037,30 @@ bool DOS_GetFileAttr(char const * const name,uint16_t * attr) {
 #if defined (WIN32)
 	if (!control->SecureMode()&&dos_clipboard_device_access) {
         const char* find_last;
-		find_last=strrchr(fullname,'\\');
+		find_last=strrchr_dbcs(fullname,'\\');
 		if (find_last==NULL) find_last=fullname;
 		else find_last++;
 		if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
 			return true;
 	}
+#if !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)) {
+		if (Network_GetFileAttr(name, attr)) {
+			return true;
+		} else {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
+	}
 #endif
+#endif
+
 	if (Drives[drive]->GetFileAttr(fullname,attr)) {
 		return true;
 	} else {
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
-}
-
-bool DOS_GetFileAttrEx(char const* const name, struct stat *status, uint8_t hdrive)
-{
-	char fullname[DOS_PATHLENGTH];
-	uint8_t drive;
-	bool usehdrive=/*hdrive>=0&&(always true)*/hdrive<DOS_FILES;
-	if (usehdrive)
-		strcpy(fullname,name);
-	else if (!DOS_MakeName(name, fullname, &drive))
-		return false;
-	return Drives[usehdrive?hdrive:drive]->GetFileAttrEx(fullname, status);
 }
 
 unsigned long DOS_GetCompressedFileSize(char const* const name)
@@ -993,11 +1083,11 @@ HANDLE DOS_CreateOpenFile(char const* const name)
 }
 #endif
 
-bool DOS_SetFileAttr(char const * const name,uint16_t attr) 
+bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 // returns false when using on cdrom (stonekeep)
 {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
-	if (!DOS_MakeName(name,fullname,&drive)) return false;	
+	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	if (strncmp(Drives[drive]->GetInfo(),"CDRom ",6)==0 || strncmp(Drives[drive]->GetInfo(),"isoDrive ",9)==0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -1006,7 +1096,12 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 	/* This function must prevent changing a file into a directory, volume label into a file, etc.
 	 * Also Windows 95 setup likes to create WINBOOT.INI as a file and then chattr it into a directory for some stupid reason. */
 	uint16_t old_attr;
-	if (!Drives[drive]->GetFileAttr(fullname,&old_attr)) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr)||!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr))
+#else
+	if (!Drives[drive]->GetFileAttr(fullname,&old_attr))
+#endif
+	{
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
@@ -1024,6 +1119,9 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 
 	attr = (attr & ~attr_mask) | (old_attr & attr_mask);
 
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+    if (Network_IsNetworkResource(name)) return Network_SetFileAttr(name,attr);
+#endif
 	return Drives[drive]->SetFileAttr(fullname,attr);
 }
 
@@ -1032,6 +1130,12 @@ bool DOS_Canonicalize(char const * const name,char * const big) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)) {
+        strcpy(&big[0], name);
+        return true;
+    }
+#endif
 	big[0]=drive+'A';
 	big[1]=':';
 	big[2]='\\';
@@ -1251,12 +1355,6 @@ static bool isvalid(const char in){
 #define PARSE_RET_BADDRIVE      0xff
 
 uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string, uint8_t *change) {
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
     const char* string_begin = string;
 	uint8_t ret=0;
 	if (!(parser & PARSE_DFLT_DRIVE)) {
@@ -1323,7 +1421,7 @@ uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string,
 	/* Copy the name */	
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isKanji1(nc))) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=(char)nc;
                 string++;
@@ -1361,14 +1459,14 @@ checkext:
 	hasext=true;finished=false;fill=' ';index=0;
 	while (true) {
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
-		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isDBCSLB(nc, lead))) {
-                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+		if ((IS_PC98_ARCH && shiftjis_lead_byte(nc)) || (isDBCSCP() && isKanji1(nc))) {
+                /* DBCS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=(char)nc;
                 string++;
                 index++;
                 if (index >= 3) break;
 
-                /* should be trailing byte of Shift-JIS */
+                /* should be trailing byte of DBCS character */
                 if (nc < 32u || nc >= 127u) continue;
 
                 fcb_name.part.ext[index]=(char)nc;
@@ -1854,6 +1952,9 @@ void DOS_FCBSetRandomRecord(uint16_t seg, uint16_t offset) {
 bool DOS_FileExists(char const * const name) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if (Network_IsNetworkResource(name)) return Network_FileExists(fullname);
+#endif
 	return Drives[drive]->FileExists(fullname);
 }
 

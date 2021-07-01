@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "vga.h"
 
 #define gfx(blah) vga.gfx.blah

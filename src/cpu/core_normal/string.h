@@ -16,6 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "logging.h"
+
 enum STRING_OP {
 	// simple string ops
 	R_OUTSB,R_OUTSW,R_OUTSD,

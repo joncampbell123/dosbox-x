@@ -20,9 +20,6 @@
 #ifndef DOSBOX_SUPPORT_H
 #define DOSBOX_SUPPORT_H
 
-#include <string.h>
-#include <string>
-#include <ctype.h>
 #ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
 #endif
@@ -38,6 +35,10 @@
 #include <strings.h>
 #endif
 
+char *strchr_dbcs(char *str, char ch);
+char *strrchr_dbcs(char *str, char ch);
+char *strtok_dbcs(char *s, const char *d);
+void strreplace_dbcs(char * str,char o,char n);
 void strreplace(char * str,char o,char n);
 char *ltrim(char *str);
 char *rtrim(char *str);

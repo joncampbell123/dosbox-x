@@ -1,7 +1,4 @@
 
-#include <stdio.h>
-#include <stdint.h>
-
 //! \brief Intel 8255 base emulation class
 //!
 //! \description Intel 8255 Programmable Peripheral Interface emulation class.

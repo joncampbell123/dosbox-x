@@ -21,7 +21,6 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
-#include "logging.h"
 
 #if defined(C_ICONV)
 /* good */
@@ -160,6 +159,7 @@ void					DOSBOX_SetNormalLoop();
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
+#define IS_JEGA_ARCH            (machine==MCH_EGA && jp_ega)
 #define IS_EGA_ARCH             (machine==MCH_EGA)
 #define IS_VGA_ARCH             (machine==MCH_VGA)
 #define IS_PC98_ARCH            (machine==MCH_PC98)
@@ -173,10 +173,6 @@ void					DOSBOX_SetNormalLoop();
 #define PC98_ARCH_CASE			MCH_PC98
 
 #define FM_TOWNS_ARCH_CASE      MCH_FM_TOWNS
-
-#ifndef DOSBOX_LOGGING_H
-#include "logging.h"
-#endif // the logging system.
 
 extern ClockDomain			clockdom_PCI_BCLK;
 extern ClockDomain			clockdom_ISA_OSC;

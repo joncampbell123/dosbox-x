@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.14
-:DOSBOX-X:REMARK:建议使用TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
+:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:REMARK:建议使用中文DOS/V模式或者TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -11,6 +11,173 @@ You can put your MOUNT lines here.
 # Lines starting with a # are comment lines and are ignored by DOSBox-X.
 # They are used to (briefly) document the effect of each option.
 # To write out ALL options, use command 'config -all' with -wc or -writeconf options.
+.
+:CONFIG_SUGGESTED_VALUES
+Possible values
+.
+:CONFIG_ADVANCED_OPTION
+Advanced option (see full configuration reference file [dosbox-x.reference.full.conf] for more details)
+.
+:CONFIG_TOOL
+DOSBox-X 配置工具
+.
+:CONFIG_TOOL_EXIT
+退出配置工具
+.
+:MAPPER_EDITOR_EXIT
+退出按键编辑
+.
+:SAVE_MAPPER_FILE
+保存按键配置文件
+.
+:WARNING
+警告
+.
+:YES
+是
+.
+:NO
+否
+.
+:OK
+确定
+.
+:CANCEL
+取消
+.
+:CLOSE
+关闭
+.
+:ADD
+加入
+.
+:DEL
+删除
+.
+:NEXT
+下个
+.
+:SAVE
+保存
+.
+:EXIT
+退出
+.
+:CAPTURE
+捕获
+.
+:SAVE_CONFIGURATION
+保存配置
+.
+:SAVE_LANGUAGE
+保存语言文件
+.
+:SAVE_RESTART
+保存并重启动
+.
+:PASTE_CLIPBOARD
+粘贴剪贴板文字
+.
+:APPEND_HISTORY
+附加历史
+.
+:EXECUTE_NOW
+立即执行
+.
+:ADDITION_CONTENT
+附加内容:
+.
+:CONTENT
+内容:
+.
+:EDIT_FOR
+编辑 %s
+.
+:HELP_FOR
+%s 的帮助
+.
+:CONFIGURATION_FOR
+%s 的配置
+.
+:CONFIGURATION
+配置
+.
+:SETTINGS
+设置
+.
+:VISIT_HOMEPAGE
+访问主页
+.
+:GET_STARTED
+轻松上手
+.
+:CDROM_SUPPORT
+光盘支持
+.
+:DRIVE_INFORMATION
+驱动器信息
+.
+:MOUNTED_DRIVE_NUMBER
+已分配的驱动器号
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE 控制器状态
+.
+:HELP_COMMAND
+DOS 命令帮助
+.
+:CURRENT_VOLUME
+当前混音器音量
+.
+:CURRENT_SBCONFIG
+声卡配置信息
+.
+:CURRENT_MIDICONFIG
+MIDI 设备配置信息
+.
+:CREATE_IMAGE
+创建空白磁盘镜像
+.
+:NETWORK_LIST
+网络接口列表
+.
+:PRINTER_LIST
+打印机设备列表
+.
+:INTRODUCTION
+介绍
+.
+:CONFIGURE_GROUP
+选择设置组进行配置:
+.
+:SHOW_ADVOPT
+显示高级选项
+..
+:USE_PRIMARYCONFIG
+使用主配置文件
+.
+:USE_PORTABLECONFIG
+使用程序目录配置文件
+.
+:USE_USERCONFIG
+使用用户配置文件
+.
+:CONFIG_SAVETO
+输入要保存的配置文件的文件名:
+.
+:CONFIG_SAVEALL
+保存所有（包括高级）选项到配置文件
+.
+:LANG_FILENAME
+输入语言文件的文件名:
+.
+:LANG_LANGNAME
+语言名称(可选):
+.
+:INTRO_MESSAGE
+欢迎使用 DOSBox-X, 自由免费且完整的 DOS 模拟器.
+DOSBox-X 模拟 DOS 命令行让您觉得好像在真正使用 DOS.
+您也可以在 DOS 虚拟机中运行 Windows 3.x 和 Windows 95/98.
 .
 :DRIVE
 驱动器
@@ -39,8 +206,26 @@ IDE 位置
 :SLOT
 存档
 .
-:CONFIG_SUGGESTED_VALUES
-Possible values
+:PREVIOUS_PAGE
+< 上一页
+.
+:NEXT_PAGE
+       下一页 >
+.
+:SELECT_EVENT
+选择要修改的事件.
+.
+:SELECT_DIFFERENT_EVENT
+选择另一个事件或者按加入/删除/下个按钮.
+.
+:PRESS_JOYSTICK_KEY
+按键盘上的键/游戏杆按钮或者移动游戏杆.
+.
+:CAPTURE_ENABLED
+捕获已启用. 按 ESC 键停止捕获.
+.
+:MAPPER_FILE_SAVED
+按键配置文件已保存
 .
 :AUTO_CYCLE_MAX
 自动选择周期 [最大]
@@ -74,6 +259,12 @@ Possible values
 .
 :PROGRAM_CONFIG_ADDITIONAL_CONF
 附加配置文件:
+
+.
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+全局配置文件:
+%s
 
 .
 :PROGRAM_CONFIG_CONFDIR
@@ -1077,10 +1268,6 @@ ECHO状态为开.
 ECHO状态为关.
 
 .
-:SHELL_ILLEGAL_CONTROL_CHARACTER
-未预期的控制字符: 10进制 %03u - 16进制 %#04x.
-
-.
 :SHELL_ILLEGAL_SWITCH
 开关非法 - %s
 
@@ -1872,17 +2059,17 @@ MORE < [驱动器:][路径]文件名
 
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
-TRUENAME 文件
+TRUENAME [/H] 文件
 
 .
 :SHELL_CMD_DXCAPTURE_HELP
-运行程序或启用视频或音频捕捉.
+运行程序并启用视频或音频捕获.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-它将启动视频或音频捕捉, 运行程序, 等程序运行结束时停止捕捉.
+它将启动视频或音频捕获, 运行程序, 等程序运行结束时停止捕获.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -1923,8 +2110,7 @@ To switch between windowed and full-screen mode, use [31mhost+F[37m.
 To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[37m.   
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.[37m     
-[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.[37m       
+[36mDOSBox-X is now running in [32mJapanese NEC PC-98[36m emulation mode.[37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mDOSBox-X project [33mhttps://dosbox-x.com/     [36mComplete DOS emulations[37m
@@ -1951,7 +2137,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 退出 DOSBox-X
 .
 :MENU:mapper_capmouse
-捕捉鼠标
+捕获鼠标
 .
 :MENU:mapper_fastedit
 快速编辑: 选择后复制或粘贴文本
@@ -2514,6 +2700,9 @@ EMM386 模拟
 :MENU:dos_win_autorun
 自动在 Windows 主机中运行
 .
+:MENU:dos_win_transpath
+将路径转换为主机系统路径
+.
 :MENU:dos_win_wait
 等待应用程序 (如果可能)
 .
@@ -2521,10 +2710,10 @@ EMM386 模拟
 安静模式 - 无启动信息
 .
 :MENU:CaptureMenu
-捕捉
+捕获
 .
 :MENU:CaptureFormatMenu
-捕捉格式
+捕获格式
 .
 :MENU:capture_fmt_avi_zmbv
 AVI + ZMBV
@@ -2583,1115 +2772,50 @@ MPEG-TS + H.264
 :MENU:DriveMenu
 驱动器
 .
-:MENU:DriveA
-A
-.
-:MENU:drive_A_mountauto
+:MENU:drive_mountauto
 自动挂载 Windows 驱动器
 .
-:MENU:drive_A_mounthd
+:MENU:drive_mounthd
 挂载文件夹为硬盘驱动器
 .
-:MENU:drive_A_mountcd
+:MENU:drive_mountcd
 挂载文件夹为光盘驱动器
 .
-:MENU:drive_A_mountfd
+:MENU:drive_mountfd
 挂载文件夹为软盘驱动器
 .
-:MENU:drive_A_mountfro
+:MENU:drive_mountfro
 选项: 只读方式挂载文件夹
 .
-:MENU:drive_A_mountarc
+:MENU:drive_mountarc
 挂载压缩文档 (ZIP/7Z)
 .
-:MENU:drive_A_mountimg
+:MENU:drive_mountimg
 挂载磁盘或光盘镜像文件
 .
-:MENU:drive_A_mountimgs
+:MENU:drive_mountimgs
 挂载多个磁盘或光盘镜像文件
 .
-:MENU:drive_A_mountiro
+:MENU:drive_mountiro
 选项: 只读方式挂载镜像文件
 .
-:MENU:drive_A_unmount
+:MENU:drive_unmount
 卸载驱动器
 .
-:MENU:drive_A_rescan
+:MENU:drive_rescan
 刷新驱动器
 .
-:MENU:drive_A_swap
+:MENU:drive_swap
 交换镜像文件
 .
-:MENU:drive_A_info
+:MENU:drive_info
 驱动器信息
 .
-:MENU:drive_A_boot
+:MENU:drive_boot
 从该驱动器启动
 .
-:MENU:drive_A_bootimg
+:MENU:drive_bootimg
 从磁盘镜像启动
-.
-:MENU:DriveB
-B
-.
-:MENU:drive_B_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_B_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_B_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_B_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_B_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_B_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_B_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_B_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_B_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_B_unmount
-卸载驱动器
-.
-:MENU:drive_B_rescan
-刷新驱动器
-.
-:MENU:drive_B_swap
-交换镜像文件
-.
-:MENU:drive_B_info
-驱动器信息
-.
-:MENU:DriveC
-C
-.
-:MENU:drive_C_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_C_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_C_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_C_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_C_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_C_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_C_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_C_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_C_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_C_unmount
-卸载驱动器
-.
-:MENU:drive_C_rescan
-刷新驱动器
-.
-:MENU:drive_C_swap
-交换镜像文件
-.
-:MENU:drive_C_info
-驱动器信息
-.
-:MENU:drive_C_boot
-从该驱动器启动
-.
-:MENU:drive_C_bootimg
-从磁盘镜像启动
-.
-:MENU:DriveD
-D
-.
-:MENU:drive_D_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_D_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_D_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_D_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_D_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_D_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_D_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_D_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_D_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_D_unmount
-卸载驱动器
-.
-:MENU:drive_D_rescan
-刷新驱动器
-.
-:MENU:drive_D_swap
-交换镜像文件
-.
-:MENU:drive_D_info
-驱动器信息
-.
-:MENU:drive_D_boot
-从该驱动器启动
-.
-:MENU:drive_D_bootimg
-从磁盘镜像启动
-.
-:MENU:DriveE
-E
-.
-:MENU:drive_E_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_E_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_E_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_E_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_E_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_E_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_E_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_E_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_E_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_E_unmount
-卸载驱动器
-.
-:MENU:drive_E_rescan
-刷新驱动器
-.
-:MENU:drive_E_swap
-交换镜像文件
-.
-:MENU:drive_E_info
-驱动器信息
-.
-:MENU:DriveF
-F
-.
-:MENU:drive_F_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_F_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_F_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_F_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_F_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_F_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_F_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_F_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_F_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_F_unmount
-卸载驱动器
-.
-:MENU:drive_F_rescan
-刷新驱动器
-.
-:MENU:drive_F_swap
-交换镜像文件
-.
-:MENU:drive_F_info
-驱动器信息
-.
-:MENU:DriveG
-G
-.
-:MENU:drive_G_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_G_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_G_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_G_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_G_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_G_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_G_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_G_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_G_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_G_unmount
-卸载驱动器
-.
-:MENU:drive_G_rescan
-刷新驱动器
-.
-:MENU:drive_G_swap
-交换镜像文件
-.
-:MENU:drive_G_info
-驱动器信息
-.
-:MENU:DriveH
-H
-.
-:MENU:drive_H_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_H_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_H_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_H_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_H_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_H_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_H_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_H_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_H_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_H_unmount
-卸载驱动器
-.
-:MENU:drive_H_rescan
-刷新驱动器
-.
-:MENU:drive_H_swap
-交换镜像文件
-.
-:MENU:drive_H_info
-驱动器信息
-.
-:MENU:DriveI
-I
-.
-:MENU:drive_I_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_I_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_I_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_I_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_I_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_I_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_I_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_I_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_I_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_I_unmount
-卸载驱动器
-.
-:MENU:drive_I_rescan
-刷新驱动器
-.
-:MENU:drive_I_swap
-交换镜像文件
-.
-:MENU:drive_I_info
-驱动器信息
-.
-:MENU:DriveJ
-J
-.
-:MENU:drive_J_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_J_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_J_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_J_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_J_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_J_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_J_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_J_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_J_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_J_unmount
-卸载驱动器
-.
-:MENU:drive_J_rescan
-刷新驱动器
-.
-:MENU:drive_J_swap
-交换镜像文件
-.
-:MENU:drive_J_info
-驱动器信息
-.
-:MENU:DriveK
-K
-.
-:MENU:drive_K_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_K_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_K_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_K_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_K_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_K_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_K_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_K_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_K_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_K_unmount
-卸载驱动器
-.
-:MENU:drive_K_rescan
-刷新驱动器
-.
-:MENU:drive_K_swap
-交换镜像文件
-.
-:MENU:drive_K_info
-驱动器信息
-.
-:MENU:DriveL
-L
-.
-:MENU:drive_L_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_L_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_L_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_L_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_L_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_L_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_L_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_L_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_L_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_L_unmount
-卸载驱动器
-.
-:MENU:drive_L_rescan
-刷新驱动器
-.
-:MENU:drive_L_swap
-交换镜像文件
-.
-:MENU:drive_L_info
-驱动器信息
-.
-:MENU:DriveM
-M
-.
-:MENU:drive_M_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_M_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_M_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_M_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_M_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_M_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_M_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_M_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_M_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_M_unmount
-卸载驱动器
-.
-:MENU:drive_M_rescan
-刷新驱动器
-.
-:MENU:drive_M_swap
-交换镜像文件
-.
-:MENU:drive_M_info
-驱动器信息
-.
-:MENU:DriveN
-N
-.
-:MENU:drive_N_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_N_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_N_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_N_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_N_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_N_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_N_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_N_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_N_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_N_unmount
-卸载驱动器
-.
-:MENU:drive_N_rescan
-刷新驱动器
-.
-:MENU:drive_N_swap
-交换镜像文件
-.
-:MENU:drive_N_info
-驱动器信息
-.
-:MENU:DriveO
-O
-.
-:MENU:drive_O_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_O_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_O_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_O_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_O_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_O_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_O_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_O_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_O_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_O_unmount
-卸载驱动器
-.
-:MENU:drive_O_rescan
-刷新驱动器
-.
-:MENU:drive_O_swap
-交换镜像文件
-.
-:MENU:drive_O_info
-驱动器信息
-.
-:MENU:DriveP
-P
-.
-:MENU:drive_P_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_P_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_P_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_P_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_P_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_P_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_P_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_P_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_P_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_P_unmount
-卸载驱动器
-.
-:MENU:drive_P_rescan
-刷新驱动器
-.
-:MENU:drive_P_swap
-交换镜像文件
-.
-:MENU:drive_P_info
-驱动器信息
-.
-:MENU:DriveQ
-Q
-.
-:MENU:drive_Q_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_Q_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_Q_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_Q_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_Q_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_Q_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_Q_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_Q_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_Q_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_Q_unmount
-卸载驱动器
-.
-:MENU:drive_Q_rescan
-刷新驱动器
-.
-:MENU:drive_Q_swap
-交换镜像文件
-.
-:MENU:drive_Q_info
-驱动器信息
-.
-:MENU:DriveR
-R
-.
-:MENU:drive_R_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_R_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_R_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_R_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_R_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_R_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_R_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_R_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_R_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_R_unmount
-卸载驱动器
-.
-:MENU:drive_R_rescan
-刷新驱动器
-.
-:MENU:drive_R_swap
-交换镜像文件
-.
-:MENU:drive_R_info
-驱动器信息
-.
-:MENU:DriveS
-S
-.
-:MENU:drive_S_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_S_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_S_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_S_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_S_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_S_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_S_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_S_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_S_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_S_unmount
-卸载驱动器
-.
-:MENU:drive_S_rescan
-刷新驱动器
-.
-:MENU:drive_S_swap
-交换镜像文件
-.
-:MENU:drive_S_info
-驱动器信息
-.
-:MENU:DriveT
-T
-.
-:MENU:drive_T_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_T_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_T_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_T_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_T_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_T_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_T_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_T_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_T_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_T_unmount
-卸载驱动器
-.
-:MENU:drive_T_rescan
-刷新驱动器
-.
-:MENU:drive_T_swap
-交换镜像文件
-.
-:MENU:drive_T_info
-驱动器信息
-.
-:MENU:DriveU
-U
-.
-:MENU:drive_U_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_U_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_U_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_U_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_U_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_U_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_U_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_U_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_U_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_U_unmount
-卸载驱动器
-.
-:MENU:drive_U_rescan
-刷新驱动器
-.
-:MENU:drive_U_swap
-交换镜像文件
-.
-:MENU:drive_U_info
-驱动器信息
-.
-:MENU:DriveV
-V
-.
-:MENU:drive_V_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_V_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_V_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_V_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_V_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_V_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_V_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_V_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_V_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_V_unmount
-卸载驱动器
-.
-:MENU:drive_V_rescan
-刷新驱动器
-.
-:MENU:drive_V_swap
-交换镜像文件
-.
-:MENU:drive_V_info
-驱动器信息
-.
-:MENU:DriveW
-W
-.
-:MENU:drive_W_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_W_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_W_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_W_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_W_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_W_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_W_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_W_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_W_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_W_unmount
-卸载驱动器
-.
-:MENU:drive_W_rescan
-刷新驱动器
-.
-:MENU:drive_W_swap
-交换镜像文件
-.
-:MENU:drive_W_info
-驱动器信息
-.
-:MENU:DriveX
-X
-.
-:MENU:drive_X_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_X_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_X_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_X_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_X_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_X_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_X_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_X_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_X_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_X_unmount
-卸载驱动器
-.
-:MENU:drive_X_rescan
-刷新驱动器
-.
-:MENU:drive_X_swap
-交换镜像文件
-.
-:MENU:drive_X_info
-驱动器信息
-.
-:MENU:DriveY
-Y
-.
-:MENU:drive_Y_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_Y_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_Y_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_Y_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_Y_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_Y_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_Y_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_Y_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_Y_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_Y_unmount
-卸载驱动器
-.
-:MENU:drive_Y_rescan
-刷新驱动器
-.
-:MENU:drive_Y_swap
-交换镜像文件
-.
-:MENU:drive_Y_info
-驱动器信息
-.
-:MENU:DriveZ
-Z
-.
-:MENU:drive_Z_mountauto
-自动挂载 Windows 驱动器
-.
-:MENU:drive_Z_mounthd
-挂载文件夹为硬盘驱动器
-.
-:MENU:drive_Z_mountcd
-挂载文件夹为光盘驱动器
-.
-:MENU:drive_Z_mountfd
-挂载文件夹为软盘驱动器
-.
-:MENU:drive_Z_mountfro
-选项: 只读方式挂载文件夹
-.
-:MENU:drive_Z_mountarc
-挂载压缩文档 (ZIP/7Z)
-.
-:MENU:drive_Z_mountimg
-挂载磁盘或光盘镜像文件
-.
-:MENU:drive_Z_mountimgs
-挂载多个磁盘或光盘镜像文件
-.
-:MENU:drive_Z_mountiro
-选项: 只读方式挂载镜像文件
-.
-:MENU:drive_Z_unmount
-卸载驱动器
-.
-:MENU:drive_Z_rescan
-刷新驱动器
-.
-:MENU:drive_Z_swap
-交换镜像文件
-.
-:MENU:drive_Z_info
-驱动器信息
 .
 :MENU:HelpMenu
 帮助
@@ -3864,6 +2988,9 @@ TRUENAME
 :MENU:DebugMenu
 调试
 .
+:MENU:HelpDebugMenu
+记录控制台
+.
 :MENU:debug_blankrefreshtest
 刷新测试 (空白显示)
 .
@@ -3880,7 +3007,7 @@ TRUENAME
 记录文件输入输出
 .
 :MENU:mapper_speedlock
-Toggle Speedlock
+打开或关闭快进模式
 .
 :MENU:mapper_speedlock2
 加速/快进模式
@@ -3913,10 +3040,10 @@ Toggle Speedlock
 选择下一个存档
 .
 :MENU:mapper_decfskip
-减少跳帧
+减小跳帧
 .
 :MENU:mapper_incfskip
-增加跳帧
+加大跳帧
 .
 :MENU:mapper_aspratio
 长宽比适合模式
@@ -3937,7 +3064,7 @@ Toggle Speedlock
 录制视频到 AVI
 .
 :MENU:mapper_scrshot
-捕捉屏幕快照
+捕获屏幕快照
 .
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
@@ -3958,10 +3085,10 @@ Toggle Speedlock
 输入特殊键
 .
 :MENU:mapper_cycledown
-减少 CPU 周期
+减小 CPU 周期
 .
 :MENU:mapper_cycleup
-增加 CPU 周期
+加大 CPU 周期
 .
 :MENU:mapper_normal
 正常内核
@@ -4168,7 +3295,7 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 创建空白磁盘镜像...
 .
 :MENU:list_drivenum
-显示已配置的驱动器号
+显示已分配的驱动器号
 .
 :MENU:list_ideinfo
 显示 IDE 驱动器状态
@@ -4178,4 +3305,82 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 .
 :MENU:pc98_use_uskb
 使用美式键盘布局
+.
+:MAPPER:caprawopl
+录制 FM/OPL 输出
+.
+:MAPPER:copyall
+复制屏幕文本到剪贴板
+.
+:MAPPER:cycauto
+切换自动 CPU 周期
+.
+:MAPPER:debugger
+显示调试器
+.
+:MAPPER:decsize
+减小 TTF 字体
+.
+:MAPPER:dynamic
+CPU: 动态内核
+.
+:MAPPER:fastedit
+快速编辑模式
+.
+:MAPPER:full
+CPU: 完全内核
+.
+:MAPPER:incsize
+加大 TTF 字体
+.
+:MAPPER:loadmap
+加载按键配置文件
+.
+:MAPPER:nextslot
+下一个存档
+.
+:MAPPER:normal
+CPU: 正常内核
+.
+:MAPPER:paste
+粘贴剪贴板文字
+.
+:MAPPER:pasteend
+停止剪贴板复制
+.
+:MAPPER:pauseints
+暂停并保持中断
+.
+:MAPPER:prevslot
+上一个存档
+.
+:MAPPER:quickrun
+快速启动程序
+.
+:MAPPER:reboot
+重启 DOS 系统
+.
+:MAPPER:recmtwave
+录制音频到多轨 AVI
+.
+:MAPPER:recvoldown
+降低录音音量
+.
+:MAPPER:recvolup
+提高录音音量
+.
+:MAPPER:rescanall
+刷新驱动器
+.
+:MAPPER:reset
+重启 DOSBox-X
+.
+:MAPPER:showstate
+显示存档信息
+.
+:MAPPER:simple
+CPU: 简单内核
+.
+:MAPPER:togmenu
+打开或关闭下拉菜单
 .

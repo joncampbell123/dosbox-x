@@ -35,6 +35,11 @@ if not exist %isspath%\7za.exe (
 	goto error
 )
 
+if not exist %isspath%\fart.exe (
+	echo Couldn't find %isspath%\fart.exe
+	goto error
+)
+
 if not exist %isspath%\ISCC.exe (
 	echo Couldn't find Inno Setup Compiler at %isspath%\ISCC.exe
 	goto error
@@ -147,6 +152,22 @@ echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
 if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
+copy /y %isspath%\WizModernImage.bmp %isspath%\allusers\WizModernImage.bmp
+copy /y %isspath%\DOSBox-X-setup.iss %isspath%\allusers\DOSBox-X-setup.iss
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "}-setup" "}-setup-allusers"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=lowest" "=admin"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss ";Privileges" "Privileges"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=..\\" "=..\..\\"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=.\\" "=..\\"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"..\\" "\"..\..\\"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\".\\" "\"..\\"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "File=setup_" "File=..\setup_"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"Win32_builds" "\"..\Win32_builds"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"Win64_builds" "\"..\Win64_builds"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "{userappdata}" "{commonappdata}"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "HKCU;" "HKA;"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss " IsTaskSelected" " WizardIsTaskSelected"
+%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "IsAdminLoggedOn" "IsAdmin"
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
 %isspath%\allusers\ISCC.exe %isspath%\allusers\DOSBox-X-setup.iss
 if exist %isspath%\dosbox-x-windows-*-setup.exe if exist exist %isspath%\dosbox-x-windows-*-setup-allusers.exe (

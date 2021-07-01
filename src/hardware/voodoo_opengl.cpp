@@ -26,6 +26,7 @@
 #include <map>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "video.h"
 
 #include "voodoo_emu.h"

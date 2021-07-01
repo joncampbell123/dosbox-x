@@ -31,9 +31,15 @@
 
 #include "config.h"
 #include "dosbox.h"
+#include "setup.h"
+#include "jfont.h"
 
 #include <SDL.h>
 #include "gui_tk.h"
+
+#include <math.h> /* floor */
+bool isDBCSCP();
+uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 
 namespace GUI {
 
@@ -68,7 +74,7 @@ std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
 	if (button == Left && x < (6+titlebox_sysmenu_width) && x > 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
-		systemMenu->executeAction("Close");
+		systemMenu->executeAction(MSG_Get("CLOSE"));
 		return true;
 	}
 	BorderedWindow::mouseClicked(x,y,button);
@@ -479,37 +485,54 @@ void Drawable::drawText(const Char c, bool interpret)
 	font->drawChar(this,c);
 }
 
+Char prvc = 0;
 void BitmapFont::drawChar(Drawable *d, const Char c) const {
-#define move(x) (ptr += ((x)+bit)/8-(((x)+bit)<0), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
-	const unsigned char *ptr = bitmap;
-	int bit = 0;
-
-	if (c > last) return;
-
-	if (char_position != NULL) {
-		ptr = char_position[c];
-		bit = 0;
-	} else {
-		move(character_step*((int)c));
-	}
-
+	const unsigned char *ptr = bitmap, *optr = ptr;
+	int bit = 0, i = 0, w = 0, h = 0;
+	bool is14 = false;
+	if (c > last) {prvc = 0;return;}
+    if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prvc == 0) {
+            prvc = c;
+            return;
+        } else if (isKanji2(c) && prvc > 2) {
+            optr = GetDbcs14Font(prvc*0x100+c, is14);
+            prvc = is14?2:1;
+        } else if (prvc < 0x81)
+            prvc = 0;
+    } else
+        prvc = 0;
+#define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc==1||prvc==2?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
+	int ht = prvc==1?16:height, at = prvc==1?11:ascent;
 	int rs = row_step;
-	int w = (widths != NULL?widths[c]:width);
-	int h = (ascents != NULL?ascents[c]:height);
-	Drawable out(*d,d->getX(),d->getY()-ascent,w,h);
-
-	if (rs == 0) rs = isign(col_step)*w;
-	if (rs < 0) move(-rs*(h-1));
-	if (col_step < 0) move(abs(rs)-1);
-
-	for (int row = height-h; row < height; row++, move(rs-w*col_step)) {
-		for (int col = 0; col < w; col++, move(col_step)) {
-			if (!background_set != !(*ptr&(1<<bit)))
-				out.drawPixel(col,row);
+	for (i=0; i<(prvc?2:1); i++) {
+		if (prvc==1||prvc==2)
+			ptr = optr+i;
+		else if (char_position != NULL) {
+			ptr = char_position[i||!prvc?c:prvc];
+			bit = 0;
+		} else {
+			if (i) ptr = bitmap;
+			move(character_step*((int)(i||!prvc?c:prvc)));
 		}
+		w = widths!=NULL && prvc!=1 && prvc!=2 ? widths[i||!prvc?c:prvc] : width;
+		h = ascents!=NULL && prvc!=1 && prvc!=2 ? ascents[i||!prvc?c:prvc] : ht;
+        if (!i) {
+            if (rs == 0) rs = isign(col_step)*w;
+            if (rs < 0) move(-rs*(h-1));
+            if (col_step < 0) move(abs(rs)-1);
+        }
+		Drawable out(*d,d->getX(),d->getY()-at,w,h);
+		for (int row = ht-h; row < ht; row++, move(rs-w*col_step)) {
+			for (int col = 0; col < w; col++, move(col_step)) {
+				if (!background_set != !(*ptr&(1<<bit)))
+					out.drawPixel(col,row);
+			}
+		}
+		d->gotoXY(d->getX()+w,d->getY());
 	}
-	d->gotoXY(d->getX()+w,d->getY());
 #undef move
+	prvc = 0;
 }
 
 void Timer::check_to(unsigned int ticks) {
@@ -1955,7 +1978,7 @@ public:
         {   dp = dr0;
             sp = sr0;
             for( x = 0; x < surface->w; x += 1 )
-            {   is_alpha = get_dest_pix( sp, fmt, df, &pix ) > 0;
+            {   is_alpha = get_dest_pix( sp, fmt, df, &pix );
                 for( h = 0; h < scale; h += 1 )
                 {   if( is_alpha )
                     {   memcpy( dp, &pix, df->BytesPerPixel );  }

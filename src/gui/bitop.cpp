@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 
 #include "bitop.h"
 

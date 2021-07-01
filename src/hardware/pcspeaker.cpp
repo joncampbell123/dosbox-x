@@ -26,6 +26,7 @@
 //#define SPKR_DEBUGGING
 #include <math.h>
 #include "dosbox.h"
+#include "logging.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"

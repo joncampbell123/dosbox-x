@@ -16,9 +16,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
+
 #include "ethernet.h"
 #include "ethernet_pcap.h"
 #include "ethernet_slirp.h"
+#include "logging.h"
 #include <cstring>
 #include "dosbox.h"
 #include "control.h"

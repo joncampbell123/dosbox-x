@@ -16,9 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 #include "dosbox.h"
 #include "control.h"
+#include "logging.h"
 #include "mem.h"
 #include "menu.h"
 #include "callback.h"
@@ -28,6 +30,7 @@
 #include "mouse.h"
 #include "setup.h"
 #include "render.h"
+#include "jfont.h"
 
 Int10Data int10;
 bool blinking=true;
@@ -38,18 +41,55 @@ extern bool vga_8bit_dac;
 extern bool wpExtChar;
 extern int wpType;
 
+uint16_t GetTextSeg();
+void WriteCharTopView(uint16_t off, int count);
+uint8_t *GetSbcsFont(Bitu code);
+uint8_t *GetSbcs19Font(Bitu code);
+uint8_t *GetSbcs24Font(Bitu code);
+uint8_t *GetDbcsFont(Bitu code);
+uint8_t *GetDbcs24Font(Bitu code);
+void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
+bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
 	//      the BIOS data area to play tricks with the BIOS. If we don't call this, tricks
 	//      like the Windows 95 boot logo or INT 10h virtualization in Windows 3.1/9x/ME
 	//      within the DOS "box" will not work properly.
+	if(IS_DOSV && DOSV_CheckCJKVideoMode() && reg_ah != 0x03) DOSV_OffCursor();
 	INT10_SetCurMode();
 
 	switch (reg_ah) {
 	case 0x00:								/* Set VideoMode */
 		Mouse_BeforeNewVideoMode(true);
-		INT10_SetVideoMode(reg_al);
+		SetTrueVideoMode(reg_al);
+		if(IS_DOSV && IS_DOS_CJK && (reg_al == 0x03 || reg_al == 0x70 || reg_al == 0x72 || reg_al == 0x78)) {
+			uint8_t mode = reg_al;
+			if(reg_al == 0x03 || reg_al == 0x72) {
+				INT10_SetVideoMode(0x12);
+				INT10_SetDOSVModeVtext(mode, DOSV_VGA);
+			} else if(reg_al == 0x70 || reg_al == 0x78) {
+				mode = 0x70;
+				enum DOSV_VTEXT_MODE vtext_mode = DOSV_GetVtextMode((reg_al == 0x70) ? 0 : 1);
+				if(vtext_mode == DOSV_VTEXT_XGA || vtext_mode == DOSV_VTEXT_XGA_24) {
+					INT10_SetVideoMode(0x37);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else if(vtext_mode == DOSV_VTEXT_SXGA || vtext_mode == DOSV_VTEXT_SXGA_24) {
+					INT10_SetVideoMode(0x3d);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else if(vtext_mode == DOSV_VTEXT_SVGA) {
+					INT10_SetVideoMode(0x6a);
+					INT10_SetDOSVModeVtext(mode, vtext_mode);
+				} else {
+					INT10_SetVideoMode(0x12);
+					INT10_SetDOSVModeVtext(mode, DOSV_VTEXT_VGA);
+				}
+			}
+		} else {
+			if(reg_al == 0x74)
+				break;
+			INT10_SetVideoMode(reg_al);
+		}
 		Mouse_AfterNewVideoMode(true);
 		break;
 	case 0x01:								/* Set TextMode Cursor Shape */
@@ -131,7 +171,12 @@ Bitu INT10_Handler(void) {
 		INT10_GetPixel(reg_cx,reg_dx,reg_bh,&reg_al);
 		break;
 	case 0x0E:								/* Teletype OutPut */
-		INT10_TeletypeOutput(reg_al,reg_bl);
+		if(DOSV_CheckCJKVideoMode()) {
+			uint16_t attr;
+			INT10_ReadCharAttr(&attr, 0);
+			INT10_TeletypeOutput(reg_al, attr >> 8);
+		} else
+			INT10_TeletypeOutput(reg_al,reg_bl);
 		break;
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -542,7 +587,46 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x13:								/* Write String */
-		INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		if((reg_al & 0x10) != 0 && DOSV_CheckCJKVideoMode())
+			INT10_ReadString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		else
+			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
+		break;
+	case 0x18:
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			uint8_t *font;
+			Bitu size = 0;
+			if(reg_al == 0) {
+				reg_al = 1;
+				if(reg_bx == 0) {
+					if(reg_dh == 8) {
+						if(reg_dl == 16) {
+							font = GetSbcsFont(reg_cl);
+							size = 16;
+						} else if(reg_dl == 19) {
+							font = GetSbcs19Font(reg_cl);
+							size = 19;
+						}
+					} else if(reg_dh == 16 && reg_dl == 16) {
+						font = GetDbcsFont(reg_cx);
+						size = 2 * 16;
+					} else if(reg_dh == 12 && reg_dl == 24) {
+						font = GetSbcs24Font(reg_cl);
+						size = 2 * 24;
+					} else if(reg_dh == 24 && reg_dl == 24) {
+						font = GetDbcs24Font(reg_cx);
+						size = 3 * 24;
+					}
+					if(size > 0) {
+						uint16_t seg = SegValue(es);
+						uint16_t off = reg_si;
+						for(Bitu ct = 0 ; ct < size ; ct++)
+							real_writeb(seg, off++, *font++);
+						reg_al = 0;
+					}
+				}
+			}
+		}
 		break;
 	case 0x1A:								/* Display Combination */
 		if (!IS_VGA_ARCH && machine != MCH_MCGA) break;
@@ -587,6 +671,17 @@ CX	640x480	800x600	  1024x768/1280x1024
 				if (svgaCard==SVGA_TsengET4K) reg_ax=0;
 				else reg_al=0;
 				break;
+		}
+		break;
+	case 0x1d:
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			if(reg_al == 0x00) {
+				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row - reg_bl);
+			} else if(reg_al == 0x01) {
+				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row);
+			} else if(reg_al == 0x02) {
+				reg_bx = int10.text_row - real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
+			}
 		}
 		break;
 	case 0x4f:								/* VESA Calls */
@@ -768,6 +863,185 @@ CX	640x480	800x600	  1024x768/1280x1024
 			break;
 		}
 		break;
+	case 0x50:// Set/Read JP/US mode of CRT BIOS
+		switch (reg_al) {
+			case 0x00:
+				LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5000h is called.");
+				if (INT10_AX_SetCRTBIOSMode(reg_bx)) reg_al = 0x00;
+				else reg_al = 0x01;
+				break;
+			case 0x01:
+				//LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 5001h is called.");
+				reg_bx=INT10_AX_GetCRTBIOSMode();
+				reg_al=0;
+				break;
+			default:
+				LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+				reg_al=0x0;
+				break;
+		}
+		break;
+	case 0x51:// Save/Read JFONT pattern
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		switch (reg_al) {
+			//INT 10h/AX=5100h Store user font pattern
+			//IN
+			//ES:BP=Index of store buffer
+			//DX=Char code
+			//BH=width bits of char
+			//BL=height bits of char
+			//OUT
+			//AL=status 00h=Success 01h=Failed
+		case 0x00:
+		{
+			LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5100h is called.");
+			Bitu buf_es = SegValue(es);
+			Bitu buf_bp = reg_bp;
+			Bitu chr = reg_dx;
+			Bitu w_chr = reg_bh;
+			Bitu h_chr = reg_bl;
+			Bitu font;
+			if (w_chr == 16 && h_chr == 16) {
+				for (Bitu line = 0; line < 16; line++)
+				{
+					//Order of font pattern is different between FONTX2 and AX(JEGA).
+					font = real_readb(buf_es, buf_bp + line);
+					jfont_dbcs_16[chr * 32 + line * 2] = font;
+					font = real_readb(buf_es, buf_bp + line + 16);
+					jfont_dbcs_16[chr * 32 + line * 2 + 1] = font;
+				}
+				reg_al = 0x00;
+			}
+			else
+				reg_al = 0x01;
+			break;
+		}
+		//INT 10h/AX=5101h Read character pattern
+		//IN
+		//ES:BP=Index of read buffer
+		//DX=Char code
+		//BH=width bits of char
+		//BL=height bits of char
+		//OUT
+		//AL=status 00h=Success 01h=Failed
+		case 0x01:
+		{
+			LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS 5101h is called.");
+			Bitu buf_es = SegValue(es);
+			Bitu buf_bp = reg_bp;
+			Bitu chr = reg_dx;
+			Bitu w_chr = reg_bh;
+			Bitu h_chr = reg_bl;
+			Bitu font;
+			if (w_chr == 8) {
+				reg_al = 0x00;
+				switch (h_chr)
+				{
+				case 8:
+					for (Bitu line = 0; line < 8; line++)
+						real_writeb(buf_es, buf_bp + line, int10_font_08[chr * 8 + line]);
+					break;
+				case 14:
+					for (Bitu line = 0; line < 14; line++)
+						real_writeb(buf_es, buf_bp + line, int10_font_14[chr * 14 + line]);
+					break;
+				case 19:
+					for (Bitu line = 0; line < 19; line++)
+						real_writeb(buf_es, buf_bp + line, jfont_sbcs_19[chr * 19 + line]);
+					break;
+				default:
+					reg_al = 0x01;
+					break;
+				}
+			}
+			else if (w_chr == 16 && h_chr == 16) {
+				reg_al = 0x00;
+				for (Bitu line = 0; line < 16; line++)
+				{
+					font = jfont_dbcs_16[chr * 32 + line * 2];
+					real_writeb(buf_es, buf_bp + line, font);
+					font = jfont_dbcs_16[chr * 32 + line * 2 + 1];
+					real_writeb(buf_es, buf_bp + line + 16, font);
+				}
+			}
+			else
+				reg_al = 0x01;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			reg_al=0x1;
+			break;
+		}
+		break;
+	case 0x52:// Set/Read virtual text ram buffer when the video mode is JEGA graphic mode
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 52xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+		{
+			if (reg_bx == 0) real_writew(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR, 0);
+			else
+			{
+				LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS set VTRAM segment address at %x", reg_bx);
+				real_writew(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR, reg_bx);
+				/* Fill VTRAM with 0x20(Space) */
+				for (int y = 0; y < 25; y++)
+					for (int x = 0; x < 80; x++)
+						SetVTRAMChar(x, y, 0x20, 0x00);
+			}
+			break;
+		}
+		case 0x01:
+		{
+			Bitu vtram_seg = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+			if (vtram_seg == 0x0000) reg_bx = 0;
+			else reg_bx = vtram_seg;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
+	case 0x82:// Set/Read the scroll mode when the video mode is JEGA graphic mode
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 82xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+			if (reg_bl == -1) {//Read scroll mode
+				reg_al = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x01;
+			}
+			else {//Set scroll mode
+				uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+				reg_al = tmp & 0x01;//Return previous scroll mode
+				tmp |= (reg_bl & 0x01);
+				real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp);
+			}
+			break;
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
+	case 0x83:// Read the video RAM address and virtual text video RAM
+		//Out: AX=base address of video RAM, ES:BX=base address of virtual text video RAM
+		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
+		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 83xxh is called.");
+		switch (reg_al) {
+		case 0x00:
+		{
+			reg_ax = CurMode->pstart;
+			Bitu vtram_seg = real_readw(BIOSMEM_AX_SEG, BIOSMEM_AX_VTRAM_SEGADDR);
+			RealMakeSeg(es, vtram_seg >> 4);
+			reg_bx = vtram_seg << 4;
+			break;
+		}
+		default:
+			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
+			break;
+		}
+		break;
 	case 0xf0:
 		INT10_EGA_RIL_ReadRegister(reg_bl, reg_dx);
 		break;
@@ -792,9 +1066,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 		reg_bx=RealOff(pt);
 		}
 		break;
+	case 0xfe:
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			reg_di = 0x0000;
+			SegSet16(es, GetTextSeg());
+		}
+		break;
 	case 0xff:
-		if (!warned_ff) LOG(LOG_INT10,LOG_NORMAL)("INT10:FF:Weird NC call");
-		warned_ff=true;
+		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+			WriteCharTopView(reg_di, reg_cx);
+		} else {
+			if (!warned_ff) LOG(LOG_INT10,LOG_NORMAL)("INT10:FF:Weird NC call");
+			warned_ff=true;
+		}
 		break;
 	default:
 		LOG(LOG_INT10,LOG_ERROR)("Function %4X not supported",reg_ax);
@@ -1127,15 +1411,26 @@ fail:
     return false;
 }
 
-extern uint8_t int10_font_16[256 * 16];
-
 extern VideoModeBlock PC98_Mode;
+extern uint8_t pc98_freecg_sbcs[256 * 16];
 
-bool Load_VGAFont_As_PC98(void) {
-    unsigned int i;
+bool Load_JFont_As_PC98(void) {
+    unsigned int hibyte,lowbyte,r,o,i,i1,i2;
 
-    for (i=0;i < (256 * 16);i++)
-        vga.draw.font[i] = int10_font_16[i];
+    for (lowbyte=0;lowbyte < 256;lowbyte++) {
+        for (r=0;r < 16;r++)
+            vga.draw.font[(lowbyte*16)+r] = pc98_freecg_sbcs[(lowbyte*16)+r];
+    }
+    for (lowbyte=33;lowbyte < 125;lowbyte++) {
+        for (hibyte=32;hibyte < 128;hibyte++) {
+            i1=(lowbyte+1)/2+(lowbyte<95?112:176);
+            i2=hibyte+(lowbyte%2?31+(hibyte/96):126);
+            i = i1 * 0x100 + i2;
+            o = ((hibyte * 128) + (lowbyte - 32)) * 16 * 2;
+            uint8_t *font = GetDbcsFont(i);
+            for (r=0;r < 32;r++) vga.draw.font[o+r] = font[r];
+        }
+    }
 
     return true;
 }
@@ -1150,6 +1445,59 @@ RealPt GetSystemBiosINT10Vector(void) {
         return CALLBACK_RealPointer(call_10);
     else
         return 0;
+}
+
+Bitu INT10_AX_GetCRTBIOSMode(void) {
+	if (!IS_JEGA_ARCH) return 0x01;
+	if (real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x80) return 0x51;//if in US mode
+	else return 0x01;
+}
+
+bool INT10_AX_SetCRTBIOSMode(Bitu mode) {
+	if (!IS_JEGA_ARCH) return false;
+	uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	switch (mode) {
+		//Todo: verify written value
+	case 0x01:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp & 0x7F);
+		LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS has been set to US mode.");
+		INT10_SetVideoMode(0x03);
+		return true;
+		/* -------------------SET to JP mode in CRT BIOS -------------------- */
+	case 0x51:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp | 0x80);
+		LOG(LOG_INT10, LOG_NORMAL)("AX CRT BIOS has been set to JP mode.");
+		//		Mouse_BeforeNewVideoMode(true);
+		// change to the default video mode (03h) with vram cleared
+		INT10_SetVideoMode(0x03);
+		//		Mouse_AfterNewVideoMode(true);;
+		return true;
+	default:
+		return false;
+	}
+}
+Bitu INT16_AX_GetKBDBIOSMode(void) {
+	if (!IS_JEGA_ARCH) return 0x01;
+	if (real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x40) return 0x51;//if in US mode
+	else return 0x01;
+}
+
+bool INT16_AX_SetKBDBIOSMode(Bitu mode) {
+	if (!IS_JEGA_ARCH) return false;
+	uint8_t tmp = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS);
+	switch (mode) {
+		//Todo: verify written value
+	case 0x01:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp & 0xBF);
+		LOG(LOG_INT10, LOG_NORMAL)("AX KBD BIOS has been set to US mode.");
+		return true;
+	case 0x51:
+		real_writeb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS, tmp | 0x40);
+		LOG(LOG_INT10, LOG_NORMAL)("AX KBD BIOS has been set to JP mode.");
+		return true;
+	default:
+		return false;
+	}
 }
 
 extern bool VGA_BIOS_use_rom;
@@ -1199,6 +1547,7 @@ void INT10_Startup(Section *sec) {
         }
 
         INT10_SetVideoMode(0x3);
+        SetTrueVideoMode(0x03);
     }
     else {
         /* load PC-98 character ROM data, if possible */
@@ -1207,9 +1556,8 @@ void INT10_Startup(Section *sec) {
             bool ok = Load_FONT_ROM();
             /* We can use ANEX86.BMP from the Anex86 emulator */
             if (!ok) ok = Load_Anex86_Font();
-            /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
-             * Japanese text will not display properly though. */
-            if (!ok) ok = Load_VGAFont_As_PC98();
+            /* Failing all else we can use the internal FREECG 8x16 font and default Japanese font to show text on the screen. */
+            if (!ok) ok = Load_JFont_As_PC98();
         }
 
         CurMode = &PC98_Mode;

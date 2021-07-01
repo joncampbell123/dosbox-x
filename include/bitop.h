@@ -1,8 +1,5 @@
 
 #include <limits.h>
-#include <stdint.h>
-
-#include <utility>
 
 namespace bitop {
 

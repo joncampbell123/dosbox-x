@@ -22,6 +22,7 @@
 #include "parport.h"
 #include "filelpt.h"
 #include "callback.h"
+#include "logging.h"
 #include "pic.h"
 #include "hardware.h" //OpenCaptureFile
 #include <stdio.h>

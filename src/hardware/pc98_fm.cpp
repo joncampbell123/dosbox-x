@@ -1,5 +1,6 @@
 
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "video.h"
 #include "pic.h"
@@ -21,6 +22,7 @@
 #include "mixer.h"
 #include "callback.h"
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string>

@@ -21,6 +21,7 @@
 #if C_SLIRP
 
 #include "ethernet_slirp.h"
+#include "logging.h"
 #include <time.h>
 #include <algorithm>
 #include "dosbox.h"

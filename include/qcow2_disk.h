@@ -20,12 +20,9 @@
 #ifndef DOSBOX_QCOW2_DISK_H
 #define DOSBOX_QCOW2_DISK_H
 
-
-#include <iostream>
-#include <fstream>
-#include <iomanip>
 #include <stdint.h>
-#include "config.h"
+#include <stdio.h>
+
 #include "bios_disk.h"
 
 class QCow2Image{

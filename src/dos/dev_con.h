@@ -16,11 +16,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 #include "dos_inc.h"
+#include "logging.h"
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"
+#include "jfont.h"
 #include "shiftjis.h"
 #include "callback.h"
 
@@ -51,6 +54,8 @@ uint16_t last_int16_code = 0;
 
 static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
+extern bool CheckHat(uint8_t code);
+extern bool inshell;
 
 uint8_t DefaultANSIAttr() {
 	return IS_PC98_ARCH ? 0xE1 : 0x07;
@@ -67,10 +72,20 @@ public:
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
+	void ClearKeyMap() {
+		key_map.clear();
+	}
+	void SetKeyMap(uint16_t src, uint16_t dst) {
+		struct key_change key;
+		key.src = src;
+		key.dst = dst;
+		key_map.push_back(key);
+	}
 private:
 	void ClearAnsi(void);
 	void Output(uint8_t chr);
 	uint8_t readcache;
+	bool lasthat;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
         bool installed;     // ANSI.SYS is installed (and therefore escapes are handled)
 		bool esc;
@@ -87,7 +102,15 @@ private:
 		uint8_t savecol;
 		uint8_t saverow;
 		bool warned;
+		bool key;
 	} ansi;
+	uint16_t keepcursor;
+
+	struct key_change {
+		uint16_t	src;
+		uint16_t	dst;
+	};
+	std::vector<struct key_change> key_map;
 
     // ESC M
     void ESC_M(void) {
@@ -670,7 +693,13 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
-		if(dos.echo) Real_INT10_TeletypeOutput(readcache,defattr);
+		if (dos.echo) {
+			if (IS_DOSV) {
+				reg_al = readcache;
+				CALLBACK_RunRealInt(0x29);
+			} else
+                Real_INT10_TeletypeOutput(readcache,defattr);
+        }
 		readcache=0;
 	}
 	while (*size>count) {
@@ -700,8 +729,15 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
-				Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
-				Real_INT10_TeletypeOutput(10,defattr);
+				if (IS_DOSV) {
+					reg_al = 13;
+					CALLBACK_RunRealInt(0x29);
+					reg_al = 10;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
+					Real_INT10_TeletypeOutput(10,defattr);
+				}
 			}
 			return true;
 			break;
@@ -716,7 +752,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0xe0: /* Extended keys in the  int 16 0x10 case */
-			if(!reg_ah) { /*extended key if reg_ah isn't 0 */
+			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+				data[count++]=reg_al;
+			} else if(!reg_ah) { /*extended key if reg_ah isn't 0 */
 				data[count++] = reg_al;
 			} else {
 				data[count++] = 0;
@@ -725,8 +763,15 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_ah << 8) {
+					reg_al = (uint8_t)key->dst;
+					reg_ah = (uint8_t)(key->dst >> 8);
+					break;
+				}
+			}
             if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
-    			data[count++]=0x03; // CTRL+C
+				data[count++]=0x03; // CTRL+C
                 if (*size > 1 || !inshell) {
                     dos.errorcode=77;
                     *size=count;
@@ -748,6 +793,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             }
 			break;
 		default:
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_al) {
+					reg_al = (uint8_t)key->dst;
+				}
+			}
 			data[count++]=reg_al;
 			if ((*size > 1 || !inshell) && reg_al == 3) {
 				dos.errorcode=77;
@@ -759,7 +809,27 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
-			Real_INT10_TeletypeOutput(reg_al,defattr);
+			if (IS_DOSV) {
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+					lasthat = true;
+				} else {
+					CALLBACK_RunRealInt(0x29);
+					if(lasthat && reg_al == 0x08) {
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x20;
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x08;
+						CALLBACK_RunRealInt(0x29);
+					}
+					lasthat = false;
+				}
+			} else
+				Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
 	dos.errorcode=0;
@@ -769,13 +839,35 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 }
 
 extern bool ctrlbrk;
-bool log_dev_con = false;
+extern int log_dev_con;
 std::string log_dev_con_str;
+bool logging_con = false;
 bool DOS_BreakTest(bool print);
 void DOS_BreakAction();
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
-    uint16_t count=0;
+	uint16_t count=0;
+	if (IS_DOSV) {
+		while (*size > count) {
+			reg_al = data[count];
+			if(reg_al == 0x07) {
+				INT10_TeletypeOutput(reg_al, 7);
+			} else {
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					CALLBACK_RunRealInt(0x29);
+				}
+			}
+			count++;
+		}
+		*size = count;
+		return true;
+	}
     Bitu i;
     uint8_t col,row,page;
 
@@ -798,7 +890,9 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
         }
         if (log_dev_con) {
             if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
-                LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());
+                logging_con = true;
+                LOG_MSG(log_dev_con==2?"%s":"DOS CON: %s",log_dev_con_str.c_str());
+                logging_con = false;
                 log_dev_con_str.clear();
             }
 
@@ -1148,6 +1242,31 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                     break;
                 case 'l':/* (if code =7) disable linewrap */
                 case 'p':/* reassign keys (needs strings) */
+                    {
+                        struct key_change key;
+                        i = 0;
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.src = ansi.data[i++] << 8;
+                        } else {
+                            key.src = ansi.data[i++];
+                        }
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.dst = ansi.data[i++] << 8;
+                        } else {
+                            key.dst = ansi.data[i++];
+                        }
+                        key_map.push_back(key);
+                        ClearAnsi();
+                    }
+                    break;
+                case '"':
+                    if(!ansi.key) {
+                        ansi.key = true;
+                        ansi.numberofarg = 0;
+                    }
+                    break;
                 case 'i':/* printer stuff */
                 default:
                     LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[",data[count]);

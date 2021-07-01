@@ -19,9 +19,6 @@
 #ifndef __VIDEOMGR_UTIL_AVI_H
 #define __VIDEOMGR_UTIL_AVI_H
 
-#include <stdint.h>
-
-#include "informational.h"
 #include "wave_mmreg.h"
 #include "waveformatex.h"
 #include "bitmapinfoheader.h"

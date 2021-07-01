@@ -17,11 +17,13 @@
  */
 
 #include <assert.h>
+#include "control.h"
 #include "dosbox.h"
 #include "mem.h"
 #include "cpu.h"
 #include "bios.h"
 #include "regs.h"
+#include "timer.h"
 #include "cpu.h"
 #include "callback.h"
 #include "inout.h"
@@ -36,6 +38,7 @@
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
+#include "jfont.h"
 #include "shiftjis.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
@@ -47,6 +50,7 @@ extern bool PS1AudioCard;
 #include "shell.h"
 #include "render.h"
 #include <time.h>
+#include <sys/stat.h>
 
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
 //time.h is already included
@@ -98,7 +102,9 @@ void pc98_update_display_page_ptr(void);
 void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
+void change_output(int output);
 void runBoot(const char *str);
+void SetIMPosition(void);
 #if defined(USE_TTF)
 bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
@@ -5509,6 +5515,18 @@ static Bitu INT8_Handler(void) {
     }
     mem_writed(BIOS_TIMER,value);
 
+	if(bootdrive>=0) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        SetIMPosition();
+#endif
+    } else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
+		INT8_DOSV();
+    } else if (IS_DOS_CJK) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        SetIMPosition();
+#endif
+    }
+
     /* decrease floppy motor timer */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
     if (val) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
@@ -5552,6 +5570,23 @@ static Bitu INT17_Handler(void) {
         if(parallelPortObjects[reg_dx] != 0)
             reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
         //LOG_MSG("printer status: %x",reg_ah);
+        break;
+    case 0x20:		/* Some sort of printerdriver install check*/
+        break;
+    case 0x50: // Printer BIOS for AX
+        if (!IS_JEGA_ARCH) break;
+        switch (reg_al) {
+        case 0x00:// Set JP/US mode in PRT BIOS
+            LOG(LOG_BIOS, LOG_NORMAL)("AX PRT BIOS 5000h is called. (not implemented)");
+            reg_al = 0x01; // Return error (not implemented)
+            break;
+        case 0x01:// Get JP/US mode in PRT BIOS
+            reg_al = 0x01; // Return US mode (not implemented)
+            break;
+        default:
+            LOG(LOG_BIOS, LOG_ERROR)("Unhandled AX Function 50%2X", reg_al);
+            break;
+        }
         break;
     }
     return CBRET_NONE;
@@ -6927,8 +6962,13 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 }
 
 static int bios_pc98_posx = 0;
+extern bool tooutttf;
 
 static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bool boxdraw = false, bool tobold = false) {
+    if (tooutttf) {
+        tooutttf = false;
+        change_output(10);
+    }
     if (control->opt_fastlaunch) return;
     const char *s = msg;
     if (machine != MCH_PC98) {
@@ -8137,8 +8177,6 @@ private:
             config |= bios_post_comport_count() << 9;
 
 #if (C_FPU)
-            extern bool enable_fpu;
-
             //FPU
             if (enable_fpu)
                 config|=0x2;
@@ -8898,8 +8936,6 @@ startfunction:
                     break;
             }
 
-            extern bool enable_fpu;
-
             sprintf(tmp,"%s CPU present",cpuType);
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
             if (enable_fpu) BIOS_Int10RightJustifiedPrint(x,y," with FPU");
@@ -9232,7 +9268,8 @@ startfunction:
             void IDE_CDROM_DetachAll();
             IDE_CDROM_DetachAll();
         }
-		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+		if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+
 		bootvm=false;
 		bootfast=false;
 		bootguest=false;

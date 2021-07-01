@@ -16,9 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 #include "dosbox.h"
 #include "keyboard.h"
+#include "logging.h"
 #include "support.h"
 #include "setup.h"
 #include "inout.h"
@@ -31,6 +33,8 @@
 #include "timer.h"
 #include <math.h>
 #include "8255.h"
+#include "jfont.h"
+#include "keymap.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -48,7 +52,9 @@ static void KEYBOARD_SetPort60(uint16_t val);
 void KEYBOARD_AddBuffer(uint16_t data);
 static void KEYBOARD_Add8042Response(uint8_t data);
 void KEYBOARD_SetLEDs(uint8_t bits);
+void KeyboardLayoutDetect(void);
 
+extern unsigned int host_keyboard_layout;
 bool enable_pc98_bus_mouse = true;
 
 static unsigned int aux_warning = 0;
@@ -1208,6 +1214,7 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
     }
 }
 
+bool GFX_SDLUsingWinDIB(void);
 bool pc98_caps(void);
 bool pc98_kana(void);
 void pc98_caps_toggle(void);
@@ -1219,6 +1226,10 @@ bool pc98_force_ibm_layout = false;
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     uint8_t ret=0;
+    bool usesdl1dib = false;
+#if defined(WIN32) && !defined(C_SDL2)
+    if (GFX_SDLUsingWinDIB()) usesdl1dib = true;
+#endif
 
     switch (keytype) {                          // NAME or
                                                 // NM SH KA KA+SH       NM=no-mod SH=shift KA=kana KA+SH=kana+shift
@@ -1236,7 +1247,6 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_minus:         ret=0x0B;break;     // -  =  ホ
     case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ             US keyboard layout hack
     case KBD_caret:         ret=0x0C;break;     // ^  `  ヘ
-    case KBD_backslash:     ret=0x0D;break;     // ¥  |  ｰ
     case KBD_jp_yen:        ret=0x0D;break;     // ¥  |  ｰ
     case KBD_backspace:     ret=0x0E;break;     // BS (BACKSPACE)
     case KBD_tab:           ret=0x0F;break;     // TAB
@@ -1251,7 +1261,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_o:             ret=0x18;break;     // o  O  ラ
     case KBD_p:             ret=0x19;break;     // p  P  セ
     case KBD_atsign:        ret=0x1A;break;     // @  ~  ﾞ
-    case KBD_leftbracket:   ret=0x1B;break;     // [  {  ﾟ  ｢
+    case KBD_leftbracket:   ret=pc98_force_ibm_layout||usesdl1dib?0x1B:0x1A;break;     // @  ~  ﾞ
+    case KBD_rightbracket:  ret=pc98_force_ibm_layout||usesdl1dib?0x28:0x1B;break;     // [  {  ﾟ  ｢ / ]  }  ム ｣
     case KBD_enter:         ret=0x1C;break;     // ENTER/RETURN
     case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
     case KBD_a:             ret=0x1D;break;     // a  A  チ
@@ -1266,7 +1277,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_semicolon:     ret=0x26;break;     // ;  +  レ
     case KBD_quote:         ret=0x27;break;     // :  *  ケ         American US keyboard layout hack
     case KBD_colon:         ret=0x27;break;     // :  *  ケ
-    case KBD_rightbracket:  ret=0x28;break;     // ]  }  ム ｣
+    case KBD_backslash:     ret=pc98_force_ibm_layout?0x0D:0x28;break;     // ¥  |  ｰ
     case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
     case KBD_x:             ret=0x2A;break;     // x  X  サ
     case KBD_c:             ret=0x2B;break;     // c  C  ソ
@@ -1358,6 +1369,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         }
         return;
 
+    case KBD_jp_backslash:  if (!pc98_force_ibm_layout) {ret=0x33;break;}     //    _  ロ
+    case KBD_jp_henkan:     if (!pc98_force_ibm_layout) {ret=0x35;break;}     // XFER
+    case KBD_end:           if (!pc98_force_ibm_layout) {ret=0x3F;break;}     // HELP
+    case KBD_jp_muhenkan:   if (!pc98_force_ibm_layout) {ret=0x51;break;}     // NFER
+    case KBD_printscreen:   if (!pc98_force_ibm_layout) {ret=0x61;break;}     // COPY
     default: return;
     }
 
@@ -1584,12 +1600,34 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_lwindows:extend=true;ret=0x5B;break;
     case KBD_rwindows:extend=true;ret=0x5C;break;
     case KBD_rwinmenu:extend=true;ret=0x5D;break;
+	case KBD_underscore:ret = 86; break;//for AX layout
+	case KBD_yen:ret = 43; break;//for AX layout
+	case KBD_conv:ret = (INT16_AX_GetKBDBIOSMode() == 0x51)? 0x5b: 57; break;//for AX layout
+	case KBD_nconv:ret = (INT16_AX_GetKBDBIOSMode() == 0x51) ? 0x5a: 57; break;//for AX layout
+	case KBD_ax:ret = (INT16_AX_GetKBDBIOSMode() == 0x51) ? 0x5c: 0; break;//for AX layout
+		/* System Scan Code for AX keys 
+		JP mode  Make    Break    US mode  Make    Break
+		–³•ÏŠ·   5Ah     DAh      Space    39h(57) B9h
+		•ÏŠ·     5Bh     DBh      Space    39h(57) B9h
+		Š¿Žš     E0h-38h E0h-B8h  RAlt     (status flag)
+		AX       5Ch     DCh      (unused)
+		*/
+		/* Character code in JP mode (implemented in KBD BIOS)
+		Key         Ch Sh Ct Al
+		5A –³•ÏŠ· - AB AC AD AE
+		5B •ÏŠ·   - A7 A8 A9 AA
+		38 Š¿Žš   - 3A 3A
+		5c AX     - D2 D3 D4 D5
+		*/ 
     case KBD_jp_muhenkan:ret=0x7B;break;
     case KBD_jp_henkan:ret=0x79;break;
     case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
     case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
     case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
-    default:
+	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same postion with Quote key */
+	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same postion with Equals key */
+	case KBD_atsign:if (!pc98_force_ibm_layout) {ret = 0x1a; break;} /*JP106-key @ or ` same postion with Left-bracket key */
+	default:
         LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
         return;
     }
@@ -2435,11 +2473,17 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
             WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
-        pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
-        if(pc98_force_ibm_layout)
+        const char *layoutstr = pc98_section->Get_string("pc-98 force ibm keyboard layout");
+        if (!strcasecmp(layoutstr, "true")||!strcasecmp(layoutstr, "1")) {
+            pc98_force_ibm_layout = true;
+            mainMenu.get_item("pc98_use_uskb").check(true).refresh_item(mainMenu);
+        } else if (!strcasecmp(layoutstr, "false")||!strcasecmp(layoutstr, "0")) {
+            pc98_force_ibm_layout = false;
+            mainMenu.get_item("pc98_use_uskb").check(false).refresh_item(mainMenu);
+        } else
+            KeyboardLayoutDetect();
+        if (pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
-        mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
-
     }
 
     if (!IS_PC98_ARCH) {

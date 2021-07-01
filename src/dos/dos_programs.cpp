@@ -30,6 +30,8 @@
 #include <string>
 #include <vector>
 #include <sys/stat.h>
+
+#include "menudef.h"
 #include "programs.h"
 #include "support.h"
 #include "drives.h"
@@ -54,6 +56,7 @@
 #include "render.h"
 #include "mouse.h"
 #include "../ints/int10.h"
+#include "../output/output_opengl.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
@@ -84,13 +87,14 @@ bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
 bool startquiet = false;
+bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool inshell, mountfro[26], mountiro[26];
-
+extern int lastcp;
+extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), UpdateSDLDrawTexture();
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -836,7 +840,7 @@ void MenuBrowseProgramFile() {
             uselfn=true;
             sprintf(name3,"\"%s\"",filename.c_str());
             if (DOS_GetSFNPath(name3,name2,false)) {
-                char *p=strrchr(name2, '\\');
+                char *p=strrchr_dbcs(name2, '\\');
                 strcpy(name1,p==NULL?name2:p+1);
             }
             uselfn=olduselfn;
@@ -926,7 +930,7 @@ public:
             ZDRIVE_NUM = i_newz;
         }
     }
-    void ListMounts(void) {
+    void ListMounts(bool quiet, bool local) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
         uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
@@ -934,15 +938,24 @@ public:
         dos.dta(dos.tables.tempdta);
         DOS_DTA dta(dos.dta());
 
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
+        if (!quiet) {
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"));
+        }
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        if (!quiet) {
+            for(int p = 1;p < cols;p++) WriteOut("-");
+            WriteOut("\n");
+        }
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
-
+            if (local && strncasecmp("local ", Drives[d]->GetInfo(), 6)) continue;
+            if (quiet) {
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), 'A'+d, Drives[d]->GetInfo()+(local && !strncasecmp("local ", Drives[d]->GetInfo(), 6)?16:0));
+                continue;
+            }
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
@@ -960,7 +973,7 @@ public:
             WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);
             none=false;
         }
-        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
+        if (none&&!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
 
@@ -977,7 +990,7 @@ public:
         /* Parse the command line */
         /* if the command line is empty show current mounts */
         if (!cmd->GetCount()) {
-            ListMounts();
+            ListMounts(false, false);
             return;
         }
 
@@ -995,25 +1008,37 @@ public:
 #endif
 			return;
 		}
+
+        //look for -o options
+        bool local = false;
+        {
+            std::string s;
+            while (cmd->FindString("-o", s, true)) {
+                if (!strcasecmp(s.c_str(), "local")) local = true;
+                options.push_back(s);
+            }
+            if (local && !cmd->GetCount()) {
+                ListMounts(false, true);
+                return;
+            }
+        }
+
+        if (cmd->FindExist("-q",true)) {
+            quiet = true;
+            if (!cmd->GetCount()) {
+                ListMounts(true, local);
+                return;
+            }
+        }
+
         bool path_relative_to_last_config = false;
         if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
-
-        if (cmd->FindExist("-q",true))
-            quiet = true;
 
         /* Check for unmounting */
         if (cmd->FindString("-u",umount,false)) {
             const char *msg=UnmountHelper(umount[0]);
             if (!quiet) WriteOut(msg, toupper(umount[0]));
             return;
-        }
-
-        //look for -o options
-        {
-            std::string s;
-
-            while (cmd->FindString("-o", s, true))
-                options.push_back(s);
         }
 
         /* Check for moving Z: */
@@ -1116,7 +1141,19 @@ public:
             int i_drive = toupper(temp_line[0]);
             if (!isalpha(i_drive)) goto showusage;
             if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
-            if (!cmd->FindCommand(2,temp_line)) goto showusage;
+            if (!cmd->FindCommand(2,temp_line)) {
+                if (Drives[i_drive - 'A']) {
+                    const char *info = Drives[i_drive - 'A']->GetInfo();
+                    if (!quiet)
+                        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), i_drive, info+(local&&!strncasecmp("local ", info, 6)?16:0));
+                    else if (local&&!strncasecmp("local ", info, 6))
+                        WriteOut("%s\n", info+16);
+                    else if (!local)
+                        WriteOut("%s\n", info);
+                } else if (!quiet)
+                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), i_drive);
+                return;
+            }
             if (!temp_line.size()) goto showusage;
 			if (cmd->FindExist("-u",true)) {
                 bool curdrv = toupper(i_drive)-'A' == DOS_GetDefaultDrive();
@@ -4411,7 +4448,8 @@ public:
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
         char swapstr[50];
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
@@ -4437,7 +4475,8 @@ public:
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),MSG_Get("DRIVE_NUMBER"),MSG_Get("DISK_NAME"),MSG_Get("IDE_POSITION"),MSG_Get("SWAP_SLOT"));
-        for(int p = 0;p < cols;p++) WriteOut("-");
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {
@@ -5950,6 +5989,10 @@ void KEYB::Run(void) {
                     WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
                 SetupDBCSTable();
                 runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                UpdateSDLDrawTexture();
+#endif
                 return;
             }
             if (cp_string.size()) {
@@ -6948,6 +6991,7 @@ void EndStartProcess() {
 }
 #endif
 
+const char * TranslateHostPath(const char * arg, bool next = false);
 class START : public Program {
 public:
     void Run() {
@@ -7047,14 +7091,14 @@ public:
             strcpy(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
             strcat(dir, cmd);
             strcat(dir, " ");
-            if (cmdstr!=NULL) strcat(dir, cmdstr);
+            if (cmdstr!=NULL) strcat(dir, TranslateHostPath(cmdstr));
             if (!strcasecmp(cmd,"for")) strcat(dir, ")");
             strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
             lpExecInfo.lpFile = "CMD.EXE";
             lpExecInfo.lpParameters = dir;
         } else {
-            lpExecInfo.lpFile = cmd;
-            lpExecInfo.lpParameters = cmdstr;
+            lpExecInfo.lpFile = cmd==NULL?NULL:TranslateHostPath(cmd);
+            lpExecInfo.lpParameters = cmdstr==NULL?NULL:TranslateHostPath(cmdstr, true);
         }
         bool setdir=false;
         char winDirCur[512], winDirNew[512];
@@ -7104,7 +7148,7 @@ public:
             open=true;
             cmd+=5;
         }
-        cmd=trim(cmd);
+        cmd=trim((char *)TranslateHostPath(cmd));
         int ret=0;
 #if defined(LINUX) || defined(MACOSX)
         ret=system(((open?

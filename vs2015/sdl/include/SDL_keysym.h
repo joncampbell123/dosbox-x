@@ -127,10 +127,10 @@ typedef enum {
 	SDLK_WORLD_10		= 170,
 	SDLK_WORLD_11		= 171,
 	SDLK_JP_YEN			= 171,		// HACK : SDLK_JP_YEN = SDLK_WORLD_11
-	SDLK_WORLD_12		= 172,
-	SDLK_WORLD_13		= 173,
-	SDLK_WORLD_14		= 174,
-	SDLK_WORLD_15		= 175,
+	SDLK_WORLD_12		= 172,		// HACK : JP Keyboard Hankaku/Zenkaku
+	SDLK_WORLD_13		= 173,		// HACK : JP Keyboard Muhenkan
+	SDLK_WORLD_14		= 174,		// HACK : JP Keyboard Henkan
+	SDLK_WORLD_15		= 175,		// HACK : JP Keyboard Hiragana
 	SDLK_WORLD_16		= 176,
 	SDLK_WORLD_17		= 177,
 	SDLK_WORLD_18		= 178,

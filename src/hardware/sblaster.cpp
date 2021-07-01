@@ -46,6 +46,7 @@
 # pragma warning(disable:4065) /* switch without case */
 #endif
 
+#include <assert.h>
 #include <iomanip>
 #include <sstream>
 #include <stdlib.h>
@@ -53,6 +54,7 @@
 #include <math.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "dma.h"
 #include "pic.h"

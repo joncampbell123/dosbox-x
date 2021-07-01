@@ -21,6 +21,9 @@
 #include <string.h>
 #include <algorithm> //std::copy
 #include <iterator>  //std::front_inserter
+#include <regex>
+
+#include "logging.h"
 #include "shell.h"
 #include "timer.h"
 #include "bios.h"
@@ -46,7 +49,7 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
-extern bool ctrlbrk;
+extern bool ctrlbrk, gbk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
@@ -157,7 +160,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     }
     char c[]={'<','>','|'};
     for (unsigned int j=0; j<sizeof(c); j++) {
-        const char *sp = strrchr(line, c[j]);
+        const char *sp = strrchr_dbcs(line, c[j]);
         while (sp) {
             q=0;
             char *i;
@@ -165,7 +168,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
                 if (*i=='\"') q++;
             if (q/2*2==q) break;
             *i=0;
-            sp = strrchr(line, c[j]);
+            sp = strrchr_dbcs(line, c[j]);
             *i=c[j];
         }
         if (!p_completion_start || p_completion_start<sp)
@@ -183,7 +186,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
     const char *path;
     if ((path = strrchr(line+completion_index,':'))) completion_index = (uint16_t)(path-line+1);
-    if ((path = strrchr(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
+    if ((path = strrchr_dbcs(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
     if ((path = strrchr(line+completion_index,'/'))) completion_index = (uint16_t)(path-line+1);
 
     // build the completion list
@@ -207,7 +210,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     if (p_completion_start) {
         safe_strncpy(mask, p_completion_start,DOS_PATHLENGTH);
         const char* dot_pos = strrchr(mask, '.');
-        const char* bs_pos = strrchr(mask, '\\');
+        const char* bs_pos = strrchr_dbcs(mask, '\\');
         const char* fs_pos = strrchr(mask, '/');
         const char* cl_pos = strrchr(mask, ':');
         // not perfect when line already contains wildcards, but works
@@ -293,7 +296,6 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     return true;
 }
 
-extern uint8_t lead[6];
 extern bool isDBCSCP();
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
@@ -307,12 +309,6 @@ void DOS_Shell::InputCommand(char * line) {
     inshell = true;
     input_eof = false;
 	line[0] = '\0';
-    for (int i=0; i<6; i++) lead[i] = 0;
-    if (isDBCSCP())
-        for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-            if (lead[i] == 0) break;
-        }
 
 	std::list<std::string>::iterator it_history = l_history.begin(), it_completion = l_completion.begin();
 
@@ -440,7 +436,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0) {
                     backone();
                     str_index --;
                     MoveCaretBackwards();
@@ -498,7 +494,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32)) {
+                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40)) {
                     outc((uint8_t)line[str_index++]);
                 }
                 if (str_index < str_len) {
@@ -592,7 +588,7 @@ void DOS_Shell::InputCommand(char * line) {
                 {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index+1]>32))
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -636,7 +632,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 {
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||dos.loaded_codepage==950)&&line[str_index-1]>32)&&line[str_index-2]<0)
+                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
@@ -845,140 +841,83 @@ void DOS_Shell::InputCommand(char * line) {
 
 void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 
-/* WARNING: Substitution is carried out in-place!
- * Buffer pointed to by "line" must be at least CMD_MAXLINE+1 bytes long! */
+/* Note: Buffer pointed to by "line" must be at least CMD_MAXLINE+1 bytes long! */
 void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
-	char temp[CMD_MAXLINE]; /* <- NTS: Currently 4096 which is very generous indeed! */
-    char* w = temp;
-    const char* wf = temp + sizeof(temp) - 1;
-	char *r=line;
+    // Wengier: Rewrote the code using regular expressions (a lot shorter)
+    // Tested by both myself and kcgen with various boundary cases
+
+    /* DOS7/Win95 testing:
+     *
+     * "%" = "%"
+     * "%%" = "%"
+     * "% %" = ""
+     * "%  %" = ""
+     * "% % %" = " %"
+     *
+     * ^ WTF?
+     *
+     * So the below code has funny conditions to match Win95's weird rules on what
+     * consitutes valid or invalid %variable% names. */
+
+    /* continue scanning for the ending '%'. variable names are apparently meant to be
+     * alphanumeric, start with a letter, without spaces (if Windows 95 COMMAND.COM is
+     * any good example). If it doesn't end in '%' or is broken by space or starts with
+     * a number, substitution is not carried out. In the middle of the variable name
+     * it seems to be acceptable to use hyphens.
+     *
+     * since spaces break up a variable name to prevent substitution, these commands
+     * act differently from one another:
+     *
+     * C:\>echo %PATH%
+     * C:\DOS;C:\WINDOWS
+     *
+     * C:\>echo %PATH %
+     * %PATH % */
 
 	/* initial scan: is there anything to substitute? */
-	/* if not, then return without modifying "line" */
+	/* if not, then just return without modifying "line" */
+	/* not really needed but keep this code as is for now */
+	char *r=line;
 	while (*r != 0 && *r != '%') r++;
 	if (*r != '%') return;
 
 	/* if the incoming string is already too long, then that's a problem too! */
 	if (((size_t)(r+1-line)) >= CMD_MAXLINE) {
 		LOG_MSG("DOS_Shell::ProcessCmdLineEnvVarStitution WARNING incoming string to substitute is already too long!\n");
-		goto overflow;
+		*line = 0; /* clear string (C-string chop with NUL) */
+		WriteOut("Command input error: string expansion overflow\n");
+		return;
 	}
 
-	/* copy the string down up to that point */
-    for (const char* c = line; c < r;) {
-		assert(w < wf);
-		*w++ = *c++;
-	}
-
-	/* begin substitution process */
-	while (*r != 0) {
-		if (*r == '%') {
-			r++;
-			if (*r == '%' || *r == 0) {
-				/* %% or leaving a trailing % at the end (Win95 behavior) becomes a single '%' */
-				if (w >= wf) goto overflow;
-				*w++ = '%';
-				if (*r != 0) r++;
-				else break;
-			}
-			else {
-                const char* name = r; /* store pointer, 'r' is first char of the name following '%' */
-				int spaces = 0,chars = 0;
-
-				/* continue scanning for the ending '%'. variable names are apparently meant to be
-				 * alphanumeric, start with a letter, without spaces (if Windows 95 COMMAND.COM is
-				 * any good example). If it doesn't end in '%' or is broken by space or starts with
-				 * a number, substitution is not carried out. In the middle of the variable name
-				 * it seems to be acceptable to use hyphens.
-				 *
-				 * since spaces break up a variable name to prevent substitution, these commands
-				 * act differently from one another:
-				 *
-				 * C:\>echo %PATH%
-				 * C:\DOS;C:\WINDOWS
-				 *
-				 * C:\>echo %PATH %
-				 * %PATH % */
-				if (isalpha(*r) || *r == '_' || *r == '~' || *r == '^' || *r == '&' || *r == '@' || *r == '#' || *r == '$' || *r == '!' || *r == ' ') {
-					/* must start with a letter. space and some special symbols like _ and ~ are apparently valid too. (MS-DOS 7/Windows 9x) */
-					if (*r == ' ') spaces++;
-					else chars++;
-
-					r++;
-					while (*r != 0 && *r != '%') {
-						if (*r == ' ') spaces++;
-						else chars++;
-						r++;
-					}
-				}
-
-				/* Win95 testing:
-				 *
-				 * "%" = "%"
-				 * "%%" = "%"
-				 * "% %" = ""
-				 * "%  %" = ""
-				 * "% % %" = " %"
-				 *
-				 * ^ WTF?
-				 *
-				 * So the below code has funny conditions to match Win95's weird rules on what
-				 * consitutes valid or invalid %variable% names. */
-				if (*r == '%' && ((spaces > 0 && chars == 0) || (spaces == 0 && chars > 0))) {
-					std::string temp2;
-
-					/* valid name found. substitute */
-					*r++ = 0; /* ASCIIZ snip */
-					if (GetEnvStr(name,temp2)) {
-						size_t equ_pos = temp2.find_first_of('=');
-						if (equ_pos != std::string::npos) {
-							const char *base = temp2.c_str();
-							const char *value = base + equ_pos + 1;
-							const char *fence = base + temp2.length();
-							assert(value >= base && value <= fence);
-							size_t len = (size_t)(fence-value);
-
-							if ((w+len) > wf) goto overflow;
-							memcpy(w,value,len);
-							w += len;
-						}
-					}
-				}
-				else {
-					/* nope. didn't find a valid name */
-
-					while (*r == ' ') r++; /* skip spaces */
-					name--; /* step "name" back to cover the first '%' we found */
-
-                    for (const char* c = name; c < r;) {
-						if (w >= wf) goto overflow;
-						*w++ = *c++;
-					}
-				}
-			}
+    // Begin the process of shell variable substitutions using regular expressions
+    // Variable names must start with non-digits. Space and special symbols like _ and ~ are apparently valid too (MS-DOS 7/Windows 9x).
+	constexpr char surrogate_percent = 8;
+	const static std::regex re("\\%([^%0-9][^%]*)?%");
+	std::string text = line;
+	std::smatch match;
+	/* Iterate over potential %var1%, %var2%, etc matches found in the text string */
+	while (std::regex_search(text, match, re)) {
+		std::string variable_name;
+		variable_name = match[1].str();
+		if (!variable_name.size()) {
+			/* Replace %% with the character "surrogate_percent", then (eventually) % */
+			text.replace(match[0].first, match[0].second, std::string(1, surrogate_percent));
+			continue;
 		}
-		else {
-			if (w >= wf) goto overflow;
-			*w++ = *r++;
-		}
+		/* Trim preceding spaces from the variable name */
+		variable_name.erase(0, variable_name.find_first_not_of(' '));
+		std::string variable_value;
+		if (variable_name.size() && GetEnvStr(variable_name.c_str(), variable_value)) {
+			const size_t equal_pos = variable_value.find_first_of('=');
+			/* Replace the original %var% with its corresponding value from the environment */
+			const std::string replacement = equal_pos != std::string::npos ? variable_value.substr(equal_pos + 1) : "";
+			text.replace(match[0].first, match[0].second, replacement);
+		} else
+			text.replace(match[0].first, match[0].second, "");
 	}
-
-	/* complete the C-string */
-	assert(w <= wf);
-	*w = 0;
-
-	/* copy the string back over the buffer pointed to by line */
-	{
-		size_t out_len = (size_t)(w+1-temp); /* length counting the NUL too */
-		assert(out_len <= CMD_MAXLINE);
-		memcpy(line,temp,out_len);
-	}
-
-	/* success */
-	return;
-overflow:
-	*line = 0; /* clear string (C-string chop with NUL) */
-	WriteOut("Command input error: string expansion overflow\n");
+	std::replace(text.begin(), text.end(), surrogate_percent, '%');
+	assert(text.size() <= CMD_MAXLINE);
+	strcpy(line, text.c_str());
 }
 
 int infix=-1;
@@ -1009,7 +948,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
-		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
+		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }

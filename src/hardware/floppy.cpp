@@ -28,6 +28,7 @@
 #include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
+#include "bios.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))

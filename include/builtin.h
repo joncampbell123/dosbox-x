@@ -5,6 +5,7 @@
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/dosmid.h"
 #include "../src/builtin/mpxplay.h"
+#include "../src/builtin/ne2000.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
@@ -50,6 +51,7 @@ extern struct BuiltinFileBlob bfb_OPTION_EXE;	// OPTION.EXE
 extern struct BuiltinFileBlob bfb_CDPLAY_EXE;	// CDPLAY.EXE
 extern struct BuiltinFileBlob bfb_DOSMID_EXE;	// DOSMID.EXE
 extern struct BuiltinFileBlob bfb_MPXPLAY_EXE;	// MPXPLAY.EXE
+extern struct BuiltinFileBlob bfb_NE2000_COM;	// NE2000.COM
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;	// GLIDE2X.OVL
 extern struct BuiltinFileBlob bfb_VGA_COM;	// VGA.COM
 extern struct BuiltinFileBlob bfb_SCANRES_COM;	// SCANRES.COM

@@ -22,6 +22,7 @@
     That should call the mixer start from there or something.
 */
 
+#include <assert.h>
 #include <string.h>
 #include <sys/types.h>
 #define _USE_MATH_DEFINES // needed for M_PI in Visual Studio as documented [https://msdn.microsoft.com/en-us/library/4hwaceh6.aspx]
@@ -48,6 +49,7 @@
 #include "mem.h"
 #include "pic.h"
 #include "dosbox.h"
+#include "logging.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"

@@ -19,9 +19,12 @@
 
 #include "dosbox.h"
 #include "cross.h"
+#include "logging.h"
 #include "setup.h"
 #include "control.h"
 #include "support.h"
+
+#include <assert.h>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -828,14 +831,19 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             i=0;
             char prefix[80];
             int intmaxwidth = (maxwidth > 60) ? 60 : static_cast<int>(maxwidth);
+            std::vector<std::string> advopts;
+            advopts.clear();
             if (!norem)
             while ((p = sec->Get_prop(int(i++)))) {
-                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
-                    continue;
+                std::string help = p->Get_help();
+                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified()))) {
+                    if ((everything==-1 || everything==2) && !p->basic() && !p->modified() && help.size())
+                        advopts.push_back(p->propname);
+                    if (everything!=2) continue;
+                }
 
                 std::string pre=everything==2&&!p->basic()?"#DOSBOX-X-ADV:":"";
                 snprintf(prefix,80, "\n%s#%*s     ", pre.c_str(), intmaxwidth, "");
-                std::string help = p->Get_help();
                 std::string::size_type pos = std::string::npos;
                 while ((pos = help.find('\n', pos+1)) != std::string::npos) {
                     help.replace(pos, 1, prefix);
@@ -860,6 +868,12 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
                     }
                     fprintf(outfile, "\n");
                 }
+            }
+            if ((everything==-1 || everything==2) && !advopts.empty()) {
+                fprintf(outfile, everything==2?"#DOSBOX-X-ADV-SEE:#\n#DOSBOX-X-ADV-SEE:# %s:\n#DOSBOX-X-ADV-SEE:# ->":"#\n# %s:\n# ->", MSG_Get("CONFIG_ADVANCED_OPTION"));
+                for (std::vector<std::string>::iterator advopt = advopts.begin(); advopt != advopts.end(); ++advopt)
+                    fprintf(outfile, " %s%c", advopt->c_str(), advopt+1 >= advopts.end()?'\n':';');
+                fprintf(outfile, everything==2?"#DOSBOX-X-ADV-SEE:#\n":"#\n");
             }
         } else {
             fprintf(outfile,"[%s]\n",temp);
@@ -1117,7 +1131,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
         default:
             try {
                 if (currentsection) {
-					bool savedata=!strcasecmp(currentsection->GetName(), "pc98")||!strcasecmp(currentsection->GetName(), "4dos")||!strcasecmp(currentsection->GetName(), "config");
+					bool savedata=!strcasecmp(currentsection->GetName(), "pc98")||!strcasecmp(currentsection->GetName(), "ttf")||!strcasecmp(currentsection->GetName(), "4dos")||!strcasecmp(currentsection->GetName(), "config");
 					if (!currentsection->HandleInputline(gegevens)&&strcasecmp(currentsection->GetName(), "autoexec")) savedata=true;
 					if (savedata) {
 						Section_prop *section = static_cast<Section_prop *>(currentsection);
@@ -1517,7 +1531,6 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
     return retval;
 }
 
-
 CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) {
     if (argc>0) {
         file_name=argv[0];
@@ -1544,7 +1557,6 @@ uint16_t CommandLine::Get_arglength() {
         i+=(*it).size() + 1;
     return --i;
 }
-
 
 CommandLine::CommandLine(char const * const name,char const * const cmdline,enum opt_style opt, bool squote) {
     if (name) file_name=name;

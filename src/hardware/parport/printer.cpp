@@ -21,6 +21,9 @@
 #if C_PRINTER
 
 #include <math.h>
+#include <sys/stat.h>
+
+#include "logging.h"
 #include "setup.h"
 #include "mapper.h"
 #include "printer_if.h"
@@ -29,6 +32,7 @@
 #include "printer_charmaps.h"
 #include "control.h"
 #include "pic.h" // for timeout
+#include "jfont.h"
 #include "timer.h"
 #include "render.h"
 #include "dos_inc.h"
@@ -40,9 +44,12 @@ extern bool printfont;
 extern void resetFontSize();
 extern FT_Face GetTTFFace();
 #endif
+extern bool TTF_using(void);
 extern void GFX_CaptureMouse(void);
+extern std::map<int, int> lowboxdrawmap;
+extern uint16_t cpMap[512], cpMap_PC98[256];
 extern bool dbcs_sbcs, autoboxdraw;
-extern bool mouselocked;
+extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
 
@@ -256,8 +263,6 @@ CPrinter::~CPrinter(void)
 #endif
 }
 
-extern uint16_t cpMap[512];
-extern bool TTF_using(void);
 void CPrinter::selectCodepage(uint16_t cp)
 {
 	const uint16_t* mapToUse = NULL;
@@ -1330,18 +1335,17 @@ void CPrinter::newPage(bool save, bool resetx)
 }
 
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-extern bool isDBCSCP(), isDBCSLB(uint8_t chr, uint8_t* lead), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
-extern uint8_t lead[6];
+extern bool isDBCSCP(), isKanji1(uint8_t chr), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 void CPrinter::printChar(uint8_t ch, int box)
 {
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
-    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || (TTF_using()
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
-    )) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
+    )))) && box!=1 && (IS_PC98_ARCH || isDBCSCP())) {
         uint32_t tick = GetTicks();
         if (box!=0 && last3 && last2 && lastchar && lasttick && (tick-lasttick<50||tick-lasttick<printer_timout)) {
             if (ch>=176&&ch<=223
@@ -1409,12 +1413,7 @@ void CPrinter::printChar(uint8_t ch, int box)
                 printChar(ll, 0);
                 lastchar=ll;
                 box2=box3=false;
-                for (int i=0; i<6; i++) lead[i] = 0;
-                for (int i=0; i<6; i++) {
-                    lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-                    if (lead[i] == 0) break;
-                }
-                lastlead=isDBCSLB(ch, lead);
+                lastlead=isKanji1(ch);
                 if (lastlead) {
                     lastchar=ch;
                     lasttick=GetTicks();
@@ -1452,12 +1451,7 @@ void CPrinter::printChar(uint8_t ch, int box)
             printChar(ll, 1);
         } else {
             if (box!=0) box2=box3=false;
-            for (int i=0; i<6; i++) lead[i] = 0;
-            for (int i=0; i<6; i++) {
-                lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-                if (lead[i] == 0) break;
-            }
-            lastlead=box==1?0:isDBCSLB(ch, lead);
+            lastlead=box==1?0:isKanji1(ch);
             if (lastlead) {
                 lastchar=ch;
                 lasttick=GetTicks();
@@ -1506,7 +1500,15 @@ void CPrinter::printChar(uint8_t ch, int box)
 	if(ch == 0x1) ch = 0x20;
 	
 	// Find the glyph for the char to render
-	FT_UInt index = FT_Get_Char_Index(curFont, dbchar?dbchar:curMap[ch]);
+    uint16_t printch = dbchar?dbchar:curMap[ch];
+    if (!dbchar && dos.loaded_codepage == 932 && (halfwidthkana || isJEGAEnabled())) {
+        if (ch>=0xA1&&ch<=0xDF) printch = cpMap_PC98[ch];
+        else {
+            std::map<int, int>::iterator it = lowboxdrawmap.find(ch);
+            if (lowboxdrawmap.find(ch)!=lowboxdrawmap.end()) printch = charmap[0].map[it->second];
+        }
+    }
+	FT_UInt index = FT_Get_Char_Index(curFont, printch);
 	
 	// Load the glyph 
 	FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);

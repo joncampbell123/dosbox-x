@@ -77,6 +77,7 @@ iterated W    = 18.32 [48 bits]
 
 #include "dosbox.h"
 #include "cross.h"
+#include "logging.h"
 
 #include "voodoo_emu.h"
 #include "voodoo_opengl.h"

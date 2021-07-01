@@ -1,6 +1,181 @@
 0.83.15
-  - 
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.15.html
+  - Enhanced the network redirector functions for the
+    Windows platform, so that you can for example list,
+    open, write, copy, and execute files in UNC network
+    paths in the form \\COMPUTER\FOLDER directly when
+    network redirector function is enabled and secure
+    mode is disabled on Windows systems. (Wengier)
+  - MOUNT command followed by a drive letter only will
+    show the current status of the drive, or show that
+    the drive is not mounted if so. You can make the
+    message shorter with the -q option, and filter out
+    non-local drives with "-o local" option. (Wengier)
+  - Added NE2000.COM (packet driver for NE2000 network
+    card) which will appear in Z:\SYSTEM directory when
+    NE2000 networking feature is enabled. (Wengier)
+  - Added /H option to TRUENAME command to return the
+    full filename on the host system for a specified
+    file/directory on a mounted local drive. (Wengier)
+  - Added option "starttranspath" which if set to true
+    will automatically translath all paths in command-
+    line to host system paths when starting programs to
+    run on the host system. You can also toggle this
+    function dynamically from the drop-down menu ("DOS"
+    => "Host system applications" => "Translate paths
+    to host system paths". (Wengier)
+  - Added option "drive z expand path" which when set
+    to true (default) will automatically expand %PATH%
+    environment variable to include the subdirectories
+    on the Z drive when only the Z:\ path is specified
+    for compatibility purposes. (Wengier)
+  - Added option "turbo" in [cpu] section to enable
+    Turbo (Fast Forward) mode at start. You can also
+    change it from the command-line via CONFIG command
+    (e.g. "config -set turbo=true"). (Wengier)
+  - Added value "quiet" to "log console" config option
+    to only log DOS console outputs. (Wengier)
+  - Added menu command to spawn a new instance of
+    DOSBox-X to Mac OS X builds to work around the
+    singular app instance model the Finder tends to
+    prefer, so that users can run multiple instances
+    if they wish. (joncampbell123)
+  - MacOS builds will once again have Fluidsynth,
+    libslirp, and FFMPEG support from revised .app
+    building code. For best results support is enabled
+    at compile time only if Brew is installed along
+    with Brew builds of those packages. (joncampbell123)
+  - MacOS coreaudio MIDI support will continue with
+    the default soundfont rather than giving up
+    if it cannot select the custom soundfont specified
+    in the config file. (joncampbell123)
+  - Fixed MacOS bug where coremidi would attempt
+    MIDI output even if no MIDI destinations are
+    available, which is apparently the case on
+    Big Sur. (joncampbell123)
+  - The names of advanced config options will now be
+    listed in the common config reference file (i.e.
+    dosbox-x.reference.conf) too. Several previously
+    advanced options are now common options. (Wengier)
+  - Command "CONFIG -L" will now list the global config
+    file for DOSBox-X (if any). (Wengier)
+  - There is now a special DOS function for DOSBox-X at
+    Int21h/AH=2B/CX=0x4442h('DB')/DX=0x2D58h('-X'), as
+    follows: AL=0h (DOSBox-X installation check), AL=1h
+    (SDL version check), AL=2h (platform check), AL=3h
+    (machine type check), and AL=4h (DOSBox-X version
+    check). For example, you can get installed DOSBox-X
+    version by calling the function Int21h/AX=2B04h/CX=
+    0x4442h/DX=0x2D58h in your program - AL and AH will
+    become 0, and BX will return the DOSBox-X version
+    number after "0." (e.g. BH=83, BL=15). (Wengier)
+  - It is now possible to translate text for graphical
+    Configuration Tool and Mapper Editor interfaces.
+    The sizes and/or positions of some buttons in these
+    interfaces are adjusted accordingly too. (Wengier)
+  - Config option "usescancodes=auto" now implies false
+    for PC-98 mode in SDL1 builds. (Wengier)
+  - Config option "pc-98 force ibm keyboard layout" now
+    defaults to "auto", which implies "true" if a U.S.
+    keyboard layout is detected and implies "false"
+    otherwise. Also fixed some input keys for the PC-98
+    mode. (Wengier & maron2000)
+  - For PC-98 mode, if both FONT.ROM and FREECG98.BMP
+    are not found in the directory, then DOSBox-X will
+    now use internal Japanese font (also used by DOS/V
+    and JEGA systems) and the built-in 8x16 SBCS font
+    pre-generated from FREECG98.BMP. (Wengier)
+  - Added DBCS awareness support for special characters
+    "\" and "|" in Chinese/Japanese/Korean code pages
+    so that they will be treated properly as trailing
+    bytes of double-byte characters. (Wengier)
+  - Improved handling of clipboard copy/paste involving
+    DBCS characters with TrueType font (TTF) output in
+    standard mode. The clipboard copy/paste feature is
+    also supported in DOS/V and JEGA modes. (Wengier)
+  - The config option ttf.halfwidthkana (now in [ttf]
+    section) will enable low ASCII boxing characters
+    for the TrueType font (TTF) output too. This option
+    is now enabled by default for JP mode, and printing
+    these characters is also supported. (Wengier)
+  - Added support for showing Chinese/Japanese/Korean
+    characters in the SDL-drawn menu (in addition to
+    characters in different SBCS code pages) and the
+    Configuration Tool interface (so e.g. DOS command
+    help will show correctly for these languages). You
+    can change the DBCS font used by Configuration Tool
+    interface via fontxdbcs14 config option. (Wengier)
+  - Added support for inputing DBCS characters using
+    system input method (IME) in Windows SDL1 build.
+    Chinese (Simplified and Traditional) IMEs may work
+    with the default video setting and a Chinese code
+    page or Chinese DOS/V mode. Japanese & Korean IMEs
+    may require DirectX mode for the SDL1 library (set
+    option "videodriver" to "directx" in [sdl] section
+    for this). There is a new config option "ime" in
+    [dosbox] section to control it. When set to "auto"
+    (default), it is enabled for Windows SDL1 builds
+    only if DOSBox-X is started with a CJK code page or
+    in PC-98, JEGA or DOS/V mode. (Wengier)
+  - Added support for Japanese EGA mode (machine=jega)
+    by adopting code from DOSVAXJ3. As with DOS/V, you
+    can optionally set the SBCS and DBCS fonts with
+    fontxsbcs, fontxdbcs (and fontxsbcs19, fontxdbcs24,
+    etc) options in [dosv] section of config file, or
+    the default fonts will be used for them. (Wengier)
+  - Added support for DOS/V (Japanese mode) by adopting
+    code from DOSVAXJ3. Also added support for Chinese
+    and Korean DOS/V modes. Set option "dosv" to "jp",
+    "chs" (or "cn"), "cht" (or "tw"), or "ko" in [dosv]
+    section of the config file to enable DOS/V mode for
+    different CJK languages. There are now also various
+    font-related (and V-text screen mode) options added
+    in [dosv] section for the DOS/V support. For the
+    Simplified Chinese (code page 936), you can also
+    enable GBK extension of the standard GB2312 charset
+    with "gbk" option for Simplified Chinese DOS/V and
+    the TrueType font (TTF) output. (Wengier)
+  - Added support for codepage conversion of file names
+    in "drivez" folder (for customization of Virtual
+    Drive Z:) so that they will appear properly on this
+    drive according to the code page set. (Wengier)
+  - Improved support for DBCS (double-byte) characters
+    on mounted FAT drives with Chinese/Japanese/Korean
+    codepages (932/936/949/950). (Wengier)
+  - The "Unexpected control character" error message
+    which may appear when executing certain batch files
+    is now a debug message (belong to the "misc" type)
+    instead of showing to the DOS console output.
+  - Added "videodriver" config option in [sdl] section
+    to force a video driver (such as windib/windows,
+    x11, dummy) for the SDL library to use. The video
+    driver "directx" has been enabled for Windows SDL1
+    builds (without certain functions). (Wengier)
+  - There is a now a [ttf] section in the config file,
+    and TTF-related config options are moved/renamed
+    from [render] section to this section (previous
+    config options "ttf.*" in [render] section become
+    * (with "ttf." dropped) in [ttf] section). Windows
+    installer will also automatically transfer previous
+    TTF options to the new [ttf] section. (Wengier)
+  - When setting to "auto", config option "allow lmsw
+    to exit protected mode" will be active for Pentium+
+    CPUs instead of 486+ CPUs. (Wengier)
+  - Fixed a bug which may lead to crash when pasting
+    text via the DOS clipboard API (e.g. the 4DOS CLIP:
+    device) in non-Windows platforms. (Wengier)
+  - Fixed the possible freeze when output was switched
+    from TrueType font (TTF) output and you tried to
+    reset the virtual machine. (Wengier)
+  - Fixed non-representative filenames on local drives
+    in current code page causing memory corruption for
+    e.g. Windows 3.1 Setup on non-Windows platforms.
+    These entries will no longer appear to DOS guest
+    system in incompatible code pages. (Wengier)
 0.83.14
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.14.html
   - Added support for directories on the Z drive, so
     there is no need to put all files/programs on the
     root directory of Z drive any more. Only one-level
@@ -11,7 +186,11 @@
     Z drive are now categorized into directories, with
     addition of some files/programs, such as additional
     4DOS files, text utilities in TEXTUTIL directory
-    and TITLE command to change window title. (Wengier)
+    and TITLE command to change window title. Default
+    value of the %PATH% envonment variable has been
+    expanded to include these subdirectories, but if
+    you use a custom path then you may want to include
+    these directories in your %PATH%. (Wengier)
   - You can now specify a command shell located on a
     mounted local drive via SHELL= command in [config]
     section of config file after the drive is properly
@@ -191,9 +370,8 @@
     serial ports (directserial). (vkbaf & Wengier)
   - Fixed issues related to screen dimensions in TTF
     output in CGA/EGA modes since 0.83.12. (Wengier)
-  - Updated Windows installer to use the latest Inno
-    Setup 6, allowing features such as administrative
-    install mode via /ALLUSERS option. (Wengier)
+  - Added alternative Windows installer for administrative
+    install mode on Windows Vista or later. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4443: Improve detection of Paradise SVGA in some
     installers with additional signature.
@@ -203,6 +381,8 @@
     - r4456: The numeric keypad can now be used to
     navigate the debugger when Num Lock is off.
 0.83.13
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.13.html
   - DOSBox-X can now resolve file paths in its config
     options that include environment variables on non-
     Windows platforms (e.g. ${HOME}..) as well. A new
@@ -357,6 +537,8 @@
     machine. Fixes EGA display of older Super Pac-Man
     release.
 0.83.12
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.12.html
   - Tandy graphics emulation fixed to accept 8 bits
     for vertical total and vertical display CRTC
     registers, which is needed for the tweaked
@@ -467,6 +649,8 @@
     recording, and to start keymapper, from config.
     - r4405: Smarter clearing of the dynrec cache.
 0.83.11
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.11.html
   - Added support for the clipboard device (CLIP$) and
     DOS clipboard API on non-Windows systems (they were
     previously only supported on the Windows platform).
@@ -641,6 +825,8 @@
     of DOS Navigator 1.51 when playing past track 15.
     - r4318: Add LOGC debug command to log cs:ip only.
 0.83.10
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.10.html
   - The Windows key(s) in Windows and the Command key(s)
     in macOS will now be displayed as the "Windows" and
     "Command" keys instead of the "super" and the "meta"
@@ -835,6 +1021,8 @@
     IRQ is raised when not in autodma mode.
 
 0.83.9
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.9.html
   - Physical CD drives are now mountable in SDL2 builds
     just like SDL1 builds, so commands like "MOUNT -CD"
     should work in both SDL1 and SDL2 builds. Some code
@@ -1026,6 +1214,8 @@
     configuration if desired. Set the config option
     "oplemu=opl3duoboard" to use it. (josephillips85)
 0.83.8
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.8.html
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"
     and optionally a monospaced TTF font (such as
@@ -1179,6 +1369,8 @@
     latest versions (versions 0.12.22, 0.6.19, 0.12.14
     respectively). Thanks to mackron & kcgen. (Wengier)
 0.83.7
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.7.html
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
@@ -1443,6 +1635,8 @@
     - r4257: Add simple program that allows you to boot
       into a bios image for running cpu tester bios.
 0.83.6
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.6.html
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
     of Tomb Raider when using non-Glide mode. Portions
@@ -1616,6 +1810,8 @@
     For subdirectories support please use MOUNT command
     to mount local directory instead. (Wengier).
 0.83.5
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.5.html
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
     latest version format automatically while keeping

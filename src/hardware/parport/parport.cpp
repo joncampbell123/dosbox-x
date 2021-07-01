@@ -20,8 +20,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "control.h"
 #include "dosbox.h"
 
+#include "logging.h"
 #include "support.h"
 #include "inout.h"
 #include "pic.h"

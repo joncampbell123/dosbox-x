@@ -20,7 +20,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/stat.h>
+
 #include "dosbox.h"
+#include "logging.h"
 #include "regs.h"
 #include "control.h"
 #include "shell.h"
@@ -31,6 +34,7 @@
 #include "builtin.h"
 #include "mapper.h"
 #include "render.h"
+#include "jfont.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include <unistd.h>
@@ -47,22 +51,27 @@
 
 extern bool startcmd, startwait, startquiet, winautorun;
 extern bool dos_shell_running_program, mountwarning;
-extern bool addovl, addipx;
+extern bool halfwidthkana, force_conversion, gbk;
+extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
 extern uint16_t countryNo;
 extern int enablelfn;
 bool usecon = true;
+bool shellrun = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+void SetIMPosition(void);
 void initRand();
+void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -253,6 +262,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	char ch;
 	Bitu num=0;
 	bool quote = false;
+	bool lead1 = false, lead2 = false;
 	char* t;
 	int q;
 
@@ -261,7 +271,13 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			*lw++ = ch;
 			continue;
 		}
-
+        if (lead1) {
+            lead1=false;
+            if (ch=='|') {
+                *lw++=ch;
+                continue;
+            }
+        } else if ((IS_PC98_ARCH && shiftjis_lead_byte(ch)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(ch))) lead1 = true;
 		switch (ch) {
 		case '"':
 			quote = !quote;
@@ -275,7 +291,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 				free(*ofn);
 			*ofn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
@@ -293,7 +314,12 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 			lr = ltrim(lr);
 			*ifn = lr;
 			q = 0;
-			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && *lr != '|') {
+			lead2 = false;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && !(!lead2 && *lr == '|')) {
+                if (lead2)
+                    lead2 = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*lr&0xff)) || (isDBCSCP() && !((dos.loaded_codepage == 936 || IS_PDOSV) && !gbk) && isKanji1(*lr&0xff)))
+                    lead2 = true;
 				if (*lr=='"')
 					q++;
 				lr++;
@@ -514,10 +540,34 @@ const char *ParseMsg(const char *msg) {
         else if (theme == "white")
             msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
     }
-    if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
+    if (machine == MCH_PC98)
         return msg;
-    else
-        return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
+    else {
+        if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
+            msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
+        bool uselowbox = false;
+#if defined(USE_TTF)
+        force_conversion = true;
+        int cp=dos.loaded_codepage;
+        if (ttf.inUse && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        force_conversion = false;
+        dos.loaded_codepage=cp;
+#endif
+        if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
+            std::string m=msg;
+            if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {
+                msg = str_replace((char *)msg, "\xC9", (char *)std::string(1, 1).c_str());
+                msg = str_replace((char *)msg, "\xBB", (char *)std::string(1, 2).c_str());
+                msg = str_replace((char *)msg, "\xC8", (char *)std::string(1, 3).c_str());
+                msg = str_replace((char *)msg, "\xBC", (char *)std::string(1, 4).c_str());
+                msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
+            } else {
+                msg = str_replace((char *)msg, "\xBA ", (char *)(std::string(1, 5)+" ").c_str());
+                msg = str_replace((char *)msg, " \xBA", (char *)(" "+std::string(1, 5)).c_str());
+            }
+        }
+        return msg;
+    }
 }
 
 static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
@@ -526,13 +576,23 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
-bool shellrun=false;
-bool InitCodePage(void);
-void initcodepagefont(void);
+void GetExpandedPath(std::string &path) {
+    if (path=="Z:\\"||path=="z:\\")
+        path=path_string+5;
+    else if (path.size()>3&&(path.substr(0, 4)=="Z:\\;"||path.substr(0, 4)=="z:\\;")&&path.substr(4).find("Z:\\")==std::string::npos&&path.substr(4).find("z:\\")==std::string::npos)
+        path=std::string(path_string+5)+path.substr(3);
+    else if (path.size()>3) {
+        size_t pos = path.find(";Z:\\");
+        if (pos == std::string::npos) pos = path.find(";z:\\");
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find("Z:\\")==std::string::npos&&path.substr(pos+4).find("z:\\")==std::string::npos))
+            path=path.substr(0, pos+1)+std::string(path_string+5)+path.substr(pos+4);
+    }
+}
+
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
+        if (section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
             std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
             if (machine == MCH_PC98) {
@@ -597,8 +657,10 @@ void DOS_Shell::Prepare(void) {
 #if defined(WIN32)
 			char buffer[128];
 #endif
-            if (IS_PC98_ARCH)
+            if (IS_PC98_ARCH || IS_JEGA_ARCH)
                 countryNo = 81;
+            else if (IS_DOSV)
+                countryNo = IS_PDOSV?86:(IS_CDOSV?886:(IS_KDOSV?82:81));
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
@@ -608,9 +670,11 @@ void DOS_Shell::Prepare(void) {
 			else
 				countryNo = 1;
 		}
+		section = static_cast<Section_prop *>(control->GetSection("dos"));
+		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+		if (section!=NULL&&!control->opt_noconfig) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
 			if (r==NULL || !*(r+1))
@@ -620,13 +684,19 @@ void DOS_Shell::Prepare(void) {
 				country = atoi(trim(countrystr));
 				int newCP = atoi(trim(r+1));
 				*r=',';
-                if (!IS_PC98_ARCH) {
+                if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
                         if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
                         else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
+                    if (!newCP && IS_DOSV) {
+                        if (IS_JDOSV) newCP=932;
+                        else if (IS_PDOSV) newCP=936;
+                        else if (IS_CDOSV) newCP=949;
+                        else if (IS_KDOSV) newCP=950;
+                    }
                     if (newCP==932||newCP==936||newCP==949||newCP==950) {
                         dos.loaded_codepage=newCP;
                         SetupDBCSTable();
@@ -640,7 +710,7 @@ void DOS_Shell::Prepare(void) {
 				DOS_SetCountry(countryNo);
 			}
 			const char * extra = section->data.c_str();
-			if (extra) {
+			if (extra&&!control->opt_securemode&&!control->SecureMode()) {
 				std::string vstr;
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
@@ -667,12 +737,7 @@ void DOS_Shell::Prepare(void) {
 						if (!strncasecmp(cmd, "set ", 4)) {
 							vstr=std::string(val);
 							ResolvePath(vstr);
-							if (!strcmp(cmd, "set path")) {
-								if (vstr=="Z:\\"||vstr=="z:\\")
-									vstr=path_string+5;
-								else if (vstr.size()>3&&(vstr.substr(0, 4)=="Z:\\;"||vstr.substr(0, 4)=="z:\\;")&&vstr.substr(4).find("Z:\\")==std::string::npos&&vstr.substr(4).find("z:\\")==std::string::npos)
-									vstr=vstr.substr(0, 3)+std::string(path_string+8)+vstr.substr(3);
-							}
+							if (zdirpath && !strcmp(cmd, "set path")) GetExpandedPath(vstr);
 							DoCommand((char *)(std::string(cmd)+"="+vstr).c_str());
 						} else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							vstr=std::string(val);
@@ -736,6 +801,9 @@ void DOS_Shell::Prepare(void) {
         initcodepagefont();
         dos.loaded_codepage=cp;
     }
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+    if (enableime) SetIMPosition();
+#endif
 }
 
 void DOS_Shell::Run(void) {
@@ -817,7 +885,7 @@ void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 }
 
-bool filename_not_8x3(const char *n);
+bool filename_not_8x3(const char *n), isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 class AUTOEXEC:public Module_base {
 private:
 	AutoexecObject autoexec[17];
@@ -830,6 +898,10 @@ public:
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
 		bool secure = control->opt_securemode;
+        force_conversion = true;
+        int cp=dos.loaded_codepage;
+        InitCodePage();
+        force_conversion = false;
 
         /* The user may have given .BAT files to run on the command line */
         if (!control->auto_bat_additional.empty()) {
@@ -841,11 +913,16 @@ public:
                     cmd += "@c:\n";
                 } else {
                     std::string batname;
-                    /* NTS: this code might have problems with DBCS filenames - yksoft1 */
                     //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
                     std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
-                    size_t pos = control->auto_bat_additional[i].find_last_of('\\');
+                    size_t pos = std::string::npos;
+                    bool lead = false;
+                    for (unsigned int j=0; j<control->auto_bat_additional[i].size(); j++) {
+                        if (lead) lead = false;
+                        else if ((IS_PC98_ARCH && shiftjis_lead_byte(control->auto_bat_additional[i][j])) || (isDBCSCP() && isKanji1(control->auto_bat_additional[i][j]))) lead = true;
+                        else if (control->auto_bat_additional[i][j]=='\\') pos = j;
+                    }
                     if(pos == std::string::npos) {  //Only a filename, mount current directory
                         batname = control->auto_bat_additional[i];
                         cmd += "@mount c: . -q\n";
@@ -876,6 +953,7 @@ public:
 
             autoexec_auto_bat.Install(cmd);
         }
+        dos.loaded_codepage = cp;
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		const char * extra = section->data.c_str();
@@ -1067,83 +1145,8 @@ static Bitu INT2E_Handler(void) {
 }
 
 extern unsigned int dosbox_shell_env_size;
-extern uint16_t fztime, fzdate;
 void IPXNET_ProgramStart(Program * * make);
-void drivezRegister(std::string path, std::string dir) {
-    char exePath[CROSS_LEN];
-    std::vector<std::string> names;
-    if (path.size()) {
-#if defined(WIN32)
-        WIN32_FIND_DATA fd;
-        HANDLE hFind = FindFirstFile((path+"\\*.*").c_str(), &fd);
-        if(hFind != INVALID_HANDLE_VALUE) {
-            do {
-                if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-                    names.emplace_back(fd.cFileName);
-                else if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
-                    names.push_back(std::string(fd.cFileName)+"/");
-            } while(::FindNextFile(hFind, &fd));
-            ::FindClose(hFind);
-        }
-#else
-        struct dirent *dir;
-        DIR *d = opendir(path.c_str());
-        if (d)
-        {
-            while ((dir = readdir(d)) != NULL)
-              if (dir->d_type==DT_REG)
-                names.push_back(dir->d_name);
-              else if (dir->d_type==DT_DIR && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
-                names.push_back(std::string(dir->d_name)+"/");
-            closedir(d);
-        }
-#endif
-    }
-    int res;
-    long f_size;
-    uint8_t *f_data;
-    struct stat temp_stat;
-    const struct tm* ltime;
-    for (std::string name: names) {
-        if (!name.size()) continue;
-        if (name.back()=='/' && dir=="/") {
-            res=stat((path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res) res=stat((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str(),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
-            fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
-            continue;
-        }
-        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
-        if (f == NULL) {
-            strcpy(exePath, GetDOSBoxXPath().c_str());
-            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
-            f = fopen(exePath, "rb");
-        }
-        f_size = 0;
-        f_data = NULL;
-
-        if (f != NULL) {
-            res=fstat(fileno(f),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            fseek(f, 0, SEEK_END);
-            f_size=ftell(f);
-            f_data=(uint8_t*)malloc(f_size);
-            fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
-            fclose(f);
-        }
-        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
-        fztime = fzdate = 0;
-    }
-}
+void drivezRegister(std::string path, std::string dir);
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
@@ -1167,7 +1170,6 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP_END2","Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
-	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
@@ -1274,7 +1276,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_STARTUP_TEXT1_PC98", "Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction. \nYou could also complete various tasks through the \033[33mdrop-down menus\033[37m.");
     MSG_Add("SHELL_STARTUP_EXAMPLE_PC98", "\033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option.");
     MSG_Add("SHELL_STARTUP_TEXT2_PC98", (std::string("To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string("\nTo activate the \033[33mMapper Editor\033[37m for key assignments, use \033[31mhost+M\033[37m.    \nTo switch between windowed and full-screen mode, use \033[31mhost+F\033[37m.      \nTo adjust the emulated CPU speed, use \033[31mhost+Plus\033[37m and \033[31mhost+Minus\033[37m.   ")).c_str());
-    MSG_Add("SHELL_STARTUP_INFO_PC98","\033[36mDOSBox-X is now running in Japanese NEC PC-98 emulation mode.\033[37m     \n\033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m       ");
+    MSG_Add("SHELL_STARTUP_INFO_PC98","\033[36mDOSBox-X is now running in \033[32mJapanese NEC PC-98\033[36m emulation mode.\033[37m     ");
     MSG_Add("SHELL_STARTUP_TEXT3_PC98", "\033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m\n\033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m");
     MSG_Add("SHELL_STARTUP_HEAD1", "\033[36mGetting started with DOSBox-X:                                              \033[37m");
     MSG_Add("SHELL_STARTUP_TEXT1", "Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction.\nYou can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m.");
@@ -1496,7 +1498,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
-	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
+	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME [/H] file\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 #if C_DEBUG
@@ -1653,6 +1655,7 @@ void SHELL_Init() {
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
+	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */

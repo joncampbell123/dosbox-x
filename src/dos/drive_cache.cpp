@@ -19,6 +19,7 @@
 
 #include "drives.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include "support.h"
 #include "cross.h"
 
@@ -178,7 +179,7 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
     work[0] = 0;
     strcpy (dir,path);
 
-    const char* pos = strrchr(path,CROSS_FILESPLIT);
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
     if (pos) dir[pos-path+1] = 0;
     CFileInfo* dirInfo = FindDirInfo(dir, work);
@@ -209,7 +210,7 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
     char expand [CROSS_LEN];
 
     CFileInfo* dir = FindDirInfo(path,expand);
-    const char* pos = strrchr(path,CROSS_FILESPLIT);
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
     if (pos) {
         char file   [CROSS_LEN];
@@ -246,7 +247,7 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
 
   //When adding a directory, the directory we want to operate inside in is the above it. (which can go wrong if the directory already exists.)
   strcpy(dironly,path);
-  char* post = strrchr(dironly,CROSS_FILESPLIT);
+  char* post = strrchr_dbcs(dironly,CROSS_FILESPLIT);
 
   if (post) {
 #if defined (WIN32) 
@@ -262,9 +263,9 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
       *(post + 1) = 0; //As FindDirInfo is skipping over the base directory
   }
   CFileInfo* dir = FindDirInfo(dironly,expand);
-  const char* pos = strrchr(path,CROSS_FILESPLIT);
+  const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
-  char sname[CROSS_LEN], *p=strrchr(sfile, '\\');
+  char sname[CROSS_LEN], *p=strrchr_dbcs(sfile, '\\');
   if (p!=NULL)
 	strcpy(sname, p+1);
   else
@@ -292,7 +293,7 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
       Bits index = GetLongName(dir,(char *)(!strlen(sname)||filename_not_strict_8x3(sname)?file:sname));
 	  if (strlen(genname)) {
 		  strcpy(sfile, sname);
-		  p=strrchr(sfile, '\\');
+		  p=strrchr_dbcs(sfile, '\\');
 		  if (p!=NULL) {
 			  *(p+1)=0;
 			  strcat(sfile, genname);
@@ -340,7 +341,7 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
     if (ignoreLastDir) {
         char tmp[CROSS_LEN] = { 0 };
         int32_t len=0;
-        const char* pos = strrchr(path,CROSS_FILESPLIT);
+        const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
         if (pos) len = (int32_t)(pos - path);
         if (len>0) { 
             safe_strncpy(tmp,path,len+1); 
@@ -379,7 +380,7 @@ bool DOS_Drive_Cache::GetShortName(const char* fullname, char* shortname) {
     char expand[CROSS_LEN] = {0};
     CFileInfo* curDir = FindDirInfo(fullname,expand);
 
-    const char* pos = strrchr(fullname,CROSS_FILESPLIT);
+    const char* pos = strrchr_dbcs((char *)fullname,CROSS_FILESPLIT);
     if (pos) pos++; else return false;
 
     std::vector<CFileInfo*>::size_type filelist_size = curDir->longNameList.size();
@@ -716,10 +717,8 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
     }
 
     do {
-// TODO: In PC-98 mode, use a Shift-JIS aware version of strchr() to find the path separator.
-//       It's possible for the host path separator to appear in the trailing end of a double-byte character.
 //      bool errorcheck = false;
-        pos = strchr(start,CROSS_FILESPLIT);
+        pos = strchr_dbcs((char *)start,CROSS_FILESPLIT);
         if (pos) { safe_strncpy(dir,start,pos-start+1); /*errorcheck = true;*/ }
         else     { strcpy(dir,start); }
  

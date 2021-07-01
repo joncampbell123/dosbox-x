@@ -24,6 +24,7 @@
 #if defined (WIN32)
 #include <d3d9.h>
 #endif
+#include "logging.h"
 #include "time.h"
 #include "timer.h"
 #include "setup.h"
@@ -33,10 +34,12 @@
 #include "../gui/render_scalers.h"
 #include "vga.h"
 #include "pic.h"
+#include "jfont.h"
 #include "menu.h"
 #include "timer.h"
 #include "config.h"
 #include "control.h"
+#include "shiftjis.h"
 #include "../ints/int10.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
@@ -132,6 +135,7 @@ extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10]
 extern std::string autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
+uint8_t *GetDbcsFont(Bitu code);
 
 void memxor(void *_d,unsigned int byte,size_t count) {
     unsigned char *d = (unsigned char*)_d;
@@ -1945,6 +1949,15 @@ static uint8_t * Alt_MDA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return Alt_MDA_COMMON_TEXT_Draw_Line();
 }
 
+std::vector<std::pair<int,int>> jtbs = {};
+struct first_equal {
+    const int value;
+    first_equal(int v):value(v) {}
+    bool operator()(std::pair<int,int> &pair) {
+        return pair.first == value;
+    }
+};
+
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -1952,56 +1965,166 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
+	Bitu background, foreground;
+	Bitu chr, chr_left, attr, bsattr;
+	bool chr_wide = false;
 
-    while (blocks--) { // for each character in the line
-        VGA_Latch pixels;
-
-        pixels.d = *vidmem;
-        vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
-
-        Bitu chr = pixels.b[0];
-        Bitu attr = pixels.b[1];
-        // the font pattern
-        Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
-        
-        Bitu background = attr >> 4u;
-        // if blinking is enabled bit7 is not mapped to attributes
-        if (vga.draw.blinking) background &= ~0x8u;
-        // choose foreground color if blinking not set for this cell or blink on
-        Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-            (attr&0xf):background;
-        // underline: all foreground [freevga: 0x77, previous 0x7]
-        if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-            (vga.crtc.underline_location&0x1f)==line))
-                background = foreground;
-        if (vga.draw.char9dot) {
-            font <<=1; // 9 pixels
-            // extend to the 9th pixel if needed
-            if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-                (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-            for (Bitu n = 0; n < 9; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
-
-                font <<= 1;
+    unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
+    if (IS_JEGA_ARCH && !jtbs.empty() && line == 1) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
+    while (blocks--) {
+        if (isJEGAEnabled()) {
+            VGA_Latch pixels;
+            pixels.d = *vidmem;
+            vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
+            chr = pixels.b[0];
+            attr = pixels.b[1];
+            if (!chr_wide) {
+                if (!(jega.RMOD2 & 0x80)) {
+                    background = attr >> 4;
+                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
+                    if (vga.draw.blinking) background &= ~0x8;
+                    bsattr = 0;
+                } else {
+                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
+                    background = 0;
+                    bsattr = attr;
+                    if (bsattr & 0x40) {
+                        Bitu tmp = background;
+                        background = foreground;
+                        foreground = tmp;
+                    }
+                }
+                if(isKanji1(chr) && blocks > 0) {
+                    chr_left=chr;
+                    chr_wide=true;
+                    blocks++;
+                } else {
+                    Bitu font = jfont_sbcs_19[chr*19+line];
+                    for (Bitu n = 0; n < 8; n++) {
+                        *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                        font <<= 1;
+                    }
+                    if (bsattr & 0x20) {
+                        draw -= 8;
+                        *draw = vga.attr.palette[foreground];
+                        draw += 8;
+                    }
+                    if (line == 18 && bsattr & 0x10) {
+                        draw -= 8;
+                        for (Bitu n = 0; n < 8; n++)
+                            *draw++ = vga.attr.palette[foreground];
+                    }
+                    chr_wide=false;
+                }
             }
+            else
+            {
+                Bitu pad_y = jega.RPSSC;
+                Bitu exattr = 0;
+                if (jega.RMOD2 & 0x40) {
+                    exattr = attr;
+                    if ((exattr & 0x30) == 0x30) pad_y = jega.RPSSL;
+                    else if (exattr & 0x30) pad_y = jega.RPSSU;
+                }
+                if (line >= pad_y && line < 16 + pad_y) {
+                    if (isKanji2(chr)) {
+                        if (line == 1) jtbs.push_back(std::make_pair(row, col));
+                        Bitu fline = line - pad_y;
+                        chr_left <<= 8;
+                        chr |= chr_left;
+                        if (exattr & 0x20) {
+                            if (exattr & 0x10) fline = (fline >> 1) + 8;
+                            else fline = fline >> 1;
+                        }
+                        uint8_t *f = GetDbcsFont(chr);
+                        if (exattr & 0x40) {
+                            Bitu font = f[fline * 2];
+                            if (!(exattr & 0x08))
+                                font = f[fline * 2 + 1];
+                            for (Bitu n = 0; n < 8; n++) {
+                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                font <<= 1;
+                            }
+                        } else {
+                            Bitu font = f[fline * 2];
+                            font <<= 8;
+                            font |= f[fline * 2 + 1];
+                            if (exattr &= 0x80)
+                            {
+                                Bitu font2 = font;
+                                font2 >>= 1;
+                                font |= font2;
+                            }
+                            for (Bitu n = 0; n < 16; n++) {
+                                *draw++ = vga.attr.palette[(font & 0x8000) ? foreground : background];
+                                font <<= 1;
+                            }
+                        }
+                    } else for (Bitu n = 0; n < 16; n++)
+                        *draw++ = vga.attr.palette[background];
+                } else if (line == (17 + pad_y) && (bsattr & 0x10)) {
+                        for (Bitu n = 0; n < 16; n++)
+                            *draw++ = vga.attr.palette[foreground];
+                } else for (Bitu n = 0; n < 16; n++) *draw++ = vga.attr.palette[background];
+                if (bsattr & 0x20) {
+                    draw -= 16;
+                    *draw = vga.attr.palette[foreground];
+                    draw += 16;
+                }
+                chr_wide=false;
+                blocks--;
+            }
+            col++;
         } else {
-            for (Bitu n = 0; n < 8; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+            VGA_Latch pixels;
 
-                font <<= 1;
+            pixels.d = *vidmem;
+            vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
+
+            Bitu chr = pixels.b[0];
+            Bitu attr = pixels.b[1];
+            // the font pattern
+            Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+            Bitu background = attr >> 4u;
+            // if blinking is enabled bit7 is not mapped to attributes
+            if (vga.draw.blinking) background &= ~0x8u;
+            // choose foreground color if blinking not set for this cell or blink on
+            Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+                (attr&0xf):background;
+            // underline: all foreground [freevga: 0x77, previous 0x7]
+            if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
+                (vga.crtc.underline_location&0x1f)==line))
+                    background = foreground;
+            if (vga.draw.char9dot) {
+                font <<=1; // 9 pixels
+                // extend to the 9th pixel if needed
+                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                for (Bitu n = 0; n < 9; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
+
+                    font <<= 1;
+                }
+            } else {
+                for (Bitu n = 0; n < 8; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+
+                    font <<= 1;
+                }
             }
         }
     }
+
     // draw the text mode cursor if needed
-    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-        // the adress of the attribute that makes up the cell the cursor is in
+    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) && (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+        // the address of the attribute that makes up the cell the cursor is in
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
@@ -3206,13 +3329,20 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
 }
 
 bool isDBCSCP() {
-    return !IS_PC98_ARCH && (dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
+    return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
 }
 
-bool isDBCSLB(uint8_t chr, uint8_t* lead) {
+bool isDBCSLB(uint8_t chr) {
+    for (int i=0; i<6; i++) lead[i] = 0;
+    if (isDBCSCP())
+        for (int i=0; i<6; i++) {
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            if (lead[i] == 0) break;
+        }
     return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
 }
 
+uint8_t ccount = 0;
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
@@ -3411,7 +3541,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         break;
     }
     // for same blinking frequency with higher frameskip
-    vga.draw.cursor.count++;
+    if (IS_JEGA_ARCH) {
+        ccount++;
+        if (ccount>=0x20) {
+            ccount=0;
+            vga.draw.cursor.count++;
+        }
+    } else
+        vga.draw.cursor.count++;
 
     if (IS_PC98_ARCH) {
         for (unsigned int i=0;i < 2;i++)
@@ -3757,6 +3894,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             text[2]=0;
                             uname[0]=0;
                             uname[1]=0;
+                            if (del_flag && text[1] == 0x7F) text[1]++;
                             CodePageGuestToHostUTF16(uname,text);
                             if (uname[0]!=0&&uname[1]==0) {
                                 (*draw).chr=uname[0];
@@ -3821,12 +3959,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
             bool dbw, dex, bd[txtMaxCols];
-            for (int i=0; i<6; i++) lead[i] = 0;
-            if (isDBCSCP())
-                for (int i=0; i<6; i++) {
-                    lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
-                    if (lead[i] == 0) break;
-                }
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
@@ -3844,8 +3976,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+2) & 0xFF) >= 0x40) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && (*(vidmem+2) & 0xFF) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
@@ -3859,6 +3991,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
@@ -3903,8 +4036,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (dbcs_sbcs && col<ttf.cols-1 && isDBCSLB((*draw).chr, lead) && (*(vidmem+1) & 0xFF) >= 0x40) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-2) && !bd[col];
+                        } else if (dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && (*(vidmem+1) & 0xFF) >= 0x40) {
+                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
@@ -3918,6 +4051,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 text[2]=0;
                                 uname[0]=0;
                                 uname[1]=0;
+                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
@@ -4463,7 +4597,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
 
     /* clip display end to stay within vtotal ("Monolith" demo part 4 320x570 mode fix) */
-    if (vdend > vtotal) {
+    if (vdend > vtotal && !IS_JEGA_ARCH) {
         LOG(LOG_VGA,LOG_WARN)("VGA display end greater than vtotal!");
         vdend = vtotal;
     }
@@ -4886,6 +5020,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_TEXT:
         vga.draw.blocks=width;
         // if char9_set is true, allow 9-pixel wide fonts
+		if (isJEGAEnabled()) { //if Kanji Text Disable is off
+			vga.draw.char9dot = false;
+			bpp = 16;
+		}
         if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
             // 8-pixel wide
             pix_per_char = 8;

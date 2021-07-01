@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mem.h"
 #include "paging.h"
 #include "glide.h"

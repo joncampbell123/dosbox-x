@@ -20,10 +20,9 @@
 #ifndef DOSBOX_VGA_H
 #define DOSBOX_VGA_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
-#include <iostream>
+#include "pic.h"
+
+#include <math.h> /* for fabs */
 
 #define VGA_LFB_MAPPED
 

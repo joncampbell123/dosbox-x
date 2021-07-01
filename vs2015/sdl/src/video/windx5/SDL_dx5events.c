@@ -46,10 +46,12 @@
 #define MAX_INPUTS	2
 #define INPUT_QSIZE	512		/* Buffer up to 512 input messages */
 
+static HKL hLayout = NULL;
 static LPDIRECTINPUT dinput = NULL;
 static LPDIRECTINPUTDEVICE2 SDL_DIdev[MAX_INPUTS];
 static HANDLE               SDL_DIevt[MAX_INPUTS];
 static void (*SDL_DIfun[MAX_INPUTS])(const int, DIDEVICEOBJECTDATA *);
+extern void (*SDL1_hax_INITMENU_cb)();
 static int SDL_DIndev = 0;
 static int mouse_lost;
 static int mouse_pressed;
@@ -67,6 +69,17 @@ static SDL_keysym *TranslateKey(UINT scancode, SDL_keysym *keysym, int pressed);
 #define WNDPROCTYPE	FARPROC
 #endif
 static WNDPROCTYPE userWindowProc = NULL;
+
+#ifdef ENABLE_IM_EVENT
+#include <imm.h>
+int DX5_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+/* data field required by DX5_HandleComposition */
+static COMPOSITIONFORM form;
+extern Uint32 end_ticks;
+extern wchar_t CompositionFontName[LF_FACESIZE];
+#define	IME_MESSAGE_WAIT	1
+#define	IME_END_CR_WAIT		50
+#endif
 
 static HWND GetTopLevelParent(HWND hWnd)
 {
@@ -280,12 +293,31 @@ static void handle_keyboard(const int numevents, DIDEVICEOBJECTDATA *keybuf)
 {
 	int i;
 	SDL_keysym keysym;
+	MSG msg;
+
+#ifdef ENABLE_IM_EVENT
+	Sleep(IME_MESSAGE_WAIT);
+#endif
+
+	while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+		if(GetMessage(&msg, NULL, 0, 0) > 0) {
+			if(msg.message != WM_SYSKEYDOWN && msg.message != WM_SYSKEYUP) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+	}
 
 	/* Translate keyboard messages */
 	for ( i=0; i<numevents; ++i ) {
 		if ( keybuf[i].dwData & 0x80 ) {
+#ifdef ENABLE_IM_EVENT
+			if (!IM_Context.bCompos && (GetTickCount() - end_ticks > IME_END_CR_WAIT || keybuf[i].dwOfs != 0x1c))
+#endif
+		 	{
 			posted = SDL_PrivateKeyboard(SDL_PRESSED,
 				    TranslateKey(keybuf[i].dwOfs, &keysym, 1));
+			}
 		} else {
 			posted = SDL_PrivateKeyboard(SDL_RELEASED,
 				    TranslateKey(keybuf[i].dwOfs, &keysym, 0));
@@ -550,6 +582,17 @@ static void handle_mouse(const int numevents, DIDEVICEOBJECTDATA *ptrbuf)
 	}
 }
 
+#ifdef ENABLE_IM_EVENT
+#define FLIP_BREAK \
+	if (IM_Context.bFlip) { \
+		break; \
+	} else { \
+		return 0; \
+	}
+
+extern SDL_Event event_keydown;
+#endif
+
 /* The main Win32 event handler */
 LRESULT DX5_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -591,14 +634,99 @@ LRESULT DX5_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 		break;
 #endif /* WM_DISPLAYCHANGE */
 
+		case WM_INITMENU:
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+			break;
 		/* The keyboard is handled via DirectInput */
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
-		case WM_KEYDOWN: {
+		case WM_KEYDOWN:
+#ifdef ENABLE_IM_EVENT
+		// To ensure the shift of IME.
+			/*if (IM_Context.bFlip && IM_Context.bEnable)*/
+			/* 2019/4/16
+			if (IM_Context.bEnable)
+				SendMessage(hwnd, WM_IME_NOTIFY, wParam, lParam);
+			*/
+			if((lParam & 0xff0000) == 0x360000) {
+				SDL_keysym keysym;
+				if(msg == WM_KEYDOWN) {
+					SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey((lParam >> 16) & 0xff, &keysym, 1));
+				} else if(msg == WM_KEYUP) {
+					SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey((lParam >> 16) & 0xff, &keysym, 0));
+				}
+			}
+			if (msg == WM_KEYDOWN) {
+				if(wParam == VK_PROCESSKEY) {
+					WPARAM vkey = ImmGetVirtualKey(hwnd);
+					if(vkey != VK_PROCESSKEY) {
+						keybd_event(vkey, (lParam >> 16) & 0xff, 0, 0);
+					}
+				}
+			}
+			return 0;
+			//FLIP_BREAK;
+			/* add for im */
+		case WM_INPUTLANGCHANGE:
+			SendMessage(hwnd, WM_IME_NOTIFY, wParam, lParam);
+			FLIP_BREAK;
+		case WM_IME_STARTCOMPOSITION:
+			//if (!IM_Context.SDL_IMC)
+			//	IM_Context.SDL_IMC = ImmGetContext(hwnd);
+			{
+				HIMC imc = ImmGetContext(hwnd);
+				IM_Context.bCompos = 1;
+				form.dwStyle = CFS_POINT;
+				ImmSetCompositionWindow(imc, &form);
+				ImmReleaseContext(hwnd, imc);
+			}
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+			//FLIP_BREAK;
+		case WM_IME_ENDCOMPOSITION:
+			end_ticks = GetTickCount();
+			IM_Context.bCompos = 0;
+			FLIP_BREAK;
+		case WM_IME_NOTIFY:
+			if (IM_Context.notify_func)/* && IM_Context.bEnable && ImmIsIME(GetKeyboardLayout(0)))*/
+				IM_Context.notify_func(IM_Context.notify_data);
+
+			// To flip state window in fullscreen mode
+			if (IM_Context.bFlip && IM_Context.bEnable) {
+				DefWindowProc(hwnd, WM_IME_NOTIFY, IMN_OPENSTATUSWINDOW, lParam);
+			}
+			FLIP_BREAK;
+		case WM_IME_SETCONTEXT:
+			// To show the composition window in fullscreen mode
+			if (IM_Context.bFlip && IM_Context.bEnable)
+			{
+				lParam |= ISC_SHOWUICOMPOSITIONWINDOW;
+				return DefWindowProc(hwnd, WM_IME_SETCONTEXT, wParam, lParam);
+			}
+			else
+			{
+				lParam &= ~ISC_SHOWUICOMPOSITIONWINDOW;
+				//if (IM_Context.bFlip)
+				return DefWindowProc(hwnd, WM_IME_SETCONTEXT, wParam, lParam);
+			}
+			FLIP_BREAK;
+		case WM_IME_COMPOSITION:
+			DX5_HandleComposition(hwnd, msg, wParam, lParam);
+
+			if (lParam & GCS_RESULTSTR) {
+				/* Send KEYDOWN event to fix some IME that doesn't sent key down event 
+					after composition. */
+				event_keydown.type = SDL_KEYDOWN;
+				SDL_PushEvent(&event_keydown);
+				FLIP_BREAK;
+			}
+#else
+		{
 			/* Ignore windows keyboard messages */;
 		}
 		return(0);
+#endif
 
 #if defined(SC_SCREENSAVE) || defined(SC_MONITORPOWER)
 		/* Don't allow screen savers or monitor power downs.
@@ -642,6 +770,10 @@ LRESULT DX5_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 	return(DefWindowProc(hwnd, msg, wParam, lParam));
 }
 
+#ifdef ENABLE_IM_EVENT
+#undef FLIP_BREAK
+#endif
+
 /* This function checks the windows message queue and DirectInput and returns
    1 if there was input, 0 if there was no input, or -1 if the application has
    posted a quit message.
@@ -658,6 +790,13 @@ static int DX5_CheckInput(_THIS, int timeout, BOOL processInput)
 	while ( ! posted &&
 	        PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) {
 		if ( GetMessage(&msg, NULL, 0, 0) > 0 ) {
+#ifdef ENABLE_IM_EVENT
+			if (IM_Context.bEnable) {
+				if(msg.message != WM_SYSKEYDOWN && msg.message != WM_SYSKEYUP) {
+					TranslateMessage( &msg ); /* for IME */
+				}
+			}
+#endif
 			DispatchMessage(&msg);
 		} else {
 			return(-1);
@@ -776,124 +915,138 @@ void DX5_InitOSKeymap(_THIS)
 #ifndef DIK_OEM_102
 #define DIK_OEM_102	0x56	/* < > | on UK/Germany keyboards */
 #endif
-	int i;
+    int i;
+    hLayout = GetKeyboardLayout(0);
+    /* Map the DIK scancodes to SDL keysyms */
+    for (i = 0; i < SDL_arraysize(DIK_keymap); ++i)
+        DIK_keymap[i] = 0;
 
-	/* Map the DIK scancodes to SDL keysyms */
-	for ( i=0; i<SDL_arraysize(DIK_keymap); ++i )
-		DIK_keymap[i] = 0;
+    /* Defined DIK_* constants */
+    DIK_keymap[DIK_ESCAPE] = SDLK_ESCAPE;
+    DIK_keymap[DIK_1] = SDLK_1;
+    DIK_keymap[DIK_2] = SDLK_2;
+    DIK_keymap[DIK_3] = SDLK_3;
+    DIK_keymap[DIK_4] = SDLK_4;
+    DIK_keymap[DIK_5] = SDLK_5;
+    DIK_keymap[DIK_6] = SDLK_6;
+    DIK_keymap[DIK_7] = SDLK_7;
+    DIK_keymap[DIK_8] = SDLK_8;
+    DIK_keymap[DIK_9] = SDLK_9;
+    DIK_keymap[DIK_0] = SDLK_0;
+    DIK_keymap[DIK_MINUS] = SDLK_MINUS;
+    DIK_keymap[DIK_EQUALS] = SDLK_EQUALS;
+    DIK_keymap[DIK_BACK] = SDLK_BACKSPACE;
+    DIK_keymap[DIK_TAB] = SDLK_TAB;
+    DIK_keymap[DIK_Q] = SDLK_q;
+    DIK_keymap[DIK_W] = SDLK_w;
+    DIK_keymap[DIK_E] = SDLK_e;
+    DIK_keymap[DIK_R] = SDLK_r;
+    DIK_keymap[DIK_T] = SDLK_t;
+    DIK_keymap[DIK_Y] = SDLK_y;
+    DIK_keymap[DIK_U] = SDLK_u;
+    DIK_keymap[DIK_I] = SDLK_i;
+    DIK_keymap[DIK_O] = SDLK_o;
+    DIK_keymap[DIK_P] = SDLK_p;
+    DIK_keymap[DIK_LBRACKET] = SDLK_LEFTBRACKET;
+    DIK_keymap[DIK_RBRACKET] = SDLK_RIGHTBRACKET;
+    DIK_keymap[DIK_RETURN] = SDLK_RETURN;
+    DIK_keymap[DIK_LCONTROL] = SDLK_LCTRL;
+    DIK_keymap[DIK_A] = SDLK_a;
+    DIK_keymap[DIK_S] = SDLK_s;
+    DIK_keymap[DIK_D] = SDLK_d;
+    DIK_keymap[DIK_F] = SDLK_f;
+    DIK_keymap[DIK_G] = SDLK_g;
+    DIK_keymap[DIK_H] = SDLK_h;
+    DIK_keymap[DIK_J] = SDLK_j;
+    DIK_keymap[DIK_K] = SDLK_k;
+    DIK_keymap[DIK_L] = SDLK_l;
+    DIK_keymap[DIK_SEMICOLON] = SDLK_SEMICOLON;
+    DIK_keymap[DIK_APOSTROPHE] = SDLK_QUOTE;
+    DIK_keymap[DIK_GRAVE] = SDLK_BACKQUOTE;
+    DIK_keymap[DIK_LSHIFT] = SDLK_LSHIFT;
+    DIK_keymap[DIK_BACKSLASH] = SDLK_BACKSLASH;
+    DIK_keymap[DIK_OEM_102] = SDLK_LESS;
+    DIK_keymap[DIK_Z] = SDLK_z;
+    DIK_keymap[DIK_X] = SDLK_x;
+    DIK_keymap[DIK_C] = SDLK_c;
+    DIK_keymap[DIK_V] = SDLK_v;
+    DIK_keymap[DIK_B] = SDLK_b;
+    DIK_keymap[DIK_N] = SDLK_n;
+    DIK_keymap[DIK_M] = SDLK_m;
+    DIK_keymap[DIK_COMMA] = SDLK_COMMA;
+    DIK_keymap[DIK_PERIOD] = SDLK_PERIOD;
+    DIK_keymap[DIK_SLASH] = SDLK_SLASH;
+    DIK_keymap[DIK_RSHIFT] = SDLK_RSHIFT;
+    DIK_keymap[DIK_MULTIPLY] = SDLK_KP_MULTIPLY;
+    DIK_keymap[DIK_LMENU] = SDLK_LALT;
+    DIK_keymap[DIK_SPACE] = SDLK_SPACE;
+    DIK_keymap[DIK_CAPITAL] = SDLK_CAPSLOCK;
+    DIK_keymap[DIK_F1] = SDLK_F1;
+    DIK_keymap[DIK_F2] = SDLK_F2;
+    DIK_keymap[DIK_F3] = SDLK_F3;
+    DIK_keymap[DIK_F4] = SDLK_F4;
+    DIK_keymap[DIK_F5] = SDLK_F5;
+    DIK_keymap[DIK_F6] = SDLK_F6;
+    DIK_keymap[DIK_F7] = SDLK_F7;
+    DIK_keymap[DIK_F8] = SDLK_F8;
+    DIK_keymap[DIK_F9] = SDLK_F9;
+    DIK_keymap[DIK_F10] = SDLK_F10;
+    DIK_keymap[DIK_NUMLOCK] = SDLK_NUMLOCK;
+    DIK_keymap[DIK_SCROLL] = SDLK_SCROLLOCK;
+    DIK_keymap[DIK_NUMPAD7] = SDLK_KP7;
+    DIK_keymap[DIK_NUMPAD8] = SDLK_KP8;
+    DIK_keymap[DIK_NUMPAD9] = SDLK_KP9;
+    DIK_keymap[DIK_SUBTRACT] = SDLK_KP_MINUS;
+    DIK_keymap[DIK_NUMPAD4] = SDLK_KP4;
+    DIK_keymap[DIK_NUMPAD5] = SDLK_KP5;
+    DIK_keymap[DIK_NUMPAD6] = SDLK_KP6;
+    DIK_keymap[DIK_ADD] = SDLK_KP_PLUS;
+    DIK_keymap[DIK_NUMPAD1] = SDLK_KP1;
+    DIK_keymap[DIK_NUMPAD2] = SDLK_KP2;
+    DIK_keymap[DIK_NUMPAD3] = SDLK_KP3;
+    DIK_keymap[DIK_NUMPAD0] = SDLK_KP0;
+    DIK_keymap[DIK_DECIMAL] = SDLK_KP_PERIOD;
+    DIK_keymap[DIK_F11] = SDLK_F11;
+    DIK_keymap[DIK_F12] = SDLK_F12;
 
-	/* Defined DIK_* constants */
-	DIK_keymap[DIK_ESCAPE] = SDLK_ESCAPE;
-	DIK_keymap[DIK_1] = SDLK_1;
-	DIK_keymap[DIK_2] = SDLK_2;
-	DIK_keymap[DIK_3] = SDLK_3;
-	DIK_keymap[DIK_4] = SDLK_4;
-	DIK_keymap[DIK_5] = SDLK_5;
-	DIK_keymap[DIK_6] = SDLK_6;
-	DIK_keymap[DIK_7] = SDLK_7;
-	DIK_keymap[DIK_8] = SDLK_8;
-	DIK_keymap[DIK_9] = SDLK_9;
-	DIK_keymap[DIK_0] = SDLK_0;
-	DIK_keymap[DIK_MINUS] = SDLK_MINUS;
-	DIK_keymap[DIK_EQUALS] = SDLK_EQUALS;
-	DIK_keymap[DIK_BACK] = SDLK_BACKSPACE;
-	DIK_keymap[DIK_TAB] = SDLK_TAB;
-	DIK_keymap[DIK_Q] = SDLK_q;
-	DIK_keymap[DIK_W] = SDLK_w;
-	DIK_keymap[DIK_E] = SDLK_e;
-	DIK_keymap[DIK_R] = SDLK_r;
-	DIK_keymap[DIK_T] = SDLK_t;
-	DIK_keymap[DIK_Y] = SDLK_y;
-	DIK_keymap[DIK_U] = SDLK_u;
-	DIK_keymap[DIK_I] = SDLK_i;
-	DIK_keymap[DIK_O] = SDLK_o;
-	DIK_keymap[DIK_P] = SDLK_p;
-	DIK_keymap[DIK_LBRACKET] = SDLK_LEFTBRACKET;
-	DIK_keymap[DIK_RBRACKET] = SDLK_RIGHTBRACKET;
-	DIK_keymap[DIK_RETURN] = SDLK_RETURN;
-	DIK_keymap[DIK_LCONTROL] = SDLK_LCTRL;
-	DIK_keymap[DIK_A] = SDLK_a;
-	DIK_keymap[DIK_S] = SDLK_s;
-	DIK_keymap[DIK_D] = SDLK_d;
-	DIK_keymap[DIK_F] = SDLK_f;
-	DIK_keymap[DIK_G] = SDLK_g;
-	DIK_keymap[DIK_H] = SDLK_h;
-	DIK_keymap[DIK_J] = SDLK_j;
-	DIK_keymap[DIK_K] = SDLK_k;
-	DIK_keymap[DIK_L] = SDLK_l;
-	DIK_keymap[DIK_SEMICOLON] = SDLK_SEMICOLON;
-	DIK_keymap[DIK_APOSTROPHE] = SDLK_QUOTE;
-	DIK_keymap[DIK_GRAVE] = SDLK_BACKQUOTE;
-	DIK_keymap[DIK_LSHIFT] = SDLK_LSHIFT;
-	DIK_keymap[DIK_BACKSLASH] = SDLK_BACKSLASH;
-	DIK_keymap[DIK_OEM_102] = SDLK_LESS;
-	DIK_keymap[DIK_Z] = SDLK_z;
-	DIK_keymap[DIK_X] = SDLK_x;
-	DIK_keymap[DIK_C] = SDLK_c;
-	DIK_keymap[DIK_V] = SDLK_v;
-	DIK_keymap[DIK_B] = SDLK_b;
-	DIK_keymap[DIK_N] = SDLK_n;
-	DIK_keymap[DIK_M] = SDLK_m;
-	DIK_keymap[DIK_COMMA] = SDLK_COMMA;
-	DIK_keymap[DIK_PERIOD] = SDLK_PERIOD;
-	DIK_keymap[DIK_SLASH] = SDLK_SLASH;
-	DIK_keymap[DIK_RSHIFT] = SDLK_RSHIFT;
-	DIK_keymap[DIK_MULTIPLY] = SDLK_KP_MULTIPLY;
-	DIK_keymap[DIK_LMENU] = SDLK_LALT;
-	DIK_keymap[DIK_SPACE] = SDLK_SPACE;
-	DIK_keymap[DIK_CAPITAL] = SDLK_CAPSLOCK;
-	DIK_keymap[DIK_F1] = SDLK_F1;
-	DIK_keymap[DIK_F2] = SDLK_F2;
-	DIK_keymap[DIK_F3] = SDLK_F3;
-	DIK_keymap[DIK_F4] = SDLK_F4;
-	DIK_keymap[DIK_F5] = SDLK_F5;
-	DIK_keymap[DIK_F6] = SDLK_F6;
-	DIK_keymap[DIK_F7] = SDLK_F7;
-	DIK_keymap[DIK_F8] = SDLK_F8;
-	DIK_keymap[DIK_F9] = SDLK_F9;
-	DIK_keymap[DIK_F10] = SDLK_F10;
-	DIK_keymap[DIK_NUMLOCK] = SDLK_NUMLOCK;
-	DIK_keymap[DIK_SCROLL] = SDLK_SCROLLOCK;
-	DIK_keymap[DIK_NUMPAD7] = SDLK_KP7;
-	DIK_keymap[DIK_NUMPAD8] = SDLK_KP8;
-	DIK_keymap[DIK_NUMPAD9] = SDLK_KP9;
-	DIK_keymap[DIK_SUBTRACT] = SDLK_KP_MINUS;
-	DIK_keymap[DIK_NUMPAD4] = SDLK_KP4;
-	DIK_keymap[DIK_NUMPAD5] = SDLK_KP5;
-	DIK_keymap[DIK_NUMPAD6] = SDLK_KP6;
-	DIK_keymap[DIK_ADD] = SDLK_KP_PLUS;
-	DIK_keymap[DIK_NUMPAD1] = SDLK_KP1;
-	DIK_keymap[DIK_NUMPAD2] = SDLK_KP2;
-	DIK_keymap[DIK_NUMPAD3] = SDLK_KP3;
-	DIK_keymap[DIK_NUMPAD0] = SDLK_KP0;
-	DIK_keymap[DIK_DECIMAL] = SDLK_KP_PERIOD;
-	DIK_keymap[DIK_F11] = SDLK_F11;
-	DIK_keymap[DIK_F12] = SDLK_F12;
+    DIK_keymap[DIK_F13] = SDLK_F13;
+    DIK_keymap[DIK_F14] = SDLK_F14;
+    DIK_keymap[DIK_F15] = SDLK_F15;
 
-	DIK_keymap[DIK_F13] = SDLK_F13;
-	DIK_keymap[DIK_F14] = SDLK_F14;
-	DIK_keymap[DIK_F15] = SDLK_F15;
+    DIK_keymap[DIK_NUMPADEQUALS] = SDLK_KP_EQUALS;
+    DIK_keymap[DIK_NUMPADENTER] = SDLK_KP_ENTER;
+    DIK_keymap[DIK_RCONTROL] = SDLK_RCTRL;
+    DIK_keymap[DIK_DIVIDE] = SDLK_KP_DIVIDE;
+    DIK_keymap[DIK_SYSRQ] = SDLK_PRINT;
+    DIK_keymap[DIK_RMENU] = SDLK_RALT;
+    DIK_keymap[DIK_PAUSE] = SDLK_PAUSE;
+    DIK_keymap[DIK_HOME] = SDLK_HOME;
+    DIK_keymap[DIK_UP] = SDLK_UP;
+    DIK_keymap[DIK_PRIOR] = SDLK_PAGEUP;
+    DIK_keymap[DIK_LEFT] = SDLK_LEFT;
+    DIK_keymap[DIK_RIGHT] = SDLK_RIGHT;
+    DIK_keymap[DIK_END] = SDLK_END;
+    DIK_keymap[DIK_DOWN] = SDLK_DOWN;
+    DIK_keymap[DIK_NEXT] = SDLK_PAGEDOWN;
+    DIK_keymap[DIK_INSERT] = SDLK_INSERT;
+    DIK_keymap[DIK_DELETE] = SDLK_DELETE;
+    DIK_keymap[DIK_LWIN] = SDLK_LMETA;
+    DIK_keymap[DIK_RWIN] = SDLK_RMETA;
+    DIK_keymap[DIK_APPS] = SDLK_MENU;
 
-	DIK_keymap[DIK_NUMPADEQUALS] = SDLK_KP_EQUALS;
-	DIK_keymap[DIK_NUMPADENTER] = SDLK_KP_ENTER;
-	DIK_keymap[DIK_RCONTROL] = SDLK_RCTRL;
-	DIK_keymap[DIK_DIVIDE] = SDLK_KP_DIVIDE;
-	DIK_keymap[DIK_SYSRQ] = SDLK_PRINT;
-	DIK_keymap[DIK_RMENU] = SDLK_RALT;
-	DIK_keymap[DIK_PAUSE] = SDLK_PAUSE;
-	DIK_keymap[DIK_HOME] = SDLK_HOME;
-	DIK_keymap[DIK_UP] = SDLK_UP;
-	DIK_keymap[DIK_PRIOR] = SDLK_PAGEUP;
-	DIK_keymap[DIK_LEFT] = SDLK_LEFT;
-	DIK_keymap[DIK_RIGHT] = SDLK_RIGHT;
-	DIK_keymap[DIK_END] = SDLK_END;
-	DIK_keymap[DIK_DOWN] = SDLK_DOWN;
-	DIK_keymap[DIK_NEXT] = SDLK_PAGEDOWN;
-	DIK_keymap[DIK_INSERT] = SDLK_INSERT;
-	DIK_keymap[DIK_DELETE] = SDLK_DELETE;
-	DIK_keymap[DIK_LWIN] = SDLK_LMETA;
-	DIK_keymap[DIK_RWIN] = SDLK_RMETA;
-	DIK_keymap[DIK_APPS] = SDLK_MENU;
+    switch (LOWORD(hLayout)) {
+    case 0x411: /* JP */
+        // DIK_keymap[DIK_KANJI] = SDLK_WORLD_12;  // Hankaku/Zenkaku (FIX ME: This key works as a toggle key)
+        DIK_keymap[DIK_CONVERT] = SDLK_WORLD_14;//henkan
+        DIK_keymap[DIK_NOCONVERT] = SDLK_WORLD_13; //muhenkan
+        // DIK_keymap[DIK_KANA] = SDLK_WORLD_15;   // Hiragana/Katakana  (FIX ME: This key works as a toggle key)
+        DIK_keymap[DIK_YEN] = SDLK_JP_YEN;      // \ |
+        //DIK_keymap[DIK_AT] = SDLK_AT;           // @ `
+        DIK_keymap[DIK_COLON] = SDLK_COLON;     // : *
+        DIK_keymap[DIK_CIRCUMFLEX] = SDLK_CARET; // ^ ~
+        //DIK_keymap[DIK_BACKSLASH] = SDLK_JP_RO; // \ _
+        break;
+    }
 }
 
 static SDL_keysym *TranslateKey(UINT scancode, SDL_keysym *keysym, int pressed)
@@ -1003,3 +1156,247 @@ void DX5_DestroyWindow(_THIS)
 	*/
 	WIN_FlushMessageQueue();
 }
+
+#ifdef ENABLE_IM_EVENT
+
+int DX5_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (lParam & GCS_RESULTSTR) {
+		HIMC imc = ImmGetContext(hWnd);
+
+		if (!imc) {
+		    IM_Context.im_compose_sz = 0;
+		    SDL_SetError("ERROR_NULLCONTEXT");
+		}
+
+		/* Get the size of the result string. */
+		if (SDL_TranslateUNICODE) {
+			IM_Context.im_compose_sz = ImmGetCompositionStringW(imc, GCS_RESULTSTR, NULL, 0);
+		} else {
+			IM_Context.im_compose_sz = ImmGetCompositionStringA(imc, GCS_RESULTSTR, NULL, 0);
+		}
+		if (!IM_Context.im_compose_sz) {
+			return 0;
+		}
+		else {
+			if (IM_Context.im_compose_sz >= IM_Context.im_buffer_sz) {
+				IM_Context.im_buffer_sz = IM_Context.im_compose_sz + 1*sizeof(wchar_t);
+				IM_Context.string.im_multi_byte_buffer = 
+					(char*)realloc(IM_Context.string.im_multi_byte_buffer,
+								IM_Context.im_buffer_sz);
+			}
+			IM_Context.string.im_wide_char_buffer[0] = '\0';
+		}
+
+		if (IM_Context.string.im_multi_byte_buffer) {
+		    /* Get the result strings that is generated by IME into lpstr. */
+			if (SDL_TranslateUNICODE) {
+				ImmGetCompositionStringW(imc, GCS_RESULTSTR, 
+					IM_Context.string.im_wide_char_buffer, IM_Context.im_buffer_sz);
+				IM_Context.string.im_wide_char_buffer[IM_Context.im_compose_sz/2] = '\0';
+			}
+			else {
+				ImmGetCompositionStringA(imc, GCS_RESULTSTR, 
+					IM_Context.string.im_multi_byte_buffer, IM_Context.im_buffer_sz);
+				IM_Context.string.im_multi_byte_buffer[IM_Context.im_compose_sz] = '\0';
+			}
+			ImmReleaseContext(hWnd, imc);
+		}
+		else {
+		    IM_Context.im_compose_sz = 0;
+	    }
+	}
+/*
+	if (lParam & GCS_COMPSTR) {
+		HIMC imc = ImmGetContext(hWnd);
+		if (!ImmSetCompositionWindow(imc, &form)) {
+			SDL_SetError("ImmSetCompositionWindow: fail to set composition form.\n");
+		}
+		ImmReleaseContext(hWnd, imc);
+	}
+*/
+	return 1;
+}
+
+int DX5_SetIMPosition(_THIS, int x, int y)
+{
+	form.dwStyle = CFS_POINT;;
+	form.ptCurrentPos.x = x;
+	form.ptCurrentPos.y = y;
+
+	HIMC imc = ImmGetContext(SDL_Window);
+//	if (!IM_Context.SDL_IMC)
+//		IM_Context.SDL_IMC = ImmGetContext(SDL_Window);
+
+//	if (!IM_Context.SDL_IMC)
+//		return 0;
+
+//	if (ImmSetCompositionWindow(IM_Context.SDL_IMC, &form)) {
+	if (ImmSetCompositionWindow(imc, &form)) {
+		ImmReleaseContext(SDL_Window, imc);
+		return 1;
+	}
+	ImmReleaseContext(SDL_Window, imc);
+	return 0;
+}
+
+char *DX5_SetIMValues(_THIS, SDL_imvalue value, int alt)
+{
+	switch (value) {
+		case SDL_IM_ENABLE:
+			if (alt) {
+				if(!IM_Context.bEnable) {
+					ImmAssociateContext(SDL_Window, IM_Context.SDL_IMC);
+					IM_Context.bEnable = 1;
+				}
+				return NULL;
+			}
+			else {
+				if(IM_Context.bEnable) {
+					IM_Context.SDL_IMC = ImmAssociateContext(SDL_Window, 0);
+					IM_Context.bEnable = 0;
+				}
+				return NULL;
+			}
+		case SDL_IM_FLIP:
+			if (alt) {
+				IM_Context.bFlip = 1;
+				SendMessage(SDL_Window, WM_IME_SETCONTEXT, TRUE, ISC_SHOWUIALL);
+				return NULL;
+			}
+			else {
+				IM_Context.bFlip = 0;
+				SendMessage(SDL_Window, WM_IME_SETCONTEXT, TRUE, 0);
+				return NULL;
+			}
+		case SDL_IM_ONOFF:
+			{
+				HIMC imc = ImmGetContext(SDL_Window);
+				ImmSetOpenStatus(imc, alt ? TRUE : FALSE);
+				ImmReleaseContext(SDL_Window, imc);
+			}
+			return NULL;
+		case SDL_IM_FONT_SIZE:
+			{
+				LOGFONTW lf;
+				HIMC imc = ImmGetContext(SDL_Window);
+				HDC hc = GetDC(SDL_Window);
+				HFONT hf = (HFONT)GetCurrentObject(hc, OBJ_FONT);
+				GetObjectW(hf, sizeof(lf), &lf);
+				ReleaseDC(SDL_Window, hc);
+				if(CompositionFontName[0]) {
+					wcscpy(lf.lfFaceName, CompositionFontName);
+				}
+				lf.lfHeight = -alt;
+				lf.lfWidth = alt / 2;
+				ImmSetCompositionFontW(imc, &lf);
+				ImmReleaseContext(SDL_Window, imc);
+			}
+			return NULL;
+		default:
+			SDL_SetError("SDL_SetIMValues: unknow enum type: %d", value);
+			return "SDL_SetIMValues: unknow enum type";
+	}
+	return NULL;
+}
+
+char *DX5_GetIMValues(_THIS, SDL_imvalue value, int *alt)
+{
+	switch (value) {
+		case SDL_IM_ENABLE:
+			if (IM_Context.bEnable) {
+				*alt = 1;
+				return NULL;
+			}
+			else {
+				*alt = 0;
+				return NULL;
+			}
+		case SDL_IM_FLIP:
+			if (IM_Context.bFlip) {
+				*alt = 1;
+				return NULL;
+			}
+			else {
+				*alt = 0;
+				return NULL;
+			}
+		case SDL_IM_ONOFF:
+			{
+				HIMC imc = ImmGetContext(SDL_Window);
+				if(ImmGetOpenStatus(imc)) {
+					*alt = 1;
+				} else {
+					*alt = 0;
+				}
+				ImmReleaseContext(SDL_Window, imc);
+				return NULL;
+			}
+		case SDL_IM_FONT_SIZE:
+			{
+				LOGFONTW lf;
+				HDC hc = GetDC(SDL_Window);
+				HFONT hf = (HFONT)GetCurrentObject(hc, OBJ_FONT);
+				GetObjectW(hf, sizeof(lf), &lf);
+				ReleaseDC(SDL_Window, hc);
+				*alt = abs(lf.lfHeight);
+			}
+			return NULL;
+		default:
+			SDL_SetError("DX5_GetIMValues: nuknown enum type %d", value);
+			return "DX5_GetIMValues: nuknown enum type";
+	}
+	return NULL;
+}
+
+int DX5_FlushIMString(_THIS, void *buffer)
+{
+	int result;
+
+	if (buffer && IM_Context.im_compose_sz) {
+		int len;
+		if (SDL_TranslateUNICODE) {
+			int i;
+			Uint16 *b = (Uint16*)buffer;
+			len = IM_Context.im_compose_sz / 2;
+			for (i = 0; i < len; ++i) 
+				b[i] = IM_Context.string.im_wide_char_buffer[i];
+		}
+		else {
+			len = IM_Context.im_compose_sz;
+			memcpy(buffer, IM_Context.string.im_multi_byte_buffer, len);
+		}
+
+		result = len;
+		IM_Context.im_compose_sz = 0;
+	}
+	else {
+		if (SDL_TranslateUNICODE)
+			result = IM_Context.im_compose_sz/2;
+		else
+			result = IM_Context.im_compose_sz;
+	}
+
+	return result;
+}
+
+#else /* !ENABLE_IM_EVENT */
+/* Fill with null implementation */
+
+int DX5_SetIMPosition(_THIS, int x, int y)
+{
+	return 0;
+}
+char *DX5_SetIMValues(_THIS, SDL_imvalue value, int alt)
+{
+	return NULL;
+}
+char *DX5_GetIMValues(_THIS, SDL_imvalue value, int *alt)
+{
+	return NULL;
+}
+int DX5_FlushIMString(_THIS, void *buffer)
+{
+	return 0;
+}
+#endif

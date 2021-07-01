@@ -3,6 +3,9 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "logging.h"
+#include "menudef.h"
+#include "render.h"
 #include "sdlmain.h"
 #include "vga.h"
 

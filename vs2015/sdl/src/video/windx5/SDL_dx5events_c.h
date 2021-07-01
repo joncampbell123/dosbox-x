@@ -35,3 +35,7 @@ extern void DX5_PumpEvents(_THIS);
 extern void DX5_InitOSKeymap(_THIS);
 extern void DX5_DInputReset(_THIS, int fullscreen);
 
+extern int DX5_SetIMPosition(_THIS, int x, int y);
+extern char *DX5_SetIMValues(_THIS, SDL_imvalue value, int alt);
+extern char *DX5_GetIMValues(_THIS, SDL_imvalue value, int *alt);
+extern int DX5_FlushIMString(_THIS, void *buffer);

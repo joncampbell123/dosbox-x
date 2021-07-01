@@ -19,11 +19,11 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 ## Windows Packages (Installer or Portable)
 
-You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installer for the current DOSBox-X version 0.83.14 is available from:
+You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installers for the current DOSBox-X version 0.83.14 are available from:
 
-* [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (specify /ALLUSERS for all users, or use [dosbox-x-windows-0.83.14-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allusers.exe))
+* [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (Standard install mode; Windows XP or later)
 
-* [dosbox-x-windows-0.83.14-setup-allwin.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allwin.exe) (Windows XP compatible)
+* [dosbox-x-windows-0.83.14-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup-allusers.exe) (Administrative install mode; Windows Vista or later)
 
 Windows installers for the previous DOSBox-X versions are also available from:
 
@@ -34,7 +34,7 @@ If you see the message ```Windows Defender SmartScreen prevented an unrecognized
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
-Apart from the Windows installers, you can find six zip packages (three before 0.83.13) for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32 and Win64 respectively). For the current DOSBox-X version 0.83.14, these portable builds are separately available from:
+Apart from the Windows installers, you can find six zip packages (three before 0.83.13) for each DOSBox-X version for the Windows platform in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32 and Win64 respectively). For the current DOSBox-X version 0.83.14, these portable builds are separately available from:
 
 * [dosbox-x-vsbuild-win32-20210601022229.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-vsbuild-win32-20210601022229.zip) (Visual Studio Win32 builds)
 * [dosbox-x-vsbuild-win64-20210601022229.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-vsbuild-win64-20210601022229.zip) (Visual Studio Win64 builds)
@@ -120,7 +120,9 @@ brew fluid-synth
 brew libslirp
 ```
 
-If you have an older macOS version such as macOS High Sierra (10.13), you may need to run the DOSBox-X binary (SDL1 or SDL2) in the Intel-based macOS package from the Terminal rather than from the Finder. In such case go to the directory ```dosbox-x/dosbox-x.app/Contents/MacOS``` (SDL1) or ```dosbox-x-sdl2/dosbox-x.app/Contents/MacOS``` (SDL2) after the package is extracted and then run the DosBox binary directly.
+If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package):
+
+* [dosbox-x-macosx-x86_64-10_13.zip](https://github.com/Wengier/dosbox-x-wiki/raw/master/dosbox-x-macosx-x86_64-10_13.zip)
 
 For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
 
@@ -153,6 +155,6 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * [dosbox-x-v0.83.14.zip](https://github.com/joncampbell123/dosbox-x/archive/refs/tags/dosbox-x-v0.83.14.zip)
 * [dosbox-x-v0.83.14.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/refs/tags/dosbox-x-v0.83.14.tar.gz)
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.14 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page contain the source code for that released version, and in this example the current DOSBox-X 0.83.14 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
 
-You could use either the released source code package or the latest source code according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
+You could use either the released source code package or the latest source code according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [BUILD](BUILD.md) page for detailed instructions on building the DOSBox-X source code. Further descriptions of the source code can be found in the [DOSBox-X source code description](README.source-code-description) file.

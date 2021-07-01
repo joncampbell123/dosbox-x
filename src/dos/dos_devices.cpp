@@ -18,6 +18,8 @@
 
 
 #include <string.h>
+
+#include "control.h"
 #include "dosbox.h"
 #include "callback.h"
 #include "regs.h"
@@ -35,6 +37,210 @@
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
+bool isDBCSCP(), shiftjis_lead_byte(int c);
+bool Network_IsNetworkResource(const char * filename);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
+struct ExtDeviceData {
+	uint16_t attribute;
+	uint16_t segment;
+	uint16_t strategy;
+	uint16_t interrupt;
+};
+
+class DOS_ExtDevice : public DOS_Device {
+public:
+	DOS_ExtDevice(const char *name, uint16_t seg, uint16_t off) {
+		SetName(name);
+		ext.attribute = real_readw(seg, off + 4);
+		ext.segment = seg;
+		ext.strategy = real_readw(seg, off + 6);
+		ext.interrupt = real_readw(seg, off + 8);
+	}
+	virtual bool	Read(uint8_t * data,uint16_t * size);
+	virtual bool	Write(const uint8_t * data,uint16_t * size);
+	virtual bool	Seek(uint32_t * pos,uint32_t type);
+	virtual bool	Close();
+	virtual uint16_t	GetInformation(void);
+	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual uint8_t	GetStatus(bool input_flag);
+	bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
+private:
+	struct ExtDeviceData ext;
+
+	uint16_t CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size);
+};
+
+bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off) {
+	if(seg == ext.segment && s_off == ext.strategy && i_off == ext.interrupt) {
+		return true;
+	}
+	return false;
+}
+
+uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size) {
+	uint16_t oldbx = reg_bx;
+	uint16_t oldes = SegValue(es);
+
+	real_writeb(dos.dcp, 0, length);
+	real_writeb(dos.dcp, 1, 0);
+	real_writeb(dos.dcp, 2, command);
+	real_writew(dos.dcp, 3, 0);
+	real_writed(dos.dcp, 5, 0);
+	real_writed(dos.dcp, 9, 0);
+	real_writeb(dos.dcp, 13, 0);
+	real_writew(dos.dcp, 14, (uint16_t)(bufptr & 0x000f));
+	real_writew(dos.dcp, 16, (uint16_t)(bufptr >> 4));
+	real_writew(dos.dcp, 18, size);
+
+	reg_bx = 0;
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(ext.segment, ext.strategy);
+	CALLBACK_RunRealFar(ext.segment, ext.interrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+
+	return real_readw(dos.dcp, 3);
+}
+
+bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
+	if(ext.attribute & 0x4000) {
+		// IOCTL INPUT
+		if((CallDeviceFunction(3, 26, bufptr, size) & 0x8000) == 0) {
+			*retcode = real_readw(dos.dcp, 18);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+	if(ext.attribute & 0x4000) {
+		// IOCTL OUTPUT
+		if((CallDeviceFunction(12, 26, bufptr, size) & 0x8000) == 0) {
+			*retcode = real_readw(dos.dcp, 18);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
+	PhysPt bufptr = (dos.dcp << 4) | 32;
+	for(uint16_t no = 0 ; no < *size ; no++) {
+		// INPUT
+		if((CallDeviceFunction(4, 26, bufptr, 1) & 0x8000)) {
+			return false;
+		} else {
+			if(real_readw(dos.dcp, 18) != 1) {
+				return false;
+			}
+			*data++ = mem_readb(bufptr);
+		}
+	}
+	return true;
+}
+
+bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
+	PhysPt bufptr = (dos.dcp << 4) | 32;
+	for(uint16_t no = 0 ; no < *size ; no++) {
+		mem_writeb(bufptr, *data);
+		// OUTPUT
+		if((CallDeviceFunction(8, 26, bufptr, 1) & 0x8000)) {
+			return false;
+		} else {
+			if(real_readw(dos.dcp, 18) != 1) {
+				return false;
+			}
+		}
+		data++;
+	}
+	return true;
+}
+
+bool DOS_ExtDevice::Close() {
+	return true;
+}
+
+bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
+	return true;
+}
+
+uint16_t DOS_ExtDevice::GetInformation(void) {
+	// bit9=1 .. ExtDevice
+	return (ext.attribute & 0xc07f) | 0x0080 | EXT_DEVICE_BIT;
+}
+
+uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
+	uint16_t status;
+	if(input_flag) {
+		// NON-DESTRUCTIVE INPUT NO WAIT
+		status = CallDeviceFunction(5, 14, 0, 0);
+	} else {
+		// OUTPUT STATUS
+		status = CallDeviceFunction(10, 13, 0, 0);
+	}
+	// check NO ERROR & BUSY
+	if((status & 0x8200) == 0) {
+		return 0xff;
+	}
+	return 0x00;
+}
+
+uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
+	uint32_t addr = dos_infoblock.GetDeviceChain();
+	uint16_t seg, off;
+	uint16_t next_seg, next_off;
+	uint16_t no;
+	char devname[8 + 1];
+
+	seg = addr >> 16;
+	off = addr & 0xffff;
+	while(1) {
+		no = real_readw(seg, off + 4);
+		next_seg = real_readw(seg, off + 2);
+		next_off = real_readw(seg, off);
+		if(next_seg == 0xffff && next_off == 0xffff) {
+			break;
+		}
+		if(no & 0x8000) {
+			for(no = 0 ; no < 8 ; no++) {
+				if((devname[no] = real_readb(seg, off + 10 + no)) <= 0x20) {
+					devname[no] = 0;
+					break;
+				}
+			}
+			devname[8] = 0;
+			if(!strcmp(name, devname)) {
+				if(already_flag) {
+					for(no = 0 ; no < DOS_DEVICES ; no++) {
+						if(Devices[no]) {
+							if(Devices[no]->GetInformation() & EXT_DEVICE_BIT) {
+								if(((DOS_ExtDevice *)Devices[no])->CheckSameDevice(seg, real_readw(seg, off + 6), real_readw(seg, off + 8))) {
+									return 0;
+								}
+							}
+						}
+					}
+				}
+				return (uint32_t)seg << 16 | (uint32_t)off;
+			}
+		}
+		seg = next_seg;
+		off = next_off;
+	}
+	return 0;
+}
+
+static void DOS_CheckOpenExtDevice(const char *name) {
+	uint32_t addr;
+
+	if((addr = DOS_CheckExtDevice(name, true)) != 0) {
+		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
+		DOS_AddDevice(device);
+	}
+}
 
 class device_NUL : public DOS_Device {
 public:
@@ -271,9 +477,35 @@ private:
 			fh = fopen(tmpUnicode, "w+b");			// The same for Unicode file (it's eventually read)
 			if (fh)
 				{
+				char text[3];
+				bool lead = false;
+				uint16_t uname[4];
+				uint8_t pchr = 0;
 				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
 				for (uint32_t i = 0; i < rawdata.size(); i++)
 					{
+					if (lead) {
+						lead = false;
+						if (pchr && isKanji2(rawdata[i]&0xff)) {
+							text[0]=pchr&0xff;
+							text[1]=rawdata[i]&0xff;
+							text[2]=0;
+							uname[0]=0;
+							uname[1]=0;
+							if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (text[1] & 0xFF) == 0x7F) text[1]++;
+							if (CodePageGuestToHostUTF16(uname,text)) {
+								fwrite(uname, 1, 2, fh);
+								continue;
+							} else
+								fwrite(cpMap+pchr, 1, 2, fh);
+						} else
+							fwrite(cpMap+pchr, 1, 2, fh);
+						pchr = 0;
+					} else if ((IS_PC98_ARCH && shiftjis_lead_byte(rawdata[i]&0xff)) || (isDBCSCP() && isKanji1(rawdata[i]&0xff))) {
+						pchr = rawdata[i];
+						lead = true;
+						continue;
+					}
 					uint16_t textChar =  (uint8_t)rawdata[i];
 					switch (textChar)
 						{
@@ -477,15 +709,15 @@ bool DOS_Device::Close() {
 	return Devices[devnum]->Close();
 }
 
-uint16_t DOS_Device::GetInformation(void) { 
+uint16_t DOS_Device::GetInformation(void) {
 	return Devices[devnum]->GetInformation();
 }
 
-bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	return Devices[devnum]->ReadFromControlChannel(bufptr,size,retcode);
 }
 
-bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
@@ -523,7 +755,12 @@ uint8_t DOS_FindDevice(char const * name) {
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
 	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 
-	char* name_part = strrchr(fullname,'\\');
+	char* name_part = strrchr_dbcs(fullname,'\\');
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsNetworkResource(name))
+		name_part = fullname;
+	else
+#endif
 	if(name_part) {
 		*name_part++ = 0;
 		//Check validity of leading directory.
@@ -606,6 +843,32 @@ bool ANSI_SYS_installed() {
         return DOS_CON->ANSI_SYS_installed();
 
     return false;
+}
+
+void DOS_ClearKeyMap()
+{
+	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
+		if(Devices[i]) {
+			if(Devices[i]->IsName("CON")) {
+				device_CON *con = (device_CON *)Devices[i];
+				con->ClearKeyMap();
+				break;
+			}
+		}
+	}
+}
+
+void DOS_SetConKey(uint16_t src, uint16_t dst)
+{
+	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
+		if(Devices[i]) {
+			if(Devices[i]->IsName("CON")) {
+				device_CON *con = (device_CON *)Devices[i];
+				con->SetKeyMap(src, dst);
+				break;
+			}
+		}
+	}
 }
 
 void DOS_SetupDevices(void) {

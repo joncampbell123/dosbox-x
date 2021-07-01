@@ -20,15 +20,13 @@
 #ifndef DOSBOX_DOS_INC_H
 #define DOSBOX_DOS_INC_H
 
-#include <stddef.h>
 #define CTBUF 127
 
 #ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
 #endif
-#ifndef DOSBOX_MEM_H
-#include "mem.h"
-#endif
+
+#include <list>
 #include <stddef.h> //for offsetof
 
 #ifdef _MSC_VER
@@ -41,6 +39,16 @@ struct CommandTail{
 #ifdef _MSC_VER
 #pragma pack ()
 #endif
+
+#define IS_DOS_JAPANESE (mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F)
+#define IS_DOS_CJK ((mem_readb(Real2Phys(dos.tables.dbcs)) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs)) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x01) == 0xFE))
+#define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_cdosv_enabled || dos.set_pdosv_enabled)
+#define IS_JDOSV (dos.set_jdosv_enabled)
+#define IS_KDOSV (dos.set_kdosv_enabled)
+#define IS_CDOSV (dos.set_cdosv_enabled)
+#define IS_PDOSV (dos.set_pdosv_enabled)
+
+#define	EXT_DEVICE_BIT				0x0200
 
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
@@ -213,6 +221,9 @@ bool DOS_IOCTL(void);
 bool DOS_GetSTDINStatus();
 uint8_t DOS_FindDevice(char const * name);
 void DOS_SetupDevices(void);
+void DOS_ClearKeyMap(void);
+void DOS_SetConKey(uint16_t src, uint16_t dst);
+uint32_t DOS_CheckExtDevice(const char *name, bool already_flag);
 
 /* Execute and new process creation */
 bool DOS_NewPSP(uint16_t segment,uint16_t size);
@@ -745,6 +756,12 @@ struct DOS_Block {
         uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
     uint16_t loaded_codepage = 0;
+    bool set_cdosv_enabled = false;
+    bool set_jdosv_enabled = false;
+    bool set_kdosv_enabled = false;
+    bool set_pdosv_enabled = false;
+    bool im_enable_flag;
+    uint16_t dcp;	// Device command packet
 };
 
 extern DOS_Block dos;

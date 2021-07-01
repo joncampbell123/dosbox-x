@@ -20,13 +20,7 @@
 #ifndef DOSBOX_CROSS_H
 #define DOSBOX_CROSS_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
-
 #include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <string>
 
 #if defined (_MSC_VER)						/* MS Visual C++ */
@@ -53,7 +47,7 @@
 #define CROSS_FILESPLIT '\\'
 #define F_OK 0
 #else
-#define	CROSS_FILENAME(blah) strreplace(blah,'\\','/')
+#define	CROSS_FILENAME(blah) strreplace_dbcs(blah,'\\','/')
 #define CROSS_FILESPLIT '/'
 #endif
 

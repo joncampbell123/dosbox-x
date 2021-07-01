@@ -25,8 +25,6 @@
 // 3: complex scalers on
 #define RENDER_USE_ADVANCED_SCALERS 3
 
-#include "config.h"
-
 #include "../src/gui/render_scalers.h"
 
 #define RENDER_SKIP_CACHE	16

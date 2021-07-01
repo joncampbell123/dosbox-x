@@ -703,7 +703,7 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 		if (nextPart) {
 			if (searchPos) { 
 				useName = searchPos; 
-				searchPos = strchr(searchPos,'\\'); 
+				searchPos = strchr_dbcs(searchPos,'\\');
 			}
 			if (searchPos) { *searchPos = 0; searchPos++; }
 			else foundComplete = true;

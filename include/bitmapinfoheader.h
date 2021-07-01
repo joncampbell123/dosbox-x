@@ -2,9 +2,6 @@
 #ifndef __ISP_UTILS_V4_BITMAPINFOHEADER
 #define __ISP_UTILS_V4_BITMAPINFOHEADER
 
-#include <stdint.h>
-#include "informational.h"
-
 /* [doc] windows_BITMAPFILEHEADER
  *
  * Packed portable representation of the Microsoft Windows BITMAPFILEHEADER
