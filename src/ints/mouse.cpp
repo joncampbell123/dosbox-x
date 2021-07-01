@@ -55,7 +55,7 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
-extern bool usesystemcursor;
+extern bool usesystemcursor, del_flag;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -799,6 +799,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
 						text[len++]=(j1+1)/2+(j1<95?112:176);
 						text[len++]=j2+(j1%2?31+(j2/96):126);
+						if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
 					}
 				} else if (j==c1&&c1>0) {
                     uint16_t prevres=mem_readw(where-2);
@@ -809,18 +810,25 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
             } else if (IS_DOSV) {
                 if (lead2) lead2=false;
                 else if (isKanji1(real_readb(seg,(i*c+j)*2))) lead2=true;
-                if (j<c2||!lead2) {
-                    result=real_readb(seg,(i*c+j)*2);
+                result=real_readb(seg,(i*c+j)*2);
+                text[len++]=result;
+                if (!lead2 && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                if (j==c2&&c2<c-1&&lead2) {
+                    result=real_readb(seg,(i*c+j+1)*2);
                     text[len++]=result;
+                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
             } else {
-                if (!isJEGAEnabled()||j>c1||std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) == jtbs.end()) {
+                bool find = isJEGAEnabled()?std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
+                if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(j,i,page,&result);
                     text[len++]=result;
+                    if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
                 if (isJEGAEnabled()&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
                     ReadCharAttr(j+1,i,page,&result);
                     text[len++]=result;
+                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
 			}
 		}
