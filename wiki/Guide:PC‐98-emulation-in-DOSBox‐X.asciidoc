@@ -11,7 +11,7 @@ toc::[]
 
 Since DOSBox-X aims to be complete DOS emulation package, it officially supports the emulations of the Japanese PC-98 system, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese characters. The NEC PC-9800, also known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000. Most of the PC-98 software are games, but there are also non-gaming PC-98 applications such as the PC-98 version of Windows 3.1 released by Microsoft. While these were originally designed for the Japanese market, international users who are influenced by the Japanese culture may also want to check this out. For example, earlier Touhou games are PC-98 games, which are well supported by DOSBox-X's PC-98 system.
 
-As of DOSBox-X version 0.83.15, DOSBox-X also supports native DOS/V service and JEGA (AX) emulations so that you can also run programs or games designed for them in these modes.
+As of DOSBox-X version 0.83.15, DOSBox-X also supports native DOS/V services and JEGA (AX) emulations so that you can also run programs or games designed for them in these modes. You can activate these modes with the appropriate config options.
 
 image::https://upload.wikimedia.org/wikipedia/zh/3/35/Th04cover.jpg[PC-98 Touhou game: 東方幻想郷 〜 Lotus Land Story]
 
@@ -43,7 +43,7 @@ Or the ``UnifontFullMediumMono.TTF`` file found in the DOSBox-X repository:
 
 * UnifontFullMediumMono: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/UnifontFullMediumMono.ttf?raw=true[Download here]
 
-Specify the desired Japanese TrueType font with the ``ttf.font`` config option for the TTF output, and then DOSBox-X will render the PC-98 text screen using this TTF font.
+Specify the desired Japanese TrueType font with the ``font`` config option in [ttf] section for the TTF output, and then DOSBox-X will render the PC-98 text screen using this TTF font.
 
 Apart from the ``FONT.ROM`` ROM image file mentioned above, there is another PC-98 ROM file named ``SOUND.ROM`` which is the ROM image of the PC-98 FM board, which may be needed by some PC-98 games to make music and sound effects. Both of these ROM images can be found online.
 
@@ -87,11 +87,11 @@ There are quite a few PC-98 related options in the DOSBox-X config file, such as
 * Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.
 
 ** pc-98 force ibm keyboard layout
-* Default value: true
-* Possible values: true, false
+* Default value: auto
+* Possible values: true, false, auto
 * Force to use a default keyboard layout like IBM US-English for PC-98 emulation. Works with PC-98 software using BIOS for keyboard.
 
-You may not need to change most config options for PC-98 mode, but you probably want to look at the last one ``pc-98 force ibm keyboard layout`` if you are not a Japanese user. Since PC-98 system was originally designed for the Japanese market, the default keyboard layout for the PC-98 mode will be the Japanese keyboard layout. However, users outside Japan who want to use the PC-98 system probably want to change the setting to the default U.S. keyboard keyboard layout instead, which can be done by setting ``pc-98 force ibm keyboard layout`` to ``true``, or it may be enabled via the ``Use US keyboard layout`` menu option in the "PC-98 options" menu group. With this enabled you will be able to use DOSBox-X's PC-98 system easily with the standard U.S. keyboard layout.
+You may not need to change most config options for PC-98 mode, although you may want to take a look at the last one ``pc-98 force ibm keyboard layout`` if you are not a Japanese user. As of DOSBox-X version 0.83.15, DOSBox-X will decide whether to use the Japanese keyboard layout or the U.S. keyboard layout for the PC-98 emulation based on its detection of user's keyboard layout by default, but for earlier versions DOSBox-X always defaulted to the Japanese keyboard layout since PC-98 system was originally designed for the Japanese market, and users outside Japan who want to use the PC-98 system may want to change the setting to the default U.S. keyboard keyboard layout instead, which can be done by setting ``pc-98 force ibm keyboard layout`` to ``true``, or it may be enabled via the ``Use US keyboard layout`` menu option in the "PC-98 options" menu group. With this enabled you will be able to use DOSBox-X's PC-98 system more easily with the standard U.S. keyboard layout.
 
 ## Running PC-98 games or applications
 
