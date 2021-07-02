@@ -17,9 +17,11 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
+	codesign --remove-signature dosbox-x.app/Contents/MacOS/DosBox
 	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 		dylib=`basename $$Y`; \
 		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
+		codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
 		install_name_tool -change $$Y @executable_path/$$dylib dosbox-x.app/Contents/MacOS/DosBox; \
 	done
 # and the libs too. NTS: Cannot use install_name_tool anymore to change anything about dylib files because that invalidates code signing of those files
@@ -27,11 +29,16 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 		for dolib in dosbox-x.app/Contents/MacOS/*.dylib; do \
 			otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 				dylib=`basename $$Y`; \
-				cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
-				echo "$$Y"; \
+				if [ -f "dosbox-x.app/Contents/MacOS/$$dylib" ]; then true; else \
+					cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
+					codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
+				fi; \
+				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib"; \
+				install_name_tool -id @executable_path/$$dylib "$$dolib"; \
 			done; \
 		done; \
-	done
+	done; \
+	codesign --deep -s - dosbox-x.app/Contents/MacOS/DosBox || exit 1
 
 contrib/macos/dosbox.icns: contrib/macos/dosbox-x.png
 	rm -Rfv src/dosbox.iconset
