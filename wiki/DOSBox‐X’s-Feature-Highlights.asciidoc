@@ -21,10 +21,16 @@ DOSBox-X provides a fully-featured system for saving and loading states with sup
 For image files, DOSBox-X allows you to mount them automatically without specifying additional options such as -size and -t. And for drive mounting on Windows, DOSBox-X automatically asks you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
 * **Japanese NEC PC-98 and AX emulations**
 +
-With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications, as well as the JEGA/AX system. Set ``machine=pc98`` or ``machine=jega`` in the config file to start DOSBox-X in the PC-98 or JEGA mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information about PC-98 support.
+With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications, as well as the Japanese AX (JEGA) system. Set ``machine=pc98`` or ``machine=jega`` in the config file to start DOSBox-X in the PC-98 or JEGA mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information about PC-98 support.
+* **Support for native DOS/V service emulations**
++
+DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set "dosv" to "jp", "chs" (or "cn"), "cht" (or "tw"), or "ko" for different CJK languages.
 * **Support for SDL2 in addition to SDL1**
 +
 DOSBox-X officially supports both SDL1 and SDL2 and provides both SDL1 and SDL2 builds, so that you can choose either the SDL1 or SDL2 build to use. While most features are common to both SDL builds, certain functions are only found in one of them.
+* **Fully translatable user interfaces**
++
+DOSBox-X allows you to translate its various user interfaces, including text in the DOS window, the drop-down menus, the graphical Configuration Tool and the Mapper Editor. Both standard SBCS languages and DBCS languages are supported. Several language files can be found in the repository and are ready to use.
 * **More customizable virtual machine**
 +
 DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, or even starting DOSBox-X in silent mode (-silent), along with a lot more.
@@ -118,10 +124,13 @@ DOSBox-X supports many additional scalers such as the xBRz scalers, and other ad
 DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS). Look at the link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X{suffixappend}[Setting up 3dfx Voodoo in DOSBox-X] guide page for more information.
 * **Support for NE2000 Ethernet for network features**
 +
-DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X. Look at the link:Guide%3ASetting-up-networking-in-DOSBox‐X{suffixappend}[Setting up networking in DOSBox-X] guide page for more information.
+DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X. Both PCAP and Slirp backends are supported. Look at the link:Guide%3ASetting-up-networking-in-DOSBox‐X{suffixappend}[Setting up networking in DOSBox-X] guide page for more information.
 * **Support for phone book mapping for the emulated modem**
 +
 With this feature you can map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.
+* **Support for direct browsing for UNC network paths (Windows only)**
++
+With this feature you can access or browse UNC network paths in the form \\COMPUTER\FOLDER directly on Windows systems, including listing, opening, writing, copying, and executing files on UNC network paths directly without having to mount them as DOS drives first.
 * **Support for Roland MT-32 emulation**
 +
 DOSBox-X integrates the emulation of Roland MT-32, which pre-dates General MIDI and was used by a broad range of DOS games (starting in 1988 with King’s Quest IV).
@@ -133,7 +142,7 @@ DOSBox-X supports the FluidSynth MIDI synthesizer, which allows you to use a wid
 The Innovation SSI-2001 sound card is supported in DOSBox-X as well, which gives the emulated system the sound capabilities of a Commodore 64.
 * **Support for pixel-perfect scaling video mode**
 +
-DOSBox-X supports the pixel-perfect scaling as an output option (output=openglpp), which improves the video image quality.
+DOSBox-X supports the pixel-perfect scaling as an output option ("output=openglpp"), which improves the video image quality.
 * **Support for loading OpenGL shaders either at start or dynamically**
 +
 The OpenGL (GLSL) shaders are fully supported by DOSBox-X for OpenGL outputs, and you can in fact load or change them dynamically in addition to loading them at start.
@@ -143,9 +152,9 @@ DOSBox-X supports Direct3D along with pixel shaders which provides many more out
 * **Support for TrueType fonts (TTF) for text-mode DOS applications**
 +
 DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display for DOS shell and program running in text-mode. Features such as on-screen text styles are supported in this output mode too. Look at the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page for more information.
-* **Support for additional code pages, including DBCS code pages used by CJK (Chinese/Japanese/Korean) languages**
+* **Support for additional code pages, including both SBCS and DBCS code pages**
 +
-DOSBox-X supports many additional code pages for conversions between the host and guest systems, both for the TrueType font (TTF) output and other outputs, and this includes DBCS code pages used by Chinese, Japanese, and Korean languages. With a suitable TTF font you will be able to run text-mode DOS applications in these languages using the TTF output as well as printing texts in these languages. Native DOS/V services are also supported by setting the ``dosv`` config option.
+DOSBox-X supports many additional code pages for conversions between the host and guest systems, both for the TrueType font (TTF) output and other outputs, and this includes standard SBCS code pages and also DBCS code pages used by Chinese, Japanese, and Korean languages. With a suitable TTF font you will be able to run text-mode DOS applications in these languages using the TTF output as well as printing texts in these languages.
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**
