@@ -47,6 +47,8 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * NEC PC-98, AX, DOS/V emulation and Chinese/Japanese/Korean support
 
+* Fully translatable user interfaces (with language files available)
+
 * Better support and compatibility with DOS applications
 
 * Support for more DOS commands and built-in external tools

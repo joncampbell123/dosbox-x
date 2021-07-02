@@ -22,7 +22,6 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installers for the current DOSBox-X version 0.83.15 are available from:
 
 * [dosbox-x-windows-0.83.15-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-windows-0.83.15-setup.exe) (Standard install mode; Windows XP or later)
-
 * [dosbox-x-windows-0.83.15-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-windows-0.83.15-setup-allusers.exe) (Administrative install mode; Windows Vista or later)
 
 Windows installers for the previous DOSBox-X versions are also available from:
@@ -48,8 +47,6 @@ The Visual Studio builds are the default Windows builds to use, but they only ru
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW SDL1 build for lower-end systems (mingw-lowend), MinGW SDL1 build with custom drawn menu (mingw-sdldraw), and MinGW SDL2 build (mingw-sdl2). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 ## Linux Packages (Flatpak or RPM)
-
-(Linux packages for version 0.83.15 coming soon)
 
 Both Flatpak and RPM packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
@@ -77,7 +74,7 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Official RPM packages are not available for the current version 0.83.14; you can however get locally built 64-bit Fedora RPM package from:
+Official RPM packages are not available for the current version 0.83.15; you can however get locally built 64-bit Fedora RPM package for version 0.83.14 from:
 
 * [dosbox-x-0.83.14-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.x86_64.rpm)
 
