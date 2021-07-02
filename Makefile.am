@@ -22,19 +22,22 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 		dylib=`basename $$Y`; \
 		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
 		codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
+		chmod 0755 "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
 		install_name_tool -change $$Y @executable_path/$$dylib dosbox-x.app/Contents/MacOS/DosBox; \
 	done
 # and the libs too. NTS: Cannot use install_name_tool anymore to change anything about dylib files because that invalidates code signing of those files
 	for pass in 1 2 3 4 5; do \
 		for dolib in dosbox-x.app/Contents/MacOS/*.dylib; do \
-			otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+			XB=`otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt|/opt/homebrew/' | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+			for Y in $$XB; do \
 				dylib=`basename $$Y`; \
 				if [ -f "dosbox-x.app/Contents/MacOS/$$dylib" ]; then true; else \
 					cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
 					codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
+					chmod 0755 "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
 				fi; \
-				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib"; \
-				install_name_tool -id @executable_path/$$dylib "$$dolib"; \
+				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib" || exit 1; \
+				install_name_tool -id @executable_path/$$dylib "$$dolib" || exit 1; \
 			done; \
 		done; \
 	done; \
