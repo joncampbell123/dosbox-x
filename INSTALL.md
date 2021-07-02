@@ -29,7 +29,7 @@ Windows installers for the previous DOSBox-X versions are also available from:
 * [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (version 0.83.14)
 * [dosbox-x-windows-0.83.13-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.13/dosbox-x-windows-0.83.13-setup.exe) (version 0.83.13)
 
-If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting```, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
+If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting``` when running an installer, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
@@ -74,13 +74,13 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Official RPM packages are not available for the current version 0.83.15; you can however get locally built 64-bit Fedora RPM package for version 0.83.14 from:
+Official RPM packages are not available for the current version 0.83.15; you can however get locally built 64-bit Fedora RPM package for it from:
 
-* [dosbox-x-0.83.14-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.x86_64.rpm)
+* [dosbox-x-0.83.15-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.x86_64.rpm)
 
 The Fedora RPM source code package:
 
-* [dosbox-x-0.83.14-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.src.rpm)
+* [dosbox-x-0.83.15-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.src.rpm)
 
 Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
@@ -119,7 +119,7 @@ brew fluid-synth
 brew libslirp
 ```
 
-If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as FluidSynth, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These are builds for "low-end" systems so there is no need for external libraries to run these builds in your macOS:
+If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as FluidSynth or libslirp, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These are intended to be builds for "low-end" systems with no need for external libraries to run them in your macOS:
 
 * [dosbox-x-macosx-0.83.15-high-sierra.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-0.83.15-high-sierra.zip)
 
