@@ -24,7 +24,7 @@
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com).
 
-Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows. DOSBox-X additionally features support for NEC PC-98 emulations so that you can play PC-98 games with it.
+Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows. DOSBox-X additionally features support for DOS/V and NEC PC-98 emulations so that you can play DOS/V and PC-98 games with it.
 
 Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use, while giving users the options to configure the DOS virtual machine. We implement new features with each official release, and also try our best to deliver a consistent cross-platform experience for users instead of focusing on a particular platform. In order to help improve the general DOS emulation and also to [help with new DOS developments](https://dosbox-x.com/newdosdevelopment.html), it is our desire to maintain and implement accurate emulation, and at the same time we are also making efforts to improve emulation quality, speed, and usability for end users. Furthermore, we hope to improve the out-of-the-box experience for new users who want to run DOS programs or games, while giving them the feeling that they are running native DOS systems.
 
@@ -46,6 +46,8 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 * Save and load state support (with up to 100 save slots + save files)
 
 * NEC PC-98, AX, DOS/V emulation and Chinese/Japanese/Korean support
+
+* Fully translatable user interfaces (with language files available)
 
 * Better support and compatibility with DOS applications
 
@@ -96,7 +98,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](https://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
 
-The latest version of DOSBox-X is 0.83.14, released on June 1, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+The latest version of DOSBox-X is 0.83.15, released on July 1, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 

@@ -31,10 +31,13 @@
 #include "dos_inc.h"
 #define INCJFONT 1
 #include "jfont.h"
-#if defined(LINUX) && C_X11
+#if defined(LINUX)
+#include <limits.h>
+#if C_X11
 #include <X11/Xlib.h>
 #include <X11/Xlocale.h>
 #include <X11/Xutil.h>
+#endif
 #endif
 
 #define ID_LEN 6
