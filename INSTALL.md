@@ -119,9 +119,15 @@ brew fluid-synth
 brew libslirp
 ```
 
-If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). There is no need for external libraries to run these builds:
+If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as FluidSynth, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These are builds for "low-end" systems so there is no need for external libraries to run these builds in your macOS:
 
 * [dosbox-x-macosx-0.83.15-high-sierra.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-0.83.15-high-sierra.zip)
+
+If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run the above builds, you should be able to solve the problem by executing the following command (once) in the Terminal and you are in the directory in which the zip package is extracted (where you can find two files including ```dosbox-x-sdl1``` and ```dosbox-x-sdl2```):
+
+``xattr -cr .``
+
+Then you should be able to run the binary ``dosbox-x-sdl1`` or ``dosbox-x-sdl2`` normally.
 
 For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
 
