@@ -95,10 +95,10 @@ Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), wh
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.15, the official macOS packages are available as zip packages:
 
 For 64-bit Intel-based macOS:
-* [dosbox-x-macosx-x86_64-20210701214958.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-x86_64-20210701214958.zip)
+* [dosbox-x-macosx-x86_64-20210703020047.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-x86_64-20210703020047.zip)
 
 For 64-bit ARM-based macOS:
-* [dosbox-x-macosx-arm64-20210701214931.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-arm64-20210701214931.zip)
+* [dosbox-x-macosx-arm64-20210703020142.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-arm64-20210703020142.zip)
 
 The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. While the SDL1 version is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support. You can select either SDL1 or SDL2 version according to your preference, or just run the SDL1 version if you are not sure.
 
@@ -112,11 +112,7 @@ If you see the message ```"dosbox-x" is damaged and can't be opened``` when tryi
 
 ``xattr -cr dosbox-x/dosbox-x.app dosbox-x-sdl2/dosbox-x.app``
 
-As of DOSBox-X version 0.83.15, the regular macOS builds listed above will run on macOS Catalina (10.15) or later; they include features such as Slirp, FluidSynth and FFmpeg by default and bundle dylib libraries needed for such features. If the build does not run on your system, you may need to install the ffmpeg library with [brew](https://brew.sh/) using the following command (you only need to do this once before running the macOS build):
-
-```
-brew install ffmpeg
-```
+As of DOSBox-X version 0.83.15, the regular macOS builds listed above will run on macOS Catalina (10.15) or later; they include features such as Slirp, FluidSynth and FFmpeg by default and bundle dylib libraries needed for such features.
 
 If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as libslirp or libfluidsynth, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These are intended to be builds for "low-end" systems with no need for external libraries to run them in your macOS:
 
