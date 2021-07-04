@@ -575,17 +575,22 @@ static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
+extern uint8_t ZDRIVE_NUM;
 
+char *str_replace(char *orig, char *rep, char *with);
 void GetExpandedPath(std::string &path) {
-    if (path=="Z:\\"||path=="z:\\")
-        path=path_string+5;
-    else if (path.size()>3&&(path.substr(0, 4)=="Z:\\;"||path.substr(0, 4)=="z:\\;")&&path.substr(4).find("Z:\\")==std::string::npos&&path.substr(4).find("z:\\")==std::string::npos)
-        path=std::string(path_string+5)+path.substr(3);
+    std::string udrive = std::string(1,ZDRIVE_NUM+'A'), ldrive = std::string(1,ZDRIVE_NUM+'a');
+    char pathstr[100];
+    strcpy(pathstr, path_string+5);
+    if (path==udrive+":\\"||path==ldrive+":\\")
+        path=ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str());
+    else if (path.size()>3&&(path.substr(0, 4)==udrive+":\\;"||path.substr(0, 4)==ldrive+":\\;")&&path.substr(4).find(udrive+":\\")==std::string::npos&&path.substr(4).find(ldrive+":\\")==std::string::npos)
+        path=std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(3);
     else if (path.size()>3) {
-        size_t pos = path.find(";Z:\\");
-        if (pos == std::string::npos) pos = path.find(";z:\\");
-        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find("Z:\\")==std::string::npos&&path.substr(pos+4).find("z:\\")==std::string::npos))
-            path=path.substr(0, pos+1)+std::string(path_string+5)+path.substr(pos+4);
+        size_t pos = path.find(";"+udrive+":\\");
+        if (pos == std::string::npos) pos = path.find(";"+ldrive+":\\");
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos))
+            path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(pos+4);
     }
 }
 
