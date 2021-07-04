@@ -1690,7 +1690,7 @@ public:
 			ENABLE_V86_STARTUP=false;
 		}
 		if (ENABLE_V86_STARTUP && !ENABLE_VCPI) {
-			LOG_MSG("EMS: DOSBox does not support enabling virtual 8086 mode without VCPI.");
+			LOG_MSG("EMS: DOSBox-X does not support enabling virtual 8086 mode without VCPI.");
 			ENABLE_V86_STARTUP=false;
 		}
 
