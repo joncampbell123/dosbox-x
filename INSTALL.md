@@ -7,7 +7,7 @@ The current version of DOSBox-X at this time is DOSBox-X 0.83.15, which was rele
 
 See also: [DOSBox-X 0.83.15 Release Notes](https://dosbox-x.com/release-0.83.15.html)
 
-For most packages there are both SDL1 and SDL2 builds of DOSBox-X, and most features are the same for both builds. While SDL1 build is the default one to use, you may want to try SDL2 build if you encounter specific issue(s) with SDL1 build, such as incorrect keys in some international keyboard layouts.
+For most packages there are both SDL1 and SDL2 builds of DOSBox-X, and most features are the same for both builds. While SDL1 builds may be the default one to use, you may want to try SDL2 builds if you want certain features specific to SDL2 builds (such as the raw mouse input option) or you encounter specific issue(s) with SDL1 builds (such as incorrect keys in some international keyboard layouts).
 
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki) for usage information.
 
