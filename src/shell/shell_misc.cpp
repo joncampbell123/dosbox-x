@@ -1210,6 +1210,14 @@ static const char * com_ext=".COM";
 static const char * exe_ext=".EXE";
 static char which_ret[DOS_PATHLENGTH+4], s_ret[DOS_PATHLENGTH+4];
 
+bool DOS_Shell::hasExecutableExtension(const char* name)
+{
+    auto extension = strrchr(name, '.');
+    if (!extension) return false;
+    return (strcasecmp(extension, com_ext) || strcasecmp(extension, exe_ext) ||
+            strcasecmp(extension, bat_ext));
+}
+
 char * DOS_Shell::Which(char * name) {
 	size_t name_len = strlen(name);
 	if(name_len >= DOS_PATHLENGTH) return 0;
@@ -1217,20 +1225,22 @@ char * DOS_Shell::Which(char * name) {
 	/* Parse through the Path to find the correct entry */
 	/* Check if name is already ok but just misses an extension */
 
-	if (DOS_FileExists(name)) return name;
-	upcase(name);
-	if (DOS_FileExists(name)) return name;
-	/* try to find .com .exe .bat */
-	strcpy(which_ret,name);
-	strcat(which_ret,com_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-	strcpy(which_ret,name);
-	strcat(which_ret,exe_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-	strcpy(which_ret,name);
-	strcat(which_ret,bat_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-
+	if (hasExecutableExtension(name)) {
+		if (DOS_FileExists(name)) return name;
+		upcase(name);
+		if (DOS_FileExists(name)) return name;
+	} else {
+		/* try to find .com .exe .bat */
+		strcpy(which_ret,name);
+		strcat(which_ret,com_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+		strcpy(which_ret,name);
+		strcat(which_ret,exe_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+		strcpy(which_ret,name);
+		strcat(which_ret,bat_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+	}
 
 	/* No Path in filename look through path environment string */
 	char path[DOS_PATHLENGTH];std::string temp;
@@ -1283,17 +1293,20 @@ char * DOS_Shell::Which(char * name) {
 			if((name_len + len + 1) >= DOS_PATHLENGTH) continue;
 			strcat(path,strchr(name, ' ')?("\""+std::string(name)+"\"").c_str():name);
 
-			strcpy(which_ret,path);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,com_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,exe_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,bat_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			if (hasExecutableExtension(path)) {
+				strcpy(which_ret,path);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			} else {
+				strcpy(which_ret,path);
+				strcat(which_ret,com_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+				strcpy(which_ret,path);
+				strcat(which_ret,exe_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+				strcpy(which_ret,path);
+				strcat(which_ret,bat_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			}
 		}
 	}
 	return 0;
