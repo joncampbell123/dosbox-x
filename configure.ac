@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.15,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.16,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -461,7 +461,7 @@ case "$host" in
            OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
        fi
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
-       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit"
+       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit"
        dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
@@ -761,6 +761,10 @@ if test x$enable_mt32 = xyes ; then
       AC_DEFINE(C_MT32,1)
       ;;
     i?86)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    arm)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
       ;;

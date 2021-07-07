@@ -7,6 +7,8 @@ The current version of DOSBox-X at this time is DOSBox-X 0.83.15, which was rele
 
 See also: [DOSBox-X 0.83.15 Release Notes](https://dosbox-x.com/release-0.83.15.html)
 
+For most packages there are both SDL1 and SDL2 builds of DOSBox-X, and most features are the same for both builds. While SDL1 builds may be the default one to use, you may want to try SDL2 builds if you want certain features specific to SDL2 builds (such as the raw mouse input option) or you encounter specific issue(s) with SDL1 builds (such as incorrect keys in some international keyboard layouts).
+
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki) for usage information.
 
 ## Packages for Supported Platforms
@@ -19,12 +21,9 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 ## Windows Packages (Installer or Portable)
 
-(Coming soon for DOSBox-X 0.83.15 installer)
-
 You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installers for the current DOSBox-X version 0.83.15 are available from:
 
 * [dosbox-x-windows-0.83.15-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-windows-0.83.15-setup.exe) (Standard install mode; Windows XP or later)
-
 * [dosbox-x-windows-0.83.15-setup-allusers.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-windows-0.83.15-setup-allusers.exe) (Administrative install mode; Windows Vista or later)
 
 Windows installers for the previous DOSBox-X versions are also available from:
@@ -32,7 +31,7 @@ Windows installers for the previous DOSBox-X versions are also available from:
 * [dosbox-x-windows-0.83.14-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-windows-0.83.14-setup.exe) (version 0.83.14)
 * [dosbox-x-windows-0.83.13-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.13/dosbox-x-windows-0.83.13-setup.exe) (version 0.83.13)
 
-If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting```, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
+If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting``` when running an installer, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
@@ -42,16 +41,14 @@ Apart from the Windows installers, you can find six zip packages (three before 0
 * [osbox-x-vsbuild-win64-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-win64-20210701083944.zip) (Visual Studio Win64 builds)
 * [dosbox-x-vsbuild-arm32-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-arm32-20210701083944.zip) (Visual Studio ARM32 builds)
 * [dosbox-x-vsbuild-win64-20210701083944.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-vsbuild-win64-20210701083944.zip) (Visual Studio ARM64 builds)
-* [dosbox-x-mingw-win32-20210601022419.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-mingw-win32-20210601022419.zip) (MinGW Win32 builds)
-* [dosbox-x-mingw-win64-20210601074604.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-mingw-win64-20210601074604.zip) (MinGW Win64 builds)
+* [dosbox-x-mingw-win32-20210701094904.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-win32-20210701094904.zip) (MinGW Win32 builds)
+* [dosbox-x-mingw-win64-20210701114008.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-win64-20210701114008.zip) (MinGW Win64 builds)
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). The MinGW builds will be required if you are running Windows XP. You may also want to use one of the MinGW builds (plain, lowend, etc) if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features (particularly related to input handling) such as better international keyboard support.
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW SDL1 build for lower-end systems (mingw-lowend), MinGW SDL1 build with custom drawn menu (mingw-sdldraw), and MinGW SDL2 build (mingw-sdl2). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 ## Linux Packages (Flatpak or RPM)
-
-(Linux packages for version 0.83.15 coming soon)
 
 Both Flatpak and RPM packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
@@ -79,13 +76,13 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Official RPM packages are not available for the current version 0.83.14; you can however get locally built 64-bit Fedora RPM package from:
+Official RPM packages are not available for the current version 0.83.15; you can however get locally built 64-bit Fedora RPM package for it from:
 
-* [dosbox-x-0.83.14-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.x86_64.rpm)
+* [dosbox-x-0.83.15-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.x86_64.rpm)
 
 The Fedora RPM source code package:
 
-* [dosbox-x-0.83.14-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.14-1.fc34.src.rpm)
+* [dosbox-x-0.83.15-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.src.rpm)
 
 Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
@@ -100,10 +97,10 @@ Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), wh
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.15, the official macOS packages are available as zip packages:
 
 For 64-bit Intel-based macOS:
-* [dosbox-x-macosx-x86_64-20210701081053.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-x86_64-20210701081053.zip)
+* [dosbox-x-macosx-x86_64-20210703020047.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-x86_64-20210703020047.zip)
 
 For 64-bit ARM-based macOS:
-* [dosbox-x-macosx-arm64-20210701081059.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-arm64-20210701081059.zip)
+* [dosbox-x-macosx-arm64-20210703020142.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-arm64-20210703020142.zip)
 
 The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. While the SDL1 version is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support. You can select either SDL1 or SDL2 version according to your preference, or just run the SDL1 version if you are not sure.
 
@@ -111,22 +108,23 @@ There are two ways to run DOSBox-X in macOS, either from the Finder or from the 
 
 * From the Finder, go to the directory where the macOS zip package is downloaded, you will see a folder name which is the same as the file name of the downloaded zip package. Inside this folder you will see ```dosbox-x``` (SDL1) and ```dosbox-x-sdl2``` (SDL2). Go to either one and click the program "dosbox-x" to start DOSBox-X. If you see a dialog asking you to select a folder, please select one which will then become your DOSBox-X working directory. You can choose to save this folder after you select one so that the folder selection dialog will no show up again next time, or let DOSBox-X show the folder selection dialog every time you run it from the Finder.
 
-* From the Terminal, go to the directory where the macOS zip package is downloaded, you will see a folder name which is the same as the file name of the downloaded zip package. Starting from this folder, use ```cd``` command to go to the directory where the DOSBox-X executable is located. For SDL1 build, type ```cd dosbox-x/dosbox-x.app/Contents/MacOS```, and for SDL2 build, type ```cd dosbox-x-sdl2/dosbox-x.app/Contents/MacOS```. Run DOSBox-X with ```./DosBox``` and you will see the DOSBox-X window. 
+* From the Terminal, go to the directory where the macOS zip package is downloaded, you will see a folder name which is the same as the file name of the downloaded zip package. Starting from this folder, use ```cd``` command to go to the directory where the DOSBox-X executable is located. For SDL1 build, type ```cd dosbox-x/dosbox-x.app/Contents/MacOS```, and for SDL2 build, type ```cd dosbox-x-sdl2/dosbox-x.app/Contents/MacOS```. Run DOSBox-X with ```./DosBox``` and you will see the DOSBox-X window.
 
 If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run DOSBox-X, you should be able to solve the problem by running the following command once in the Terminal and you are in the directory in which the macOS zip package is extracted (where you can find two folders including ```dosbox-x``` and ```dosbox-x-sdl2```):
 
 ``xattr -cr dosbox-x/dosbox-x.app dosbox-x-sdl2/dosbox-x.app``
 
-As of DOSBox-X version 0.83.15, macOS packages support the Slirp and FluidSynth features by default, but you need to make sure both libraries are already installed in your macOS system in order to run this build. You can install them via [brew](https://brew.sh/) with the following commands (you only need to do this once):
+As of DOSBox-X version 0.83.15, the regular macOS builds listed above will run on macOS Catalina (10.15) or later; they include features such as Slirp, FluidSynth and FFmpeg by default and bundle dylib libraries needed for such features.
 
-```
-brew fluid-synth
-brew libslirp
-```
+If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as libslirp or libfluidsynth, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These are intended to be builds for "low-end" systems with no need for external libraries to run them in your macOS:
 
-If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package):
+* [dosbox-x-macosx-0.83.15-high-sierra.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-macosx-0.83.15-high-sierra.zip)
 
-* [dosbox-x-macosx-x86_64-10_13.zip](https://github.com/Wengier/dosbox-x-wiki/raw/master/dosbox-x-macosx-x86_64-10_13.zip)
+If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run the above builds, you should be able to solve the problem by executing the following command (once) in the Terminal and you are in the directory in which the zip package is extracted (where you can find two files including ```dosbox-x-sdl1``` and ```dosbox-x-sdl2```):
+
+``xattr -cr .``
+
+Then you should be able to run the binary ``dosbox-x-sdl1`` or ``dosbox-x-sdl2`` normally.
 
 For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
 
@@ -144,9 +142,9 @@ For the current DOSBox-X version 0.83.15, the official DOS version is available 
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.14 using this approach is available from:
+Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.15 using this approach is available from:
 
-* [dosbox-x-dos-0.83.14-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.14/dosbox-x-dos-0.83.14-loadlin.zip)
+* [dosbox-x-dos-0.83.15-loadlin.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-dos-0.83.15-loadlin.zip)
 
 With this LOADLIN DOS package you can run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` and ```cputype=pentium``` (perhaps also ```fullscreen=true``` and/or ```autolock=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 

@@ -1,3 +1,9 @@
+0.83.16
+  - Enabled MT-32 emulation on ARM-based Mac OS X
+    builds (joncampbell123)
+  - Fixed the option "drive z expand path" not working
+    if Virtual Drive Z: has been moved to a different
+    drive letter (e.g. Drive Y:). (Wengier)
 0.83.15
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.15.html
