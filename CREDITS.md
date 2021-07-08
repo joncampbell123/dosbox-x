@@ -9,7 +9,7 @@ The base code is from the [DOSBox](https://www.dosbox.com) project in which some
 
 Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
 
-A list of features ported from DOSBox SVN Daum:
+A list of features ported from DOSBox SVN Daum (maintainer: ykhwong):
 
 * GUI menu bar (heavily improved since then)
 * Some commands (PROMPT, MOUSE, VOL, DEVICE, etc)
@@ -25,7 +25,7 @@ A list of features ported from DOSBox SVN Daum:
 * Features such as V-Sync, xBRZ scaler, overscan border and stereo-swap
 * Various patches such as DBCS and font patch
 
-A list of features ported from DOSBox ECE:
+A list of features ported from DOSBox ECE (maintainer: YesterPlay):
 
 * Support for FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks (with some decoders ported and cleaned up from DOSBox Staging and DOSBox Optionals by Wengier)
 * Support for mapping mouse buttons to keyboard
@@ -33,20 +33,20 @@ A list of features ported from DOSBox ECE:
 * Improved support for FluidSynth MIDI synthesizer (internal FluidSynth support added for Windows by Wengier)
 * Updated Nuked OPL3 to 1.8
 
-A list of features ported from DOSBox Staging:
+A list of features ported from DOSBox Staging (maintainers: dreamer & kcgen):
 
 * AUTOTYPE command for scripted keyboard entry
 * LS command (heavily improved since then by Wengier)
 * Modem phonebook support
 * Support for changing key bindings in runtime (improved since then by Wengier)
 
-A list of features ported from DOSVAXJ3:
+A list of features ported from DOSVAXJ3 (maintainer: nanshiki):
 
 * Support for JEGA/AX machine type (improved since then by Wengier)
 * Support for DOS/V service (cleaned up and improved by Wengier, including support for non-Japanese DOS/V modes)
-* Support for system input methods (IMEs) in Windows SDL1 builds (from SDL-IM-plus, cleaned up and improved by Wengier)
+* Support for system input methods (IMEs) in Windows SDL1 builds (SDL-IM-plus by the same developer, cleaned up and improved by Wengier)
 
-A list of features ported from vDosPlus by Wengier:
+A list of features ported from vDosPlus (maintainer: Wengier):
 
 * Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
 * TrueType font (TTF) output support (originally by Jos Schaars and heavily improved since then by Wengier)
@@ -92,8 +92,11 @@ PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
 
 QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
 
+JEGA and DOS/V support (nanshiki, Wengier; GPLv2+) include/jfont.h src/ints/int_dosv.cpp
+
 PhysFS archive support (Ryan Gordon; zlib licence) src/libs/physfs/*
 
 Tiny File Dialogs (vareille; zlib licence) src/libs/tinyfiledialogs/*
 
 MAME CHD support (Romain Tisserand; BSD 3-clause) src/libs/libchdr/*
+
