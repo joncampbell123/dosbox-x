@@ -2337,7 +2337,7 @@ static Bitu DOS_21Handler(void) {
         case 0x63:                  /* DOUBLE BYTE CHARACTER SET */
             if(reg_al == 0 && dos.tables.dbcs != 0) {
                 SegSet16(ds,RealSeg(dos.tables.dbcs));
-                reg_si=RealOff(dos.tables.dbcs);        
+                reg_si=RealOff(dos.tables.dbcs) + 2;        
                 reg_al = 0;
                 CALLBACK_SCF(false); //undocumented
             } else reg_al = 0xff; //Doesn't officially touch carry flag
