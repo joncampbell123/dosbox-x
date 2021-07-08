@@ -41,7 +41,7 @@ Brought to you by: joncampbell123 (Jonathan Campbell)
 
 Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
 
-* GUI menu bar and built-in graphical configuration tool
+* GUI drop-down menu and built-in graphical configuration tool
 
 * Save and load state support (with up to 100 save slots + save files)
 
@@ -331,7 +331,7 @@ project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X. Later on, DOSBox-X also incorporated several
 features and improvements from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/),
-[DOSBox Staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/).
+[DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/).
 
 The DOSBox-X project is also helped by its other developers and
 contributors such as Wengier, aybe, Allofich, and rderooy, who have
