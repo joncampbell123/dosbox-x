@@ -85,6 +85,7 @@ private:
 	
 private:
 	void ProcessCmdLineEnvVarStitution(char * line);
+	static bool hasExecutableExtension(const char* name);
 
 public:
 
