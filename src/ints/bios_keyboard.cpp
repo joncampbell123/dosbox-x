@@ -295,7 +295,7 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
 };
 
 #include <queue>
-std::queue <Bit16u>over_key_buffer;
+std::queue <uint16_t>over_key_buffer;
 
 bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
