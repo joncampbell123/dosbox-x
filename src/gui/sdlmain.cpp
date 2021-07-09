@@ -7396,7 +7396,7 @@ void SetIMPosition() {
             SDL_SetIMPosition((x+1) * ttf.pointsize / 2, (y+1) * ttf.pointsize);
         else
 #endif
-        SDL_SetIMPosition((x+1) * width, (y+1) * height - (DOSV_CheckCJKVideoMode()?2:0));
+        SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 	}
 }
 #endif
@@ -8173,7 +8173,7 @@ void GFX_Events() {
 				int len;
 				char chars[10];
 				if(len = SDL_FlushIMString(NULL)) {
-					uint16_t *buff = (uint16_t *)malloc((len + 2)), uname[2];
+					uint16_t *buff = (uint16_t *)malloc((len + 1)*sizeof(uint16_t)), uname[2];
 					SDL_FlushIMString(buff);
 					SetIMPosition();
 					for(int no = 0 ; no < len ; no++) {
