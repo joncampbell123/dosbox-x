@@ -1760,7 +1760,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
 			*_bytes_sector = 512;
-			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			*_sectors_cluster = stat.f_frsize/512 > 64? 64 : stat.f_frsize/512;
 			if (ratio>1) {
 				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
 				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
@@ -2624,7 +2624,7 @@ bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clu
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
 			*_bytes_sector = 512;
-			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			*_sectors_cluster = stat.f_frsize/512 > 64? 64 : stat.f_frsize/512;
 			if (ratio>1) {
 				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
 				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
