@@ -2,6 +2,10 @@
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
+  - Added support for inputing Japanese and Korean
+    characters using system input method (IME) using
+    the default "windib" video driver in Windows SDL1
+    build (in addition to "directx" driver). (nanshiki)
   - Fixed bug related to DBCS vector table. (nanshiki)
   - Fixed running e.g. built-in DEBUG command from a
     drive other than Z may not work. (cimarronm)
