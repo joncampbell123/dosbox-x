@@ -6561,30 +6561,14 @@ static void ADDKEY_ProgramStart(Program * * make) {
 class LS : public Program {
 public:
     void Run(void);
-private:
-	void PrintUsage() {
-        constexpr const char *msg =
-            "Lists directory contents.\n\nLS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
-            "  /A\tLists hidden and system files also.\n"
-            "  /L\tLists names one per line.\n"
-            "  /P\tPauses after each screenful of information.\n"
-            "  /Z\tDisplays short names even if LFN support is available.\n";
-        WriteOut(msg);
-	}
 };
 
 void LS::Run()
 {
-	// Hack To allow long commandlines
-	ChangeToLongCmd();
-
-	// Usage
-	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		PrintUsage();
-		return;
-	}
-	char *args=(char *)cmd->GetRawCmdline().c_str();
-	args=trim(args);
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
 	DOS_Shell temp;
 	temp.CMD_LS(args);
 }
@@ -6596,32 +6580,14 @@ static void LS_ProgramStart(Program * * make) {
 class HELP : public Program {
 public:
     void Run(void);
-private:
-	void PrintUsage() {
-        constexpr const char *msg =
-            "Shows DOSBox-X command help.\n\nHELP [/A or /ALL]\nHELP [command]\n\n"
-		    "   /A or /ALL   Lists all supported internal commands.\n"
-		    "   [command]    Shows help for the specified command.\n\n"
-            "\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
-			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
-			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
-            "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n";
-        WriteOut(msg);
-	}
 };
 
 void HELP::Run()
 {
-	// Hack To allow long commandlines
-	ChangeToLongCmd();
-
-	// Usage
-	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		PrintUsage();
-		return;
-	}
-	char *args=(char *)cmd->GetRawCmdline().c_str();
-	args=trim(args);
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
 	DOS_Shell temp;
 	temp.CMD_HELP(args);
 }
@@ -6629,7 +6595,6 @@ void HELP::Run()
 static void HELP_ProgramStart(Program * * make) {
     *make=new HELP;
 }
-
 
 class DELTREE : public Program {
 public:

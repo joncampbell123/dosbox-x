@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
@@ -1665,6 +1665,20 @@ HELP [command]
 注: [33;1mMOUNT[0m、[33;1mIMGMOUNT[0m のような外部コマンドは HELP [/A] の一覧に表示されません
     これらのコマンドは Z: ドライブにプログラムとして存在します (例: MOUNT.COM)
     [33;1mcommand /?[0mまたは[33;1mHELP command[0m でそれらのコマンドのヘルプ情報を表示できます
+
+.
+:SHELL_CMD_LS_HELP
+ディレクトリの内容を一覧表示します。
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [drive:][path][filename] [/A] [/L] [/P] [/Z]
+
+  /A     非表示ファイルとシステムファイルも一覧表示します。
+  /L     1行に1つずつ名前を一覧表示します。
+  /P     1画面毎に停止して表示します。
+  /Z     LFN サポートが利用可能な場合でも短い名前を表示します。
+
 .
 :SHELL_CMD_MKDIR_HELP
 ディレクトリを作成します。

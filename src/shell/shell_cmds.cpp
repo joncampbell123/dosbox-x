@@ -958,7 +958,7 @@ void DOS_Shell::CMD_TREE(char * args) {
 }
 
 void DOS_Shell::CMD_HELP(char * args){
-	//HELP("HELP");
+	HELP("HELP");
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
 	/* Print the help */
 	args = trim(args);
@@ -1928,7 +1928,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 }
 
 void DOS_Shell::CMD_LS(char *args) {
-	//HELP("LS");
+	HELP("LS");
 	bool optA=ScanCMDBool(args,"A");
 	bool optL=ScanCMDBool(args,"L");
 	bool optP=ScanCMDBool(args,"P");

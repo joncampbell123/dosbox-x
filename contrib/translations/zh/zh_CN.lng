@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:建议使用中文DOS/V模式或者TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -1656,6 +1656,19 @@ HELP [命令]
 注释: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不会被 HELP [/A] 命令列出.
       这些命令可以在 Z 盘中作为程序找到 (比如 MOUNT.COM).
       输入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 显示此命令的帮助信息.
+
+.
+:SHELL_CMD_LS_HELP
+列出目录内容.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [驱动器:][路径][文件名] [/A] [/L] [/P] [/Z]
+
+  /A     亦列出隐藏文件和系统文件.
+  /L     每行显示一个文件或目录.
+  /P     显示完一屏后暂停.
+  /Z     显示短文件名,即使长文件名可用.
 
 .
 :SHELL_CMD_MKDIR_HELP

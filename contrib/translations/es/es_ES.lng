@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
@@ -1347,12 +1347,18 @@ HELP [comando]
      /A o /ALL    Lista todos los comandos internos.
      [comando]    Muestra ayuda del caomando indicado.
 
-←[0mE.g., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m muestra informaci¢n de ayuda del comando COPY.
+←[0mE.g., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m muestra información de ayuda del comando COPY.
 
 Nota: Comandos externos como ←[33;1mMOUNT←[0m e ←[33;1mIMGMOUNT←[0m no son listados por HELP [/A].
-      Estos comandos se encuentran en la unidad Z: como programas (p.ej. MOUNT.COM).
-      Teclea ←[33;1mcomando /?←[0m o ←[33;1mHELP comando←[0m para información de ayuda para ese comando.
+Estos comandos se encuentran en la unidad Z: como programas (p.ej. MOUNT.COM).
+Teclea ←[33;1mcomando /?←[0m o ←[33;1mHELP comando←[0m para información de ayuda para ese comando.
 
+.
+:SHELL_CMD_LS_HELP
+Muestra el contenido del directorio.◙
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [unidad:][ruta][fichero] [/A] [/L] [/P] [/Z]◙◙  /A     También enumera los archivos ocultos y del sistema.◙  /L     Enumera los nombres uno por línea.◙  /P     Hace una pausa después de cada pantalla llena de información.◙  /Z     Muestra SFN incluso si la compatibilidad con LFN está disponible.◙
 .
 :SHELL_CMD_MKDIR_HELP
 Crea un directorio.◙
