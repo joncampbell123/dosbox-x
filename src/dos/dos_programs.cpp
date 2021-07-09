@@ -7933,6 +7933,7 @@ void DOS_SetupPrograms(void) {
     VFILE_Register("BIN", 0, 0, "/");
     VFILE_Register("4DOS", 0, 0, "/");
 
+    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
@@ -7963,7 +7964,6 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");

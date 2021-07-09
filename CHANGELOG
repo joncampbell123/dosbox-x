@@ -2,6 +2,7 @@
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
+  - Fixed bug related to DBCS vector table. (nanshiki)
   - Fixed running e.g. built-in DEBUG command from a
     drive other than Z may not work. (cimarronm)
   - Fixed the command "FOR %I ..." not working when
