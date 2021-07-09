@@ -6593,6 +6593,44 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class HELP : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Shows DOSBox-X command help.\n\nHELP [/A or /ALL]\nHELP [command]\n\n"
+		    "   /A or /ALL   Lists all supported internal commands.\n"
+		    "   [command]    Shows help for the specified command.\n\n"
+            "\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
+			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
+			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
+            "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n";
+        WriteOut(msg);
+	}
+};
+
+void HELP::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_HELP(args);
+}
+
+static void HELP_ProgramStart(Program * * make) {
+    *make=new HELP;
+}
+
+
 class DELTREE : public Program {
 public:
     void Run(void);
@@ -7925,6 +7963,7 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");

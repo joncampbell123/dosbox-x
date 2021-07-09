@@ -1,4 +1,11 @@
 0.83.16
+  - HELP command is now an external command appearing
+    on Z drive rather than an internal shell command
+    (it is never a DOS internal command). (Wengier)
+  - Fixed running e.g. built-in DEBUG command from a
+    drive other than Z may not work. (cimarronm)
+  - Fixed the command "FOR %I ..." not working when
+    executed from the command line. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
   - Fixed the option "drive z expand path" not working
