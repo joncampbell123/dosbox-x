@@ -98,6 +98,7 @@ int DIB_HandleComposition(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 static COMPOSITIONFORM form;
 extern Uint32 end_ticks;
 extern wchar_t CompositionFontName[LF_FACESIZE];
+#define	IME_END_CR_WAIT		50
 #endif
 
 
@@ -315,9 +316,16 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				}
 			}
 #endif /* NO_GETKEYBOARDSTATE */
-			posted = SDL_PrivateKeyboard(SDL_PRESSED,
-				TranslateKey(wParam,HIWORD(lParam),&keysym,1));
-		}
+            {
+                SDL_keysym *key =  TranslateKey(wParam,HIWORD(lParam),&keysym,1);
+#ifdef ENABLE_IM_EVENT
+                if (!IM_Context.bCompos && (GetTickCount() - end_ticks > IME_END_CR_WAIT || key->sym != 0x0d))
+#endif
+                {
+                    posted = SDL_PrivateKeyboard(SDL_PRESSED,key);
+                }
+            }
+        }
 		return(0);
 
 		case WM_INITMENU:
@@ -562,6 +570,13 @@ void DIB_PumpEvents(_THIS)
 
 	while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) {
 		if ( GetMessage(&msg, NULL, 0, 0) > 0 ) {
+#ifdef ENABLE_IM_EVENT
+			if (IM_Context.bEnable) {
+				if(msg.message != WM_SYSKEYDOWN && msg.message != WM_SYSKEYUP) {
+					TranslateMessage( &msg ); /* for IME */
+				}
+			}
+#endif
 			DispatchMessage(&msg);
 		}
 	}
