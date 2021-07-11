@@ -56,6 +56,7 @@ static Window font_window;
 static Pixmap font_pixmap;
 static GC font_gc;
 static XFontSet font_set16;
+static XFontSet font_set14;
 static XFontSet font_set24;
 #endif
 
@@ -94,6 +95,7 @@ static enum DOSV_VTEXT_MODE dosv_vtext_mode[VTEXT_MODE_COUNT];
 static enum DOSV_FEP_CTRL dosv_fep_ctrl;
 #if defined(WIN32)
 static HFONT jfont_16;
+static HFONT jfont_14;
 static HFONT jfont_24;
 #endif
 #if defined(USE_TTF)
@@ -299,6 +301,9 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	if(height == 24) {
 		if(font_set24 == NULL) return false;
 		XwcTextExtents(font_set24, text, 2, &ir, &lr);
+	} else if(height == 14) {
+		if(font_set14 == NULL) return false;
+		XwcTextExtents(font_set14, text, 2, &ir, &lr);
 	} else {
 		if(font_set16 == NULL) return false;
 		XwcTextExtents(font_set16, text, 2, &ir, &lr);
@@ -306,7 +311,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
 	XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
 	XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
-	XwcDrawString(font_display, font_pixmap, height == 24? font_set24 : font_set16, font_gc, 0, lr.height - (ir.height + ir.y), text, 2);
+	XwcDrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), text, 2);
 	XImage *image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
 	if(image != NULL) {
 		int x, y;
@@ -329,7 +334,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 					font_mask = 0x80;
 				}
 			}
-			if(width == 12) {
+			if(width == 12 || width == 14) {
 				pt++;
 				*buff++ = data;
 				data = 0;
@@ -342,7 +347,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	}
 #endif
 #if defined(WIN32)
-	HFONT font = (height == 16) ? jfont_16 : jfont_24;
+	HFONT font = (height == 16) ? jfont_16 : (height == 24) ? jfont_24 : jfont_14;
 	if(font != NULL) {
 		HDC hdc = GetDC(NULL);
 		HFONT old_font = (HFONT)SelectObject(hdc, font);
@@ -360,7 +365,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 			Bitu off_y = tm.tmAscent - gm.gmptGlyphOrigin.y;
 			Bitu pos = off_y;
 			Bitu count = (1 + (gm.gmBlackBoxX / 32)) * 4;
-			if(width >= 16 || (width == 12 && height == 24)) {
+			if(width >= 14 || (width == 12 && height == 24)) {
 				pos += off_y;
 				if(width == 24) {
 					pos += off_y;
@@ -377,7 +382,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 					bit >>= 1;
 				}
 				buff[pos++] = (data >> 16) & 0xff;
-				if(width >= 16 || (width == 12 && height == 24)) {
+				if(width >= 14 || (width == 12 && height == 24)) {
 					buff[pos++] = (data >> 8) & 0xff;
 					if(width == 24) {
 						buff[pos++] = data & 0xff;
@@ -472,30 +477,37 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
     memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
     if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
     if(jfont_cache_dbcs_14[code] == 0) {
-        if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
-            code = GetConvertedCode(code);
-        int p = NAME_LEN+ID_LEN+3;
-        uint8_t size = SHMZN14X[p++];
-        fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
-        Bitu i=0;
-        while (i < size) {
-            table[i].start = (SHMZN14X[p] | (SHMZN14X[p+1] << 8));
-            table[i].end = (SHMZN14X[p+2] | (SHMZN14X[p+3] << 8));
-            i++;
-            p+=4;
-        }
-        for (i = 0; i < size; i++)
-            for (uint16_t c = table[i].start; c <= table[i].end; c++) {
-                if (c==code) {
-                    memcpy(&jfont_dbcs_14[code * 28], SHMZN14X+p, 28);
-                    jfont_cache_dbcs_14[code] = 1;
-                    is14 = true;
-                    return SHMZN14X+p;
-                }
-                p+=28;
+        if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
+            memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
+            jfont_cache_dbcs_14[code] = 1;
+            is14 = true;
+            return jfont_dbcs;
+        } else {
+            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
+                code = GetConvertedCode(code);
+            int p = NAME_LEN+ID_LEN+3;
+            uint8_t size = SHMZN14X[p++];
+            fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
+            Bitu i=0;
+            while (i < size) {
+                table[i].start = (SHMZN14X[p] | (SHMZN14X[p+1] << 8));
+                table[i].end = (SHMZN14X[p+2] | (SHMZN14X[p+3] << 8));
+                i++;
+                p+=4;
             }
-        is14 = false;
-        return GetDbcsFont(code);
+            for (i = 0; i < size; i++)
+                for (uint16_t c = table[i].start; c <= table[i].end; c++) {
+                    if (c==code) {
+                        memcpy(&jfont_dbcs_14[code * 28], SHMZN14X+p, 28);
+                        jfont_cache_dbcs_14[code] = 1;
+                        is14 = true;
+                        return SHMZN14X+p;
+                    }
+                    p+=28;
+                }
+            is14 = false;
+            return GetDbcsFont(code);
+        }
     } else {
         is14 = true;
         return &jfont_dbcs_14[code * 28];
@@ -576,6 +588,10 @@ void InitFontHandle()
 			font_set16 = XCreateFontSet(font_display, "-*-fixed-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
 		}
+		if(!font_set14) {
+			font_set14 = XCreateFontSet(font_display, "-*-fixed-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
+			XFreeStringList(missing_list);
+		}
 		if(!font_set24) {
 			font_set24 = XCreateFontSet(font_display, "-*-fixed-medium-r-normal--24-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
@@ -588,7 +604,7 @@ void InitFontHandle()
 	}
 #endif
 #if defined(WIN32)
-	if(jfont_16 == NULL || jfont_24 == NULL) {
+	if(jfont_16 == NULL || jfont_14 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
 		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_CDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:SHIFTJIS_CHARSET));
@@ -598,6 +614,8 @@ void InitFontHandle()
 		lf.lfPitchAndFamily = FIXED_PITCH;
 		strcpy(lf.lfFaceName, jfont_name);
 		jfont_16 = CreateFontIndirect(&lf);
+		lf.lfHeight = 14;
+		jfont_14 = CreateFontIndirect(&lf);
 		lf.lfHeight = 24;
 		jfont_24 = CreateFontIndirect(&lf);
 	}
