@@ -22,7 +22,10 @@
 #include "regionalloctracking.h"
 #include "parport.h"
 #include <time.h>
+#if !defined(__ANDROID__)
+/* NDK doesn't have this */
 #include <sys/timeb.h>
+#endif
 
 /* Really, Microsoft, Really?? You're the only compiler I know that doesn't understand ssize_t! */
 #if defined(_MSC_VER)
