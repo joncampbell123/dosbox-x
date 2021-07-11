@@ -23,7 +23,8 @@
 #include "parport.h"
 #include <time.h>
 #if !defined(__ANDROID__)
-/* NDK doesn't have this */
+/* Newer NDKs doesn't have this header.
+   It doesn't matter anyway */
 #include <sys/timeb.h>
 #endif
 

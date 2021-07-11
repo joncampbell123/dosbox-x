@@ -75,7 +75,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
     }
 #endif
 #if defined(C_HAVE_MEMFD_CREATE) && !defined(__ANDROID__) /* Try a Linux memfd which we can mmap twice, one read/write, one read/execute */
-/** NTS: Android NDK doesn't really have memfd_create, but automake claims so? **/
+/* Android NDK doesn't really have memfd_create, but automake claims so? */
     if (cache_code_start_ptr == NULL) {
         assert(cache_fd < 0);
         cache_fd = memfd_create("dosbox-dynamic-core-cache",MFD_CLOEXEC);
