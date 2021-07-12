@@ -641,7 +641,7 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                if (machine == MCH_CGA || machine == MCH_AMSTRAD) {
+                if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
                     WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 } else if (machine == MCH_HERC || machine == MCH_MDA) {

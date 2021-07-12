@@ -1240,7 +1240,7 @@ void RENDER_Init() {
 		MAPPER_AddHandler(HercBlend,MK_f8,MMOD1,"hercblend","Hercules Blending");
 	}
 
-	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_PCJR || machine==MCH_AMSTRAD) {
 		if(!mono_cga) {
             void IncreaseHue(bool pressed), DecreaseHue(bool pressed), CGAModel(bool pressed), Composite(bool pressed);
             MAPPER_AddHandler(DecreaseHue,MK_f7,MMOD1|MMOD3,"dechue","Decrease Hue");

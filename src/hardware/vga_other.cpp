@@ -350,11 +350,25 @@ static void update_cga16_color(void) {
 	double tv_brightness = 0.0; // hardcoded for simpler implementation
 	double tv_saturation = (new_cga ? 0.7 : 0.6);
 
-	bool bw = (vga.tandy.mode_control&4) != 0;
-	bool color_sel = (cga16_val&0x20) != 0;
-	bool background_i = (cga16_val&0x10) != 0;	// Really foreground intensity, but this is what the CGA schematic calls it.
-	bool bpp1 = (vga.tandy.mode_control&0x10) != 0;
-	uint8_t overscan = cga16_val&0x0f;  // aka foreground colour in 1bpp mode
+	bool bw;
+	bool color_sel;
+	bool background_i;
+	bool bpp1;
+	Bit8u overscan;
+	if (machine==MCH_PCJR) {
+	  tv_saturation = 1.0;
+	  bw = (vga.tandy.mode_control&4) != 0;
+	  color_sel = 1;
+	  background_i = 1;	// Really foreground intensity, but this is what the CGA schematic calls it.
+	  bpp1 = (vga.tandy.gfx_control & 0x08) != 0;
+	  overscan = 15;
+	} else {
+	  bw = (vga.tandy.mode_control&4) != 0;
+	  color_sel = (cga16_val&0x20) != 0;
+	  background_i = (cga16_val&0x10) != 0;	// Really foreground intensity, but this is what the CGA schematic calls it.
+	  bpp1 = (vga.tandy.mode_control&0x10) != 0;
+	  overscan = cga16_val&0x0f;  // aka foreground colour in 1bpp mode
+	}
 
 	double chroma_coefficient = new_cga ? 0.29 : 0.72;
 	double b_coefficient = new_cga ? 0.07 : 0;
@@ -394,7 +408,11 @@ static void update_cga16_color(void) {
 		double d = rgbi_coefficients[o];
 		pixel_clock_delay = (chroma_pixel_delays[o & 7]*chroma_coefficient + rgbi_pixel_delay*d)/(chroma_coefficient + d);
 	}
-	pixel_clock_delay -= 21.5*ns;  // correct for delay of color burst
+	if (machine==MCH_PCJR) {
+	  pixel_clock_delay += 60*ns;  // correct for delay of color burst
+	  if (!bpp1) pixel_clock_delay += 25*ns;  // correct for delay of color burst
+	} else
+	  pixel_clock_delay -= 21.5*ns;  // correct for delay of color burst
 
 	double hue_adjust = (-(90-33)-hue_offset+pixel_clock_delay)*tau/360.0;
 	double chroma_signals[8][4];
@@ -437,6 +455,10 @@ static void update_cga16_color(void) {
 		(Bitu)(4 + (color_sel&&!bw? 1 : 0) + (background_i ? 8 : 0)),
 		(Bitu)(6 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0))
 	};
+	Bitu PCJRpal[4] = {
+		vga.attr.palette[0], vga.attr.palette[1],
+		vga.attr.palette[2], vga.attr.palette[3]
+	};
 	for (uint8_t x=0; x<4; x++) {	 // Position of pixel in question
 		bool even = (x & 1) == 0;
 		for (uint8_t bits=0; bits<(even ? 0x10 : 0x40); ++bits) {
@@ -446,11 +468,17 @@ static void update_cga16_color(void) {
 				uint8_t rgbi;
 				if (bpp1)
 					rgbi = ((bits >> (3-p)) & (even ? 1 : 2)) != 0 ? overscan : 0;
-				else
+				else if (machine==MCH_PCJR) {
+					if (even)
+						rgbi = PCJRpal[(bits >> (2-(p&2)))&3];
+					else
+						rgbi = PCJRpal[(bits >> (4-((p+1)&6)))&3];
+				} else {
 					if (even)
 						rgbi = (uint8_t)CGApal[(bits >> (2-(p&2)))&3];
 					else
 						rgbi = (uint8_t)CGApal[(bits >> (4-((p+1)&6)))&3];
+				}
 				uint8_t c = rgbi & 7;
 				if (bw && c != 0)
 					c = 7;
@@ -624,13 +652,18 @@ void CGAModel(bool pressed) {
 	LOG_MSG("%s model CGA selected", new_cga ? "Late" : "Early");
 }
  
+static void PCJr_FindMode(void);
 void Composite(bool pressed) {
 	if (!pressed) return;
 	if (++cga_comp>2) cga_comp=0;
 	LOG_MSG("Composite output: %s",(cga_comp==0)?"auto":((cga_comp==1)?"on":"off"));
 	// switch RGB and Composite if in graphics mode
-	if (vga.tandy.mode_control & 0x2)
-		write_cga(0x3d8,vga.tandy.mode_control,1);
+	if (vga.tandy.mode_control & 0x2) {
+	  if (machine==MCH_PCJR)
+	    PCJr_FindMode();
+	  else
+	    write_cga(0x3d8,vga.tandy.mode_control,1);
+	}
 }
 
 static void tandy_update_palette() {
@@ -680,6 +713,7 @@ static void tandy_update_palette() {
 		default:
 			break;
 		}
+		update_cga16_color();
 	}
 }
 
@@ -709,6 +743,7 @@ static void TANDY_FindMode(void) {
 }
 
 static void PCJr_FindMode(void) {
+	new_cga = 1;
 	if (vga.tandy.mode_control & 0x2) {
 		if (vga.tandy.mode_control & 0x10) {
 			/* bit4 of mode control 1 signals 16 colour graphics mode */
@@ -717,10 +752,20 @@ static void PCJr_FindMode(void) {
 		} else if (vga.tandy.gfx_control & 0x08) {
 			/* bit3 of mode control 2 signals 2 colour graphics mode */
 			VGA_SetMode(M_TANDY2);
+			if (cga_comp==1 || (cga_comp==0 && !(vga.tandy.mode_control&0x4)))
+				VGA_SetMode(M_CGA16);
+			else
+				VGA_SetMode(M_TANDY2);
 		} else {
 			/* otherwise some 4-colour graphics mode */
-			if (vga.mode==M_TANDY16) VGA_SetModeNow(M_TANDY4);
-			else VGA_SetMode(M_TANDY4);
+			if (vga.mode==M_TANDY16) {
+			  if (cga_comp==1)
+			    VGA_SetModeNow(M_CGA16);
+			  else
+			    VGA_SetModeNow(M_TANDY4);
+			} else {
+			  if (cga_comp==1) VGA_SetMode(M_CGA16); else VGA_SetMode(M_TANDY4);
+			}
 		}
 		tandy_update_palette();
 	} else {
