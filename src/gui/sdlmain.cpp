@@ -10738,9 +10738,6 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("ttf"));
-    assert(section != NULL);
-
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
@@ -10749,9 +10746,9 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
         return false;
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.ttf","*.TTF"};
-    const char *lFilterDescription = "TrueType font files (*.ttf)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+    const char *lFilterPatterns[] = {"*.ttf","*.TTF","*.ttc","*.TTC","*.otf","*.OTF","*.fon","*.FON"};
+    const char *lFilterDescription = "TrueType font files (*.ttf, *.ttc, *.otf, *.fon)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),8,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
@@ -10759,7 +10756,6 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
-        std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
         if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
@@ -10807,7 +10803,6 @@ void Load_mapper_file() {
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
-        std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
         if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
@@ -10842,9 +10837,6 @@ void Load_mapper_file() {
 }
 
 void Restart_config_file() {
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
-    assert(section != NULL);
-
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;

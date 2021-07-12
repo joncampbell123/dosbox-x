@@ -3336,7 +3336,7 @@ bool isDBCSLB(uint8_t chr) {
     for (int i=0; i<6; i++) lead[i] = 0;
     if (isDBCSCP())
         for (int i=0; i<6; i++) {
-            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i);
+            lead[i] = mem_readb(Real2Phys(dos.tables.dbcs)+i+2);
             if (lead[i] == 0) break;
         }
     return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
