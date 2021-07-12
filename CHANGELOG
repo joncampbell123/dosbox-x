@@ -4,6 +4,8 @@
     (it is never a DOS internal command). (Wengier)
   - Added support for composite support for PCjr mode
     by porting patch from NewRisingSun. (Wengier)
+  - Improved the DOS/V font acquisition function on
+    the Linux platform (both SDL1 & SDL2). (Wengier)
   - Added support for 14-pixel height fonts for the
     DOS/V font system acquisition code. (nanshiki)
   - Added support for inputing Japanese and Korean

@@ -354,7 +354,7 @@ static void update_cga16_color(void) {
 	bool color_sel;
 	bool background_i;
 	bool bpp1;
-	Bit8u overscan;
+	uint8_t overscan;
 	if (machine==MCH_PCJR) {
 	  tv_saturation = 1.0;
 	  bw = (vga.tandy.mode_control&4) != 0;
