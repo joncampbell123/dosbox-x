@@ -286,30 +286,20 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 			wtext[0] = 0xff61 + (code - 0xa1);
 		else
 			wtext[0] = code;
+	} else if(code == 0x8160) {
+		wtext[0] = 0x301c;
+	} else if(code == 0x8161) {
+		wtext[0] = 0x2016;
+	} else if(code == 0x817c) {
+		wtext[0] = 0x2212;
+	} else if(code == 0x8150 || code == 0x815f || code == 0x8191 || code == 0x8192 || code == 0x81ca) {
+		// FULLWIDTH MACRON, FULLWIDTH REVERSE SOLIDUS, FULLWIDTH CENT SIGN, FULLWIDTH POUND SIGN, FULLWIDTH NOT SIGN
+		return false;
 	} else {
 		char src[4];
 		src[0] = code >> 8;
 		src[1] = code & 0xff;
 		src[2] = 0;
-		if (!CodePageGuestToHostUTF8(text,src)) return false;
-		len = 4;
-		for (int i=4; i>=0; i--) {
-			if (text[i]) break;
-			else len = i;
-		}
-        if (height == 24)
-            Xutf8TextExtents(font_set24, text, len, &ir, &lr);
-        else if (height == 14)
-            Xutf8TextExtents(font_set14, text, len, &ir, &lr);
-        else
-            Xutf8TextExtents(font_set16, text, len, &ir, &lr);
-        XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
-        XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
-        XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
-        Xutf8DrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), text, len);
-        image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
-        if (image == NULL) return false;
-        wtext[0] &= 0xffff;
         if (!CodePageGuestToHostUTF16((uint16_t *)wtext,src)) return false;
 	}
 	wtext[1] = ']';
@@ -322,6 +312,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 		XwcTextExtents(font_set14, wtext, len, &ir, &lr);
 	else
 		XwcTextExtents(font_set16, wtext, len, &ir, &lr);
+	if(lr.width <= width) return false;
 	XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
 	XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
 	XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
@@ -597,7 +588,6 @@ void InitFontHandle()
 	if(!font_display)
 		font_display = XOpenDisplay("");
 	if(font_display) {
-		setlocale(LC_CTYPE,"");
 		if(!font_set16) {
 			font_set16 = XCreateFontSet(font_display, "-*-fixed-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
@@ -674,6 +664,8 @@ bool MakeSbcs24Font() {
 }
 
 void JFONT_Init() {
+	setlocale(LC_CTYPE,"");
+
 	jfont_init = true;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
