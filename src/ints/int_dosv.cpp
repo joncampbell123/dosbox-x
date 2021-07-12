@@ -274,11 +274,11 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 {
 #if defined(LINUX) && C_X11
 	XRectangle ir, lr;
+	XImage *image;
 	size_t len;
-	bool useutf8;
 	wchar_t wtext[4];
 	char text[5] = { 0, 0, 0, 0, 0 };
-
+	if((height == 24 && font_set24 == NULL) || (height == 14 && font_set14 == NULL) || (height != 24 && height != 14 && font_set16 == NULL)) return false;
 	if(code < 0x100) {
 		if(code == 0x5c && !(IS_DOSV && !IS_JDOSV)) // yen
 			wtext[0] = 0xa5;
@@ -286,10 +286,6 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 			wtext[0] = 0xff61 + (code - 0xa1);
 		else
 			wtext[0] = code;
-		wtext[1] = ']';
-		wtext[2] = 0;
-		len = 2;
-		useutf8 = false;
 	} else {
 		char src[4];
 		src[0] = code >> 8;
@@ -301,30 +297,36 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 			if (text[i]) break;
 			else len = i;
 		}
-		useutf8 = true;
+        if (height == 24)
+            Xutf8TextExtents(font_set24, text, len, &ir, &lr);
+        else if (height == 14)
+            Xutf8TextExtents(font_set14, text, len, &ir, &lr);
+        else
+            Xutf8TextExtents(font_set16, text, len, &ir, &lr);
+        XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
+        XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
+        XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
+        Xutf8DrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), text, len);
+        image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
+        if (image == NULL) return false;
+        wtext[0] &= 0xffff;
+        if (!CodePageGuestToHostUTF16((uint16_t *)wtext,src)) return false;
 	}
-
+	wtext[1] = ']';
+	wtext[2] = 0;
+	len = 2;
 	memset(buff, 0, (width / 8) * height);
-
-	if(height == 24) {
-		if(font_set24 == NULL) return false;
-		if(useutf8) Xutf8TextExtents(font_set24, text, len, &ir, &lr);
-		else XwcTextExtents(font_set24, wtext, len, &ir, &lr);
-	} else if(height == 14) {
-		if(font_set14 == NULL) return false;
-		if(useutf8) Xutf8TextExtents(font_set14, text, len, &ir, &lr);
-		else XwcTextExtents(font_set14, wtext, len, &ir, &lr);
-	} else {
-		if(font_set16 == NULL) return false;
-		if(useutf8) Xutf8TextExtents(font_set16, text, len, &ir, &lr);
-		else XwcTextExtents(font_set16, wtext, len, &ir, &lr);
-	}
+	if(height == 24)
+		XwcTextExtents(font_set24, wtext, len, &ir, &lr);
+	else if(height == 14)
+		XwcTextExtents(font_set14, wtext, len, &ir, &lr);
+	else
+		XwcTextExtents(font_set16, wtext, len, &ir, &lr);
 	XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
 	XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
 	XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
-	if(useutf8) Xutf8DrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), text, len);
-	else XwcDrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), wtext, len);
-	XImage *image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
+	XwcDrawString(font_display, font_pixmap, (height == 16) ? font_set16 : (height == 24) ? font_set24 : font_set14, font_gc, 0, lr.height - (ir.height + ir.y), wtext, len);
+	image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
 	if(image != NULL) {
 		int x, y;
 		for(y = 0 ; y < height ; y++) {
@@ -592,10 +594,10 @@ void InitFontHandle()
 	char **missing_list;
 	char *def_string;
 
-	if(!font_display) {
+	if(!font_display)
 		font_display = XOpenDisplay("");
-	}
 	if(font_display) {
+		setlocale(LC_CTYPE,"");
 		if(!font_set16) {
 			font_set16 = XCreateFontSet(font_display, "-*-fixed-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
@@ -672,7 +674,7 @@ bool MakeSbcs24Font() {
 }
 
 void JFONT_Init() {
-    jfont_init = true;
+	jfont_init = true;
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
 #endif
