@@ -74,7 +74,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         else cache_code_start_ptr = NULL; /* MAP_FAILED is NOT NULL (or at least we cannot assume that) */
     }
 #endif
-#if defined(C_HAVE_MEMFD_CREATE) && !defined(__ANDROID__) /* Try a Linux memfd which we can mmap twice, one read/write, one read/execute */
+#if defined(C_HAVE_MEMFD_CREATE) && !defined(__ANDROID__) && !defined(ANDROID) /* Try a Linux memfd which we can mmap twice, one read/write, one read/execute */
 /* Android NDK doesn't really have memfd_create, but automake claims so? */
     if (cache_code_start_ptr == NULL) {
         assert(cache_fd < 0);
