@@ -8309,7 +8309,8 @@ void SDL_SetupConfigSection() {
 	Pstring->Set_values(clipboardbutton);
 	Pstring->Set_help("Select the mouse button or use arrow keys for the shared clipboard copy/paste function.\n"
 		"The default mouse button is \"right\", which means using the right mouse button to select text, copy to and paste from the host clipboard.\n"
-		"Set to \"middle\" to use the middle mouse button, \"arrows\" to use arrow keys instead of a mouse button, or \"none\" to disable this feature.");
+		"Set to \"middle\" to use the middle mouse button, \"arrows\" to use arrow keys instead of a mouse button, or \"none\" to disable this feature.\n"
+		"For \"arrows\", press Home key (or Fn+Shift+Left on Mac laptops) to start selection, and End key (or Fn+Shift+Right on Mac laptops) to end selection.");
     Pstring->SetBasic(true);
 
 	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", 0};
