@@ -10,6 +10,9 @@
     customize the font file to load. (Wengier)
   - Added support for composite support for PCjr mode
     by porting patch from NewRisingSun. (Wengier)
+  - Non-Japanese DOS/V systems will now use 19-pixel
+    VGA fonts rather than 16-pixel VGA fonts for SBCS
+    characteres to look better. (Wengier)
   - Improved the DOS/V font acquisition function on
     the Linux platform (both SDL1 & SDL2). (Wengier)
   - Added support for 14-pixel height fonts for the
