@@ -2660,6 +2660,77 @@ public:
     }
 };
 
+class MessageBox3 : public GUI::ToplevelWindow {
+protected:
+	Label *message;
+	Button *update, *close;
+    WindowInWindow *wiw;
+public:
+	/// Create a new message box
+	template <typename STR> MessageBox3(Screen *parent, int x, int y, int width, const STR title, const STR text) :
+		ToplevelWindow(parent, x, y, width, 1, title) {
+		wiw = new WindowInWindow(this, 5, 5, width-border_left-border_right-10, 70);
+		message = new Label(wiw, 0, 0, text, width-border_left-border_right-10);
+		update = new GUI::Button(this, (width-border_left-border_right-30-70*2)/2, 10, MSG_Get("UPDATE"), 70);
+		update->addActionHandler(this);
+		close = new GUI::Button(this, (width-border_left-border_right-10)/2, 10, MSG_Get("CLOSE"), 70);
+		close->addActionHandler(this);
+		setText(text);
+
+		close->raise(); /* make sure keyboard focus is on the close button */
+		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
+	}
+
+	/// Set a new text. Size of the box is adjusted accordingly.
+	template <typename STR> void setText(const STR text) {
+        int sfh;
+        int msgw;
+        bool scroll = true;
+
+        msgw = width-border_left-border_right-10;
+        message->resize(msgw, message->getHeight());
+		message->setText(text);
+
+        {
+            Screen *s = getScreen();
+            sfh = s->getHeight() - 70 - border_top - border_bottom;
+            if (sfh > (15+message->getHeight())) {
+                sfh = (15+message->getHeight());
+                scroll = false;
+            }
+        }
+
+        wiw->enableBorder(scroll);
+        wiw->enableScrollBars(false/*h*/,scroll/*v*/);
+        if (scroll) {
+            msgw -= wiw->vscroll_display_width;
+            msgw -= 2/*border*/;
+            message->resize(msgw, message->getHeight());
+        }
+
+		update->move((width-border_left-border_right-30-70*2)/2, sfh);
+		close->move((width-border_left-border_right-10)/2, sfh);
+        wiw->resize(width-border_left-border_right-10, sfh-10);
+		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
+	}
+
+	virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+	virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            close->executeAction();
+            return true;
+        }
+
+        return false;
+    }
+};
+
 extern int titlebar_y_start;
 extern int titlebar_y_stop;
 

@@ -889,14 +889,14 @@ std::string RestoreName(std::string name) {
 }
 
 #if C_DEBUG
-class LogWindow : public GUI::MessageBox2 {
+class LogWindow : public GUI::MessageBox3 {
 public:
     std::vector<GUI::Char> cfg_sname;
+    std::string str = "";
 public:
     LogWindow(GUI::Screen *parent, int x, int y) :
-        MessageBox2(parent, x, y, 580, "", "") { // 740
+        MessageBox3(parent, x, y, 580, "", "") { // 740
         setTitle(MSG_Get("LOGGING_OUTPUT"));
-        std::string str = "";
         getlogtext(str);
         setText(str);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
@@ -904,7 +904,10 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == MSG_Get("CLOSE"))
+        if (arg == MSG_Get("UPDATE")) {
+            getlogtext(str);
+            setText(str);
+        } else if (arg == MSG_Get("CLOSE"))
             if(shortcut) running=false;
     }
 

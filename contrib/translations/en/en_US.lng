@@ -44,6 +44,9 @@ Cancel
 :CLOSE
 Close
 .
+:UPDATE
+Update
+.
 :ADD
 Add
 .
