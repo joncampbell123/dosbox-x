@@ -4485,6 +4485,7 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("CONFIGURATION_FOR","Configuration for %s");
     MSG_Add("CONFIGURATION","Configuration");
     MSG_Add("SETTINGS","Settings");
+    MSG_Add("LOGGING_OUTPUT","DOSBox-X logging output");
     MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
     MSG_Add("GET_STARTED","Getting Started");
     MSG_Add("CDROM_SUPPORT","CD-ROM Support");

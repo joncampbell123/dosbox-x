@@ -112,6 +112,13 @@ static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
+void getlogtext(std::string &str) {
+    str = "";
+    std::list<string>::iterator it;
+    for (it = logBuff.begin(); it != logBuff.end(); ++it)
+        str+= (std::string)(*it)+"\n";
+}
+
 bool savetologfile(const char *name) {
     std::ofstream out(name);
     if (!out.is_open()) return false;

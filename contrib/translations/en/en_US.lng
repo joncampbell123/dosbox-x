@@ -101,6 +101,9 @@ Configuration
 :SETTINGS
 Settings
 .
+:LOGGING_OUTPUT
+DOSBox-X logging output
+.
 :VISIT_HOMEPAGE
 Visit Homepage
 .
@@ -2005,6 +2008,9 @@ List printer devices
 .
 :MENU:help_about
 About DOSBox-X
+.
+:MENU:show_logtext
+Show logging text
 .
 :MENU:show_console
 Show logging console
