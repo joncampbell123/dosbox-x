@@ -8309,7 +8309,8 @@ void SDL_SetupConfigSection() {
 	Pstring->Set_values(clipboardbutton);
 	Pstring->Set_help("Select the mouse button or use arrow keys for the shared clipboard copy/paste function.\n"
 		"The default mouse button is \"right\", which means using the right mouse button to select text, copy to and paste from the host clipboard.\n"
-		"Set to \"middle\" to use the middle mouse button, \"arrows\" to use arrow keys instead of a mouse button, or \"none\" to disable this feature.");
+		"Set to \"middle\" to use the middle mouse button, \"arrows\" to use arrow keys instead of a mouse button, or \"none\" to disable this feature.\n"
+		"For \"arrows\", press Home key (or Fn+Shift+Left on Mac laptops) to start selection, and End key (or Fn+Shift+Right on Mac laptops) to end selection.");
     Pstring->SetBasic(true);
 
 	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", 0};
@@ -10738,9 +10739,6 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("ttf"));
-    assert(section != NULL);
-
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
@@ -10749,9 +10747,9 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
         return false;
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.ttf","*.TTF"};
-    const char *lFilterDescription = "TrueType font files (*.ttf)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+    const char *lFilterPatterns[] = {"*.ttf","*.TTF","*.ttc","*.TTC","*.otf","*.OTF","*.fon","*.FON"};
+    const char *lFilterDescription = "TrueType font files (*.ttf, *.ttc, *.otf, *.fon)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),8,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
@@ -10759,7 +10757,6 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
-        std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
         if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
@@ -10807,7 +10804,6 @@ void Load_mapper_file() {
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
-        std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
         if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
@@ -10842,9 +10838,6 @@ void Load_mapper_file() {
 }
 
 void Restart_config_file() {
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
-    assert(section != NULL);
-
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
@@ -11551,6 +11544,17 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
         return false;
     }
 #endif
+    return true;
+}
+
+bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(40);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
     return true;
 }
 
@@ -14095,6 +14099,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_logtext").set_text("Show logging text").set_callback_function(show_logtext_menu_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);

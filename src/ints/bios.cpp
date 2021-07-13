@@ -459,7 +459,7 @@ void dosbox_integration_trigger_read() {
             break;
     }
 
-    LOG(LOG_MISC,LOG_DEBUG)("DOSBox integration read 0x%08lx got 0x%08lx (err=%u)\n",
+    LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration read 0x%08lx got 0x%08lx (err=%u)\n",
         (unsigned long)dosbox_int_regsel,
         (unsigned long)dosbox_int_register,
         dosbox_int_error?1:0);
@@ -496,7 +496,7 @@ unsigned int mouse_notify_mode = 0;
 void dosbox_integration_trigger_write() {
     dosbox_int_error = false;
 
-    LOG(LOG_MISC,LOG_DEBUG)("DOSBox integration write 0x%08lx val 0x%08lx\n",
+    LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration write 0x%08lx val 0x%08lx\n",
         (unsigned long)dosbox_int_regsel,
         (unsigned long)dosbox_int_register);
 
@@ -847,28 +847,28 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
                 dosbox_int_busy = false;
                 dosbox_int_regsel = 0xAA55BB66;
                 dosbox_int_register = 0xD05B0C5;
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state saved");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state saved");
             }
             else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to push state, stack overflow");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to push state, stack overflow");
                 dosbox_int_error = true;
             }
             break;
         case 0x21: /* pop state */
             if (dosbox_int_pop_save_state()) {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state restored");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state restored");
             }
             else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to pop state, stack underflow");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to pop state, stack underflow");
                 dosbox_int_error = true;
             }
             break;
         case 0x22: /* discard state */
             if (dosbox_int_discard_save_state()) {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state discarded");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state discarded");
             }
             else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to discard state, stack underflow");
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to discard state, stack underflow");
                 dosbox_int_error = true;
             }
             break;
@@ -2010,7 +2010,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
                 case 0x41:  /* POWER_OFF */
                     LOG_MSG("Plug & Play OS requested power off.\n");
                     reg_ax = 0;
-                    throw 1;    /* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
+                    throw 1;    /* NTS: Based on the Reboot handler code, causes DOSBox-X to cleanly shutdown and exit */
                     break;
                 case 0x42:  /* PNP_OS_ACTIVE */
                     LOG_MSG("Plug & Play OS reports itself active\n");
@@ -5331,7 +5331,7 @@ static Bitu INT11_Handler(void) {
     return CBRET_NONE;
 }
 /* 
- * Define the following define to 1 if you want dosbox to check 
+ * Define the following define to 1 if you want dosbox-x to check
  * the system time every 5 seconds and adjust 1/2 a second to sync them.
  */
 #ifndef DOSBOX_CLOCKSYNC
@@ -6342,8 +6342,8 @@ static Bitu INT15_Handler(void) {
                     if (!(reg_flags&0x200)) {
                         LOG(LOG_BIOS,LOG_WARN)("APM BIOS warning: CPU IDLE called with IF=0, not HLTing\n");
                     }
-                    else if (cpudecoder == &HLT_Decode) { /* do not re-execute HLT, it makes DOSBox hang */
-                        LOG_MSG("APM BIOS warning: CPU IDLE HLT within HLT (DOSBox core failure)\n");
+                    else if (cpudecoder == &HLT_Decode) { /* do not re-execute HLT, it makes DOSBox-X hang */
+                        LOG_MSG("APM BIOS warning: CPU IDLE HLT within HLT (DOSBox-X core failure)\n");
                     }
                     else {
                         CPU_HLT(reg_eip);
@@ -7271,7 +7271,7 @@ static bool bios_first_init=true;
 static bool bios_has_exec_vga_bios=false;
 static Bitu adapter_scan_start;
 
-/* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
+/* FIXME: At global scope their destructors are called after the rest of DOSBox-X has shut down. Move back into BIOS scope. */
 static CALLBACK_HandlerObject int4b_callback;
 static const size_t callback_count = 20;
 static CALLBACK_HandlerObject callback[callback_count]; /* <- fixme: this is stupid. just declare one per interrupt. */
@@ -8298,11 +8298,11 @@ private:
             if (dosbox_int_iocallout == IO_Callout_t_none)
                 dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
             if (dosbox_int_iocallout == IO_Callout_t_none)
-                E_Exit("Failed to get dosbox integration IO callout handle");
+                E_Exit("Failed to get dosbox-x integration IO callout handle");
 
             {
                 IO_CalloutObject *obj = IO_GetCallout(dosbox_int_iocallout);
-                if (obj == NULL) E_Exit("Failed to get dosbox integration IO callout");
+                if (obj == NULL) E_Exit("Failed to get dosbox-x integration IO callout");
 
                 /* NTS: Ports 28h-2Bh conflict with extended DMA control registers in PC-98 mode.
                  *      TODO: Move again, if DB28h-DB2Bh are taken by something standard on PC-98. */
@@ -8311,7 +8311,7 @@ private:
                 IO_PutCallout(obj);
             }
 
-            /* DOSBox integration device */
+            /* DOSBox-X integration device */
             if (!IS_PC98_ARCH && isapnpigdevice == NULL && enable_integration_device_pnp) {
                 isapnpigdevice = new ISAPnPIntegrationDevice;
                 ISA_PNP_devreg(isapnpigdevice);

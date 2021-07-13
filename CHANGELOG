@@ -2,11 +2,17 @@
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
+  - Added menu option "Show logging text" in "Debug"
+    menu to show the output of DOSBox-X's current
+    logging text. (Wengier)
   - Added config options "pc-98 try font rom" and
     "pc-98 anex86 font" for the PC-98 emulation to
     customize the font file to load. (Wengier)
   - Added support for composite support for PCjr mode
     by porting patch from NewRisingSun. (Wengier)
+  - Non-Japanese DOS/V systems will now use 19-pixel
+    VGA fonts rather than 16-pixel VGA fonts for SBCS
+    characteres to look better. (Wengier)
   - Improved the DOS/V font acquisition function on
     the Linux platform (both SDL1 & SDL2). (Wengier)
   - Added support for 14-pixel height fonts for the

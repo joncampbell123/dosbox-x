@@ -118,6 +118,10 @@ void                        WindowsTaskbarResetPreviewRegion(void);
 void                        macosx_reload_touchbar(void);
 #endif
 
+GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
+static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
+void getlogtext(std::string &str);
+
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
@@ -884,8 +888,34 @@ std::string RestoreName(std::string name) {
     return dispname;
 }
 
-GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
-static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
+#if C_DEBUG
+class LogWindow : public GUI::MessageBox2 {
+public:
+    std::vector<GUI::Char> cfg_sname;
+public:
+    LogWindow(GUI::Screen *parent, int x, int y) :
+        MessageBox2(parent, x, y, 580, "", "") { // 740
+        setTitle(MSG_Get("LOGGING_OUTPUT"));
+        std::string str = "";
+        getlogtext(str);
+        setText(str);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    };
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("CLOSE"))
+            if(shortcut) running=false;
+    }
+
+    ~LogWindow() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+};
+#endif
 
 class HelpWindow : public GUI::MessageBox2 {
 public:
@@ -2990,6 +3020,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np15 = new ShowHelpPRT(screen, 70, 70, MSG_Get("PRINTER_LIST"));
             np15->raise();
             } break;
+#if C_DEBUG
+        case 40: {
+            auto *np = new LogWindow(screen, 70, 70);
+            np->raise();
+            } break;
+#endif
         default:
             break;
     }

@@ -105,6 +105,9 @@ DOSBox-X 配置工具
 :SETTINGS
 設置
 .
+:LOGGING_OUTPUT
+DOSBox-X記錄顯示
+.
 :VISIT_HOMEPAGE
 訪問主頁
 .
@@ -2853,6 +2856,9 @@ DOSBox-X 支持
 .
 :MENU:help_about
 關於 DOSBox-X
+.
+:MENU:show_logtext
+顯示記錄内容
 .
 :MENU:show_console
 顯示記錄控制台

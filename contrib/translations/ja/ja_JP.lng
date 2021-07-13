@@ -106,6 +106,9 @@ OK
 :SETTINGS
 設定
 .
+:LOGGING_OUTPUT
+DOSBox-Xのログ出力
+.
 :VISIT_HOMEPAGE
 ホームページ
 .
@@ -2854,6 +2857,9 @@ DOSBox-X サポート
 .
 :MENU:help_about
 DOSBox-Xについて
+.
+:MENU:show_logtext
+ログテキストを表示する
 .
 :MENU:show_console
 ログ用コンソールを表示

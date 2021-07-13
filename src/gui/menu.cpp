@@ -755,6 +755,7 @@ static const char *def_menu_help_debug[] =
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+    "show_logtext",
 #endif
 #if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
