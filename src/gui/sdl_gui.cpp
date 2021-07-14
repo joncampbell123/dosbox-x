@@ -119,9 +119,10 @@ void                        macosx_reload_touchbar(void);
 #endif
 
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
+std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str);
-
+bool CheckQuit(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
@@ -132,9 +133,23 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 	"-bit)\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
 void RebootConfig(std::string filename, bool confirm=false) {
-    std::string GetDOSBoxXPath(bool withexe), exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
-    bool CheckQuit(void);
+    std::string exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
     if ((!confirm||CheckQuit())&&exepath.size()) {
+#if defined(WIN32)
+        ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#else
+        system((exepath+" "+para+ " &").c_str());
+#endif
+        throw(0);
+    }
+}
+
+void RebootLanguage(std::string filename, bool confirm=false) {
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para="-lang \""+filename+"\"";
+    struct stat st;
+    if ((!confirm||CheckQuit())&&exepath.size()) {
+        if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());
+        if (control->PrintConfig(tmpconfig.c_str(),false,true)&&!stat(tmpconfig.c_str(), &st)) para="-conf "+tmpconfig+" -eraseconf "+para;
 #if defined(WIN32)
         ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
 #else

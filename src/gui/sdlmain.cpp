@@ -9252,7 +9252,7 @@ static void printconfiglocation() {
 static void eraseconfigfile() {
     FILE* f = fopen("dosbox-x.conf","r");
 	if (!f) f = fopen("dosbox.conf","r");
-    if(f) {
+    if (f) {
         fclose(f);
         show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nThis will override the configuration file at runtime.\n");
     }
@@ -9261,7 +9261,7 @@ static void eraseconfigfile() {
     Cross::GetPlatformConfigName(file);
     path += file;
     f = fopen(path.c_str(),"r");
-    if(!f) exit(0);
+    if (!f) exit(0);
     fclose(f);
     unlink(path.c_str());
     exit(0);
@@ -9270,7 +9270,7 @@ static void eraseconfigfile() {
 static void erasemapperfile() {
     FILE* g = fopen("dosbox-x.conf","r");
 	if (!g) g = fopen("dosbox.conf","r");
-    if(g) {
+    if (g) {
         fclose(g);
         show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nKeymapping might not be properly reset.\n"
                      "Please reset configuration as well and delete the dosbox-x.conf (or dosbox.conf).\n");
@@ -9280,7 +9280,7 @@ static void erasemapperfile() {
     Cross::GetPlatformConfigDir(path);
     path += file;
     FILE* f = fopen(path.c_str(),"r");
-    if(!f) exit(0);
+    if (!f) exit(0);
     fclose(f);
     unlink(path.c_str());
     exit(0);
@@ -9429,8 +9429,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -editconf <editor>                      Edit the config file with the specific editor\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -printconf                              Print config file location\n");
-            fprintf(stderr,"  -eraseconf (or -resetconf)              Erase config file\n");
-            fprintf(stderr,"  -erasemapper (or -resetmapper)          Erase mapper file\n");
+            fprintf(stderr,"  -eraseconf (or -resetconf)              Erase loaded config file (or user config file and exit)\n");
+            fprintf(stderr,"  -erasemapper (or -resetmapper)          Erase loaded mapper file (or user mapper file and exit)\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
             fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
             fprintf(stderr,"  -startui, -startgui, -starttool         Start DOSBox-X with GUI configuration tool\n");
@@ -10847,7 +10847,7 @@ void Restart_config_file() {
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.conf","*.CONF"};
-    const char *lFilterDescription = "DOSBox-X config files (*.map)";
+    const char *lFilterDescription = "DOSBox-X config files (*.conf)";
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select config file",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
@@ -10856,7 +10856,6 @@ void Restart_config_file() {
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
-        std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
         if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
@@ -10871,6 +10870,43 @@ void Restart_config_file() {
     }
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to change directories.");
+    }
+#endif
+}
+
+void Restart_language_file() {
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to get the current working directory.");
+        return;
+    }
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.lng","*.LNG","*.txt","*.TXT"};
+    const char *lFilterDescription = "DOSBox-X language files (*.lng, *.txt)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select language file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+            void RebootLanguage(std::string filename, bool confirm=false);
+            RebootLanguage(name, true);
+        }
+    }
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
     }
 #endif
 }
@@ -12032,6 +12068,13 @@ bool restartconf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     return true;
 }
 
+bool restartlang_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+    Restart_language_file();
+    return true;
+}
+
 bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -12495,11 +12538,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DOSBox_ShowConsole();
 
     /* -- Handle some command line options */
-    if (control->opt_eraseconf || control->opt_resetconf)
+    if (control->opt_resetconf)
         eraseconfigfile();
     if (control->opt_printconf)
         printconfiglocation();
-    if (control->opt_erasemapper || control->opt_resetmapper)
+    if (control->opt_resetmapper)
         erasemapperfile();
 
     /* -- Early logging init, in case these details are needed to debug problems at this level */
@@ -12969,12 +13012,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             control->ParseConfigFile((config_path + tmp).c_str());
         }
 
-        if (control->configfiles.size()&&usecfgdir) {
-            std::string configpath=control->configfiles.front();
-            size_t found=configpath.find_last_of("/\\");
-            if(found != string::npos) {
-                if(chdir(configpath.substr(0, found + 1).c_str()) == -1) {
-                    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for .conf file.");
+        if (control->configfiles.size()) {
+            if (control->opt_eraseconf) {
+                LOG_MSG("Erase mapper file: %s\n", control->configfiles.front().c_str());
+                unlink(control->configfiles.front().c_str());
+            }
+            if (usecfgdir) {
+                std::string configpath=control->configfiles.front();
+                size_t found=configpath.find_last_of("/\\");
+                if(found != string::npos) {
+                    if(chdir(configpath.substr(0, found + 1).c_str()) == -1) {
+                        LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for .conf file.");
+                    }
                 }
             }
         }
@@ -14312,6 +14361,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartlang").set_text("Restart DOSBox-X with language file...").set_callback_function(restartlang_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);

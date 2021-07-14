@@ -2709,6 +2709,9 @@ Mostrar FPS y velocidad RT en barra de título
 :MENU:restartconf
 Reiniciar DOSBox-X con archivo config...
 .
+:MENU:restartlang
+Reiniciar DOSBox-X con archivo idioma...
+.
 :MENU:auto_lock_mouse
 Autobloqueo de ratón
 .

@@ -5044,9 +5044,18 @@ void ReloadMapper(Section_prop *section, bool init) {
                 mapper.filename = exepath+mapper.filename;
                 fclose(loadfile);
             }
+            if (control->opt_erasemapper) {
+                LOG_MSG("Erase mapper file: %s\n", (exepath+mapper.filename).c_str());
+                unlink((exepath+mapper.filename).c_str());
+            }
         }
-    } else
+    } else {
         fclose(loadfile);
+        if (control->opt_erasemapper) {
+            LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+            unlink(mapper.filename.c_str());
+        }
+    }
 	if (init) {
 		GFX_LosingFocus(); //Release any keys pressed, or else they'll get stuck.
 		MAPPER_Init();

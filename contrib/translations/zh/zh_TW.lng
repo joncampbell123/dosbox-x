@@ -3199,6 +3199,9 @@ TRUENAME
 :MENU:restartconf
 重啟 DOSBox-X 並調用指定配置檔案...
 .
+:MENU:restartlang
+重啟 DOSBox-X 並調用指定語言檔案...
+.
 :MENU:auto_lock_mouse
 自動鎖定滑鼠
 .

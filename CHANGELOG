@@ -2,6 +2,14 @@
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
+  - Command-line options -eraseconf and -erasemapper
+    will now erase loaded config file and mapper file
+    respectively and continue, whereas -resetconf and
+    -resetmapper will erase user config file or user
+    mapper file and exit as before. (Wengier)
+  - Added menu option "Restart DOSBox-X with language
+    file" in "Main" menu to reboot DOSBox-X with the
+    specified config file automatically. (Wengier)
   - Added menu option "Show logging text" in "Debug"
     menu to show the output of DOSBox-X's current
     logging text. (Wengier)

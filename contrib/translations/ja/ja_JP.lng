@@ -3197,6 +3197,9 @@ FPS とRT スピードをタイトルバーに表示
 :MENU:restartconf
 設定ファイルを用いてDOSBox-X を再起動 ...
 .
+:MENU:restartlang
+言語ファイルを用いてDOSBox-X を再起動 ...
+.
 :MENU:auto_lock_mouse
 マウスを自動ロック
 .
