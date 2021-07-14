@@ -2032,6 +2032,10 @@ void DOSBOX_SetupConfigSections(void) {
             "software that assumes direct access to the text mode via segment 0xB800.");
     Pstring->SetBasic(true);
 
+	Pbool = secprop->Add_bool("getsysfont",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If enabled, DOSBox-X will try to get and use the system fonts on Windows and Linux platforms for the DOS/V emulation.");
+    Pbool->SetBasic(true);
+
 	//For loading FONTX CJK fonts
 	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");

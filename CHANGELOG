@@ -21,8 +21,12 @@
   - Non-Japanese DOS/V systems will now use 19-pixel
     VGA fonts rather than 16-pixel VGA fonts for SBCS
     characteres to look better. (Wengier)
+  - Free HZK14/HZK16 fonts are now included for the
+    Simplified Chinese DOS/V emulation. (Wengier)
   - Improved the DOS/V font acquisition function on
-    the Linux platform (both SDL1 & SDL2). (Wengier)
+    the Linux platform (both SDL1 & SDL2). A config
+    option "usesysfont" is added which when set to
+    false will disable the font acquisiton. (Wengier)
   - Added support for 14-pixel height fonts for the
     DOS/V font system acquisition code. (nanshiki)
   - Added support for inputing Japanese and Korean

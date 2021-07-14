@@ -106,6 +106,7 @@ bool gbk = false;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
+bool getsysfont = true;
 uint8_t TrueVideoMode;
 void ResolvePath(std::string& in);
 void SetIMPosition();
@@ -272,6 +273,7 @@ static bool CheckEmptyData(uint8_t *data, Bitu length)
 
 bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 {
+    if (!getsysfont) return false;
 #if defined(LINUX) && C_X11
 	XRectangle ir, lr;
 	XImage *image;
@@ -459,6 +461,14 @@ uint8_t *GetDbcsFont(Bitu code)
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
 		} else {
+            if (dos.loaded_codepage == 936 && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+                int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 32;
+                if (offset + 32 <= sizeof(hzk16_data)) {
+                    memcpy(&jfont_dbcs_16[code * 32], hzk16_data+offset, 32);
+                    jfont_cache_dbcs_16[code] = 1;
+                    return &jfont_dbcs_16[code * 32];
+                }
+            }
 			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
 				code = GetConvertedCode(code);
 			int p = NAME_LEN+ID_LEN+3;
@@ -497,6 +507,14 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
             is14 = true;
             return jfont_dbcs;
         } else {
+            if (dos.loaded_codepage == 936 && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+                int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 28;
+                if (offset + 28 <= sizeof(hzk14_data)) {
+                    memcpy(&jfont_dbcs_14[code * 28], hzk14_data+offset, 28);
+                    jfont_cache_dbcs_14[code] = 1;
+                    return &jfont_dbcs_14[code * 28];
+                }
+            }
             if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
                 code = GetConvertedCode(code);
             int p = NAME_LEN+ID_LEN+3;
@@ -679,6 +697,7 @@ void JFONT_Init() {
 	SDL_SetCompositionFontName(jfont_name);
 #endif
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
+	getsysfont = section->Get_bool("getsysfont");
 	yen_flag = section->Get_bool("yen");
 
 	Prop_path* pathprop = section->Get_path("fontxsbcs");
