@@ -50,6 +50,7 @@
 #include <cctype>
 #include <functional>
 #include <assert.h>
+#include <sys/stat.h>
 
 #include "SDL_syswm.h"
 #include "sdlmain.h"

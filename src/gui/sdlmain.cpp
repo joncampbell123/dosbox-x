@@ -97,7 +97,6 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen();
 #include <sys/stat.h>
 #ifdef WIN32
 # include <signal.h>
-# include <sys/stat.h>
 # include <process.h>
 # if !defined(__MINGW32__) /* MinGW does not have these headers */
 #  include <shcore.h>
