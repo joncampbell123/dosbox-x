@@ -2048,11 +2048,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+                    "Loading the HZK16 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported for Simplified Chinese DOS/V.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.\n"
+                    "Loading the HZK14 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported for Simplified Chinese DOS/V.");
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
