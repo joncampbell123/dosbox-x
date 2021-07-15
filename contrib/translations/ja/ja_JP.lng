@@ -112,6 +112,9 @@ OK
 :LOGGING_OUTPUT
 DOSBox-Xのログ出力
 .
+:CODE_OVERVIEW
+コードの概要
+.
 :VISIT_HOMEPAGE
 ホームページ
 .
@@ -2860,6 +2863,9 @@ DOSBox-X サポート
 .
 :MENU:help_about
 DOSBox-Xについて
+.
+:MENU:show_codetext
+コードの概要を表示する
 .
 :MENU:show_logtext
 ログテキストを表示する

@@ -122,7 +122,7 @@ void                        macosx_reload_touchbar(void);
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
-void getlogtext(std::string &str);
+void getlogtext(std::string &str), getcodetext(std::string &text);
 bool CheckQuit(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
@@ -911,7 +911,7 @@ public:
     std::string str = "";
 public:
     LogWindow(GUI::Screen *parent, int x, int y) :
-        MessageBox3(parent, x, y, 580, "", "") { // 740
+        MessageBox3(parent, x, y, 630, "", "") { // 740
         setTitle(MSG_Get("LOGGING_OUTPUT"));
         getlogtext(str);
         setText(str);
@@ -934,6 +934,37 @@ public:
         }
     }
 };
+
+class CodeWindow : public GUI::MessageBox3 {
+public:
+    std::vector<GUI::Char> cfg_sname;
+    std::string str = "";
+public:
+    CodeWindow(GUI::Screen *parent, int x, int y) :
+        MessageBox3(parent, x, y, 630, "", "") { // 740
+        setTitle(MSG_Get("CODE_OVERVIEW"));
+        getcodetext(str);
+        setText(str);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    };
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("UPDATE")) {
+            getcodetext(str);
+            setText(str);
+        } else if (arg == MSG_Get("CLOSE"))
+            if(shortcut) running=false;
+    }
+
+    ~CodeWindow() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+};
+
 #endif
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -3042,6 +3073,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 #if C_DEBUG
         case 40: {
             auto *np = new LogWindow(screen, 70, 70);
+            np->raise();
+            } break;
+        case 41: {
+            auto *np = new CodeWindow(screen, 70, 70);
             np->raise();
             } break;
 #endif

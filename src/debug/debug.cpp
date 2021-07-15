@@ -1235,7 +1235,7 @@ static void DrawCode(void) {
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
 				if (codeViewData.cursorPos==-1) {
-					codeViewData.cursorPos = i; // Set Cursor 
+					codeViewData.cursorPos = i; // Set Cursor
 				}
 				if (i == codeViewData.cursorPos) {
 					codeViewData.cursorSeg = SegValue(cs);
@@ -1342,6 +1342,72 @@ static void DrawCode(void) {
 	codeViewData.useEIPlast = disEIP;
 
 	wrefresh(dbg.win_code);
+}
+
+void getcodetext(std::string &text) {
+	text = "";
+	uint32_t disEIP = reg_eip;
+	char dline[200],tmp[200];Bitu size;
+	static char line15[16] = "               ";
+
+	for (int i=0;i<0x400;i++) {
+        uint64_t start = GetAddress(SegValue(cs),disEIP);
+        bool no_bytes = false;
+		Bitu drawsize;
+        if (start != mem_no_address)
+            drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, cpu.code.big);
+        else {
+            drawsize=size=1;
+            dline[0]=0;
+        }
+		sprintf(tmp,"%04X:%08X ",SegValue(cs),disEIP);
+        text += tmp;
+		if (drawsize>10) drawsize = 9;
+        if (start != mem_no_address) {
+            for (Bitu c=0;c<drawsize;c++) {
+                uint8_t value;
+                if (!mem_readb_checked((PhysPt)(start+c),&value)) {
+                    sprintf(tmp,"%02X",value);
+                    text += tmp;
+                } else {
+                    no_bytes = true;
+                    text += "pf";
+                }
+            }
+        }
+        else
+            text += "na";
+
+		// Spacepad up to 15 characters
+		if(drawsize && (drawsize < 11)) {
+			line15[15 - drawsize*2] = 0;
+            text += line15;
+			line15[15 - drawsize*2] = ' ';
+		} else
+            text += line15;
+
+		char empty_res[] = { 0 };
+		char* res = empty_res;
+        if (showExtend) res = AnalyzeInstruction(dline, false);
+		// Spacepad it up to 23 characters
+        if (no_bytes) dline[0] = 0;
+		size_t dline_len = strlen(dline);
+        if (dline_len < 23) {
+            memset(dline + dline_len, ' ', 23 - dline_len);
+            dline[23] = 0;
+        }
+        text += dline;
+		// Spacepad it up to 15 characters
+		size_t res_len = strlen(res);
+		if(res_len && (res_len < 16)) {
+            text += res;
+			line15[15-res_len] = 0;
+            text += line15;
+			line15[15-res_len] = ' ';
+		} else
+            text += line15;
+        disEIP+=(uint32_t)size;
+	}
 }
 
 static void SetCodeWinStart()

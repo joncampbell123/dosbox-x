@@ -11593,6 +11593,17 @@ bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
+bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(41);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
+
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -14152,6 +14163,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_codetext").set_text("Show code overview").set_callback_function(show_codetext_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_logtext").set_text("Show logging text").set_callback_function(show_logtext_menu_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);

@@ -111,6 +111,9 @@ DOSBox-X 配置工具
 :LOGGING_OUTPUT
 DOSBox-X记录显示
 .
+:CODE_OVERVIEW
+代码概览
+.
 :VISIT_HOMEPAGE
 访问主页
 .
@@ -2859,6 +2862,9 @@ DOSBox-X 支持
 .
 :MENU:help_about
 关于 DOSBox-X
+.
+:MENU:show_codetext
+显示代码概览
 .
 :MENU:show_logtext
 显示记录内容

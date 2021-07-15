@@ -10,9 +10,10 @@
   - Added menu option "Restart DOSBox-X with language
     file" in "Main" menu to reboot DOSBox-X with the
     specified config file automatically. (Wengier)
-  - Added menu option "Show logging text" in "Debug"
-    menu to show the output of DOSBox-X's current
-    logging text. (Wengier)
+  - Added menu options "Show code overview" and "Show
+    logging text" in "Debug" menu to show the overview
+    of the current code and the output of DOSBox-X's
+    current logging text in debug builds. (Wengier)
   - Added config options "pc-98 try font rom" and
     "pc-98 anex86 font" for the PC-98 emulation to
     customize the font file to load. (Wengier)
@@ -29,7 +30,7 @@
   - Improved the DOS/V font acquisition function on
     the Linux platform (both SDL1 & SDL2). A config
     option "getsysfont" is added which when set to
-    false will disable the font acquisiton. (Wengier)
+    false will disable the font acquisition. (Wengier)
   - Added support for 14-pixel height fonts for the
     DOS/V font system acquisition code. (nanshiki)
   - Added support for inputing Japanese and Korean

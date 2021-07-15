@@ -107,6 +107,9 @@ Ajustes
 :LOGGING_OUTPUT
 Salida de registro de DosBox-X
 .
+:CODE_OVERVIEW
+Descripción general del código
+.
 :VISIT_HOMEPAGE
 Visitar página de DosBox-X
 .
@@ -2372,6 +2375,9 @@ Lista de dispositivos de impresión
 .
 :MENU:help_about
 Acerca de DOSBox-X
+.
+:MENU:show_codetext
+Mostrar descripción general del código
 .
 :MENU:show_logtext
 Mostrar texto de registro
