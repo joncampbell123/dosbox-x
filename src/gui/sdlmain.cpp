@@ -14163,13 +14163,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_codetext").set_text("Show code overview").set_callback_function(show_codetext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_logtext").set_text("Show logging text").set_callback_function(show_logtext_menu_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
 #endif
 #if C_DEBUG
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_codetext").set_text("Show code overview").set_callback_function(show_codetext_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_logtext").set_text("Show logging text").set_callback_function(show_logtext_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"save_logas").set_text("Save logging as...").set_callback_function(save_logas_menu_callback);
 
                 debugrunmode = debuggerrun;
