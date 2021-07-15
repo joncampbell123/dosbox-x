@@ -42,6 +42,8 @@
     drive other than Z may not work. (cimarronm)
   - Fixed the command "FOR %I ..." not working when
     executed from the command line. (Wengier)
+  - For audio/video recording, the saved file name(s)
+    will now be recorded in the log file. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
   - Fixed the option "drive z expand path" not working
