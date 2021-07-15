@@ -1945,6 +1945,7 @@ class VGA_AMS_Handler : public PageHandler {
 public:
 	template< bool wrapping>
 	void writeHandler(PhysPt start, uint8_t val) {
+        assert(start < vga.mem.memsize);
 		vga.tandy.mem_base[ start ] = val;
 #ifdef DIJDIJD
 		uint32_t data=ModeOperation(val);
@@ -1979,6 +1980,7 @@ public:
 	}
 //	template< bool wrapping>
 	uint8_t readHandler(PhysPt start) {
+        assert(start < vga.mem.memsize);
 		return vga.tandy.mem_base[ start ];
 	}
 
@@ -1998,7 +2000,7 @@ public:
 				phys_page&=0x03;
 			return ( phys_page * 4096 ) + ( addr & 0x0FFF );
 		}
-		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 32*1024-1 );
+		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 16*1024-1 );
 	}
 
 	void writeb(PhysPt addr,uint8_t val) {
