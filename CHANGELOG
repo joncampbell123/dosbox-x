@@ -16,7 +16,11 @@
     current logging text in debug builds. (Wengier)
   - Added config options "pc-98 try font rom" and
     "pc-98 anex86 font" for the PC-98 emulation to
-    customize the font file to load. (Wengier)
+    customize the font file to load. If former option
+    is set to "false", then DOSbox-X will not try to
+    load FONT.ROM first for PC-98, and latter option
+    specifies an Anex86-compatible font to load for
+    PC-98 (before trying FREECG98.BMP). (Wengier)
   - Added support for composite support for PCjr mode
     by porting patch from NewRisingSun. (Wengier)
   - Non-Japanese DOS/V systems will now use 19-pixel
@@ -46,6 +50,8 @@
     will now be recorded in the log file. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
+  - Fixed a bug in Int21/AH=36h function for returning
+    very large CX values. (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)
