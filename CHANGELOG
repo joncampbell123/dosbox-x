@@ -22,9 +22,10 @@
     VGA fonts rather than 16-pixel VGA fonts for SBCS
     characters to look better. (Wengier)
   - You can now also load HZK14/HZK16 font files (for
-    14- and 16-pixel height) via the "fontxdbcs" and
-    "fontxdbcs14" options for the Simplified Chinese
-    DOS/V (dosv=cn) emulation. (Wengier)
+    14- and 16-pixel height) and STDFONT.15 font file
+    via the "fontxdbcs" and "fontxdbcs14" options for
+    Simplified Chinese DOS/V (dosv=cn) and Traditional
+    Chinese DOS/V (dosv=tw) emulations. (Wengier)
   - Improved the DOS/V font acquisition function on
     the Linux platform (both SDL1 & SDL2). A config
     option "getsysfont" is added which when set to
