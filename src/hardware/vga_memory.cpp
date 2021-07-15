@@ -2257,7 +2257,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 //		MEM_SetPageHandler(vga.tandy.mem_bank<<2,vga.tandy.is_32k_mode ? 0x08 : 0x04,range_handler);
 	case MCH_AMSTRAD: // Memory handler.
-		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
+		MEM_SetPageHandler( VGA_PAGE_B8, 4, &vgaph.ams );   // 0xb8000 - 0xbbfff
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
         break;
