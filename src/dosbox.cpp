@@ -2617,7 +2617,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
                     "Either a font name or full font path can be specified. If file ends with the .TTF extension then the extension can be omitted.\n"
                     "For a font name or relative path, directories such as the working directory and default system font directory will be searched.\n"
-                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; similar for other TTF fonts.");
+                    "For example, setting it to \"consola\" or \"consola.ttf\" will use Consola font (included in Windows); similar for other TTF fonts.\n"
+                    "Additionally, OTF fonts (e.g. OratorStd.otf), .FON fonts (e.g. vgasys.fon), and .TTC fonts (e.g. msgothic.ttc) are also supported.\n"
+                    "To display Chinese/Japanese/Korean text in these code pages, a font with CJK characters is needed (e.g. GNU Unifont or Sarasa Gothic).");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("fontbold", Property::Changeable::Always, "");
