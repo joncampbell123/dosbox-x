@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 #include "dosbox.h"
 #include "control.h"
 #include "hardware.h"
@@ -1065,7 +1066,14 @@ skip_shot:
 			if (!avi_writer_begin_header(capture.video.writer) || !avi_writer_begin_data(capture.video.writer))
 				goto skip_video;
 
-			LOG_MSG("Started capturing video to %s.", path.c_str());
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char path[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing video to: %s", path.c_str());
 		}
 #if (C_AVCODEC)
 		else if (export_ffmpeg && ffmpeg_fmt_ctx == NULL) {
@@ -1244,7 +1252,14 @@ skip_shot:
 				goto skip_video;
 			}
 
-			LOG_MSG("Started capturing video (FFMPEG) to %s.", path.c_str());
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char path[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing video (FFMPEG) to: %s", path.c_str());
 		}
 #endif
 
@@ -1600,7 +1615,14 @@ void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const
 			if (!avi_writer_begin_header(capture.multitrack_wave.writer) || !avi_writer_begin_data(capture.multitrack_wave.writer))
 				goto skip_mt_wav;
 
-			LOG_MSG("Started capturing multitrack audio (%u channels) to %s.",streams, path.c_str());
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char path[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing multitrack audio (%u channels) to: %s",streams, path.c_str());
 		}
 
         if (capture.multitrack_wave.writer != NULL) {
@@ -1682,7 +1704,14 @@ void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
 			capture.wave.length = 0;
 			capture.wave.used = 0;
 			capture.wave.freq = freq;
-			LOG_MSG("Started capturing wave output to %s.", path.c_str());
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char path[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing wave output to: %s", path.c_str());
 		}
 		int16_t * read = data;
 		while (len > 0 ) {
