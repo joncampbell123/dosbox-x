@@ -327,6 +327,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     sdl_opengl.use_shader = false;
     initgl=0;
 #if defined(C_SDL2)
+    SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "opengl");
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(true);
     sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
