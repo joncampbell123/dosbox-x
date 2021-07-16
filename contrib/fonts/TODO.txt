@@ -18,4 +18,5 @@ and DOSBox-X should look for it if ANEX86.BMP does not exist.
 The reason I won't build it into DOSBox-X is that users may
 not care about PC-98 emulation and would not want to waste
 the space (or see the main EXE bloat by 512KB to hold it).
-
+However, the DOS/V font will be used for displaying Japanese
+characters in the case when no PC-98 font available.
