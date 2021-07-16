@@ -58,6 +58,7 @@ static GC font_gc;
 static XFontSet font_set16;
 static XFontSet font_set14;
 static XFontSet font_set24;
+static XFontStruct *xfont_16 = NULL; 
 #endif
 
 const char jfont_name[] = "\x082\x06c\x082\x072\x020\x083\x053\x083\x056\x083\x062\x083\x04e";
@@ -304,26 +305,36 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 		src[2] = 0;
         if (!CodePageGuestToHostUTF16((uint16_t *)wtext,src)) return false;
 	}
-	wtext[1] = ']';
-	wtext[2] = 0;
-	len = 2;
 	memset(buff, 0, (width / 8) * height);
-	XFontSet fontset = font_set16;
-	if(height == 24)
-		fontset = font_set24;
-	else if(height == 14 && !IS_PDOSV)
-		fontset = font_set14;
-	XwcTextExtents(fontset, wtext, len, &ir, &lr);
-	if(lr.width <= width) return false;
 	XSetForeground(font_display, font_gc, BlackPixel(font_display, 0));
 	XFillRectangle(font_display, font_pixmap, font_gc, 0, 0, 32, 32);
 	XSetForeground(font_display, font_gc, WhitePixel(font_display, 0));
-	XwcDrawString(font_display, font_pixmap, fontset, font_gc, 0, lr.height - (ir.height + ir.y), wtext, len);
-	if(height == 14 && IS_PDOSV) {
-		image = XGetImage(font_display, font_pixmap, 1, 0, width, lr.height, ~0, XYPixmap);
+	if(xfont_16 != NULL && width == 16) {
+		int direction, ascent, descent;
+		XCharStruct xc;
+		XChar2b ch[2];
+		ch[0].byte1 = (wtext[0] >> 8) & 0xff;
+		ch[0].byte2 = wtext[0] & 0xff;
+		ch[1].byte1 = 0x00;
+		ch[1].byte1 = 0x5d;
+	    XSetFont(font_display, font_gc, xfont_16->fid); 
+		XTextExtents16(xfont_16, ch, 2, &direction, &ascent, &descent, &xc);
+		XDrawString16(font_display, font_pixmap, font_gc, 0, ascent, ch, 2);
+		lr.height = height;
 	} else {
-		image = XGetImage(font_display, font_pixmap, 0, 0, width, lr.height, ~0, XYPixmap);
+		XFontSet fontset = font_set16;
+		if(height == 24)
+			fontset = font_set24;
+		else if(height == 14 && !IS_PDOSV)
+			fontset = font_set14;
+		wtext[1] = ']';
+		wtext[2] = 0;
+		len = 2;
+		XwcTextExtents(fontset, wtext, len, &ir, &lr);
+		if(lr.width <= width) return false;
+		XwcDrawString(font_display, font_pixmap, fontset, font_gc, 0, lr.height - (ir.height + ir.y), wtext, len);
 	}
+	image = XGetImage(font_display, font_pixmap, (height == 14 && IS_PDOSV) ? 1 : 0, 0, width, lr.height, ~0, XYPixmap);
 	if(image != NULL) {
 		int x, y;
 		for(y = 0 ; y < height ; y++) {
@@ -606,11 +617,18 @@ void InitFontHandle()
 		font_display = XOpenDisplay("");
 	if(font_display) {
 		if(!font_set16) {
+			if(IS_CDOSV) {
+				xfont_16 = XLoadQueryFont(font_display, "-wenquanyi-*-medium-r-normal-*-16-*-*-*-*-*-iso10646-*"); 
+			}
 			font_set16 = XCreateFontSet(font_display, "-*-*-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
 		}
 		if(!font_set14) {
-			font_set14 = XCreateFontSet(font_display, "-*-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
+			if(IS_CDOSV) {
+				font_set14 = XCreateFontSet(font_display, "-wenquanyi-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
+			} else{
+				font_set14 = XCreateFontSet(font_display, "-*-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
+			}
 			XFreeStringList(missing_list);
 		}
 		if(!font_set24) {
