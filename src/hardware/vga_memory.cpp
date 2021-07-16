@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <cassert>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
