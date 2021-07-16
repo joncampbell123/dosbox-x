@@ -53,6 +53,8 @@
     builds (joncampbell123)
   - Fixed a bug in Int21/AH=36h function for returning
     very large CX values. (Wengier)
+  - Fixed issue that the mouse cursor not showing in
+    the game "Power Dolls". (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)

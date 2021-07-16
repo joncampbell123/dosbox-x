@@ -1068,10 +1068,8 @@ void Mouse_BeforeNewVideoMode(bool setmode) {
 
     if (CurMode->type!=M_TEXT) RestoreCursorBackground();
     else RestoreCursorBackgroundText();
-    if (!mouse.hidden) {
-        mouse.hidden = 1;
-        mouse.hidden_at = PIC_FullIndex();
-    }
+    if (!mouse.hidden) mouse.hidden_at = PIC_FullIndex();
+    mouse.hidden = 1;
     mouse.oldhidden = 1;
     mouse.background = false;
 }
