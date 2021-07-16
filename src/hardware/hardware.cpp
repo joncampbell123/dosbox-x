@@ -625,7 +625,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 			avi_writer_finish(capture.video.writer);
 			avi_writer_close_file(capture.video.writer);
 			capture.video.writer = avi_writer_destroy(capture.video.writer);
-            systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
+			if (pathvid.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
 		}
 #if (C_AVCODEC)
 		if (ffmpeg_fmt_ctx != NULL) {
@@ -649,6 +649,7 @@ void CAPTURE_VideoEvent(bool pressed) {
         ttf_switch_off();
 #endif
 	}
+	pathvid = "";
 
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
 }
@@ -1717,12 +1718,13 @@ void CAPTURE_MTWaveEvent(bool pressed) {
             avi_writer_close_file(capture.multitrack_wave.writer);
             capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_MULTITRACK_WAVE);
-            systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
+            if (pathmtw.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
         }
     }
     else {
         CaptureState |= CAPTURE_MULTITRACK_WAVE;
     }
+    pathmtw = "";
 
 	mainMenu.get_item("mapper_recmtwave").check(!!(CaptureState & CAPTURE_MULTITRACK_WAVE)).refresh_item(mainMenu);
 #endif
@@ -1743,12 +1745,13 @@ void CAPTURE_WaveEvent(bool pressed) {
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
-            systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
+            if (pathwav.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
         }
     }
     else {
         CaptureState |= CAPTURE_WAVE;
     }
+    pathwav = "";
 
 	mainMenu.get_item("mapper_recwave").check(!!(CaptureState & CAPTURE_WAVE)).refresh_item(mainMenu);
 #endif
