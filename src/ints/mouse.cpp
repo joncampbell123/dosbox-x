@@ -1553,10 +1553,8 @@ static Bitu INT33_Handler(void) {
         SegSet16(es, 0);
         mouse.enabled = false; /* Just for reporting not doing a thing with it */
         mouse.oldhidden = mouse.hidden;
-        if (!mouse.hidden) {
-            mouse.hidden = 1;
-            mouse.hidden_at = PIC_FullIndex();
-        }
+        if (!mouse.hidden) mouse.hidden_at = PIC_FullIndex();
+        mouse.hidden = 1;
         break;
     case 0x20:  /* Enable Mousedriver */
         mouse.enabled = true;
@@ -1888,10 +1886,8 @@ void MOUSE_Startup(Section *sec) {
 
     memset(&mouse,0,sizeof(mouse));
 
-    if (!mouse.hidden) {
-        mouse.hidden = 1;
-        mouse.hidden_at = PIC_FullIndex();
-    }
+    if (!mouse.hidden) mouse.hidden_at = PIC_FullIndex();
+    mouse.hidden = 1;
 
     mouse.timer_in_progress = false;
     mouse.mode = 0xFF; //Non existing mode

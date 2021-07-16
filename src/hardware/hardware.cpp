@@ -1070,7 +1070,7 @@ skip_shot:
             char fullpath[MAX_PATH];
             if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
 #elif defined(HAVE_REALPATH)
-            char path[PATH_MAX];
+            char fullpath[PATH_MAX];
             if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
 #endif
 			LOG_MSG("Started capturing video to: %s", path.c_str());
@@ -1256,7 +1256,7 @@ skip_shot:
             char fullpath[MAX_PATH];
             if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
 #elif defined(HAVE_REALPATH)
-            char path[PATH_MAX];
+            char fullpath[PATH_MAX];
             if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
 #endif
 			LOG_MSG("Started capturing video (FFMPEG) to: %s", path.c_str());
@@ -1619,7 +1619,7 @@ void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const
             char fullpath[MAX_PATH];
             if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
 #elif defined(HAVE_REALPATH)
-            char path[PATH_MAX];
+            char fullpath[PATH_MAX];
             if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
 #endif
 			LOG_MSG("Started capturing multitrack audio (%u channels) to: %s",streams, path.c_str());
@@ -1708,7 +1708,7 @@ void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
             char fullpath[MAX_PATH];
             if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
 #elif defined(HAVE_REALPATH)
-            char path[PATH_MAX];
+            char fullpath[PATH_MAX];
             if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
 #endif
 			LOG_MSG("Started capturing wave output to: %s", path.c_str());
