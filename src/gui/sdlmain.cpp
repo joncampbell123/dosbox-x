@@ -3888,7 +3888,12 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         const char * fiName = ttf_section->Get_string("fontital");
         const char * fbiName = ttf_section->Get_string("fontboit");
         LOG_MSG("SDL:TTF activated %s", fName);
-        if (!*fName||!readTTF(fName, false, false)) {
+        int cp = dos.loaded_codepage;
+        if (!cp) InitCodePage();
+        bool trysgf = !*fName && (IS_PC98_ARCH||isDBCSCP());
+        dos.loaded_codepage = cp;
+        if (trysgf) failName = "SarasaGothicFixed";
+        if ((!*fName&&!trysgf)||!readTTF(*fName?fName:failName.c_str(), false, false)) {
             ttfFont = DOSBoxTTFbi;
             ttfFontb = NULL;
             ttfFonti = NULL;

@@ -34,11 +34,11 @@
 using namespace std;
 
 int msgcodepage = 0;
-std::string langname = "", langnote = "";
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
+std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -106,8 +106,15 @@ void LoadMessageFile(const char * fname) {
 	if(*fname=='\0') return;//empty string=no languagefile
 
 	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
+    std::string config_path, exepath=GetDOSBoxXPath();
+    Cross::GetPlatformConfigDir(config_path);
 
 	FILE * mfile=fopen(fname,"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rt");
+	if (!mfile) mfile=fopen((std::string("languages/") + fname).c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + "languages/" + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname).c_str(),"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
 		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
