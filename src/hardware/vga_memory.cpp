@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <cassert>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1945,6 +1945,7 @@ class VGA_AMS_Handler : public PageHandler {
 public:
 	template< bool wrapping>
 	void writeHandler(PhysPt start, uint8_t val) {
+        assert(start < vga.mem.memsize);
 		vga.tandy.mem_base[ start ] = val;
 #ifdef DIJDIJD
 		uint32_t data=ModeOperation(val);
@@ -1979,6 +1980,7 @@ public:
 	}
 //	template< bool wrapping>
 	uint8_t readHandler(PhysPt start) {
+        assert(start < vga.mem.memsize);
 		return vga.tandy.mem_base[ start ];
 	}
 
@@ -1998,7 +2000,7 @@ public:
 				phys_page&=0x03;
 			return ( phys_page * 4096 ) + ( addr & 0x0FFF );
 		}
-		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 32*1024-1 );
+		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 16*1024-1 );
 	}
 
 	void writeb(PhysPt addr,uint8_t val) {
@@ -2255,7 +2257,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 //		MEM_SetPageHandler(vga.tandy.mem_bank<<2,vga.tandy.is_32k_mode ? 0x08 : 0x04,range_handler);
 	case MCH_AMSTRAD: // Memory handler.
-		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
+		MEM_SetPageHandler( VGA_PAGE_B8, 4, &vgaph.ams );   // 0xb8000 - 0xbbfff
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
         break;

@@ -773,8 +773,8 @@ static void FinishSetMode(bool clearmem) {
                 }
             }
             else {
-                for (uint16_t ct=0;ct<16*1024;ct++) {
-                    real_writew( 0xb800,ct*2,0x0000);
+                for (uint16_t ct=0;ct<16*1024;ct+=2) {
+                    real_writew( 0xb800,ct,0x0000);
                 }
             }
 			break;
