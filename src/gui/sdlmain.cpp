@@ -3890,7 +3890,11 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         LOG_MSG("SDL:TTF activated %s", fName);
         int cp = dos.loaded_codepage;
         if (!cp) InitCodePage();
-        bool trysgf = !*fName && (IS_PC98_ARCH||isDBCSCP());
+        bool trysgf = false;
+        if (!*fName) {
+            std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||isDBCSCP()) trysgf = true;
+        }
         dos.loaded_codepage = cp;
         if (trysgf) failName = "SarasaGothicFixed";
         if ((!*fName&&!trysgf)||!readTTF(*fName?fName:failName.c_str(), false, false)) {

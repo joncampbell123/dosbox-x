@@ -1,5 +1,5 @@
 0.83.16
-  - Reorgnized Windows installation to two installers
+  - Reorganized Windows installation to 2 installers
     installing 32-bit and 64-bit DOSBox-X binaries,
     for WinXP+ (all) and Vista+ 64-bit respectively,
     reducing the sizes of installers significantly
@@ -8,6 +8,9 @@
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
     for loading language files before fail. (Wengier)
+  - DOSBox-X will try to load the SarasaGothicFixed
+    TTF font when no external TTF font is specified
+    and a CJK code page detected at start. (Wengier)
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
