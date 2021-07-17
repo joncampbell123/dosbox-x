@@ -2324,7 +2324,11 @@ bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 		FinishSetMode(true);
 		INT10_SetCursorShape(6, 7);
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-		SDL_SetIMValues(SDL_IM_FONT_SIZE, CurMode->cheight, NULL);
+		int cheight = CurMode->cheight;
+		if(IS_DOSV && cheight == 19) {
+			cheight = 16;
+		}
+		SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
 #endif
 	} else {
 		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);

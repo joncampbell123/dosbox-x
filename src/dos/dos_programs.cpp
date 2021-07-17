@@ -6561,36 +6561,39 @@ static void ADDKEY_ProgramStart(Program * * make) {
 class LS : public Program {
 public:
     void Run(void);
-private:
-	void PrintUsage() {
-        constexpr const char *msg =
-            "Lists directory contents.\n\nLS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
-            "  /A\tLists hidden and system files also.\n"
-            "  /L\tLists names one per line.\n"
-            "  /P\tPauses after each screenful of information.\n"
-            "  /Z\tDisplays short names even if LFN support is available.\n";
-        WriteOut(msg);
-	}
 };
 
 void LS::Run()
 {
-	// Hack To allow long commandlines
-	ChangeToLongCmd();
-
-	// Usage
-	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		PrintUsage();
-		return;
-	}
-	char *args=(char *)cmd->GetRawCmdline().c_str();
-	args=trim(args);
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
 	DOS_Shell temp;
 	temp.CMD_LS(args);
 }
 
 static void LS_ProgramStart(Program * * make) {
     *make=new LS;
+}
+
+class HELP : public Program {
+public:
+    void Run(void);
+};
+
+void HELP::Run()
+{
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
+	DOS_Shell temp;
+	temp.CMD_HELP(args);
+}
+
+static void HELP_ProgramStart(Program * * make) {
+    *make=new HELP;
 }
 
 class DELTREE : public Program {
@@ -7895,6 +7898,7 @@ void DOS_SetupPrograms(void) {
     VFILE_Register("BIN", 0, 0, "/");
     VFILE_Register("4DOS", 0, 0, "/");
 
+    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");

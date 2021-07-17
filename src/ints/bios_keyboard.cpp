@@ -294,6 +294,9 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
     {   none,   none,   none,   none,   none,   none }  /* 7f      */
 };
 
+#include <queue>
+std::queue <uint16_t>over_key_buffer;
+
 bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
         if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
@@ -328,7 +331,12 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
     }
     /* Check for buffer Full */
     //TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
-    if (ttail==head) return false;
+    if (ttail==head) {
+        if(IS_DOSV) {
+            over_key_buffer.push(code);
+        }
+        return false;
+    }
 
     if (IS_PC98_ARCH) {
         real_writew(0x0,tail,code);
@@ -391,6 +399,12 @@ static bool get_key(uint16_t &code) {
     else {
         mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
         code = real_readw(0x40,head);
+    }
+    if(IS_DOSV) {
+        if (!over_key_buffer.empty()) {
+            add_key(over_key_buffer.front());
+            over_key_buffer.pop();
+        }
     }
 
     return true;

@@ -641,7 +641,7 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                if (machine == MCH_CGA || machine == MCH_AMSTRAD) {
+                if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
                     WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 } else if (machine == MCH_HERC || machine == MCH_MDA) {
@@ -1341,6 +1341,12 @@ void SHELL_Init() {
 			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
 			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
             "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
+    MSG_Add("SHELL_CMD_LS_HELP","Lists directory contents.\n");
+    MSG_Add("SHELL_CMD_LS_HELP_LONG","LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
+            "  /A     Lists hidden and system files also.\n"
+            "  /L     Lists names one per line.\n"
+            "  /P     Pauses after each screenful of information.\n"
+            "  /Z     Displays short names even if LFN support is available.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");

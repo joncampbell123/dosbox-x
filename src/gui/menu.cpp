@@ -142,12 +142,12 @@ static const char *def_menu_main[] =
     "mapper_reboot",
 #endif
 #if defined(MACOSX)
-    "--",
     "mapper_newinst",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "--",
     "restartconf",
+    "restartlang",
     "mapper_shutdown",
 #endif
     NULL
@@ -755,13 +755,16 @@ static const char *def_menu_help_debug[] =
     "debug_pageflip",
     "debug_retracepoll",
     "--",
+    "show_codetext",
+    "show_logtext",
+    "save_logas",
+    "--",
 #endif
 #if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
     "wait_on_error",
 #endif
 #if C_DEBUG
-    "save_logas",
     "--",
     "debug_logint21",
     "debug_logfileio",

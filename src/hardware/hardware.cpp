@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 #include "dosbox.h"
 #include "control.h"
 #include "hardware.h"
@@ -62,6 +63,8 @@ extern "C" {
 #endif
 
 bool            skip_encoding_unchanged_frames = false;
+std::string pathvid = "", pathwav = "", pathmtw = "";
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 #if (C_AVCODEC)
 bool ffmpeg_init = false;
@@ -608,6 +611,10 @@ void CAPTURE_VideoEvent(bool pressed) {
 		CaptureState &= ~((unsigned int)CAPTURE_VIDEO);
 		LOG_MSG("Stopped capturing video.");	
 
+#if defined(USE_TTF)
+        if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
+            ttf_switch_on();
+#endif
 		if (capture.video.writer != NULL) {
 			if ( capture.video.audioused ) {
 				CAPTURE_AddAviChunk( "01wb", (uint32_t)(capture.video.audioused * 4), capture.video.audiobuf, 0x10, 1);
@@ -619,6 +626,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 			avi_writer_finish(capture.video.writer);
 			avi_writer_close_file(capture.video.writer);
 			capture.video.writer = avi_writer_destroy(capture.video.writer);
+			if (pathvid.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
 		}
 #if (C_AVCODEC)
 		if (ffmpeg_fmt_ctx != NULL) {
@@ -636,16 +644,13 @@ void CAPTURE_VideoEvent(bool pressed) {
 			delete capture.video.codec;
 			capture.video.codec = NULL;
 		}
-#if defined(USE_TTF)
-        if (!(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO))
-            ttf_switch_on();
-#endif
 	} else {
 		CaptureState |= CAPTURE_VIDEO;
 #if defined(USE_TTF)
         ttf_switch_off();
 #endif
 	}
+	pathvid = "";
 
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
 }
@@ -927,6 +932,7 @@ skip_shot:
 			std::string path = GetCaptureFilePath("Video",".avi");
 			if (path == "")
 				goto skip_video;
+			pathvid = path;
 
 			capture.video.writer = avi_writer_create();
 			if (capture.video.writer == NULL)
@@ -1060,13 +1066,21 @@ skip_shot:
 			if (!avi_writer_begin_header(capture.video.writer) || !avi_writer_begin_data(capture.video.writer))
 				goto skip_video;
 
-			LOG_MSG("Started capturing video.");
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char fullpath[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing video to: %s", path.c_str());
 		}
 #if (C_AVCODEC)
 		else if (export_ffmpeg && ffmpeg_fmt_ctx == NULL) {
 			std::string path = GetCaptureFilePath("Video",".mts"); // Use widely recognized .MTS extension
 			if (path == "")
 				goto skip_video;
+			pathvid = path;
 
 			capture.video.width = width;
 			capture.video.height = height;
@@ -1238,7 +1252,14 @@ skip_shot:
 				goto skip_video;
 			}
 
-			LOG_MSG("Started capturing video (FFMPEG)");
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char fullpath[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing video (FFMPEG) to: %s", path.c_str());
 		}
 #endif
 
@@ -1506,6 +1527,7 @@ void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const
                 LOG_MSG("Cannot determine capture path");
 				goto skip_mt_wav;
             }
+			pathmtw = path;
 
 		    capture.multitrack_wave.audiorate = freq;
 
@@ -1593,7 +1615,14 @@ void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const
 			if (!avi_writer_begin_header(capture.multitrack_wave.writer) || !avi_writer_begin_data(capture.multitrack_wave.writer))
 				goto skip_mt_wav;
 
-			LOG_MSG("Started capturing multitrack audio (%u channels).",streams);
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char fullpath[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing multitrack audio (%u channels) to: %s",streams, path.c_str());
 		}
 
         if (capture.multitrack_wave.writer != NULL) {
@@ -1640,6 +1669,7 @@ void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
 				CaptureState &= ~((unsigned int)CAPTURE_WAVE);
 				return;
 			}
+			pathwav = path;
 
 			capture.wave.writer = riff_wav_writer_create();
 			if (capture.wave.writer == NULL) {
@@ -1674,7 +1704,14 @@ void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
 			capture.wave.length = 0;
 			capture.wave.used = 0;
 			capture.wave.freq = freq;
-			LOG_MSG("Started capturing wave output.");
+#if defined(WIN32)
+            char fullpath[MAX_PATH];
+            if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+            char fullpath[PATH_MAX];
+            if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+			LOG_MSG("Started capturing wave output to: %s", path.c_str());
 		}
 		int16_t * read = data;
 		while (len > 0 ) {
@@ -1710,11 +1747,13 @@ void CAPTURE_MTWaveEvent(bool pressed) {
             avi_writer_close_file(capture.multitrack_wave.writer);
             capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_MULTITRACK_WAVE);
+            if (pathmtw.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
         }
     }
     else {
         CaptureState |= CAPTURE_MULTITRACK_WAVE;
     }
+    pathmtw = "";
 
 	mainMenu.get_item("mapper_recmtwave").check(!!(CaptureState & CAPTURE_MULTITRACK_WAVE)).refresh_item(mainMenu);
 #endif
@@ -1735,11 +1774,13 @@ void CAPTURE_WaveEvent(bool pressed) {
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
+            if (pathwav.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
         }
     }
     else {
         CaptureState |= CAPTURE_WAVE;
     }
+    pathwav = "";
 
 	mainMenu.get_item("mapper_recwave").check(!!(CaptureState & CAPTURE_WAVE)).refresh_item(mainMenu);
 #endif

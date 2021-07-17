@@ -1,6 +1,69 @@
 0.83.16
+  - Reorgnized Windows installation to two installers
+    installing 32-bit and 64-bit DOSBox-X binaries,
+    for WinXP+ (all) and Vista+ 64-bit respectively,
+    reducing the sizes of installers significantly
+    while adding the SarasaGothicFixed TTF font and
+    existing language translations. (Wengier)
+  - DOSBox-X will now search for more paths (such as
+    user config directory and "languages" subfolder)
+    for loading language files before fail. (Wengier)
+  - HELP command is now an external command appearing
+    on Z drive rather than an internal shell command
+    (it is never a DOS internal command). (Wengier)
+  - Command-line options -eraseconf and -erasemapper
+    will now erase loaded config file and mapper file
+    respectively and continue, whereas -resetconf and
+    -resetmapper will erase user config file or user
+    mapper file and exit as before. (Wengier)
+  - Added menu option "Restart DOSBox-X with language
+    file" in "Main" menu to reboot DOSBox-X with the
+    specified config file automatically. (Wengier)
+  - Added menu options "Show code overview" and "Show
+    logging text" in "Debug" menu to show the overview
+    of the current code and the output of DOSBox-X's
+    current logging text in debug builds. (Wengier)
+  - Added config options "pc-98 try font rom" and
+    "pc-98 anex86 font" for the PC-98 emulation to
+    customize the font file to load. If former option
+    is set to "false", then DOSbox-X will not try to
+    load FONT.ROM first for PC-98, and latter option
+    specifies an Anex86-compatible font to load for
+    PC-98 (before trying FREECG98.BMP). (Wengier)
+  - Added support for composite support for PCjr mode
+    by porting patch from NewRisingSun. (Wengier)
+  - Non-Japanese DOS/V systems will now use 19-pixel
+    VGA fonts rather than 16-pixel VGA fonts for SBCS
+    characters to look better. (Wengier)
+  - You can now also load HZK14/HZK16 font files (for
+    14- and 16-pixel height) and STDFONT.15 font file
+    via the "fontxdbcs" and "fontxdbcs14" options for
+    Simplified Chinese DOS/V (dosv=cn) and Traditional
+    Chinese DOS/V (dosv=tw) emulations. (Wengier)
+  - Improved the DOS/V font acquisition function on
+    the Linux platform (both SDL1 & SDL2). A config
+    option "getsysfont" is added which when set to
+    false will disable the font acquisition. (Wengier)
+  - Added support for 14-pixel height fonts for the
+    DOS/V font system acquisition code. (nanshiki)
+  - Added support for inputing Japanese and Korean
+    characters using system input method (IME) using
+    the default "windib" video driver in Windows SDL1
+    build (in addition to "directx" driver). (nanshiki)
+  - Fixed bug related to DBCS vector table. (nanshiki)
+  - Fixed running e.g. built-in DEBUG command from a
+    drive other than Z may not work. (cimarronm)
+  - Fixed the command "FOR %I ..." not working when
+    executed from the command line. (Wengier)
+  - For audio/video recording, DOSBox-X will display
+    a message box showing the saved file name when the
+    recording has been completed. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
+  - Fixed a bug in Int21/AH=36h function for returning
+    very large CX values. (Wengier)
+  - Fixed issue that the mouse cursor not showing in
+    the game "Power Dolls". (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)

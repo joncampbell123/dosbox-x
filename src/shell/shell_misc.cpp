@@ -893,15 +893,19 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
     // Variable names must start with non-digits. Space and special symbols like _ and ~ are apparently valid too (MS-DOS 7/Windows 9x).
 	constexpr char surrogate_percent = 8;
 	const static std::regex re("\\%([^%0-9][^%]*)?%");
-	std::string text = line;
+	bool isfor = !strncasecmp(ltrim(line),"FOR ",4);
+	char *p = isfor?strchr(line, '%'):NULL;
+	std::string text = p?p+1:line;
 	std::smatch match;
 	/* Iterate over potential %var1%, %var2%, etc matches found in the text string */
 	while (std::regex_search(text, match, re)) {
-		std::string variable_name;
-		variable_name = match[1].str();
-		if (!variable_name.size()) {
+		// Get the first matching %'s position and length
+		const auto percent_pos = static_cast<size_t>(match.position(0));
+		const auto percent_len = static_cast<size_t>(match.length(0));
+		std::string variable_name = match[1].str();
+		if (variable_name.empty()) {
 			/* Replace %% with the character "surrogate_percent", then (eventually) % */
-			text.replace(match[0].first, match[0].second, std::string(1, surrogate_percent));
+			text.replace(percent_pos, percent_len, std::string(1, surrogate_percent));
 			continue;
 		}
 		/* Trim preceding spaces from the variable name */
@@ -911,11 +915,15 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 			const size_t equal_pos = variable_value.find_first_of('=');
 			/* Replace the original %var% with its corresponding value from the environment */
 			const std::string replacement = equal_pos != std::string::npos ? variable_value.substr(equal_pos + 1) : "";
-			text.replace(match[0].first, match[0].second, replacement);
+			text.replace(percent_pos, percent_len, replacement);
 		} else
-			text.replace(match[0].first, match[0].second, "");
+			text.replace(percent_pos, percent_len, "");
 	}
 	std::replace(text.begin(), text.end(), surrogate_percent, '%');
+	if (p) {
+		*(p+1) = 0;
+		text = std::string(line) + text;
+	}
 	assert(text.size() <= CMD_MAXLINE);
 	strcpy(line, text.c_str());
 }
@@ -1210,6 +1218,14 @@ static const char * com_ext=".COM";
 static const char * exe_ext=".EXE";
 static char which_ret[DOS_PATHLENGTH+4], s_ret[DOS_PATHLENGTH+4];
 
+bool DOS_Shell::hasExecutableExtension(const char* name)
+{
+    auto extension = strrchr(name, '.');
+    if (!extension) return false;
+    return (strcasecmp(extension, com_ext) || strcasecmp(extension, exe_ext) ||
+            strcasecmp(extension, bat_ext));
+}
+
 char * DOS_Shell::Which(char * name) {
 	size_t name_len = strlen(name);
 	if(name_len >= DOS_PATHLENGTH) return 0;
@@ -1217,20 +1233,22 @@ char * DOS_Shell::Which(char * name) {
 	/* Parse through the Path to find the correct entry */
 	/* Check if name is already ok but just misses an extension */
 
-	if (DOS_FileExists(name)) return name;
-	upcase(name);
-	if (DOS_FileExists(name)) return name;
-	/* try to find .com .exe .bat */
-	strcpy(which_ret,name);
-	strcat(which_ret,com_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-	strcpy(which_ret,name);
-	strcat(which_ret,exe_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-	strcpy(which_ret,name);
-	strcat(which_ret,bat_ext);
-	if (DOS_FileExists(which_ret)) return which_ret;
-
+	if (hasExecutableExtension(name)) {
+		if (DOS_FileExists(name)) return name;
+		upcase(name);
+		if (DOS_FileExists(name)) return name;
+	} else {
+		/* try to find .com .exe .bat */
+		strcpy(which_ret,name);
+		strcat(which_ret,com_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+		strcpy(which_ret,name);
+		strcat(which_ret,exe_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+		strcpy(which_ret,name);
+		strcat(which_ret,bat_ext);
+		if (DOS_FileExists(which_ret)) return which_ret;
+	}
 
 	/* No Path in filename look through path environment string */
 	char path[DOS_PATHLENGTH];std::string temp;
@@ -1283,17 +1301,20 @@ char * DOS_Shell::Which(char * name) {
 			if((name_len + len + 1) >= DOS_PATHLENGTH) continue;
 			strcat(path,strchr(name, ' ')?("\""+std::string(name)+"\"").c_str():name);
 
-			strcpy(which_ret,path);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,com_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,exe_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
-			strcpy(which_ret,path);
-			strcat(which_ret,bat_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			if (hasExecutableExtension(path)) {
+				strcpy(which_ret,path);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			} else {
+				strcpy(which_ret,path);
+				strcat(which_ret,com_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+				strcpy(which_ret,path);
+				strcat(which_ret,exe_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+				strcpy(which_ret,path);
+				strcat(which_ret,bat_ext);
+				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			}
 		}
 	}
 	return 0;

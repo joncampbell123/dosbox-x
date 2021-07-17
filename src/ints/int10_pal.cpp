@@ -439,17 +439,18 @@ void INT10_SetColorSelect(uint8_t val) {
 		IO_Write(0x3d9,temp);
 	else if (machine == MCH_PCJR) {
 		IO_Read(VGAREG_TDY_RESET); // reset the flipflop
-		switch(vga.mode) {
-		case M_TANDY2:
-			IO_Write(VGAREG_TDY_ADDRESS, 0x11);
-			IO_Write(VGAREG_PCJR_DATA, (val&1)? 0xf:0);
-			break;
-		case M_TANDY4:
+		switch(CurMode->mode) {
+		case 4:
+		case 5:
 			for(uint8_t i = 0x11; i < 0x14; i++) {
 				const uint8_t t4_table[] = {0,2,4,6, 0,3,5,0xf};
 				IO_Write(VGAREG_TDY_ADDRESS, i);
 				IO_Write(VGAREG_PCJR_DATA, t4_table[(i-0x10)+((val&1)? 4:0)]);
 			}
+			break;
+		case 6:
+			IO_Write(VGAREG_TDY_ADDRESS, 0x11);
+			IO_Write(VGAREG_PCJR_DATA, val&1? 0xf:0);
 			break;
 		default:
 			// 16-color modes: always write the same palette

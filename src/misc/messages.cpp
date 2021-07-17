@@ -34,11 +34,11 @@
 using namespace std;
 
 int msgcodepage = 0;
-std::string langname = "", langnote = "";
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, isSupportedCP(int newCP);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
+std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -106,8 +106,15 @@ void LoadMessageFile(const char * fname) {
 	if(*fname=='\0') return;//empty string=no languagefile
 
 	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
+    std::string config_path, exepath=GetDOSBoxXPath();
+    Cross::GetPlatformConfigDir(config_path);
 
 	FILE * mfile=fopen(fname,"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rt");
+	if (!mfile) mfile=fopen((std::string("languages/") + fname).c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + "languages/" + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname).c_str(),"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
 		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
@@ -237,7 +244,7 @@ bool MSG_Write(const char * location, const char * name) {
 	}
 	std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
 	for (auto &id : master_list) {
-		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&!(id.get_name().size()==6&&id.get_name().substr(0,5)=="Drive"&&id.get_name().back()>='A'&&id.get_name().back()<='Z')&&!(id.get_name().size()>9&&id.get_name().substr(0,6)=="drive_"&&id.get_name()[6]>='B'&&id.get_name()[6]<='Z'&&id.get_name()[7]=='_')&&id.get_name()!="mapper_cycauto") {
+		if (id.is_allocated()&&id.get_type()!=DOSBoxMenu::separator_type_id&&id.get_type()!=DOSBoxMenu::vseparator_type_id&&!(id.get_name().size()==5&&id.get_name().substr(0,4)=="slot")&&!(id.get_name().size()>9&&id.get_name().substr(0,8)=="command_")&&!(id.get_name().size()==6&&id.get_name().substr(0,5)=="Drive"&&id.get_name().back()>='A'&&id.get_name().back()<='Z')&&!(id.get_name().size()>9&&id.get_name().substr(0,6)=="drive_"&&id.get_name()[6]>='B'&&id.get_name()[6]<='Z'&&id.get_name()[7]=='_')&&id.get_name()!="mapper_cycauto") {
             std::string text = id.get_text();
             if (id.get_name()=="hostkey_mapper"||id.get_name()=="clipboard_device") {
                 std::size_t found = text.find(":");

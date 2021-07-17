@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.15
-:DOSBOX-X:REMARK:建议使用中文DOS/V模式或者TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
+:DOSBOX-X:VERSION:0.83.16
+:DOSBOX-X:REMARK:建议使用简体中文DOS/V模式或者TTF输出选项和代码页936配合中文TTF字体以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -47,6 +47,9 @@ DOSBox-X 配置工具
 .
 :CLOSE
 关闭
+.
+:UPDATE
+更新
 .
 :ADD
 加入
@@ -104,6 +107,12 @@ DOSBox-X 配置工具
 .
 :SETTINGS
 设置
+.
+:LOGGING_OUTPUT
+DOSBox-X记录显示
+.
+:CODE_OVERVIEW
+代码概览
 .
 :VISIT_HOMEPAGE
 访问主页
@@ -1658,6 +1667,19 @@ HELP [命令]
       输入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 显示此命令的帮助信息.
 
 .
+:SHELL_CMD_LS_HELP
+列出目录内容.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [驱动器:][路径][文件名] [/A] [/L] [/P] [/Z]
+
+  /A     亦列出隐藏文件和系统文件.
+  /L     每行显示一个文件或目录.
+  /P     显示完一屏后暂停.
+  /Z     显示短文件名,即使长文件名可用.
+
+.
 :SHELL_CMD_MKDIR_HELP
 创建目录.
 
@@ -2847,6 +2869,12 @@ DOSBox-X 支持
 :MENU:wait_on_error
 控制台遇到错误时等待
 .
+:MENU:show_codetext
+显示代码概览
+.
+:MENU:show_logtext
+显示记录内容
+.
 :MENU:save_logas
 保存记录为...
 .
@@ -2861,129 +2889,6 @@ DOSBox-X 支持
 .
 :MENU:HelpCommandMenu
 DOS 命令
-.
-:MENU:command_DIR
-DIR
-.
-:MENU:command_CD
-CD
-.
-:MENU:command_CLS
-CLS
-.
-:MENU:command_COPY
-COPY
-.
-:MENU:command_DATE
-DATE
-.
-:MENU:command_DEL
-DEL
-.
-:MENU:command_ECHO
-ECHO
-.
-:MENU:command_EXIT
-EXIT
-.
-:MENU:command_MD
-MD
-.
-:MENU:command_PROMPT
-PROMPT
-.
-:MENU:command_RD
-RD
-.
-:MENU:command_REN
-REN
-.
-:MENU:command_TIME
-TIME
-.
-:MENU:command_TYPE
-TYPE
-.
-:MENU:command_VER
-VER
-.
-:MENU:command_VOL
-VOL
-.
-:MENU:command_ALIAS
-ALIAS
-.
-:MENU:command_ATTRIB
-ATTRIB
-.
-:MENU:command_BREAK
-BREAK
-.
-:MENU:command_CALL
-CALL
-.
-:MENU:command_CHOICE
-CHOICE
-.
-:MENU:command_CHCP
-CHCP
-.
-:MENU:command_COUNTRY
-COUNTRY
-.
-:MENU:command_CTTY
-CTTY
-.
-:MENU:command_FOR
-FOR
-.
-:MENU:command_GOTO
-GOTO
-.
-:MENU:command_HELP
-HELP
-.
-:MENU:command_IF
-IF
-.
-:MENU:command_LFNFOR
-LFNFOR
-.
-:MENU:command_LH
-LH
-.
-:MENU:command_MORE
-MORE
-.
-:MENU:command_PATH
-PATH
-.
-:MENU:command_PAUSE
-PAUSE
-.
-:MENU:command_REM
-REM
-.
-:MENU:command_SET
-SET
-.
-:MENU:command_SHIFT
-SHIFT
-.
-:MENU:command_SUBST
-SUBST
-.
-:MENU:command_VERIFY
-VERIFY
-.
-:MENU:command_PUSHD
-PUSHD
-.
-:MENU:command_POPD
-POPD
-.
-:MENU:command_TRUENAME
-TRUENAME
 .
 :MENU:DebugMenu
 调试
@@ -3176,6 +3081,9 @@ TRUENAME
 .
 :MENU:restartconf
 重启 DOSBox-X 并调用指定配置文件...
+.
+:MENU:restartlang
+重启 DOSBox-X 并调用指定语言文件...
 .
 :MENU:auto_lock_mouse
 自动锁定鼠标

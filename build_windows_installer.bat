@@ -151,29 +151,34 @@ echo.
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
-if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
-copy /y %isspath%\WizModernImage.bmp %isspath%\allusers\WizModernImage.bmp
-copy /y %isspath%\DOSBox-X-setup.iss %isspath%\allusers\DOSBox-X-setup.iss
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "}-setup" "}-setup-allusers"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=lowest" "=admin"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss ";Privileges" "Privileges"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=..\\" "=..\..\\"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "=.\\" "=..\\"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"..\\" "\"..\..\\"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\".\\" "\"..\\"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "File=setup_" "File=..\setup_"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"Win32_builds" "\"..\Win32_builds"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "\"Win64_builds" "\"..\Win64_builds"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "{userappdata}" "{commonappdata}"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "HKCU;" "HKA;"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss " IsTaskSelected" " WizardIsTaskSelected"
-%isspath%\fart.exe %isspath%\allusers\DOSBox-X-setup.iss "IsAdminLoggedOn" "IsAdmin"
+if exist %isspath%\dosbox-x-win32-*-setup.exe del %isspath%\dosbox-x-win32-*-setup.exe
+copy /y %isspath%\WizModernImage.bmp %isspath%\64bit\WizModernImage.bmp
+copy /y %isspath%\DOSBox-X-setup.iss %isspath%\64bit\DOSBox-X-setup.iss
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "win32-{" "win64-{"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss ";Privileges" "Privileges"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "=lowest" "=admin"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "=..\\" "=..\..\\"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "=.\\" "=..\\"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "\"..\\" "\"..\..\\"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "\".\\" "\"..\\"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "File=setup_" "File=..\setup_"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "(32-bit)" "(64-bit)"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "inpout32" "inpoutx64"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "\"Win32_builds" "\"..\Win64_builds"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "Win32_builds" "Win64_builds"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "x86_Release" "x64_Release"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "ARM_Release" "ARM64_Release"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "{userappdata}" "{commonappdata}"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "HKCU;" "HKA;"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "False and not IsWin64" "not IsWin64"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss " IsTaskSelected" " WizardIsTaskSelected"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "IsAdminLoggedOn" "IsAdmin"
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
-%isspath%\allusers\ISCC.exe %isspath%\allusers\DOSBox-X-setup.iss
-if exist %isspath%\dosbox-x-windows-*-setup.exe if exist exist %isspath%\dosbox-x-windows-*-setup-allusers.exe (
-	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe %isspath%\dosbox-x-windows-*-setup-allusers.exe) do echo Copying to %vsbinpath%\%%~nxi...
-	copy /y %isspath%\dosbox-x-windows-*-setup.exe %vsbinpath%
-	copy /y %isspath%\dosbox-x-windows-*-setup-allusers.exe %vsbinpath%
+%isspath%\64bit\ISCC.exe %isspath%\64bit\DOSBox-X-setup.iss
+if exist %isspath%\dosbox-x-win32-*-setup.exe if exist %isspath%\dosbox-x-win64-*-setup.exe (
+	for %%i in (%isspath%\dosbox-x-win32-*-setup.exe %isspath%\dosbox-x-win64-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
+	copy /y %isspath%\dosbox-x-win32-*-setup.exe %vsbinpath%
+	copy /y %isspath%\dosbox-x-win64-*-setup.exe %vsbinpath%
 	goto success
 )
 

@@ -1745,11 +1745,11 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
 		if (res) {
 			unsigned long total = dwTotalClusters * dwSectPerClust;
-			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
-			*_bytes_sector = (uint16_t)dwBytesPerSect;
+			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
+			*_bytes_sector = 512;
 			*_sectors_cluster = ratio;
-			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
-			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio);
+			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
+			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2);
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;
@@ -1760,7 +1760,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
 			*_bytes_sector = 512;
-			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			*_sectors_cluster = stat.f_frsize/512 > 64? 64 : stat.f_frsize/512;
 			if (ratio>1) {
 				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
 				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
@@ -2624,7 +2624,7 @@ bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clu
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
 			*_bytes_sector = 512;
-			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			*_sectors_cluster = stat.f_frsize/512 > 64? 64 : stat.f_frsize/512;
 			if (ratio>1) {
 				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
 				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);

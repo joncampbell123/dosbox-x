@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.15
+:DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.◙Puedes poner tus líneas MOUNT aqui.◙
@@ -43,6 +43,9 @@ Cancelar
 .
 :CLOSE
 Cerrar
+.
+:UPDATE
+Actualizar
 .
 :ADD
 Añadir
@@ -100,6 +103,12 @@ Configuración
 .
 :SETTINGS
 Ajustes
+.
+:LOGGING_OUTPUT
+Salida de registro de DosBox-X
+.
+:CODE_OVERVIEW
+Descripción general del código
 .
 :VISIT_HOMEPAGE
 Visitar página de DosBox-X
@@ -1347,12 +1356,18 @@ HELP [comando]
      /A o /ALL    Lista todos los comandos internos.
      [comando]    Muestra ayuda del caomando indicado.
 
-←[0mE.g., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m muestra informaci¢n de ayuda del comando COPY.
+←[0mE.g., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m muestra información de ayuda del comando COPY.
 
 Nota: Comandos externos como ←[33;1mMOUNT←[0m e ←[33;1mIMGMOUNT←[0m no son listados por HELP [/A].
-      Estos comandos se encuentran en la unidad Z: como programas (p.ej. MOUNT.COM).
-      Teclea ←[33;1mcomando /?←[0m o ←[33;1mHELP comando←[0m para información de ayuda para ese comando.
+Estos comandos se encuentran en la unidad Z: como programas (p.ej. MOUNT.COM).
+Teclea ←[33;1mcomando /?←[0m o ←[33;1mHELP comando←[0m para información de ayuda para ese comando.
 
+.
+:SHELL_CMD_LS_HELP
+Muestra el contenido del directorio.◙
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [unidad:][ruta][fichero] [/A] [/L] [/P] [/Z]◙◙  /A     También enumera los archivos ocultos y del sistema.◙  /L     Enumera los nombres uno por línea.◙  /P     Hace una pausa después de cada pantalla llena de información.◙  /Z     Muestra SFN incluso si la compatibilidad con LFN está disponible.◙
 .
 :SHELL_CMD_MKDIR_HELP
 Crea un directorio.◙
@@ -2367,6 +2382,12 @@ Mostrar consola de registro
 :MENU:wait_on_error
 Pausar consola en caso de error
 .
+:MENU:show_codetext
+Mostrar descripción general del código
+.
+:MENU:show_logtext
+Mostrar texto de registro
+.
 :MENU:save_logas
 Salvar registro como...
 .
@@ -2381,129 +2402,6 @@ Opción del depurador: Ejecutar observador
 .
 :MENU:HelpCommandMenu
 Comandos DOS
-.
-:MENU:command_DIR
-DIR
-.
-:MENU:command_CD
-CD
-.
-:MENU:command_CLS
-CLS
-.
-:MENU:command_COPY
-COPY
-.
-:MENU:command_DATE
-DATE
-.
-:MENU:command_DEL
-DEL
-.
-:MENU:command_ECHO
-ECHO
-.
-:MENU:command_EXIT
-EXIT
-.
-:MENU:command_MD
-MD
-.
-:MENU:command_PROMPT
-PROMPT
-.
-:MENU:command_RD
-RD
-.
-:MENU:command_REN
-REN
-.
-:MENU:command_TIME
-TIME
-.
-:MENU:command_TYPE
-TYPE
-.
-:MENU:command_VER
-VER
-.
-:MENU:command_VOL
-VOL
-.
-:MENU:command_ALIAS
-ALIAS
-.
-:MENU:command_ATTRIB
-ATTRIB
-.
-:MENU:command_BREAK
-BREAK
-.
-:MENU:command_CALL
-CALL
-.
-:MENU:command_CHOICE
-CHOICE
-.
-:MENU:command_CHCP
-CHCP
-.
-:MENU:command_COUNTRY
-COUNTRY
-.
-:MENU:command_CTTY
-CTTY
-.
-:MENU:command_FOR
-FOR
-.
-:MENU:command_GOTO
-GOTO
-.
-:MENU:command_HELP
-HELP
-.
-:MENU:command_IF
-IF
-.
-:MENU:command_LFNFOR
-LFNFOR
-.
-:MENU:command_LH
-LH
-.
-:MENU:command_MORE
-MORE
-.
-:MENU:command_PATH
-PATH
-.
-:MENU:command_PAUSE
-PAUSE
-.
-:MENU:command_REM
-REM
-.
-:MENU:command_SET
-SET
-.
-:MENU:command_SHIFT
-SHIFT
-.
-:MENU:command_SUBST
-SUBST
-.
-:MENU:command_VERIFY
-VERIFY
-.
-:MENU:command_PUSHD
-PUSHD
-.
-:MENU:command_POPD
-POPD
-.
-:MENU:command_TRUENAME
-TRUENAME
 .
 :MENU:DebugMenu
 Depurador
@@ -2693,6 +2591,9 @@ Mostrar FPS y velocidad RT en barra de título
 .
 :MENU:restartconf
 Reiniciar DOSBox-X con archivo config...
+.
+:MENU:restartlang
+Reiniciar DOSBox-X con archivo idioma...
 .
 :MENU:auto_lock_mouse
 Autobloqueo de ratón

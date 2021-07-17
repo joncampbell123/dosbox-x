@@ -60,7 +60,7 @@ void autoExpandEnvironmentVariables(std::string & text, bool dosvar) {
     while (std::regex_search(text, match, env)) {
         const char * s = getenv(match[1].str().c_str());
         const std::string var(s == NULL ? "" : s);
-        text.replace(match[0].first, match[0].second, var);
+        text.replace(static_cast<size_t>(match.position(0)), static_cast<size_t>(match.length(0)), var);
     }
 }
 
