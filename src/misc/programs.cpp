@@ -582,6 +582,11 @@ void CONFIG::Run(void) {
 		"-get", "-set", "-setf",
 		"-writelang", "-wl", "-langname", "-ln",
 		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+/* HACK: P_ALL is in linux/wait.h */
+#if defined(P_ALL)
+#define __P_ALL P_ALL
+#undef P_ALL
+#endif
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -617,6 +622,9 @@ void CONFIG::Run(void) {
 		case P_ALL:
 			if (all<1) all = 1;
 			break;
+#if defined(__P_ALL)
+#define P_ALL __P_ALL
+#endif
 
 		case P_MOD:
 			if (all==-1) all = 0;
