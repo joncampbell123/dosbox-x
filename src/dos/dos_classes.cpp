@@ -129,9 +129,9 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	uint16_t sftOffset=offsetof(sDIB,firstFileTable)+0xa2;
 	sSave(sDIB,firstFileTable,RealMake(segment,sftOffset));
 	real_writed(segment,sftOffset+0x00,RealMake(segment+0x26,0));	//Next File Table
-	real_writew(segment,sftOffset+0x04,100);		//File Table supports 100 files
+	real_writew(segment,sftOffset+0x04,DOS_FILES/2);	//File Table supports DOS_FILES/2 files
 	real_writed(segment+0x26,0x00,0xffffffff);		//Last File Table
-	real_writew(segment+0x26,0x04,100);				//File Table supports 100 files
+	real_writew(segment+0x26,0x04,DOS_FILES-DOS_FILES/2);	//File Table supports DOS_FILES/2 files
 }
 
 void DOS_InfoBlock::SetFirstMCB(uint16_t _firstmcb) {

@@ -69,6 +69,8 @@
     builds (joncampbell123)
   - Fixed a bug in Int21/AH=36h function for returning
     very large CX values. (Wengier)
+  - Fixed "FILES" always fixed to 200 as reported by
+    the "DOSINFO" tool. (Wengier)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
   - Fixed the option "drive z expand path" not working
