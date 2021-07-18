@@ -75,7 +75,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindowTransparency();
+void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindowTransparency(int trans);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -5760,7 +5760,6 @@ static void GUI_StartUp() {
     else if (emulation == "never")
         sdl.mouse.emulation = MOUSE_EMULATION_NEVER;
 
-    transparency = section->Get_int("transparency");
     usesystemcursor = section->Get_bool("usesystemcursor");
 
 #if C_XBRZ
@@ -5953,7 +5952,8 @@ static void GUI_StartUp() {
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
-    SetWindowTransparency();
+    transparency = 0;
+    SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
 }
 
@@ -11209,9 +11209,9 @@ int GetNumScreen() {
     return numscreen;
 }
 
-void SetWindowTransparency() {
-    if (!transparency) return;
-    double alpha = (double)(100-transparency)/100;
+void SetWindowTransparency(int trans) {
+    if (trans == transparency) return;
+    double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
 #elif defined(WIN32)
@@ -11224,6 +11224,7 @@ void SetWindowTransparency() {
     Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
     XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
 #endif
+    transparency = trans;
 }
 
 void GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight) {

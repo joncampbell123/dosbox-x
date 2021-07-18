@@ -26,6 +26,10 @@
     logging text" in "Debug" menu to show the overview
     of the current code and the output of DOSBox-X's
     current logging text in debug builds. (Wengier)
+  - Added config option "transparency" in [sdl] section
+    to change the DOSBox-X window transparency (from 0
+    to 90, low to high transparency) on the Linux/macOS
+    SDL2 and Windows platforms. (Wengier)
   - Added config options "pc-98 try font rom" and
     "pc-98 anex86 font" for the PC-98 emulation to
     customize the font file to load. If former option

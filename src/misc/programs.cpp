@@ -94,7 +94,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
-void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void);
+void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool TTF_using();
 int setTTFCodePage();
 
@@ -1309,6 +1309,8 @@ void CONFIG::Run(void) {
                                 DOSBox_SetSysMenu();
 #endif
                             }
+                            if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
+                                SetWindowTransparency(section->Get_int("transparency"));
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
