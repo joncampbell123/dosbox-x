@@ -47,6 +47,7 @@ int socknum=-1;
 int posx = -1;
 int posy = -1;
 int initgl = 0;
+int transparency=0;
 int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
@@ -74,7 +75,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen();
+void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindowTransparency();
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -5759,6 +5760,7 @@ static void GUI_StartUp() {
     else if (emulation == "never")
         sdl.mouse.emulation = MOUSE_EMULATION_NEVER;
 
+    transparency = section->Get_int("transparency");
     usesystemcursor = section->Get_bool("usesystemcursor");
 
 #if C_XBRZ
@@ -5951,6 +5953,7 @@ static void GUI_StartUp() {
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
+    SetWindowTransparency();
     UpdateWindowDimensions();
 }
 
@@ -8299,6 +8302,12 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("Forces a video driver (e.g. windib/windows, directx, x11, fbcon, dummy, etc) for the SDL library to use.");
     Pstring->SetBasic(true);
 
+    Pint = sdl_sec->Add_int("transparency", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("Set the transparency of the DOSBox-X screen (both windowed and full-screen modes, on SDL2 and Windows SDL1 builds).\n"
+		"The valid value is from 0 (no transparency, the default setting) to 90 (high transparency).");
+    Pint->SetMinMax(0,90);
+    Pint->SetBasic(true);
+
     Pbool = sdl_sec->Add_bool("maximize",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
     Pbool->SetBasic(true);
@@ -8922,6 +8931,7 @@ void PasteClipboard(bool bPressed) {
 }
 #elif defined(LINUX) && C_X11
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
 void paste_utf8_prop(Display *dpy, Window w, Atom p)
@@ -11197,6 +11207,23 @@ int GetNumScreen() {
     if (dpy) numscreen = XScreenCount(dpy);
 #endif
     return numscreen;
+}
+
+void SetWindowTransparency() {
+    if (!transparency) return;
+    double alpha = (double)(100-transparency)/100;
+#if defined(C_SDL2)
+    SDL_SetWindowOpacity(sdl.window,alpha);
+#elif defined(WIN32)
+    SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
+    SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
+#elif defined(LINUX) && C_X11
+    Display *dpy = XOpenDisplay(NULL);
+    if (!dpy) return;
+    unsigned long opacity = (unsigned long)(0xFFFFFFFFul * alpha);
+    Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
+    XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
+#endif
 }
 
 void GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight) {
