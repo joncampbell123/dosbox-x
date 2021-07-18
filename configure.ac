@@ -34,7 +34,7 @@ int main(){
   return 0;
 }
 EOF
-if $CXX $CPPFLAGS $CXXFLAGS -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
+if $CXX $CPPFLAGS $CXXFLAGS -Werror -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
 then
   AC_MSG_RESULT([yes])
   CXXFLAGS="${CXXFLAGS} [$1]"
