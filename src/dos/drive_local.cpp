@@ -1749,7 +1749,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 			*_bytes_sector = 512;
 			*_sectors_cluster = ratio;
 			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
-			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2);
+			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2)) : 0;
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;
