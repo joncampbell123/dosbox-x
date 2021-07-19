@@ -48,11 +48,14 @@
     Simplified Chinese DOS/V (dosv=cn) and Traditional
     Chinese DOS/V (dosv=tw) emulations. (Wengier)
   - Improved the DOS/V font acquisition function on
-    the Linux platform (both SDL1 & SDL2). A config
-    option "getsysfont" is added which when set to
-    false will disable the font acquisition. (Wengier)
-  - Added support for 14-pixel height fonts for the
-    DOS/V font system acquisition code. (nanshiki)
+    the Linux platform (both SDL1 & SDL2), such as
+    adding support for 14-pixel height fonts (used by
+    Configuration Tool & Mapper Editor), and enhancing
+    support for Chinese characters acqusition (e.g.
+    WenQuanYi support for the Traditional Chinese). A
+    config option "getsysfont" is added which when set
+    to "false" will disable the font acquisition on
+    Windows and Linux platforms. (Wengier & nanshiki)
   - Added support for inputing Japanese and Korean
     characters using system input method (IME) using
     the default "windib" video driver in Windows SDL1
