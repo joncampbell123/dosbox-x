@@ -1226,7 +1226,7 @@ static void Mouse_Reset(void) {
     mouse.in_UIR = false;
 }
 
-static void Mouse_Used(void) {
+void Mouse_Used(void) {
     static bool autolock_enabled = false;
     if(!autolock_enabled) {
         Mouse_AutoLock(true);

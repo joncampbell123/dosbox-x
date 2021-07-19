@@ -47,7 +47,7 @@
 #define AUX 0x100
 
 void AUX_Reset();
-void KEYBOARD_Reset();
+void KEYBOARD_Reset(), Mouse_Used();
 static void KEYBOARD_SetPort60(uint16_t val);
 void KEYBOARD_AddBuffer(uint16_t data);
 static void KEYBOARD_Add8042Response(uint8_t data);
@@ -2566,6 +2566,7 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
 
         /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
         IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
+        Mouse_Used();
     }
 
     /* Port A = input
