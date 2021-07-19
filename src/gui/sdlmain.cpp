@@ -7404,7 +7404,7 @@ void SetIMPosition() {
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
 #if defined(USE_TTF)
         if (ttf.inUse)
-            SDL_SetIMPosition((x+1) * ttf.pointsize / 2, (y+1) * ttf.pointsize);
+            SDL_SetIMPosition((x+1) * ttf.width, (y+1) * ttf.height);
         else
 #endif
         SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));

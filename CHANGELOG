@@ -74,7 +74,8 @@
     that non-zero values are returned when the free
     space is 0 on mounted local drives. (Wengier)
   - Fixed "FILES" always fixed to 200 as reported by
-    the "DOSINFO" tool. (Wengier)
+    the "DOSINFO" tool, in spite of "files" setting in
+    [config] section of the config file. (Wengier)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
   - Fixed the option "drive z expand path" not working
