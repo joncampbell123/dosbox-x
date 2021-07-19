@@ -2613,7 +2613,7 @@ bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clu
 			*_bytes_sector = (uint16_t)dwBytesPerSect;
 			*_sectors_cluster = ratio;
 			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
-			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio);
+			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio)) : 0;
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;

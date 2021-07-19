@@ -57,6 +57,8 @@
     characters using system input method (IME) using
     the default "windib" video driver in Windows SDL1
     build (in addition to "directx" driver). (nanshiki)
+  - Fixed setting "machine=amstrad" cause DOSBox-X to
+    crash on non-Windows platforms. (cimarronm)
   - Fixed bug related to DBCS vector table. (nanshiki)
   - Fixed running e.g. built-in DEBUG command from a
     drive other than Z may not work. (cimarronm)
@@ -68,7 +70,8 @@
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
   - Fixed a bug in Int21/AH=36h function for returning
-    very large CX values. (Wengier)
+    very large CX values, and that non-zero values are
+    returned when free space is 0. (Wengier)
   - Fixed "FILES" always fixed to 200 as reported by
     the "DOSINFO" tool. (Wengier)
   - Fixed issue that the mouse cursor not showing in
