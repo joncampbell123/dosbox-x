@@ -69,9 +69,10 @@
     recording has been completed. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
-  - Fixed a bug in Int21/AH=36h function for returning
-    very large CX values, and that non-zero values are
-    returned when free space is 0. (Wengier)
+  - Fixed a bug in the Int21/AH=36h (get disk space)
+    function for returning very large CX values, and
+    that non-zero values are returned when the free
+    space is 0 on mounted local drives. (Wengier)
   - Fixed "FILES" always fixed to 200 as reported by
     the "DOSINFO" tool. (Wengier)
   - Fixed issue that the mouse cursor not showing in
