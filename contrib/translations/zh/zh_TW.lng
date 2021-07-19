@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:0.83.16
-:DOSBOX-X:REMARK:建議使用繁體/正體中文DOS/V模式或者TTF輸出選項和代碼頁950配合中文TTF字體以直接支援中文顯示和列印
+:DOSBOX-X:REMARK:建議使用繁體/正體中文DOS/V模式或者TTF輸出選項和字碼頁950配合中文TTF字體以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -1171,27 +1171,27 @@ BIOSTEST 映像檔
 無法讀取軟碟.
 .
 :PROGRAM_KEYB_INFO
-代碼頁 %i 已載入
+字碼頁 %i 已載入
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-代碼頁 %i 已為鍵盤配置 %s 載入
+字碼頁 %i 已為鍵盤配置 %s 載入
 
 .
 :PROGRAM_KEYB_SHOWHELP
 為指定語言組態鍵盤.
 
-KEYB [鍵盤配置 ID [代碼頁 [代碼頁檔案]]]
+KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 舉例:
-  [32;1mKEYB[0m          顯示目前載入的代碼頁.
-  [32;1mKEYB sp[0m       載入西班牙語 (SP) 配置, 使用相應的代碼頁.
-  [32;1mKEYB sp 850[0m   載入西班牙語 (SP) 配置, 使用代碼頁 850.
+  [32;1mKEYB[0m          顯示目前載入的字碼頁.
+  [32;1mKEYB sp[0m       載入西班牙語 (SP) 配置, 使用相應的字碼頁.
+  [32;1mKEYB sp 850[0m   載入西班牙語 (SP) 配置, 使用字碼頁 850.
   [32;1mKEYB sp 850 mycp.cpi[0m 與以上相同, 但使用檔案 mycp.cpi.
 
 .
 :PROGRAM_KEYB_NOERROR
-鍵盤配置 %s 已載入作為代碼頁 %i
+鍵盤配置 %s 已載入作為字碼頁 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1204,11 +1204,11 @@ KEYB [鍵盤配置 ID [代碼頁 [代碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-鍵盤配置 %s 無法在代碼頁 %i 中找到
+鍵盤配置 %s 無法在字碼頁 %i 中找到
 
 .
 :PROGRAM_KEYB_INVCPFILE
-作為鍵盤配置 %s 的代碼頁檔案不存在或無效
+作為鍵盤配置 %s 的字碼頁檔案不存在或無效
 
 
 .
@@ -1617,7 +1617,7 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
   /W          使用寬格式列出.
   /B          使用短格式列出 (無標題資訊或概要).
   /S          顯示指定目錄和所有子目錄中的檔案.
-  /P          顯示完一螢幕後暫停.
+  /P          顯示完一個螢幕後暫停.
   /A          顯示帶有指定屬性的檔案.
   屬性         D  目錄                 R  唯讀檔案
                H  隱藏檔案             A  封存檔案
@@ -1676,7 +1676,7 @@ LS [磁碟機:][路徑][檔名] [/A] [/L] [/P] [/Z]
 
   /A     亦列出隱藏檔案和系統檔案.
   /L     每行顯示一個檔案或目錄.
-  /P     顯示完一屏後暫停.
+  /P     顯示完一個螢幕後暫停.
   /Z     顯示短檔名,即使長檔名可用.
 
 .
@@ -2019,22 +2019,22 @@ ALIAS [名稱[=值] ... ]
 
 .
 :SHELL_CMD_CHCP_HELP
-顯示或變更目前 DOS 代碼頁.
+顯示或變更目前 DOS 字碼頁.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn]
 
-  nnn   指定代碼頁.
+  nnn   指定字碼頁.
 
-TTF 輸出方式所支援的代碼頁包括:
+TTF 輸出方式所支援的字碼頁包括:
 437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
 
-以及雙位元組代碼頁,包括: 932, 936, 949, 950
+以及雙位元組字碼頁,包括: 932, 936, 949, 950
 
 .
 :SHELL_CMD_CHCP_ACTIVE
-活動的代碼頁: %d
+作用中的字碼頁: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
@@ -2042,7 +2042,7 @@ TTF 字體中未定義的字元數: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-不合法的代碼頁 - %s
+不合法的字碼頁 - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
@@ -2062,8 +2062,8 @@ COUNTRY [nnn]
 
 .
 :SHELL_CMD_CTTY_HELP_LONG
-CTTY 裝置名
-  裝置名        要使用的終端裝置, 比如 CON.
+CTTY 裝置名稱
+  裝置名稱        要使用的終端裝置, 比如 CON.
 
 .
 :SHELL_CMD_MORE_HELP
