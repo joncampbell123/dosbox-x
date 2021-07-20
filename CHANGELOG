@@ -4,7 +4,8 @@
     for WinXP+ (all) and Vista+ 64-bit respectively,
     reducing the sizes of installers significantly
     while adding the SarasaGothicFixed TTF font and
-    existing language translations. (Wengier)
+    a language selection page for choosing existing
+    language translations. (Wengier)
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
     for loading language files before fail. (Wengier)
