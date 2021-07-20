@@ -42,6 +42,7 @@ typedef wchar_t host_cnv_char_t;
 #else
 typedef char host_cnv_char_t;
 #endif
+extern bool hidenonrep;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 
 #if defined HAVE_SYS_TYPES_H && defined HAVE_PWD_H
@@ -303,10 +304,10 @@ bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* 
     if (!dirp->wide) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	dirp->handle = FindFirstFileW(dirp->wbase_path(), &dirp->search_data.w);
-	if (INVALID_HANDLE_VALUE == dirp->handle) {
-		return false;
-	}
+	do {
+		dirp->handle = FindFirstFileW(dirp->wbase_path(), &dirp->search_data.w);
+		if (INVALID_HANDLE_VALUE == dirp->handle) return false;
+	} while (hidenonrep&&CodePageHostToGuest(dirp->search_data.w.cFileName)==NULL);
 
 	// TODO: offer a config.h option to opt out of Windows widechar functions
 	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
@@ -325,8 +326,11 @@ bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, wchar_t* e
     if (!dirp->wide) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	int result = FindNextFileW(dirp->handle, &dirp->search_data.w);
-	if (result==0) return false;
+	int result;
+	do {
+		result = FindNextFileW(dirp->handle, &dirp->search_data.w);
+		if (result==0) return false;
+	} while (hidenonrep&&CodePageHostToGuest(dirp->search_data.w.cFileName)==NULL);
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
@@ -401,7 +405,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (CodePageHostToGuest(dentry->d_name)==NULL);
+	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
@@ -435,7 +439,7 @@ bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sn
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (CodePageHostToGuest(dentry->d_name)==NULL);
+	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);

@@ -3844,6 +3844,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
                       "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
+    Pbool = secprop->Add_bool("hidenonrepresentable",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will hide files on local drives that are non-representative in the current DOS code page.\n"
+                    "This may be required for some programs such as Windows 3.x Setup if the drives contain international filenames.");
+
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 

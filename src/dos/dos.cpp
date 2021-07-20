@@ -117,6 +117,7 @@ bool enable_share_exe = true;
 bool enable_filenamechar = true;
 bool enable_network_redirector = true;
 bool force_conversion = false;
+bool hidenonrep = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
@@ -3610,6 +3611,7 @@ public:
 		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe = section->Get_bool("share");
+		hidenonrep = section->Get_bool("hidenonrepresentable");
 		enable_filenamechar = section->Get_bool("filenamechar");
 		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
