@@ -267,7 +267,7 @@ foundit:
 		var_write(&minfo.BitsPerPixel,4);
 		var_write(&minfo.MemoryModel,4);	//packed pixel
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
@@ -286,7 +286,7 @@ foundit:
 		var_write(&minfo.BitsPerPixel,8);
 		var_write(&minfo.MemoryModel,4);		//packed pixel
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN15:
 		if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
@@ -304,7 +304,7 @@ foundit:
 		var_write(&minfo.ReservedMaskSize,0x01);
 		var_write(&minfo.ReservedMaskPos,0x0f);
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN16:
 		if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
@@ -320,7 +320,7 @@ foundit:
 		var_write(&minfo.BlueMaskSize,5);
 		var_write(&minfo.BlueMaskPos,0);
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN24:
 		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
@@ -337,7 +337,7 @@ foundit:
 		var_write(&minfo.BlueMaskSize,0x8);
 		var_write(&minfo.BlueMaskPos,0x0);
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN32:
 		if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
@@ -355,7 +355,7 @@ foundit:
 		var_write(&minfo.ReservedMaskSize,0x8);
 		var_write(&minfo.ReservedMaskPos,0x18);
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_TEXT:
 		if (!allow_vesa_tty) return VESA_FAIL;
@@ -404,7 +404,7 @@ foundit:
 	var_write(&minfo.Reserved_page,0x1);
 	var_write(&minfo.XCharSize,(uint8_t)mblock->cwidth);
 	var_write(&minfo.YCharSize,(uint8_t)mblock->cheight);
-	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
+	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;
