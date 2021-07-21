@@ -127,7 +127,7 @@ DOSBox-X 紀錄顯示
 磁碟機資訊
 .
 :MOUNTED_DRIVE_NUMBER
-已分配的磁碟機代號
+已掛載的磁碟機編號
 .
 :IDE_CONTROLLER_ASSIGNMENT
 IDE 控制器狀態
@@ -198,7 +198,7 @@ DOSBox-X 模擬 DOS 命令列讓您覺得好像在真正使用 DOS.
 標籤
 .
 :DRIVE_NUMBER
-磁碟機代號
+磁碟機編號
 .
 :DISK_NAME
 磁碟名稱
@@ -457,7 +457,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
-目前已掛載的磁碟機代號為:
+目前已掛載的磁碟機編號為:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_1
@@ -547,7 +547,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
-磁碟機代號 %c 已成功卸載.
+磁碟機編號 %c 已成功卸載.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
@@ -980,7 +980,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-必須指定磁碟機代號 (0 to %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
+必須指定磁碟機編號 (0 to %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
@@ -1030,7 +1030,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
-磁碟機代號 %d 已掛載.
+磁碟機編號 %d 已掛載.
 
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE
@@ -1042,7 +1042,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_MOUNT_NUMBER
-磁碟機代號 %d 掛載為 %s
+磁碟機編號 %d 掛載為 %s
 
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
@@ -1061,9 +1061,9 @@ BIOSTEST 映像檔
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-t iso] [-fs iso]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [-t floppy] -bootcd 光碟機代號 (或 -el-torito 光碟機代號)
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m -t ram -size 大小
-[32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機代號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機代號[0m [36;1m檔案[0m [選項] -u)
- [37;1m磁碟機[0m               映像檔所要掛載的磁碟機代號.
- [37;1m磁碟機代號[0m            所要掛載的磁碟機代號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
+[32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機代號[0m [36;1m檔案[0m [選項] -u)
+ [37;1m磁碟機[0m               映像檔所要掛載的磁碟機編號.
+ [37;1m磁碟機代號[0m            所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
  [36;1m檔案[0m                映像檔名, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
  -t iso              映像檔類型為光碟.
  -t hdd              映像檔類型為硬碟; 支援 VHD 及 HDI 映像檔.
@@ -1082,16 +1082,16 @@ BIOSTEST 映像檔
 :PROGRAM_IMGMOUNT_EXAMPLE
 一些關於 IMGMOUNT 命令的舉例:
 
-  [32;1mIMGMOUNT[0m                       - 列出已掛載的 FAT/ISO 磁碟機和磁碟機代號
+  [32;1mIMGMOUNT[0m                       - 列出已掛載的 FAT/ISO 磁碟機和磁碟機編號
   [32;1mIMGMOUNT C[0m                     - 將硬碟映像檔 [33;1mIMGMAKE.IMG[0m 掛載為磁碟機 C:
   [32;1mIMGMOUNT C c:\image.img[0m        - 將硬碟映像檔 c:\image.img 掛載為磁碟機 C:
   [32;1mIMGMOUNT D c:\files\game.iso[0m   - 將光碟映像檔 c:\files\game.iso 掛載為 D:
   [32;1mIMGMOUNT D cdaudio.cue[0m         - 將 cue/bin 配對中的 cue 檔案掛載為光碟機 D:
-  [32;1mIMGMOUNT 0 dos.ima[0m             - 將軟碟映像檔 dos.ima 掛載為磁碟機代號 0
+  [32;1mIMGMOUNT 0 dos.ima[0m             - 將軟碟映像檔 dos.ima 掛載為磁碟機編號 0
                                    ([33;1mBOOT A:[0m 將從此磁碟機中啟動, 如果能啟動)
   [32;1mIMGMOUNT A -ro dos.ima[0m         - 將軟碟映像 dos.ima 以唯讀方式掛載為磁碟機 A:
   [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - 將軟碟映像檔 dsk1.img 和 dsk2.img 掛載為
-                                   磁碟機 A:, 可在選單中用 "變更軟碟映像" 選項
+                                   磁碟機 A:, 可在選單中用 "交換軟碟映像" 選項
                                    進行變更, 其中 dsk1.img 映像檔為唯讀
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
@@ -2189,7 +2189,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 切換全螢幕模式
 .
 :MENU:mapper_resetsize
-重置畫面大小
+重設視窗大小
 .
 :MENU:mapper_incsize
 增加 TTF 字體大小
@@ -2624,7 +2624,7 @@ PC-98 選項
 聲音
 .
 :MENU:mixer_swapstereo
-變更立體聲
+交換立體聲
 .
 :MENU:mixer_mute
 靜音
@@ -2762,7 +2762,7 @@ MPEG-TS + H.264
 刪除工作狀態
 .
 :MENU:refreshslot
-刷新顯示狀態
+重新整理顯示狀態
 .
 :MENU:lastautosaveslot
 選擇上次的儲存位
@@ -2828,7 +2828,7 @@ MPEG-TS + H.264
 重新掃描磁碟機
 .
 :MENU:drive_swap
-變更映像檔
+交換映像檔
 .
 :MENU:drive_info
 磁碟機資訊
@@ -3062,16 +3062,16 @@ DOS 命令
 追溯輪詢除錯行
 .
 :MENU:mapper_swapimg
-變更軟碟映像
+交換軟碟映像
 .
 :MENU:mapper_swapcd
-變更光碟映像
+交換光碟映像
 .
 :MENU:mapper_ejectpage
 傳送印表機換頁符號
 .
 :MENU:mapper_rescanall
-刷新所有磁碟機
+重新掃描所有磁碟機
 .
 :MENU:hostkey_mapper
 按鍵編輯中設定
@@ -3203,7 +3203,7 @@ Mapper "輸入特殊鍵": Ctrl+Alt+Del
 建立空白磁碟映像...
 .
 :MENU:list_drivenum
-顯示已分配的磁碟機代號
+顯示已掛載的磁碟機編號
 .
 :MENU:list_ideinfo
 顯示 IDE 磁碟機狀態
@@ -3278,7 +3278,7 @@ CPU: 一般核心
 提高錄音音量
 .
 :MAPPER:rescanall
-刷新磁碟機
+重新掃描磁碟機
 .
 :MAPPER:reset
 重開 DOSBox-X
