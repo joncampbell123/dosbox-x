@@ -212,7 +212,8 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
         if (ic >= map_max) return false; // non-representable
         MT wc = map[ic]; // output: unicode character
 
-        if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
+        if (morelen&&ic==10&&wc==0x25D9) *d++ = ic;
+        else if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
     }
 

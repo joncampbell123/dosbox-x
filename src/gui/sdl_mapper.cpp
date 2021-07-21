@@ -2817,7 +2817,8 @@ public:
         handler=_handler;
         defmod=_mod;
         defkey=_key;
-        buttonname=_buttonname;
+        if (strlen(_buttonname)<100) strcpy(buttonname, _buttonname);
+        else {strncpy(buttonname, _buttonname, 99);buttonname[99]=0;}
         handlergroup.push_back(this);
         type = handler_event_t;
     }
@@ -2847,7 +2848,8 @@ public:
     }
 
     void SetButtonName(const char *name) {
-        buttonname = name;
+        if (strlen(name)<100) strcpy(buttonname, name);
+        else {strncpy(buttonname, name, 99);buttonname[99]=0;}
     }
 
     //! \brief Generate a default binding from the MapKeys enumeration
@@ -3325,7 +3327,7 @@ protected:
     Bitu defmod;
 public:
     //! \brief Button name
-    const char * buttonname;
+    char buttonname[100];
 };
 
 /* whether to run keystrokes through system but only to show how it comes out.
