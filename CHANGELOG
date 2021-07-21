@@ -1,4 +1,19 @@
 0.83.16
+  - Added machine=vesa_oldvbe10 to emulate a VESA
+    BIOS that follows version 1.0 of the standard.
+    Specifically, in version 1.0, mode information
+    like XResolution were OPTIONAL and the VESA BIOS
+    was allowed not to fill it in since you could
+    assume the information from the standard video
+    mode number you applied. This setting emulates
+    a VESA BIOS that does NOT provide this information,
+    for testing purposes. (joncampbell123)
+  - Fixed VESA BIOS S3 modelist to match the VBE 1.2
+    standard modelist properly, including the addition
+    of modes 0x119-0x11B. (joncampbell123)
+  - Fixed machine=vesa_oldvbe never to report a linear
+    framebuffer, since that was not yet defined for
+    VBE 1.2. (joncampbell123)
   - Reorganized Windows installation to 2 installers
     installing 32-bit and 64-bit DOSBox-X binaries,
     for WinXP+ (all) and Vista+ 64-bit respectively,
