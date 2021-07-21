@@ -153,6 +153,7 @@ typedef struct {
 	uint16_t vesa_setmode;
 	bool vesa_nolfb;
 	bool vesa_oldvbe;
+	bool vesa_oldvbe10;
 	uint8_t text_row;
 } Int10Data;
 

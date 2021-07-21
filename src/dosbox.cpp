@@ -998,6 +998,7 @@ void DOSBOX_RealInit() {
     jp_ega = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
+    int10.vesa_oldvbe10 = false;
     if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
     else if (mtype == "cga_mono")      { machine = MCH_CGA; mono_cga = true; }
     else if (mtype == "cga_rgb")       { machine = MCH_CGA; mono_cga = false; cga_comp = 2; }
@@ -1021,6 +1022,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "svga_s3virgevx"){ svgaCard = SVGA_S3Trio; s3Card = S3_ViRGEVX; }
     else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
     else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
+    else if (mtype == "vesa_oldvbe10") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true; int10.vesa_oldvbe10 = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
     else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
@@ -1228,7 +1230,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
-        "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
+        "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
 

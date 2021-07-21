@@ -161,7 +161,8 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	/* Fill common data */
 	MEM_BlockWrite(buffer,(void *)"VESA",4);				//Identification
 	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
-	else mem_writew(buffer+0x04,0x102);						//Vesa version 1.2
+	else if (!int10.vesa_oldvbe10) mem_writew(buffer+0x04,0x102);	//Vesa version 1.2
+	else mem_writew(buffer+0x04,0x100);						//Vesa version 1.0
 	if (vbe2) {
         vbe2_pos=256+off;
 
