@@ -2,7 +2,7 @@
   - Added machine=vesa_oldvbe10 to emulate a VESA
     BIOS that follows version 1.0 of the standard.
     Specifically, in version 1.0, mode information
-    like XResolution were OPTIONAL and the VESA BIOS
+    like XResolution was OPTIONAL and the VESA BIOS
     was allowed not to fill it in since you could
     assume the information from the standard video
     mode number you applied. This setting emulates
