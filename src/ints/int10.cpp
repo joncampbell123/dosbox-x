@@ -688,6 +688,8 @@ CX	640x480	800x600	  1024x768/1280x1024
 	case 0x4f:								/* VESA Calls */
 		if ((!IS_VGA_ARCH) || (svgaCard!=SVGA_S3Trio))
 			break;
+		if (int10.vesa_oldvbe10 && reg_al >= 6) /* Functions 6 and up did not exist until VBE 1.2 (or 1.1?) */
+			break;
 		switch (reg_al) {
 		case 0x00:							/* Get SVGA Information */
 			reg_al=0x4f;
