@@ -56,7 +56,7 @@
     the Linux platform (both SDL1 & SDL2), such as
     adding support for 14-pixel height fonts (used by
     Configuration Tool & Mapper Editor), and enhancing
-    support for Chinese characters acqusition (e.g.
+    support for Chinese characters acquisition (e.g.
     WenQuanYi support for the Traditional Chinese). A
     config option "getsysfont" is added which when set
     to "false" will disable the font acquisition on
@@ -86,6 +86,8 @@
     [config] section of the config file. (Wengier)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
+  - Fixed line endings for SBCS language files such as
+    English and Spanish translations. (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)
