@@ -264,9 +264,11 @@ foundit:
 		if (!allow_vesa_4bpp_packed) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)((((mblock->swidth+15U)/8U)&(~1U))*4)); /* NTS: 4bpp requires even value due to VGA registers, round up */
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,4);
-		var_write(&minfo.MemoryModel,4);	//packed pixel
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,4);
+			var_write(&minfo.MemoryModel,4);	//packed pixel
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
@@ -274,18 +276,22 @@ foundit:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * (uint16_t)(((mblock->swidth+15U)/8U)&(~1U));
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(((mblock->swidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
-		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
-		var_write(&minfo.MemoryModel,3);	//ega planar mode
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x4);
+			var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
+			var_write(&minfo.MemoryModel,3);	//ega planar mode
+		}
 		modeAttributes = 0x1b;	// Color, graphics, no linear buffer
 		break;
 	case M_LIN8:
 		if (!allow_vesa_8bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)mblock->swidth);
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,8);
-		var_write(&minfo.MemoryModel,4);		//packed pixel
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,8);
+			var_write(&minfo.MemoryModel,4);		//packed pixel
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
@@ -293,17 +299,19 @@ foundit:
 		if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*2));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,15);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,5);
-		var_write(&minfo.RedMaskPos,10);
-		var_write(&minfo.GreenMaskSize,5);
-		var_write(&minfo.GreenMaskPos,5);
-		var_write(&minfo.BlueMaskSize,5);
-		var_write(&minfo.BlueMaskPos,0);
-		var_write(&minfo.ReservedMaskSize,0x01);
-		var_write(&minfo.ReservedMaskPos,0x0f);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,15);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,5);
+			var_write(&minfo.RedMaskPos,10);
+			var_write(&minfo.GreenMaskSize,5);
+			var_write(&minfo.GreenMaskPos,5);
+			var_write(&minfo.BlueMaskSize,5);
+			var_write(&minfo.BlueMaskPos,0);
+			var_write(&minfo.ReservedMaskSize,0x01);
+			var_write(&minfo.ReservedMaskPos,0x0f);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
@@ -311,32 +319,36 @@ foundit:
 		if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*2));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,16);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,5);
-		var_write(&minfo.RedMaskPos,11);
-		var_write(&minfo.GreenMaskSize,6);
-		var_write(&minfo.GreenMaskPos,5);
-		var_write(&minfo.BlueMaskSize,5);
-		var_write(&minfo.BlueMaskPos,0);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,16);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,5);
+			var_write(&minfo.RedMaskPos,11);
+			var_write(&minfo.GreenMaskSize,6);
+			var_write(&minfo.GreenMaskPos,5);
+			var_write(&minfo.BlueMaskSize,5);
+			var_write(&minfo.BlueMaskPos,0);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN24:
 		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
-        if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
+		if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*3;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*3));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,24);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,8);
-		var_write(&minfo.RedMaskPos,0x10);
-		var_write(&minfo.GreenMaskSize,0x8);
-		var_write(&minfo.GreenMaskPos,0x8);
-		var_write(&minfo.BlueMaskSize,0x8);
-		var_write(&minfo.BlueMaskPos,0x0);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,24);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,8);
+			var_write(&minfo.RedMaskPos,0x10);
+			var_write(&minfo.GreenMaskSize,0x8);
+			var_write(&minfo.GreenMaskPos,0x8);
+			var_write(&minfo.BlueMaskSize,0x8);
+			var_write(&minfo.BlueMaskPos,0x0);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
@@ -344,17 +356,19 @@ foundit:
 		if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*4;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*4));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,32);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,8);
-		var_write(&minfo.RedMaskPos,0x10);
-		var_write(&minfo.GreenMaskSize,0x8);
-		var_write(&minfo.GreenMaskPos,0x8);
-		var_write(&minfo.BlueMaskSize,0x8);
-		var_write(&minfo.BlueMaskPos,0x0);
-		var_write(&minfo.ReservedMaskSize,0x8);
-		var_write(&minfo.ReservedMaskPos,0x18);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,32);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,8);
+			var_write(&minfo.RedMaskPos,0x10);
+			var_write(&minfo.GreenMaskSize,0x8);
+			var_write(&minfo.GreenMaskPos,0x8);
+			var_write(&minfo.BlueMaskSize,0x8);
+			var_write(&minfo.BlueMaskPos,0x0);
+			var_write(&minfo.ReservedMaskSize,0x8);
+			var_write(&minfo.ReservedMaskPos,0x18);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
@@ -362,9 +376,11 @@ foundit:
 		if (!allow_vesa_tty) return VESA_FAIL;
 		pageSize = 0;
 		var_write(&minfo.BytesPerScanLine, (uint16_t)(mblock->twidth * 2));
-		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);
-		var_write(&minfo.MemoryModel,0);	// text
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x4);
+			var_write(&minfo.BitsPerPixel,4);
+			var_write(&minfo.MemoryModel,0);	// text
+		}
 		modeAttributes = 0x0f;	//Color, text, bios output
 		break;
 	default:
@@ -383,7 +399,18 @@ foundit:
 	} else if (pageSize) {
 		pages = (vga.mem.memsize / pageSize)-1;
 	}
-	var_write(&minfo.NumberOfImagePages, (uint8_t)pages);
+
+	/* VBE 1.0 allows fields "XResolution" and later to be optional.
+	 * Video modes had standard numbers at the time, so you were just expected to
+	 * "know" what the mode was when you set it. If you set mode 0x101, you were
+	 * expected to know that XResolution was 640 and YResolution was 480, and that
+	 * there were 8 bits per pixel. */
+	if (int10.vesa_oldvbe10)
+		modeAttributes &= ~2; /* clear D1, which indicates whether the optional XResolution, etc. fields are present */
+
+	if (!int10.vesa_oldvbe10)
+		var_write(&minfo.NumberOfImagePages, (uint8_t)pages); /* did not exist until VBE 1.1 */
+
 	var_write(&minfo.ModeAttributes, modeAttributes);
 	var_write(&minfo.WinAAttributes, 0x7);	// Exists/readable/writable
 
@@ -391,20 +418,30 @@ foundit:
 		var_write(&minfo.WinGranularity,32);
 		var_write(&minfo.WinSize,32);
 		var_write(&minfo.WinASegment,(uint16_t)0xb800);
-		var_write(&minfo.XResolution,(uint16_t)mblock->twidth);
-		var_write(&minfo.YResolution,(uint16_t)mblock->theight);
+
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.XResolution,(uint16_t)mblock->twidth);
+			var_write(&minfo.YResolution,(uint16_t)mblock->theight);
+		}
 	} else {
 		var_write(&minfo.WinGranularity,64);
 		var_write(&minfo.WinSize,64);
 		var_write(&minfo.WinASegment,(uint16_t)0xa000);
-		var_write(&minfo.XResolution,(uint16_t)mblock->swidth);
-		var_write(&minfo.YResolution,(uint16_t)mblock->sheight);
+
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.XResolution,(uint16_t)mblock->swidth);
+			var_write(&minfo.YResolution,(uint16_t)mblock->sheight);
+		}
 	}
 	var_write(&minfo.WinFuncPtr,int10.rom.set_window);
-	var_write(&minfo.NumberOfBanks,0x1);
-	var_write(&minfo.Reserved_page,0x1);
-	var_write(&minfo.XCharSize,(uint8_t)mblock->cwidth);
-	var_write(&minfo.YCharSize,(uint8_t)mblock->cheight);
+
+	if (!int10.vesa_oldvbe10) {
+		var_write(&minfo.NumberOfBanks,0x1); /* did not exist until VBE 1.1 */
+		var_write(&minfo.Reserved_page,0x1); /* did not exist until VBE 1.1 */
+		var_write(&minfo.XCharSize,(uint8_t)mblock->cwidth); /* optional in VBE 1.0 */
+		var_write(&minfo.YCharSize,(uint8_t)mblock->cheight); /* optional in VBE 1.0 */
+	}
+
 	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
