@@ -281,6 +281,7 @@ void MSG_Init() {
 
 	if (control->opt_lang != "") {
 		LoadMessageFile(control->opt_lang.c_str());
+		SetVal("dosbox", "language", control->opt_lang.c_str());
 	}
 	else {
 		Prop_path* pathprop = section->Get_path("language");

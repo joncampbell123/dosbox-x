@@ -146,7 +146,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para="-lang \""+filename+"\"";
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-lang \""+filename+"\"":"";
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());
@@ -1643,7 +1643,7 @@ public:
         ToplevelWindow(parent, x, y, 400, 150 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, MSG_Get("LANG_FILENAME"));
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
-        name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.txt");
+        name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.lng");
         new GUI::Label(this, 5, 60, MSG_Get("LANG_LANGNAME"));
         lang = new GUI::Input(this, 5, 80, width - 10 - border_left - border_right);
         lang->setText(langname.c_str());

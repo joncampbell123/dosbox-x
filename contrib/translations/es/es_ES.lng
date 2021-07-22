@@ -3095,6 +3095,9 @@ Definido por Mapeador: F11
 :MENU:showdetails
 Mostrar FPS y velocidad RT en barra de título
 .
+:MENU:restartinst
+Vuelva a ejecutar la instancia de DOSBox-X
+.
 :MENU:restartconf
 Reiniciar DOSBox-X con archivo config...
 .

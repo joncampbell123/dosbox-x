@@ -3079,6 +3079,9 @@ DOS 命令
 :MENU:showdetails
 标题栏上显示速度
 .
+:MENU:restartinst
+重启 DOSBox-X 实例
+.
 :MENU:restartconf
 重启 DOSBox-X 并调用指定配置文件...
 .

@@ -303,6 +303,7 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
+void RebootLanguage(std::string filename, bool confirm=false);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
@@ -5663,7 +5664,7 @@ static void GUI_StartUp() {
     item->set_text("Quick launch program...");
 #endif
 
-#if defined(MACOSX)
+#if defined(MACOSX) && 0
     MAPPER_AddHandler(NewInstanceEvent, MK_nothing, 0, "newinst", "Start new instance", &item);
     item->set_text("Start new instance");
     {
@@ -10939,10 +10940,7 @@ void Restart_language_file() {
             while (*name == CROSS_FILESPLIT) name++;
         }
 
-        if (*name) {
-            void RebootLanguage(std::string filename, bool confirm=false);
-            RebootLanguage(name, true);
-        }
+        if (*name) RebootLanguage(name, true);
     }
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
@@ -12126,6 +12124,13 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
     GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
+    return true;
+}
+
+bool restartinst_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+    RebootLanguage("", true);
     return true;
 }
 
@@ -14434,6 +14439,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartinst").set_text("Re-run DOSBox-X instance").set_callback_function(restartinst_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartlang").set_text("Restart DOSBox-X with language file...").set_callback_function(restartlang_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);

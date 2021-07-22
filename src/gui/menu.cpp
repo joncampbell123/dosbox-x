@@ -140,11 +140,7 @@ static const char *def_menu_main[] =
     "--",
     "mapper_reset",
     "mapper_reboot",
-#endif
-#if defined(MACOSX)
-    "mapper_newinst",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "restartinst",
     "--",
     "restartconf",
     "restartlang",
