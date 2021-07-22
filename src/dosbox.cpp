@@ -2122,6 +2122,14 @@ void DOSBOX_SetupConfigSections(void) {
         "Amount of video memory in kilobytes, in addition to vmemsize.");
     Pint->SetBasic(true);
 
+    Pint = secprop->Add_int("vbe window granularity", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,128);
+    Pint->Set_help("Controls VESA BIOS non-linear framebuffer window granularity in KB. This affects ONLY the VESA BIOS extensions. Set 0 to functional normally.");
+
+    Pint = secprop->Add_int("vbe window size", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,128);
+    Pint->Set_help("Controls VESA BIOS non-linear framebuffer window size in KB. This affects ONLY the VESA BIOS extensions. Set 0 to functional normally.");
+
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
 

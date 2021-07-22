@@ -233,6 +233,7 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode);
 
 /* Memory Handling Routines */
 void DOS_SetupMemory(void);
+uint16_t DOS_GetMaximumFreeSize(uint16_t minBlocks);
 bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks);
 bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks);
 bool DOS_FreeMemory(uint16_t segment);
@@ -670,6 +671,11 @@ public:
 	uint8_t GetType(void) { return (uint8_t)sGet(sMCB,type);}
 	uint16_t GetSize(void) { return (uint16_t)sGet(sMCB,size);}
 	uint16_t GetPSPSeg(void) { return (uint16_t)sGet(sMCB,psp_segment);}
+	enum class MCBType : uint8_t
+	{
+		ValidBlock = 'M',
+		LastBlock = 'Z'
+	};
 private:
 	#ifdef _MSC_VER
 	#pragma pack (1)

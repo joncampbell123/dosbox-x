@@ -30,6 +30,9 @@
 extern bool vga_enable_3C6_ramdac;
 extern bool vga_sierra_lock_565;
 
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
+
 // Tseng ET4K data
 typedef struct {
     uint8_t extensionsEnabled;
@@ -825,7 +828,12 @@ void write_p3cd_et3k(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     vga.svga.bank_write = val & 0x07;
     vga.svga.bank_read = (val>>3) & 0x07;
-    vga.svga.bank_size = (val&0x40)?64*1024:128*1024;
+
+    if (vbe_window_granularity > 0)
+        vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
+    else
+        vga.svga.bank_size = (val&0x40)?64*1024:128*1024;
+
     VGA_SetupHandlers();
 }
 

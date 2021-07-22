@@ -240,7 +240,7 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off);
 uint8_t VESA_GetSVGAModeInformation(uint16_t mode,uint16_t seg,uint16_t off);
 uint8_t VESA_SetSVGAMode(uint16_t mode);
 uint8_t VESA_GetSVGAMode(uint16_t & mode);
-uint8_t VESA_SetCPUWindow(uint8_t window,uint8_t address);
+uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address);
 uint8_t VESA_GetCPUWindow(uint8_t window,uint16_t & address);
 uint8_t VESA_ScanLineLength(uint8_t subcall, uint16_t val, uint16_t & bytes,uint16_t & pixels,uint16_t & lines);
 uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait);

@@ -366,6 +366,10 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		DOS_AllocateMemory(&pspseg,&maxfree);
 		if (iscom) {
 			minsize=0x1000;maxsize=0xffff;
+			pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);
+			uint16_t dataread=0xf800;
+			DOS_ReadFile(fhandle,loadbuf,&dataread);
+			if (dataread<0xf800) minsize=((dataread+0x10)>>4)+0x20;
 			if (machine==MCH_PCJR) {
 				/* try to load file into memory below 96k */ 
 				pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
@@ -386,24 +390,15 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
              *         This allows it to run without the SS:IP out of range error below. */
             if (maxsize < minsize) maxsize = minsize;
 		}
+		maxfree = DOS_GetMaximumFreeSize(minsize);
 		if (maxfree<minsize) {
-			if (iscom) {
-				/* Reduce minimum of needed memory size to filesize */
-				pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
-				uint16_t dataread=0xf800;
-				DOS_ReadFile(fhandle,loadbuf,&dataread);
-				if (dataread<0xf800) minsize=((dataread+0x10)>>4)+0x20;
-			}
-			if (maxfree<minsize) {
-				DOS_CloseFile(fhandle);
-                delete[] loadbuf;
-				DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
-				DOS_FreeMemory(envseg);
-				return false;
-			}
+			DOS_CloseFile(fhandle);
+            delete[] loadbuf;
+			DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
+			DOS_FreeMemory(envseg);
+			return false;
 		}
-		if (maxfree<maxsize) memsize=maxfree;
-		else memsize=maxsize;
+		memsize = (maxfree<maxsize) ? maxfree : maxsize;
 		if (!DOS_AllocateMemory(&pspseg,&memsize)) E_Exit("DOS:Exec error in memory");
 		if (iscom && (machine==MCH_PCJR) && (pspseg<0x2000)) {
 			maxsize=0xffff;
