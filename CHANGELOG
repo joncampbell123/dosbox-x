@@ -76,6 +76,10 @@
     config option "getsysfont" is added which when set
     to "false" will disable the font acquisition on
     Windows and Linux platforms. (Wengier & nanshiki)
+  - Implemented support for inputing CJK characters
+    on Linux SDL1 builds using Linux system IMEs. Code
+    imported from SDL-IM-plus by nanshiki and confirmed
+    to work on Linux/X11 platform by him.
   - Added support for inputing Japanese and Korean
     characters using system input method (IME) using
     the default "windib" video driver in Windows SDL1

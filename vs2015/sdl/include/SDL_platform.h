@@ -66,6 +66,7 @@
 #if defined(linux) || defined(__linux) || defined(__linux__)
 #undef __LINUX__
 #define __LINUX__	1
+#define ENABLE_IM_EVENT 1
 #endif
 #if defined(__APPLE__)
 #undef __MACOSX__

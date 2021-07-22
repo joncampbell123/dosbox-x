@@ -435,3 +435,27 @@ int X11_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 		return(-1);
 	}
 }
+
+int X11_GetIMInfo(_THIS, SDL_SysIMinfo *info)
+{
+
+	if ( info->version.major <= SDL_MAJOR_VERSION ) {
+		if ( SDL_VERSIONNUM(info->version.major,
+			info->version.minor,
+			info->version.patch) >=
+			SDL_VERSIONNUM(1, 2, 8) ) {
+#ifdef ENABLE_IM_EVENT
+		    info->xim = IM_Context.SDL_XIM;
+		    info->xic = &IM_Context.SDL_XIC;
+#else
+		    info->xim = NULL;
+		    info->xic = NULL;
+#endif
+		}
+			return(1);
+	} else {
+		SDL_SetError("Application not compiled with SDL %d.%d\n",
+			SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+		return(-1);
+	}
+}

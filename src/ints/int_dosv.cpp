@@ -776,7 +776,7 @@ void JFONT_Init() {
         fontdata16 = NULL;
         fontsize16 = 0;
     }
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
 #endif
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
@@ -998,7 +998,7 @@ static Bitu mskanji_api(void)
 		real_writeb(kk_seg, kk_off + 5, 0);
 		reg_ax = 0;
 	} else if(func == 5) {
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		if(mode & 0x8000) {
 			if(mode & 0x0001)
 				SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
@@ -1349,7 +1349,7 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SetIMPosition();
 #endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72) {

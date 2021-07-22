@@ -32,3 +32,7 @@ extern void X11_SetKeyboardState(Display *display, const char *key_vec);
 extern int X11_PendingConfigureNotifyWidth;
 extern int X11_PendingConfigureNotifyHeight;
 
+extern int X11_SetIMPosition(_THIS, int x, int y);
+extern char *X11_SetIMValues(_THIS, SDL_imvalue value, int alt);
+extern char *X11_GetIMValues(_THIS, SDL_imvalue value, int *alt);
+extern int X11_FlushIMString(_THIS, void *buffer);
