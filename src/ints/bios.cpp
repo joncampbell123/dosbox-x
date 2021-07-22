@@ -7742,6 +7742,20 @@ private:
             ISAPNP_PNP_READ_PORT=NULL;
         }
 
+        if (bochs_port_e9) {
+            if (BOCHS_PORT_E9 == NULL) {
+                BOCHS_PORT_E9 = new IO_WriteHandleObject;
+                BOCHS_PORT_E9->Install(0xE9,bochs_port_e9_write,IO_MB);
+            }
+            LOG(LOG_MISC,LOG_DEBUG)("Bochs port E9h emulation is active");
+        }
+        else {
+            if (BOCHS_PORT_E9 != NULL) {
+                delete BOCHS_PORT_E9;
+                BOCHS_PORT_E9 = NULL;
+            }
+        }
+
         extern Bitu call_default;
 
         if (IS_PC98_ARCH) {
@@ -9336,20 +9350,6 @@ public:
                     unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
                 else
                     unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-            }
-        }
-
-        if (bochs_port_e9) {
-            if (BOCHS_PORT_E9 == NULL) {
-                BOCHS_PORT_E9 = new IO_WriteHandleObject;
-                BOCHS_PORT_E9->Install(0xE9,bochs_port_e9_write,IO_MB);
-            }
-            LOG(LOG_MISC,LOG_DEBUG)("Bochs port E9h emulation is active");
-        }
-        else {
-            if (BOCHS_PORT_E9 != NULL) {
-                delete BOCHS_PORT_E9;
-                BOCHS_PORT_E9 = NULL;
             }
         }
 
