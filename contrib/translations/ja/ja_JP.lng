@@ -3078,7 +3078,7 @@ Mapper-defined
 FPS とRT スピードをタイトルバーに表示
 .
 :MENU:restartinst
-DOSBox-Xインスタンスを再実行します
+DOSBox-Xインスタンスを再起動します
 .
 :MENU:restartconf
 設定ファイルを用いてDOSBox-X を再起動 ...

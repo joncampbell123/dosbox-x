@@ -3115,7 +3115,7 @@ Mapper-defined
 Show FPS and RT speed in title bar
 .
 :MENU:restartinst
-Re-run DOSBox-X instance
+Restart DOSBox-X instance
 .
 :MENU:restartconf
 Restart DOSBox-X with config file...
