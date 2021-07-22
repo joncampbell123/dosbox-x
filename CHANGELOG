@@ -102,6 +102,8 @@
   - Fixed bug related to DBCS vector table. (nanshiki)
   - Fixed running e.g. built-in DEBUG command from a
     drive other than Z may not work. (cimarronm)
+  - Fixed LH/LOADHIGH command not able to load programs
+    into the UMB memory. (cimarronm)
   - Fixed the command "FOR %I ..." not working when
     executed from the command line. (Wengier)
   - For audio/video recording, DOSBox-X will display
