@@ -1,4 +1,13 @@
 0.83.16
+  - Added dosbox.conf options to control VESA BIOS
+    window size and window granularity. This allows
+    DOS development to test VESA BIOS support against
+    SVGA cards that use window sizes and/or window
+    granularity other than 64KB including older SVGA
+    hardware by Paradise and Cirrus. Note that use
+    of these options is intended solely for DOS
+    development and will break S3 drivers that do not
+    use the VESA BIOS extensions. (joncampbell123)
   - Fixed initialization order that prevented Bochs
     port E9h emulation from working (joncampbell123).
   - Added machine=vesa_oldvbe10 to emulate a VESA
