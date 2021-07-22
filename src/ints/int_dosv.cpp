@@ -877,7 +877,7 @@ void SetTrueVideoMode(uint8_t mode)
 
 bool DOSV_CheckJapaneseVideoMode()
 {
-	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
 		return true;
 	}
 	return false;
@@ -885,7 +885,7 @@ bool DOSV_CheckJapaneseVideoMode()
 
 bool DOSV_CheckCJKVideoMode()
 {
-	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
 		return true;
 	}
 	return false;
