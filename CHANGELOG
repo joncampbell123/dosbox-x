@@ -1,4 +1,6 @@
 0.83.16
+  - Fixed initialization order that prevented Bochs
+    port E9h emulation from working (joncampbell123).
   - Added machine=vesa_oldvbe10 to emulate a VESA
     BIOS that follows version 1.0 of the standard.
     Specifically, in version 1.0, mode information
