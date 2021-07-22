@@ -187,7 +187,7 @@ void LoadMessageFile(const char * fname) {
                 strcpy(name,linein+1);
             }
 		/* End of string marker */
-		} else if (linein[0]=='.') {
+		} else if (linein[0]=='.'&&!strlen(trim(linein+1))) {
 			/* Replace/Add the string to the internal languagefile */
 			/* Remove last newline (marker is \n.\n) */
 			size_t ll = strlen(string);
