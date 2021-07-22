@@ -24,6 +24,9 @@
 #include "inout.h"
 #include "mem.h"
 
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
+
 typedef struct SVGA_PVGA1A_DATA_t {
 	Bitu PR0A;
 	Bitu PR0B;
@@ -54,7 +57,12 @@ static void bank_setup_pvga1a() {
 	} else {
 		// Single bank config is straightforward
 		vga.svga.bank_read = vga.svga.bank_write = (uint8_t)pvga1a.PR0A;
-		vga.svga.bank_size = 4*1024;
+
+		if (vbe_window_granularity > 0)
+			vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
+		else
+			vga.svga.bank_size = 4*1024;
+
 		VGA_SetupHandlers();
 	}
 }
