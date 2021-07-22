@@ -109,6 +109,9 @@
     [config] section of the config file. (Wengier)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
+  - Fixed non-English accents may not show correctly
+    with a SBCS code page in TrueType Font (TTF) output
+    (introduced in version 0.83.15). (Wengier)
   - Fixed line endings for SBCS language files such as
     English and Spanish translations. (Wengier)
   - Fixed the option "drive z expand path" not working
