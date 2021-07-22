@@ -161,7 +161,7 @@ static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 	for (bool endOfChain = false; !endOfChain; mcb.SetPt(mcb_segment))
 	{
 		auto size = mcb.GetSize();
-		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = std::max(largestSize, size);
+		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
 		endOfChain = DOS_MCB::MCBType(mcb.GetType())==DOS_MCB::MCBType::LastBlock;
 		mcb_segment += size+1;
 	}
@@ -170,10 +170,9 @@ static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 
 uint16_t DOS_GetMaximumFreeSize(uint16_t minBlocks)
 {
-	uint16_t umbFreeSize = 0;
 	if (memAllocStrategy & 0xc0)
 	{
-		umbFreeSize = GetMaximumMCBFreeSize(dos_infoblock.GetStartOfUMBChain());
+		auto umbFreeSize = GetMaximumMCBFreeSize(dos_infoblock.GetStartOfUMBChain());
 		if (memAllocStrategy & 0x40 || umbFreeSize >= minBlocks) return umbFreeSize;
 	}
 	return GetMaximumMCBFreeSize(dos.firstMCB);
