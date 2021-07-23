@@ -7398,8 +7398,8 @@ void SetIMPosition() {
 		last_ticks = GetTicks();
 		im_x = x;
 		im_y = y;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-		y+=mainMenu.menuBarHeightBase;
+#if defined(LINUX)
+		y++;
 #endif
 		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
@@ -7408,7 +7408,11 @@ void SetIMPosition() {
             SDL_SetIMPosition((x+1) * ttf.width, (y+1) * ttf.height);
         else
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+        SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeightBase);
+#else
         SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+#endif
 	}
 }
 #endif
