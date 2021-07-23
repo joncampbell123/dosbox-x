@@ -19,7 +19,7 @@ Valeurs possibles
 .
 
 :CONFIG_ADVANCED_OPTION
-Options avancées (voir le fichier de référence de la configuration complète [dosbox-x.reference.full.conf] pour plus de détails)
+Options avancées (voir le fichier de référence [dosbox-x.reference.full.conf] pour plus de détails)
 .
 
 :CONFIG_TOOL
@@ -63,7 +63,7 @@ Fermer
 .
 
 :UPDATE
-Mise à jour
+Mettre à jour
 .
 
 :ADD
@@ -79,11 +79,11 @@ Suivant
 .
 
 :SAVE
-Sauver
+Sauvegarder
 .
 
 :EXIT
-Sortie
+Quitter
 .
 
 :CAPTURE
@@ -313,7 +313,7 @@ Sauvegarde du fichier de mappage
 .
 
 :AUTO_CYCLE_MAX
-Cycles automatiques [max]
+Nombre de cycles automatiques [max]
 .
 
 :AUTO_CYCLE_AUTO
@@ -2186,7 +2186,7 @@ Les options suivantes sont acceptées :
 .
 
 :MENU:mapper_reset
-Réinitialiser la machine virtuelle
+Redémarrer la machine virtuelle
 .
 
 :MENU:mapper_reboot
@@ -2194,7 +2194,7 @@ Redémarrer le système invité
 .
 
 :MENU:mapper_loadmap
-Charger le fichier de mappage...
+Charger un fichier de mappage...
 .
 
 :MENU:mapper_quickrun
@@ -2202,15 +2202,15 @@ Programme de lancement rapide...
 .
 
 :MENU:mapper_shutdown
-Quitter de DOSBox-X
+Quitter
 .
 
 :MENU:mapper_capmouse
-Souris de capture
+Capturer la souris
 .
 
 :MENU:mapper_fastedit
-Modification rapide : copier sur sélectionner et coller du texte
+Édition rapide : copier en sélectionnant et coller du texte
 .
 
 :MENU:mapper_copyall
@@ -2226,7 +2226,7 @@ Arrêter le collage du presse-papiers
 .
 
 :MENU:mapper_pause
-Pause de l'émulation
+Mettre l'émulation en pause
 .
 
 :MENU:mapper_pauseints
@@ -2250,11 +2250,11 @@ Réinitialiser la taille de la fenêtre
 .
 
 :MENU:mapper_incsize
-Augmenter la taille de la police TTF
+Augmenter la taille de la police
 .
 
 :MENU:mapper_decsize
-Diminuer la taille de la police TTF
+Diminuer la taille de la police
 .
 
 :MENU:mapper_togmenu
@@ -2266,11 +2266,11 @@ Fichier
 .
 
 :MENU:MainSendKey
-Envoyer une clé spéciale
+Touche spéciale
 .
 
 :MENU:MainHostKey
-Sélectionner la touche hôte
+Touche hôte
 .
 
 :MENU:WheelToArrow
@@ -2278,7 +2278,7 @@ Mouvements de la molette de la souris
 .
 
 :MENU:SharedClipboard
-Fonctions partagées du presse-papiers
+Presse-papiers partagé
 .
 
 :MENU:CpuMenu
@@ -2286,15 +2286,15 @@ CPU
 .
 
 :MENU:CpuCoreMenu
-Noyau du CPU
+Noyau du processeur
 .
 
 :MENU:CpuTypeMenu
-Type de CPU
+Type de processeur
 .
 
 :MENU:CpuSpeedMenu
-Emuler la vitesse du CPU
+Émuler la vitesse d'un processeur
 .
 
 :MENU:cpu88-4
@@ -2374,7 +2374,7 @@ Vidéo
 .
 
 :MENU:VideoFrameskipMenu
-Frameskip
+Saut d'images
 .
 
 :MENU:frameskip_0
@@ -2382,51 +2382,51 @@ Off
 .
 
 :MENU:frameskip_1
-1 cadre
+1 image
 .
 
 :MENU:frameskip_2
-2 cadres
+2 images
 .
 
 :MENU:frameskip_3
-3 cadres
+3 images
 .
 
 :MENU:frameskip_4
-4 cadres
+4 images
 .
 
 :MENU:frameskip_5
-5 cadre
+5 images
 .
 
 :MENU:frameskip_6
-6 cadre
+6 images
 .
 
 :MENU:frameskip_7
-7 cadre
+7 images
 .
 
 :MENU:frameskip_8
-8 cadres
+8 images
 .
 
 :MENU:frameskip_9
-9 cadre
+9 images
 .
 
 :MENU:frameskip_10
-10 cadres
+10 images
 .
 
 :MENU:VideoScalerMenu
-Détartreur
+Mise à l'échelle
 .
 
 :MENU:scaler_forced
-Mesureur de force
+Forcer la mise à l'échelle
 .
 
 :MENU:scaler_set_none
@@ -2450,31 +2450,31 @@ Normal 5X
 .
 
 :MENU:scaler_set_hardware_none
-Matériel Aucun
+Hardware None
 .
 
 :MENU:scaler_set_hardware2x
-Matériel 2X
+Hardware 2X
 .
 
 :MENU:scaler_set_hardware3x
-Matériel 3X
+Hardware 3X
 .
 
 :MENU:scaler_set_hardware4x
-Matériel 4X
+Hardware 4X
 .
 
 :MENU:scaler_set_hardware5x
-Matériel 5X
+Hardware 5X
 .
 
 :MENU:scaler_set_gray
-Niveaux de gris
+Grayscale
 .
 
 :MENU:scaler_set_gray2x
-Niveaux de gris 2X
+Grayscale 2X
 .
 
 :MENU:scaler_set_tv2x
@@ -2502,11 +2502,11 @@ RGB 3X
 .
 
 :MENU:scaler_set_advmame2x
-MAME 2X avancé
+Advanced MAME 2X
 .
 
 :MENU:scaler_set_advmame3x
-MAME 3X avancé
+Advanced MAME 3X
 .
 
 :MENU:scaler_set_hq2x
@@ -2518,11 +2518,11 @@ HQ 3X
 .
 
 :MENU:scaler_set_advinterp2x
-Interpolation avancée 2X
+Advanced Interpolation 2X
 .
 
 :MENU:scaler_set_advinterp3x
-Interpolation avancée 3X
+Advanced Interpolation 3X
 .
 
 :MENU:scaler_set_2xsai
@@ -2542,7 +2542,7 @@ xBRZ
 .
 
 :MENU:scaler_set_xbrz_bilinear
-xBRZ Bilinéaire
+xBRZ Bilinear
 .
 
 :MENU:refresh_rate
@@ -2550,7 +2550,7 @@ Taux de rafraîchissement...
 .
 
 :MENU:VideoOutputMenu
-Sortie
+Sortie Vidéo
 .
 
 :MENU:output_surface
@@ -2566,15 +2566,15 @@ OpenGL
 .
 
 :MENU:output_openglnb
-OpenGL le plus proche
+OpenGL (Nearest)
 .
 
 :MENU:output_openglpp
-OpenGL parfait
+OpenGL (Perfect)
 .
 
 :MENU:output_ttf
-Police TrueType
+Police de caractères TrueType
 .
 
 :MENU:doublescan
@@ -2586,11 +2586,11 @@ V-Sync
 .
 
 :MENU:vsync_on
-Sur
+Activé
 .
 
 :MENU:vsync_force
-Force
+Forcé
 .
 
 :MENU:vsync_host
@@ -2674,83 +2674,83 @@ Haute intensité : texte clignotant
 .
 
 :MENU:line_80x25
-Écran : 80 colonnes x 25 lignes
+Écran : 80 colonnes par 25 lignes
 .
 
 :MENU:line_80x43
-Écran : 80 colonnes x 43 lignes
+Écran : 80 colonnes par 43 lignes
 .
 
 :MENU:line_80x50
-Écran : 80 colonnes x 50 lignes
+Écran : 80 colonnes par 50 lignes
 .
 
 :MENU:line_80x60
-Écran : 80 colonnes x 60 lignes
+Écran : 80 colonnes par 60 lignes
 .
 
 :MENU:line_132x25
-Écran : 132 colonnes x 25 lignes
+Écran : 132 colonnes par 25 lignes
 .
 
 :MENU:line_132x43
-Écran : 132 colonnes x 43 lignes
+Écran : 132 colonnes par 43 lignes
 .
 
 :MENU:line_132x50
-Écran : 132 colonnes x 50 lignes
+Écran : 132 colonnes par 50 lignes
 .
 
 :MENU:line_132x60
-Écran : 132 colonnes x 60 lignes
+Écran : 132 colonnes par 60 lignes
 .
 
 :MENU:VideoTTFMenu
-Options TTF
+Police TrueType
 .
 
 :MENU:ttf_showbold
-Afficher le texte en gras dans le TTF
+Afficher le texte en gras
 .
 
 :MENU:ttf_showital
-Afficher le texte en italique dans les TTF
+Afficher le texte en italique
 .
 
 :MENU:ttf_showline
-Afficher le texte souligné en TTF
+Afficher le texte souligné
 .
 
 :MENU:ttf_showsout
-Afficher le texte barré en TTF
+Afficher le texte barré
 .
 
 :MENU:ttf_wpno
-Traitement de texte TTF : Aucun
+Traitement de texte: aucun
 .
 
 :MENU:ttf_wpwp
-Traitement de texte TTF : WordPerfect
+Traitement de texte: WordPerfect
 .
 
 :MENU:ttf_wpws
-Traitement de texte TTF : WordStar
+Traitement de texte: WordStar
 .
 
 :MENU:ttf_wpxy
-Traitement de texte TTF : XyWrite
+Traitement de texte: XyWrite
 .
 
 :MENU:ttf_wpfe
-Traitement de texte TTF : FastEdit
+Traitement de texte: FastEdit
 .
 
 :MENU:ttf_blinkc
-Affichage du curseur clignotant TTF
+Afficher le curseur clignotant
 .
 
 :MENU:ttf_printfont
-Utiliser la police TTF actuelle pour l'impression
+Utiliser la police actuelle pour l'impression
 .
 
 :MENU:ttf_dbcs_sbcs
@@ -2766,15 +2766,15 @@ CJK : Autoriser les Katakana japonais en demi-largeur
 .
 
 :MENU:VideoPC98Menu
-Options du PC-98
+PC-98
 .
 
 :MENU:pc98_5mhz_gdc
-Horloge GDC 5MHz
+Horloge GDC à 5MHz
 .
 
 :MENU:pc98_allow_200scanline
-Autoriser l'effet de ligne de balayage de 200 lignes
+Autoriser l'effet de ligne de balayage sur 200 lignes
 .
 
 :MENU:pc98_allow_4partitions
@@ -2794,7 +2794,7 @@ Activer l'affichage analogique
 .
 
 :MENU:pc98_enable_analog256
-Activation de l'affichage analogique à 256 couleurs
+Activer l'affichage analogique en 256 couleurs
 .
 
 :MENU:pc98_enable_188user
@@ -2802,23 +2802,23 @@ Permettre 188+ cellules CG utilisateur
 .
 
 :MENU:pc98_clear_text
-Couche de texte clair
+Effacer la couche de texte
 .
 
 :MENU:pc98_clear_graphics
-Couche graphique claire
+Effacer la couche graphique
 .
 
 :MENU:load_d3d_shader
-Sélectionnez Direct3D pixel shader...
+Sélectionner un pixel shader Direct3D...
 .
 
 :MENU:load_glsl_shader
-Sélectionnez le shader OpenGL (GLSL)...
+Sélectionner un shader OpenGL (GLSL)...
 .
 
 :MENU:load_ttf_font
-Sélectionnez la police TrueType (TTF)...
+Sélectionner une police TrueType (TTF)...
 .
 
 :MENU:SoundMenu
@@ -2826,11 +2826,11 @@ Son
 .
 
 :MENU:mixer_swapstereo
-Changer de stéréo
+Intervertir les canaux
 .
 
 :MENU:mixer_mute
-Mute
+Couper le son
 .
 
 :MENU:mixer_info
@@ -2838,11 +2838,11 @@ Afficher les volumes du mélangeur de sons
 .
 
 :MENU:sb_info
-Afficher la configuration du Sound Blaster
+Afficher la configuration Sound Blaster
 .
 
 :MENU:midi_info
-Afficher la configuration du dispositif MIDI
+Afficher la configuration du périphérique MIDI
 .
 
 :MENU:DOSMenu
@@ -2850,7 +2850,7 @@ DOS
 .
 
 :MENU:enable_a20gate
-Activation de la porte A20
+Activer la porte A20
 .
 
 :MENU:change_currentcd
@@ -2870,7 +2870,7 @@ Emulation interne
 .
 
 :MENU:dos_mouse_y_axis_reverse
-Inversion de l'axe Y
+Invertir l'axe Y
 .
 
 :MENU:dos_mouse_sensitivity
@@ -2878,7 +2878,7 @@ Sensibilité
 .
 
 :MENU:DOSVerMenu
-Version DOS déclarée
+Version du DOS signalée
 .
 
 :MENU:dos_ver_330
@@ -2906,11 +2906,11 @@ Support des noms de fichiers longs
 .
 
 :MENU:dos_lfn_auto
-Auto par version DOS rapportée
+Automatiquement, par la version du DOS signalée
 .
 
 :MENU:dos_lfn_enable
-Active l'émulation des noms de fichiers longs
+Activer l'émulation des noms de fichiers longs
 .
 
 :MENU:dos_lfn_disable
@@ -2938,7 +2938,7 @@ Activer l'émulation EMS
 .
 
 :MENU:dos_ems_board
-Émulation de carte EMS
+Émuler la carte EMS
 .
 
 :MENU:dos_ems_emm386
@@ -2962,11 +2962,11 @@ Traduire les chemins en chemins du système hôte
 .
 
 :MENU:dos_win_wait
-Attendez la demande si possible
+Attendre l'application si possible
 .
 
 :MENU:dos_win_quiet
-Mode silencieux - pas de messages de démarrage
+Mode silencieux - pas de messages au démarrage
 .
 
 :MENU:CaptureMenu
@@ -3214,7 +3214,7 @@ Toggle Speedlock
 .
 
 :MENU:mapper_speedlock2
-Turbo (Avance rapide)
+Turbo (avance rapide)
 .
 
 :MENU:mapper_speednorm
@@ -3226,11 +3226,11 @@ Accélérer
 .
 
 :MENU:mapper_slowdown
-Ralentissez
+Ralentir
 .
 
 :MENU:mapper_editcycles
-Cycles d'édition
+Choisir le nombre de cycles
 .
 
 :MENU:mapper_savestate
@@ -3262,7 +3262,7 @@ Augmenter le nombre de frameskip
 .
 
 :MENU:mapper_aspratio
-Ajustement au ratio d'aspect
+Ajuster au format d'image
 .
 
 :MENU:mapper_recwave
@@ -3310,15 +3310,15 @@ Diminuer le volume d'enregistrement
 .
 
 :MENU:mapper_sendkey_mapper
-Envoyer une clé spéciale
+Envoyer une touche spéciale
 .
 
 :MENU:mapper_cycledown
-Cycles de décrémentation
+Diminuer le nombre de cycles
 .
 
 :MENU:mapper_cycleup
-Cycles d'incrémentation
+Augmenter le nombre de cycles
 .
 
 :MENU:mapper_normal
@@ -3346,7 +3346,7 @@ Auto
 .
 
 :MENU:cputype_8086_prefetch
-8086 avec préfixe
+8086 avec prefetch
 .
 
 :MENU:cputype_80186
@@ -3354,7 +3354,7 @@ Auto
 .
 
 :MENU:cputype_80186_prefetch
-80186 avec préfixe
+80186 avec prefetch
 .
 
 :MENU:cputype_286
@@ -3410,15 +3410,15 @@ Retracer la ligne de débogage des sondages
 .
 
 :MENU:mapper_swapimg
-Remplacement du lecteur de disquettes
+Remplacer le lecteur de disquettes
 .
 
 :MENU:mapper_swapcd
-Remplacer le lecteur de CD
+Remplacer le lecteur de CDs
 .
 
 :MENU:mapper_ejectpage
-Envoyer le formulaire d'alimentation
+Envoyer les sauts de page
 .
 
 :MENU:mapper_rescanall
@@ -3426,35 +3426,37 @@ Rescanner tous les disques
 .
 
 :MENU:hostkey_mapper
-Défini par le mappeur
+Définie par le mappeur
 .
 
 :MENU:showdetails
-Afficher la vitesse FPS et RT dans la barre de titre
+Afficher les FPS et RT dans la barre de titre
 .
-
+:MENU:restartinst
+Redémarrer DOSBox-X
+.
 :MENU:restartconf
-Redémarrer DOSBox-X avec le fichier de configuration...
+Redémarrer avec un fichier de configuration...
 .
 
 :MENU:restartlang
-Redémarrer DOSBox-X avec le fichier de langue...
+Redémarrer avec un fichier de langue...
 .
 
 :MENU:auto_lock_mouse
-Souris à verrouillage automatique
+Verouiller la souris automatiquement
 .
 
 :MENU:clipboard_right
-Par le bouton droit de la souris
+Avec le bouton droit de la souris
 .
 
 :MENU:clipboard_middle
-Par le bouton central de la souris
+Avec le bouton central de la souris
 .
 
 :MENU:clipboard_arrows
-Via les touches fléchées (Home=début, End=fin)
+Avec les touches fléchées (Début/Fin)
 .
 
 :MENU:screen_to_clipboard
@@ -3582,7 +3584,7 @@ Activer les DPIs élevés
 .
 
 :MENU:sync_host_datetime
-Synchronizer la date et l'heure de l'hôte
+Synchronizer la date et l'heure avec l'hôte
 .
 
 :MENU:shell_config_commands
@@ -3658,7 +3660,7 @@ Emplacement de sauvegarde suivant
 .
 
 :MAPPER:normal
-CPU : coeur normal
+CPU: noyau normal
 .
 
 :MAPPER:paste
@@ -3670,7 +3672,7 @@ Arrêter le collage du presse-papiers
 .
 
 :MAPPER:pauseints
-Pause avec interruption
+Pause avec interruptions
 .
 
 :MAPPER:prevslot
@@ -3678,7 +3680,7 @@ Emplacement de sauvegarde précédent
 .
 
 :MAPPER:quickrun
-Programme de lancement rapide
+Lancer un programme rapidement
 .
 
 :MAPPER:reboot
@@ -3698,7 +3700,7 @@ Augmenter le volume d'enregistrement
 .
 
 :MAPPER:rescanall
-Rescanner les lecteurs
+Réanalyser les lecteurs
 .
 
 :MAPPER:reset
@@ -3710,7 +3712,7 @@ Afficher les informations sur l'état
 .
 
 :MAPPER:simple
-CPU : coeur simple
+CPU: noyau simple
 .
 
 :MAPPER:togmenu
