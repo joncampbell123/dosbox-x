@@ -111,6 +111,8 @@
     recording has been completed. (Wengier)
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
+  - For Configuration Tool, ensure mouse coordinates
+    are adjusted accordingly with forced scaler. (aybe)
   - Fixed a bug in the Int21/AH=36h (get disk space)
     function for returning very large CX values, and
     that non-zero values are returned when the free
@@ -118,6 +120,8 @@
   - Fixed "FILES" always fixed to 200 as reported by
     the "DOSINFO" tool, in spite of "files" setting in
     [config] section of the config file. (Wengier)
+  - Refined the handling of international keyboards
+    especially for SDL1 builds. (maron2000)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
   - Fixed non-English accents may not show correctly
