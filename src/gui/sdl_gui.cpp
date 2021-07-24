@@ -1576,9 +1576,9 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, MSG_Get("CONFIG_SAVEALL"));
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (saveButton = new GUI::Button(this, 140, 120, MSG_Get("SAVE"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 230, 120, MSG_Get("SAVE_RESTART"), 140))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 390, 120, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 128, 120, MSG_Get("SAVE"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 220, 120, MSG_Get("SAVE_RESTART"), 170))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 392, 120, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -2710,8 +2710,8 @@ public:
         int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 175, closerow_y, tmp1, 93))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 273, closerow_y, MSG_Get("CLOSE"), 93))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 158, closerow_y, tmp1, 110))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 276, closerow_y, MSG_Get("CLOSE"), 110))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
