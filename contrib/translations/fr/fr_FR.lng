@@ -151,7 +151,7 @@ Aperçu du code
 .
 
 :VISIT_HOMEPAGE
-Visitez la page d'accueil
+Visiter la page d'accueil
 .
 
 :GET_STARTED
@@ -492,7 +492,7 @@ Le pilote n'est pas installé.
 
 :PROGRAM_MOUSE_HELP
 Active/désactive la souris.
-SOURIS [/ ?] [/U] [/V]
+MOUSE [/ ?] [/U] [/V]
   /U : Désinstaller
   /V : Inversion de l'axe Y
 .
@@ -763,7 +763,7 @@ Information
 .
 
 :PROGRAM_INTRO_MENU_QUIT
-Arrêtez
+Arrêter
 .
 
 :PROGRAM_INTRO_MENU_BASIC_HELP
@@ -1397,7 +1397,7 @@ Tapez 'time %s' pour changer.
 .
 
 :SHELL_CMD_TIME_HELP_LONG
-TEMPS [[/T] [/H] | temps]
+TIME [[/T] [/H] | temps]
   temps :       Nouvelle heure à définir
   /T : Affichage de l'heure simple
   /H : Synchronisation avec l'hôte
@@ -1742,7 +1742,7 @@ Quitte le shell de commande.
 .
 
 :SHELL_CMD_EXIT_HELP_LONG
-SORTIE
+EXIT
 .
 
 :SHELL_CMD_HELP_HELP
@@ -1807,8 +1807,8 @@ Effectuer un traitement conditionnel dans les programmes de traitement par lots.
 .
 
 :SHELL_CMD_IF_HELP_LONG
-SI [PAS] ERRORLEVEL commande numéro
-SI [PAS] chaîne1==chaîne2 commande
+IF [NOT] ERRORLEVEL commande numéro
+IF [NOT] chaîne1==chaîne2 commande
 Commande IF [NOT] EXIST nom de fichier
   NON Spécifie que le DOS doit effectuer
                     la commande uniquement si la condition est fausse.
@@ -1966,7 +1966,7 @@ Attend une pression sur une touche et définit ERRORLEVEL.
 .
 
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOIX [/C:choix] [/N] [/S] texte
+CHOICE [/C:choix] [/N] [/S] texte
   /C[ :]choix - Spécifie les clés autorisées.  La valeur par défaut est : yn.
   /N - Ne pas afficher les choix à la fin de l'invite.
   /S - Permet de sélectionner des choix sensibles à la casse.
@@ -2025,7 +2025,7 @@ Permet de vérifier si les fichiers sont écrits correctement sur le disque.
 .
 
 :SHELL_CMD_VERIFY_HELP_LONG
-VÉRIFIER [ON | OFF]
+VERIFY [ON | OFF]
 Tapez VERIFY sans paramètre pour afficher le paramètre VERIFY actuel.
 .
 
@@ -2126,7 +2126,7 @@ Affiche ou modifie le pays actuel.
 .
 
 :SHELL_CMD_COUNTRY_HELP_LONG
-PAYS [nnn]
+COUNTRY [nnn]
   nnn Spécifie un code de pays.
 Les formats de date et d'heure seront affectés par le code pays spécifié.
 .
@@ -2136,7 +2136,7 @@ Modifie le dispositif terminal utilisé pour contrôler le système.
 .
 
 :SHELL_CMD_CTTY_HELP_LONG
-Dispositif CTTY
+CTTY dispositif 
   device Le dispositif terminal à utiliser, tel que CON.
 .
 
@@ -2145,7 +2145,7 @@ Affiche la sortie un écran à la fois.
 .
 
 :SHELL_CMD_MORE_HELP_LONG
-PLUS [lecteur :][chemin][nom du fichier]
+MORE [lecteur :][chemin][nom du fichier]
 MORE < [drive :][path]nom de fichier
 nom de commande | MORE [lecteur :][chemin][nom de fichier]
 .
@@ -3476,7 +3476,7 @@ Utiliser la fonction BIOS pour le collage du presse-papiers
 .
 
 :MENU:sendkey_winlogo
-Envoyer la clé du logo
+Envoyer la touche du logo
 .
 
 :MENU:sendkey_winmenu
@@ -3516,7 +3516,7 @@ Mapper "Send special key" : clé du logo
 .
 
 :MENU:sendkey_mapper_winmenu
-Mapper "Envoyer une touche spéciale" : touche de menu
+Mapper "Envoyer une touche spéciale" : touche du logo
 .
 
 :MENU:sendkey_mapper_alttab
