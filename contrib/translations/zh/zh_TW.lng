@@ -2582,7 +2582,7 @@ TTF 字處理軟體: FastEdit
 PC-98 選項
 .
 :MENU:pc98_5mhz_gdc
-5MHz GDC 時鐘
+5MHz GDC 時脈
 .
 :MENU:pc98_allow_200scanline
 允許200行掃描線效果
@@ -2693,13 +2693,13 @@ DOS
 停用長檔名模擬
 .
 :MENU:DOSPC98Menu
-PC-98 PIT 主時鐘
+PC-98 PIT 主時脈
 .
 :MENU:dos_pc98_pit_4mhz
-4MHz/8MHz PIT 主時鐘
+4MHz/8MHz PIT 主時脈
 .
 :MENU:dos_pc98_pit_5mhz
-5MHz/10MHz PIT 主時鐘
+5MHz/10MHz PIT 主時脈
 .
 :MENU:DOSEMSMenu
 EMS 記憶體
