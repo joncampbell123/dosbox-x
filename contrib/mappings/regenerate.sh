@@ -21,3 +21,12 @@
 ./db2u.pl cp936_to_unicode <CP936.TXT >../../include/cp936_uni.h || exit 1
 ./db2u.pl cp949_to_unicode <CP949.TXT >../../include/cp949_uni.h || exit 1
 ./db2u.pl cp950_to_unicode <CP950.TXT >../../include/cp950_uni.h || exit 1
+./sb2u.pl cp1250_to_unicode <CP1250.TXT >../../include/cp1250_uni.h || exit 1
+./sb2u.pl cp1251_to_unicode <CP1251.TXT >../../include/cp1251_uni.h || exit 1
+./sb2u.pl cp1252_to_unicode <CP1252.TXT >../../include/cp1252_uni.h || exit 1
+./sb2u.pl cp1253_to_unicode <CP1253.TXT >../../include/cp1253_uni.h || exit 1
+./sb2u.pl cp1254_to_unicode <CP1254.TXT >../../include/cp1254_uni.h || exit 1
+./sb2u.pl cp1255_to_unicode <CP1255.TXT >../../include/cp1255_uni.h || exit 1
+./sb2u.pl cp1256_to_unicode <CP1256.TXT >../../include/cp1256_uni.h || exit 1
+./sb2u.pl cp1257_to_unicode <CP1257.TXT >../../include/cp1257_uni.h || exit 1
+./sb2u.pl cp1258_to_unicode <CP1258.TXT >../../include/cp1258_uni.h || exit 1

@@ -1,5 +1,5 @@
 0.83.16
-  - Added dosbox.conf options to control VESA BIOS
+  - Added dosbox-x.conf options to control VESA BIOS
     window size and window granularity. This allows
     DOS development to test VESA BIOS support against
     SVGA cards that use window sizes and/or window
@@ -32,6 +32,8 @@
     while adding the SarasaGothicFixed TTF font and
     a language selection page for choosing existing
     language translations. (Wengier)
+  - Added support for code pages 1250-1258 for the
+    TrueType font (TTF) output. (Wengier)
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
     for loading language files before fail. (Wengier)
