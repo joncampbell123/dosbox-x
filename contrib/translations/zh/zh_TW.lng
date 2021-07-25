@@ -106,7 +106,7 @@ DOSBox-X 組態工具
 組態
 .
 :SETTINGS
-設定
+設定組
 .
 :LOGGING_OUTPUT
 DOSBox-X 紀錄顯示
@@ -157,7 +157,7 @@ MIDI 裝置組態資訊
 介紹
 .
 :CONFIGURE_GROUP
-選擇設定群組進行組態:
+選擇設定組進行組態編輯:
 .
 :SHOW_ADVOPT
 顯示進階選項
@@ -1179,7 +1179,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_KEYB_SHOWHELP
-為指定語言組態鍵盤.
+為指定語言設定鍵盤.
 
 KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
@@ -1237,7 +1237,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
  磁碟區在磁碟機 %c 
 .
 :SHELL_CMD_VOL_SERIAL
- 磁碟區序列號為 
+ 磁碟區序號為 
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
 沒有磁碟區標籤
@@ -1433,7 +1433,7 @@ GOTO: 標籤 %s 找不到.
 
 .
 :SHELL_CMD_DIR_INTRO
- 列目錄 %s
+ %s 的目錄
 
 
 .
@@ -1972,7 +1972,7 @@ DOSBox-X 版本 %s (%s). 報告的 DOS 版本 %d.%02d.
 
 .
 :SHELL_CMD_VOL_HELP
-顯示磁碟的標籤號和存在的序列號.
+顯示磁碟區標籤和序號 (若有的話).
 
 .
 :SHELL_CMD_VOL_HELP_LONG
