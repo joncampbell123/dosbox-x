@@ -122,7 +122,6 @@ void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-void ResolvePath(std::string& in);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
@@ -4094,7 +4093,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
 		return;
 	}
     if (IS_PC98_ARCH || IS_JEGA_ARCH) {
-        WriteOut("Changing code page is not supported for the PC-98 or AX system.\n");
+        WriteOut("Changing code page is not supported for the PC-98 or JEGA/AX system.\n");
         return;
     }
 #if defined(USE_TTF)
@@ -4113,7 +4112,6 @@ void DOS_Shell::CMD_CHCP(char * args) {
         altcp = 0;
         for (int i=0; i<256; i++) altcp_to_unicode[i] = 0;
         std::string cpfile = buff;
-        ResolvePath(cpfile);
         FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
         std::string exepath = GetDOSBoxXPath();
         if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");

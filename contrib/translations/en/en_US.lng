@@ -2092,6 +2092,7 @@ CHCP [nnn [file]]
   file  Specifies a code page file.
 
 Supported code pages for changing in the TrueType font output:
+
 437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 
 Also double-byte code pages including 932, 936, 949, and 950.
