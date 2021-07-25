@@ -2095,13 +2095,13 @@ DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
-執行程式並在其入口調用除錯器.
+執行程式並在其入口調用偵錯工具.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
 DEBUGBOX [命令] [選項]
 
-輸入不含參數的 DEBUGBOX 命令將啟動除錯器.
+輸入不含參數的 DEBUGBOX 命令將啟動偵錯工具.
 
 .
 :SHELL_CMD_COMMAND_HELP
@@ -2879,19 +2879,19 @@ DOSBox-X 支援
 另存記錄檔案...
 .
 :MENU:debugger_rundebug
-除錯器選項: 執行除錯器
+偵錯工具選項: 執行偵錯工具
 .
 :MENU:debugger_runnormal
-除錯器選項: 正常執行方式
+偵錯工具選項: 正常執行方式
 .
 :MENU:debugger_runwatch
-除錯器選項: 監視執行方式
+偵錯工具選項: 監視執行方式
 .
 :MENU:HelpCommandMenu
 DOS 命令
 .
 :MENU:DebugMenu
-除錯
+偵錯
 .
 :MENU:HelpDebugMenu
 記錄主控台
@@ -2972,7 +2972,7 @@ DOS 命令
 擷取畫面快照
 .
 :MENU:mapper_debugger
-啟動 DOSBox-X 除錯器
+啟動 DOSBox-X 偵錯工具
 .
 :MENU:mapper_volup
 提高音量
@@ -3056,10 +3056,10 @@ DOS 命令
 奔騰 Pro
 .
 :MENU:debug_pageflip
-頁面翻轉除錯行
+頁面翻轉偵錯行
 .
 :MENU:debug_retracepoll
-追溯輪詢除錯行
+追溯輪詢偵錯行
 .
 :MENU:mapper_swapimg
 交換軟碟映像
@@ -3227,7 +3227,7 @@ Mapper "輸入特殊鍵": Ctrl+Alt+Del
 切換自動 CPU 週期
 .
 :MAPPER:debugger
-顯示除錯器
+顯示偵錯工具
 .
 :MAPPER:decsize
 減小 TTF 字型
