@@ -52,8 +52,8 @@ int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 bool selmark = false;
-extern int enablelfn;
 extern int autosave_second;
+extern int enablelfn, customcp;
 extern bool swapad;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -5243,7 +5243,7 @@ int setTTFCodePage() {
         }
         uint16_t unimap;
         int notMapped = 0;
-        for (int y = 8; y < 16; y++)
+        for (int y = (customcp&&dos.loaded_codepage==customcp?0:8); y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {

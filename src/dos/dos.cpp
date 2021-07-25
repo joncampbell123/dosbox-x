@@ -3678,7 +3678,7 @@ public:
             FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
             std::string exepath = GetDOSBoxXPath();
             if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");
-            if (cp > 0 && file) {
+            if (file && cp > 0 && cp != 932 && cp != 936 && cp != 949 && cp != 950) {
                 customcp = cp;
                 char line[256], *l=line;
                 while (fgets(line, sizeof(line), file)) {
