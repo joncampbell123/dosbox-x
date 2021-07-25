@@ -4149,6 +4149,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Language code of the keyboard layout (or none).");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("customcodepage",Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file.");
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable DBCS table and Chinese, Japanese, Korean support for the TrueType font (TTF) output.\n"
             "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.");

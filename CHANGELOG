@@ -32,8 +32,6 @@
     while adding the SarasaGothicFixed TTF font and
     a language selection page for choosing existing
     language translations. (Wengier)
-  - Added support for code pages 1250-1258 for the
-    TrueType font (TTF) output. (Wengier)
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
     for loading language files before fail. (Wengier)
@@ -57,6 +55,11 @@
     logging text" in "Debug" menu to show the overview
     of the current code and the output of DOSBox-X's
     current logging text in debug builds. (Wengier)
+  - Added config option "customcodepage" in the [dos]
+    section to allow a custom code page, in the format
+    "customcodepage=nnn,codepagefile" for CHCP command
+    in TrueType font (TTF) output. Also added built-in
+    support for code pages 1250-1258. (Wengier)
   - Added config option "transparency" in [sdl] section
     to change the DOSBox-X window transparency (from 0
     to 90, low to high transparency) on the Linux/macOS
