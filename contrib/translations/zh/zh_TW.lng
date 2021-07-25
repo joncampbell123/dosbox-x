@@ -1213,7 +1213,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_MODE_USAGE
-組態系統裝置.
+設定系統裝置.
 
 [34;1mMODE[0m display-type       :display-type codes are [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
 [34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
