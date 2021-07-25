@@ -2077,12 +2077,13 @@ Muestra o cambia el código de página DOS actual.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
-CHCP [nnn]
+CHCP [nnn [fichero]]
 
-  nnn   Especifica un nº de código de página.
+  nnn      Especifica un nº de código de página.
+  fichero  Especifica un fichero de código de página.
 
 Códigos de página compatibles para la salida de fuente TrueType:
-437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 
 También páginas de códigos de doble byte incluyendo 932,936,949,950.
 

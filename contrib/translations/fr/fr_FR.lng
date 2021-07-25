@@ -2071,12 +2071,13 @@ Affiche ou modifie la page de code DOS actuelle.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
-CHCP [nnn]
+CHCP [nnn [fichier]]
 
-  nnn Spécifie un numéro de page de code.
+  nnn      Spécifie un numéro de page de code.
+  fichier  Spécifie un fichier de page de code.
   
 Pages de code prises en charge pour être modifiées dans la sortie de la police TrueType :
-437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874
+437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 Également des pages de code à double octet, notamment 932, 936, 949 et 950.
 
 .

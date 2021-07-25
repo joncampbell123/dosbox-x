@@ -143,9 +143,9 @@ static std::string ldir[256];
 static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe;
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern int lfn_filefind_handle, freesizecap, file_access_tries, customcp;
+extern int lfn_filefind_handle, freesizecap, file_access_tries, customcp, altcp;
 extern unsigned long totalc, freec;
-uint16_t customcp_to_unicode[256];
+uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN - 1;
@@ -472,6 +472,7 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 bool cpwarn_once = false;
 
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
@@ -549,6 +550,7 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 }
 
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
@@ -626,6 +628,7 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 }
 
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
@@ -703,6 +706,7 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
 }
 
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:

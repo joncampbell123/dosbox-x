@@ -57,9 +57,10 @@
     current logging text in debug builds. (Wengier)
   - Added config option "customcodepage" in the [dos]
     section to allow a custom code page, in the format
-    "customcodepage=nnn,codepagefile" for CHCP command
-    in TrueType font (TTF) output. Also added built-in
-    support for code pages 1250-1258. (Wengier)
+    "customcodepage=nnn,codepagefile" in TrueType font
+    (TTF) output. CHCP command also supports additional
+    parameter to specify a code page file. Also added
+    builtin support for code pages 1250-1258. (Wengier)
   - Added config option "transparency" in [sdl] section
     to change the DOSBox-X window transparency (from 0
     to 90, low to high transparency) on the Linux/macOS

@@ -114,14 +114,16 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
-extern int enablelfn, lfn_filefind_handle, file_access_tries, customcp;
+extern int enablelfn, lfn_filefind_handle, file_access_tries, customcp, altcp;
 extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
-extern uint16_t countryNo;
+extern uint16_t countryNo, altcp_to_unicode[256];
 void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+void ResolvePath(std::string& in);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
 static char empty_char = 0;
@@ -4057,7 +4059,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 }
 
 bool isSupportedCP(int newCP) {
-    return newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || (newCP >= 1250 && newCP <= 1258 || (customcp > 0 && newCP == customcp));
+    return newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || (newCP >= 1250 && newCP <= 1258 || (customcp > 0 && newCP == customcp) || (altcp > 0 && newCP == altcp));
 }
 
 #if defined(USE_TTF)
@@ -4104,8 +4106,42 @@ void DOS_Shell::CMD_CHCP(char * args) {
     }
 #if defined(USE_TTF)
 	int newCP;
-	char buff[256];
-	if (sscanf(args, "%d%s", &newCP, buff) == 1) toSetCodePage(this, newCP, -1);
+	char buff[256], *r;
+    int n = sscanf(args, "%d%s", &newCP, buff);
+	if (n == 1) toSetCodePage(this, newCP, -1);
+    else if (n == 2 && strlen(buff)) {
+        altcp = 0;
+        for (int i=0; i<256; i++) altcp_to_unicode[i] = 0;
+        std::string cpfile = buff;
+        ResolvePath(cpfile);
+        FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
+        std::string exepath = GetDOSBoxXPath();
+        if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");
+        if (file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950) {
+            altcp = newCP;
+            char line[256], *l=line;
+            while (fgets(line, sizeof(line), file)) {
+                l=trim(l);
+                if (!strlen(l)) continue;
+                r = strchr(l, '#');
+                if (r) *r = 0;
+                l=trim(l);
+                if (!strlen(l)||strncasecmp(l, "0x", 2)) continue;
+                r = strchr(l, ' ');
+                if (!r) r = strchr(l, '\t');
+                if (!r) continue;
+                *r = 0;
+                int ind = (int)strtol(l+2, NULL, 16);
+                r = trim(r+1);
+                if (ind>0xFF||strncasecmp(r, "0x", 2)) continue;
+                int map = (int)strtol(r+2, NULL, 16);
+                altcp_to_unicode[ind] = map;
+            }
+            toSetCodePage(this, newCP, -1);
+        } else
+            WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+        if (file) fclose(file);
+    }
     else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
 #endif
 	return;

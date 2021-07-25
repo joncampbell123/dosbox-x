@@ -65,7 +65,7 @@ extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
 extern int lfn_filefind_handle, autofixwarn;
 extern uint16_t customcp_to_unicode[256];
-int customcp;
+int customcp = 0, altcp = 0;
 unsigned long totalc, freec;
 uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
