@@ -85,11 +85,13 @@ install: src/dosbox-x
 	mkdir -p $(DESTDIR)$(bindir)
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
 	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
+	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/translations
 	install -m 644 $(srcdir)/CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/dosbox-x.reference.full.conf $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/contrib/glshaders/*.glsl $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
+	install -m 644 $(srcdir)/contrib/translations/*/*.lng $(DESTDIR)$(prefix)/share/dosbox-x/translations
 	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
 	install -m 644 $(srcdir)/contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
@@ -108,6 +110,8 @@ uninstall:
 	rm -f $(DESTDIR)$(bindir)/dosbox-x
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/glshaders/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
+	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/translations/*
+	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/translations
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x
 	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
