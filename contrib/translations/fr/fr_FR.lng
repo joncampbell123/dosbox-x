@@ -5,15 +5,15 @@
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
 Vous pouvez placer vos lignes MOUNT ici.
-.
 
+.
 :CONFIGFILE_INTRO
 # Ceci est le fichier de configuration pour DOSBox-X %s. (Veuillez utiliser la dernière version de DOSBox-X)
 # Les lignes commençant par un # sont des lignes de commentaires et sont ignorées par DOSBox-X.
 # Ils sont utilisés pour documenter (brièvement) l'effet de chaque option.
 # Pour écrire TOUTES les options, utilisez la commande 'config -all' avec les options -wc ou -writeconf.
-.
 
+.
 :CONFIG_SUGGESTED_VALUES
 Valeurs possibles
 .
@@ -57,7 +57,7 @@ Mettre à jour
 Ajouter
 .
 :DEL
-Del
+Effacer
 .
 :NEXT
 Suivant
@@ -174,7 +174,7 @@ Fichier portable
 Fichier utilisateur
 .
 :CONFIG_SAVETO
-Entrez le nom de fichier pour le fichier de configuration à sauver:
+Entrez le nom de fichier pour le fichier de configuration à sauver :
 .
 :CONFIG_SAVEALL
 Sauver toutes les options de configuration (y compris avancées).
@@ -218,10 +218,10 @@ Emplacement vide
 Emplacement
 .
 :PREVIOUS_PAGE
-< Page précédente
+< Page préc.
 .
 :NEXT_PAGE
-    Page suivante >
+Page suivante >
 .
 :SELECT_EVENT
 Sélectionnez un événement à modifier.
@@ -250,55 +250,58 @@ Cycles automatiques [off]
 :PROGRAM_CONFIG_PROPERTY_ERROR
 Aucune section ou propriété de ce type.
 .
-
 :PROGRAM_CONFIG_NO_PROPERTY
 Il n'y a pas de propriété %s dans la section %s.
-.
 
+.
 :PROGRAM_CONFIG_SET_SYNTAX
 La syntaxe de l'option -set est incorrecte.
-.
 
+.
 :PROGRAM_CONFIG_NOCONFIGFILE
 Aucun fichier de configuration n'a été chargé !
-.
 
+.
 :PROGRAM_CONFIG_PRIMARY_CONF
 Fichier de configuration primaire :
 %s
-.
 
+.
 :PROGRAM_CONFIG_ADDITIONAL_CONF
 Fichiers de configuration supplémentaires :
-.
 
+.
 :PROGRAM_CONFIG_GLOBAL_CONF
+
 Fichier de configuration globale :
 %s
-.
 
+.
 :PROGRAM_CONFIG_CONFDIR
 DOSBox-X %s répertoire de configuration utilisateur :
 %s
-.
 
+
+.
 :PROGRAM_CONFIG_WORKDIR
 Le répertoire de travail de DOSBox-X :
 %s
-.
 
+
+.
 :PROGRAM_CONFIG_FILE_ERROR
-Impossible d'ouvrir le fichier %s
-.
 
+Impossible d'ouvrir le fichier %s
+
+.
 :PROGRAM_CONFIG_FILE_WHICH
 Écriture du fichier de configuration %s
-.
 
+.
 :PROGRAM_LANGUAGE_FILE_WHICH
 Écrit dans le fichier de langue %s
-.
 
+.
 :PROGRAM_CONFIG_USAGE
 L'utilitaire de configuration de la ligne de commande de DOSBox-X. Options prises en charge :
 -wc (ou -writeconf) sans paramètre : Ecrit dans le fichier de configuration primaire chargé.
@@ -322,12 +325,13 @@ L'utilitaire de configuration de la ligne de commande de DOSBox-X. Options prise
 -startmapper Démarre l'éditeur de mappeurs de DOSBox-X.
 -gui Démarre l'outil de configuration graphique.
 -get "propriété de la section" renvoie la valeur de la propriété (également à %%CONFIG%%).
--set (-setf pour la force) "section property=value" définit la valeur de la propriété.
+-set (-setf pour la force) "section propriété=valeur" définit la valeur de la propriété.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
 Objet du bien "%s" (contenu dans la section "%s") :
 %s
+
 Valeurs possibles : %s
 Valeur par défaut : %s
 Valeur actuelle : %s
@@ -377,7 +381,7 @@ Il peut y avoir d'autres sections avec le même nom de propriété.
 
 .
 :PROGRAM_CONFIG_GET_SYNTAX
-Syntaxe correcte : config -get "section property".
+Syntaxe correcte : config -get "section propriété".
 
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
@@ -416,6 +420,7 @@ Le pilote n'est pas installé.
 .
 :PROGRAM_MOUSE_HELP
 Active/désactive la souris.
+
 MOUSE [/ ?] [/U] [/V]
   /U : Désinstaller
   /V : Inversion de l'axe Y
@@ -494,16 +499,16 @@ Utilisation : ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_
  -t Spécifiez le type de lecteur en tant que lequel le lecteur monté doit se comporter.
                   Type de lecteur pris en charge : dir, floppy, cdrom, overlay
  (Notez que 'overlay' redirige les écritures pour le lecteur monté vers un autre répertoire).
- -label [name] Définit le nom de l'étiquette du volume du lecteur (tout en majuscules).
+ -label [nom] Définit le nom de l'étiquette du volume du lecteur (tout en majuscules).
  -ro Monter le lecteur en mode lecture seule.
  -pr Spécifiez que le chemin est relatif à l'emplacement du fichier de configuration.
  -cd Génère une liste des valeurs "drive #" du lecteur de CD local.
  -usecd [drive #] Pour une émulation matérielle directe telle que la lecture audio.
  -ioctl Utiliser le plus bas niveau d'accès matériel (suivant l'option -usecd).
  -aspi Utiliser la couche ASPI installée (suivant l'option -usecd).
- -freesize [size] Spécifiez l'espace disque libre du lecteur en Mo (Ko pour les disquettes).
+ -freesize [taille] Spécifiez l'espace disque libre du lecteur en Mo (Ko pour les disquettes).
  -nocachedir Activer la mise à jour en temps réel et ne pas mettre en cache le lecteur.
- -z drive Déplacer le lecteur virtuel Z : vers une lettre différente.
+ -z drive Déplacer le lecteur virtuel Z: vers une lettre différente.
  -o Signaler le lecteur comme : local, distant.
  -q Mode silencieux (pas de sortie de message).
  -u Démonter le lecteur.
@@ -525,15 +530,15 @@ Quelques autres exemples d'utilisation de MOUNT :
 
 ←[32;1mMOUNT←[0m - liste de tous les lecteurs montés
 ←[32;1mMOUNT -cd←[0m - liste tous les lecteurs de CD locaux
-←[32;1mMOUNT d %s←[0m - monter le lecteur D : dans le répertoire.
-←[32;1mMOUNT c %s -t cdrom←[0m - monter le lecteur  C: comme un lecteur de cédérom.
-←[32;1mMOUNT c %s -ro←[0m - monter le lecteur  C: en mode lecture seule.
+←[32;1mMOUNT d %s←[0m - monter le lecteur D: dans le répertoire.
+←[32;1mMOUNT c %s -t cdrom←[0m - monter le lecteur C: comme un lecteur de CDROM.
+←[32;1mMOUNT c %s -ro←[0m - monter le lecteur C: en mode lecture seule.
 ←[32;1mMOUNT c %s -label TEST←[0m - monter le lecteur  C: avec le label TEST
-←[32;1mMOUNT c %s -nocachedir ←[0m - monter  C: sans mettre en cache le lecteur
-←[32;1mMOUNT c %s -freesize 128←[0m - monter  C: avec 128MB d'espace disque libre
-←[32;1mMOUNT c %s -u←[0m - forcer le montage du lecteur  C: même s'il est déjà monté
-←[32;1mMOUNT c %s -t overlay←[0m - monter  C: avec le répertoire overlay au sommet
-←[32;1mMOUNT c -u←[0m - démonter le lecteur  C:
+←[32;1mMOUNT c %s -nocachedir ←[0m - monter C: sans mettre en cache le lecteur
+←[32;1mMOUNT c %s -freesize 128←[0m - monter C: avec 128 Mo d'espace disque libre
+←[32;1mMOUNT c %s -u←[0m - forcer le montage du lecteur C: même s'il est déjà monté
+←[32;1mMOUNT c %s -t overlay←[0m - monter C: avec le répertoire overlay au sommet
+←[32;1mMOUNT c -u←[0m - démonter le lecteur C:
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
@@ -549,7 +554,7 @@ Le lecteur numéro %c a été retiré avec succès.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
-Les lecteurs virtuels ne peuvent pas être démultipliés.
+Les lecteurs virtuels ne peuvent pas être démontés.
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
@@ -557,7 +562,7 @@ Avertissement : Le montage de C:\ n'est pas recommandé.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-Avertissement : Le montage / n'est pas recommandé.
+Avertissement : Le montage de / n'est pas recommandé.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
@@ -576,15 +581,15 @@ La superposition n'est PAS compatible avec le lecteur spécifié.
 La superposition doit être spécifiée en utilisant le même adressage que le lecteur sous-jacent. Pas de mélange de chemins relatifs et absolus.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-Le répertoire de recouvrement ne peut pas être le même que le lecteur sous-jacent.
-.
+Le répertoire de superposition ne peut pas être le même que le lecteur sous-jacent.
 
+.
 :PROGRAM_MOUNT_OVERLAY_ERROR
 Une erreur s'est produite lors de la tentative de création d'un lecteur de superposition.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-Overlay %s sur le lecteur %c monté.
+La superposition %s est montée sur le lecteur %c.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -613,15 +618,16 @@ LOADFIX -f [-xms] [-ems]
   -ems Alloue la mémoire de l'EMS plutôt que la mémoire conventionnelle
   -{ram}      Spécifie la quantité de mémoire à allouer en Ko
                  La valeur par défaut est de 64 Ko pour la mémoire conventionnelle et de 1 Mo pour la mémoire XMS/EMS.
-  -a Alloue automatiquement assez de mémoire pour remplir la mémoire la plus basse de 64KB
+  -a Alloue automatiquement assez de mémoire pour remplir la mémoire la plus basse de 64 Ko
   -f (ou -d) Libère la mémoire précédemment allouée
   {programme}   Exécute le programme spécifié
   {options}   Options du programme (s'il y en a)
+  
 Exemples :
-  ←[32;1mLOADFIX game.exe←[0m Alloue 64KB de mémoire conventionnelle et exécute game.exe.
+  ←[32;1mLOADFIX game.exe←[0m Alloue 64 Ko de mémoire conventionnelle et exécute game.exe.
   ←[32;1mLOADFIX -a←[0m Allocation automatique d'une quantité suffisante de mémoire conventionnelle.
-  ←[32;1mLOADFIX -128←[0m Alloue 128KB de mémoire conventionnelle
-  ←[32;1mLOADFIX -xms←[0m Alloue 1MB de mémoire XMS
+  ←[32;1mLOADFIX -128←[0m Alloue 128 Ko de mémoire conventionnelle
+  ←[32;1mLOADFIX -xms←[0m Alloue 1 Mo de mémoire XMS
   ←[32;1mLOADFIX -f←[0m Libère la mémoire conventionnelle allouée.
 
 .
@@ -701,6 +707,7 @@ Quitter
 
 ←[1m   ←[1m←[KPour monter votre CD-ROM dans DOSBox-X, vous devez spécifier des options supplémentaires lors du montage du CD-ROM.←[0m
 
+
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
 
@@ -738,7 +745,7 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 ○DOSBox-X se ferme lorsque le nom de l'application DOS se termine.
 
 ←[33;1m -version←[0m
-○Affiche les informations de version et sortir. Utile pour les frontends.
+○Affiche les informations de version et quitte. Utile pour les interfaces graphiques.
 
 ←[33;1m -fastlaunch←[0m
 ○Active le mode de lancement rapide (ignore le logo du BIOS et la bannière de bienvenue).
@@ -753,7 +760,7 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 ○Soyez la documentation pour plus de détails.
 
 ←[33;1m -lang←[0m fichier de langue
-○Start DOSBox-X en utilisant la langue spécifiée dans le fichier de langue.
+○Lance DOSBox-X en utilisant la langue choisie dans le fichier de langue.
 
 ←[33;1m -noconsole←[0m (Windows uniquement)
 ○Start DOSBox-X sans montrer la fenêtre de la console. La sortie sera
@@ -775,14 +782,14 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 ○Saute la section [autoexec] du fichier de configuration chargé.
 
 ←[33;1m -c←[0m commande
-○Exécute la commande spécifiée avant d'exécuter le nom. Commandes multiples
+○Exécute la commande spécifiée avant le nom. Des commandes multiples
 ○ peut être spécifié. Chaque commande doit cependant commencer par -c.
-○Une commande peut être : un programme interne, une commande DOS ou un exécutable
+○Une commande peut être : un programme interne, une commande DOS ou un programme
 ○sur un lecteur monté.
 
 ←[33;1m -set←[0m <section property=value>
-○Set l'option de configuration (en remplaçant le fichier de configuration). Des options multiples
-○peuvent être spécifiées. Chaque option doit cependant commencer par -set.
+○Définit l'option de configuration (qui remplace le fichier de configuration). Des options multiples peuvent être spécifiées. Chaque option doit cependant commencer par -set.
+
 
 .
 :PROGRAM_INTRO_INFO
@@ -804,8 +811,8 @@ Pour plus d'informations sur DOSBox-X, veuillez jeter un coup d'oeil à son Wiki
 .
 :PROGRAM_INTRO_MOUNT_START
 ←[32;1mVoici quelques commandes pour vous aider à démarrer :←[0m
-Avant de pouvoir utiliser les fichiers situés sur votre propre système de fichiers,
-vous devez monter le répertoire contenant les fichiers.
+Avant de pouvoir utiliser les fichiers situés sur votre propre système de fichiers, vous devez monter le répertoire contenant les fichiers.
+
 
 
 .
@@ -825,31 +832,32 @@ c:\dosgames\←[37m est un exemple. Remplacez-le par votre répertoire de jeux. 
 Lorsque le montage s'est achevé avec succès, vous pouvez taper ←[34;1mc:←[0m pour aller à votre fraîchement monté lecteur C:. En y tapant ←[34;1mdir←[0m, vous verrez son contenu. ←[34;1mcd←[0m vous permettra d'entrer dans un répertoire (reconnu par la mention ←[33;1m[]←[0m dans une liste de répertoire).
 Vous pouvez exécuter des programmes/fichiers se terminant par ←[31m.exe .bat←[0m et ←[31m.com←[0m.
 
+
+
 .
 :PROGRAM_INTRO_CDROM
 ←[2J←[32;1mComment monter un lecteur de CD-ROM réel/virtuel dans DOSBox-X:←[0m
 DOSBox-X fournit une émulation de CD-ROM à plusieurs niveaux.
 
-Le niveau ←[33mbasic←[0m fonctionne sur tous les lecteurs de CD-ROM et les répertoires normaux.
+Le niveau ←[33mbasique←[0m fonctionne sur tous les lecteurs de CD-ROM et les répertoires normaux.
 Il installe MSCDEX et marque les fichiers en lecture seule.
 En général, cela suffit pour la plupart des jeux :
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m ou ←[34;1mmount d C:\exemple -t cdrom←[0m
 Si cela ne fonctionne pas, vous devrez peut-être indiquer à DOSBox-X le label du CD-ROM :
-←[34;1mmount d C:\example -t cdrom -label CDLABEL←[0m
+←[34;1mmount d C:\exemple -t cdrom -label CDLABEL←[0m
 
-
-Le niveau ←[33mnext←[0m ajoute une prise en charge de bas niveau.
+Le niveau ←[33msuivant←[0m ajoute une prise en charge de bas niveau.
 Par conséquent, il ne fonctionne que sur les lecteurs de CD-ROM :
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m
 
-Le ←[33mlast←[0m niveau d'assistance dépend de votre système d'exploitation :
+Le ←[33mdernier←[0m niveau d'assistance dépend de votre système d'exploitation :
 Pour ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m et ←[1mLinux←[0m :
 ←[34;1mmount d ←[0;31mD:\N-←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m
 Pour ←[1mWindows 9x←[0m avec une couche ASPI installée :
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m
 
 Remplacez ←[0;31mD:\←[0m par l'emplacement de votre CD-ROM.
-Remplacez le ←[33;1m0←[0m dans ←[34;1m-usecd ←[33m0←[0m avec le numéro signalé pour votre CD-ROM si vous tapez :
+Remplacez le ←[33;1m0←[0m dans ←[34;1m-usecd ←[33m0←[0m avec le numéro indiqué pour votre CD-ROM si vous tapez :
 ←[34;1mmount -cd←[0m
 
 .
@@ -858,7 +866,7 @@ Le fichier du disque de démarrage n'existe pas.  Échec.
 
 .
 :PROGRAM_BOOT_NOT_OPEN
-Impossible d'ouvrir le fichier bootdisk.  Échec.
+Impossible d'ouvrir le fichier du disque de démarrage.  Échec.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
@@ -881,7 +889,8 @@ La syntaxe de cette commande est l'une des suivantes :
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L lettre du lecteur]←[0m
 
-Remarque : Un fichier image comportant un signe deux-points ( :) sera démarré en mode protégé en écriture si l'option "image protégée en écriture par deux points" est activée.
+Remarque : Un fichier image comportant un signe deux-points (:) sera démarré en mode protégé en écriture si l'option "image protégée en écriture par deux points" est activée.
+
 
 Exemples :
 
@@ -903,18 +912,16 @@ Impossible d'ouvrir %s
 .
 :PROGRAM_BOOT_CART_WO_PCJR
 Cartouche PCjr trouvée, mais la machine n'est pas PCjr
-
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
 Commandos de cartouches PCjr disponibles:%s
-
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Aucun commando de cartouches PCjr trouvé
-
 .
 :PROGRAM_LOADROM_HELP
 Charge le fichier image ROM spécifié.
+
 LOADROM ROM_file
 
 .
@@ -1077,7 +1084,7 @@ Monte les images de disquettes, de disques durs et de disques optiques.
  -fs fat Le système de fichiers est FAT - FAT12, FAT16 et FAT32 sont pris en charge.
  -fs none Ne pas détecter le système de fichiers (auto-assumé pour les numéros de lecteurs).
  -reservecyl # Rapporte # le nombre de cylindres inférieur au nombre réel dans le BIOS.
- -Contrôleur IDE Spécifiez le contrôleur IDE (1m, 1s, 2m, 2s) pour monter le lecteur.
+ -ide controler Spécifiez le contrôleur IDE (1m, 1s, 2m, 2s) pour monter le lecteur.
  -size size|ss,s,h,c Spécifiez la taille en Ko, ou la taille du secteur et la géométrie CHS.
  -bootcd cdDrive Spécifiez le lecteur de CD à partir duquel charger la disquette amorçable.
  -ro Monter une ou plusieurs images en lecture seule (ou ':' en tête pour la lecture seule).
@@ -1088,21 +1095,22 @@ Monte les images de disquettes, de disques durs et de disques optiques.
 Quelques exemples d'utilisation de IMGMOUNT :
 
   ←[32;1mIMGMOUNT←[0m - liste des lecteurs FAT/ISO montés et numéros de lecteurs
-  ←[32;1mIMGMOUNT C←[0m - monter l'image du disque dur ←[33;1mIMGMAKE.IMG←[0m comme  C:
-  ←[32;1mIMGMOUNT C c:\image.img←[0m - mount hard disk image c:\image.img as  C:
-  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m - mount CD image c:\files\game.iso as D :
+  ←[32;1mIMGMOUNT C←[0m - monter l'image du disque dur ←[33;1mIMGMAKE.IMG←[0m comme C:
+  ←[32;1mIMGMOUNT C c:\image.img←[0m - monter l'image du disque dur c:\image.img comme C:
+  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m - monter l'image CD c:\files\game.iso comme D:
   ←[32;1mIMGMOUNT D cdaudio.cue←[0m - monter le fichier cue d'une paire cue/bin comme lecteur CD
-  ←[32;1mIMGMOUNT 0 dos.ima←[0m - monter l'image de disquette dos.ima comme lecteur numéro 0
+  ←[32;1mIMGMOUNT 0 dos.ima←[0m - monter l'image dos.ima comme lecteur numéro 0
                                    (←[33;1mBOOT A:←[0m démarrera à partir du lecteur s'il est amorçable)
-  ←[32;1mIMGMOUNT A -ro dos.ima←[0m - monter l'image de disquette dos.ima comme A: lecture seule
-  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que
-                                   A:, interchangeable via l'option de menu "Swap floppy",
-                                   avec dsk1.img en lecture seule (mais pas dsk2.img)
-  ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D :
-  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur  C: comme un disque RAM de 10MB
-  ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme  C:,
+  ←[32;1mIMGMOUNT A -ro dos.ima←[0m - monter l'image dos.ima comme A: lecture seule
+  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Swap floppy", avec dsk1.img en lecture seule (mais pas dsk2.img)
+  ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D:
+  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur C: comme un disque RAM de 10Mo
+  ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme C:,
                                    Démontage automatique du disque au préalable si nécessaire
   ←[32;1mIMGMOUNT A -u←[0m - démonter le lecteur A précédemment monté :
+  
+  
+  
 .
 :PROGRAM_IMGMAKE_SYNTAX
 Crée des images de disquettes ou de disques durs.
@@ -1113,9 +1121,9 @@ Utilisation : ←[34;1mIMGMAKE [fichier] [-t type] [[-taille taille] | [-chs gé
     ←[33;1mModèles de disquettes←[0m (les noms se résolvent en tailles de disquettes en Ko ou fd=fd_1440) :
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     ←[33;1mModèles de disques durs:←[0m
-     hd_250 : image de 250MB, hd_520 : 520MB image, hd_1gig : 1GB image
-     hd_2gig : image de 2GB, hd_4gig : 4GB image, hd_8gig : 8GB image
-     hd_st251 : image 40MB, hd_st225 : image 20MB (géométrie des anciens disques)
+     hd_250 : image de 250 Mo, hd_520 : image de 520 Mo, hd_1gig : image de 1 Go
+     hd_2gig : image de 2 Go, hd_4gig : image de 4 Go, hd_8gig : image de 8 Go
+     hd_st251 : image de 40 Mo, hd_st225 : image de 20Mo (géométrie des anciens disques)
     ←[33;1mImages de disque dur personnalisées:←[0m hd (nécessite -size ou -chs)
   -Taille : Taille d'une image de disque dur personnalisée en Mo.
   -chs : Géométrie du disque en cylindres(1-1023),têtes(1-255),secteurs(1-63).
@@ -1133,14 +1141,14 @@ Utilisation : ←[34;1mIMGMAKE [fichier] [-t type] [[-taille taille] | [-chs gé
 :PROGRAM_IMGMAKE_EXAMPLE
 Quelques exemples d'utilisation de IMGMAKE :
 
-  ←[32;1mIMGMAKE -t fd←[0m - créer une image de disquette de 1.44MB ←[33;1mIMGMAKE.IMG←[0m
-  ←[32;1mIMGMAKE -t fd_1440 -force←[0m - force pour créer une image de disquette ←[33;1mIMGMAKE.IMG←[0m
-  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m - crée une image de disquette de 2.88MB nommée dos.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m - créer une image de disque dur de 50MB c:\disk.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m - créer une image de disque dur vierge de 520MB
-  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m - créer une image de disque dur de 2GB FAT32
-  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - créer une image de disque dur du SHC spécifié
-  ←[32;1mIMGMAKE c:\disk.img -source a←[0m - lire l'image depuis le disque physique A:
+  ←[32;1mIMGMAKE -t fd←[0m - crée une image de disquette de 1.44 Mo ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE -t fd_1440 -force←[0m - force la création d'une image de disquette ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m - crée une image de disquette de 2.88 Mo nommée dos.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m - crée une image de disque dur de 50 Mo c:\disk.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m - crée une image de disque dur vierge de 520 Mo
+  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m - crée une image de disque dur de 2 Go en FAT32
+  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - crée une image de disque dur du CHS spécifié
+  ←[32;1mIMGMAKE c:\disk.img -source a←[0m - lit l'image depuis le disque physique A:
   
 .
 :PROGRAM_IMGMAKE_FLREAD
@@ -1201,6 +1209,7 @@ Disposition de clavier %s chargée pour la page de code %i
 :PROGRAM_KEYB_FILENOTFOUND
 Fichier clavier %s non trouvé
 
+
 .
 :PROGRAM_KEYB_INVALIDFILE
 Fichier clavier %s invalide
@@ -1212,6 +1221,7 @@ Aucune mise en page dans %s pour la page de code %i
 .
 :PROGRAM_KEYB_INVCPFILE
 Fichier de page de code inexistant ou invalide pour la disposition %s
+
 
 .
 :PROGRAM_MODE_USAGE
@@ -1259,12 +1269,12 @@ Spécification invalide du lecteur
 
 :SHELL_CMD_HELP
 Si vous souhaitez obtenir une liste de toutes les commandes internes prises en charge, tapez ←[33;1mHELP /ALL←[0m.
-Vous pouvez également trouver des commandes externes sur le lecteur Z : en tant que programmes.
+Vous pouvez également trouver des commandes externes sur le lecteur Z:en tant que programmes.
 Une courte liste des commandes les plus souvent utilisées :
 
 .
 :SHELL_CMD_HELP_END1
-Les commandes externes telles que ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m se trouvent sur le lecteur Z :.
+Les commandes externes telles que ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m se trouvent sur le lecteur Z:.
 
 .
 :SHELL_CMD_HELP_END2
@@ -1305,7 +1315,7 @@ Essayez ←[31mcd %s←[0m ou citez-les correctement avec des guillemets.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
-Vous êtes toujours sur le lecteur Z :, et le répertoire spécifié est introuvable.
+Vous êtes toujours sur le lecteur Z:, et le répertoire spécifié est introuvable.
 Pour accéder à un lecteur monté, passez au lecteur avec une syntaxe comme ←[31mC:←[0m.
 
 .
@@ -1320,10 +1330,8 @@ La date indiquée n'est pas correcte.
 :SHELL_CMD_DATE_DAYS
 3DimLunMarMerJeuVendreSam
 .
-
 :SHELL_CMD_DATE_NOW
 Date actuelle :
-
 .
 :SHELL_CMD_DATE_SETHLP
 Tapez 'date %s' pour changer.
@@ -1332,7 +1340,7 @@ Tapez 'date %s' pour changer.
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | date]
   date : Nouvelle date à définir
-  /S : Utiliser de façon permanente l'heure et la date de l'hôte comme heure DOS
+  /S : Utiliser en permanence l'heure et la date de l'hôte comme heure DOS
   /F : Retourner au temps interne de DOSBox-X (opposé de /S)
   /T : Afficher uniquement la date
   /H : Synchronisation avec l'hôte
@@ -1348,7 +1356,6 @@ L'heure spécifiée n'est pas correcte.
 .
 :SHELL_CMD_TIME_NOW
 Heure actuelle :
-
 .
 :SHELL_CMD_TIME_SETHLP
 Tapez 'time %s' pour changer.
@@ -1357,8 +1364,8 @@ Tapez 'time %s' pour changer.
 :SHELL_CMD_TIME_HELP_LONG
 TIME [[/T] [/H] | temps]
   temps :       Nouvelle heure à définir
-  /T : Affichage de l'heure simple
-  /H : Synchronisation avec l'hôte
+  /T : 		Affichage de l'heure simple
+  /H : 		Synchronisation avec l'hote
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1392,7 +1399,6 @@ Impossible de supprimer - %s
 :SHELL_CMD_DEL_SURE
 Tous les fichiers du répertoire seront supprimés !
 Êtes-vous sûr [O/N] ?
-
 .
 :SHELL_SYNTAXERROR
 Erreur de syntaxe
@@ -1457,7 +1463,7 @@ Total des fichiers listés :
 .
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
 Le lecteur %c n'existe pas !
-Vous devez d'abord le ←[31mmount←[0m]. Tapez ←[1;33mintro←[0m ou ←[1;33mintro mount←[0m pour plus d'informations.
+Vous devez d'abord le ←[31mmonter←[0m. Tapez ←[1;33mintro←[0m ou ←[1;33mintro mount←[0m pour plus d'informations.
 
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
@@ -1539,30 +1545,30 @@ SUBST : Il y a une erreur dans votre ligne de commande.
 
 .
 :SHELL_STARTUP_TITLE
-Bienvenue à DOSBox-X !
+Bienvenue a DOSBox-X !             
 .
 :SHELL_STARTUP_HEAD1_PC98
-←[36mMise en route avec DOSBox-X:←[37m
+←[36mPour commencer avec DOSBox-X :                                    ←[37m
 .
 :SHELL_STARTUP_TEXT1_PC98
-Tapez ←[32mHELP←[37m pour les commandes du shell, et ←[32mINTRO←[37m pour une courte introduction.
-Vous pourriez également accomplir diverses tâches par le biais des ←[33mmmenus déroulants←[37m.
+Tapez ←[32mHELP←[37m pour les commandes du shell, et ←[32mINTRO←[37m pour une intro.  
+Vous pouvez accomplir certaines taches avec ←[33mles menus deroulants←[37m. 
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mExemple←[37m : Sélectionnez l'option ←[33mpolice TrueType←[37m ou ←[33mOpenGL pixel-parfait←[37m.  
+←[32mExemple←[37m : Selectionnez la ←[33mpolice TrueType←[37m ou ←[33mOpenGL pixel-parfait←[37m.
 .
 :SHELL_STARTUP_TEXT2_PC98
-Pour lancer l'outil de ←[33mConfiguration←[37m, utilisez ←[31mhost+C←[37m. La clé de l'hôte est ←[32mF11←[37m.    
-Pour activer le ←[33mMapper Editor←[37m pour les affectations de touches, utilisez ←[31mhost+M←[37m.    
-Pour passer du mode fenêtré au mode plein écran, utilisez ←[31mhost+F←[37m.      
-Pour régler la vitesse du processeur émulé, utilisez ←[31mhost+Plus←[37m et ←[31mhost+Moins←[37m.   
+Pour lancer l'outil de ←[33mConfiguration←[37m, ←[31mhost+C←[37m, touche hote ←[32mF11←[37m.    
+Pour activer l'←[33mediteur de mappage←[37m du clavier, utilisez ←[31mhost+M←[37m.    
+Pour jongler entre la fenetre et le plein ecran, utilisez ←[31mhost+F←[37m. 
+Pour ajuster la vitesse du CPU, utilisez ←[31mhost+Plus←[37m et ←[31mhost+Moins←[37m. 
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X fonctionne maintenant en mode d'émulation ←[32mJaponais NEC PC-98←[36m.←[37m
+←[36mDOSBox-X fonctionne maintenant en emulation ←[32mJaponais NEC PC-98←[36m.←[37m   
 .
 :SHELL_STARTUP_TEXT3_PC98
-←[32mProjet DOSBox-X ←[33mhttps://dosbox-x.com/ ←[36mEmulations DOS complètes←[37m
-←[32mDOSBox-X guide ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x et 9x←[37m
+←[32mProjet DOSBox-X ←[33mhttps://dosbox-x.com/ ←[36mEmulations DOS completes←[37m    
+←[32mDOSBox-X guide ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x et 9x←[37m   
 ←[32mDOSBox-X support ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
 .
 :SHELL_STARTUP_HEAD1
@@ -1649,20 +1655,19 @@ DIR [lecteur :][chemin][nom du fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N
   [lecteur :][chemin][nom du fichier]
               Spécifie le lecteur, le répertoire et/ou les fichiers à lister.
   /W Utilise le format de liste large.
-  /B Utilise un format dépouillé (pas d'information sur l'en-tête ni de résumé).
-  /S Affiche les fichiers dans le répertoire spécifié et tous les sous-répertoires.
+  /B Utilise un format simple (pas d'information sur l'en-tête ni de résumé).
+  /S Affiche les fichiers dans le répertoire et tous les sous-répertoires.
   /P Fait une pause après chaque écran d'information.
   /A Affiche les fichiers avec les attributs spécifiés.
   attributs D Répertoires R Fichiers en lecture seule
                H Fichiers cachés A Fichiers prêts pour l'archivage
                S Fichiers système - Préfixe ne signifiant pas
   /O Liste des fichiers par ordre de tri.
-  ordre de tri N Par nom (alphabétique) S Par taille (le plus petit en premier)
-               E Par extension (alphabétique) D Par date et heure (la plus ancienne en premier)
+  ordre de tri N Par nom (alphabétique) S Par taille (le plus petit d'abord)
+               E Par extension (alphabétique) D Par date et heure (la plus ancienne d'abord)
                G Répertoires de groupe en premier - Préfixe à l'ordre inverse
                
-Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD.  Remplacer
-des commutateurs préréglés en faisant précéder tout commutateur de - (trait d'union)--par exemple, /-W.
+Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD.  Remplacer des commutateurs préréglés en faisant précéder tout commutateur de - (trait d'union)--par exemple, /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1698,7 +1703,7 @@ HELP [commande]
 ←[0mE.g., ←[37;1mHELP COPY←[0m ou ←[37;1mCOPY /?←[0m affiche des informations d'aide pour la commande COPY.
 
 Remarque : les commandes externes comme ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m ne sont pas répertoriées par HELP [/A].
-      Ces commandes se trouvent sur le lecteur Z : sous forme de programmes (par exemple MOUNT.COM).
+      Ces commandes se trouvent sur le lecteur Z:sous forme de programmes (par exemple MOUNT.COM).
       Tapez ←[33;1mcommand /?←[0m ou ←[33;1mHELP command←[0m pour obtenir des informations d'aide pour cette commande.
       
 .
@@ -1824,7 +1829,7 @@ Affiche le contenu d'un fichier texte.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
-TYPE [lecteur :][chemin][nom du fichier]
+TYPE [lecteur:][chemin][nom du fichier]
 
 .
 :SHELL_CMD_REM_HELP
@@ -1840,8 +1845,8 @@ Renomme un fichier/répertoire ou des fichiers.
 
 .
 :SHELL_CMD_RENAME_HELP_LONG
-RENAME [drive :][path][directoryname1 | filename1] [directoryname2 | filename2]
-REN [drive :][path][directoryname1 | filename1] [directoryname2 | filename2]
+RENAME [lecteur:][chemin][répertoire 1 | fichier 1] [répertoire 2 | fichier 2]
+REN [lecteur:][chemin][répertoire 1 | fichier 1] [répertoire 2 | fichier 2]
 
 Notez que vous ne pouvez pas spécifier un nouveau lecteur ou chemin d'accès pour votre destination.
 
@@ -1856,11 +1861,11 @@ Supprime un ou plusieurs fichiers.
 DEL [/P] [/F] [/Q] noms
 ERASE [/P] [/F] [/Q] noms
 
-  noms Spécifie une liste d'un ou plusieurs fichiers ou répertoires.
-                Les caractères génériques peuvent être utilisés pour supprimer plusieurs fichiers. Si un répertoire est spécifié, tous les fichiers du répertoire seront supprimés.
-  /P Demande de confirmation avant la suppression d'un ou plusieurs fichiers.
-  /F Force la suppression des fichiers en lecture seule.
-  /Q Mode silencieux, ne pas demander si l'on peut supprimer un caractère générique global.
+  noms  Spécifie une liste d'un ou plusieurs fichiers ou répertoires.
+        Les caractères génériques peuvent être utilisés pour supprimer plusieurs fichiers. Si un répertoire est spécifié, tous les fichiers du répertoire seront supprimés.
+  /P    Demande de confirmation avant la suppression d'un ou plusieurs fichiers.
+  /F    Force la suppression des fichiers en lecture seule.
+  /Q    Mode silencieux, ne pas demander si l'on peut supprimer un caractère générique global.
   
 .
 :SHELL_CMD_COPY_HELP
@@ -1872,16 +1877,15 @@ COPY [/Y | /-Y] source [+source [+ ...]] [destination]
   
   source Spécifie le ou les fichiers à copier.
   destination Spécifie le répertoire et/ou le nom de fichier pour le(s) nouveau(x) fichier(s).
-  /Y Supprime le message demandant de confirmer que vous voulez écraser une
+  /Y Supprime le message demandant de confirmer que vous voulez écraser un
                 fichier de destination existant.
-  /-Y Provoque une invite pour confirmer que vous voulez écraser une
+  /-Y Provoque une invite pour confirmer que vous voulez écraser un
                 fichier de destination existant.
                 
 Le commutateur /Y peut être prédéfini dans la variable d'environnement COPYCMD.
 Cette option peut être remplacée par /-Y sur la ligne de commande.
 
-Pour ajouter des fichiers, spécifiez un seul fichier comme destination, mais plusieurs fichiers.
-pour la source (en utilisant des caractères génériques ou le format fichier1+fichier2+fichier3).
+Pour ajouter des fichiers, spécifiez un seul fichier comme destination, mais plusieurs fichiers comme source (en utilisant des caractères génériques ou le format fichier1+fichier2+fichier3).
 
 .
 :SHELL_CMD_CALL_HELP
@@ -1889,7 +1893,7 @@ Lance un fichier batch à partir d'un autre fichier batch.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
-CALL [drive :][path]nom de fichier [paramètres du lot]
+CALL [lecteur:][chemin]nom de fichier [paramètres du lot]
 
 batch-parameters Spécifie toute information de ligne de commande requise par
                    le programme batch.
@@ -1900,23 +1904,23 @@ Affecte un répertoire interne à un lecteur.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
-SUBST [lecteur 1: [lecteur 2:]path]
+SUBST [lecteur 1: [lecteur 2:]chemin]
 SUBST lecteur 1: /D
 
-  lecteur 1:       Spécifie un lecteur auquel vous voulez affecter un chemin.
-  [lecteur 2:]path Spécifie un lecteur local monté et le chemin d'accès que vous souhaitez lui attribuer.
-  /D Supprime un lecteur monté ou substitué.
+  lecteur 1:         Spécifie un lecteur auquel vous voulez affecter un chemin.
+  [lecteur 2:]chemin Spécifie un lecteur local monté et le chemin d'accès que vous souhaitez lui attribuer.
+  /D                 Supprime un lecteur monté ou substitué.
   
 Tapez SUBST sans paramètres pour afficher une liste des lecteurs locaux montés.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-Charge un programme dans la mémoire supérieure (nécessite une mémoire XMS et UMB).
+Charge un programme dans la mémoire supérieure (nécessite de la mémoire XMS et UMB).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH [lecteur :][chemin]nom de fichier [paramètres]
-LOADHIGH [drive :][path]nom de fichier [paramètres]
+LH [lecteur:][chemin]nom de fichier [paramètres]
+LOADHIGH [lecteur:][chemin]nom de fichier [paramètres]
 
 .
 :SHELL_CMD_CHOICE_HELP
@@ -1925,7 +1929,7 @@ Attend une pression sur une touche et définit ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:choix] [/N] [/S] texte
-  /C[ :]choix - Spécifie les clés autorisées.  La valeur par défaut est : yn.
+  /C[:]choix - Spécifie les touches autorisées.  La valeur par défaut est : yn.
   /N - Ne pas afficher les choix à la fin de l'invite.
   /S - Permet de sélectionner des choix sensibles à la casse.
   texte - Le texte à afficher comme invite.
@@ -1941,7 +1945,7 @@ ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [lecteur:][chemin][nom du fichier
   + Définit un attribut.
   - Efface un attribut.
   R Attribut de fichier en lecture seule.
-  Un attribut du fichier d'archive.
+  A attribut du fichier d'archive.
   S Attribut de fichier système.
   H Attribut de fichier caché.
   [lecteur:][chemin][nom du fichier]
@@ -1954,7 +1958,7 @@ Affiche ou définit un chemin de recherche pour les fichiers exécutables.
 
 .
 :SHELL_CMD_PATH_HELP_LONG
-PATH [[lecteur :]chemin[ ;...][;%PATH%]
+PATH [[lecteur:]chemin[;...][;%PATH%]
 PATH ;
 
 Tapez PATH ; pour effacer tous les paramètres du chemin de recherche.
@@ -2002,9 +2006,9 @@ Numéro VER [SET] ou VER SET [majeur mineur].
 
   /R Affiche la version du commit Git de DOSBox-X et la date de construction.
   [SET] suméro  Définit le numéro spécifié comme la version DOS rapportée.
-  SET [major mineur] Définit la version DOS rapportée au format majeur et mineur.
+  SET [majeur mineur] Définit la version DOS rapportée au format majeur et mineur.
   
-  ←[0mE.g., ←[37;1mVER 6.0←[0m ou ←[37;1mVER 7.1←[0m définit la version DOS à 6.0 et 7.1, respectivement.
+  ←[0mP.e., ←[37;1mVER 6.0←[0m ou ←[37;1mVER 7.1←[0m définit la version DOS à 6.0 et 7.1, respectivement.
   
   D'autre part, ←[37;1mVER SET 7 1←[0m définit la version DOS à 7.01 au lieu de 7.1.
   
@@ -2039,16 +2043,16 @@ L'invite peut être composée de caractères normaux et des codes spéciaux suiv
   $A & (esperluette)
   $B | (pipe)
   $C ( (Parenthèse gauche)
-  D Date du jour
+  $D Date du jour
   $E Escape code (code ASCII 27)
   $F ) (Parenthèse droite)
   $G > (signe plus grand que)
   $H Retour arrière (efface le caractère précédent)
   $L < (signe plus petit que)
-  N$ Lecteur actuel
+  $N Lecteur actuel
   $P Lecteur et chemin actuels
   $Q = (signe égal)
-  S (espace)
+  $S (espace)
   $T Heure actuelle
   $V Numéro de version du DOS
   $_ Retour chariot et saut de ligne
@@ -2062,7 +2066,7 @@ Définit ou affiche les alias.
 :SHELL_CMD_ALIAS_HELP_LONG
 ALIAS [nom[=valeur] ... ]
 
-Tapez ALIAS sans paramètres pour afficher la liste des alias dans le formulaire :
+Tapez ALIAS sans paramètres pour afficher la liste des alias sous la forme :
 `ALIAS NOM = VALEUR'
 
 .
@@ -2074,7 +2078,7 @@ Affiche ou modifie la page de code DOS actuelle.
 CHCP [nnn [fichier]]
 
   nnn      Spécifie un numéro de page de code.
-  fichier  Spécifie un fichier de page de code.
+  fichier  Spécifie un fichier de page de code
   
 Pages de code prises en charge pour être modifiées dans la sortie de la police TrueType :
 437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
@@ -2122,7 +2126,7 @@ Affiche la sortie un écran à la fois.
 :SHELL_CMD_MORE_HELP_LONG
 MORE [lecteur:][chemin][nom du fichier]
 MORE < [lecteur:][chemin]nom de fichier
-nom de commande | MORE [lecteur :][chemin][nom de fichier]
+nom de commande | MORE [lecteur:][chemin][nom de fichier]
 
 .
 :SHELL_CMD_TRUENAME_HELP
@@ -2195,10 +2199,10 @@ Collage à partir du presse-papiers
 Arrêter le collage du presse-papiers
 .
 :MENU:mapper_pause
-Mettre l'émulation en pause
+Pauser émulation
 .
 :MENU:mapper_pauseints
-Pause avec interruptions activées
+Pause interr. activées
 .
 :MENU:mapper_gui
 Outil de configuration
@@ -2207,16 +2211,16 @@ Outil de configuration
 Éditeur de mappage
 .
 :MENU:mapper_fullscr
-Basculer en mode plein écran
+Basculer plein écran
 .
 :MENU:mapper_resetsize
-Réinitialiser la taille de la fenêtre
+Réinit. taille fenêtre
 .
 :MENU:mapper_incsize
-Augmenter la taille de la police
+Augmenter taille police
 .
 :MENU:mapper_decsize
-Diminuer la taille de la police
+Diminuer taille police
 .
 :MENU:mapper_togmenu
 Cacher/afficher la barre de menu
@@ -2949,52 +2953,52 @@ Accélérer
 Ralentir
 .
 :MENU:mapper_editcycles
-Choisir le nombre de cycles
+Choisir nombre sycles
 .
 :MENU:mapper_savestate
-Sauver l'état
+Sauver état
 .
 :MENU:mapper_loadstate
-État de charge
+Niv. charge
 .
 :MENU:mapper_showstate
-Afficher les informations sur l'état
+Afficher infos état
 .
 :MENU:mapper_prevslot
-Sélectionner l'emplacement précédent
+Emplacement préc.
 .
 :MENU:mapper_nextslot
-Sélectionner l'emplacement suivant
+Emplacement suivant
 .
 :MENU:mapper_decfskip
 Diminuer le frameskip
 .
 :MENU:mapper_incfskip
-Augmenter le nombre de frameskip
+Augmenter le frameskip
 .
 :MENU:mapper_aspratio
-Ajuster au format d'image
+Ajuster format image
 .
 :MENU:mapper_recwave
-Enregistrement audio au format WAV
+Enreg. audio WAV
 .
 :MENU:mapper_recmtwave
-Enregistrement audio sur AVI multipiste
+Enreg. audio AVI multipiste
 .
 :MENU:mapper_caprawmidi
-Enregistrement de la sortie MIDI
+Enreg. sortie MIDI
 .
 :MENU:mapper_caprawopl
-Sortie FM d'enregistrement (OPL)
+Sortie FM (OPL)
 .
 :MENU:mapper_video
-Enregistrer la vidéo au format AVI
+Enreg. vidéo en AVI
 .
 :MENU:mapper_scrshot
 Capture d'écran
 .
 :MENU:mapper_debugger
-Démarrer le débogueur DOSBox-X
+Démarrer débogueur DOSBox-X
 .
 :MENU:mapper_volup
 Monter le volume
@@ -3003,19 +3007,19 @@ Monter le volume
 Baisser le volume
 .
 :MENU:mapper_recvolup
-Monter le volume d'enregistrement
+Monter volume d'enreg.
 .
 :MENU:mapper_recvoldown
-Baisser le volume d'enregistrement
+Baisser volume d'enreg.
 .
 :MENU:mapper_sendkey_mapper
-Envoyer une touche spéciale
+Envoie touche spéciale
 .
 :MENU:mapper_cycledown
-Diminuer le nombre de cycles
+Diminuer nombre cycles
 .
 :MENU:mapper_cycleup
-Monter le nombre de cycles
+Monter nombre cycles
 .
 :MENU:mapper_normal
 Noyau normal
@@ -3085,13 +3089,13 @@ Ligne de débogage du retournement de page
 Retracer la ligne de débogage des sondages
 .
 :MENU:mapper_swapimg
-Remplacer le lecteur de disquettes
+Remplacer lecteur d7
 .
 :MENU:mapper_swapcd
-Remplacer le lecteur de CDs
+Remplacer lecteur CDs
 .
 :MENU:mapper_ejectpage
-Envoyer les sauts de page
+Envoyer sauts de page
 .
 :MENU:mapper_rescanall
 Rescanner tous les disques
@@ -3241,19 +3245,19 @@ Imprimer l'écran de texte DOS
 Utiliser la disposition clavier US
 .
 :MAPPER:caprawopl
-Enregistrer la sortie FM/OPL
+Enreg. sortie FM/OPL
 .
 :MAPPER:copyall
-Copier vers le presse-papiers
+Copier presse-papiers
 .
 :MAPPER:cycauto
-Basculer les cycles automatiques
+Basculer cycles auto
 .
 :MAPPER:debugger
-Afficher le débogueur
+Afficher débogueur
 .
 :MAPPER:decsize
-Diminuer la taille TTF
+Diminuer taille TTF
 .
 :MAPPER:dynamic
 CPU: noyau dynamique
@@ -3265,52 +3269,52 @@ Mode d'édition rapide
 CPU: noyau entier
 .
 :MAPPER:incsize
-Augmenter la taille du TTF
+Augmenter taille TTF
 .
 :MAPPER:loadmap
-Charger un fichier de mappage
+Charger fichier mappage
 .
 :MAPPER:nextslot
-Emplacement de sauvegarde suivant
+Emplacement svg suivant
 .
 :MAPPER:normal
 CPU: noyau normal
 .
 :MAPPER:paste
-Coller depuis le presse-papiers
+Coller presse-papiers
 .
 :MAPPER:pasteend
-Arrêter le collage du presse-papiers
+Arrêt presse-papiers
 .
 :MAPPER:pauseints
-Pause avec interruptions
+Pause avec interrupt.
 .
 :MAPPER:prevslot
-Emplacement de sauvegarde précédent
-.
+Emplacement svg préc.
+
 :MAPPER:quickrun
-Lancer un programme rapidement
+Lancer prog. rapidement
 .
 :MAPPER:reboot
-Redémarrer le système DOS
+Redémarrer le DOS
 .
 :MAPPER:recmtwave
-Enregistrer vers M.T. AVI
+Enreg. vers M.T. AVI
 .
 :MAPPER:recvoldown
-Diminuer le volume d'enregistrement
+Diminuer volume enreg.
 .
 :MAPPER:recvolup
-Augmenter le volume d'enregistrement
+Augmenter volume enreg.
 .
 :MAPPER:rescanall
-Réanalyser les lecteurs
+Réanalyser lecteurs
 .
 :MAPPER:reset
 Réinitialiser DOSBox-X
 .
 :MAPPER:showstate
-Afficher les informations sur l'état
+Afficher infos état
 .
 :MAPPER:simple
 CPU: noyau simple
