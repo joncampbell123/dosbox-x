@@ -2095,7 +2095,7 @@ DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
-執行程式並在其入口調用偵錯工具.
+執行程式並在進入點調用偵錯工具.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
