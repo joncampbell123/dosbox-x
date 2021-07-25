@@ -207,7 +207,7 @@ DOSBox-X 模擬 DOS 命令列讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-交換儲存位
+切換儲存位
 .
 :EMPTY_SLOT
 空儲存位
@@ -312,7 +312,7 @@ DOSBox-X 命令列組態工具. 支援的選項為:
 -all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入所有/修改過的組態選項.
 -wcboot, -wcpboot, 或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或載入的主組態檔案).
--norem 與 -wc, -wcp, 或 -wcd 一起使用時不寫入組態檔案的注釋.
+-norem 與 -wc, -wcp, 或 -wcd 一起使用時不寫入組態檔案的註解.
 -l 列出 DOSBox-X 的組態參數.
 -h, -help, -? 顯示此說明; 加入 "sections" 一詞以顯示段落清單.
 -h, -help, -? 段落 / 屬性 顯示指定段落或屬性的資訊.
@@ -498,7 +498,7 @@ MOUSE [/?] [/U] [/V]
                    支援的磁碟機類型為: dir, floppy, cdrom, overlay
                    (其中 'overlay' 將重定向掛載磁碟機中的寫操作至另一個目錄)
  -label [名稱]     設定磁碟機的標籤名稱 (全部大寫)
- -ro               以唯讀方式掛載磁碟機.
+ -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
  -cd               顯示包含光碟機代號的主機光碟機清單.
  -usecd [磁碟機代號] 支援直接硬體模擬比如 CD 音訊播放.
@@ -529,7 +529,7 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT -cd[0m                         - 列出本機所有光碟機
 [32;1mMOUNT d %s[0m            - 將磁碟機 D 掛載為指定目錄
 [32;1mMOUNT c %s -t cdrom[0m      - 將磁碟機 C: 以光碟機方式掛載為指定目錄
-[32;1mMOUNT c %s -ro[0m           - 將磁碟機 C: 以唯讀方式掛載
+[32;1mMOUNT c %s -ro[0m           - 將磁碟機 C: 以唯讀模式掛載
 [32;1mMOUNT c %s -label TEST[0m   - 掛載磁碟機 C: 並給予標籤 TEST
 [32;1mMOUNT c %s -nocachedir [0m  - 掛載磁碟機 C: 且不使用磁碟機快取
 [32;1mMOUNT c %s -freesize 128[0m - 掛載磁碟機 C: 並報告剩餘磁碟空間為 128MB
@@ -746,7 +746,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	啟動快速啟動方式 (跳過 BIOS 和歡迎畫面).
 
 [33;1m  -fullscreen[0m
-	以全螢幕方式啟動 DOSBox-X.
+	以全螢幕模式啟動 DOSBox-X.
 
 .
 :PROGRAM_INTRO_USAGE_2
@@ -859,15 +859,15 @@ DOSBox-X 提供多層次的光碟機模擬.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-映像檔處於唯讀狀態! 將以防寫方式啟動.
+映像檔處於唯讀狀態! 將以防寫模式開機.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
-此命令將使 DOSBox-X 從軟碟或硬碟映像中啟動.
+此命令將使 DOSBox-X 從軟碟或硬碟映像中開機.
 
-您可以在此命令中使用多個軟碟映像檔, 並可通過選單選項進行變更.
-"磁碟機:"將從指定的已掛載的磁碟機啟動. 如果沒有指定磁碟機代號,
-將預設從磁碟機 A： 啟動. 如果沒有指定參數將試著從目前磁碟機啟動.
+您可以在此命令中使用多個軟碟映像檔, 並可通過選單選項進行切換.
+"磁碟機:"將從指定的已掛載的磁碟機開機. 如果沒有指定磁碟機代號,
+將預設從磁碟機 A: 開機. 如果沒有指定參數將試著從目前磁碟機開機.
 只支援從以下磁碟機代號中啟動: A:, C:, 以及 D:. 如果要從硬碟機
 (C: 或 D:) 中啟動, 請保證映像檔已用 [34;1mIMGMOUNT[0m 命令掛載.
 
@@ -877,17 +877,17 @@ DOSBox-X 提供多層次的光碟機模擬.
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 磁碟機代號][0m
 
-說明: 如果映像檔以冒號 (:) 開頭將以防寫方式啟動, 如果以下組態選項已啟用:
+備註: 如果映像檔以冒號 (:) 開頭將以防寫模式開機, 如果以下組態選項已啟用:
 leading colon write protect image = true
 
 舉例:
 
-[32;1mBOOT A:[0m       - 從磁碟機 A: 啟動, 如果此磁碟機已掛載並能啟動.
-[32;1mBOOT :DOS.IMG[0m - 以防寫模式從軟碟映像檔 DOS.IMG 啟動.
+[32;1mBOOT A:[0m       - 從磁碟機 A: 開機, 如果此磁碟機已掛載並能開機.
+[32;1mBOOT :DOS.IMG[0m - 以防寫模式從軟碟映像檔 DOS.IMG 開機.
 
 .
 :PROGRAM_BOOT_UNABLE
-無法從磁碟機 %c 啟動.
+無法從磁碟機 %c 開機.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -938,7 +938,7 @@ BASIC ROM 已調入.
 
 .
 :PROGRAM_BIOSTEST_HELP
-啟動指定的 BIOS 映像檔以執行 CPU 測試 BIOS.
+開機至指定的 BIOS 映像檔以執行 CPU 測試 BIOS.
 
 BIOSTEST 映像檔
 
@@ -1075,7 +1075,7 @@ BIOSTEST 映像檔
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以掛載磁碟機.
  -size size|ss,s,h,c 指定大小 (單位: KB), 或扇區數和 CHS 參數.
  -bootcd 光碟機代號    指定載入開機磁片映像所用的光碟機代號.
- -ro                 以唯讀方式掛載映像檔 (或用':'前綴表示唯讀).
+ -ro                 以唯讀模式掛載映像檔 (或用':'前綴表示唯讀).
  -u                  卸載磁碟機或磁碟機代號.
  [32;1m-examples           顯示用法舉例.[0m
 .
@@ -1088,10 +1088,10 @@ BIOSTEST 映像檔
   [32;1mIMGMOUNT D c:\files\game.iso[0m   - 將光碟映像檔 c:\files\game.iso 掛載為 D:
   [32;1mIMGMOUNT D cdaudio.cue[0m         - 將 cue/bin 配對中的 cue 檔案掛載為光碟機 D:
   [32;1mIMGMOUNT 0 dos.ima[0m             - 將軟碟映像檔 dos.ima 掛載為磁碟機編號 0
-                                   ([33;1mBOOT A:[0m 將從此磁碟機中啟動, 如果能啟動)
-  [32;1mIMGMOUNT A -ro dos.ima[0m         - 將軟碟映像 dos.ima 以唯讀方式掛載為磁碟機 A:
+                                   ([33;1mBOOT A:[0m 將從此磁碟機中開機, 如果能開機)
+  [32;1mIMGMOUNT A -ro dos.ima[0m         - 將軟碟映像 dos.ima 以唯讀模式掛載為磁碟機 A:
   [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - 將軟碟映像檔 dsk1.img 和 dsk2.img 掛載為
-                                   磁碟機 A:, 可在選單中用 "交換軟碟映像" 選項
+                                   磁碟機 A:, 可在選單中用 "切換軟碟映像" 選項
                                    進行變更, 其中 dsk1.img 映像檔為唯讀
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
@@ -1662,7 +1662,7 @@ HELP [命令]
 
 [0mE.g., [37;1mHELP COPY[0m 或 [37;1mCOPY /?[0m 顯示 COPY 命令的說明資訊.
 
-注釋: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不會被 HELP [/A] 命令列出.
+備註: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不會被 HELP [/A] 命令列出.
       這些命令可以在 Z 碟中作為程式找到 (比如 MOUNT.COM).
       輸入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 顯示此命令的說明資訊.
 
@@ -1786,11 +1786,11 @@ TYPE [磁碟機:][路徑][檔名]
 
 .
 :SHELL_CMD_REM_HELP
-在批次檔中加入注釋.
+在批次檔中加入註解.
 
 .
 :SHELL_CMD_REM_HELP_LONG
-REM [注釋]
+REM [註解]
 
 .
 :SHELL_CMD_RENAME_HELP
@@ -2147,7 +2147,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重新開始模擬
 .
 :MENU:mapper_reboot
-重開 DOS 系統
+重開客機系統
 .
 :MENU:mapper_loadmap
 載入按鍵配置檔案...
@@ -2753,7 +2753,7 @@ MPEG-TS + H.264
 啟用自動儲存功能
 .
 :MENU:noremark_savestate
-儲存狀態時不輸入注釋
+儲存狀態時不輸入備註
 .
 :MENU:force_loadstate
 載入狀態時不顯示警告
@@ -2807,7 +2807,7 @@ MPEG-TS + H.264
 掛載資料夾為軟碟機
 .
 :MENU:drive_mountfro
-選項: 唯讀方式掛載資料夾
+選項: 唯讀模式掛載資料夾
 .
 :MENU:drive_mountarc
 掛載壓縮檔 (ZIP/7Z)
@@ -2819,7 +2819,7 @@ MPEG-TS + H.264
 掛載多個磁碟或光碟映像檔
 .
 :MENU:drive_mountiro
-選項: 唯讀方式掛載映像檔
+選項: 唯讀模式掛載映像檔
 .
 :MENU:drive_unmount
 卸載磁碟機
@@ -2828,7 +2828,7 @@ MPEG-TS + H.264
 重新掃描磁碟機
 .
 :MENU:drive_swap
-交換映像檔
+切換映像檔
 .
 :MENU:drive_info
 磁碟機資訊
@@ -3062,10 +3062,10 @@ DOS 命令
 追溯輪詢偵錯行
 .
 :MENU:mapper_swapimg
-交換軟碟映像
+切換軟碟映像
 .
 :MENU:mapper_swapcd
-交換光碟映像
+切換光碟映像
 .
 :MENU:mapper_ejectpage
 傳送印表機換頁符號
