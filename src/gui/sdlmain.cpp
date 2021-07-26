@@ -8245,8 +8245,8 @@ void GFX_Events() {
 #endif
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
-            if(event.key.keysym.scancode == 0x70 || event.key.keysym.scancode == 0x94) {
-                if(event.key.keysym.scancode == 0x94 && dos.im_enable_flag) {
+            if(event.key.keysym.scancode == 0x70 || event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) {
+                if((event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) && dos.im_enable_flag) {
                     break;
                 }
                 event.type = SDL_KEYDOWN;
