@@ -7377,7 +7377,7 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
 }
 
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-static Bitu im_x, im_y;
+static uint8_t im_x, im_y;
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -7391,8 +7391,6 @@ void SetIMPosition() {
 		ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     }
     if (IS_PC98_ARCH && x<ncols-3) x+=2;
-    x--;
-    y--;
 
 	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
 		last_ticks = GetTicks();
@@ -7405,13 +7403,13 @@ void SetIMPosition() {
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
 #if defined(USE_TTF)
         if (ttf.inUse)
-            SDL_SetIMPosition((x+1) * ttf.width, (y+1) * ttf.height);
+            SDL_SetIMPosition(x * ttf.width, y * ttf.height);
         else
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-        SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeightBase);
+        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeightBase);
 #else
-        SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #endif
 	}
 }
