@@ -227,7 +227,7 @@ Page suivante >
 Sélectionnez un événement à modifier.
 .
 :SELECT_DIFFERENT_EVENT
-Sélectionnez un autre événement ou appuyez sur les boutons Add/Del/Next.
+Sélectionnez un autre événement ou appuyez sur les boutons Ajouter/Effacer/Suivant.
 .
 :PRESS_JOYSTICK_KEY
 Appuyez sur une touche/un bouton du joystick ou déplacez le joystick.
@@ -1079,7 +1079,7 @@ Monte les images de disquettes, de disques durs et de disques optiques.
  ←[36;1mfile←[0m Nom(s) de fichier d'image, ou ←[33;1mIMGMAKE.IMG←[0m si non spécifié.
  -t iso Le type d'image est un disque optique iso ou une image cue / bin.
  -t hdd Le type d'image est un disque dur ; les fichiers VHD et HDI sont pris en charge.
- -t floppy|ram Le type d'image est lecteur de disquette| lecteur de RAM.
+ -t floppy|ram Le type d'image est lecteur de disquette | lecteur de RAM.
  -fs iso Le système de fichiers est ISO 9660 (auto-assumé pour les fichiers .iso/.cue).
  -fs fat Le système de fichiers est FAT - FAT12, FAT16 et FAT32 sont pris en charge.
  -fs none Ne pas détecter le système de fichiers (auto-assumé pour les numéros de lecteurs).
@@ -1100,9 +1100,9 @@ Quelques exemples d'utilisation de IMGMOUNT :
   ←[32;1mIMGMOUNT D c:\files\game.iso←[0m - monter l'image CD c:\files\game.iso comme D:
   ←[32;1mIMGMOUNT D cdaudio.cue←[0m - monter le fichier cue d'une paire cue/bin comme lecteur CD
   ←[32;1mIMGMOUNT 0 dos.ima←[0m - monter l'image dos.ima comme lecteur numéro 0
-                                   (←[33;1mBOOT A:←[0m démarrera à partir du lecteur s'il est amorçable)
+                                   (←[33;1mBOOT A:←[0m démarrera le lecteur s'il est amorçable)
   ←[32;1mIMGMOUNT A -ro dos.ima←[0m - monter l'image dos.ima comme A: lecture seule
-  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Swap floppy", avec dsk1.img en lecture seule (mais pas dsk2.img)
+  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Échanger disquette", avec dsk1.img en lecture seule (mais pas dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur C: comme un disque RAM de 10Mo
   ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme C:,
@@ -1365,7 +1365,7 @@ Tapez 'time %s' pour changer.
 TIME [[/T] [/H] | temps]
   temps :       Nouvelle heure à définir
   /T : 		Affichage de l'heure simple
-  /H : 		Synchronisation avec l'hote
+  /H :          Synchronisation avec l'hôte
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1626,14 +1626,14 @@ Affiche ou modifie le répertoire actuel.
 
 .
 :SHELL_CMD_CHDIR_HELP_LONG
-CHDIR [lecteur :][chemin]
+CHDIR [lecteur:][chemin]
 CHDIR [...]
-CD [lecteur :] [chemin]
+CD [lecteur:] [chemin]
 CD [...]
 
   ... Spécifie que vous voulez passer au répertoire parent.
   
-Tapez CD drive : pour afficher le répertoire actuel dans le lecteur spécifié.
+Tapez CD lecteur: pour afficher le répertoire actuel dans le lecteur spécifié.
 Tapez CD sans paramètres pour afficher le lecteur et le répertoire actuels.
 
 .
@@ -1667,7 +1667,7 @@ DIR [lecteur :][chemin][nom du fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N
                E Par extension (alphabétique) D Par date et heure (la plus ancienne d'abord)
                G Répertoires de groupe en premier - Préfixe à l'ordre inverse
                
-Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD.  Remplacer des commutateurs préréglés en faisant précéder tout commutateur de - (trait d'union)--par exemple, /-W.
+Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD. Remplacer des commutateurs préréglés en faisant précéder tout commutateur de - (trait d'union)--par exemple, /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1725,8 +1725,8 @@ Crée un répertoire.
 
 .
 :SHELL_CMD_MKDIR_HELP_LONG
-MKDIR [lecteur :][chemin]
-MD [lecteur :][chemin]
+MKDIR [lecteur:][chemin]
+MD [lecteur:][chemin]
 
 .
 :SHELL_CMD_RMDIR_HELP
@@ -1734,8 +1734,8 @@ Supprime un répertoire.
 
 .
 :SHELL_CMD_RMDIR_HELP_LONG
-RMDIR [lecteur :][chemin]
-RD [lecteur :][chemin]
+RMDIR [lecteur:][chemin]
+RD [lecteur:][chemin]
 
 .
 :SHELL_CMD_SET_HELP
@@ -1774,7 +1774,7 @@ Commande IF [NOT] EXIST nom de fichier
   commande Spécifie la commande à exécuter si la condition est
                     rencontrée.  La commande peut être suivie par ELSE
                     qui exécutera la commande après le mot-clé ELSE si l'option
-                    la condition spécifiée est FAUX
+                    la condition spécifiée est FAUSSE
                     
 .
 :SHELL_CMD_GOTO_HELP
@@ -1784,7 +1784,8 @@ Sauter à une ligne étiquetée dans un programme batch.
 :SHELL_CMD_GOTO_HELP_LONG
 GOTO étiquette
    
-   étiquette Spécifie une chaîne de texte utilisée dans le programme de traitement par lots comme étiquette.
+   étiquette Spécifie une chaîne de texte utilisée dans le programme de traitement 
+   par lots comme étiquette.
    
 Vous tapez une étiquette sur une ligne à part, en commençant par un deux-points.
 
@@ -1862,10 +1863,13 @@ DEL [/P] [/F] [/Q] noms
 ERASE [/P] [/F] [/Q] noms
 
   noms  Spécifie une liste d'un ou plusieurs fichiers ou répertoires.
-        Les caractères génériques peuvent être utilisés pour supprimer plusieurs fichiers. Si un répertoire est spécifié, tous les fichiers du répertoire seront supprimés.
+        Les caractères génériques peuvent être utilisés pour supprimer plusieurs 
+        fichiers. Si un répertoire est spécifié, tous les fichiers du répertoire 
+        seront supprimés.
   /P    Demande de confirmation avant la suppression d'un ou plusieurs fichiers.
   /F    Force la suppression des fichiers en lecture seule.
-  /Q    Mode silencieux, ne pas demander si l'on peut supprimer un caractère générique global.
+  /Q    Mode silencieux, ne pas demander si l'on peut supprimer un 
+        caractère générique global.
   
 .
 :SHELL_CMD_COPY_HELP
@@ -1885,7 +1889,9 @@ COPY [/Y | /-Y] source [+source [+ ...]] [destination]
 Le commutateur /Y peut être prédéfini dans la variable d'environnement COPYCMD.
 Cette option peut être remplacée par /-Y sur la ligne de commande.
 
-Pour ajouter des fichiers, spécifiez un seul fichier comme destination, mais plusieurs fichiers comme source (en utilisant des caractères génériques ou le format fichier1+fichier2+fichier3).
+Pour ajouter des fichiers, spécifiez un seul fichier comme destination, 
+mais plusieurs fichiers comme source (en utilisant des caractères génériques 
+ou le format fichier1+fichier2+fichier3).
 
 .
 :SHELL_CMD_CALL_HELP
@@ -2204,7 +2210,7 @@ Arrêter le collage du presse-papiers
 Pauser émulation
 .
 :MENU:mapper_pauseints
-Pause interr. activées
+Pause avec interruptions activées
 .
 :MENU:mapper_gui
 Outil de configuration
@@ -2856,10 +2862,10 @@ Démonter le lecteur
 Rescanner le lecteur
 .
 :MENU:drive_swap
-Disque de remplacement
+Échanger disquette
 .
 :MENU:drive_info
-Informations sur l'entraînement
+Informations sur le lecteur
 .
 :MENU:drive_boot
 Démarrage à partir du disque
@@ -3142,10 +3148,10 @@ Activez l'API du presse-papiers DOS pour les applications
 Utiliser la fonction BIOS pour le collage du presse-papiers
 .
 :MENU:sendkey_winlogo
-Envoyer la touche du logo
+Envoyer touche du logo
 .
 :MENU:sendkey_winmenu
-Touche de menu d'envoi
+En0voyer touche du menu
 .
 :MENU:sendkey_alttab
 Envoyer Alt+Tab
@@ -3169,10 +3175,10 @@ Ctrl+Shift
 Alt+Shift
 .
 :MENU:sendkey_mapper_winlogo
-Mapper "Envoyer une touche spéciale" : clé du logo
+Mapper "Envoyer une touche spéciale" : touche du logo
 .
 :MENU:sendkey_mapper_winmenu
-Mapper "Envoyer une touche spéciale" : touche du logo
+Mapper "Envoyer une touche spéciale" : touche du menu
 .
 :MENU:sendkey_mapper_alttab
 Mapper "Envoyer une touche spéciale" : Alt+Tab
@@ -3322,5 +3328,5 @@ Afficher infos état
 CPU: noyau simple
 .
 :MAPPER:togmenu
-Basculer la barre de menu
+Basculer barre de menu
 .
