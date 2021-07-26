@@ -34,7 +34,11 @@
     language translations. (Wengier)
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
-    for loading language files before fail. (Wengier)
+    for loading language files before failing, and
+    on Linux and macOS platforms will also search for
+    additional directories such as /Library/Fonts/
+    (Linux) or /Library/Fonts/ (macOS) for TrueType
+    fonts when using the TTF output. (Wengier)
   - DOSBox-X will try to load the SarasaGothicFixed
     TTF font when no external TTF font is specified
     and a CJK code page detected at start. (Wengier)

@@ -3806,7 +3806,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             }
         }
 #elif defined(LINUX)
-        strcpy(fontdir, "/usr/share/fonts/truetype/");
+        strcpy(fontdir, "/usr/share/fonts/");
 #elif defined(MACOSX)
         strcpy(fontdir, "/Library/Fonts/");
 #else
@@ -3820,6 +3820,42 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             strcpy(ttfPath, fontdir);
             strcat(ttfPath, fName);
             ttf_fh = fopen(ttfPath, "rb");
+#if defined(LINUX) || defined(MACOSX)
+            if (!ttf_fh) {
+#if defined(LINUX)
+                strcpy(fontdir, "/usr/share/fonts/truetype/");
+#else
+                strcpy(fontdir, "/System/Library/Fonts/");
+#endif
+                strcpy(ttfPath, fontdir);
+                strcat(ttfPath, fName);
+                strcat(ttfPath, ".ttf");
+                ttf_fh = fopen(ttfPath, "rb");
+                if (!ttf_fh) {
+                    strcpy(ttfPath, fontdir);
+                    strcat(ttfPath, fName);
+                    ttf_fh = fopen(ttfPath, "rb");
+                    if (!ttf_fh) {
+                        std::string in;
+#if defined(LINUX)
+                        in = "~/.fonts/";
+#else
+                        in = "~/Library/Fonts/";
+#endif
+                        ResolveHomedir(in);
+                        strcpy(ttfPath, in.c_str());
+                        strcat(ttfPath, fName);
+                        strcat(ttfPath, ".ttf");
+                        ttf_fh = fopen(ttfPath, "rb");
+                        if (!ttf_fh) {
+                            strcpy(ttfPath, in.c_str());
+                            strcat(ttfPath, fName);
+                            ttf_fh = fopen(ttfPath, "rb");
+                        }
+                    }
+                }
+            }
+#endif
         }
     }
     if (ttf_fh) {
