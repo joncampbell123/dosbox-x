@@ -1071,7 +1071,7 @@ BIOSTEST 映像檔
  -fs iso             檔案系統為 ISO 9660 (自動假設為 .iso/.cue 檔案).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
  -fs none            不檢測檔案系統 (提供磁碟機代號時自動假設).
- -reservecyl #       在 BIOS 中報告使用比實際更少的駐面數目.
+ -reservecyl #       在 BIOS 中報告使用比實際更少的磁柱數目.
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以掛載磁碟機.
  -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區數和 CHS 參數.
  -bootcd 光碟機代號    指定載入開機磁片映像所用的光碟機代號.
