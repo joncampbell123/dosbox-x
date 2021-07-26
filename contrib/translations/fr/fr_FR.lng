@@ -2231,7 +2231,7 @@ Augmenter taille police
 Diminuer taille police
 .
 :MENU:mapper_togmenu
-Cacher/afficher la barre de menu
+Masquer/afficher la barre de menu
 .
 :MENU:MainMenu
 Fichier
@@ -2261,58 +2261,58 @@ Type de processeur
 Émuler la vitesse d'un processeur
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz (~240 cycles)
+8088 XT 4,77 MHz (~240 cycles)
 .
 :MENU:cpu286-8
-286 8MHz (~750 cycles)
+286 8 MHz (~750 cycles)
 .
 :MENU:cpu286-12
-286 12MHz (~1510 cycles)
+286 12 MHz (~1510 cycles)
 .
 :MENU:cpu286-25
-286 25MHz (~3300 cycles)
+286 25 MHz (~3300 cycles)
 .
 :MENU:cpu386-25
-386DX 25MHz (~4595 cycles)
+386DX 25 MHz (~4595 cycles)
 .
 :MENU:cpu386-33
-386DX 33MHz (~6075 cycles)
+386DX 33 MHz (~6075 cycles)
 .
 :MENU:cpu486-33
-486DX 33MHz (~12010 cycles)
+486DX 33 MHz (~12010 cycles)
 .
 :MENU:cpu486-66
-486DX2 66MHz (~23880 cycles)
+486DX2 66 MHz (~23880 cycles)
 .
 :MENU:cpu486-100
-486DX4 100MHz (~33445 cycles)
+486DX4 100 MHz (~33445 cycles)
 .
 :MENU:cpu486-133
-486DX5 133MHz (~47810 cycles)
+486DX5 133 MHz (~47810 cycles)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycles)
+Pentium 60 MHz (~31545 cycles)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 cycles)
+Pentium 66 MHz (~35620 cycles)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycles)
+Pentium 75 MHz (~43500 cycles)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycles)
+Pentium 90 MHz (~52000 cycles)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycles)
+Pentium 100 MHz (~60000 cycles)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycles)
+Pentium 120 MHz (~74000 cycles)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycles)
+Pentium 133 MHz (~80000 cycles)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycles)
+Pentium 166 MHz MMX (~97240 cycles)
 .
 :MENU:VideoMenu
 Vidéo
@@ -2616,7 +2616,7 @@ CJK : Autoriser les Katakana japonais en demi-largeur
 PC-98
 .
 :MENU:pc98_5mhz_gdc
-Horloge GDC à 5MHz
+Horloge GDC à 5 MHz
 .
 :MENU:pc98_allow_200scanline
 Autoriser l'effet de ligne de balayage sur 200 lignes
@@ -3097,7 +3097,7 @@ Ligne de débogage du retournement de page
 Retracer la ligne de débogage des sondages
 .
 :MENU:mapper_swapimg
-Remplacer lecteur d7
+Remplacer lecteur disquette
 .
 :MENU:mapper_swapcd
 Remplacer lecteur CDs
@@ -3151,7 +3151,7 @@ Utiliser la fonction BIOS pour le collage du presse-papiers
 Envoyer touche du logo
 .
 :MENU:sendkey_winmenu
-En0voyer touche du menu
+Envoyer touche du menu
 .
 :MENU:sendkey_alttab
 Envoyer Alt+Tab
