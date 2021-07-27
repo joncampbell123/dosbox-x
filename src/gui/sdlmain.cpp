@@ -3842,7 +3842,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
 #else
                         in = "~/Library/Fonts/";
 #endif
-                        ResolveHomedir(in);
+                        Cross::ResolveHomedir(in);
                         strcpy(ttfPath, in.c_str());
                         strcat(ttfPath, fName);
                         strcat(ttfPath, ".ttf");
