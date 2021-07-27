@@ -354,7 +354,7 @@ static_assert(offsetof(direntry_lfn,LDIR_Name3) == 0x1C,"Oops");
 
 struct partTable {
 	uint8_t booter[446];
-	struct {
+	struct partentry_t {
 		uint8_t bootflag;
 		uint8_t beginchs[3];
 		uint8_t parttype;

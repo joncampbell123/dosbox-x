@@ -1,4 +1,11 @@
 0.83.16
+  - Added support for extended MS-DOS partitions that
+    reside in extended partitions. These partitions
+    can be manually mounted using -o partidx=n where
+    n is 4 or larger. To assist in partition indexes,
+    the FAT driver will also print the partition
+    table to your log file and console when asked to
+    print debug information (joncampbell123)
   - Added dosbox-x.conf options to control VESA BIOS
     window size and window granularity. This allows
     DOS development to test VESA BIOS support against
