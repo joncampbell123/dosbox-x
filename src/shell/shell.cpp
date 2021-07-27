@@ -1556,9 +1556,9 @@ void SHELL_Init() {
     dos.psp(8);
 
     auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
-    auto loadHighShell = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("loadhigh shell"));
-    if (loadHighShell=="true" || loadHighShell=="1" ||
-        (loadHighShell=="auto" && dos.version.major >= 7))
+    auto shellHigh = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("shellhigh"));
+    if (shellHigh=="true" || shellHigh=="1" ||
+        (shellHigh=="auto" && dos.version.major >= 7))
     {
 	    DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
     }
