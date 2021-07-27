@@ -4048,6 +4048,12 @@ void DOSBOX_SetupConfigSections(void) {
 			"Similarly, FAT32 disk images will be supported with a reported DOS version of 7.1 or higher.\n");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Load the command shell in upper memory if umb is supported. If set to auto (default), it "
+                      "is enabled if the reported DOS version is at least 7.0.\n");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
     Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"

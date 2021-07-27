@@ -1555,6 +1555,14 @@ void SHELL_Init() {
     // can properly allocate memory.
     dos.psp(8);
 
+    auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
+    auto shellHigh = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("shellhigh"));
+    if (shellHigh=="true" || shellHigh=="1" ||
+        (shellHigh=="auto" && dos.version.major >= 7))
+    {
+	    DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
+    }
+
     // COMMAND.COM environment block
     tmp = dosbox_shell_env_size>>4;
 	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
@@ -1565,6 +1573,8 @@ void SHELL_Init() {
     total_sz = tmp;
 	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
     LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+    DOS_SetMemAllocStrategy(savedMemAllocStrategy);
 
     // now COMMAND.COM has a main body and PSP segment, reflect it
     dos.psp(psp_seg);
