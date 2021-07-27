@@ -1488,9 +1488,9 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
 						if (pe->mid == 0 && pe->sid == 0 &&
-								pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-								pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-								pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+							pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+							pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+							pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
 							continue; /* unused */
 
 						/* We're looking for MS-DOS partitions.
@@ -1498,8 +1498,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
 						 * FIXME: Is there a better way? */
 						if (!strncasecmp(pe->name,"MS-DOS",6) ||
-								!strncasecmp(pe->name,"MSDOS",5) ||
-								!strncasecmp(pe->name,"Windows",7)) {
+							!strncasecmp(pe->name,"MSDOS",5) ||
+							!strncasecmp(pe->name,"Windows",7)) {
 							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 							 * this is why it matters so much to read the geometry from the HDI header.
 							 *
@@ -1535,6 +1535,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				/* store partitions into a vector, including extended partitions */
 				std::vector<partTable::partentry_t> parts;
 
+				/* first copy the main partition table entries */
 				for (size_t i=0;i < 4;i++) {
 					parts.push_back(mbrData.pentry[i]);
 					LOG(LOG_DOSMISC,LOG_DEBUG)("Main MBR partition entry #%u: type=0x%02x start=%lu(%llu) len=%lu",
@@ -1545,6 +1546,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						(unsigned long)     mbrData.pentry[i].partSize);
 				}
 
+				/* then, enumerate extended partitions and add the partitions within, doing it in a way that
+				 * allows recursive extended partitions */
 				{
 					size_t i=0;
 
@@ -1577,15 +1580,14 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 								if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
 									break; // FIXME: Not sure what MS-DOS considers the end of the linked list
 
-								unsigned long rstart = smbr.pentry[0].absSectStart;
+								const size_t idx = parts.size();
+								const unsigned long rstart = smbr.pentry[0].absSectStart;
 
 								/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
 								 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
 								smbr.pentry[0].absSectStart += sect;
 								if (smbr.pentry[1].absSectStart != 0)
 									smbr.pentry[1].absSectStart += parts[i].absSectStart;
-
-								size_t idx = parts.size();
 
 								LOG(LOG_DOSMISC,LOG_DEBUG)("Ext. MBR partition entry #%u: type=0x%02x start=%lu(%llu) relstart=%lu len=%lu next=%lu ntype=0x%02x partsect=%lu",
 									(unsigned int)      idx,
