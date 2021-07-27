@@ -1590,16 +1590,18 @@ Vous pouvez effectuer des tâches par l'intermédiaire des menus ←[33mdéroula
 - régler la vitesse d'émulation avec ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m ou ←[31mF11 ←[37m+ ←[31mMoins←[37m ←[37m             
 .
 :SHELL_STARTUP_CGA
-Le mode composite CGA est pris en charge. Utilisez ←[31mCtrl+F8←[37m pour régler la sortie composite sur ON/OFF.
-Utilisez ←[31mCtrl+Shift+[F7/F8]←[37m pour modifier la teinte ; ←[31mCtrl+F7←[37m sélectionne le modèle CGA précoce/tardif.
+Le mode composite CGA est pris en charge. Utilisez ←[31mCtrl+F8←[37m pour régler      
+la sortie composite sur ON/OFF. Utilisez ←[31mCtrl+Shift+[F7/F8]←[37m pour modifier   
+la teinte ; ←[31mCtrl+F7←[37m sélectionne le modèle CGA précoce/tardif.               
 .
 :SHELL_STARTUP_CGA_MONO
-Utilisez ←[31mCtrl+F7←[37m pour faire défiler les couleurs monochromes verte, ambre et blanche,
-et ←[31mCtrl+F8←[37m pour modifier les paramètres de contraste/luminosité.                         
+Utilisez ←[31mCtrl+F7←[37m pour faire défiler les couleurs monochromes verte, ambre et
+blanche, et ←[31mCtrl+F8←[37m pour modifier les paramètres de contraste/luminosité.   
 .
 :SHELL_STARTUP_HERC
-Utilisez ←[31mCtrl+F7←[37m pour faire défiler les couleurs monochromes blanche, ambre et verte.      
-Utilisez ←[31mCtrl+F8←[37m pour activer le mélange horizontal (uniquement en mode graphique).          
+Utilisez ←[31mCtrl+F7←[37m pour faire défiler les couleurs monochromes blanche, ambre 
+et verte. Utilisez ←[31mCtrl+F8←[37m pour activer le mélange horizontal (uniquement   
+en mode graphique).                                                         
 .
 :SHELL_STARTUP_HEAD3
 ←[36mLe projet DOSBox-X sur Internet:                                            ←[37m
