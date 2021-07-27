@@ -1589,7 +1589,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 								if (smbr.pentry[1].absSectStart != 0)
 									smbr.pentry[1].absSectStart += parts[i].absSectStart;
 
-								LOG(LOG_DOSMISC,LOG_DEBUG)("Ext. MBR partition entry #%u: type=0x%02x start=%lu(%llu) relstart=%lu len=%lu next=%lu ntype=0x%02x partsect=%lu",
+								LOG(LOG_DOSMISC,LOG_DEBUG)("Ext. MBR partition entry #%u: type=0x%02x start=%lu(%llu) relstart=%lu len=%lu next=%lu ntype=0x%02x partsect=%lu parentidx=%u",
 									(unsigned int)      idx,
 									(unsigned int)      smbr.pentry[0].parttype,
 									(unsigned long)     smbr.pentry[0].absSectStart,
@@ -1598,7 +1598,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 									(unsigned long)     smbr.pentry[0].partSize,
 									(unsigned long)     smbr.pentry[1].absSectStart,
 									(unsigned int)      smbr.pentry[1].parttype, /* NTS: MS-DOS sets this to 0x05 or 0x0F */
-									(unsigned long)     sect);
+									(unsigned long)     sect,
+									(unsigned int)      i);
 
 								/* if the partition extends past the parent, then stop */
 								if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
