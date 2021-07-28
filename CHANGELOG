@@ -49,6 +49,12 @@
   - DOSBox-X will try to load the SarasaGothicFixed
     TTF font when no external TTF font is specified
     and a CJK code page detected at start. (Wengier)
+  - LH/LOADHIGH command can now load programs into UMB
+    memory if it is available. Also added "shellhigh"
+    config option to decide whether to load builtin
+    command shell to UMB memory (with default setting
+    of "auto", it is enabled if reported DOS version
+    is at least 7, similar to MS-DOS 7+). (cimarronm)
   - HELP command is now an external command appearing
     on Z drive rather than an internal shell command
     (it is never a DOS internal command). (Wengier)
@@ -119,8 +125,6 @@
   - Fixed bug related to DBCS vector table. (nanshiki)
   - Fixed running e.g. built-in DEBUG command from a
     drive other than Z may not work. (cimarronm)
-  - Fixed LH/LOADHIGH command not able to load programs
-    into the UMB memory. (cimarronm)
   - Fixed the command "FOR %I ..." not working when
     executed from the command line. (Wengier)
   - For audio/video recording, DOSBox-X will display
