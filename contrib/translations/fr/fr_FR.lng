@@ -186,9 +186,10 @@ Entrez le nom du fichier de langue :
 Nom de la langue (facultatif) :
 .
 :INTRO_MESSAGE
-Bienvenue à DOSBox-X, un paquet d'émulation DOS gratuit et complet.
+Bienvenue à DOSBox-X, un émulateur DOS gratuit et complet.
 DOSBox-X crée un shell DOS qui ressemble au DOS normal.
-Vous pouvez également exécuter Windows 3.x et 95/98 à l'intérieur de la machine DOS.
+Vous pouvez également exécuter Windows 3.x et 95/98 à l'intérieur 
+de la machine DOS.
 .
 :DRIVE
 Lecteur
@@ -1652,9 +1653,9 @@ Affiche une liste de fichiers et de sous-répertoires dans un répertoire.
 
 .
 :SHELL_CMD_DIR_HELP_LONG
-DIR [lecteur :][chemin][nom du fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+DIR [lecteur:][chemin][nom fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
 
-  [lecteur :][chemin][nom du fichier]
+  [lecteur:][chemin][nom du fichier]
               Spécifie le lecteur, le répertoire et/ou les fichiers à lister.
   /W Utilise le format de liste large.
   /B Utilise un format simple (pas d'information sur l'en-tête ni de résumé).
@@ -1666,10 +1667,13 @@ DIR [lecteur :][chemin][nom du fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N
                S Fichiers système - Préfixe ne signifiant pas
   /O Liste des fichiers par ordre de tri.
   ordre de tri N Par nom (alphabétique) S Par taille (le plus petit d'abord)
-               E Par extension (alphabétique) D Par date et heure (la plus ancienne d'abord)
+               E Par extension (alphabétique) D Par date et heure 
+               (la plus ancienne d'abord)
                G Répertoires de groupe en premier - Préfixe à l'ordre inverse
                
-Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD. Remplacer des commutateurs préréglés en faisant précéder tout commutateur de - (trait d'union)--par exemple, /-W.
+Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD. 
+Remplacer des commutateurs préréglés en faisant précéder tout commutateur d'un - 
+(trait d'union)--par exemple, /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1766,13 +1770,13 @@ Commande IF [NOT] EXIST nom de fichier
 
   NOT Spécifie que le DOS doit effectuer
                     la commande uniquement si la condition est fausse.
-  ERRORLEVEL nombre Spécifie une condition vraie si le dernier programme lancé
+  ERRORLEVEL numéro Spécifie une condition vraie si le dernier programme lancé
                     a retourné un code de sortie égal ou supérieur au nombre
                     spécifié.
   string1==string2 Spécifie une condition vraie si les chaînes de texte données
                     correspondent
-  EXIST nom de fichier Spécifie une condition vraie si le nom de fichier donné 
-  		    existe.
+  EXIST nom de fichier Spécifie une condition vraie si le nom de fichier donné
+                       existe.
   commande Spécifie la commande à exécuter si la condition est
                     rencontrée.  La commande peut être suivie par ELSE
                     qui exécutera la commande après le mot-clé ELSE si l'option
@@ -1808,16 +1812,18 @@ Exécute une commande spécifiée pour chaque fichier d'un ensemble de fichiers.
 FOR %%variable IN (set) DO command [paramètres de commande].
 
   %%variable Spécifie un paramètre remplaçable.
-  (set) Spécifie un ensemble d'un ou plusieurs fichiers. Des caractères génériques peuvent être utilisés.
+  (set) Spécifie un ensemble d'un ou plusieurs fichiers. Des caractères génériques 
+  peuvent être utilisés.
   commande Spécifie la commande à exécuter pour chaque fichier.
   paramètres de commande
              Spécifie les paramètres ou les commutateurs pour la commande spécifiée.
              
-Pour utiliser la commande dans un programme batch, spécifiez %%%%variable au lieu de %%variable.
+Pour utiliser la commande dans un programme batch, spécifiez 
+%%%%variable au lieu de %%variable.
 
 .
 :SHELL_CMD_LFNFOR_HELP
-Active ou désactive les noms de fichiers longs lors du traitement des caractères génériques FOR.
+Active/désactive les noms de fichiers longs lors du traitement des caractères génériques FOR.
 
 .
 :SHELL_CMD_LFNFOR_HELP_LONG
@@ -1851,9 +1857,11 @@ Renomme un fichier/répertoire ou des fichiers.
 RENAME [lecteur:][chemin][répertoire 1 | fichier 1] [répertoire 2 | fichier 2]
 REN [lecteur:][chemin][répertoire 1 | fichier 1] [répertoire 2 | fichier 2]
 
-Notez que vous ne pouvez pas spécifier un nouveau lecteur ou chemin d'accès pour votre destination.
+Notez que vous ne pouvez pas spécifier un nouveau lecteur ou chemin d'accès 
+pour votre destination.
 
-Les caractères génériques (* et ?) sont pris en charge pour les fichiers. Par exemple, la commande suivante renomme tous les fichiers texte : ←[37;1mREN *.TXT *.BAK←[0m
+Les caractères génériques (* et ?) sont pris en charge pour les fichiers. Par exemple, 
+la commande suivante renomme tous les fichiers texte : ←[37;1mREN *.TXT *.BAK←[0m
 
 .
 :SHELL_CMD_DELETE_HELP
@@ -1882,7 +1890,8 @@ Copie un ou plusieurs fichiers.
 COPY [/Y | /-Y] source [+source [+ ...]] [destination]
   
   source Spécifie le ou les fichiers à copier.
-  destination Spécifie le répertoire et/ou le nom de fichier pour le(s) nouveau(x) fichier(s).
+  destination Spécifie le répertoire et/ou le nom de fichier pour 
+  le(s) nouveau(x) fichier(s).
   /Y Supprime le message demandant de confirmer que vous voulez écraser un
                 fichier de destination existant.
   /-Y Provoque une invite pour confirmer que vous voulez écraser un
@@ -1904,7 +1913,7 @@ Lance un fichier batch à partir d'un autre fichier batch.
 CALL [lecteur:][chemin]nom de fichier [paramètres du lot]
 
 batch-parameters Spécifie toute information de ligne de commande requise par
-                   le programme batch.
+                 le programme batch.
 
 .
 :SHELL_CMD_SUBST_HELP
@@ -1916,7 +1925,8 @@ SUBST [lecteur 1: [lecteur 2:]chemin]
 SUBST lecteur 1: /D
 
   lecteur 1:         Spécifie un lecteur auquel vous voulez affecter un chemin.
-  [lecteur 2:]chemin Spécifie un lecteur local monté et le chemin d'accès que vous souhaitez lui attribuer.
+  [lecteur 2:]chemin Spécifie un lecteur local monté et le chemin d'accès que 
+                     vous souhaitez lui attribuer.
   /D                 Supprime un lecteur monté ou substitué.
   
 Tapez SUBST sans paramètres pour afficher une liste des lecteurs locaux montés.
@@ -2088,7 +2098,8 @@ CHCP [nnn [fichier]]
   nnn      Spécifie un numéro de page de code.
   fichier  Spécifie un fichier de page de code
   
-Pages de code prises en charge pour être modifiées dans la sortie de la police TrueType :
+Pages de code prises en charge pour être modifiées dans la sortie 
+de la police TrueType :
 
 437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 
