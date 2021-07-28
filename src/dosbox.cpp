@@ -2047,7 +2047,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
@@ -2059,9 +2060,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.\n"
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for Configuration Tool and Mapper Editor. If not specified, the default one will be used.\n"
                     "For Simplified Chinese DOS/V, loading the HZK14 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
@@ -4050,8 +4052,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Load the command shell in upper memory if umb is supported. If set to auto (default), it "
-                      "is enabled if the reported DOS version is at least 7.0.\n");
+    Pstring->Set_help("Load the DOSBox-X command shell into the upper memory when the UMB is available.\n"
+                      "If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
