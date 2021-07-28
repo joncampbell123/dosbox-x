@@ -78,6 +78,7 @@ Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Comp
 Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
+Source: "..\..\translations\fr\fr_FR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\zh\zh_TW.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
@@ -254,6 +255,7 @@ begin
     msg:='DOSBox-X supports language files to display messages in different languages.' #13#13 'By default the user interface is English, but you may want to select a different language for its user interface.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageLang:=CreateInputOptionPage(101, 'User interface language', 'Select the language for DOSBox-X''s user interface', msg, True, False);
     PageLang.Add('Default (English)');
+    PageLang.Add('French (français)');
     PageLang.Add('Japanese (日本語)');
     PageLang.Add('Simplified Chinese (简体中文)');
     PageLang.Add('Spanish (Español)');
@@ -327,18 +329,20 @@ begin
           msg:='TrueType font (TTF) / Direct3D output';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end;
-      if PageLang.Values[0] or PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] then
+      if PageLang.Values[0] or PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] then
       begin
         Wizardform.ReadyMemo.Lines.Add('');
         Wizardform.ReadyMemo.Lines.Add('User interface language:');
         msg:='Default (English)';
         if (PageLang.Values[1]) then
-          msg:='Japanese (日本語)';
+          msg:='French (français)';
         if (PageLang.Values[2]) then
-          msg:='Simplified Chinese (简体中文)';
+          msg:='Japanese (日本語)';
         if (PageLang.Values[3]) then
-          msg:='Spanish (Español)';
+          msg:='Simplified Chinese (简体中文)';
         if (PageLang.Values[4]) then
+          msg:='Spanish (Español)';
+        if (PageLang.Values[5]) then
           msg:='Traditional Chinese (繁體/正體中文)';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end;
@@ -439,7 +443,7 @@ begin
         end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end;
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4]) then
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5]) then
       begin
         FileLines := TStringList.Create;
         FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
@@ -455,25 +459,29 @@ begin
             if (CompareText(linetmp, 'language') = 0) and (CompareText(section, 'dosbox') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
-              if (PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
+              if (PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
+                FileLines[i] := linetmp+' fr_FR';
+              if (PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
                 FileLines[i] := linetmp+' ja_JP';
-              if (PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
+              if (PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
                 FileLines[i] := linetmp+' zh_CN';
-              if (PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
+              if (PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
                 FileLines[i] := linetmp+' es_ES';
-              if (PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
+              if (PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
                 FileLines[i] := linetmp+' zh_TW';
             end;
             if (CompareText(linetmp, 'country') = 0) and (CompareText(section, 'config') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
               if (PageLang.Values[1]) then
-                FileLines[i] := linetmp+' 81,932';
+                FileLines[i] := linetmp+' 33,858';
               if (PageLang.Values[2]) then
-                FileLines[i] := linetmp+' 86,936';
+                FileLines[i] := linetmp+' 81,932';
               if (PageLang.Values[3]) then
-                FileLines[i] := linetmp+' 34,858';
+                FileLines[i] := linetmp+' 86,936';
               if (PageLang.Values[4]) then
+                FileLines[i] := linetmp+' 34,858';
+              if (PageLang.Values[5]) then
                 FileLines[i] := linetmp+' 886,950';
               break;
             end

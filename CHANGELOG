@@ -38,7 +38,8 @@
     reducing the sizes of installers significantly
     while adding the SarasaGothicFixed TTF font and
     a language selection page for choosing existing
-    language translations. (Wengier)
+    language translations (with new language files
+    for French and Traditional Chinese). (Wengier)
   - DOSBox-X will now search for more paths (such as
     user config directory and "languages" subfolder)
     for loading language files before failing, and
