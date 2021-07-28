@@ -121,6 +121,10 @@
     characters using system input method (IME) using
     the default "windib" video driver in Windows SDL1
     build (in addition to "directx" driver). (nanshiki)
+  - Fixed CJK characters not showing correctly for the
+    SDL-drawn menu with OpenGL outputs if "language"
+    config option is used instead of -lang command-line
+    option. Thank nanshiki for catching this. (Wengier)
   - Fixed setting "machine=amstrad" cause DOSBox-X to
     crash on non-Windows platforms. (cimarronm)
   - Fixed bug related to DBCS vector table. (nanshiki)

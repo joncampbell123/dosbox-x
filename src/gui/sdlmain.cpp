@@ -327,7 +327,7 @@ bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables;
+extern bool resetreq, enable_dbcs_tables, loadlang;
 extern uint8_t ccount;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
@@ -2529,7 +2529,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2561,7 +2561,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2647,7 +2647,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2679,7 +2679,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
