@@ -1672,8 +1672,8 @@ DIR [lecteur:][chemin][nom fichier] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G
                G Répertoires de groupe en premier - Préfixe à l'ordre inverse
                
 Les commutateurs peuvent être prédéfinis dans la variable d'environnement DIRCMD. 
-Remplacer des commutateurs préréglés en faisant précéder tout commutateur d'un - 
-(trait d'union)--par exemple, /-W.
+Remplacer des commutateurs préréglés en faisant précéder tout commutateur d'un
+- (trait d'union)--par exemple, /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1706,7 +1706,7 @@ HELP [commande]
    /A ou /ALL Répertorie toutes les commandes internes prises en charge.
    [commande] Affiche l'aide pour la commande spécifiée.
    
-←[0mE.g., ←[37;1mHELP COPY←[0m ou ←[37;1mCOPY /?←[0m affiche des informations d'aide pour la commande COPY.
+←[0mEg, ←[37;1mHELP COPY←[0m ou ←[37;1mCOPY /?←[0m affiche des informations d'aide pour la commande COPY.
 
 Remarque : les commandes externes comme ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m ne sont pas répertoriées par HELP [/A].
       Ces commandes se trouvent sur le lecteur Z:sous forme de programmes (par exemple MOUNT.COM).
