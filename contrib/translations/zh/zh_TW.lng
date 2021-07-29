@@ -2150,7 +2150,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重新開始模擬
 .
 :MENU:mapper_reboot
-重開客機系統
+重開客體系統
 .
 :MENU:mapper_loadmap
 載入按鍵配置檔案...
@@ -3185,7 +3185,7 @@ Mapper "輸入特殊鍵": Ctrl+Alt+Del
 轉換為 Ctrl+W/Z 鍵
 .
 :MENU:wheel_guest
-啟動客戶系統時亦啟用
+啟動客體系統時亦啟用
 .
 :MENU:doublebuf
 雙重緩衝 (全螢幕)
