@@ -1187,9 +1187,12 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         else {
 #if defined (WIN32)
             switch(keysym.scancode) {
+            case 0x35:  // SLASH
+                if(keysym.sym != SDLK_KP_DIVIDE) {
+                    return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
+                }
             case 0x1c:  // ENTER
             case 0x1d:  // CONTROL
-            case 0x35:  // SLASH
             case 0x37:  // PRINTSCREEN
             case 0x38:  // ALT
             case 0x45:  // PAUSE
@@ -1206,7 +1209,7 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x5b:  // Left Windows
             case 0x5c:  // Right Windows
             case 0x5d:  // App
-                key = keysym.sym; //Hardware scancodes of these keys are not unique, so virtual keycodes are used instead
+                return keysym.sym; //Hardware scancodes of these keys are not unique, so virtual keycodes are used instead
                 break;
             default:
 #elif defined (__linux__)
