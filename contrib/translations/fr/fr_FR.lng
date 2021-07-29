@@ -1079,15 +1079,15 @@ Monte les images de disquettes, de disques durs et de disques optiques.
  ←[37;1mdriveNum←[0m Numéro du lecteur à monter, où 0-1 sont des FDD, 2-5 sont des HDD.
  ←[36;1mfile←[0m Nom(s) de fichier d'image, ou ←[33;1mIMGMAKE.IMG←[0m si non spécifié.
  -t iso Le type d'image est un disque optique iso ou une image cue / bin.
- -t hdd Le type d'image est un disque dur ; les fichiers VHD et HDI sont pris en charge.
- -t floppy|ram Le type d'image est lecteur de disquette | lecteur de RAM.
+ -t hdd|floppy|ram Le type d'image est un disque dur (VHD/HDI inclus) | lecteur de disquette | lecteur de RAM.
  -fs iso Le système de fichiers est ISO 9660 (auto-assumé pour les fichiers .iso/.cue).
  -fs fat Le système de fichiers est FAT - FAT12, FAT16 et FAT32 sont pris en charge.
  -fs none Ne pas détecter le système de fichiers (auto-assumé pour les numéros de lecteurs).
  -reservecyl # Rapporte # le nombre de cylindres inférieur au nombre réel dans le BIOS.
- -ide controler Spécifiez le contrôleur IDE (1m, 1s, 2m, 2s) pour monter le lecteur.
+ -ide controler Spécifiez le contrôleur IDE (1m, 1s, 2m, 2s) à monter.
  -size size|ss,s,h,c Spécifiez la taille en Ko, ou la taille du secteur et la géométrie CHS.
  -bootcd cdDrive Spécifiez le lecteur de CD à partir duquel charger la disquette amorçable.
+ -o partidx=# Spécifiez un numéro de partition de disque dur à monter.
  -ro Monter une ou plusieurs images en lecture seule (ou ':' en tête pour la lecture seule).
  -u Démonter le lecteur ou le numéro de lecteur.
  ←[32;1m-examples Montrer quelques exemples d'utilisation.←[0m
@@ -1106,11 +1106,10 @@ Quelques exemples d'utilisation de IMGMOUNT :
   ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Échanger disquette", avec dsk1.img en lecture seule (mais pas dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur C: comme un disque RAM de 10Mo
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - monter la 1ère partition logique de d.img comme D:
   ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme C:,
                                    Démontage automatique du disque au préalable si nécessaire
   ←[32;1mIMGMOUNT A -u←[0m - démonter le lecteur A précédemment monté :
-  
-  
   
 .
 :PROGRAM_IMGMAKE_SYNTAX

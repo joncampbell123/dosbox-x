@@ -146,8 +146,10 @@
   - Fixed "FILES" always fixed to 200 as reported by
     the "DOSINFO" tool, in spite of "files" setting in
     [config] section of the config file. (Wengier)
-  - Refined the handling of international keyboards
-    especially for SDL1 builds. (maron2000)
+  - Refined the handling of international keyboards and
+    fixed some issues in version 0.83.15. (maron2000)
+  - Fixed menu options in system menu not working in
+    Windows SDL1 builds with "windib" driver. (Wengier)
   - Fixed issue that the mouse cursor not showing in
     the game "Power Dolls". (Wengier)
   - Fixed non-English accents may not show correctly

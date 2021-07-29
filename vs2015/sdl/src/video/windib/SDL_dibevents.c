@@ -401,21 +401,7 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				TranslateKey(wParam,HIWORD(lParam),&keysym,0));
 		}
 		return(0);
-#if defined(SC_SCREENSAVE) && defined(SC_MONITORPOWER)
-		case WM_SYSCOMMAND: {
-			const DWORD val = (DWORD) (wParam & 0xFFF0);
-			if ((val == SC_SCREENSAVE) || (val == SC_MONITORPOWER)) {
-				if (this->hidden->dibInfo && !allow_screensaver) {
-					/* Note that this doesn't stop anything on Vista
-					   if the screensaver has a password. */
-					return(0);
-				}
-			}
-		}
-		/* Fall through to default processing */
-#endif /* SC_SCREENSAVE && SC_MONITORPOWER */
-
-#ifdef ENABLE_IM_EVENT
+#if defined(ENABLE_IM_EVENT)
 		case WM_INPUTLANGCHANGE:
 			SendMessage(hwnd, WM_IME_NOTIFY, wParam, lParam);
 			FLIP_BREAK;
@@ -470,6 +456,19 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 			}
 			break;
 #endif
+#if defined(SC_SCREENSAVE) && defined(SC_MONITORPOWER)
+		case WM_SYSCOMMAND: {
+			const DWORD val = (DWORD) (wParam & 0xFFF0);
+			if ((val == SC_SCREENSAVE) || (val == SC_MONITORPOWER)) {
+				if (this->hidden->dibInfo && !allow_screensaver) {
+					/* Note that this doesn't stop anything on Vista
+					   if the screensaver has a password. */
+					return(0);
+				}
+			}
+		}
+		/* Fall through to default processing */
+#endif /* SC_SCREENSAVE && SC_MONITORPOWER */
 		default: {
 			/* Only post the event if we're watching for it */
 			if (SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE) {

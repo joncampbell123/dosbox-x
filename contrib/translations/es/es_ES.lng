@@ -1078,8 +1078,7 @@ Monta imagenes de disquete, disco duro y unidades ópticas.
  ←[37;1munidadNum←[0m           Número de unidad a montar, donde 0-1 son FDDs y 2-5 HDDs.
  ←[36;1marchivo←[0m             Archivo(s) imagen, o ←[33;1mIMGMAKE.IMG←[0m si no se indica.
  -t iso              Tipo de imagen es disco óptico o imagen iso or cue / bin.
- -t hdd              Tipo de imagen es disco duro; VHD y HDI estan soportados.
- -t floppy|ram       Tipo de imagen es disquetera (floppy)| o RAM drive.
+ -t hdd|floppy|ram   Tipo de imagen es disco duro|disquetera(floppy)|RAM drive.
  -fs iso             Sistema de archivos ISO 9660 (por defecto en .iso/.cue).
  -fs fat             Sistema de archivos FAT - FAT12, FAT16 y FAT32 soportados.
  -fs none            No detectar sistema de archivos (Asumir por nº de unidad).
@@ -1087,6 +1086,7 @@ Monta imagenes de disquete, disco duro y unidades ópticas.
  -ide controller     Indica controlador IDE (1m, 1s, 2m, 2s) para montar disco.
  -size size|ss,s,h,c Indica tamaño en KB, o tamaño de sector y geometria CHS.
  -bootcd cdDrive     Unidad de CD desde donde cargar el disquete de arranque.
+ -o partidx=#        Indica un número de partición del disco duro para montar.
  -ro                 Monta imagen(s) solo lectura (con ':' para solo lectura).
  -u                  Desmontar unidad o número de unidad.
  ←[32;1m-examples           Muestra ejemplos de uso.←[0m
@@ -1107,6 +1107,7 @@ Algunos ejemplos de uso de IMGMOUNT:
                                   con dsk1.img protegido (pero no dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m          - monta disquete de arranque A: desde CD D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monta disco duro C: como RAM Drive de 10MB
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m - monte la primera partición lógica en D:
   ←[32;1mIMGMOUNT C disk.img -u←[0m        - forzar montaje de disco disk.img en C:
                                   (use auto-unmount unidad antes si hace falta)
   ←[32;1mIMGMOUNT A -u←[0m                 - desmontar unidad A: previamente montada

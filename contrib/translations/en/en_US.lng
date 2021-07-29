@@ -1079,8 +1079,7 @@ Mounts floppy, hard drive and optical disc images.
  ←[37;1mdriveNum←[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.
  ←[36;1mfile←[0m                Image filename(s), or ←[33;1mIMGMAKE.IMG←[0m if not specified.
  -t iso              Image type is optical disc iso or cue / bin image.
- -t hdd              Image type is hard disk; VHD and HDI files are supported.
- -t floppy|ram       Image type is floppy drive|RAM drive.
+ -t hdd|floppy|ram   Image type is hard disk (inc. VHD/HDI)|floppy|RAM drive.
  -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).
  -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.
  -fs none            Do not detect filesystem (auto-assumed for drive numbers).
@@ -1088,6 +1087,7 @@ Mounts floppy, hard drive and optical disc images.
  -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.
  -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.
  -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.
+ -o partidx=#        Specify a hard disk partition number to mount as drive.
  -ro                 Mount image(s) read-only (or leading ':' for read-only).
  -u                  Unmount the drive or drive number.
  ←[32;1m-examples           Show some usage examples.←[0m
@@ -1108,6 +1108,7 @@ Some usage examples of IMGMOUNT:
                                    with dsk1.img read-only (but not dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m           - mount bootable floppy A: from CD drive D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - mount hard drive C: as a 10MB RAM drive
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - mount 1st logical partition of d.img as D:
   ←[32;1mIMGMOUNT C disk.img -u←[0m         - force mount hard disk image disk.img as C:,
                                    auto-unmount drive beforehand if necessary
   ←[32;1mIMGMOUNT A -u←[0m                  - unmount previously-mounted drive A:

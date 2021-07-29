@@ -219,6 +219,7 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
+    LOG_MSG("Loaded language file: %s",fname);
 	loadlang=true;
 }
 

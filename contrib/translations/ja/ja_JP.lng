@@ -1039,8 +1039,7 @@ PhysFS ドライブを作成できませんでした。
  [37;1mdriveNum[0m            マウントするドライブ番号 0-1 は FDD, 2-5 は HDD
  [36;1mfile[0m                イメージファイル名, 指定しない場合は [33;1mIMGMAKE.IMG[0m
  -t iso              光学ディスクのイメージ形式 (iso または cue / bin)
- -t hdd              ハードディスクのイメージ形式; (VHD または HDI 形式)
- -t floppy|ram       フロッピー|RAMドライブのイメージ形式
+ -t hdd|floppy|ram   ハードディスクのイメージ|フロッピー|RAMドライブのイメージ形式
  -fs iso             ISO 9660ファイルシステム (.iso/.cueの時、自動指定)
  -fs fat             FATファイルシステム (FAT12, FAT16, FAT32)
  -fs none            ファイルシステムを検出しない(ドライブ番号指定時、自動指定)
@@ -1049,6 +1048,7 @@ PhysFS ドライブを作成できませんでした。
                  ドライブをマウントするIDEコントローラ (1m, 1s, 2m, 2s) を指定
  -size size|ss,s,h,c サイズを KB or セクタ・サイズ or CHS ジオメトリで指定
  -bootcd cdDrive     起動用フロッピーを読み込むCDドライブを指定
+ -o partidx=#        マウントするハードディスクのパーティション番号を指定
  -ro                 イメージを書込禁止でマウント(または先頭に ':'をつける)
  -u                  ドライブまたはドライブ番号のマウントを解除する。
  [32;1m-examples           使用例の表示[0m
@@ -1074,6 +1074,7 @@ IMGMOUNTの使用例:
                                   とし、dsk1.img 読取専用 (dsk2.imgは書込可能)
   [32;1mIMGMOUNT A -bootcd D[0m          - CD ドライブ D:を起動用FD Aとしてマウント
   [32;1mIMGMOUNT C -t ram -size 10000[0m - C:ドライブに10MBのRAMドライブをマウント
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m - 最初の論理区画をドライブとしてマウントします
   [32;1mIMGMOUNT C disk.img -u[0m        - C:ドライブにHDイメージ disk.imgを強制的
                                   にマウント。必要な場合、先に自動マウント解除
   [32;1mIMGMOUNT A -u[0m                 - A:ドライブのマウントを解除
