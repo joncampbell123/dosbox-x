@@ -952,7 +952,7 @@ BIOSTEST 映像檔
 
 .
 :VHD_UNSUPPORTED_TYPE
-指定的 VHD 檔案屬￿未支援的類型.
+指定的 VHD 檔案屬於未支援的類型.
 
 .
 :VHD_ERROR_OPENING_PARENT
