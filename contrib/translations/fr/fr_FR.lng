@@ -1106,7 +1106,7 @@ Quelques exemples d'utilisation de IMGMOUNT :
   ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Échanger disquette", avec dsk1.img en lecture seule (mais pas dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur C: comme un disque RAM de 10Mo
-  ←[32;1mIMGMOUNT C d.img -o partidx=4←[0m  - monter la 1ère partition logique de d.img comme C
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - monter la 1ère partition logique de d.img comme D:
   ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme C:,
                                    Démontage automatique du disque au préalable si nécessaire
   ←[32;1mIMGMOUNT A -u←[0m - démonter le lecteur A précédemment monté :

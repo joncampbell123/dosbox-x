@@ -7799,7 +7799,7 @@ void DOS_SetupPrograms(void) {
         "                                   with dsk1.img read-only (but not dsk2.img)\n"
         "  \033[32;1mIMGMOUNT A -bootcd D\033[0m           - mount bootable floppy A: from CD drive D:\n"
         "  \033[32;1mIMGMOUNT C -t ram -size 10000\033[0m  - mount hard drive C: as a 10MB RAM drive\n"
-        "  \033[32;1mIMGMOUNT C do.img -o partidx=4\033[0m - mount 1st logical partition of do.img as C:\n"
+        "  \033[32;1mIMGMOUNT D d.img -o partidx=4\033[0m  - mount 1st logical partition of d.img as D:\n"
         "  \033[32;1mIMGMOUNT C disk.img -u\033[0m         - force mount hard disk image disk.img as C:,\n"
         "                                   auto-unmount drive beforehand if necessary\n"
         "  \033[32;1mIMGMOUNT A -u\033[0m                  - unmount previously-mounted drive A:\n"

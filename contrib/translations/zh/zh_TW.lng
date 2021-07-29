@@ -1095,7 +1095,7 @@ BIOSTEST 映像檔
                                    進行變更, 其中 dsk1.img 映像檔為唯讀
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
-  [32;1mIMGMOUNT C d.img -o partidx=4[0m  - 将映像檔的第一個邏輯分區掛載為磁碟機 C:
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 將映像檔的第一個邏輯分區掛載為磁碟機 D:
   [32;1mIMGMOUNT C disk.img -u[0m         - 強制將硬碟檔案映像 disk.img 掛載為磁碟機 C:,
                                    如果之前磁碟機已掛載則將自動卸載
   [32;1mIMGMOUNT A -u[0m                  - 卸載之前已掛載的磁碟機 A:

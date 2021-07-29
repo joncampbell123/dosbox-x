@@ -1108,7 +1108,7 @@ Some usage examples of IMGMOUNT:
                                    with dsk1.img read-only (but not dsk2.img)
   ←[32;1mIMGMOUNT A -bootcd D←[0m           - mount bootable floppy A: from CD drive D:
   ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - mount hard drive C: as a 10MB RAM drive
-  ←[32;1mIMGMOUNT C d.img -o partidx=4←[0m  - mount 1st logical partition of d.img as C:
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - mount 1st logical partition of d.img as D:
   ←[32;1mIMGMOUNT C disk.img -u←[0m         - force mount hard disk image disk.img as C:,
                                    auto-unmount drive beforehand if necessary
   ←[32;1mIMGMOUNT A -u←[0m                  - unmount previously-mounted drive A:

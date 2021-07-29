@@ -1095,7 +1095,7 @@ BIOSTEST 镜像文件
                                    进行交换, 其中 dsk1.img 镜像文件为只读
   [32;1mIMGMOUNT A -bootcd D[0m           - 从光驱 D: 中挂载启动软盘镜像为驱动器 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 将硬盘驱动器 C: 挂载为 10MB 内存驱动器
-  [32;1mIMGMOUNT C d.img -o partidx=4[0m  - 将镜像文件的第一个逻辑分区挂载为驱动器 C:
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 将镜像文件的第一个逻辑分区挂载为驱动器 D:
   [32;1mIMGMOUNT C disk.img -u[0m         - 强制将硬盘文件镜像 disk.img 挂载为驱动器 C:,
                                    如果之前驱动器已挂载则将自动卸载
   [32;1mIMGMOUNT A -u[0m                  - 卸载之前已挂载的驱动器 A:

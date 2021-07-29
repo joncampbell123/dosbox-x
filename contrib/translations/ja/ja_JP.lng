@@ -1074,7 +1074,7 @@ IMGMOUNTの使用例:
                                   とし、dsk1.img 読取専用 (dsk2.imgは書込可能)
   [32;1mIMGMOUNT A -bootcd D[0m          - CD ドライブ D:を起動用FD Aとしてマウント
   [32;1mIMGMOUNT C -t ram -size 10000[0m - C:ドライブに10MBのRAMドライブをマウント
-  [32;1mIMGMOUNT C d.img -o partidx=4[0m - 最初の論理区画をドライブCとしてマウントします
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m - 最初の論理区画をドライブとしてマウントします
   [32;1mIMGMOUNT C disk.img -u[0m        - C:ドライブにHDイメージ disk.imgを強制的
                                   にマウント。必要な場合、先に自動マウント解除
   [32;1mIMGMOUNT A -u[0m                 - A:ドライブのマウントを解除
