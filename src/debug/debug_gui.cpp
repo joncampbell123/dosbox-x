@@ -161,6 +161,15 @@ void DBGBlock::next_window(void) {
     if (order >= 0) active_win = win_order[order];
 }
 
+void DBGBlock::prev_window(void) {
+    int order = win_find_order((int)active_win);
+
+    if (order < 0) order = 0;
+
+    order = win_prev_by_order(order);
+    if (order >= 0) active_win = win_order[order];
+}
+
 void DBGBlock::swap_order(int o1,int o2) {
     if (o1 != o2)
         std::swap(win_order[o1],win_order[o2]);
@@ -557,6 +566,12 @@ void DBGUI_NextWindow(void) {
     dbg.next_window();
 	DrawBars();
 	DEBUG_DrawScreen();
+}
+
+void DBGUI_PrevWindow(void) {
+    dbg.prev_window();
+    DrawBars();
+    DEBUG_DrawScreen();
 }
 
 void DBGUI_NextWindowIfActiveHidden(void) {
