@@ -500,9 +500,9 @@ MOUSE [/?] [/U] [/V]
  -label [名稱]     設定磁碟機的標籤名稱 (全部大寫)
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
- -cd               顯示包含光碟機代號的主機光碟機清單.
- -usecd [磁碟機代號] 支援直接硬體模擬比如 CD 音訊播放.
- -ioctl            使用最低級別的硬體存取 (與 -usecd 選項一起使用).
+ -cd               顯示包含光碟機編號的主機光碟機清單.
+ -usecd [磁碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
+ -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
  -freesize [大小]  指定磁碟機中的剩餘磁碟空間 (單位: MB, 或軟碟: KB).
  -nocachedir       啟用即時更新而不使用磁碟機快取.
@@ -845,8 +845,8 @@ DOSBox-X 提供多層次的光碟機模擬.
 對於 [1mWindows 9x[0m 並安裝有 ASPI 層:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
 
-將 [0;31mD:\[0m 替換為您的光碟機所在磁碟代號.
-替換 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 為當您輸入以下命令時顯示的光碟機代號:
+替換 [0;31mD:\[0m 為您的光碟機所在磁碟代號.
+替換 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 為當您輸入以下命令時顯示的光碟機編號:
 [34;1mmount -cd[0m
 
 .
@@ -952,7 +952,7 @@ BIOSTEST 映像檔
 
 .
 :VHD_UNSUPPORTED_TYPE
-指定的 VHD 檔案屬￿未支援的類型.
+指定的 VHD 檔案屬於未支援的類型.
 
 .
 :VHD_ERROR_OPENING_PARENT
@@ -1026,7 +1026,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED
-指定的磁碟機已掛載.
+指定的磁碟機代號已掛載.
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
@@ -1057,26 +1057,26 @@ BIOSTEST 映像檔
 掛載軟碟, 硬碟或光碟映像檔.
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 控制器]
-[32;1mIMGMOUNT[0m [37;1m磁碟機代號[0m [36;1m檔案[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+[32;1mIMGMOUNT[0m [37;1m磁碟機編號[0m [36;1m檔案[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-t iso] [-fs iso]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [-t floppy] -bootcd 光碟機代號 (或 -el-torito 光碟機代號)
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m -t ram -size 大小
-[32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機代號[0m [36;1m檔案[0m [選項] -u)
- [37;1m磁碟機[0m               映像檔所要掛載的磁碟機編號.
- [37;1m磁碟機代號[0m            所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
+[32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機編號[0m [36;1m檔案[0m [選項] -u)
+ [37;1m磁碟機[0m               映像檔所要掛載的磁碟機代號.
+ [37;1m磁碟機編號[0m            所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
  [36;1m檔案[0m                映像檔名, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
- -t iso              映像檔類型為光碟.
- -t hdd|floppy|ram   映像檔類型為硬碟 (含VHD/HDI檔)|軟碟或記憶體磁碟機.
+ -t iso              映像檔類型為光碟 iso 或 cue / bin 映像.
+ -t hdd|floppy|ram   映像檔類型為硬碟 (含VHD/HDI檔案)|軟碟|記憶體磁碟機.
  -fs iso             檔案系統為 ISO 9660 (自動假設為 .iso/.cue 檔案).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
- -fs none            不檢測檔案系統 (提供磁碟機代號時自動假設).
+ -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
  -reservecyl #       在 BIOS 中報告使用比實際更少的磁柱數目.
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以掛載磁碟機.
  -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區數和 CHS 參數.
  -bootcd 光碟機代號    指定載入開機磁片映像所用的光碟機代號.
- -o partidx=#        指定要載入為磁碟機的硬碟分區號.
+ -o partidx=#        指定要掛載為磁碟機的硬碟分割區編號.
  -ro                 以唯讀模式掛載映像檔 (或用':'首碼表示唯讀).
- -u                  卸載磁碟機或磁碟機代號.
+ -u                  卸載磁碟機或磁碟機編號.
  [32;1m-examples           顯示用法舉例.[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
@@ -1095,7 +1095,7 @@ BIOSTEST 映像檔
                                    進行變更, 其中 dsk1.img 映像檔為唯讀
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
-  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 將映像檔的第一個邏輯分區掛載為磁碟機 D:
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 將 d.img 的第一個邏輯分割區掛載為磁碟機 D:
   [32;1mIMGMOUNT C disk.img -u[0m         - 強制將硬碟檔案映像 disk.img 掛載為磁碟機 C:,
                                    如果之前磁碟機已掛載則將自動卸載
   [32;1mIMGMOUNT A -u[0m                  - 卸載之前已掛載的磁碟機 A:
@@ -1105,11 +1105,11 @@ BIOSTEST 映像檔
 建立軟碟或硬碟映像檔.
 用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 參數]] [-spc] [-nofs][0m
   [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源磁碟代號] [-retries #][0m
-  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑t[0m
+  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
   -t: 映像檔類型.
-    [33;1m軟碟模板[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
+    [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    [33;1m硬碟模板:[0m
+    [33;1m硬碟範本:[0m
      hd_250: 250MB 映像檔, hd_520: 520MB 映像檔, hd_1gig: 1GB 映像檔
      hd_2gig: 2GB 映像檔, hd_4gig: 4GB 映像檔, hd_8gig: 8GB 映像檔
      hd_st251: 40MB 映像檔, hd_st225: 20MB 映像檔 (舊磁碟機參數)
@@ -1887,7 +1887,7 @@ CHOICE [/C:選擇] [/N] [/S] text
 
 .
 :SHELL_CMD_ATTRIB_HELP
-變更或變更檔案屬性.
+顯示或變更檔案屬性.
 
 .
 :SHELL_CMD_ATTRIB_HELP_LONG
@@ -2076,7 +2076,7 @@ CTTY 裝置名稱
 :SHELL_CMD_MORE_HELP_LONG
 MORE [磁碟機:][路徑][檔名]
 MORE < [磁碟機:][路徑]檔名
-命令名 | MORE [磁碟機:][路徑][檔名]
+命令名稱 | MORE [磁碟機:][路徑][檔名]
 
 .
 :SHELL_CMD_TRUENAME_HELP
@@ -2150,7 +2150,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重新開始模擬
 .
 :MENU:mapper_reboot
-重開客機系統
+重開客體系統
 .
 :MENU:mapper_loadmap
 載入按鍵配置檔案...
@@ -3185,7 +3185,7 @@ Mapper "輸入特殊鍵": Ctrl+Alt+Del
 轉換為 Ctrl+W/Z 鍵
 .
 :MENU:wheel_guest
-啟動客戶系統時亦啟用
+啟動客體系統時亦啟用
 .
 :MENU:doublebuf
 雙重緩衝 (全螢幕)
