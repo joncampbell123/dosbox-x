@@ -2650,7 +2650,7 @@ Clear text layer
 Clear graphics layer
 .
 :MENU:Video3dfxMenu
-3dfx Voodoo/Glide
+3dfx emulation
 .
 :MENU:3dfx_voodoo
 Internal Voodoo card

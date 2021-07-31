@@ -2615,7 +2615,7 @@ PC-98 选项
 清除图像层
 .
 :MENU:Video3dfxMenu
-3dfx Voodoo/Glide
+3dfx 模拟
 .
 :MENU:3dfx_voodoo
 内置 Voodoo 卡

@@ -14039,7 +14039,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"Video3dfxMenu");
-                item.set_text("3dfx Voodoo/Glide");
+                item.set_text("3dfx emulation");
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_voodoo").set_text("Internal Voodoo card").
                     set_callback_function(voodoo_menu_callback);

@@ -2615,7 +2615,7 @@ PC-98 選項
 清除圖像層
 .
 :MENU:Video3dfxMenu
-3dfx Voodoo/Glide
+3dfx 模擬
 .
 :MENU:3dfx_voodoo
 內置 Voodoo 卡

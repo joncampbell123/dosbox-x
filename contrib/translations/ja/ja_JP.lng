@@ -2612,7 +2612,7 @@ GRCG有効
 グラフィックス・レイヤーの消去
 .
 :MENU:Video3dfxMenu
-3dfx Voodoo/Glide
+3dfxエミュレーション
 .
 :MENU:3dfx_voodoo
 内部ブードゥーカード

@@ -2657,7 +2657,7 @@ Effacer la couche de texte
 Effacer la couche graphique
 .
 :MENU:Video3dfxMenu
-3dfx Voodoo/Glide
+émulation 3dfx
 .
 :MENU:3dfx_voodoo
 Carte Voodo interne
