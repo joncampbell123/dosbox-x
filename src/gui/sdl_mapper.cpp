@@ -1313,6 +1313,12 @@ public:
         else if (!strcmp(r, "right super")) r = "right Windows";
         else if (!strcmp(r, "left meta")) r = "left Command";
         else if (!strcmp(r, "right meta")) r = "right Command";
+        else if (!strcmp(r, "left ctrl")) r = "Left Ctrl";
+        else if (!strcmp(r, "right ctrl")) r = "Right Ctrl";
+        else if (!strcmp(r, "left alt")) r = "Left Alt";
+        else if (!strcmp(r, "right alt")) r = "Right Alt";
+        else if (!strcmp(r, "left shift")) r = "Left Shift";
+        else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
 		sprintf(buf,"Key %s",r);
 #endif
@@ -3602,6 +3608,7 @@ static void SetActiveBind(CBind * _bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
         bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
         bind_but.mod1->Enable(true);
