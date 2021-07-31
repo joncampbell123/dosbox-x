@@ -970,7 +970,7 @@ void LOG::EarlyInit(void) {
 
 void LOG::SetupConfigSection(void) {
 	const char *log_values[] = {
-		/* compatibility with existing dosbox.conf files */
+		/* compatibility with existing dosbox-x.conf files */
 		"true", "false",
 
 		/* log levels */

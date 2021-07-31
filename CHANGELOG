@@ -1,4 +1,6 @@
 0.83.16
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.16.html
   - Added support for extended MS-DOS partitions that
     reside in extended partitions. These partitions
     can be manually mounted using -o partidx=n where

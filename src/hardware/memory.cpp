@@ -1915,8 +1915,8 @@ void ShutDownMemHandles(Section * sec) {
 }
 
 /* this is called on hardware reset. the BIOS needs the A20 gate ON to boot properly on 386 or higher!
- * this temporarily switches on the A20 gate and lets it function as normal despite user settings.
- * BIOS will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox.conf */
+ * this temporarily switches on the A20 gate and lets it function as normal despite user settings. BIOS
+ * will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox-x.conf */
 void A20Gate_OnReset(Section *sec) {
     (void)sec;//UNUSED
     void A20Gate_OverrideOn(Section *sec);
@@ -1999,7 +1999,7 @@ void PS2Port92_OnReset(Section *sec) {
     PS2_Port_92h_ReadHandler.Uninstall();
 
     if (IS_PC98_ARCH) {
-        // TODO: add separate dosbox.conf variable for A20 gate control on PC-98
+        // TODO: add separate dosbox-x.conf variable for A20 gate control on PC-98
         enable_port92 = true;
         if (enable_port92) {
             PS2_Port_92h_WriteHandler2.Install(0xF6,write_pc98_a20,IO_MB);
