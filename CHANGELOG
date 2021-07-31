@@ -50,6 +50,9 @@
   - DOSBox-X will try to load the SarasaGothicFixed
     TTF font when no external TTF font is specified
     and a CJK code page detected at start. (Wengier)
+  - Added Shift+Tab shortcut in Debugger to switch to
+    previous window complimenting existing function of
+    Tab switching to the next window. (cimarronm)
   - LH/LOADHIGH command can now load programs into UMB
     memory if it is available. Also added "shellhigh"
     config option to decide whether to load builtin
