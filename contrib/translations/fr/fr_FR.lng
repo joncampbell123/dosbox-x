@@ -186,7 +186,7 @@ Entrez le nom du fichier de langue :
 Nom de la langue (facultatif) :
 .
 :INTRO_MESSAGE
-Bienvenue à DOSBox-X, un émulateur DOS gratuit et complet.
+Bienvenue sur DOSBox-X, un émulateur DOS gratuit et complet.
 DOSBox-X crée un shell DOS qui ressemble au DOS normal.
 Vous pouvez également exécuter Windows 3.x et 95/98 à l'intérieur 
 de la machine DOS.
@@ -673,7 +673,7 @@ Cache du lecteur effacé.
 
 .
 :PROGRAM_INTRO
-←[2J←[32;1mBienvenue à DOSBox-X←[0m, un émulateur x86 open-source avec son et graphisme.
+←[2J←[32;1mBienvenue sur DOSBox-X←[0m, un émulateur x86 open-source avec son et graphisme.
 DOSBox-X crée un shell pour vous qui ressemble à un simple DOS.
 
 ←[31;1mDOSBox-X s'arrêtera/quittera sans avertissement si une erreur se produit!←[0m
@@ -1099,17 +1099,17 @@ Quelques exemples d'utilisation de IMGMOUNT :
   ←[32;1mIMGMOUNT C←[0m - monter l'image du disque dur ←[33;1mIMGMAKE.IMG←[0m comme C:
   ←[32;1mIMGMOUNT C c:\image.img←[0m - monter l'image du disque dur c:\image.img comme C:
   ←[32;1mIMGMOUNT D c:\files\game.iso←[0m - monter l'image CD c:\files\game.iso comme D:
-  ←[32;1mIMGMOUNT D cdaudio.cue←[0m - monter le fichier cue d'une paire cue/bin comme lecteur CD
+  ←[32;1mIMGMOUNT D cdaudio.cue←[0m - monter le fichier cue d'un duo cue/bin en lecteur CD
   ←[32;1mIMGMOUNT 0 dos.ima←[0m - monter l'image dos.ima comme lecteur numéro 0
-                                   (←[33;1mBOOT A:←[0m démarrera le lecteur s'il est amorçable)
+                            (←[33;1mBOOT A:←[0m démarrera le lecteur si amorçable)
   ←[32;1mIMGMOUNT A -ro dos.ima←[0m - monter l'image dos.ima comme A: lecture seule
-  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter les images de disquettes dsk1.img et dsk2.img en tant que A:, interchangeable via l'option de menu "Échanger disquette", avec dsk1.img en lecture seule (mais pas dsk2.img)
-  ←[32;1mIMGMOUNT A -bootcd D←[0m - monter la disquette amorçable A: depuis le lecteur de CD D:
-  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter le disque dur C: comme un disque RAM de 10Mo
-  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - monter la 1ère partition logique de d.img comme D:
-  ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer le montage de l'image du disque dur disk.img comme C:,
-                                   Démontage automatique du disque au préalable si nécessaire
-  ←[32;1mIMGMOUNT A -u←[0m - démonter le lecteur A précédemment monté :
+  ←[32;1mIMGMOUNT A:dsk1.img dsk2.img←[0m - monter images de disquettes dsk1.img et dsk2.img sur A:, interchangeables via l'option de menu "Échanger disquette", avec dsk1.img en lecture seule (mais pas dsk2.img)
+  ←[32;1mIMGMOUNT A -bootcd D←[0m - monter disquette amorçable A: depuis lecteur CD D:
+  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - monter disque dur C: en disque RAM de 10 Mo
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - monter 1ère partition logique de d.img sur D:
+  ←[32;1mIMGMOUNT C disk.img -u←[0m - forcer montage image disque dur disk.img comme C:,
+                            Démontage automatique du disque avant si besoin
+  ←[32;1mIMGMOUNT A -u←[0m - démonter le lecteur A: précédemment monté
   
 .
 :PROGRAM_IMGMAKE_SYNTAX
@@ -1274,7 +1274,7 @@ Une courte liste des commandes les plus souvent utilisées :
 
 .
 :SHELL_CMD_HELP_END1
-Les commandes externes telles que ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m se trouvent sur le lecteur Z:.
+Les commandes externes comme ←[33;1mMOUNT←[0m et ←[33;1mIMGMOUNT←[0m se trouvent sur le lecteur Z:.
 
 .
 :SHELL_CMD_HELP_END2
@@ -1545,7 +1545,7 @@ SUBST : Il y a une erreur dans votre ligne de commande.
 
 .
 :SHELL_STARTUP_TITLE
-Bienvenue a DOSBox-X !             
+Bienvenue sur DOSBox-X !             
 .
 :SHELL_STARTUP_HEAD1_PC98
 ←[36mPour commencer avec DOSBox-X :                                    ←[37m
@@ -1648,7 +1648,7 @@ CLS
 
 .
 :SHELL_CMD_DIR_HELP
-Affiche une liste de fichiers et de sous-répertoires dans un répertoire.
+Affiche les fichiers et les sous-répertoires dans un répertoire.
 
 .
 :SHELL_CMD_DIR_HELP_LONG
@@ -1983,8 +1983,7 @@ Tapez PATH sans paramètres pour afficher le chemin d'accès actuel.
 
 .
 :SHELL_CMD_PUSHD_HELP
-Stocke le répertoire courant pour être utilisé par la commande POPD, puis
-les changements dans le répertoire spécifié.
+Stocke le répertoire courant pour être utilisé par la commande POPD, puis les changements dans le répertoire spécifié.
 
 .
 :SHELL_CMD_PUSHD_HELP_LONG
@@ -2168,8 +2167,8 @@ Il lance la capture vidéo ou audio, exécute le programme, puis arrête automat
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
+Lance le programme et passe dans le débogueur au point d'entrée.
 
-Exécute le programme et passe dans le débogueur au point d'entrée.
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
 DEBUGBOX [commande] [options].
@@ -2742,10 +2741,10 @@ Désactiver l'émulation des noms de fichiers longs
 Horloge maîtresse PC-98 PIT
 .
 :MENU:dos_pc98_pit_4mhz
-Horloge maître PIT 4MHz/8MHz
+Horloge maître PIT 4 MHz/8 MHz
 .
 :MENU:dos_pc98_pit_5mhz
-5MHz/10MHz horloge maître PIT
+5 MHz/ 10 MHz horloge maître PIT
 .
 :MENU:DOSEMSMenu
 Mémoire étendue (EMS)
