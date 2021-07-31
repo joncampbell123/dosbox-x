@@ -2614,6 +2614,15 @@ PC-98 选项
 :MENU:pc98_clear_graphics
 清除图像层
 .
+:MENU:Video3dfxMenu
+3dfx Voodoo/Glide
+.
+:MENU:3dfx_voodoo
+内置 Voodoo 卡
+.
+:MENU:3dfx_glide
+Glide 直通
+.
 :MENU:load_d3d_shader
 选择 Direct3D 像素着色文件...
 .

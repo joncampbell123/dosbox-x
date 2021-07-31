@@ -2633,6 +2633,15 @@ Limpiar capa de texto
 :MENU:pc98_clear_graphics
 Limpiar capa gráfica
 .
+:MENU:Video3dfxMenu
+3dfx Voodoo/Glide
+.
+:MENU:3dfx_voodoo
+Tarjeta Voodoo interna
+.
+:MENU:3dfx_glide
+Passthrough de Glide
+.
 :MENU:load_d3d_shader
 Selecciona Direct3D pixel shader...
 .

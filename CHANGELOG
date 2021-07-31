@@ -67,6 +67,9 @@
     respectively and continue, whereas -resetconf and
     -resetmapper will erase user config file or user
     mapper file and exit as before. (Wengier)
+  - Added menu group "3dfx" in "Video" menu to toggle
+    the low-level Voodoo card emulation and high-level
+    Glide emulation at run-time. (Wengier)
   - Added menu options "Restart DOSBox-X instance" and
     "Restart DOSBox-X with language file" in "Main"
     menu to reboot the current DOSBox-X instance or

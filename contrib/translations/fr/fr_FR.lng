@@ -2656,6 +2656,15 @@ Effacer la couche de texte
 :MENU:pc98_clear_graphics
 Effacer la couche graphique
 .
+:MENU:Video3dfxMenu
+3dfx Voodoo/Glide
+.
+:MENU:3dfx_voodoo
+Carte Voodo interne
+.
+:MENU:3dfx_glide
+Passage Glide
+.
 :MENU:load_d3d_shader
 Sélectionner un pixel shader Direct3D...
 .

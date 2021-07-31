@@ -2611,6 +2611,15 @@ GRCG有効
 :MENU:pc98_clear_graphics
 グラフィックス・レイヤーの消去
 .
+:MENU:Video3dfxMenu
+3dfx Voodoo/Glide
+.
+:MENU:3dfx_voodoo
+内部ブードゥーカード
+.
+:MENU:3dfx_glide
+グライドパススルー
+.
 :MENU:load_d3d_shader
 Direct3D ピクセルシェーダの選択...
 .

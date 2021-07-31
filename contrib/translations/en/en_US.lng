@@ -2649,6 +2649,15 @@ Clear text layer
 :MENU:pc98_clear_graphics
 Clear graphics layer
 .
+:MENU:Video3dfxMenu
+3dfx Voodoo/Glide
+.
+:MENU:3dfx_voodoo
+Internal Voodoo card
+.
+:MENU:3dfx_glide
+Glide passthrough
+.
 :MENU:load_d3d_shader
 Select Direct3D pixel shader...
 .
