@@ -2769,6 +2769,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
 		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
         DEBUG_ShowMsg("TAB                       - Select next window\n");
+        DEBUG_ShowMsg("Shift + TAB               - Select previous window\n");
         DEBUG_EndPagedContent();
 
 		return true;
@@ -3349,6 +3350,10 @@ uint32_t DEBUG_CheckKeys(void) {
         case 0x09: //TAB
                 void DBGUI_NextWindow(void);
                 DBGUI_NextWindow();
+                break;
+        case KEY_BTAB:
+                void DBGUI_PrevWindow(void);
+                DBGUI_PrevWindow();
                 break;
 		case 0x0A: //Parse typed Command
                 if (codeViewData.inputPos > 0) {
