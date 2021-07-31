@@ -11016,14 +11016,17 @@ bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     (void)menu;//UNUSED
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
     if (section == NULL) return false;
-    bool glideon = section->Get_bool("glide");
+    bool glideon = addovl;
     SetVal("voodoo", "glide", glideon?"false":"true");
     addovl=false;
     GLIDE_ShutDown(section);
     GLIDE_PowerOn(section);
     if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
-    else VFILE_Remove("GLIDE2X.OVL","SYSTEM");
-    mainMenu.get_item("3dfx_glide").check(!glideon).refresh_item(mainMenu);
+    else {
+        VFILE_Remove("GLIDE2X.OVL","SYSTEM");
+        if (!glideon) systemmessagebox("Warning", "Glide passthrough cannot be enabled. Check the Glide wrapper installation.", "ok","warning", 1);
+    }
+    mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
     return true;
 }
 
@@ -14614,7 +14617,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
-        mainMenu.get_item("3dfx_glide").check(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_bool("glide")).refresh_item(mainMenu);
+        mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
 
         mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
         mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);
