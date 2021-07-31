@@ -157,6 +157,9 @@
     (introduced in version 0.83.15). (Wengier)
   - Fixed line endings for SBCS language files such as
     English and Spanish translations. (Wengier)
+  - Fixed resetting the TTF screen when exiting from
+    Configuration Tool or Mapper Editor when TrueType
+    font (TTF) output is active. (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)

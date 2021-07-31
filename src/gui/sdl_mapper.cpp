@@ -43,6 +43,7 @@
 #include "keymap.h"
 #include "support.h"
 #include "mapper.h"
+#include "render.h"
 #include "setup.h"
 #include "menu.h"
 
@@ -292,6 +293,11 @@ static void                                     MAPPER_SaveBinds(void);
 
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
+
+#if defined(USE_TTF)
+bool                                            TTF_using(void);
+void                                            resetFontSize(void);
+#endif
 
 Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            GFX_GetPreventFullscreen(void);         // external
@@ -5034,10 +5040,6 @@ void MAPPER_RunInternal() {
         change_output(6);
     }
 #endif
-#if defined(USE_TTF)
-    void resetFontSize();
-    if (ttf.inUse) resetFontSize();
-#endif
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_DISABLE);
 #endif
@@ -5085,10 +5087,14 @@ void MAPPER_RunInternal() {
     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
 #if defined(USE_TTF)
-    bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
-    GFX_ForceRedrawScreen();
+    {
+        GFX_ForceRedrawScreen();
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
+    }
 
     mapper.running = false;
 
