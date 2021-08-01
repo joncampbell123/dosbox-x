@@ -998,6 +998,7 @@ void DOSBOX_RealInit() {
     jp_ega = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
+    int10.vesa_oldvbe10 = false;
     if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
     else if (mtype == "cga_mono")      { machine = MCH_CGA; mono_cga = true; }
     else if (mtype == "cga_rgb")       { machine = MCH_CGA; mono_cga = false; cga_comp = 2; }
@@ -1021,6 +1022,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "svga_s3virgevx"){ svgaCard = SVGA_S3Trio; s3Card = S3_ViRGEVX; }
     else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
     else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
+    else if (mtype == "vesa_oldvbe10") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true; int10.vesa_oldvbe10 = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
     else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
@@ -1054,11 +1056,13 @@ void DOSBOX_RealInit() {
     }
     gbk = dosv_section->Get_bool("gbk");
     dos.loaded_codepage = cp;
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
         dos.im_enable_flag = true;
         SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+#if defined(WIN32)
         SDL_EnableUNICODE(1);
+#endif
     } else if (!control->opt_silent) {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
@@ -1228,7 +1232,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
-        "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
+        "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
 
@@ -2024,16 +2028,17 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
     Pstring->Set_values(dosv_settings);
-    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from East Asia that use the double byte character set (DBCS)\n"
-            "encodings and DOS/V extensions to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text.\n"
-            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
-            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
-            "software that assumes direct access to the text mode via segment 0xB800.");
+    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for use with games or software\n"
+            "originating from East Asia (China, Japan, Korea) that use the double byte character set (DBCS) encodings and DOS/V extensions\n"
+            "to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text. Note that enabling DOS/V replaces 80x25 text mode with\n"
+            "a EGA/VGA graphics mode that emulates text mode to display the characters and may be incompatible with non-Asian software that\n"
+            "assumes direct access to the text mode via segment 0xB800. For a general DOS environment with CJK support please disable DOS/V\n"
+            "emulation and use TrueType font (TTF) output with a CJK code page (932, 936, 949, 950) and TTF font with CJK characters instead.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("getsysfont",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("If enabled, DOSBox-X will try to get and use the system fonts on Windows and Linux platforms for the DOS/V emulation.");
+	Pbool->Set_help("If enabled, DOSBox-X will try to get and use the system fonts on Windows and Linux platforms for the DOS/V emulation.\n"
+                    "If this cannot be done, then DOSBox-X will try to use the internal Japanese DOS/V font, or you can specify a different font.");
     Pbool->SetBasic(true);
 
 	//For loading FONTX CJK fonts
@@ -2042,7 +2047,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V mode.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
@@ -2054,9 +2060,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for the Configuration Tool. If not specified, the default one will be used.\n"
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for Configuration Tool and Mapper Editor. If not specified, the default one will be used.\n"
                     "For Simplified Chinese DOS/V, loading the HZK14 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
@@ -2116,6 +2123,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help(
         "Amount of video memory in kilobytes, in addition to vmemsize.");
     Pint->SetBasic(true);
+
+    Pint = secprop->Add_int("vbe window granularity", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,128);
+    Pint->Set_help("Controls VESA BIOS non-linear framebuffer window granularity in KB. This affects ONLY the VESA BIOS extensions. Set 0 to functional normally.");
+
+    Pint = secprop->Add_int("vbe window size", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,128);
+    Pint->Set_help("Controls VESA BIOS non-linear framebuffer window size in KB. This affects ONLY the VESA BIOS extensions. Set 0 to functional normally.");
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
@@ -2253,7 +2268,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,1);
     Pint->Set_help(
         "Whether to wait for vertical retrace if VESA Set Display Address is used to pan the display.\n"
-        "The default value -1 will wait if svga_oldvbe, or not otherwise. 0 means not to wait.\n"
+        "The default value -1 will wait if vesa_oldvbe, or not otherwise. 0 means not to wait.\n"
         "1 means always to wait. This affects only subfunction 0x00. Subfunction 0x80 will always wait\n"
         "as specified in the VESA BIOS standard.\n"
         "It is recommended to set this to 1 for VBETEST.EXE so that the panning test and information does not\n"
@@ -3844,6 +3859,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
                       "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
+    Pbool = secprop->Add_bool("hidenonrepresentable",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will hide files on local drives that are non-representative in the current DOS code page.\n"
+                    "This may be required for some programs such as Windows 3.x Setup if the drives contain international filenames.");
+
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
@@ -4031,6 +4050,12 @@ void DOSBOX_SetupConfigSections(void) {
 			"Similarly, FAT32 disk images will be supported with a reported DOS version of 7.1 or higher.\n");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Load the DOSBox-X command shell into the upper memory when the UMB is available.\n"
+                      "If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
     Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
@@ -4130,6 +4155,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("keyboardlayout",Property::Changeable::WhenIdle, "auto");
     Pstring->Set_help("Language code of the keyboard layout (or none).");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("customcodepage",Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);

@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <cassert>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +34,7 @@
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
 #include "zipfile.h"
+#include "src/ints/int10.h"
 
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
@@ -43,6 +44,9 @@ extern bool non_cga_ignore_oddeven_engage;
 extern bool vga_ignore_extended_memory_bit;
 extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
+
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
 
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
@@ -1945,6 +1949,7 @@ class VGA_AMS_Handler : public PageHandler {
 public:
 	template< bool wrapping>
 	void writeHandler(PhysPt start, uint8_t val) {
+        assert(start < vga.mem.memsize);
 		vga.tandy.mem_base[ start ] = val;
 #ifdef DIJDIJD
 		uint32_t data=ModeOperation(val);
@@ -1979,6 +1984,7 @@ public:
 	}
 //	template< bool wrapping>
 	uint8_t readHandler(PhysPt start) {
+        assert(start < vga.mem.memsize);
 		return vga.tandy.mem_base[ start ];
 	}
 
@@ -1998,7 +2004,7 @@ public:
 				phys_page&=0x03;
 			return ( phys_page * 4096 ) + ( addr & 0x0FFF );
 		}
-		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 32*1024-1 );
+		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 16*1024-1 );
 	}
 
 	void writeb(PhysPt addr,uint8_t val) {
@@ -2190,6 +2196,11 @@ void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);
 
 extern void DISP2_SetPageHandler(void);
 void VGA_SetupHandlers(void) {
+	/* This code inherited from DOSBox SVN confuses bank size with bank granularity.
+	 * This code is enforcing bank granularity. Bank size concerns how much memory is
+	 * mapped to A0000-BFFFF. Most cards expose a window of 64KB. Most cards also have
+	 * a bank granularity of 64KB, but some, like Paradise and Cirrus, have 64KB windows
+	 * and 4KB granularity. */
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
 	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
 
@@ -2255,7 +2266,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 //		MEM_SetPageHandler(vga.tandy.mem_bank<<2,vga.tandy.is_32k_mode ? 0x08 : 0x04,range_handler);
 	case MCH_AMSTRAD: // Memory handler.
-		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
+		MEM_SetPageHandler( VGA_PAGE_B8, 4, &vgaph.ams );   // 0xb8000 - 0xbbfff
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
         break;
@@ -2373,7 +2384,19 @@ void VGA_SetupHandlers(void) {
                 vgapages.mask = 0xffff & vga.mem.memmask;
                 break;
 		}
-		MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
+		if (CurMode && CurMode->mode >= 0x14/*VESA BIOS or extended mode*/ && vbe_window_size > 0/*user override of window size*/) {
+			unsigned int pages = (vbe_window_size + 0xFFFu) >> 12u; /* bytes to pages, round up */
+			if (pages > 32) pages = 32;
+			assert(pages != 0u);
+
+			/* map only what the window size determines, make the rest empty */
+			MEM_SetPageHandler(VGA_PAGE_A0, pages, newHandler );
+			MEM_SetPageHandler(VGA_PAGE_A0 + pages, 32 - pages, &vgaph.empty );
+		}
+		else {
+			/*full 128KB */
+			MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
+		}
 		break;
 	case 1:
 		vgapages.base = VGA_PAGE_A0;
@@ -2513,7 +2536,14 @@ void VGA_SetupMemory() {
 
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
-	vga.svga.bank_size = 0x10000; /* most common bank size is 64K */
+
+	/* obey user override for "bank size", which this code inherited from DOSBox SVN
+	 * confuses with "bank granularity". If "bank size" were truly a concern it would
+	 * affect how much of the A0000-BFFFF region VGA mapping would expose. */
+	if (vbe_window_granularity > 0)
+		vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
+	else
+		vga.svga.bank_size = 0x10000; /* most common bank size is 64K */
 
 	if (!VGA_Memory_ShutDown_init) {
 		AddExitFunction(AddExitFunctionFuncPair(VGA_Memory_ShutDown));

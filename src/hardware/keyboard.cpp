@@ -47,7 +47,7 @@
 #define AUX 0x100
 
 void AUX_Reset();
-void KEYBOARD_Reset();
+void KEYBOARD_Reset(), Mouse_Used();
 static void KEYBOARD_SetPort60(uint16_t val);
 void KEYBOARD_AddBuffer(uint16_t data);
 static void KEYBOARD_Add8042Response(uint8_t data);
@@ -777,13 +777,13 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
         if (keyb.enable_aux)
             keyb.command=CMD_WRITEAUXOUT;
         else if (aux_warning++ == 0)
-            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox.conf");
+            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox-x.conf");
         break;
     case 0xd4:      /* send byte to AUX */
         if (keyb.enable_aux)
             keyb.command=CMD_WRITEAUX;
         else if (aux_warning++ == 0)
-            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox.conf");
+            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox-x.conf");
         break;
     case 0xe0:      /* read test port */
         KEYBOARD_Add8042Response(0x00);
@@ -2566,6 +2566,7 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
 
         /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
         IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
+        Mouse_Used();
     }
 
     /* Port A = input

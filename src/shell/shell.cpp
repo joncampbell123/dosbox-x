@@ -1498,7 +1498,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn]\n\n  nnn   Specifies a code page number.\n\nSupported code pages for changing in the TrueType font output:\n437,808,850,852,853,855,857,858,860,861,862,863,864,865,866,869,872,874\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\n\n  nnn   Specifies a code page number.\n  file  Specifies a code page file.\n\nSupported code pages for changing in the TrueType font output:\n\n437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_MISSING", "Characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
@@ -1555,6 +1555,14 @@ void SHELL_Init() {
     // can properly allocate memory.
     dos.psp(8);
 
+    auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
+    auto shellHigh = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("shellhigh"));
+    if (shellHigh=="true" || shellHigh=="1" ||
+        (shellHigh=="auto" && dos.version.major >= 7))
+    {
+	    DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
+    }
+
     // COMMAND.COM environment block
     tmp = dosbox_shell_env_size>>4;
 	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
@@ -1565,6 +1573,8 @@ void SHELL_Init() {
     total_sz = tmp;
 	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
     LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+    DOS_SetMemAllocStrategy(savedMemAllocStrategy);
 
     // now COMMAND.COM has a main body and PSP segment, reflect it
     dos.psp(psp_seg);

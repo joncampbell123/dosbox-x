@@ -35,8 +35,8 @@ using namespace std;
 
 int msgcodepage = 0;
 extern bool dos_kernel_disabled, force_conversion;
-bool morelen = false, isSupportedCP(int newCP);
-bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool morelen = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
 
@@ -110,15 +110,20 @@ void LoadMessageFile(const char * fname) {
     Cross::GetPlatformConfigDir(config_path);
 
 	FILE * mfile=fopen(fname,"rt");
+	if (!mfile) mfile=fopen((fname + std::string(".lng")).c_str(),"rt");
 	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + fname + ".lng").c_str(),"rt");
 	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + fname + ".lng").c_str(),"rt");
 	if (!mfile) mfile=fopen((std::string("languages/") + fname).c_str(),"rt");
+	if (!mfile) mfile=fopen((std::string("languages/") + fname + ".lng").c_str(),"rt");
 	if (!mfile && exepath.size()) mfile=fopen((exepath + "languages/" + fname).c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + "languages/" + fname + ".lng").c_str(),"rt");
 	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname + ".lng").c_str(),"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
 		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
-		bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
 		LOG_MSG("MSG:Cannot load language file: %s",fname);
 		return;
@@ -182,7 +187,7 @@ void LoadMessageFile(const char * fname) {
                 strcpy(name,linein+1);
             }
 		/* End of string marker */
-		} else if (linein[0]=='.') {
+		} else if (linein[0]=='.'&&!strlen(trim(linein+1))) {
 			/* Replace/Add the string to the internal languagefile */
 			/* Remove last newline (marker is \n.\n) */
 			size_t ll = strlen(string);
@@ -214,6 +219,8 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
+    LOG_MSG("Loaded language file: %s",fname);
+	loadlang=true;
 }
 
 const char * MSG_Get(char const * msg) {
@@ -276,6 +283,7 @@ void MSG_Init() {
 
 	if (control->opt_lang != "") {
 		LoadMessageFile(control->opt_lang.c_str());
+		SetVal("dosbox", "language", control->opt_lang.c_str());
 	}
 	else {
 		Prop_path* pathprop = section->Get_path("language");

@@ -93,6 +93,15 @@
 #include "cp936_uni.h"
 #include "cp949_uni.h"
 #include "cp950_uni.h"
+#include "cp1250_uni.h"
+#include "cp1251_uni.h"
+#include "cp1252_uni.h"
+#include "cp1253_uni.h"
+#include "cp1254_uni.h"
+#include "cp1255_uni.h"
+#include "cp1256_uni.h"
+#include "cp1257_uni.h"
+#include "cp1258_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
@@ -134,8 +143,9 @@ static std::string ldir[256];
 static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe;
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern int lfn_filefind_handle, freesizecap, file_access_tries;
+extern int lfn_filefind_handle, freesizecap, file_access_tries, customcp, altcp;
 extern unsigned long totalc, freec;
+uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN - 1;
@@ -212,7 +222,8 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
         if (ic >= map_max) return false; // non-representable
         MT wc = map[ic]; // output: unicode character
 
-        if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
+        if (morelen&&ic==10&&wc==0x25D9) *d++ = ic;
+        else if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
     }
 
@@ -461,6 +472,8 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 bool cpwarn_once = false;
 
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
+    if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -506,6 +519,24 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 1250:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
+        case 1251:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1251_to_unicode,sizeof(cp1251_to_unicode)/sizeof(cp1251_to_unicode[0]));
+        case 1252:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1252_to_unicode,sizeof(cp1252_to_unicode)/sizeof(cp1252_to_unicode[0]));
+        case 1253:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1253_to_unicode,sizeof(cp1253_to_unicode)/sizeof(cp1253_to_unicode[0]));
+        case 1254:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1254_to_unicode,sizeof(cp1254_to_unicode)/sizeof(cp1254_to_unicode[0]));
+        case 1255:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1255_to_unicode,sizeof(cp1255_to_unicode)/sizeof(cp1255_to_unicode[0]));
+        case 1256:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1256_to_unicode,sizeof(cp1256_to_unicode)/sizeof(cp1256_to_unicode[0]));
+        case 1257:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
+        case 1258:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -519,6 +550,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 }
 
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
+    if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -564,6 +597,24 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 1250:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
+        case 1251:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1251_to_unicode,sizeof(cp1251_to_unicode)/sizeof(cp1251_to_unicode[0]));
+        case 1252:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1252_to_unicode,sizeof(cp1252_to_unicode)/sizeof(cp1252_to_unicode[0]));
+        case 1253:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1253_to_unicode,sizeof(cp1253_to_unicode)/sizeof(cp1253_to_unicode[0]));
+        case 1254:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1254_to_unicode,sizeof(cp1254_to_unicode)/sizeof(cp1254_to_unicode[0]));
+        case 1255:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1255_to_unicode,sizeof(cp1255_to_unicode)/sizeof(cp1255_to_unicode[0]));
+        case 1256:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1256_to_unicode,sizeof(cp1256_to_unicode)/sizeof(cp1256_to_unicode[0]));
+        case 1257:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
+        case 1258:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -577,6 +628,8 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 }
 
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
+    if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -622,6 +675,24 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 1250:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
+        case 1251:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1251_to_unicode,sizeof(cp1251_to_unicode)/sizeof(cp1251_to_unicode[0]));
+        case 1252:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1252_to_unicode,sizeof(cp1252_to_unicode)/sizeof(cp1252_to_unicode[0]));
+        case 1253:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1253_to_unicode,sizeof(cp1253_to_unicode)/sizeof(cp1253_to_unicode[0]));
+        case 1254:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1254_to_unicode,sizeof(cp1254_to_unicode)/sizeof(cp1254_to_unicode[0]));
+        case 1255:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1255_to_unicode,sizeof(cp1255_to_unicode)/sizeof(cp1255_to_unicode[0]));
+        case 1256:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1256_to_unicode,sizeof(cp1256_to_unicode)/sizeof(cp1256_to_unicode[0]));
+        case 1257:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
+        case 1258:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -635,6 +706,8 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
 }
 
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
+    if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -680,6 +753,24 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp949_to_unicode_hitbl,cp949_to_unicode_raw,sizeof(cp949_to_unicode_raw)/sizeof(cp949_to_unicode_raw[0]));
         case 950:
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 1250:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
+        case 1251:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1251_to_unicode,sizeof(cp1251_to_unicode)/sizeof(cp1251_to_unicode[0]));
+        case 1252:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1252_to_unicode,sizeof(cp1252_to_unicode)/sizeof(cp1252_to_unicode[0]));
+        case 1253:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1253_to_unicode,sizeof(cp1253_to_unicode)/sizeof(cp1253_to_unicode[0]));
+        case 1254:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1254_to_unicode,sizeof(cp1254_to_unicode)/sizeof(cp1254_to_unicode[0]));
+        case 1255:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1255_to_unicode,sizeof(cp1255_to_unicode)/sizeof(cp1255_to_unicode[0]));
+        case 1256:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1256_to_unicode,sizeof(cp1256_to_unicode)/sizeof(cp1256_to_unicode[0]));
+        case 1257:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
+        case 1258:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -1749,7 +1840,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 			*_bytes_sector = 512;
 			*_sectors_cluster = ratio;
 			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
-			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2);
+			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2)) : 0;
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;
@@ -2613,7 +2704,7 @@ bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clu
 			*_bytes_sector = (uint16_t)dwBytesPerSect;
 			*_sectors_cluster = ratio;
 			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
-			*_free_clusters = total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio);
+			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio)) : 0;
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;

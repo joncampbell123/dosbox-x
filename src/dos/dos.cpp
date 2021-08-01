@@ -63,13 +63,16 @@ extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
-extern int lfn_filefind_handle;
-extern int autofixwarn;
+extern int lfn_filefind_handle, autofixwarn;
+extern uint16_t customcp_to_unicode[256];
+int customcp = 0, altcp = 0;
 unsigned long totalc, freec;
 uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
 bool isDBCSCP();
 uint32_t BIOS_get_PC98_INT_STUB(void);
+void ResolvePath(std::string& in);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -117,6 +120,7 @@ bool enable_share_exe = true;
 bool enable_filenamechar = true;
 bool enable_network_redirector = true;
 bool force_conversion = false;
+bool hidenonrep = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
@@ -3610,6 +3614,7 @@ public:
 		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe = section->Get_bool("share");
+		hidenonrep = section->Get_bool("hidenonrepresentable");
 		enable_filenamechar = section->Get_bool("filenamechar");
 		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
@@ -3661,7 +3666,41 @@ public:
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
-
+        char *cpstr = (char *)section->Get_string("customcodepage"), *r=(char *)strchr(cpstr, ',');
+        customcp = 0;
+        for (int i=0; i<256; i++) customcp_to_unicode[i] = 0;
+        if (r!=NULL) {
+            *r=0;
+            int cp = atoi(trim(cpstr));
+            *r=',';
+            std::string cpfile = trim(r+1);
+            ResolvePath(cpfile);
+            FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
+            std::string exepath = GetDOSBoxXPath();
+            if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");
+            if (file && cp > 0 && cp != 932 && cp != 936 && cp != 949 && cp != 950) {
+                customcp = cp;
+                char line[256], *l=line;
+                while (fgets(line, sizeof(line), file)) {
+                    l=trim(l);
+                    if (!strlen(l)) continue;
+                    r = strchr(l, '#');
+                    if (r) *r = 0;
+                    l=trim(l);
+                    if (!strlen(l)||strncasecmp(l, "0x", 2)) continue;
+                    r = strchr(l, ' ');
+                    if (!r) r = strchr(l, '\t');
+                    if (!r) continue;
+                    *r = 0;
+                    int ind = (int)strtol(l+2, NULL, 16);
+                    r = trim(r+1);
+                    if (ind>0xFF||strncasecmp(r, "0x", 2)) continue;
+                    int map = (int)strtol(r+2, NULL, 16);
+                    customcp_to_unicode[ind] = map;
+                }
+            }
+            if (file) fclose(file);
+        }
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
 

@@ -86,6 +86,7 @@ extern bool                 dos_kernel_disabled, confres, swapad, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
+extern void                 resetFontSize(void);
 extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
@@ -146,7 +147,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para="-lang \""+filename+"\"";
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-lang \""+filename+"\"":"";
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());
@@ -573,7 +574,12 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
-    GFX_ForceRedrawScreen();
+    {
+        GFX_ForceRedrawScreen();
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
+    }
 
     in_gui = false;
 }
@@ -1576,9 +1582,9 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         saveall = new GUI::Checkbox(this, 5, 95, MSG_Get("CONFIG_SAVEALL"));
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (saveButton = new GUI::Button(this, 140, 120, MSG_Get("SAVE"), 70))->addActionHandler(this);
-        (new GUI::Button(this, 230, 120, MSG_Get("SAVE_RESTART"), 140))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 390, 120, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 128, 120, MSG_Get("SAVE"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 220, 120, MSG_Get("SAVE_RESTART"), 170))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 392, 120, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
@@ -1643,7 +1649,7 @@ public:
         ToplevelWindow(parent, x, y, 400, 150 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, MSG_Get("LANG_FILENAME"));
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
-        name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.txt");
+        name->setText(control->opt_lang != "" ? control->opt_lang.c_str() : "messages.lng");
         new GUI::Label(this, 5, 60, MSG_Get("LANG_LANGNAME"));
         lang = new GUI::Input(this, 5, 80, width - 10 - border_left - border_right);
         lang->setText(langname.c_str());
@@ -2710,8 +2716,8 @@ public:
         int closerow_y = finalgridpos.second + 5 + gridbtnheight;
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 175, closerow_y, tmp1, 93))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 273, closerow_y, MSG_Get("CLOSE"), 93))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 158, closerow_y, tmp1, 110))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 276, closerow_y, MSG_Get("CLOSE"), 110))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);

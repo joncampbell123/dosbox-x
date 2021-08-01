@@ -2082,22 +2082,34 @@ bool ScreenSDL::event(SDL_Event &event) {
 		if (key.special == GUI::Key::CapsLock || key.special == GUI::Key::NumLock) keyUp(key);
 		return rc;
 	}
-	case SDL_MOUSEMOTION:
-		if (event.motion.state) {
-			if (abs(event.motion.x-downx) <= 10 && abs(event.motion.y-downy) <= 10)
-				break;
-			downx = -11; downy = -11;
-			if (event.motion.state&SDL_BUTTON(1))
-				return mouseDragged(event.motion.x, event.motion.y, GUI::Left);
-			else if (event.motion.state&SDL_BUTTON(2))
-				return mouseDragged(event.motion.x, event.motion.y, GUI::Middle);
-			else if (event.motion.state&SDL_BUTTON(3))
-				return mouseDragged(event.motion.x, event.motion.y, GUI::Right);
-			break;
-		}
+    case SDL_MOUSEMOTION:
+    {
+        const auto m = event.motion;
+        const auto x = m.x / scale;
+        const auto y = m.y / scale;
 
-		return mouseMoved(event.motion.x, event.motion.y);
+        if (m.state)
+        {
+            if(abs(x - downx) <= 10 && abs(y - downy) <= 10)
+                break;
 
+            downx = -11;
+            downy = -11;
+
+            if(m.state & SDL_BUTTON(1))
+                return mouseDragged(x, y, Left);
+
+            if(m.state & SDL_BUTTON(2))
+                return mouseDragged(x, y, Middle);
+
+            if(m.state & SDL_BUTTON(3))
+                return mouseDragged(x, y, Right);
+
+            break;
+        }
+
+        return mouseMoved(x, y);
+    }
 	case SDL_MOUSEBUTTONDOWN:
 		event.button.x /= scale; event.button.y /= scale;
 		rc = mouseDown(event.button.x, event.button.y, SDL_to_GUI(event.button.button));

@@ -1260,7 +1260,7 @@ void RENDER_Init() {
 
     RENDER_UpdateFrameskipMenu();
 
-    /* BUG FIX: Some people's dosbox.conf files have frameskip=-1 WTF?? */
+    /* BUG FIX: Some people's dosbox-x.conf files have frameskip=-1 WTF?? */
     /* without this fix, nothing displays, EVER */
     if ((int)render.frameskip.max < 0) render.frameskip.max = 0;
                                 

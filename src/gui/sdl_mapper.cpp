@@ -43,6 +43,7 @@
 #include "keymap.h"
 #include "support.h"
 #include "mapper.h"
+#include "render.h"
 #include "setup.h"
 #include "menu.h"
 
@@ -293,6 +294,11 @@ static void                                     MAPPER_SaveBinds(void);
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
 
+#if defined(USE_TTF)
+bool                                            TTF_using(void);
+void                                            resetFontSize(void);
+#endif
+
 Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
@@ -315,7 +321,8 @@ public:
     //!              additional information that is only provided by the handler event class
     enum event_type {
         event_t=0,
-        handler_event_t
+        handler_event_t,
+        mod_event_t
     };
 public:
     //! \brief CEvent constructor
@@ -870,13 +877,127 @@ static SDLKey sdlkey_map[]={
    expression will raise a compiler error if the condition is false.  */
 typedef char assert_right_size [MAX_SCANCODES == (sizeof(sdlkey_map)/sizeof(sdlkey_map[0])) ? 1 : -1];
 
-#else // !MACOSX
+#elif defined (__linux__)
+#define MAX_SCANCODES 0x90
+#include "../../vs2015/sdl/include/SDL_keysym.h"
+static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = evdev + 8) to SDL virtual keycode
+    /* Refer to https://chromium.googlesource.com/chromium/src/+/lkgr/ui/events/keycodes/keyboard_code_conversion_x.cc */
+    SDLK_UNKNOWN,//0x00
+    Z,Z,Z,Z,Z,Z,Z,Z, //0x01-0x08 unknown
+    SDLK_ESCAPE,//0x09
+    /*0x0a-0x13 1-9,0*/
+    SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
+    SDLK_MINUS, //0x14
+    SDLK_EQUALS, //0x15
+    SDLK_BACKSPACE,//0x16
+    SDLK_TAB,//0x17
+    SDLK_q,//0x18
+    SDLK_w,//0x19
+    SDLK_e,//0x1a
+    SDLK_r,//0x1b
+    SDLK_t,//0x1c
+    SDLK_y,//0x1d
+    SDLK_u,//0x1e
+    SDLK_i,//0x1f
+    SDLK_o,//0x20
+    SDLK_p,//0x21
+    SDLK_LEFTBRACKET,//0x22  [ and {
+    SDLK_RIGHTBRACKET,//0x23 ] and }
+    SDLK_RETURN,//0x24 Enter
+    SDLK_LCTRL,//0x25  Left-Control
+    SDLK_a,//0x26
+    SDLK_s,//0x27
+    SDLK_d,//0x28
+    SDLK_f,//0x29
+    SDLK_g,//0x2a
+    SDLK_h,//0x2b
+    SDLK_j,//0x2c
+    SDLK_k,//0x2d
+    SDLK_l,//0x2e
+    SDLK_SEMICOLON,//0x2f  ; and :
+    SDLK_QUOTE,//0x30 ' and "
+    SDLK_BACKQUOTE,//0x31 Grave Accent and Tilde
+    SDLK_LSHIFT,//0x32 left-shift
+    SDLK_BACKSLASH,//0x33 \ and |
+    SDLK_z,//0x34
+    SDLK_x,//0x35
+    SDLK_c,//0x36
+    SDLK_v,//0x37
+    SDLK_b,//0x38
+    SDLK_n,//0x39
+    SDLK_m,//0x3a
+    SDLK_COMMA,//0x3b  , and <
+    SDLK_PERIOD,//0x3c . and >
+    SDLK_SLASH,//0x3d / and ?
+    SDLK_RSHIFT,//0x3e Right-Shift
+    SDLK_KP_MULTIPLY,//0x3f Keypad *
+    SDLK_LALT,//0x40 Left-Alt
+    SDLK_SPACE,//0x41 Spacebar
+    SDLK_CAPSLOCK,//0x42 CapsLock
+    /*0x43-0x4c F1-F10*/
+    SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
+    SDLK_NUMLOCK, //0x4d Keypad Num Lock and Clear
+    SDLK_SCROLLOCK, //0x4e Scroll-lock
+    SDLK_KP7, //0x4f Keypad 7 and Home
+    SDLK_KP8, //0x50 Keypad 8 and Up Arrow
+    SDLK_KP9, //0x51 Keypad 9 and PageUp
+    SDLK_KP_MINUS, //0x52 Keypad -
+    SDLK_KP4, //0x53 Keypad 4 Left-arrow
+    SDLK_KP5, //0x54 Keypad 5
+    SDLK_KP6, //0x55 Keypad 6 Right-arrow
+    SDLK_KP_PLUS, //0x56 Keypad +
+    SDLK_KP1, //0x57 Keypad 1 and End
+    SDLK_KP2, //0x58 Keypad 2 and Down Arrow
+    SDLK_KP3, //0x59 Keypad 3 and PageDn
+    SDLK_KP0, //0x5a Keypad 0 and Insert
+    SDLK_KP_PERIOD, //0x5b Keypad . and Delete
+    Z, //0x5c unknown
+    SDLK_WORLD_12, //0x5d Zenkaku/Hankaku
+    SDLK_LESS, //0x5e Non-US \ and |
+    SDLK_F11, //0x5f
+    SDLK_F12, //0x60
+    SDLK_JP_RO, //0x61
+    Z, Z, //0x62-0x63 unknown
+    SDLK_WORLD_14, //0x64 Henkan
+    SDLK_WORLD_15, //0x65 Hiragana/Katakana
+    SDLK_WORLD_13, //0x66 Muhenkan
+    Z,Z,Z,Z, //0x67-0x6a
+    Z, //SDLK_PRINTSCREEN, //0x6b
+    SDLK_RALT,  //0x6c
+    Z, //0x6d unknown
+    SDLK_HOME,  //0x6e
+    SDLK_UP,    //0x6f
+    SDLK_PAGEUP,//0x70
+    SDLK_LEFT,  //0x71
+    SDLK_RIGHT, //0x72
+    SDLK_END,   //0x73
+    SDLK_DOWN,  //0x74
+    SDLK_PAGEDOWN,//0x75
+    SDLK_INSERT,//0x76
+    SDLK_DELETE,//0x77
+    Z,Z,Z,Z,Z,Z,Z, //0x78-0x7e
+    SDLK_PAUSE, // 0x7F
+    /* 0x80: */
+    Z,Z, //0x80-0x81 unknown
+    Z, //0x82 Hanguel
+    Z, //0x83 Hanja
+    SDLK_JP_YEN,//0x84
+    SDLK_LMETA, //0x85
+    SDLK_RMETA, //0x86
+    SDLK_MODE,  //0x87
+    Z,Z,Z,Z,Z,Z,Z,Z //0x88-0x8f unknown
+    /* 0x90-0x9f unknown */
+    //Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z
+};
+
+#else // !MACOSX && !Linux
 
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
-	SDLK_UNKNOWN,//0x00
-	SDLK_ESCAPE,//0x01  
-	/*0x02-0x0b 1-9,0*/
+    /* Refer to http://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/translate.pdf PS/2 Set 1 Make */
+    SDLK_UNKNOWN,//0x00
+	SDLK_ESCAPE,//0x01
+    /*0x02-0x0b 1-9,0*/
 	SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
 	/* 0x0c: */
 	SDLK_MINUS, //0x0c
@@ -1048,46 +1169,37 @@ SDLKey MapSDLCode(Bitu skey) {
 #endif
 }
 
-/* Return keysym.sym if non-zero, otherwise, convert keysym.scancode to SDLkey */
 Bitu GetKeyCode(SDL_keysym keysym) {
     // LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
     if (useScanCode()) {
-        SDLKey key = keysym.sym;
+        SDLKey key = SDLK_UNKNOWN;
 
 #if defined (MACOSX)
-        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = (SDLKey)0x5f;  // zero value makes the keyboard crazy
+        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = keysym.sym;  // zero value makes the keyboard crazy
 #endif
 
-        if (key==0
-#if 0
+        if (keysym.scancode==0
 #if defined (MACOSX)
             /* On Mac on US keyboards, scancode 0 is actually the 'a'
              * key.  For good measure exclude all printables from this
              * condition. */
              && (keysym.sym < SDLK_SPACE || keysym.sym > SDLK_WORLD_95)
 #endif
-#endif
 			 ) {
-                /* try to retrieve key from scancode as keysym.sym is zero */
-                if (keysym.scancode < MAX_SCANCODES) {
-				    key = sdlkey_map[keysym.scancode]; // FIX ME: Do we need to scancode-8 for Linux users?
+                /* try to retrieve key from keysym.sym as scancode is zero */
+                if (keysym.sym) {
+				    key = (keysym.sym <= SDLK_LAST ? keysym.sym : SDLK_UNKNOWN);
 			    }
-                else key = SDLK_UNKNOWN;
-		} 
-
-#if 0
-#if !defined (WIN32) && !defined (MACOSX) && !defined(OS2)
-        /* Linux adds 8 to all scancodes */
-        else key-=8; 
-#endif
-#endif
-#if 0
-// I don't think this part is required when useScanCode() is true, you basically already obtain SDLKeys.
+        }
+        else {
 #if defined (WIN32)
-        switch (key) {
+            switch(keysym.scancode) {
+            case 0x35:  // SLASH
+                if(keysym.sym != SDLK_KP_DIVIDE) {
+                    return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
+                }
             case 0x1c:  // ENTER
             case 0x1d:  // CONTROL
-            case 0x35:  // SLASH
             case 0x37:  // PRINTSCREEN
             case 0x38:  // ALT
             case 0x45:  // PAUSE
@@ -1101,11 +1213,56 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x51:  // PAGE DOWN
             case 0x52:  // INSERT
             case 0x53:  // DELETE
-                if (GFX_SDLUsingWinDIB()) key=scancode_map[(Bitu)keysym.sym];
+            case 0x5b:  // Left Windows
+            case 0x5c:  // Right Windows
+            case 0x5d:  // App
+                return keysym.sym; //Hardware scancodes of these keys are not unique, so virtual keycodes are used instead
                 break;
-		}
+            default:
+#elif defined (__linux__)
+            switch(keysym.scancode) { // Workaround for some of the keys return incorrect virtual keycodes 
+            //case 0x56:
+            //    return SDLK_LESS;
+            case 0x60:
+                return SDLK_F12;
+            case 0x61:
+                return SDLK_JP_RO;    //Hack: JP Keyboards
+            case 0x64:
+                return SDLK_WORLD_14; //Hack: JP Keyboards
+            case 0x66:
+                return SDLK_WORLD_13; //Hack: JP Keyboards
+            case 0x68:
+                return SDLK_KP_ENTER;
+            case 0x69:
+                return SDLK_RCTRL;
+            case 0x6a:
+                return SDLK_KP_DIVIDE;
+            //case 0x6b:
+            //    return SDLK_PRINTSCREEN;
+            case 0x6c:
+                return SDLK_RALT;
+            case 0x6e:
+                return SDLK_HOME;
+            case 0x6f:
+                return SDLK_UP;
+            case 0x77:
+                return SDLK_DELETE;
+            case 0x7f:
+                return SDLK_PAUSE;
+            case 0x85:
+                return SDLK_LSUPER;
+            case 0x86:
+                return SDLK_RSUPER;
+            case 0x87:
+                return SDLK_MENU;
+            default:
 #endif
+                key = (keysym.scancode < MAX_SCANCODES ? sdlkey_map[keysym.scancode] : SDLK_UNKNOWN);
+#if defined (WIN32) || defined (__linux__)
+                break;
+            }
 #endif
+        }
 #if defined (WIN32)
 		/* Special handling for JP Keyboard */
 		if (key == SDLK_BACKQUOTE){
@@ -1131,8 +1288,12 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (Bitu)SDLK_WORLD_14;
         /* Hiragana/Katakana */
         if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (Bitu)SDLK_WORLD_15;
+#elif defined (__linux__)
+        if ((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x84)) return (Bitu)SDLK_JP_YEN;
+        if ((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x61)) return (Bitu)SDLK_JP_RO;
+        if ((keysym.sym == SDLK_UNKNOWN) && (keysym.scancode == 0x31)) return (Bitu)SDLK_WORLD_12;
 #endif
-		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]); // FIX ME: Do we need to scancode-8 for Linux users?
+		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]);
     }
 }
 
@@ -1153,6 +1314,12 @@ public:
         else if (!strcmp(r, "right super")) r = "right Windows";
         else if (!strcmp(r, "left meta")) r = "left Command";
         else if (!strcmp(r, "right meta")) r = "right Command";
+        else if (!strcmp(r, "left ctrl")) r = "Left Ctrl";
+        else if (!strcmp(r, "right ctrl")) r = "Right Ctrl";
+        else if (!strcmp(r, "left alt")) r = "Left Alt";
+        else if (!strcmp(r, "right alt")) r = "Right Alt";
+        else if (!strcmp(r, "left shift")) r = "Left Shift";
+        else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
 		sprintf(buf,"Key %s",r);
 #endif
@@ -1189,7 +1356,7 @@ public:
 		}
 #endif
 
-        m = GetModifierText();
+        m = event->type == CEvent::mod_event_t ? "" : GetModifierText();
         if (!m.empty()) r = m + "+" + r;
 
         return r;
@@ -1257,7 +1424,13 @@ public:
     CBind * CreateEventBind(SDL_Event * event) {
         if (event->type!=SDL_KEYDOWN) return 0;
 #if defined(C_SDL2)
-	return CreateKeyBind(event->key.keysym.scancode);
+        SDL_Scancode key = event->key.keysym.scancode;
+#if defined(WIN32)
+        if(key == SDL_SCANCODE_NONUSBACKSLASH) { // Special consideration for JP Keyboard
+            key = (isJPkeyboard ? SDL_SCANCODE_INTERNATIONAL1 : SDL_SCANCODE_NONUSBACKSLASH);
+        }
+#endif
+        return CreateKeyBind(key);
 #else
 	return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
 #endif
@@ -1266,6 +1439,11 @@ public:
         if (event->type!=SDL_KEYDOWN && event->type!=SDL_KEYUP) return false;
 #if defined(C_SDL2)
         Bitu key = event->key.keysym.scancode;
+#if defined(WIN32)
+        if(key == SDL_SCANCODE_NONUSBACKSLASH) { // Special consideration for JP Keyboard
+            key = (isJPkeyboard ? SDL_SCANCODE_INTERNATIONAL1 : SDL_SCANCODE_NONUSBACKSLASH);
+        }
+#endif
 #else
 		Bitu key;
 
@@ -2481,6 +2659,42 @@ protected:
     BB_Types type;
 };
 
+//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
+class CModEvent : public CTriggeredEvent {
+public:
+    //! \brief Constructor to provide entry name and the index of the modifier button
+    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
+        wmod=_wmod;
+        type = wmod==4?event_t:mod_event_t;
+    }
+
+    virtual ~CModEvent() {}
+
+    virtual void Active(bool yesno) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(yesno);
+
+        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
+        else mapper.mods&=~((Bitu)1u << (wmod-1u));
+    };
+
+    //! \brief Associate this object with a text button in the mapper UI
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
+    //! \brief Mapper UI text button to indicate status by
+    CTextButton *notify_button;
+protected:
+    //! \brief Modifier button index
+    Bitu wmod;
+};
+
 class CCheckButton : public CTextButton {
 public: 
     CCheckButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BC_Types _type) 
@@ -2491,15 +2705,22 @@ public:
     void Draw(void) {
         if (!enabled) return;
         bool checked=false;
+        std::string str = "";
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
+            strcpy(text, str.size()>8?"mod1":str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
+            strcpy(text, str.size()>8?"mod2":str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
+            strcpy(text, str.size()>8?"mod3":str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -2760,41 +2981,6 @@ protected:
     Bitu dir;
 };
 
-//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
-class CModEvent : public CTriggeredEvent {
-public:
-    //! \brief Constructor to provide entry name and the index of the modifier button
-    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
-        wmod=_wmod;
-    }
-
-    virtual ~CModEvent() {}
-
-    virtual void Active(bool yesno) {
-        if (notify_button != NULL)
-            notify_button->SetInvert(yesno);
-
-        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
-        else mapper.mods&=~((Bitu)1u << (wmod-1u));
-    };
-
-    //! \brief Associate this object with a text button in the mapper UI
-    void notifybutton(CTextButton *n) {
-        notify_button = n;
-    }
-
-    virtual void RebindRedraw(void) {
-        if (notify_button != NULL)
-            notify_button->RebindRedraw();
-    }
-
-    //! \brief Mapper UI text button to indicate status by
-    CTextButton *notify_button;
-protected:
-    //! \brief Modifier button index
-    Bitu wmod;
-};
-
 std::string CBind::GetModifierText(void) {
     std::string r,t;
 
@@ -2817,7 +3003,8 @@ public:
         handler=_handler;
         defmod=_mod;
         defkey=_key;
-        buttonname=_buttonname;
+        if (strlen(_buttonname)<100) strcpy(buttonname, _buttonname);
+        else {strncpy(buttonname, _buttonname, 99);buttonname[99]=0;}
         handlergroup.push_back(this);
         type = handler_event_t;
     }
@@ -2847,7 +3034,8 @@ public:
     }
 
     void SetButtonName(const char *name) {
-        buttonname = name;
+        if (strlen(name)<100) strcpy(buttonname, name);
+        else {strncpy(buttonname, name, 99);buttonname[99]=0;}
     }
 
     //! \brief Generate a default binding from the MapKeys enumeration
@@ -3142,21 +3330,13 @@ public:
             key=SDLK_EQUALS;
             break;
         case MK_scrolllock:
-#if defined(C_SDL2)
-            key=SDLK_SCROLLLOCK;
-#else
             key=SDLK_SCROLLOCK;
-#endif
             break;
         case MK_pause:
             key=SDLK_PAUSE;
             break;
         case MK_printscreen:
-#if defined(C_SDL2)
-            key=SDLK_PRINTSCREEN;
-#else
             key=SDLK_PRINT;
-#endif
             break;
         case MK_home:
             key=SDLK_HOME; 
@@ -3325,7 +3505,7 @@ protected:
     Bitu defmod;
 public:
     //! \brief Button name
-    const char * buttonname;
+    char buttonname[100];
 };
 
 /* whether to run keystrokes through system but only to show how it comes out.
@@ -3437,6 +3617,7 @@ static void SetActiveBind(CBind * _bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
         bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
         bind_but.mod1->Enable(true);
@@ -3895,7 +4076,7 @@ static void CreateLayout(void) {
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(390, 444, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(390, 444, 250, 20); // right next to the Save button
     bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
@@ -3986,9 +4167,35 @@ static struct {
     /* Is that the extra backslash key ("less than" key) */
     /* on some keyboards with the 102-keys layout??      */
     {"lessthan",SDL_SCANCODE_NONUSBACKSLASH},
+#if !defined(MACOSX)
+#if (defined (WIN32) || defined (__linux__))
+    /* Special handling for JP Keyboards */
+    {"jp_bckslash",SDL_SCANCODE_INTERNATIONAL1}, // SDL2 returns same code as SDL_SCANCODE_NONUSBACKSLASH?
+    {"jp_yen",SDL_SCANCODE_INTERNATIONAL3},
+    {"jp_muhenkan", SDL_SCANCODE_INTERNATIONAL5},
+    {"jp_henkan", SDL_SCANCODE_INTERNATIONAL4},
+    {"jp_hiragana", SDL_SCANCODE_INTERNATIONAL2},
+#endif //(defined (WIN32) || defined (__linux__))
+#endif //!defined(MACOSX)
+#if 0
+#ifdef SDL_DOSBOX_X_SPECIAL
+    /* hack for Japanese keyboards with \ and _ */
+    {"jp_bckslash",SDLK_JP_RO}, // Same difference
+    {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
+    /* hack for Japanese keyboards with Yen and | */
+    {"jp_yen",SDLK_JP_YEN },
+#endif
+    /* more */
+    {"jp_hankaku", SDLK_WORLD_12 },
+    {"jp_muhenkan", SDLK_WORLD_13 },
+    {"jp_henkan", SDLK_WORLD_14 },
+    {"jp_hiragana", SDLK_WORLD_15 },
+    {"colon", SDLK_COLON },
+    {"caret", SDLK_CARET },
+    {"atsign", SDLK_AT },
+#endif
     {0,0}
 };
-
 #else
 
 static struct {
@@ -4019,30 +4226,18 @@ static struct {
     {"lctrl",SDLK_LCTRL},   {"rctrl",SDLK_RCTRL},       {"comma",SDLK_COMMA},
     {"period",SDLK_PERIOD}, {"slash",SDLK_SLASH},
 
-#if defined(C_SDL2)
-    {"printscreen",SDLK_PRINTSCREEN},
-    {"scrolllock",SDLK_SCROLLLOCK},
-#else
     {"printscreen",SDLK_PRINT},
     {"scrolllock",SDLK_SCROLLOCK},
-#endif
 
     {"pause",SDLK_PAUSE},       {"pagedown",SDLK_PAGEDOWN},
     {"pageup",SDLK_PAGEUP}, {"insert",SDLK_INSERT},     {"home",SDLK_HOME},
     {"delete",SDLK_DELETE}, {"end",SDLK_END},           {"up",SDLK_UP},
     {"left",SDLK_LEFT},     {"down",SDLK_DOWN},         {"right",SDLK_RIGHT},
 
-#if defined(C_SDL2)
-    {"kp_0",SDLK_KP_0}, {"kp_1",SDLK_KP_1}, {"kp_2",SDLK_KP_2}, {"kp_3",SDLK_KP_3},
-    {"kp_4",SDLK_KP_4}, {"kp_5",SDLK_KP_5}, {"kp_6",SDLK_KP_6}, {"kp_7",SDLK_KP_7},
-    {"kp_8",SDLK_KP_8}, {"kp_9",SDLK_KP_9},
-    {"numlock",SDLK_NUMLOCKCLEAR},
-#else
     {"kp_0",SDLK_KP0},  {"kp_1",SDLK_KP1},  {"kp_2",SDLK_KP2},  {"kp_3",SDLK_KP3},
     {"kp_4",SDLK_KP4},  {"kp_5",SDLK_KP5},  {"kp_6",SDLK_KP6},  {"kp_7",SDLK_KP7},
     {"kp_8",SDLK_KP8},  {"kp_9",SDLK_KP9},
     {"numlock",SDLK_NUMLOCK},
-#endif
 
     {"kp_divide",SDLK_KP_DIVIDE},   {"kp_multiply",SDLK_KP_MULTIPLY},
     {"kp_minus",SDLK_KP_MINUS},     {"kp_plus",SDLK_KP_PLUS},
@@ -4497,13 +4692,19 @@ void BIND_MappingEvents(void) {
 
                 size_t tmpl;
 #if defined(C_SDL2)
+                SDL_Scancode key = s.scancode;
+#if defined(WIN32)
+                if(key == SDL_SCANCODE_NONUSBACKSLASH) { // Special consideration for JP Keyboard
+                    key = (isJPkeyboard ? SDL_SCANCODE_INTERNATIONAL1 : SDL_SCANCODE_NONUSBACKSLASH);
+                }
+#endif
                 tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%d sym=%d mod=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
-                    s.scancode,
+                    key,
                     s.sym,
                     s.mod,
-                    SDL_GetScancodeName(s.scancode));
+                    SDL_GetScancodeName(key));
 #else
                 tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
@@ -4551,7 +4752,7 @@ void BIND_MappingEvents(void) {
                 }
 # endif
 #endif
-                while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
+                while (tmpl < (250 / 8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
                 tmp[tmpl] = 0;
                 bind_but.dbg2->Change("%s", tmp);
@@ -4855,10 +5056,6 @@ void MAPPER_RunInternal() {
         change_output(6);
     }
 #endif
-#if defined(USE_TTF)
-    void resetFontSize();
-    if (ttf.inUse) resetFontSize();
-#endif
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_DISABLE);
 #endif
@@ -4906,10 +5103,14 @@ void MAPPER_RunInternal() {
     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
 #if defined(USE_TTF)
-    bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
-    GFX_ForceRedrawScreen();
+    {
+        GFX_ForceRedrawScreen();
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
+    }
 
     mapper.running = false;
 

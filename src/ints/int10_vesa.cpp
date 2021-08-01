@@ -21,6 +21,7 @@
 #include <stddef.h>
 
 #include "dosbox.h"
+#include "logging.h"
 #include "callback.h"
 #include "regs.h"
 #include "mem.h"
@@ -35,6 +36,9 @@ int vesa_set_display_vsync_wait = -1;
 bool vesa_bank_switch_window_range_check = true;
 bool vesa_bank_switch_window_mirror = false;
 bool vesa_zero_on_get_information = true;
+
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
 
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
@@ -138,6 +142,34 @@ void VESA_OnReset_Clear_Callbacks(void) {
 
 extern bool vesa_bios_modelist_in_info;
 
+uint32_t GetReportedVideoMemorySize(void) {
+	uint32_t sz = vga.mem.memsize;
+
+	/* if the user specified custom window granularity, than
+	 * limitations in the interface to program bank offset
+	 * can cause problems if the granularity is small enough
+	 * that the reported video memory exceeds 128 (if 64KB
+	 * banks) or 256 (if not 64KB banks) possible values
+	 * of granularity. */
+	if (vbe_window_granularity != 0) {
+		unsigned int banks = (unsigned int)sz / vbe_window_granularity;
+
+		if (vbe_window_granularity >= (64*1024) && banks > 128)
+			banks = 128; /* ref: vga_s3.cpp port 6Ah */
+		else if (banks > 256)
+			banks = 256; /* ref: vga_s3.cpp port 6Ah hack for < 64KB granularity */
+
+		uint32_t maxsz = (uint32_t)banks * (uint32_t)vbe_window_granularity;
+
+		if (vga.svga.bank_size > vbe_window_granularity)
+			maxsz -= (vga.svga.bank_size - vbe_window_granularity);
+
+		if (sz > maxsz) sz = maxsz;
+	}
+
+	return sz;
+}
+
 uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	/* Fill 256 byte buffer with VESA information */
 	PhysPt buffer=PhysMake(seg,off);
@@ -161,7 +193,8 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	/* Fill common data */
 	MEM_BlockWrite(buffer,(void *)"VESA",4);				//Identification
 	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
-	else mem_writew(buffer+0x04,0x102);						//Vesa version 1.2
+	else if (!int10.vesa_oldvbe10) mem_writew(buffer+0x04,0x102);	//Vesa version 1.2
+	else mem_writew(buffer+0x04,0x100);						//Vesa version 1.0
 	if (vbe2) {
         vbe2_pos=256+off;
 
@@ -208,7 +241,7 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
     }
 
 	mem_writed(buffer+0x0a,(enable_vga_8bit_dac ? 1 : 0));		//Capabilities and flags
-	mem_writew(buffer+0x12,(uint16_t)(vga.mem.memsize/(64*1024))); // memory size in 64kb blocks
+	mem_writew(buffer+0x12,(uint16_t)(GetReportedVideoMemorySize()/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }
 
@@ -263,107 +296,123 @@ foundit:
 		if (!allow_vesa_4bpp_packed) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)((((mblock->swidth+15U)/8U)&(~1U))*4)); /* NTS: 4bpp requires even value due to VGA registers, round up */
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,4);
-		var_write(&minfo.MemoryModel,4);	//packed pixel
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,4);
+			var_write(&minfo.MemoryModel,4);	//packed pixel
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * (uint16_t)(((mblock->swidth+15U)/8U)&(~1U));
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(((mblock->swidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
-		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
-		var_write(&minfo.MemoryModel,3);	//ega planar mode
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x4);
+			var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
+			var_write(&minfo.MemoryModel,3);	//ega planar mode
+		}
 		modeAttributes = 0x1b;	// Color, graphics, no linear buffer
 		break;
 	case M_LIN8:
 		if (!allow_vesa_8bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)mblock->swidth);
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,8);
-		var_write(&minfo.MemoryModel,4);		//packed pixel
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,8);
+			var_write(&minfo.MemoryModel,4);		//packed pixel
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN15:
 		if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*2));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,15);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,5);
-		var_write(&minfo.RedMaskPos,10);
-		var_write(&minfo.GreenMaskSize,5);
-		var_write(&minfo.GreenMaskPos,5);
-		var_write(&minfo.BlueMaskSize,5);
-		var_write(&minfo.BlueMaskPos,0);
-		var_write(&minfo.ReservedMaskSize,0x01);
-		var_write(&minfo.ReservedMaskPos,0x0f);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,15);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,5);
+			var_write(&minfo.RedMaskPos,10);
+			var_write(&minfo.GreenMaskSize,5);
+			var_write(&minfo.GreenMaskPos,5);
+			var_write(&minfo.BlueMaskSize,5);
+			var_write(&minfo.BlueMaskPos,0);
+			var_write(&minfo.ReservedMaskSize,0x01);
+			var_write(&minfo.ReservedMaskPos,0x0f);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN16:
 		if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*2));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,16);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,5);
-		var_write(&minfo.RedMaskPos,11);
-		var_write(&minfo.GreenMaskSize,6);
-		var_write(&minfo.GreenMaskPos,5);
-		var_write(&minfo.BlueMaskSize,5);
-		var_write(&minfo.BlueMaskPos,0);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,16);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,5);
+			var_write(&minfo.RedMaskPos,11);
+			var_write(&minfo.GreenMaskSize,6);
+			var_write(&minfo.GreenMaskPos,5);
+			var_write(&minfo.BlueMaskSize,5);
+			var_write(&minfo.BlueMaskPos,0);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN24:
 		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
-        if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
+		if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*3;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*3));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,24);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,8);
-		var_write(&minfo.RedMaskPos,0x10);
-		var_write(&minfo.GreenMaskSize,0x8);
-		var_write(&minfo.GreenMaskPos,0x8);
-		var_write(&minfo.BlueMaskSize,0x8);
-		var_write(&minfo.BlueMaskPos,0x0);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,24);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,8);
+			var_write(&minfo.RedMaskPos,0x10);
+			var_write(&minfo.GreenMaskSize,0x8);
+			var_write(&minfo.GreenMaskPos,0x8);
+			var_write(&minfo.BlueMaskSize,0x8);
+			var_write(&minfo.BlueMaskPos,0x0);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN32:
 		if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*4;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(mblock->swidth*4));
-		var_write(&minfo.NumberOfPlanes,0x1);
-		var_write(&minfo.BitsPerPixel,32);
-		var_write(&minfo.MemoryModel,6);	//HiColour
-		var_write(&minfo.RedMaskSize,8);
-		var_write(&minfo.RedMaskPos,0x10);
-		var_write(&minfo.GreenMaskSize,0x8);
-		var_write(&minfo.GreenMaskPos,0x8);
-		var_write(&minfo.BlueMaskSize,0x8);
-		var_write(&minfo.BlueMaskPos,0x0);
-		var_write(&minfo.ReservedMaskSize,0x8);
-		var_write(&minfo.ReservedMaskPos,0x18);
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x1);
+			var_write(&minfo.BitsPerPixel,32);
+			var_write(&minfo.MemoryModel,6);	//HiColour
+			var_write(&minfo.RedMaskSize,8);
+			var_write(&minfo.RedMaskPos,0x10);
+			var_write(&minfo.GreenMaskSize,0x8);
+			var_write(&minfo.GreenMaskPos,0x8);
+			var_write(&minfo.BlueMaskSize,0x8);
+			var_write(&minfo.BlueMaskPos,0x0);
+			var_write(&minfo.ReservedMaskSize,0x8);
+			var_write(&minfo.ReservedMaskPos,0x18);
+		}
 		modeAttributes = 0x1b;	// Color, graphics
-		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_TEXT:
 		if (!allow_vesa_tty) return VESA_FAIL;
 		pageSize = 0;
 		var_write(&minfo.BytesPerScanLine, (uint16_t)(mblock->twidth * 2));
-		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);
-		var_write(&minfo.MemoryModel,0);	// text
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.NumberOfPlanes,0x4);
+			var_write(&minfo.BitsPerPixel,4);
+			var_write(&minfo.MemoryModel,0);	// text
+		}
 		modeAttributes = 0x0f;	//Color, text, bios output
 		break;
 	default:
@@ -376,13 +425,24 @@ foundit:
 		pageSize &= ~0xFFFFu;
 	}
 	Bitu pages = 0;
-	if (pageSize > vga.mem.memsize || (mblock->special & _USER_DISABLED)) {
+	if (pageSize > GetReportedVideoMemorySize() || (mblock->special & _USER_DISABLED)) {
 		// mode not supported by current hardware configuration
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
-		pages = (vga.mem.memsize / pageSize)-1;
+		pages = (GetReportedVideoMemorySize() / pageSize)-1;
 	}
-	var_write(&minfo.NumberOfImagePages, (uint8_t)pages);
+
+	/* VBE 1.0 allows fields "XResolution" and later to be optional.
+	 * Video modes had standard numbers at the time, so you were just expected to
+	 * "know" what the mode was when you set it. If you set mode 0x101, you were
+	 * expected to know that XResolution was 640 and YResolution was 480, and that
+	 * there were 8 bits per pixel. */
+	if (int10.vesa_oldvbe10)
+		modeAttributes &= ~2; /* clear D1, which indicates whether the optional XResolution, etc. fields are present */
+
+	if (!int10.vesa_oldvbe10)
+		var_write(&minfo.NumberOfImagePages, (uint8_t)pages); /* did not exist until VBE 1.1 */
+
 	var_write(&minfo.ModeAttributes, modeAttributes);
 	var_write(&minfo.WinAAttributes, 0x7);	// Exists/readable/writable
 
@@ -390,21 +450,39 @@ foundit:
 		var_write(&minfo.WinGranularity,32);
 		var_write(&minfo.WinSize,32);
 		var_write(&minfo.WinASegment,(uint16_t)0xb800);
-		var_write(&minfo.XResolution,(uint16_t)mblock->twidth);
-		var_write(&minfo.YResolution,(uint16_t)mblock->theight);
+
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.XResolution,(uint16_t)mblock->twidth);
+			var_write(&minfo.YResolution,(uint16_t)mblock->theight);
+		}
 	} else {
-		var_write(&minfo.WinGranularity,64);
-		var_write(&minfo.WinSize,64);
+		if (vbe_window_granularity > 0)
+			var_write(&minfo.WinGranularity,vbe_window_granularity>>10u); /* field is in KB */
+		else
+			var_write(&minfo.WinGranularity,64);
+
+		if (vbe_window_size > 0)
+			var_write(&minfo.WinSize,vbe_window_size>>10u); /* field is in KB */
+		else
+			var_write(&minfo.WinSize,64);
+
 		var_write(&minfo.WinASegment,(uint16_t)0xa000);
-		var_write(&minfo.XResolution,(uint16_t)mblock->swidth);
-		var_write(&minfo.YResolution,(uint16_t)mblock->sheight);
+
+		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+			var_write(&minfo.XResolution,(uint16_t)mblock->swidth);
+			var_write(&minfo.YResolution,(uint16_t)mblock->sheight);
+		}
 	}
 	var_write(&minfo.WinFuncPtr,int10.rom.set_window);
-	var_write(&minfo.NumberOfBanks,0x1);
-	var_write(&minfo.Reserved_page,0x1);
-	var_write(&minfo.XCharSize,(uint8_t)mblock->cwidth);
-	var_write(&minfo.YCharSize,(uint8_t)mblock->cheight);
-	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
+
+	if (!int10.vesa_oldvbe10) {
+		var_write(&minfo.NumberOfBanks,0x1); /* did not exist until VBE 1.1 */
+		var_write(&minfo.Reserved_page,0x1); /* did not exist until VBE 1.1 */
+		var_write(&minfo.XCharSize,(uint8_t)mblock->cwidth); /* optional in VBE 1.0 */
+		var_write(&minfo.YCharSize,(uint8_t)mblock->cheight); /* optional in VBE 1.0 */
+	}
+
+	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;
@@ -425,11 +503,23 @@ uint8_t VESA_GetSVGAMode(uint16_t & mode) {
 	return VESA_SUCCESS;
 }
 
-uint8_t VESA_SetCPUWindow(uint8_t window,uint8_t address) {
+uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address) {
 	if (window && !vesa_bank_switch_window_mirror) return VESA_FAIL;
-	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*64*1024<vga.mem.memsize) { /* range check, or silently truncate address depending on dosbox.conf setting */
+
+	/* despite the fact DX in INT 10h AX=4F05h is the window address,
+	 * VESA BIOSes probably only look at DL anyway, because cards in the
+	 * 1990s didn't have enough memory to necessitate the full 16 bit
+	 * value and firmware programmers might take shortcuts anyway either
+	 * for performance or ROM space optimization. Perhaps someday if
+	 * DOSBox-X emulates a more modern SVGA card it would check the
+	 * full DX value. DOSBox SVN and forks achieve equivalent behavior
+	 * here by defining this function prototype with an 8-bit "address"
+	 * parameter. */
+	address &= 0xFFu;
+
+	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<GetReportedVideoMemorySize()) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
 		IO_Write(0x3d4,0x6a);
-		IO_Write(0x3d5,(uint8_t)address);
+		IO_Write(0x3d5,(uint8_t)address); /* NTS: in vga_s3.cpp this is a 7-bit field, wraparound will occur at address >= 128 but only if emulating a full 64KB bank as normal */
 		return VESA_SUCCESS;
 	} else return VESA_FAIL;
 }
@@ -489,7 +579,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 	// offset register: virtual scanline length
 	Bitu pixels_per_offset;
 	Bitu bytes_per_offset = 8;
-	Bitu vmemsize = vga.mem.memsize;
+	Bitu vmemsize = GetReportedVideoMemorySize();
 	Bitu new_offset = vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
 	Bitu max_offset;
@@ -544,7 +634,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
-			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
 			vga.config.scan_len = new_offset;
@@ -565,7 +655,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
-			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
 			vga.config.scan_len = new_offset;
@@ -711,7 +801,7 @@ uint8_t VESA_GetDisplayStart(uint16_t & x,uint16_t & y) {
 
 static Bitu VESA_SetWindow(void) {
 	if (reg_bh) reg_ah=VESA_GetCPUWindow(reg_bl,reg_dx);
-	else reg_ah=VESA_SetCPUWindow(reg_bl,(uint8_t)reg_dx);
+	else reg_ah=VESA_SetCPUWindow(reg_bl,reg_dx);
 	reg_al=0x4f;
 	return CBRET_NONE;
 }

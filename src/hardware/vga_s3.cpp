@@ -29,6 +29,9 @@ bool has_pcibus_enable(void);
 
 extern bool enable_pci_vga;
 
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
+
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch (reg) {
@@ -397,7 +400,16 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         }
         break;
     case 0x6a:  /* Extended System Control 4 */
-        vga.svga.bank_read=(uint8_t)val & 0x7f;
+	/* S3 cards think only in 64KB bank granularity.
+	 * An option was added to emulate smaller amounts of granularity, but
+	 * then this 7-bit field causes problems. Since the smaller granularity
+	 * breaks accuracy anyway, go ahead and accept the full 8-bit value
+	 * in that case as a hack. */
+	if (vbe_window_granularity == 0 || vbe_window_granularity >= (64*1024))
+		vga.svga.bank_read=(uint8_t)val & 0x7f;
+	else
+		vga.svga.bank_read=(uint8_t)val & 0xff;
+
         vga.svga.bank_write = vga.svga.bank_read;
         VGA_SetupHandlers();
         break;
@@ -647,8 +659,10 @@ bool SVGA_S3_HWCursorActive(void) {
     return (vga.s3.hgc.curmode & 0x1) != 0;
 }
 
+uint32_t GetReportedVideoMemorySize(void);
+
 bool SVGA_S3_AcceptsMode(Bitu mode) {
-    return VideoModeMemSize(mode) < vga.mem.memsize;
+    return VideoModeMemSize(mode) < GetReportedVideoMemorySize();
 }
 
 extern bool VGA_BIOS_use_rom;

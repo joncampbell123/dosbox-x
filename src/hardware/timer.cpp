@@ -980,7 +980,7 @@ void TIMER_OnPowerOn(Section*) {
                 speaker_clock_lock_on = false; // PC-9821 behavior
         }
 
-        /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
+        /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox-x.conf */
         pc98rate = pc98_section->Get_int("pc-98 timer master frequency");
         if (pc98rate > 6) pc98rate /= 2;
         if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */

@@ -26,6 +26,7 @@
 #include <map>
 
 #include "dosbox.h"
+#include "control.h"
 #include "logging.h"
 #include "video.h"
 
@@ -64,19 +65,17 @@ static UINT32 last_width=0;
 static UINT32 last_height=0;
 static INT32 last_orientation=-1;
 
-
 static UINT32 ogl_texture_index = 1;
-
+extern int transparency;
 
 /* texture cache buffer */
 UINT32 texrgb[256*256];
-
 
 /* texture address map */
 std::map <const UINT32, ogl_texmap> textures[2];
 
 bool Direct3D_using(void);
-void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output);
+void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output), SetWindowTransparency(int trans);
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
 #endif
@@ -1811,6 +1810,9 @@ bool voodoo_ogl_init(voodoo_state *v) {
 		return false;
 	}
 
+    transparency = 0;
+    SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
+
 /*	std::string features = "";
 	if (VOGL_CheckFeature(VOGL_HAS_SHADERS)) features += " shader";
 	if (VOGL_CheckFeature(VOGL_HAS_ALPHA_PLANE)) features += " alpha-plane";
@@ -1896,6 +1898,8 @@ void voodoo_ogl_leave(bool leavemode) {
             change_output(6);
         }
 #endif
+        transparency = 0;
+        SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
     }
 }
 

@@ -1247,7 +1247,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     memset(sense,0,sizeof(sense));
     IDEATAPICDROMDevice::set_sense(/*SK=*/0);
 
-    /* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
+    /* FIXME: Spinup/down times should be dosbox-x.conf configurable, if the DOSBox gamers
      *        care more about loading times than emulation accuracy. */
     cd_insertion_time = 4000; /* a quick user that can switch CDs in 4 seconds */
     if (c->cd_insertion_time > 0) cd_insertion_time = c->cd_insertion_time;
@@ -3708,7 +3708,7 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     }
     else {
         if (IRQ < 0 || alt_io == 0 || base_io == 0)
-            LOG_MSG("WARNING: IDE interface %u: Insufficient resources assigned by dosbox.conf, and no appropriate default resources for this interface.",index);
+            LOG_MSG("WARNING: IDE interface %u: Insufficient resources assigned by dosbox-x.conf, and no appropriate default resources for this interface.",index);
     }
 }
 

@@ -233,7 +233,7 @@ some things the design as implemented now cannot accomodate.
   If you need to run Windows XP and later, please consider using
   QEMU, Bochs, VirtualBox, or VMware.
 
-* Any MS-DOS system other than IBM PC/XT/AT, Tandy, PCjr, and NEC PC-98.
+* Any MS-DOS system other than IBM PC/XT/AT, AX, Tandy, PCjr, and PC-98.
 
   Only the above listed systems will be considered for development
   in DOSBox-X. This restriction prevents stretching of the codebase
@@ -331,7 +331,7 @@ project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X. Later on, DOSBox-X also incorporated several
 features and improvements from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/),
-[DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/).
+[DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAX](http://radioc.web.fc2.com/soflib/dosvax/dosvax.htm)/[DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/).
 
 The DOSBox-X project is also helped by its other developers and
 contributors such as Wengier, aybe, Allofich, and rderooy, who have
@@ -385,6 +385,10 @@ messages in DOSBox-X to your language. Other DOSBox-X users can also use these l
 messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
 
 * Chinese (Simplified) language file: [contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)
+
+* Chinese (Traditional) language file: [contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)
+
+* French language file: [contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)
 
 * Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
 

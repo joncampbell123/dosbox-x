@@ -7,7 +7,7 @@ The purpose of this document is to try and build a comprehensive list of source 
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which most of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
-Some of the source code also came from other projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
+Some of the source code also came from other projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox Staging](https://dosbox-staging.github.io/), [DOSVAX](http://radioc.web.fc2.com/soflib/dosvax/dosvax.htm)/[DOSVAXJ3](https://www.nanshiki.co.jp/software/dosvaxj3.html), and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
 
 A list of features ported from DOSBox SVN Daum (maintainer: ykhwong):
 
@@ -40,11 +40,11 @@ A list of features ported from DOSBox Staging (maintainers: dreamer and kcgen):
 * Modem phonebook support
 * Support for changing key bindings in runtime (improved since then by Wengier)
 
-A list of features ported from DOSVAXJ3 (maintainer: nanshiki):
+A list of features ported from DOSVAX (maintainer: akm) and DOSVAXJ3 (maintainer: nanshiki):
 
-* Support for JEGA/AX machine type (improved since then by Wengier)
-* Support for DOS/V service (cleaned up and improved by Wengier, including support for non-Japanese DOS/V modes)
-* Support for system input methods (IMEs) in Windows SDL1 builds (SDL-IM-plus by the same maintainer, cleaned up and improved by Wengier)
+* Support for JEGA/AX machine type (imported from DOSVAX and DOSVAXJ3, cleaned up with some improvements by Wengier)
+* Support for DOS/V service (imported from DOSVAXJ3 and then extended by Wengier, including support for non-Japanese DOS/V modes)
+* Support for system input methods (IMEs) in Windows/Linux SDL1 builds (SDL-IM-plus by the DOSVAXJ3 maintainer, cleaned up and improved by Wengier)
 
 A list of features ported from vDosPlus (maintainer: Wengier):
 

@@ -365,7 +365,7 @@ run_block:
 			return CBRET_NONE;
 
 		case BR_CallBack:
-			// the callback code is executed in dosbox.conf, return the callback number
+			// the callback code is executed in dosbox-x.conf, return the callback number
 			FillFlags();
 			return (Bits)core_dynrec.callback;
 

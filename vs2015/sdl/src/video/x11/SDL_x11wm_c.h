@@ -32,3 +32,6 @@ extern SDL_GrabMode X11_GrabInputNoLock(_THIS, SDL_GrabMode mode);
 extern SDL_GrabMode X11_GrabInput(_THIS, SDL_GrabMode mode);
 extern int X11_GetWMInfo(_THIS, SDL_SysWMinfo *info);
 
+/* Functions to IM */
+extern int X11_GetIMInfo(_THIS, SDL_SysIMinfo *info);
+

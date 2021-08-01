@@ -461,6 +461,10 @@ void GLIDE_ShutDown(Section* sec) {
     delete test;
 }
 
+void GLIDE_PowerOn(Section* sec) {
+    test = new GLIDE(sec);
+}
+
 void GLIDE_Init() {
     test = new GLIDE(control->GetSection("voodoo"));
     AddExitFunction(AddExitFunctionFuncPair(GLIDE_ShutDown),true);

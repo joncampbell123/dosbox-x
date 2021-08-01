@@ -2918,8 +2918,8 @@ Bits HLT_Decode(void) {
 void CPU_HLT(uint32_t oldeip) {
 	/* Since cpu.hlt.old_decoder assigns the current decoder to old, and relies on restoring
 	 * it back when finished, setting cpudecoder to HLT_Decode while already HLT_Decode effectively
-	 * hangs DOSBox and makes it complete unresponsive. Don't want that! */
-	if (cpudecoder == &HLT_Decode) E_Exit("CPU_HLT attempted to set HLT_Decode while CPU decoder already HLT_Decode");
+	 * hangs DOSBox-X and makes it complete unresponsive. Don't want that! */
+	if (cpudecoder == &HLT_Decode) E_Exit("CPU_HLT attempted to set HLT_Decode while CPU decoder already HLT_Decode.\n\nIf you see this message while installing FreeDOS, please use the normal CPU core.");
 
 	reg_eip=oldeip;
 	CPU_IODelayRemoved += CPU_Cycles;

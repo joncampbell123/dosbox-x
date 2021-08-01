@@ -47,12 +47,14 @@ int socknum=-1;
 int posx = -1;
 int posy = -1;
 int initgl = 0;
+int transparency=0;
 int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
 extern int autosave_second;
+extern int customcp, altcp;
 extern bool swapad;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -74,7 +76,7 @@ bool usesystemcursor = false, enableime = false;
 bool maximize = false, direct_mouse_clipboard=false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen();
+void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindowTransparency(int trans);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -302,6 +304,7 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
+void RebootLanguage(std::string filename, bool confirm=false);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
@@ -324,7 +327,7 @@ bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables;
+extern bool resetreq, enable_dbcs_tables, loadlang;
 extern uint8_t ccount;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
@@ -360,9 +363,13 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 }
 #endif
 extern int dos_clipboard_device_access;
-extern bool sync_time, manualtime;
+extern bool sync_time, manualtime, addovl;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive, resolveopt;
+extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
+void VFILE_Remove(const char *name,const char *dir = "");
+void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
+void VOODOO_Destroy(Section* /*sec*/), VOODOO_OnPowerOn(Section* /*sec*/);
 
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
@@ -2526,7 +2533,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2558,7 +2565,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -2644,7 +2651,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
             glMatrixMode (GL_TEXTURE);
@@ -2676,7 +2683,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
             x += (int)mainMenu.fontCharWidth;
         }
 
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && control->opt_lang.size() && (c || !check)) {
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBlendFunc(GL_ONE, GL_ZERO);
             glDisable(GL_ALPHA_TEST);
@@ -3803,7 +3810,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             }
         }
 #elif defined(LINUX)
-        strcpy(fontdir, "/usr/share/fonts/truetype/");
+        strcpy(fontdir, "/usr/share/fonts/");
 #elif defined(MACOSX)
         strcpy(fontdir, "/Library/Fonts/");
 #else
@@ -3817,6 +3824,42 @@ bool readTTF(const char *fName, bool bold, bool ital) {
             strcpy(ttfPath, fontdir);
             strcat(ttfPath, fName);
             ttf_fh = fopen(ttfPath, "rb");
+#if defined(LINUX) || defined(MACOSX)
+            if (!ttf_fh) {
+#if defined(LINUX)
+                strcpy(fontdir, "/usr/share/fonts/truetype/");
+#else
+                strcpy(fontdir, "/System/Library/Fonts/");
+#endif
+                strcpy(ttfPath, fontdir);
+                strcat(ttfPath, fName);
+                strcat(ttfPath, ".ttf");
+                ttf_fh = fopen(ttfPath, "rb");
+                if (!ttf_fh) {
+                    strcpy(ttfPath, fontdir);
+                    strcat(ttfPath, fName);
+                    ttf_fh = fopen(ttfPath, "rb");
+                    if (!ttf_fh) {
+                        std::string in;
+#if defined(LINUX)
+                        in = "~/.fonts/";
+#else
+                        in = "~/Library/Fonts/";
+#endif
+                        Cross::ResolveHomedir(in);
+                        strcpy(ttfPath, in.c_str());
+                        strcat(ttfPath, fName);
+                        strcat(ttfPath, ".ttf");
+                        ttf_fh = fopen(ttfPath, "rb");
+                        if (!ttf_fh) {
+                            strcpy(ttfPath, in.c_str());
+                            strcat(ttfPath, fName);
+                            ttf_fh = fopen(ttfPath, "rb");
+                        }
+                    }
+                }
+            }
+#endif
         }
     }
     if (ttf_fh) {
@@ -3890,7 +3933,11 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         LOG_MSG("SDL:TTF activated %s", fName);
         int cp = dos.loaded_codepage;
         if (!cp) InitCodePage();
-        bool trysgf = !*fName && (IS_PC98_ARCH||isDBCSCP());
+        bool trysgf = false;
+        if (!*fName) {
+            std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||isDBCSCP()) trysgf = true;
+        }
         dos.loaded_codepage = cp;
         if (trysgf) failName = "SarasaGothicFixed";
         if ((!*fName&&!trysgf)||!readTTF(*fName?fName:failName.c_str(), false, false)) {
@@ -5237,7 +5284,7 @@ int setTTFCodePage() {
         }
         uint16_t unimap;
         int notMapped = 0;
-        for (int y = 8; y < 16; y++)
+        for (int y = (customcp&&dos.loaded_codepage==customcp||altcp&&dos.loaded_codepage==altcp?0:8); y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
@@ -5658,7 +5705,7 @@ static void GUI_StartUp() {
     item->set_text("Quick launch program...");
 #endif
 
-#if defined(MACOSX)
+#if defined(MACOSX) && 0
     MAPPER_AddHandler(NewInstanceEvent, MK_nothing, 0, "newinst", "Start new instance", &item);
     item->set_text("Start new instance");
     {
@@ -5947,6 +5994,8 @@ static void GUI_StartUp() {
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
+    transparency = 0;
+    SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
 }
 
@@ -7368,8 +7417,8 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     return NULL;
 }
 
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-static Bitu im_x, im_y;
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+static uint8_t im_x, im_y;
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -7383,8 +7432,6 @@ void SetIMPosition() {
 		ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     }
     if (IS_PC98_ARCH && x<ncols-3) x+=2;
-    x--;
-    y--;
 
 	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
 		last_ticks = GetTicks();
@@ -7397,10 +7444,14 @@ void SetIMPosition() {
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
 #if defined(USE_TTF)
         if (ttf.inUse)
-            SDL_SetIMPosition((x+1) * ttf.pointsize / 2, (y+1) * ttf.pointsize);
+            SDL_SetIMPosition(x * ttf.width, y * ttf.height);
         else
 #endif
-        SDL_SetIMPosition((x+1) * width, (y+1) * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeightBase);
+#else
+        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+#endif
 	}
 }
 #endif
@@ -8146,6 +8197,27 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
+#if defined(LINUX) && C_X11
+			if (event.type == SDL_KEYDOWN) {
+				if((IS_PC98_ARCH || isDBCSCP()) && event.key.keysym.unicode != 0) {
+					SetIMPosition();
+                    char chars[10];
+                    uint16_t uname[2];
+                    uname[0]=event.key.keysym.unicode;
+                    uname[1]=0;
+                    if (CodePageHostToGuestUTF16(chars, uname)) {
+                        for (size_t i=0; i<strlen(chars); i++) {
+                            if (dos.loaded_codepage == 932 && strlen(chars) == 2 && isKanji1(chars[0]))
+                                BIOS_AddKeyToBuffer((i==0?0xf100:0xf000) | (unsigned char)chars[i]);
+                            else
+                                BIOS_AddKeyToBuffer((unsigned char)chars[i]);
+                        }
+                    } else
+                        BIOS_AddKeyToBuffer((unsigned char)uname[0]);
+                    break;
+                }
+			}
+#endif
 #if defined(WIN32)
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
@@ -8214,8 +8286,8 @@ void GFX_Events() {
 #endif
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
-            if(event.key.keysym.scancode == 0x70 || event.key.keysym.scancode == 0x94) {
-                if(event.key.keysym.scancode == 0x94 && dos.im_enable_flag) {
+            if(event.key.keysym.scancode == 0x70 || event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) {
+                if((event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) && dos.im_enable_flag) {
                     break;
                 }
                 event.type = SDL_KEYDOWN;
@@ -8294,6 +8366,12 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::WhenIdle, "");
     Pstring->Set_help("Forces a video driver (e.g. windib/windows, directx, x11, fbcon, dummy, etc) for the SDL library to use.");
     Pstring->SetBasic(true);
+
+    Pint = sdl_sec->Add_int("transparency", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("Set the transparency of the DOSBox-X screen (both windowed and full-screen modes, on SDL2 and Windows SDL1 builds).\n"
+		"The valid value is from 0 (no transparency, the default setting) to 90 (high transparency).");
+    Pint->SetMinMax(0,90);
+    Pint->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("maximize",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
@@ -8918,6 +8996,7 @@ void PasteClipboard(bool bPressed) {
 }
 #elif defined(LINUX) && C_X11
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
 void paste_utf8_prop(Display *dpy, Window w, Atom p)
@@ -10904,10 +10983,7 @@ void Restart_language_file() {
             while (*name == CROSS_FILESPLIT) name++;
         }
 
-        if (*name) {
-            void RebootLanguage(std::string filename, bool confirm=false);
-            RebootLanguage(name, true);
-        }
+        if (*name) RebootLanguage(name, true);
     }
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
@@ -10920,6 +10996,37 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     (void)menuitem;//UNUSED
     void pc98_clear_graphics(void);
     if (IS_PC98_ARCH) pc98_clear_graphics();
+    return true;
+}
+
+bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+    if (section == NULL) return false;
+    const char *voodoostr = section->Get_string("voodoo_card");
+    bool voodooon = strcasecmp(voodoostr, "false");
+    SetVal("voodoo", "voodoo_card", voodooon?"false":"auto");
+    VOODOO_Destroy(section);
+    VOODOO_OnPowerOn(section);
+    mainMenu.get_item("3dfx_voodoo").check(!voodooon).refresh_item(mainMenu);
+    return true;
+}
+
+bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+    if (section == NULL) return false;
+    bool glideon = addovl;
+    SetVal("voodoo", "glide", glideon?"false":"true");
+    addovl=false;
+    GLIDE_ShutDown(section);
+    GLIDE_PowerOn(section);
+    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
+    else {
+        VFILE_Remove("GLIDE2X.OVL","SYSTEM");
+        if (!glideon) systemmessagebox("Warning", "Glide passthrough cannot be enabled. Check the Glide wrapper installation.", "ok","warning", 1);
+    }
+    mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
     return true;
 }
 
@@ -11193,6 +11300,24 @@ int GetNumScreen() {
     if (dpy) numscreen = XScreenCount(dpy);
 #endif
     return numscreen;
+}
+
+void SetWindowTransparency(int trans) {
+    if (trans == transparency) return;
+    double alpha = (double)(100-trans)/100;
+#if defined(C_SDL2)
+    SDL_SetWindowOpacity(sdl.window,alpha);
+#elif defined(WIN32)
+    SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
+    SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
+#elif defined(LINUX) && C_X11
+    Display *dpy = XOpenDisplay(NULL);
+    if (!dpy) return;
+    unsigned long opacity = (unsigned long)(0xFFFFFFFFul * alpha);
+    Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
+    XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
+#endif
+    transparency = trans;
 }
 
 void GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight) {
@@ -12073,6 +12198,13 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
     GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
+    return true;
+}
+
+bool restartinst_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+    RebootLanguage("", true);
     return true;
 }
 
@@ -13908,6 +14040,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
                     set_callback_function(vid_pc98_graphics_menu_callback);
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"Video3dfxMenu");
+                item.set_text("3dfx emulation");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_voodoo").set_text("Internal Voodoo card").
+                    set_callback_function(voodoo_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_glide").set_text("Glide passthrough").
+                    set_callback_function(glide_menu_callback);
+            }
 #ifdef C_D3DSHADERS
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select Direct3D pixel shader...").
@@ -14381,6 +14522,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartinst").set_text("Restart DOSBox-X instance").set_callback_function(restartinst_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartlang").set_text("Restart DOSBox-X with language file...").set_callback_function(restartlang_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
@@ -14474,6 +14616,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+        mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
+        mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
 
         mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
         mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);
@@ -15011,7 +15155,7 @@ fresh_boot:
 
     sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (!control->opt_silent) {
         SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);

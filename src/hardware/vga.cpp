@@ -141,6 +141,7 @@
 #include "mem.h"
 #include "render.h"
 #include "jfont.h"
+#include "bitop.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -164,6 +165,9 @@ bool VGA_CaptureHasNextFrame(void);
 void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
+
+unsigned int                        vbe_window_granularity = 0;
+unsigned int                        vbe_window_size = 0;
 
 /* current dosplay page (controlled by A4h) */
 unsigned char*                      pc98_pgraph_current_display_page;
@@ -624,6 +628,7 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 
 bool has_pcibus_enable(void);
 uint32_t MEM_get_address_bits();
+uint32_t GetReportedVideoMemorySize(void);
 
 void VGA_Reset(Section*) {
 //  All non-PC98 video-related config settings are now in the [video] section
@@ -918,6 +923,16 @@ void VGA_Reset(Section*) {
 
     LOG(LOG_VGA,LOG_DEBUG)("VGA memory I/O delay %uns",vga_memio_delay_ns);
 
+    vbe_window_granularity = (unsigned int)section->Get_int("vbe window granularity") << 10u; /* KB to bytes */
+    vbe_window_size = (unsigned int)section->Get_int("vbe window size") << 10u; /* KB to bytes */
+
+    if (vbe_window_granularity != 0 && !bitop::ispowerof2(vbe_window_granularity))
+        LOG(LOG_VGA,LOG_WARN)("User specified VBE window granularity is not a power of 2. May break some programs.");
+    if (vbe_window_size != 0 && !bitop::ispowerof2(vbe_window_size))
+        LOG(LOG_VGA,LOG_WARN)("User specified VBE window size is not a power of 2. May break some programs.");
+    if (vbe_window_size != 0 && vbe_window_granularity != 0 && vbe_window_size < vbe_window_granularity)
+        LOG(LOG_VGA,LOG_WARN)("VBE window size is less than window granularity, which prevents full access to video memory and may break some programs.");
+
     /* mainline compatible vmemsize (in MB)
      * plus vmemsizekb for KB-level control.
      * then we round up a page.
@@ -1005,6 +1020,18 @@ void VGA_Reset(Section*) {
      * in such a manner. --J.C. */
     if (IS_EGA_ARCH && vga.mem.memsize < _KB_bytes(128))
         LOG_MSG("WARNING: EGA 64KB emulation is very experimental and not well supported");
+
+    /* If video memory is limited by bank switching, then reduce video memory */
+    if (vbe_window_granularity != 0 && !IS_PC98_ARCH) {
+	    const uint32_t sz = GetReportedVideoMemorySize();
+
+	    LOG(LOG_VGA,LOG_NORMAL)("Video RAM size %uKB exceeds maximum possible %uKB given VBE window granularity, reducing",
+			    vga.mem.memsize>>10,(unsigned int)(sz>>10ul));
+
+	    /* reduce by half, until video memory is reported or larger but not more than 2x */
+	    while (vga.mem.memsize > _KB_bytes(512) && (vga.mem.memsize/2ul) >= sz)
+		    vga.mem.memsize /= 2u;
+    }
 
     // prepare for transition
     if (want_fm_towns) {

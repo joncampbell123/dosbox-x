@@ -94,7 +94,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
-void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void);
+void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool TTF_using();
 int setTTFCodePage();
 
@@ -582,6 +582,11 @@ void CONFIG::Run(void) {
 		"-get", "-set", "-setf",
 		"-writelang", "-wl", "-langname", "-ln",
 		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+/* HACK: P_ALL is in linux/wait.h */
+#if defined(P_ALL)
+#define __P_ALL P_ALL
+#undef P_ALL
+#endif
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -617,6 +622,9 @@ void CONFIG::Run(void) {
 		case P_ALL:
 			if (all<1) all = 1;
 			break;
+#if defined(__P_ALL)
+#define P_ALL __P_ALL
+#endif
 
 		case P_MOD:
 			if (all==-1) all = 0;
@@ -1309,6 +1317,8 @@ void CONFIG::Run(void) {
                                 DOSBox_SetSysMenu();
 #endif
                             }
+                            if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
+                                SetWindowTransparency(section->Get_int("transparency"));
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else

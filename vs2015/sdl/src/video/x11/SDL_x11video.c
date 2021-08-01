@@ -68,6 +68,41 @@ static int X11_SetColors(_THIS, int firstcolor, int ncolors,
 static int X11_SetGammaRamp(_THIS, Uint16 *ramp);
 static void X11_VideoQuit(_THIS);
 
+#ifdef ENABLE_IM_EVENT
+#include <ctype.h>
+/* When this flag is enabled, force to use the default visual.
+   Some Input Methods fails to create preedit window in other visuals.
+   kinput2 fails. skkinput is OK. */
+#define FORCE_USE_DEFAULT_VISUAL
+
+/* XIM initialization function */
+static int xim_init(_THIS);
+static void xim_free(_THIS);
+
+/* IM CallBack Function */
+static int ef_height=0, ef_width=0, ef_ascent=0;
+
+typedef struct {
+    XIMStyle style;
+    char *description;
+} im_style_t;
+
+/* Enumeration of XIM input style */
+static im_style_t im_styles[] = {
+    { XIMPreeditNothing  | XIMStatusNothing,	"Root" },
+    { XIMPreeditPosition | XIMStatusNothing,	"OverTheSpot" },
+    { XIMPreeditArea     | XIMStatusArea,	"OffTheSpot" },
+    { XIMPreeditCallbacks| XIMStatusCallbacks,	"OnTheSpot" },
+    { (XIMStyle)0,				NULL }};
+
+#include <locale.h>
+#include <X11/Xlocale.h>
+
+/* Locale-specific data taken by locale_init and xim_init */
+static char *im_name;
+static char *lc_ctype;
+
+#endif /* ENABLE_IM_EVENT */
 
 /* X11 driver bootstrap functions */
 
@@ -172,6 +207,12 @@ static SDL_VideoDevice *X11_CreateDevice(int devindex)
 		device->CheckMouseMode = X11_CheckMouseMode;
 		device->InitOSKeymap = X11_InitOSKeymap;
 		device->PumpEvents = X11_PumpEvents;
+
+		device->SetIMPosition = X11_SetIMPosition;
+		device->SetIMValues = X11_SetIMValues;
+		device->GetIMValues = X11_GetIMValues;
+		device->FlushIMString = X11_FlushIMString;
+		device->GetIMInfo = X11_GetIMInfo;
 
 		device->free = X11_DeleteDevice;
 	}
@@ -411,6 +452,12 @@ static void create_aux_windows(_THIS, const unsigned int force)
     XSetWMHints(SDL_Display, WMwindow, hints);
     XFree(hints);
     X11_SetCaptionNoLock(this, this->wm_title, this->wm_icon);
+
+#ifdef ENABLE_IM_EVENT
+    if(!xim_init(this)) {
+		SDL_SetError("Error: Can not initialize XIM.");
+	}
+#endif
 
     app_event_mask = FocusChangeMask | KeyPressMask | KeyReleaseMask
 	| PropertyChangeMask | StructureNotifyMask | KeymapStateMask;
@@ -1632,3 +1679,418 @@ void X11_VideoQuit(_THIS)
 #endif
 }
 
+#ifdef ENABLE_IM_EVENT
+//#define DEBUG_XEVENTS
+
+void destroy_callback_func(XIM current_ic, XPointer client_data, XPointer call_data)
+{
+    SDL_VideoDevice *this = current_video;
+    xim_free(this);
+}
+
+void im_callback(XIM xim, XPointer client_data, XPointer call_data)
+{
+	XIMStyle input_style;
+	XIMStyles *xim_styles = NULL;
+	XIMCallback destroy;
+	int j;
+
+	XPoint spot;
+	char *env_sdlim_style;
+
+	SDL_VideoDevice *this = current_video;
+	XVaNestedList preedit_attr = NULL;
+
+	/*
+	 *  Open connection to IM server.
+	*/
+	{
+		char *env_xmodifiers = getenv("XMODIFIERS");
+		if (env_xmodifiers != NULL) 
+			im_name = XSetLocaleModifiers(env_xmodifiers);
+		else 
+			fprintf(stderr, "Warning: XMODIFIERS is unspecified\n");
+	}
+	if (! (IM_Context.SDL_XIM = XOpenIM(SDL_Display, NULL, NULL, NULL))) {
+		SDL_SetError("Cannot open the connection to XIM server.");
+#ifdef DEBUG_XEVENTS
+		printf("Cannot open the connection to XIM server.\n");
+#endif
+		return;
+	}
+
+	destroy.callback = (XIMProc)destroy_callback_func;
+	destroy.client_data = NULL;
+	XSetIMValues(IM_Context.SDL_XIM, XNDestroyCallback, &destroy, NULL);
+
+	/*
+	 *  Detect the input style supported by XIM server.
+	 */
+	if (XGetIMValues(IM_Context.SDL_XIM, XNQueryInputStyle, &xim_styles, NULL) || !xim_styles) {
+#ifdef DEBUG_XEVENTS
+		printf("input method doesn't support any style.");
+#endif
+		SDL_SetError("input method doesn't support any style.");
+		XCloseIM(IM_Context.SDL_XIM);
+		return;
+	}
+#ifdef DEBUG_XEVENTS
+	else {
+		int i;
+		for (i=0; i<xim_styles->count_styles; i++) {
+			for (j=0; im_styles[j].description!=NULL; j++) {
+				if (im_styles[j].style == xim_styles->supported_styles[i]) {
+					printf("XIM server support input_style = %s\n", im_styles[j].description);
+					break;
+				}
+			}
+			if (im_styles[j].description==NULL)
+				printf("XIM server support unknown input_style = %x\n", (unsigned)(xim_styles->supported_styles[i]));
+		}
+	}
+#endif
+
+	/*
+	 *  Setting the XIM style.
+	 */
+	/* OverTheSpot input_style as the default */
+	input_style = 0;
+	for (j = 0; im_styles[j].description != NULL; j++) {
+		if (! strcmp(im_styles[j].description, "OverTheSpot")) {
+			input_style = im_styles[j].style;
+			IM_Context.bEnable_OverTheSpot = 1;
+#ifdef DEBUG_XEVENTS
+			printf("OverTheSpot mode supported.\n");
+#endif
+		}
+		if (! strcmp(im_styles[j].description, "OnTheSpot")) {
+			IM_Context.bEnable_OnTheSpot = 1;
+#ifdef DEBUG_XEVENTS
+			printf("OnTheSpot mode supported.\n");
+#endif
+		}
+		if (! strcmp(im_styles[j].description, "Root")) {
+			IM_Context.bEnable_Root = 1;
+#ifdef DEBUG_XEVENTS
+			printf("Root mode supported.\n");
+#endif
+		}
+	}
+
+	/* If not support OverTheSpot mode, use Root mode. */
+	if (input_style != (XIMPreeditPosition | XIMStatusNothing)) {
+		SDL_SetError("The XIM doesn't support OverTheSpot mode.");
+		for (j=0; im_styles[j].description!=NULL; j++) {
+			if (! strcmp(im_styles[j].description, "Root")) {
+#ifdef DEBUG_XEVENTS
+				printf("Root\n");
+#endif
+				input_style = im_styles[j].style;
+			}
+		}
+
+		/* If not support Root mode, use OnTheSpot mode.*/
+		if (input_style != (XIMPreeditNothing | XIMStatusNothing)) {
+			SDL_SetError("The XIM doesn't support OverTheSpot and Root mode.");
+			for (j = 0; im_styles[j].description != NULL; j++) {
+				if (! strcmp(im_styles[j].description, "OnTheSpot")) {
+#ifdef DEBUG_XEVENTS
+					printf("OnTheSpot\n");
+#endif
+					input_style = im_styles[j].style;
+				}
+			}
+			if (input_style != (XIMPreeditCallbacks | XIMStatusCallbacks)) {
+				SDL_SetError("The XIM doesn't support OverTheSpot, Root, and OnTheSpot mode.");
+			}
+		}
+	}
+
+	XFree(xim_styles);
+
+	/* If the environmet variable SDLIM_STYLE is set,
+	   override the style setting.
+	   In current SDL-IM implementation, this is required
+	   since some Input Methods don't work in OverTheSpot style
+	   despite they tell they support OverTheSpot style. */
+	env_sdlim_style = getenv("SDLIM_STYLE");
+	if (env_sdlim_style != NULL) {
+#ifdef DEBUG_XEVENTS
+		printf("SDLIM_STYLE=%s\n", env_sdlim_style);
+#endif
+		if (strcmp(env_sdlim_style, "Root") == 0) {
+			input_style = (XIMPreeditNothing | XIMStatusNothing);
+		} else if (strcmp(env_sdlim_style, "OverTheSpot") == 0) {
+			input_style = (XIMPreeditPosition | XIMStatusNothing);
+		} else if (strcmp(env_sdlim_style, "OnTheSpot") == 0) {
+			input_style = (XIMPreeditCallbacks | XIMStatusCallbacks);
+		}
+	}
+#ifdef DEBUG_XEVENTS
+	else
+		printf("SDLIM_STYLE= \n");
+#endif
+
+#ifdef DEBUG_XEVENTS
+	/* print which mode used. */
+	switch(input_style)
+	{
+	case (XIMPreeditNothing | XIMStatusNothing):
+		printf("use Root mode.\n");
+		break;
+	case (XIMPreeditPosition | XIMStatusNothing):
+		printf("use OverTheSpot mode.\n");
+		break;
+	case (XIMPreeditCallbacks | XIMStatusCallbacks):
+		printf("use OnTheSpot mode.\n");
+		break;
+	case  (XIMPreeditArea|XIMStatusArea):
+		printf("use OffTheSpot mode.\n");
+		break;
+	default:
+		printf("use Unknown mode.\n");
+		break;
+	}
+#endif
+
+	/* for XIMPreeditPosition(OverTheSpot) */
+	preedit_attr = 0;
+	spot.x = 0;
+	spot.y = 2*ef_height + 3*(ef_ascent+5);
+	preedit_attr = XVaCreateNestedList(0,
+				       XNSpotLocation, &spot,   
+				       (IM_Context.fontset) ? XNFontSet : NULL, 
+				       IM_Context.fontset,
+				       NULL);
+
+	/*
+	 *  Create IC.
+	 */
+	IM_Context.SDL_XIC = XCreateIC(IM_Context.SDL_XIM, 
+				   XNInputStyle, input_style,
+				   XNClientWindow, WMwindow,
+				   XNFocusWindow, WMwindow,
+				   (input_style & (XIMPreeditPosition | XIMStatusNothing) &&
+				    preedit_attr) ? 
+				   XNPreeditAttributes : NULL, preedit_attr,
+				   NULL);
+
+	if(IM_Context.SDL_XIC == NULL) {
+		// try Root mode
+#ifdef DEBUG_XEVENTS
+		printf("Cannot create XIC. Try Root mode.\n");
+#endif
+		input_style = (XIMPreeditNothing | XIMStatusNothing);
+		IM_Context.SDL_XIC = XCreateIC(IM_Context.SDL_XIM, 
+				    XNInputStyle, input_style,
+				    XNClientWindow, WMwindow,
+				    XNFocusWindow, WMwindow,
+				    NULL);
+
+		if (IM_Context.SDL_XIC == NULL) {
+#ifdef DEBUG_XEVENTS
+			printf("Cannot create XIC. ");
+#endif
+			SDL_SetError("Cannot create XIC.");
+			return;
+		}
+	}
+	IM_Context.preedit_attr_now = preedit_attr;
+	IM_Context.im_style_now = input_style;
+
+	XSetICFocus(IM_Context.SDL_XIC);
+	XUnsetICFocus(IM_Context.SDL_XIC);
+
+	return;
+}
+
+int create_fontset(void)
+{
+	int  i, fsize, charset_count, fontset_count = 1;
+	char *s1, *s2;
+	char **charset_list, *def_string;
+	XFontStruct **font_structs;
+	char *fontset_name = NULL;
+	SDL_VideoDevice *this = current_video;
+
+	fontset_name = getenv("SDLIM_FONTSET");
+	if (fontset_name == NULL || !isprint(*fontset_name)) {
+#ifdef DEBUG_XEVENTS
+		printf("Please set environment variable: SDLIM_FONTSET\nbash ex.\n\texport SDLIM_FONTSET=*-ISO8859-1,*-BIG5-0\n");
+#endif
+		//SDL_SetError("Please set environment variable: SDLIM_FONTSET\nbash ex.\n\texport SDLIM_FONTSET=*-ISO8859-1,*-BIG5-0");
+		//fontset_name = "*-ISO8859-1";
+		fontset_name = "-*-fixed-medium-r-normal--16-*-*-*";
+	}
+#ifdef DEBUG_XEVENTS
+	printf("IM fontset: %s\n", fontset_name);
+#endif
+
+	/*
+	 *  Calculate the number of fonts.
+	 */
+	s1 = fontset_name;
+	while ((s2=strchr(s1, ',')) != NULL) {
+		s2 ++;
+		while (isspace((int)(*s2)))
+			s2++;
+		if (*s2 && *s2 != ',') {
+			fontset_count++;
+			s1 = s2;
+		}
+		else {
+			break;
+			*s1 = '\0';
+		}
+	}
+	/*
+	 *  Create fontset and extract font information.
+	 */
+	IM_Context.fontset = XCreateFontSet(SDL_Display, fontset_name, &charset_list, &charset_count, &def_string);
+	if (charset_count || !IM_Context.fontset) {
+		SDL_SetError("Error: cannot create fontset.");
+#ifdef DEBUG_XEVENTS
+		printf("Error: cannot create fontset. %d %d %s\n", charset_count, IM_Context.fontset, def_string);
+#endif
+		return 0;
+	}
+	if (fontset_count != XFontsOfFontSet(IM_Context.fontset, &font_structs, &charset_list)) {
+		SDL_SetError("Warning: fonts not consistant to fontset.");
+#ifdef DEBUG_XEVENTS
+		printf("Warning: fonts not consistant to fontset.\n");
+#endif
+		fontset_count = XFontsOfFontSet(IM_Context.fontset, &font_structs, &charset_list);
+	}
+
+
+	for (i = 0; i < fontset_count; i++) {
+		fsize = font_structs[i]->max_bounds.width / 2;
+		if (fsize > ef_width)
+			ef_width = fsize;
+		fsize = font_structs[i]->ascent + font_structs[i]->descent;
+		if (fsize > ef_height) {
+			ef_height = fsize;
+			ef_ascent = font_structs[i]->ascent;
+		}
+	}
+
+	if (charset_list)
+		XFreeStringList(charset_list);
+
+	return 0;
+}
+
+int locale_init(void)
+{
+	char buf[1024];
+
+	if ((lc_ctype = setlocale(LC_CTYPE, "")) == NULL) {
+		SDL_SetError("setlocale LC_CTYPE false.");
+#ifdef DEBUG_XEVENTS
+		printf("setlocale LC_CTYPE false.\n");
+#endif
+		return 0;
+	}
+
+	if (XSupportsLocale() != True) {
+		SDL_SetError("XSupportsLocale false.");
+#ifdef DEBUG_XEVENTS
+		printf("XSupportsLocale false.\n");
+#endif
+		return 0;
+	}
+
+	if (im_name){
+		sprintf(buf, "@im=%s", im_name);
+	}
+	else {
+		/* clean up buf if environment variable wasn't specified. */
+		memset(buf, 0, 1024);
+	}
+
+	if (XSetLocaleModifiers(buf) == NULL) {
+		SDL_SetError("XSetLocaleModifiers false.");
+#ifdef DEBUG_XEVENTS
+		SDL_SetError("XSetLocaleModifiers false.\n");
+#endif
+		return 0;
+	}
+
+    create_fontset();
+
+    return 1;
+}
+
+int xim_init(_THIS)
+{
+	IM_Context.SDL_XIM = NULL;
+	IM_Context.SDL_XIC = NULL;
+	IM_Context.string.im_wide_char_buffer = '\0';
+	IM_Context.im_buffer_len = 0;
+	IM_Context.im_compose_len = 0;
+	IM_Context.ic_focus = 0;
+	IM_Context.im_enable = 0;
+	IM_Context.bEnable_OverTheSpot = 0;
+	IM_Context.bEnable_OnTheSpot = 0;
+	IM_Context.bEnable_Root = 0;
+	IM_Context.preedit_attr_orig = NULL;
+	IM_Context.status_attr_orig = NULL;
+	IM_Context.im_style_orig = 0;
+	IM_Context.preedit_attr_now = NULL;
+	IM_Context.status_attr_now = NULL;
+	IM_Context.im_style_now = 0;
+	IM_Context.fontset = NULL;
+
+	if (!locale_init()) {
+		return 0;
+	}
+
+	if (XRegisterIMInstantiateCallback(SDL_Display, NULL, NULL, NULL, (XIMProc)im_callback, NULL) != True) {
+		SDL_SetError("XRegisterIMInstantiateCallback false.");
+#ifdef DEBUG_XEVENTS
+		printf("XRegisterIMInstantiateCallback false.\n");
+#endif
+		return 0;
+	}
+	return 1;
+}
+
+static void xim_free(_THIS)
+{
+	if (IM_Context.SDL_XIM) {
+		XCloseIM(IM_Context.SDL_XIM);
+	}
+	if (IM_Context.SDL_XIC) {
+		XDestroyIC(IM_Context.SDL_XIC);
+	}
+	IM_Context.SDL_XIC = NULL;
+	IM_Context.SDL_XIM = NULL;
+	IM_Context.ic_focus = 0;
+
+	IM_Context.im_compose_len = 0;
+	IM_Context.im_buffer_len = 0;
+	if (IM_Context.string.im_wide_char_buffer) {
+		free(IM_Context.string.im_wide_char_buffer);
+	}
+	/*IM_Context.string.im_wide_char_buffer = '\0';*/
+
+	IM_Context.bEnable_OverTheSpot = 0;
+	IM_Context.bEnable_OnTheSpot = 0;
+	IM_Context.bEnable_Root = 0;
+
+	if (IM_Context.preedit_attr_orig) {
+		XFree(IM_Context.preedit_attr_orig);
+	}
+	if ((IM_Context.preedit_attr_now != IM_Context.preedit_attr_orig) && IM_Context.preedit_attr_now) {
+		XFree(IM_Context.preedit_attr_now);
+	}
+	IM_Context.preedit_attr_now = NULL;
+	IM_Context.preedit_attr_orig = NULL;
+
+	if (IM_Context.fontset) {
+		XFreeFontSet(SDL_Display, IM_Context.fontset);
+	}
+	IM_Context.fontset = NULL;
+}
+
+#endif /* ENABLE_IM_EVENT */

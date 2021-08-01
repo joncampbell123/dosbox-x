@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <algorithm>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -151,6 +152,30 @@ void DOS_zeromem(uint16_t seg,uint16_t para) {
 		mem_writeb(ofs++,0);
 		cnt--;
 	}
+}
+
+static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
+{
+	uint16_t largestSize = 0;
+	DOS_MCB mcb(mcb_segment);
+	for (bool endOfChain = false; !endOfChain; mcb.SetPt(mcb_segment))
+	{
+		auto size = mcb.GetSize();
+		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
+		endOfChain = DOS_MCB::MCBType(mcb.GetType())==DOS_MCB::MCBType::LastBlock;
+		mcb_segment += size+1;
+	}
+	return largestSize;
+}
+
+uint16_t DOS_GetMaximumFreeSize(uint16_t minBlocks)
+{
+	if (memAllocStrategy & 0xc0)
+	{
+		auto umbFreeSize = GetMaximumMCBFreeSize(dos_infoblock.GetStartOfUMBChain());
+		if (memAllocStrategy & 0x40 || umbFreeSize >= minBlocks) return umbFreeSize;
+	}
+	return GetMaximumMCBFreeSize(dos.firstMCB);
 }
 
 bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {

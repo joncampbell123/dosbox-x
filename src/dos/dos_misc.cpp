@@ -280,7 +280,7 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
-		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox-x.conf or b) running a builtin command in Z:\ */
 		LOG_MSG("DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x(aka version %u.%u))",
 			SegValue(es),reg_bx,
 			SegValue(ds),reg_si,
@@ -310,7 +310,7 @@ static bool DOS_MultiplexFunctions(void) {
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1606:	/* Windows exit broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
-		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox-x.conf or b) running a builtin command in Z:\ */
 		LOG_MSG("DEBUG: INT 2Fh Windows 286/386 DOSX exit broadcast issued (DX=0x%04x)",reg_dx);
 		if (reg_dx & 0x0001)
 			LOG_MSG(" [286 DOS extender]");
@@ -319,7 +319,7 @@ static bool DOS_MultiplexFunctions(void) {
 		LOG_MSG("\n");
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1607:
-		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox-x.conf or b) running a builtin command in Z:\
 		 *       Additionally, if the user WANTS to see every invocation of the IDLE call, then allow them to enable that too */
 		if (reg_bx != 0x18) { /* don't show the idle call. it's used too often */
 			const char *str = Win_NameThatVXD(reg_bx);

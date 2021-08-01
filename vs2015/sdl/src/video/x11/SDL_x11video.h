@@ -154,6 +154,37 @@ struct SDL_PrivateVideoData {
 
     /* Screensaver settings */
     int allow_screensaver;
+
+    /* IM context */
+	struct {
+		XIM SDL_XIM;
+		XIC SDL_XIC;
+		union {
+		    char *im_multi_byte_buffer;
+		    wchar_t *im_wide_char_buffer;
+		} string; 
+		int im_buffer_len;
+		int im_compose_len;
+
+		/* Switch of XIM InputContext */
+		char ic_focus;
+		char im_enable;
+
+		/* Decide if OverTheSpot, OnTheSpot, and Root input style is enabled. */
+		char bEnable_OverTheSpot;
+		char bEnable_OnTheSpot;
+		char bEnable_Root;
+
+		XVaNestedList preedit_attr_orig;
+		XVaNestedList status_attr_orig;
+		XIMStyle im_style_orig;
+
+		XVaNestedList preedit_attr_now;
+		XVaNestedList status_attr_now;
+		XIMStyle im_style_now;
+
+		XFontSet fontset;
+	} IM_Context;
 };
 
 /* Old variable names */
@@ -205,6 +236,8 @@ struct SDL_PrivateVideoData {
 #define gamma_changed		(this->hidden->gamma_changed)
 #define SDL_iconcolors		(this->hidden->iconcolors)
 #define allow_screensaver	(this->hidden->allow_screensaver)
+
+#define IM_Context            (this->hidden->IM_Context)
 
 /* Some versions of XFree86 have bugs - detect if this is one of them */
 #define BUGGY_XFREE86(condition, buggy_version) \
