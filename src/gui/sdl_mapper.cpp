@@ -2665,7 +2665,7 @@ public:
     //! \brief Constructor to provide entry name and the index of the modifier button
     CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
         wmod=_wmod;
-        type = mod_event_t;
+        type = wmod==4?event_t:mod_event_t;
     }
 
     virtual ~CModEvent() {}
