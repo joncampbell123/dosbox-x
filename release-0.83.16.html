@@ -47,7 +47,7 @@
             <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
 <ul>
 
-<li><div style="font-weight: 600">Reorganized Windows installers to 32-bit and 64-bit installers with new language selection page</div>Windows installers are now reorganized to two installers installing 32-bit and 64-bit DOSBox-X binaries, for Windows XP+ (32/64-bit) and Vista+ 64-bit respectively, reducing the sizes of installers significantly while adding the SarasaGothicFixed TTF font (supporting CJK languages) and a language selection page for choosing existing language translations (with new language files for <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng">French</a> and <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng">Traditional Chinese</a>).</li>
+<li><div style="font-weight: 600">Reorganized Windows installers to 32-bit and 64-bit installers with new language selection page</div>Windows installers are now reorganized to two installers installing 32-bit and 64-bit DOSBox-X binaries, for Windows XP+ (32/64-bit) and Vista+ 64-bit respectively, reducing the sizes of installers significantly while adding the SarasaGothicFixed TTF font (supporting both SBCS and DBCS languages) and a language selection page for choosing existing language translations (with new language files for <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng">French</a> and <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng">Traditional Chinese</a>).</li>
 
 <li><div style="font-weight: 600">Support for transparent window (all Windows builds and Linux/macOS SDL2 builds)</div>DOSBox-X now supports the transparent window feature (so that you can make the DOSBox-X window semi-transparent), which can be set via config option "transparency" in [sdl] section (with value from 0 to 90, low to high transparency). It is supported in all Windows builds as well SDL2 builds on Linux and macOS platforms.</li>
 
@@ -66,7 +66,7 @@ has been added in this version. Similar to composite CGA mode, you can toggle co
 
 <li><div style="font-weight: 600">Improved support for Chinese DOS/V fonts (also used by Configuration Tool and Mapper Editor)</div>Support for Chinese DOS/V fonts saw major improvements in this version. You can now load HZK14/HZK16 font files (for 14- and 16-pixel height) and STDFONT.15 font file from ETen via the "fontxdbcs" and "fontxdbcs14" options for Simplified Chinese DOS/V (dosv=cn) and Traditional Chinese DOS/V (dosv=tw) emulations. Also greatly improved font acquisition function on Windows and Linux platforms, and you can disable the font acequisition function via the getsysfonts config option.</div></li>
 
-<li><div style="font-weight: 600">Improved VESA BIOS functions such as new vesa_oldvbe10 machine type</div>A new machine type vesa_oldvbe10 is now added to emulate a VESA BIOS that follows version 1.0 of the standard. The machine typevesa_oldvbe is fixed to never report a LFB, since that was not yet defined for VBE 1.2. Also added config options to control VESA BIOS window size and window granularity to support DOS developments.</li>
+<li><div style="font-weight: 600">Improved VESA BIOS functions such as new vesa_oldvbe10 machine type</div>A new machine type vesa_oldvbe10 is now added to emulate a VESA BIOS that follows version 1.0 of the standard. The machine typevesa_oldvbe is fixed to never report a LFB, since that was not yet defined for VBE 1.2. Also added config options to control VESA BIOS window size and window granularity to support new DOS developments.</li>
 
 </ul>
 
@@ -75,7 +75,7 @@ has been added in this version. Similar to composite CGA mode, you can toggle co
 
 <li><div style="font-weight: 600">Support for searching more paths for loading language files and additional directories for TrueType fonts</div>If a langauge file is specified, DOSBox-X will now search for more paths (such as user config directory and "languages" subfolder) before failing. Also, when using the TTF output, DOSBox-X will also search for additional directories such as /usr/share/fonts/ and /.fonts (Linux) or /Library/Fonts/ and ~/Library/Fonts (macOS) for TrueType fonts. </li>
 
-<li><div style="font-weight: 600">Windows installer to include SarasaGothicFixed TTF font which will be loaded for CJK code pages by default</div>DOSBox-X will try to load the SarasaGothicFixed TTF font when no external TTF font is specified and a CJK code page detected at start, which allows DBCS characters to be displayed correctly. Windows installer will also include such a font for ready use with DOSBox-X.</li>
+<li><div style="font-weight: 600">Auto-load SarasaGothicFixed TTF font for CJK code pages by default (included in Windows installer)</div>DOSBox-X will try to load the SarasaGothicFixed TTF font when no external TTF font is specified and a CJK code page detected at start, which looks very nice and also allows both SBCS and DBCS characters to be displayed correctly. Windows installer will also include such a font for ready use with DOSBox-X.</li>
 
 <li><div style="font-weight: 600">Added message boxes to show the saved filenames for audio and video recordings</div>DOSBox-X will now display a message box showing the saved file name (usually in the capture subdirectory) when the audio or video recording has been completed.</li>
 
@@ -366,7 +366,7 @@ There are also many bugfixes and other improvements, such as fixing issues that 
 </li>
 </ul>
             </td><td></td></tr>
-            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.14 (<a href="release-0.83.14.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.15 (<a href="release-0.83.15.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
             <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
             </table>            
         </div>
