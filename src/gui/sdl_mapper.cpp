@@ -4067,7 +4067,7 @@ static void CreateLayout(void) {
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(390, 444, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(390, 444, 250, 20); // right next to the Save button
     bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
@@ -4743,7 +4743,7 @@ void BIND_MappingEvents(void) {
                 }
 # endif
 #endif
-                while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
+                while (tmpl < (250 / 8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
                 tmp[tmpl] = 0;
                 bind_but.dbg2->Change("%s", tmp);

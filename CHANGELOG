@@ -89,7 +89,7 @@
     to 90, low to high transparency) on the Linux/macOS
     SDL2 and Windows platforms. (Wengier)
   - Added config option "hidenonpresentable" in [dos]
-    section to toggle whether to filter out filesnames
+    section to toggle whether to filter out file names
     on local drives that are non-representative in
     current code page. (Wengier)
   - Added config options "pc-98 try font rom" and
