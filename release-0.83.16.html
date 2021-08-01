@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.16 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">August 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+
+<li><div style="font-weight: 600">Reorganized Windows installers to 32-bit and 64-bit installers with new language selection page</div>Windows installers are now reorganized to two installers installing 32-bit and 64-bit DOSBox-X binaries, for Windows XP+ (32/64-bit) and Vista+ 64-bit respectively, reducing the sizes of installers significantly while adding the SarasaGothicFixed TTF font (supporting CJK languages) and a language selection page for choosing existing language translations (with new language files for <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng">French</a> and <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng">Traditional Chinese</a>).</li>
+
+<li><div style="font-weight: 600">Support for transparent window (all Windows builds and Linux/macOS SDL2 builds)</div>DOSBox-X now supports the transparent window feature (so that you can make the DOSBox-X window semi-transparent), which can be set via config option "transparency" in [sdl] section (with value from 0 to 90, low to high transparency). It is supported in all Windows builds as well SDL2 builds on Linux and macOS platforms.</li>
+
+<li><div style="font-weight: 600">Support for loading programs into UMB memory with LH/LOADHIGH command</div>You can now load DOS programs into the high memory (UMB) using LH/LOADHIGH command when it is available (previously this command did not load programs into UMB). Also added "shellhigh" config option to decide whether to load DOSBox-X's built-in command shell to UMB memory (with default setting of "auto", it is enabled if reported DOS version is at least 7, similar to MS-DOS 7+).</li>
+
+<li><div style="font-weight: 600">Support for mounting logical DOS partitions in disk images' extended partitions</div>IMGMOUNT command now supports extended DOS partitions within hard disk images so that you can now mount logical partitions inside it, not just the primary partition. Logical partitions can be mounted with the command's "-o partidx=n" parameter where n is 4 or larger (e.g. IMGMOUNT disk.img -o partidx=4).</li>
+
+<li><div style="font-weight: 600">Support for more code pages and custom code pages for TTF output</div>CHCP command or COUNTRY config option now supports additional code pages from 1250 to 1258. You can now also specify a custom code page using CHCP command's optional second parameter (e.g. CHCP 900 mycodepage.txt) or a new config option in the format "customcodepage=nnn,codepagefile" for TrueType font (TTF) output.</li>
+
+<li><div style="font-weight: 600">Support for customizing PC-98 font files (Anex86-compatible) via config options</div>You can now customize the fonts used by the PC-98 emulation. Specify an Anex86-compatible font to load with the "pc-98 anex86 font" config option (before trying FREECG98.BMP). There is also a new config option "pc-98 try font rom", which if set to false then DOSBox-X will not try to load FONT.ROM first for the PC-98 emulation.</li>
+
+<li><div style="font-weight: 600">Support for composite PCjr mode (similar to composite CGA mode)</div>Support for the composite PCjr mode
+has been added in this version. Similar to composite CGA mode, you can toggle composite output with Ctrl+F8, and Ctrl+Shift+F7/F8 to change hue for the composite mode.</li>
+
+<li><div style="font-weight: 600">Support for inputing CJK characters with system IMEs in Linux SDL1 builds and with windib driver in Windows SDL1 builds</div>In addition to system IME support for the directx video driver introduced in the previous version (Windows SDL1 builds), support for the default windib video driver has now been implemented in Windows SDL1 builds so that you can enter DBCS characters using system IMEs just like in other Windows applications. Also implemented support for the system IMEs in Linux SDL1 builds.</li>
+
+<li><div style="font-weight: 600">Improved support for Chinese DOS/V fonts (also used by Configuration Tool and Mapper Editor)</div>Support for Chinese DOS/V fonts saw major improvements in this version. You can now load HZK14/HZK16 font files (for 14- and 16-pixel height) and STDFONT.15 font file from ETen via the "fontxdbcs" and "fontxdbcs14" options for Simplified Chinese DOS/V (dosv=cn) and Traditional Chinese DOS/V (dosv=tw) emulations. Also greatly improved font acquisition function on Windows and Linux platforms, and you can disable the font acequisition function via the getsysfonts config option.</div></li>
+
+<li><div style="font-weight: 600">Improved VESA BIOS functions such as new vesa_oldvbe10 machine type</div>A new machine type vesa_oldvbe10 is now added to emulate a VESA BIOS that follows version 1.0 of the standard. The machine typevesa_oldvbe is fixed to never report a LFB, since that was not yet defined for VBE 1.2. Also added config options to control VESA BIOS window size and window granularity to support DOS developments.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">2. Notable Usability Improvements</div>
+<ul>
+
+<li><div style="font-weight: 600">Support for searching more paths for loading language files and additional directories for TrueType fonts</div>If a langauge file is specified, DOSBox-X will now search for more paths (such as user config directory and "languages" subfolder) before failing. Also, when using the TTF output, DOSBox-X will also search for additional directories such as /usr/share/fonts/ and /.fonts (Linux) or /Library/Fonts/ and ~/Library/Fonts (macOS) for TrueType fonts. </li>
+
+<li><div style="font-weight: 600">Windows installer to include SarasaGothicFixed TTF font which will be loaded for CJK code pages by default</div>DOSBox-X will try to load the SarasaGothicFixed TTF font when no external TTF font is specified and a CJK code page detected at start, which allows DBCS characters to be displayed correctly. Windows installer will also include such a font for ready use with DOSBox-X.</li>
+
+<li><div style="font-weight: 600">Added message boxes to show the saved filenames for audio and video recordings</div>DOSBox-X will now display a message box showing the saved file name (usually in the capture subdirectory) when the audio or video recording has been completed.</li>
+
+<li><div style="font-weight: 600">Ability to toggle (low-level and high-level) 3dfx emulations via new 3dfx menu group options</div>DOSBox-X now has a menu group "3dfx emulation" in "Video" menu which allows you to toggle the low-level Voodoo card emulation and/or high-level Glide passthrough feature at run-time.</li>
+
+<li><div style="font-weight: 600">Ability to reboot the current DOSBox-X instance or reboot with specified language file via menu options</div>New menu options "Restart DOSBox-X instance" and "Restart DOSBox-X with language file.." are now added in the "Main" menu which allow to easily reboot the current DOSBox-X instance or reboot the DOSBox-X instance with the specified language file automatically.</li>
+
+<li><div style="font-weight: 600">Ability to filter out filenames on local drives that are non-representative in current code page</div>There is now a config option "hidenonpresentable" in [dos] section to control whethether to filter out file nameson local drives that are non-representative in current code page, which may help with for examples Windows 3.x installations in some situations.</li>
+
+<li><div style="font-weight: 600">Ability to see code overview and logging text via menu options</div>New menu options "Show code overview" and "Show logging text" are added to the "Debug" menu to easily view the current code overview of the current code and the output of DOSBox-X's current logging text in debug builds, without having to open the Debugger or logging console.</li>
+
+<li><div style="font-weight: 600">Support for Shift+Tab key combination in debugger to switch to previous window (inverse of Tab key)</div>The debugger now supports the Shift+Tab key shortcut to switch to the previous window complimenting existing function of Tab switching to the next window.</li>
+
+<li><div style="font-weight: 600">Mapper Editor to show the actual modifier keys when clicked</div>Mapper Editor will now try to show the actual mod keys intead of just "mod1", "mod2", and "mod3" when you click or check the buttons. This makes it easy for users to find the exact modifier keys that the mod keys stand for.</li>
+
+<li><div style="font-weight: 600">Improved -eraseconf and -erasemapper command-line options</div>Command-line options -eraseconf and -erasemapper are now modified to erase loaded config file and mapper file respectively and then continue, whereas -resetconf and -resetmapper will erase user config file or user mapper file and exit as before, instead of having the exact same behaviors.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">3. Bugfixes and Other Improvements</div>
+There are also many bugfixes and other improvements, such as fixing issues that had occurred in the previous release (e.g. fixed Amstrad machine not working in non-Windows platforms and non-English accents not showing correctly with a SBCS code page in TTF output), as well as other improvements (e.g. enabled MT32 emulation for ARM-based macOS builds and improved handling of international keyboards) to make DOSBox-X work better. Please see the full changelogs below for more information.
+
+<p />
+            <div style="font-size: 20px; font-weight: 800">4. Full Changelog In This Version</div>
+<ul>
+<li>
+    Added support for extended MS-DOS partitions that
+    reside in extended partitions. These partitions
+    can be manually mounted using -o partidx=n where
+    n is 4 or larger. To assist in partition indexes,
+    the FAT driver will also print the partition
+    table to your log file and console when asked to
+    print debug information. (joncampbell123)
+</li>
+<li>
+    Added dosbox-x.conf options to control VESA BIOS
+    window size and window granularity. This allows
+    DOS development to test VESA BIOS support against
+    SVGA cards that use window sizes and/or window
+    granularity other than 64KB including older SVGA
+    hardware by Paradise and Cirrus. Note that use
+    of these options is intended solely for DOS
+    development and will break S3 drivers that do not
+    use the VESA BIOS extensions. (joncampbell123)
+</li>
+<li>
+    Fixed VESA BIOS S3 modelist to match the VBE 1.2
+    standard modelist properly, including the addition
+    of modes 0x119-0x11B. (joncampbell123)
+</li>
+<li>
+    Added machine=vesa_oldvbe10 to emulate a VESA
+    BIOS that follows version 1.0 of the standard.
+    Specifically, in version 1.0, mode information
+    like XResolution was OPTIONAL and the VESA BIOS
+    was allowed not to fill it in since you could
+    assume the information from the standard video
+    mode number you applied. This setting emulates
+    a VESA BIOS that does NOT provide this information,
+    for testing purposes. Also, machine=vesa_oldvbe is
+    fixed to never report a LFB, since that was not yet
+    defined for VBE 1.2. (joncampbell123)
+</li>
+<li>
+    Reorganized Windows installation to 2 installers
+    installing 32-bit and 64-bit DOSBox-X binaries,
+    for WinXP+ (all) and Vista+ 64-bit respectively,
+    reducing the sizes of installers significantly
+    while adding the SarasaGothicFixed TTF font and
+    a language selection page for choosing existing
+    language translations (with new language files
+    for French and Traditional Chinese). (Wengier)
+</li>
+<li>
+    DOSBox-X will now search for more paths (such as
+    user config directory and "languages" subfolder)
+    for loading language files before failing, and
+    on Linux and macOS platforms will also search for
+    additional directories such as /Library/Fonts/
+    (Linux) or /Library/Fonts/ (macOS) for TrueType
+    fonts when using the TTF output. (Wengier)
+</li>
+<li>
+    DOSBox-X will try to load the SarasaGothicFixed
+    TTF font when no external TTF font is specified
+    and a CJK code page detected at start. (Wengier)
+</li>
+<li>
+    Added Shift+Tab shortcut in Debugger to switch to
+    previous window complimenting existing function of
+    Tab switching to the next window. (cimarronm)
+</li>
+<li>
+    LH/LOADHIGH command can now load programs into UMB
+    memory if it is available. Also added "shellhigh"
+    config option to decide whether to load builtin
+    command shell to UMB memory (with default setting
+    of "auto", it is enabled if reported DOS version
+    is at least 7, similar to MS-DOS 7+). (cimarronm)
+</li>
+<li>
+    HELP command is now an external command appearing
+    on Z drive rather than an internal shell command
+    (it is never a DOS internal command). (Wengier)
+</li>
+<li>
+    Command-line options -eraseconf and -erasemapper
+    will now erase loaded config file and mapper file
+    respectively and continue, whereas -resetconf and
+    -resetmapper will erase user config file or user
+    mapper file and exit as before. (Wengier)
+</li>
+<li>
+    Added menu group "3dfx" in "Video" menu to toggle
+    the low-level Voodoo card emulation and high-level
+    Glide emulation at run-time. (Wengier)
+</li>
+<li>
+    Added menu options "Restart DOSBox-X instance" and
+    "Restart DOSBox-X with language file" in "Main"
+    menu to reboot the current DOSBox-X instance or
+    reboot the DOSBox-X instance with the specified
+    language file automatically. (Wengier)
+</li>
+<li>
+    Added menu options "Show code overview" and "Show
+    logging text" in "Debug" menu to show the overview
+    of the current code and the output of DOSBox-X's
+    current logging text in debug builds. (Wengier)
+</li>
+<li>
+    Added config option "customcodepage" in the [dos]
+    section to allow a custom code page, in the format
+    "customcodepage=nnn,codepagefile" in TrueType font
+    (TTF) output. CHCP command also supports additional
+    parameter to specify a code page file. Also added
+    builtin support for code pages 1250-1258. (Wengier)
+</li>
+<li>
+    Added config option "transparency" in [sdl] section
+    to change the DOSBox-X window transparency (from 0
+    to 90, low to high transparency) on the Linux/macOS
+    SDL2 and Windows platforms. (Wengier)
+</li>
+<li>
+    Added config option "hidenonpresentable" in [dos]
+    section to toggle whether to filter out file names
+    on local drives that are non-representative in
+    current code page. (Wengier)
+</li>
+<li>
+    Added config options "pc-98 try font rom" and
+    "pc-98 anex86 font" for the PC-98 emulation to
+    customize the font file to load. If former option
+    is set to "false", then DOSbox-X will not try to
+    load FONT.ROM first for PC-98, and latter option
+    specifies an Anex86-compatible font to load for
+    PC-98 (before trying FREECG98.BMP). (Wengier)
+</li>
+<li>
+    Added support for composite support for PCjr mode
+    by porting patch from NewRisingSun. (Wengier)
+</li>
+<li>
+    Non-Japanese DOS/V systems will now use 19-pixel
+    VGA fonts rather than 16-pixel VGA fonts for SBCS
+    characters to look better. (Wengier)
+</li>
+<li>
+    You can now also load HZK14/HZK16 font files (for
+    14- and 16-pixel height) and STDFONT.15 font file
+    via the "fontxdbcs" and "fontxdbcs14" options for
+    Simplified Chinese DOS/V (dosv=cn) and Traditional
+    Chinese DOS/V (dosv=tw) emulations. (Wengier)
+</li>
+<li>
+    Improved the DOS/V font acquisition function on
+    the Linux platform (both SDL1 & SDL2), such as
+    adding support for 14-pixel height fonts (used by
+    Configuration Tool & Mapper Editor), and enhancing
+    support for Chinese characters acquisition (e.g.
+    WenQuanYi support for the Traditional Chinese). A
+    config option "getsysfont" is added which when set
+    to "false" will disable the font acquisition on
+    Windows and Linux platforms. (Wengier & nanshiki)
+</li>
+<li>
+    Implemented support for inputing CJK characters
+    on Linux SDL1 builds using Linux system IMEs. Code
+    imported from SDL-IM-plus by nanshiki and confirmed
+    to work on Linux/X11 platform by him.
+</li>
+<li>
+    Added support for inputing Japanese and Korean
+    characters using system input method (IME) using
+    the default "windib" video driver in Windows SDL1
+    build (in addition to "directx" driver). (nanshiki)
+</li>
+<li>
+    Fixed CJK characters not showing correctly for the
+    SDL-drawn menu with OpenGL outputs if "language"
+    config option is used instead of -lang command-line
+    option. Thank nanshiki for catching this. (Wengier)
+</li>
+<li>
+    Fixed setting "machine=amstrad" cause DOSBox-X to
+    crash on non-Windows platforms. (cimarronm)
+</li>
+<li>
+    Fixed bug related to DBCS vector table. (nanshiki)
+</li>
+<li>
+    Fixed running e.g. built-in DEBUG command from a
+    drive other than Z may not work. (cimarronm)
+</li>
+<li>
+    Fixed the command "FOR %I ..." not working when
+    executed from the command line. (Wengier)
+</li>
+<li>
+    For audio/video recording, DOSBox-X will display
+    a message box showing the saved file name when the
+    recording has been completed. (Wengier)
+</li>
+<li>
+    Mapper Editor will try to show the actual mod keys
+    for mod1/mod2/mod3 when clicked. (Wengier)
+</li>
+<li>
+    Removed the special DOS function at Int21h/AH=2B/
+    CX=0x4442h/DX=0x2D58h in favor of the DOSBox-X
+    Integration Device at I/O ports 28h-2Bh which works
+    for both integrated DOS and guest OS environments.
+</li>
+<li>
+    Enabled MT-32 emulation on ARM-based Mac OS X
+    builds (joncampbell123)
+</li>
+<li>
+    For Configuration Tool, ensure mouse coordinates
+    are adjusted accordingly with forced scaler. (aybe)
+</li>
+<li>
+    Fixed a bug in the Int21/AH=36h (get disk space)
+    function for returning very large CX values, and
+    that non-zero values are returned when the free
+    space is 0 on mounted local drives. (Wengier)
+</li>
+<li>
+    Fixed "FILES" always fixed to 200 as reported by
+    the "DOSINFO" tool, in spite of "files" setting in
+    [config] section of the config file. (Wengier)
+</li>
+<li>
+    Refined the handling of international keyboards and
+    fixed some issues in version 0.83.15. (maron2000)
+</li>
+<li>
+    Fixed initialization order that prevented Bochs
+    port E9h emulation from working. (joncampbell123)
+</li>
+<li>
+    Fixed menu options in system menu not working in
+    Windows SDL1 builds with "windib" driver. (Wengier)
+</li>
+<li>
+    Fixed issue that the mouse cursor not showing in
+    the game "Power Dolls". (Wengier)
+</li>
+<li>
+    Fixed non-English accents may not show correctly
+    with a SBCS code page in TrueType Font (TTF) output
+    (introduced in version 0.83.15). (Wengier)
+</li>
+<li>
+    Fixed line endings for SBCS language files such as
+    English and Spanish translations. (Wengier)
+</li>
+<li>
+    Fixed resetting the TTF screen when exiting from
+    Configuration Tool or Mapper Editor when TrueType
+    font (TTF) output is active. (Wengier)
+</li>
+<li>
+    Fixed the option "drive z expand path" not working
+    if Virtual Drive Z: has been moved to a different
+    drive letter (e.g. Drive Y:). (Wengier)
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.14 (<a href="release-0.83.14.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
