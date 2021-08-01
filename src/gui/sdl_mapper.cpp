@@ -321,7 +321,8 @@ public:
     //!              additional information that is only provided by the handler event class
     enum event_type {
         event_t=0,
-        handler_event_t
+        handler_event_t,
+        mod_event_t
     };
 public:
     //! \brief CEvent constructor
@@ -1355,7 +1356,7 @@ public:
 		}
 #endif
 
-        m = GetModifierText();
+        m = event->type == CEvent::mod_event_t ? "" : GetModifierText();
         if (!m.empty()) r = m + "+" + r;
 
         return r;
@@ -2658,6 +2659,42 @@ protected:
     BB_Types type;
 };
 
+//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
+class CModEvent : public CTriggeredEvent {
+public:
+    //! \brief Constructor to provide entry name and the index of the modifier button
+    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
+        wmod=_wmod;
+        type = mod_event_t;
+    }
+
+    virtual ~CModEvent() {}
+
+    virtual void Active(bool yesno) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(yesno);
+
+        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
+        else mapper.mods&=~((Bitu)1u << (wmod-1u));
+    };
+
+    //! \brief Associate this object with a text button in the mapper UI
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
+    //! \brief Mapper UI text button to indicate status by
+    CTextButton *notify_button;
+protected:
+    //! \brief Modifier button index
+    Bitu wmod;
+};
+
 class CCheckButton : public CTextButton {
 public: 
     CCheckButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BC_Types _type) 
@@ -2668,15 +2705,22 @@ public:
     void Draw(void) {
         if (!enabled) return;
         bool checked=false;
+        std::string str = "";
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
+            strcpy(text, str.size()>8?"mod1":str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
+            strcpy(text, str.size()>8?"mod2":str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
+            strcpy(text, str.size()>8?"mod3":str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -2935,41 +2979,6 @@ protected:
 
     //! \brief Direction of hat
     Bitu dir;
-};
-
-//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
-class CModEvent : public CTriggeredEvent {
-public:
-    //! \brief Constructor to provide entry name and the index of the modifier button
-    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
-        wmod=_wmod;
-    }
-
-    virtual ~CModEvent() {}
-
-    virtual void Active(bool yesno) {
-        if (notify_button != NULL)
-            notify_button->SetInvert(yesno);
-
-        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
-        else mapper.mods&=~((Bitu)1u << (wmod-1u));
-    };
-
-    //! \brief Associate this object with a text button in the mapper UI
-    void notifybutton(CTextButton *n) {
-        notify_button = n;
-    }
-
-    virtual void RebindRedraw(void) {
-        if (notify_button != NULL)
-            notify_button->RebindRedraw();
-    }
-
-    //! \brief Mapper UI text button to indicate status by
-    CTextButton *notify_button;
-protected:
-    //! \brief Modifier button index
-    Bitu wmod;
 };
 
 std::string CBind::GetModifierText(void) {

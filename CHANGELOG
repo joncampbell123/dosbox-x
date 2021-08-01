@@ -140,6 +140,8 @@
   - For audio/video recording, DOSBox-X will display
     a message box showing the saved file name when the
     recording has been completed. (Wengier)
+  - Mapper Editor will try to show the actual mod keys
+    for mod1/mod2/mod3 when clicked. (Wengier)
   - Removed the special DOS function at Int21h/AH=2B/
     CX=0x4442h/DX=0x2D58h in favor of the DOSBox-X
     Integration Device at I/O ports 28h-2Bh which works
