@@ -14,7 +14,7 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 ## Packages for Supported Platforms
 
 - [Windows Packages (Installer or Portable)](#windows-packages-installer-or-portable)
-- [Linux Packages (Flatpak or RPM)](#linux-packages-flatpak-or-fedora_package)
+- [Linux Packages (Flatpak or Fedora package)](#linux-packages-flatpak-or-fedora-package)
 - [macOS Packages (Portable)](#macos-packages-portable)
 - [DOS Packages (Portable)](#dos-packages-portable)
 - [Source Code Packages (zip or tar.gz)](#source-code-packages-zip-or-targz)
