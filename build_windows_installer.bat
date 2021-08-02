@@ -163,6 +163,7 @@ copy /y %isspath%\DOSBox-X-setup.iss %isspath%\64bit\DOSBox-X-setup.iss
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "\".\\" "\"..\\"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "File=setup_" "File=..\setup_"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "(32-bit)" "(64-bit)"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "'32-bit " "'64-bit "
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "inpout32" "inpoutx64"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "\"Win32_builds" "\"..\Win64_builds"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "Win32_builds" "Win64_builds"

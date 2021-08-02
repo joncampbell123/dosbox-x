@@ -173,7 +173,6 @@ Type: files; Name: "{app}\stderr.txt"
 [Code]
 var
   msg: string;
-  build64: Boolean;    
   HelpButton: TNewButton;
   PageBuild, PageLang, PageOutput, PageVer: TInputOptionWizardPage;
 function IsVerySilent(): Boolean;
@@ -292,13 +291,7 @@ begin
   begin
     Wizardform.ReadyMemo.Lines.Add('');
     Wizardform.ReadyMemo.Lines.Add('Default DOSBox-X build:');
-    if (build64) then
-      begin
-        msg:='64';
-      end
-    else
-      msg:='32';
-    msg:=msg+'-bit ';
+    msg:='32-bit ';
     if (PageBuild.Values[0]) then
       msg:=msg+'Release SDL1';
     if (PageBuild.Values[1]) then
