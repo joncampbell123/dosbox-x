@@ -1,7 +1,7 @@
 0.83.17
   - INT 29h routes output through ANSI.SYS driver in
-    both IBM PC and PC-98 mode, unless dosbox.conf
-    setting says ansi.sys=false (joncampbell123)
+    both IBM PC and PC-98 mode, unless ansi.sys=false
+    is set in the config setting. (joncampbell123)
 0.83.16
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.16.html
