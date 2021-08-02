@@ -12,7 +12,7 @@ toc::[]
 While DOSBox-X, as the name implies primarily targets DOS applications and games, early Windows versions where in fact little more than glorified DOS applications, and as such can also be run.
 
 From Windows 1.0 up to Windows 3.11, you can typically run Windows directly from the integrated DOS provided by DOSBox-X.
-instructions can be found below for the different major versions.
+Instructions can be found below for the different major versions.
 
 Later Windows 95, 98 and ME however require that you run the underlying DOS they came with, and as such instead of using the integrated DOS, you will need to boot them inside DOSBox-X.
 Again, instructions are provided below.
@@ -21,10 +21,11 @@ Again, instructions are provided below.
 Some external links with useful information:
 
 * link:https://en.wikipedia.org/wiki/Microsoft_Windows[Wikipedia: Microsoft Windows]
-* link:https://en.wikipedia.org/wiki/Microsoft_Windows_version_history[Microsoft Windows version history]
+* link:https://en.wikipedia.org/wiki/Microsoft_Windows_version_history[Wikipedia: Microsoft Windows version history]
 
 ## Where to get Windows?
-These pages assume that you have Windows diskette images or CD-ROM. Getting these image files is outside the scope of this guide.
+These pages assume that you have Windows diskette or CD-ROM images.
+Getting these image files is outside the scope of this guide.
 
 ## Windows version highlights
 ### Windows versions 1.0-3.11
@@ -32,65 +33,70 @@ For these versions you have the choice if you run the directly in DOSBox-X itsel
 
 There are various limitations that Windows imposes that are dependant on the version. A few milestones:
 
-* *MS Windows 1.01*
+* *MS Windows 1.01* (released Nov 20, 1985)
 ** Initial release
-* *MS Windows 1.02*
+* *MS Windows 1.02* (released May, 1986)
 ** International release
-* *MS Windows 1.03*
+* *MS Windows 1.03* (released Aug, 1986)
 ** Additional screen and printer drivers
-* *MS Windows 1.04*
-** Adds support for the IBM PS/2
-* *MS Windows 2.03*
+* *MS Windows 1.04* (released Apr, 1987)
+** Adds limited support for the IBM PS/2
+* *MS Windows/386 2.01* (released Sep, 1987)
+** Compaq OEM release with limited drivers
+** Adds support for protected mode
+** Adds EMS emulation
+* *MS Windows 2.03* and *MS Windows/386 2.03* (released Dec 8, 1987)
 ** Adds overlapping windows
 ** Adds 16 colour VGA support
-* *MS Windows 2.10 286*
+* *MS Windows/286 2.10* and *MS Windows/386 2.10* (released May 27, 1988)
 ** Adds HIMEM.SYS
-* *MS Windows 2.11 286*
+* *MS Windows/286 2.11* and *MS Windows/386 2.11* (released Mar 13, 1989)
 ** Minor changes to memory management
 ** Adds AppleTalk support
 ** Adds updated printer drivers
-* *MS Windows 2.01 386*
-** Adds support for protected mode
-** Adds EMS emulation
-* *MS Windows 2.03 386*
-* *MS Windows 2.10 386*
-* *MS Windows 2.11 386*
-* *MS Windows 3.0*
+* *MS Windows 3.0* (released May 22, 1990)
+** Revamped UI
 ** Can support up to 16MB RAM
-* *MS Windows 3.1*
+** Virtual memory support (swap)
+* *MS Windows 3.0a with Multimedia Extensions* (released Oct, 1991)
+** OEM releases only
+** Adds audio and video playback support
+** Adds CD-ROM support
+** Adds Joystick support
+* *MS Windows 3.1* (released Apr 6, 1992)
 ** Real (8086) mode support dropped
 ** Can support up to 256MB RAM
 ** Adds TrueType
-** Includes Multimedia extensions
 ** Adds 32-bit disk access
-* *MS Windows for Workgroups 3.1*
+* *MS Windows for Workgroups 3.1* (released Oct, 1992)
 ** Adds support for SMB file sharing
-* *MS Windows 3.11*
+* *MS Windows 3.11* (released Nov 8, 1993)
 ** Bug fix release
-* *MS Windows for Workgroups 3.11*
+* *MS Windows for Workgroups 3.11* (released Nov 8, 1993)
 ** Standard (286) mode support dropped
 
 ### Microsoft Windows 95+
 These versions must be installed in a virtual HDD image.
 
-* *MS Windows 95*
+* *MS Windows 95* (released Aug 24, 1995)
+** Major redesign of the UI
 ** Adds MS-DOS 7.0
-* *MS Windows 95 OSR1* (aka 95A)
+* *MS Windows 95 OSR1* (aka 95A) (released Dec 29, 1995)
 ** Adds IE 2.0
 ** Adds Infrared support
-* *MS Windows 95 OSR2* (aka 95B)
+* *MS Windows 95 OSR2* (aka 95B) (released Aug 22, 1996)
 ** Updates IE to 3.0
 ** Adds Firewire, UDMA and IRQ steering support
 ** Adds support for FAT32
 ** Updates MS-DOS to 7.1
 ** Adds support for DirectX 2.0a
-* *MS Windows 95 OSR2.1* (aka 95B)
+* *MS Windows 95 OSR2.1* (aka 95B) (released Aug 27, 1997)
 ** Adds (limited) USB and AGP support
-* *MS Windows 95 OSR2.5* (aka 95C)
+* *MS Windows 95 OSR2.5* (aka 95C) (released Nov 26, 1997)
 ** Updates IE to 4.0
 ** Adds Active Desktop
 ** Updates DirectX to 5.0
-* *MS Windows 98*
+* *MS Windows 98* (released Jun 25, 1998)
 ** Adds Windows Driver Model (WDM) support
 ** Adds Disk Cleanup, Windows Update, Multi-monitor and Internet Connection sharing
 ** Updates IE to 4.01
@@ -100,11 +106,11 @@ These versions must be installed in a virtual HDD image.
 ** Includes a FAT16 to FAT32 migration utility
 ** Includes RealPlayer 4.01, Flash Player and Shockwave Player
 ** Adds support for the Euro currency symbol
-* *MS Windows 98SE*
+* *MS Windows 98SE* (released May 5, 1999)
 ** Updates IE to 5.0
 ** Updates DirectX to 6.1
 ** Removes RealPlayer and WinG
-* *MS Windows ME*
+* *MS Windows ME* (released Sep 14, 2000)
 ** Adds support for USB Mass Storage
 
 ## Guides to installing Windows

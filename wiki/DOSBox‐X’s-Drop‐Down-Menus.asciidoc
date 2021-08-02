@@ -35,7 +35,11 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Reboot guest system**: Reboots the kernel of the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X without resetting the virtual machine.
 
+* **Restart DOSBox-X instance**: Reboots the current DOSBox-X instance with the same configuration.
+
 * **Restart DOSBox-X with config file...**: Restart DOSBox-X automatically with the select config file loaded.
+
+* **Restart DOSBox-X with language file...**: Restart DOSBox-X automatically with the select language file loaded.
 
 * **Quit from DOSBox-X**: Exit from DOSBox-X.
 
@@ -95,6 +99,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 * **TTF options**: Changes settings related to the TrueType font (TTF) output, such as increasing or decreasing the TTF font siz, selection of a word processor and toggling of on-screen text styles (bold, italics, etc).
 
 * **PC-98 options**: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions and whether to use the default U.S. keyboard layout for PC-98 mode.
+
+* **3dfx emulation**: Toggle the 3dfx emulation, including low-level Voodoo card emulation and high-level Glide emulation.
 
 * **Select pixel shader...**: Selects a Direct3D pixel shader file for use with the Direct3D output in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file (so if you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure).
 

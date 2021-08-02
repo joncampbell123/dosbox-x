@@ -1,0 +1,59 @@
+:toc: macro
+
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend:]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+# East Asian language support in DOSBox-X
+
+toc::[]
+
+DOSBox-X is designed to be completed DOS emulator and provides official support for East Asian languages, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes or the TrueType font (TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in PC-98 and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:
+
+Japanese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/ja/ja_JP.lng[ja_JP.lng]
+
+Simplified Chinese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/zh/zh_CN.lng[zh_CN.lng]
+
+Traditional Chinese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/zh/zh_TW.lng[zh_TW.lng]
+
+== DOS/V support ==
+
+Native DOS/V services are supported by DOSBox-X, with options for Simplified and Traditional Chinese, Japanese, and Korean language modes. There is a [dosv] section in the config file, and you can enable different DOS/V modes with the ``dosv`` config option, i.e. ``chs`` (``cn``) for Simplified Chinese DOS/V, ``cht`` (``tw``) for Traditional Chinese DOS/V, ``jp`` for Japanese DOS/V, and ``ko`` for Korean DOS/V. DOSBox-X will try to get or use the fonts for these languages in the DOS/V mode, but you can also specify your own font files (in FONTX2 formats for Japanese, or link:https://github.com/aguegu/BitmapFont/blob/master/font/HZK16[HZK16] for Simplified Chinese, or STDFONT.15 for Traditional Chinese) via config options starting with ``fontx`` (such as ``fontxsbcs`` and ``fontxdbcs`` options) in the [dosv] section of the config file. For Simplified Chinese, the GB2312 charset is supported by default, but you can optionally enable the GBK extension with the `gbk` config option. Note that this mode is mainly designed to run DOS/V compatible programs or games, along with some normal DOS software. **For a general DOS CJK environment it is recommended to use the TrueType font output with CJK support (described below) instead.**
+
+A screenshot of the Japanese DOS/V mode:
+
+image::https://user-images.githubusercontent.com/8216923/124234430-036ef700-dae2-11eb-9f22-e744a9bf1e2d.png[Japanese DOS/V emulation]
+
+In addition, there is a ``fontxdbcs14`` option which is useful for displaying CJK characters in the Configuration Tool and Mapper Editor (if you use a language file). It is similar to the ``fontdbcs`` option, but it accepts 14-pixel DBCS fonts rather than 16-pixel ones. Use link:https://github.com/aguegu/BitmapFont/blob/master/font/HZK14[HZK14] for Simplified Chinese, and STDFONT.15 for Traditional Chinese.
+
+== TrueType font output with CJK support ==
+
+In addition to DOS/V modes, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950 for Traditional Chinese). General information about DOSBox-X's TrueType font output is available from the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[TrueType font output guide page]. Set the code page with either the ``country`` option in [config] section of the config file, or using ``CHCP`` command, such as ``country=81,932`` or ``CHCP 932`` for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts available containing support for CJK characters, and you can load them for the TTF output via the ``font`` config option in [ttf] section of the config file. Some of these fonts (such as link:https://unifoundry.com/unifont/[GNU Unifont] and link:https://github.com/be5invis/Sarasa-Gothic[Sarasa Gothic]) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF fonts like ``simkai.ttf`` and ``simhei.ttf`` are included in some versions of Windows, so you need to only specify a setting like ``font=simkai`` to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The ``SarasaGothicFixed.ttf`` and ``UnifontFullMediumMono.ttf`` font files are also available in the DOSBox-X repository for download:
+
+* Sarasa-Gothic Fixed: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/SarasaGothicFixed.ttf?raw=true[Download here]
+
+* UnifontFullMediumMono: https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/UnifontFullMediumMono.ttf?raw=true[Download here]
+
+As of DOSBox-X version 0.83.16, the ``SarasaGothicFixed.ttf`` font file is also included in the Windows installer, and DOSBox-X will try to automatically load it if you start DOSBox-X with a CJK code page and no other TTF font is specified.
+
+A screenshot of the TrueType font output with the Simplified Chinese code page (936) using the ``SarasaGothicFixed.ttf`` font file:
+
+image::https://user-images.githubusercontent.com/8216923/125918507-b0b40979-45c2-4fd1-9ee6-187c198a49c9.png[Truetype font output with the Simplified Chinese code page]
+
+There are some TTF config options related to CJK support, such as automatic box-drawing recognition and SBCS <=> DBCS mode switch, as found in the [ttf] section of the config file. These can also be toggled dynamically from the drop-down menu (inside "Video" => "TTF options" menu group).
+
+== PC-98 mode ==
+
+DOSBox-X provides emulation for the Japanese NEC PC-98 mode, so that you can play PC-98 games or run PC-98 programs in it, such as the early Touhou games. The PC-98 mode can be started with the setting ``machine=pc98``, and it may also work in combination with the TrueType font output. See the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation guide page] for detailed information about PC-98 emulation in DOSBox-X.
+
+== AX (JEGA) mode ==
+
+DOSBox-X also provides emulation for the Japanese AX (JEGA) mode, a Japanese computing initiative starting in around 1986 to allow PCs to handle double-byte (DBCS) Japanese text via special hardware chips. The AX (JEGA) mode can be started with the setting ``machine=jega``, and may also work in combination with the TrueType font output. In this mode you can press the right Ctrl key to toggle between romaji and kana input modes. Several config options related to DOS/V (see [dosv] section) can also be used for the JEGA mode.
+
+## External links
+Some external links with useful information:
+
+* link:https://en.wikipedia.org/wiki/DOS/V[Wikipedia: DOS/V]
+* link:https://en.wikipedia.org/wiki/PC-9800_series[Wikipedia: PC-9800 series]
+* link:https://en.wikipedia.org/wiki/AX_architecture[Wikipedia: AX architecture]

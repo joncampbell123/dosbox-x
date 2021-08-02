@@ -44,6 +44,7 @@ And likewise, you will be limited to EGA graphics.
 
 * link:https://en.wikipedia.org/wiki/Windows_1.0[Wikipedia: Windows 1.0]
 * link:https://betawiki.net/wiki/Windows_1.0[BetaWiki: Windows 1.0]
+* link:http://toastytech.com/guis/win1x2x.html[Overview of Windows 1.x/2.x Applications]
 
 # DOSBox-X config file
 It is recommended that you create a custom DOSBox-X config file for running Windows 1.0x

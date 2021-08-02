@@ -222,6 +222,9 @@ Explains the CPU emulation and different CPU types in DOSBox-X.
 * link:Guide%3ARegional-settings-in-DOSBox‐X{suffixappend}[Guide: Regional settings in DOSBox‐X]
 +
 Explains how to customize DOSBox-X's regional settings and international support, such as display languages and keyboard layouts.
+* link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[Guide: East Asian language support in DOSBox‐X]
++
+Explains DOSBox-X's support for East Asian languages (Chinese, Japanese, Korean).
 * link:Guide%3ASetting-up-joysticks-in-DOSBox‐X{suffixappend}[Guide: Setting up joysticks in DOSBox-X]
 +
 Explains the different Joystick configuration options in DOSBox-X.

@@ -83,6 +83,7 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 * link:https://en.wikipedia.org/wiki/Windows_2.1x[Wikipedia: Windows 2.1x]
 * link:https://betawiki.net/wiki/Windows_2.x[BetaWiki: Windows 2.x]
 * link:http://www.os2museum.com/wp/windows386-2-01/[os2museum: Windows/386 2.01]
+* link:http://toastytech.com/guis/win1x2x.html[Overview of Windows 1.x/2.x Applications]
 
 # DOSBox-X config file
 It is recommended that you create a custom DOSBox-X config file for running Windows 2.x
@@ -390,8 +391,21 @@ And then edit your ``win2x.conf`` config file and add the following lines into t
 ....
 MOUNT C /home/myuser/winroot
 C:
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\WIN386\WIN386.EXE GOTO WIN386
+GOTO END
+
+:WINDOWS
 SET PATH=%PATH%;C:\WINDOWS;
-C:\WINDOWS\WIN
+C:\WINDOWS\WIN.COM
+GOTO END
+
+:WIN386
+SET PATH=%PATH%;C:\WIN386
+C:\WIN386\WIN386.EXE
+GOTO END
+
+:END
 EXIT
 ....
 

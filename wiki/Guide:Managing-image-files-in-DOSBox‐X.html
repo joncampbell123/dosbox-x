@@ -492,6 +492,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_mounting_from_the_drive_menu_2">Mounting from the Drive menu</a></li>
 </ul>
 </li>
+<li><a href="#_specifying_the_partition_to_mount">Specifying the partition to mount</a></li>
 <li><a href="#_unmounting_harddisk_images">Unmounting harddisk images</a></li>
 <li><a href="#_booting_from_a_harddisk_image">Booting from a harddisk image</a></li>
 <li><a href="#_using_harddisk_images_in_linux">Using harddisk images in Linux</a>
@@ -1788,7 +1789,9 @@ You can change the reported DOS version in your DOSBox-X config file by for inst
 <div class="title">Note</div>
 </td>
 <td class="content">
-If a harddisk image has multiple partitions, you can only access the first partition from the DOSBox-X integrated DOS. When booting real DOS in DOSBox-X, all partitions will be accessible.
+If a harddisk image has multiple partitions, by default only the first primary partition will be mounted and accessible from the DOSBox-X integrated DOS.
+You can optionally mount a different partition, but only one partition at a time, can be mounted and be accessible from the integrated DOS.
+When booting real DOS in DOSBox-X, all partitions will be accessible.
 </td>
 </tr>
 </table>
@@ -1906,6 +1909,80 @@ Doing so when running a program, real DOS or Win9x is strongly discouraged as it
 </tr>
 </table>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_the_partition_to_mount">Specifying the partition to mount</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the harddisk image contains multiple partitions, by default DOSBox-X will only mount the first primary partition.</p>
+</div>
+<div class="paragraph">
+<p>You can optionally specify the <code>-o partidx=</code> parameter, where you can specify the partition number you want to mount.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>-1 means autodetect (default)</p>
+</li>
+<li>
+<p>0 is the 1st primary partition</p>
+</li>
+<li>
+<p>1 is the 2nd primary partition</p>
+</li>
+<li>
+<p>2 is the 3rd primary partition</p>
+</li>
+<li>
+<p>3 is the 4th primary partition or the Extended partition</p>
+</li>
+<li>
+<p>4 is the 1st logical partition</p>
+</li>
+<li>
+<p>5 is the 2nd logical partition</p>
+</li>
+<li>
+<p>6 is the 3rd logical partition</p>
+</li>
+<li>
+<p>7 is the 4th logical partition</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>e.g. to mount the 2nd primary partition:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount C: hdd.img -o partidx=1</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X only allows one partition per harddisk image to be mounted in the integrated DOS. When booting real DOS, all partitions will be available.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the harddisk image has an Extended partition, that partition cannot be mounted, but the logical partitions it contains can.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -2669,7 +2746,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>

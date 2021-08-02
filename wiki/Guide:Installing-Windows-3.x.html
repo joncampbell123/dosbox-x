@@ -874,14 +874,10 @@ aspect=false
 <div class="ulist">
 <ul>
 <li>
-<p>Windows 3.0 supports up to 16MB RAM, but Windows 3.1 and 3.11 support up to 256MB, as such for these Windows versions <code>memsize=256</code> is the largest safe value.</p>
+<p>The above config uses 16MB RAM as that is the maximum supported by Windows 3.0, but for Windows 3.1 and 3.11 you can go up to 256MB, as such for these Windows versions <code>memsize=256</code> is the largest safe value.</p>
 </li>
 <li>
-<p>If you want networking in <strong>Windows for Workgroups</strong>, you need to set <code>ne2000=true</code> and change the <code>realnic=</code> value to one suitable for your PC. See:
-<a href="Guide%3A-Setting-up-networking-in-DOSBox-X">Guide: Setting up networking</a> for more information.</p>
-</li>
-<li>
-<p>There are Windows 3.0 and 3.1 drivers for the Tseng Lans ET3000 and ET4000 (<code>machine=svga_et3000</code> and <code>machine=svga_et4000</code> respectively), but for the default <code>machine=svga_s3</code> (S3 Trio64) there are apparently only Windows 3.1 drivers.</p>
+<p>There are Windows 3.0 and 3.1 drivers for the Tseng Labs ET3000 and ET4000 (<code>machine=svga_et3000</code> and <code>machine=svga_et4000</code> respectively), but for the default <code>machine=svga_s3</code> (S3 Trio64) there are apparently only Windows 3.1 drivers.</p>
 </li>
 <li>
 <p>The default S3 video option will offer the broadest range of resolutions and colour depths but do require you to install the correct drivers.</p>
@@ -1073,9 +1069,21 @@ Exit to DOS and type EXIT to close DOSBox-X.</p>
 <div class="content">
 <pre>MOUNT C /home/myuser/winroot
 C:
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\MWINDOWS\WIN.COM GOTO MWINDOWS
+GOTO END
+
+:WINDOWS
 SET PATH=%PATH%;C:\WINDOWS;
 SET TEMP=C:\WINDOWS\TEMP
-C:\WINDOWS\WIN
+C:\WINDOWS\WIN.COM
+
+:MWINDOWS
+SET PATH=%PATH%;C:\MWINDOWS;
+SET TEMP=C:\MWINDOWS\TEMP
+C:\MWINDOWS\WIN.COM
+
+:END
 EXIT</pre>
 </div>
 </div>
@@ -1296,7 +1304,7 @@ Most 3rd party drivers only work in combination with specific hardware. The Ontr
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
 <div class="openblock partintro">
 <div class="content">
-To enable networking, you first need to enable NE2000 adapter emulation in your <code>win3x.conf</code> config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 network adapter emulation in your <code>win3x.conf</code> config file and select an appropriate back-end for the NE2000 emulation.
 </div>
 </div>
 <div class="sect1">
@@ -1304,7 +1312,7 @@ To enable networking, you first need to enable NE2000 adapter emulation in your 
 <div class="sectionbody">
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
-The default is <code>backend=pcap</code>.</p>
+The default back-end is <code>backend=pcap</code>.</p>
 </div>
 <div class="sect2">
 <h3 id="_backendpcap">backend=pcap</h3>
@@ -1429,7 +1437,7 @@ So, unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ d
 <div class="sectionbody">
 <div class="paragraph">
 <p>By default, the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
-However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), which sounds much better.</p>
+However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), and which sounds much better.</p>
 </div>
 <div class="paragraph">
 <p>To set it up, first ensure the SB16 drivers are installed.
@@ -1567,7 +1575,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>

@@ -5,7 +5,7 @@ Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
 DOSBox-X supports many internal or external MS-DOS commands. Also, DOSBox-X offers additional commands such as BOOT, MOUNT and RESCAN, which are not found in MS-DOS or compatibles. Internal commands are built into the DOSBox-X command shell whereas external commands appear as programs on the Z: drive (in subdirectories of this drive as of DOSBox-X version 0.83.14).
 
-Below is a list of internal and external commands built into DOSBox-X.
+Below is a list of internal and external commands built into DOSBox-X. For all internal commands and some external commands, you can type ``command /?`` or ``HELP command`` for more help information on this command, e.g. ``DIR /?`` for help information on DIR command.
 
 * **25/28/50** (external command)
 +
@@ -104,7 +104,9 @@ Note: You can also use CONFIG command to start DOSBox-X’s command-line configu
 +
 Displays the current DOS code page, or changes the current code page when using the TrueType font (TTF) output.
 +
-Usage: CHCP [codepage]
+Usage: CHCP [codepage [file]]
++
+Note: Type CHCP /? to see a list of supported code pages. Specify a code page file for a custom code page.
 * **CHOICE** (internal command)
 +
 Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.
@@ -266,7 +268,7 @@ Note: Specify %%variable instead of %variable when used in a batch file. It is a
 Jumps to a labeled line in a batch script.
 +
 Usage: GOTO label
-* **HELP** (internal command)
+* **HELP** (external command)
 +
 Shows DOSBox-X command help.
 +

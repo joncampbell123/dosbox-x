@@ -449,7 +449,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>DOSBox-X supports many internal or external MS-DOS commands. Also, DOSBox-X offers additional commands such as BOOT, MOUNT and RESCAN, which are not found in MS-DOS or compatibles. Internal commands are built into the DOSBox-X command shell whereas external commands appear as programs on the Z: drive (in subdirectories of this drive as of DOSBox-X version 0.83.14).</p>
 </div>
 <div class="paragraph">
-<p>Below is a list of internal and external commands built into DOSBox-X.</p>
+<p>Below is a list of internal and external commands built into DOSBox-X. For all internal commands and some external commands, you can type <code>command /?</code> or <code>HELP command</code> for more help information on this command, e.g. <code>DIR /?</code> for help information on DIR command.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -615,7 +615,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Displays the current DOS code page, or changes the current code page when using the TrueType font (TTF) output.</p>
 </div>
 <div class="paragraph">
-<p>Usage: CHCP [codepage]</p>
+<p>Usage: CHCP [codepage [file]]</p>
+</div>
+<div class="paragraph">
+<p>Note: Type CHCP /? to see a list of supported code pages. Specify a code page file for a custom code page.</p>
 </div>
 </li>
 <li>
@@ -904,7 +907,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>HELP</strong> (internal command)</p>
+<p><strong>HELP</strong> (external command)</p>
 <div class="paragraph">
 <p>Shows DOSBox-X command help.</p>
 </div>
@@ -1499,7 +1502,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>

@@ -457,7 +457,9 @@ NOTE: If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mou
 Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
 You can change the reported DOS version in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance ``ver set 7.1``.
 
-NOTE: If a harddisk image has multiple partitions, you can only access the first partition from the DOSBox-X integrated DOS. When booting real DOS in DOSBox-X, all partitions will be accessible.
+NOTE: If a harddisk image has multiple partitions, by default only the first primary partition will be mounted and accessible from the DOSBox-X integrated DOS.
+You can optionally mount a different partition, but only one partition at a time, can be mounted and be accessible from the integrated DOS.
+When booting real DOS in DOSBox-X, all partitions will be accessible.
 
 A harddisk image that is partitioned, but not formatted, or has an unsupported filesystem can be mounted as follows:
 ....
@@ -502,6 +504,31 @@ Select the Drive menu, and for instance the "C" drive and "Mount disk image", no
 
 CAUTION: It is recommended to only mount harddisk images when at the integrated DOSBox-X DOS prompt.
 Doing so when running a program, real DOS or Win9x is strongly discouraged as it can lead to data corruption and/or crashes.
+
+## Specifying the partition to mount
+If the harddisk image contains multiple partitions, by default DOSBox-X will only mount the first primary partition.
+
+You can optionally specify the ``-o partidx=`` parameter, where you can specify the partition number you want to mount.
+
+- -1 means autodetect (default)
+- 0 is the 1st primary partition
+- 1 is the 2nd primary partition
+- 2 is the 3rd primary partition
+- 3 is the 4th primary partition or the Extended partition
+- 4 is the 1st logical partition
+- 5 is the 2nd logical partition
+- 6 is the 3rd logical partition
+- 7 is the 4th logical partition
+
+e.g. to mount the 2nd primary partition:
+
+....
+imgmount C: hdd.img -o partidx=1
+....
+
+NOTE: DOSBox-X only allows one partition per harddisk image to be mounted in the integrated DOS. When booting real DOS, all partitions will be available.
+
+NOTE: If the harddisk image has an Extended partition, that partition cannot be mounted, but the logical partitions it contains can.
 
 ## Unmounting harddisk images
 Harddisk images can be unmounted using the ``-u`` flag. e.g.
@@ -815,7 +842,6 @@ Some limitations of this support:
 
 * Requires an image to be mounted before you boot a Guest OS, otherwise you will get an error such as "No floppy drive is currently available.". In other words, you cannot boot with an empty drive, and then add an image later.
 * You cannot "eject" or unmount an image
-
 
 # Outstanding issues with this page
 

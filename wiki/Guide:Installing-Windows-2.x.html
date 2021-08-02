@@ -717,6 +717,9 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 <li>
 <p><a href="http://www.os2museum.com/wp/windows386-2-01/">os2museum: Windows/386 2.01</a></p>
 </li>
+<li>
+<p><a href="http://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
+</li>
 </ul>
 </div>
 </div>
@@ -1266,8 +1269,21 @@ And then press enter.</p>
 <div class="content">
 <pre>MOUNT C /home/myuser/winroot
 C:
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\WIN386\WIN386.EXE GOTO WIN386
+GOTO END
+
+:WINDOWS
 SET PATH=%PATH%;C:\WINDOWS;
-C:\WINDOWS\WIN
+C:\WINDOWS\WIN.COM
+GOTO END
+
+:WIN386
+SET PATH=%PATH%;C:\WIN386
+C:\WIN386\WIN386.EXE
+GOTO END
+
+:END
 EXIT</pre>
 </div>
 </div>
@@ -1301,7 +1317,7 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 2.x, remove the <
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>

@@ -507,7 +507,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1 id="_overview" class="sect0">Overview</h1>
 <div class="openblock partintro">
 <div class="content">
-DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.
+<div class="paragraph">
+<p>DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.</p>
+</div>
+<div class="paragraph">
+<p>Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of
+DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1269,7 +1275,7 @@ realnic="Realtek USB NIC"</pre>
 <p>This example uses mTCP to test if networking is working in DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver.</p>
+<p>This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver (the latter is included in DOSBox-X as of version 0.83.15 when the NE2000 networking feature is enabled).</p>
 </div>
 <div class="paragraph">
 <p><strong>External links</strong></p>
@@ -1597,7 +1603,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>

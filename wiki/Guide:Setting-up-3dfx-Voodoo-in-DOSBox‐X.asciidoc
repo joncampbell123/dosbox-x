@@ -18,8 +18,10 @@ As these where the early days of 3D acceleration, it uses its own proprietary Gl
 
 DOSBox-X has support for emulating the 3dfx Voodoo in one of two modes.
 
-* Low-Level Emulation, emulating the 3dfx Voodoo 1 hardware. This requires a fairly fast PC.
+* Low-Level Emulation, emulating the 3dfx Voodoo 1 hardware. This requires a very fast PC.
 * High-Level Emulation, where the Glide API calls are passed through to the host OS, where it is then converted to a modern 3D Graphics API.
+
+You can find out whether they are currently enabled in DOSBox-X from the menu group ``Video`` => ``3dfx emulation``.
 
 ## [voodoo] options
 This section will list the available 3dfx Voodoo configuration options that DOSBox-X provides.
@@ -32,6 +34,8 @@ Unless otherwise noted the options effecting the 3dfx Voodoo emulation are in th
 Enables low-level Voodoo card hardware emulation.
 
 The "auto" option means it will try to use OpenGL if possible, and otherwise fallback to software rendering.
+
+NOTE: This emulation mode does not work in fullscreen mode.
 
 ### voodoo_maxmem
 * Default value: true
@@ -48,6 +52,9 @@ If true (default), the memory size will be 12MB (4MB front buffer + 2x4MB textur
 Enables high-level Glide API pass-through to the host OS.
 This requires that the host OS has a Glide API library (or Glide wrapper) installed, and in addition it requires the special GLIDE2X.OVL file provided by DOSBox-X, or for Windows 9x games a specially patched link:https://www.vogons.org/download/file.php?id=102360[GLIDE2X.DLL].
 
+NOTE: This only works for games that dynamically link to the external GLIDE2X library.
+It does not work for so-called statically linked games that have the GLIDE library code integrated with the game code.
+
 ### lfb
 * Default value: full_noaux
 * Possible values: full, full_noaux, read, read_noaux, write, write_noaux, none
@@ -60,7 +67,7 @@ NOTE: OpenGlide does not support locking aux buffer, as such please use _noaux m
 * Default value: true
 * Possible values: true, false
 
-Show 3dfx splash screen
+Show 3dfx splash screen on game startup
 
 This option only applies when using the high-level Glide API emulation, where the 3dfx splash screen is otherwise not shown.
 This has no effect when using the low-level Voodoo adapter emulation, where the 3dfx splash screen will always be shown when the Voodoo adapter is initialized by the game.
@@ -87,12 +94,14 @@ Another way to circumvent this issue with the 3dfx drivers, is by emulating a Pe
 
 ## Low Level emulation
 This emulation mode has been supported by DOSBox-X for a long time.
-It emulates the original 3dfx Voodoo 1 chipset, and therefore works with the official 3dfx DOS and Windows drivers.
+It emulates the original 3dfx Voodoo 1 chipset, and therefore works with the official 3dfx DOS and Windows 9x drivers.
 It is the easiest mode to get working, and is in fact enabled by default.
 Depending on the game, you may not have to do anything, or you just need to select 3dfx Voodoo in the setup program.
 Some other games may require that you install a patch, or that you run a different executable to start in 3dfx mode.
 
 The main disadvantage of this mode, is that it requires a PC with a very fast CPU (high clock frequency) to emulate the Voodoo adapter.
+
+NOTE: Most DOS games shipped with copy of the 3dfx ``glide2x.ovl`` library. For low level emulation it is important that you use an official version of this library.
 
 ## High Level emulation
 This mode requires DOSBox-X 0.83.5 or newer, and it only works for DOS games that use the ``GLIDE2X.OVL`` library.
@@ -104,7 +113,7 @@ However, it also requires a few more steps to get working.
 The biggest issue is that the Host OS needs to have a Glide API pass-through library installed (``glide2x.dll`` for Windows, ``libglide2x.so`` for Linux, and ``libglide2x.dylib`` for macOS),
 and that you use the special ``GLIDE2X.OVL`` provided in DOSBox-X (or for Windows 9x games the special link:https://www.vogons.org/download/file.php?id=102360[GLIDE2X.DLL]), instead of one that may be provided with the game or provided by 3dfx.
 
-When DOSBox-X is started with ``glide=true``, **and** you have a compatible glide wrapper installed on the host, the special ``GLIDE2X.OVL`` file for DOS games will automatically appear on the emulated Z: drive (Z:\SYSTEM in DOSBox-X version 0.83.14 or later).
+When DOSBox-X is started with ``glide=true``, **and** you have a compatible glide wrapper installed on the host, the special modified ``GLIDE2X.OVL`` file for DOS games will automatically appear on the emulated Z: drive (Z:\SYSTEM in DOSBox-X version 0.83.14 or later).
 
 If the game already provides a ``GLIDE2X.OVL`` file located in the game directory, then you need to rename the game's original GLIDE2X.OVL file to something like GLIDE2X.ORG.
 Then the game can usually find the ``GLIDE2X.OVL`` library on the Z: drive automatically, but if not, you also need to copy the GLIDE2X.OVL file from the Z: drive to the game directory for use with the game.
@@ -113,6 +122,10 @@ NOTE: It is good to keep a backup of the games original ``GLIDE2X.OVL`` file, as
 Hardware emulation requires that you use the games original Glide library, and not the special one used for pass-through.
 
 NOTE: If you want to boot a real DOS in DOSBox-X and still use Glide pass-through, you need to copy the ``GLIDE2X.OVL`` file from the Z: drive to your DOS harddisk image.
+
+NOTE: Not all DOS games that support 3dfx use the separate (dynamically linked) GLIDE2X.OVL library.
+Some are statically linked (the GLIDE library code was integrated with the game code during compilation).
+Those games are NOT compatible with GLIDE pass-through mode, and need to be run in low-level emulation mode instead.
 
 ### Windows host: Installing glide2x.dll
 
@@ -296,14 +309,16 @@ NoSplash=1
 ## No GLIDE2X.OVL on Z: drive
 Q: I have set ``glide=true`` in my config file, yet there is no ``GLIDE2X.OVL`` to be found in ``Z:\SYSTEM``?
 
-A: In addition to setting ``glide=true``, DosBOX-X also checks if it finds a compatible glide library on the host. If this check fails, ``GLIDE2X.OVL`` will not appear.
+A: In addition to setting ``glide=true``, DosBOX-X also checks if it finds a compatible glide library on the host. If this check fails, ``GLIDE2X.OVL`` will not appear, and the menu option ``Video`` ⇒ ``3dfx emulation`` => ``Glide passthrough`` will not be checked.
 
 The glide library installed on the host needs to be the same CPU architecture as the DOSBox-X executable. So for instance, if you are using a 32bit x86 Glide library, such as nGlide, you must also use a 32bit x86 DOSBox-X executable.
 
 ## No 3dfx splash screen
 Q: I don't see the 3dfx splash screen when starting a game
 
-A: This is normal when your running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x). But the special versions used for Glide pass-through to the host do not have this animation. If your running Windows, you may want to have a look at the ``splash=true`` setting, mentioned above.
+A: This is normal when your running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
+But the special versions used for Glide pass-through to the host do not have this animation.
+If your running Windows, you may want to have a look at the ``splash=true`` setting, mentioned above.
 
 ## Slow Glide emulation
 Q: I set ``glide=true`` yet the game is very slow
@@ -312,4 +327,5 @@ A: Most likely your not actually running in glide pass-through mode, even though
 
 One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game. If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.
 
-To run in Glide pass-through mode, the ``GLIDE2X.OVL`` file **must** appear at ``Z:\SYSTEM`` when you start DOSBox-X, and you must be sure no other ``GLIDE2X.OVL`` file is being found by the game. For instance, if there is a ``GLIDE2X.OVL`` file in the game directory, rename it and try again.
+To run in Glide pass-through mode, the ``GLIDE2X.OVL`` file **must** appear at ``Z:\SYSTEM`` when you start DOSBox-X, and you must be sure no other ``GLIDE2X.OVL`` file is being found by the game.
+For instance, if there is a ``GLIDE2X.OVL`` file in the game directory, rename it, and try again.

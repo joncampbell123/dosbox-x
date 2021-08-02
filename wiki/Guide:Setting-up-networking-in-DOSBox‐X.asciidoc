@@ -12,6 +12,9 @@ toc::[]
 # Overview
 DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.
 
+Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of 
+DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.
+
 ## NE2000 resource usage
 By default the emulated NE2000 will use IRQ 3 and IO range 300-31F.
 This is typical of a real NE2000 adapter, and some NE2000 drivers will look there by default.
@@ -421,7 +424,7 @@ You can merge your config snippet with your Windows for Workgroups, Windows 95 o
 # mTCP example
 This example uses mTCP to test if networking is working in DOSBox-X.
 
-This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver.
+This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver (the latter is included in DOSBox-X as of version 0.83.15 when the NE2000 networking feature is enabled).
 
 *External links*
 

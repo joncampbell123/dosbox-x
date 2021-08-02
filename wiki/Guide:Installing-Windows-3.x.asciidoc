@@ -134,10 +134,8 @@ Copy the above config and save it as *win3x.conf*
 
 *Notes*
 
-* Windows 3.0 supports up to 16MB RAM, but Windows 3.1 and 3.11 support up to 256MB, as such for these Windows versions ``memsize=256`` is the largest safe value.
-* If you want networking in *Windows for Workgroups*, you need to set ``ne2000=true`` and change the ``realnic=`` value to one suitable for your PC. See:
- link:Guide%3A-Setting-up-networking-in-DOSBox-X[Guide: Setting up networking] for more information.
-* There are Windows 3.0 and 3.1 drivers for the Tseng Lans ET3000 and ET4000 (``machine=svga_et3000`` and ``machine=svga_et4000`` respectively), but for the default ``machine=svga_s3`` (S3 Trio64) there are apparently only Windows 3.1 drivers.
+* The above config uses 16MB RAM as that is the maximum supported by Windows 3.0, but for Windows 3.1 and 3.11 you can go up to 256MB, as such for these Windows versions ``memsize=256`` is the largest safe value.
+* There are Windows 3.0 and 3.1 drivers for the Tseng Labs ET3000 and ET4000 (``machine=svga_et3000`` and ``machine=svga_et4000`` respectively), but for the default ``machine=svga_s3`` (S3 Trio64) there are apparently only Windows 3.1 drivers.
 * The default S3 video option will offer the broadest range of resolutions and colour depths but do require you to install the correct drivers.
 
 # Preparing for installation
@@ -229,9 +227,21 @@ Now edit your win3x.conf config file and add the following lines into the [autoe
 ....
 MOUNT C /home/myuser/winroot
 C:
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\MWINDOWS\WIN.COM GOTO MWINDOWS
+GOTO END
+
+:WINDOWS
 SET PATH=%PATH%;C:\WINDOWS;
 SET TEMP=C:\WINDOWS\TEMP
-C:\WINDOWS\WIN
+C:\WINDOWS\WIN.COM
+
+:MWINDOWS
+SET PATH=%PATH%;C:\MWINDOWS;
+SET TEMP=C:\MWINDOWS\TEMP
+C:\MWINDOWS\WIN.COM
+
+:END
 EXIT
 ....
 
@@ -342,12 +352,12 @@ There are 3rd party 32-Bit Disk Access drivers which _may_ allow it to function 
 Most 3rd party drivers only work in combination with specific hardware. The Ontrack ``ontrackw.386`` driver does work in DOSBox-X but seems to have similar restrictions.
 
 # Enabling networking
-To enable networking, you first need to enable NE2000 adapter emulation in your ``win3x.conf`` config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 network adapter emulation in your ``win3x.conf`` config file and select an appropriate back-end for the NE2000 emulation.
 
 ## Enabling NE2000 in your DOSBox-X config file
 
 Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
-The default is ``backend=pcap``.
+The default back-end is ``backend=pcap``.
 
 ### backend=pcap
 The PCAP back-end uses something called "Promiscuous mode".
@@ -421,7 +431,7 @@ So, unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ d
 
 ## Enabling external MIDI in Windows 3.1x
 By default, the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
-However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), which sounds much better.
+However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), and which sounds much better.
 
 To set it up, first ensure the SB16 drivers are installed.
 Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".

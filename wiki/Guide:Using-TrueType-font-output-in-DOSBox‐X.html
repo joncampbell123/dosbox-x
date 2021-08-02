@@ -509,7 +509,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_use_your_own_truetype_font_for_the_output">Use your own TrueType font for the output</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different monospaced TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference (and your language). If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
+<p>By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference (and your language). If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
 </div>
 <div class="paragraph">
 <p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>). These can also be used for rendering texts in the TrueType output.</p>
@@ -573,13 +573,13 @@ CONFIG -set font=</code></pre>
 <p>The above commands will change the TTF font to <code>Consola.ttf</code> and the built-in TrueType font respectively.</p>
 </div>
 <div class="paragraph">
-<p>If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a <code>CHCP</code> command to view or change the current DOS code page for TTF output. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font.</p>
+<p>If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a <code>CHCP</code> command to view or change the current DOS code page for TTF output. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish), and it is also recommended to use a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font. Starting with DOSBox-X version 0.83.16, you can also specify a custom code page file via an optional second parameter of <code>CHCP</code> command (e.g. <code>CHCP 1000 MYCODEPAGE.TXT</code>), or via the <code>customcodepage</code> config option in [dos] section.</p>
 </div>
 <div class="paragraph">
-<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Shift-JIS characters (Kana, Kanji, etc) will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
+<p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Japanese characters will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Simplified or Traditional Chinese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a> or a TTF font like <code>simkai.ttf</code> (included in some language versions of Windows). Automatic detection of box-drawing characters is enabled for CJK mode by default, but can be disabled with the <code>autoboxdraw</code> config option. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
+<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a>, <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a> (which looks very nice), or a TTF font like <code>simkai.ttf</code> (included in some versions of Windows). See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -667,7 +667,7 @@ fontboit=Consolaz</code></pre>
 <p>Then the regular text will be rendered using the Consola.ttf font, whereas the bold text, italic text, and bold-italic text in XyWrite (as specified by <code>wp=XY</code> in this case) will be rendered using the Consolab.ttf, Consolai.ttf, Consolaz.ttf respectively.</p>
 </div>
 <div class="paragraph">
-<p>If you set <code>wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>char512=false`</code> in the [ttf] section of the configuration.</p>
+<p>If you set <code>wp=WP</code> which sets WordPerfect as the word processor, the 512-character font (with 256 additional characters from the second VGA font bank) will be supported by default for use with WordPerfect. This can be disabled by setting <code>char512=false</code> in the [ttf] section of the configuration.</p>
 </div>
 <div class="paragraph">
 <p>If you set <code>wp=WS</code> (or <code>wp=FE</code>) which sets WordStar (or FastEdit) as the word processor, then you probably want to set <code>high intensity blinking</code> to <code>false</code> for some text styles to be properly displayed visually. You can also toggle this from the menu ("Video" &#8658; "Text-mode" &#8658; "High intensity: background color"). This option is functionally equivalent to the 4DOS.INI option <code>BrightBG=Yes</code> if you use the 4DOS shell.</p>
@@ -759,7 +759,7 @@ SETCOLOR 1 -
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-07-01 21:28:18 -0400
+Last updated 2021-08-01 23:42:06 -0400
 </div>
 </div>
 </body>
