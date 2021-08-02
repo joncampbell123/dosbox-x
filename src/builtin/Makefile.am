@@ -26,7 +26,9 @@ libbuiltin_a_SOURCES = \
 	defrag_exe.cpp \
 	fdisk_exe.cpp \
 	format_exe.cpp \
+	chkdsk_exe.cpp \
 	copy_exe.cpp \
+	sys_com.cpp \
 	28_com.cpp \
 	50_com.cpp \
 	25_com.cpp
