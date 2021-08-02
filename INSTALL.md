@@ -14,7 +14,7 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 ## Packages for Supported Platforms
 
 - [Windows Packages (Installer or Portable)](#windows-packages-installer-or-portable)
-- [Linux Packages (Flatpak or RPM)](#linux-packages-flatpak-or-rpm)
+- [Linux Packages (Flatpak or RPM)](#linux-packages-flatpak-or-fedora_package)
 - [macOS Packages (Portable)](#macos-packages-portable)
 - [DOS Packages (Portable)](#dos-packages-portable)
 - [Source Code Packages (zip or tar.gz)](#source-code-packages-zip-or-targz)
@@ -46,11 +46,9 @@ The Visual Studio builds are the default Windows builds to use, but they only ru
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW SDL1 build for lower-end systems (mingw-lowend), MinGW SDL1 build with custom drawn menu (mingw-sdldraw), and MinGW SDL2 build (mingw-sdl2). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
-## Linux Packages (Flatpak or RPM)
+## Linux Packages (Flatpak or Fedora package)
 
-(Linux packages for version 0.83.16 coming soon)
-
-Both Flatpak and RPM packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
+Both Flatpak and Fedora/RPM packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
 Flatpak packages are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.1 the Linux Flatpak is available from:
 
@@ -76,15 +74,11 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Official RPM packages are not available for the current version 0.83.15; you can however get locally built 64-bit Fedora RPM package for it from:
+Alternatively, if you use Fedora Linux you can also get the Fedora Copr package for DOSBox-X from:
 
-* [dosbox-x-0.83.15-1.fc34.x86_64.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.x86_64.rpm)
+* [Fedora Copr DOSBox-X page](https://copr.fedorainfracloud.org/coprs/rob72/DOSBox-X/)
 
-The Fedora RPM source code package:
-
-* [dosbox-x-0.83.15-1.fc34.src.rpm](https://github.com/rderooy/dosbox-x-rpm/raw/master/dosbox-x-0.83.15-1.fc34.src.rpm)
-
-Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
+Official RPM packages are not available for the current version 0.83.16, but they are available for some previous DOSBox-X versions. Simply pick the RPM package(s) for the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
 ``sudo rpm -i <filename>.rpm``
 
@@ -134,13 +128,11 @@ macOS versions earlier than 10.12 (Sierra) are not officially supported. If you 
 
 ## DOS Packages (Portable)
 
-(DOS packages for version 0.83.16 coming soon)
-
 Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator. With DOSBox-X running in DOS you are able to emulate another DOS system with a different PC configuration (such as different machine types, video and sound cards etc) that works better for the purpose of the users. But please note that due to the limitations of this environment not all features of DOSBox-X that are available in other platforms can be supported in the DOS version.
 
-For the previous DOSBox-X version 0.83.15, the official DOS version is available in the following zip package:
+For the current DOSBox-X version 0.83.16, the official DOS version is available in the following zip package:
 
-* [dosbox-x-mingw-hx-dos-20210701082051.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-hx-dos-20210701082051.zip)
+* [dosbox-x-mingw-hx-dos-20210801212637.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.16/dosbox-x-mingw-hx-dos-20210801212637.zip)
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
