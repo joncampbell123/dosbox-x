@@ -1279,7 +1279,7 @@ ECHO狀態為關.
 
 .
 :SHELL_ILLEGAL_SWITCH
-開關不合法的 - %s
+不合法的切換參數 - %s
 
 .
 :SHELL_MISSING_PARAMETER
