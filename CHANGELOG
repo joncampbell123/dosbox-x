@@ -3,8 +3,11 @@
     LABEL without specifying one, do not ask whether
     or not to delete the volume label because there
     is in fact no volume label to delete. (joncampbell123)
-  - Added FreeDOS utilities DEFRAG, FORMAT, and FDISK
-    to the built-in Z drive. (joncampbell123)
+  - Added FreeDOS utilities DEFRAG, FORMAT, FDISK,
+    CHKDSK, and SYS to the built-in Z drive. KERNEL.SYS
+    is not provided so that the user can provide what
+    they consider the best version of the FreeDOS kernel
+    to format with if they use FORMAT /S (joncampbell123)
   - INT 29h routes output through ANSI.SYS driver in
     both IBM PC and PC-98 mode, unless ansi.sys=false
     is set in the config setting. (joncampbell123)
