@@ -1,4 +1,8 @@
 0.83.17
+  - If a drive has no volume label, and user runs
+    LABEL without specifying one, do not ask whether
+    or not to delete the volume label because there
+    is in fact no volume label to delete. (joncampbell123)
   - Added FreeDOS utilities DEFRAG, FORMAT, and FDISK
     to the built-in Z drive. (joncampbell123)
   - INT 29h routes output through ANSI.SYS driver in
