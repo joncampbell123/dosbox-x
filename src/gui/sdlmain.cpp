@@ -11307,7 +11307,7 @@ void SetWindowTransparency(int trans) {
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
-#elif defined(WIN32)
+#elif defined(WIN32) && !defined(HX_DOS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
 #elif defined(LINUX) && C_X11
