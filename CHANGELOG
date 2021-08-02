@@ -1,4 +1,6 @@
 0.83.17
+  - Added FreeDOS utilities DEFRAG, FORMAT, and FDISK
+    to the built-in Z drive. (joncampbell123)
   - INT 29h routes output through ANSI.SYS driver in
     both IBM PC and PC-98 mode, unless dosbox.conf
     setting says ansi.sys=false (joncampbell123)
