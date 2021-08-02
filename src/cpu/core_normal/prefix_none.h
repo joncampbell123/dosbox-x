@@ -544,6 +544,7 @@
 			//Little hack to always use segprefixed version
 			BaseDS=BaseSS=0;
 			GetRMrw;
+			if (rm >= 0xc0) goto illegal_opcode;     // Direct register causes #UD exception
 			if (TEST_PREFIX_ADDR) {
 				*rmrw=(uint16_t)(*EATable[256+rm])();
 			} else {
