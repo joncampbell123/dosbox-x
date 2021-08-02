@@ -6304,6 +6304,9 @@ class LABEL : public Program
 				uint8_t c,ans=0;
 				uint16_t s;
 
+				/* It does not make sense to say drive C: has no label, then prompt to delete it */
+				if ((*Drives[drive]->GetLabel()) == 0) return;
+
 				inshell = true;
 				do {
 					WriteOut("Delete the volume label (Y/N)? ");
