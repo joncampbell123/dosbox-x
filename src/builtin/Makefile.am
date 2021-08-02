@@ -23,6 +23,9 @@ libbuiltin_a_SOURCES = \
 	edit_com.cpp \
 	device_com.cpp \
 	buffers_com.cpp \
+	defrag_exe.cpp \
+	fdisk_exe.cpp \
+	format_exe.cpp \
 	copy_exe.cpp \
 	28_com.cpp \
 	50_com.cpp \

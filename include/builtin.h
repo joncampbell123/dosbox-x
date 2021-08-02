@@ -66,4 +66,7 @@ extern struct BuiltinFileBlob bfb_132X60_COM;	// 132X60.COM
 extern struct BuiltinFileBlob bfb_132X50_COM;	// 132X50.COM
 extern struct BuiltinFileBlob bfb_132X43_COM;	// 132X43.COM
 extern struct BuiltinFileBlob bfb_132X25_COM;	// 132X25.COM
+extern struct BuiltinFileBlob bfb_DEFRAG_EXE;	// DEFRAG.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
 
