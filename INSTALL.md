@@ -134,13 +134,11 @@ macOS versions earlier than 10.12 (Sierra) are not officially supported. If you 
 
 ## DOS Packages (Portable)
 
-(DOS packages for version 0.83.16 coming soon)
-
 Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator. With DOSBox-X running in DOS you are able to emulate another DOS system with a different PC configuration (such as different machine types, video and sound cards etc) that works better for the purpose of the users. But please note that due to the limitations of this environment not all features of DOSBox-X that are available in other platforms can be supported in the DOS version.
 
-For the previous DOSBox-X version 0.83.15, the official DOS version is available in the following zip package:
+For the current DOSBox-X version 0.83.16, the official DOS version is available in the following zip package:
 
-* [dosbox-x-mingw-hx-dos-20210701082051.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.15/dosbox-x-mingw-hx-dos-20210701082051.zip)
+* [dosbox-x-mingw-hx-dos-20210801212637.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.16/dosbox-x-mingw-hx-dos-20210801212637.zip)
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS 5.0+ or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
