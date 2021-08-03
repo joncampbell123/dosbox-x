@@ -1421,6 +1421,15 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 					return;
 				}
 
+				for (size_t i=0;i < parts.size();i++) {
+					const _PC98RawPartition &part = parts[i];
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("IPL #%u: boot=%u active=%u startchs=%u/%u/%u endchs=%u/%u/%u '%s'",
+						(unsigned int)i,(part.mid&0x80)?1:0,(part.sid&0x80)?1:0,
+						part.cyl,part.head,part.sector,part.end_cyl,part.end_head,part.end_sector,
+						std::string((char*)part.name,sizeof(part.name)).c_str());
+				}
+
 				if (opt_partition_index >= 0) {
 					/* user knows best! */
 					if ((size_t)opt_partition_index >= parts.size()) {
