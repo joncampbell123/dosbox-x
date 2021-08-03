@@ -502,4 +502,7 @@ bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *load
 bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk);
 std::string PartitionIdentifyType(imageDisk *loadedDisk);
 
+void LogPrintPartitionTable(const std::vector<_PC98RawPartition> &parts);
+void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts);
+
 #endif
