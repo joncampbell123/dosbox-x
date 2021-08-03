@@ -69,6 +69,28 @@ int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts) {
 	return -1;
 }
 
+int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts) {
+	for (size_t i=0;i < parts.size();i++) {
+		const partTable::partentry_t &pe = parts[i];
+
+		if (pe.parttype == 0x01/*FAT12*/ ||
+			pe.parttype == 0x04/*FAT16*/ ||
+			pe.parttype == 0x06/*FAT16*/) {
+			return (int)i;
+		}
+		else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
+			if (dos.version.major >= 7) /* MS-DOS 7.0 or higher */
+				return (int)i;
+		}
+		else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
+			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) /* MS-DOS 7.10 or higher */
+				return (int)i;
+		}
+	}
+
+	return -1;
+}
+
 bool filename_not_8x3(const char *n) {
 	bool lead;
 	unsigned int i;
@@ -1481,7 +1503,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			else if (ptype == "MBR") {
 				/* IBM PC master boot record search */
 				std::vector<partTable::partentry_t> parts;
-				size_t m = 0;
+				int chosen_idx = (int)parts.size();
 
 				/* store partitions into a vector, including extended partitions */
 				LOG_MSG("FAT: Partition type is MBR (IBM PC)");
@@ -1493,69 +1515,23 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 				LogPrintPartitionTable(parts);
 
-				if (opt_partition_index >= 0) {
-					/* user knows best! */
-					if ((size_t)opt_partition_index >= parts.size()) {
-						LOG_MSG("Partition index out of range");
-						created_successfully = false;
-						return;
-					}
+				/* user knows best! */
+				if (opt_partition_index >= 0)
+					chosen_idx = opt_partition_index;
+				else
+					chosen_idx = MBRAutoChoose_FAT(parts);
 
-					startSector = parts[m=opt_partition_index].absSectStart;
-					countSector = parts[m=opt_partition_index].partSize;
+				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
+					LOG_MSG("No partition chosen");
+					created_successfully = false;
+					return;
 				}
-				else {
-					for (m=0;(size_t)m < parts.size();m++) {
-						/* Pick the first available partition */
-						if (parts[m].parttype == 0x01 || parts[m].parttype == 0x04 || parts[m].parttype == 0x06) {
-							parts[m].absSectStart = var_read(&parts[m].absSectStart);
-							parts[m].partSize = var_read(&parts[m].partSize);
-							LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-							startSector = parts[m].absSectStart;
-							countSector = parts[m].partSize;
-							break;
-						}
-						else if (parts[m].parttype == 0x0E/*FAT16B LBA*/) {
-							if (dos.version.major < 7 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to change the reported DOS version to 7.0 now?","yesno", "question", 1)) {
-								dos.version.major = 7;
-								dos.version.minor = 0;
-								dos_ver_menu(false);
-							}
-							if (dos.version.major >= 7) { /* MS-DOS 7.0 or higher */
-								parts[m].absSectStart = var_read(&parts[m].absSectStart);
-								parts[m].partSize = var_read(&parts[m].partSize);
-								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-								startSector = parts[m].absSectStart;
-								countSector = parts[m].partSize;
-							} else {
-								req_ver_major = 7; req_ver_minor = 0;
-							}
-							break;
-						}
-						else if (parts[m].parttype == 0x0B || parts[m].parttype == 0x0C) { /* FAT32 types */
-							if ((dos.version.major < 7 || ((dos.version.major == 7 && dos.version.minor < 10))) && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to change the reported DOS version to 7.10 now?","yesno", "question", 1)) {
-								dos.version.major = 7;
-								dos.version.minor = 10;
-								dos_ver_menu(true);
-							}
-							if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* MS-DOS 7.10 or higher */
-								parts[m].absSectStart = var_read(&parts[m].absSectStart);
-								parts[m].partSize = var_read(&parts[m].partSize);
-								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-								startSector = parts[m].absSectStart;
-								countSector = parts[m].partSize;
-							} else {
-								req_ver_major = 7; req_ver_minor = 10;
-							}
-							break;
-						}
-					}
 
-					if (m == parts.size()) {
-						LOG_MSG("No good partition found in image.");
-						created_successfully = false;
-						return;
-					}
+				{ /* assume chosen_idx is in range */
+					const partTable::partentry_t &pe = parts[(size_t)chosen_idx];
+
+					startSector = pe.absSectStart;
+					countSector = pe.partSize;
 				}
 			}
 			else {
