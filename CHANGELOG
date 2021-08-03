@@ -1,4 +1,12 @@
 0.83.17
+  - Added -bd <n> option to IMGMOUNT to allow mounting
+    partitions from a hard disk image mounted as an
+    INT 13h hard disk. <n> is the numeric value the
+    hard disk image was mounted to. In this way, it
+    becomes possible to mount any or all partitions
+    in a hard disk image. WARNING: To safely mount
+    multiple partitions, use -o partidx=<n> to specify
+    each partition you mount by index. (joncampbell123)
   - If a drive has no volume label, and user runs
     LABEL without specifying one, do not ask whether
     or not to delete the volume label because there
