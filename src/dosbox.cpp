@@ -2073,7 +2073,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the yen symbol (¥) at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
+	Pbool->Set_help("Enables the Japanese yen symbol at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
