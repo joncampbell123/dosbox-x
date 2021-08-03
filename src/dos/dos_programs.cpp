@@ -238,7 +238,7 @@ static const char* UnmountHelper(char umount) {
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
-        delete imageDiskList[i_drive];
+        imageDiskList[i_drive]->Release();
         imageDiskList[i_drive] = NULL;
     }
     if (swapInDisksSpecificDrive == i_drive) {
