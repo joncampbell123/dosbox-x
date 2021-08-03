@@ -5272,7 +5272,9 @@ private:
     bool MountPartitionFat(const char drive, const int src_bios_disk) {
         unsigned char driveIndex = drive - 'A';
 
-	if (driveIndex >= 26) {
+	/* NTS: IBM PC systems: Hard disk partitions must start at C: or higher.
+	 *      PC-98 systems: Any drive letter is valid, A: can be a hard drive. */
+	if ((!IS_PC98_ARCH && driveIndex < 2) || driveIndex >= 26) {
 		WriteOut("Invalid drive letter");
 		return false;
 	}
