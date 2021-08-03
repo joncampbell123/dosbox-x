@@ -1673,6 +1673,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
@@ -1681,6 +1682,10 @@ void SHELL_Init() {
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
+		VFILE_RegisterBuiltinFileBlob(bfb_SYS_COM, "/DOS/"); /* may rely on INT 13h or IBM PC specific functions and layout */
+		VFILE_RegisterBuiltinFileBlob(bfb_FDISK_EXE, "/DOS/"); /* relies on IBM PC INT 13h */
+		VFILE_RegisterBuiltinFileBlob(bfb_FORMAT_EXE, "/DOS/"); /* does not work in PC-98 mode */
+		VFILE_RegisterBuiltinFileBlob(bfb_DEFRAG_EXE, "/DOS/"); /* relies on IBM PC CGA/EGA/VGA alphanumeric display memory */
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");

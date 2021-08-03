@@ -777,13 +777,13 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
         if (keyb.enable_aux)
             keyb.command=CMD_WRITEAUXOUT;
         else if (aux_warning++ == 0)
-            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox.conf");
+            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox-x.conf");
         break;
     case 0xd4:      /* send byte to AUX */
         if (keyb.enable_aux)
             keyb.command=CMD_WRITEAUX;
         else if (aux_warning++ == 0)
-            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox.conf");
+            LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox-x.conf");
         break;
     case 0xe0:      /* read test port */
         KEYBOARD_Add8042Response(0x00);

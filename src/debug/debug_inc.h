@@ -102,6 +102,7 @@ public:
     int win_next_by_order(int order);
     void swap_order(int o1,int o2);
     void next_window(void);
+    void prev_window(void);
 };
 
 

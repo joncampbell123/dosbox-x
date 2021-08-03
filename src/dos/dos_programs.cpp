@@ -6230,98 +6230,101 @@ void CAPMOUSE_ProgramStart(Program** make)
 
 class LABEL : public Program
 {
-public:
-    void Help() {
-        WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n\n  [drive:]\tSpecifies the drive letter\n  [label]\tSpecifies the volume label\n");
-    }
-	void Run() override
-    {
-        /* MS-DOS behavior: If no label provided at the command line, prompt for one.
-         *
-         * LABEL [drive:] [label]
-         *
-         * No options are supported in MS-DOS, and the label can have spaces in it.
-         * This is valid, apparently:
-         *
-         * LABEL H E L L O
-         *
-         * Will set the volume label to "H E L L O"
-         *
-         * Label /? will print help.
-         */
-        std::string label;
-    	uint8_t drive = DOS_GetDefaultDrive();
-        const char *raw = cmd->GetRawCmdline().c_str();
+	public:
+		void Help() {
+			WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n\n  [drive:]\tSpecifies the drive letter\n  [label]\tSpecifies the volume label\n");
+		}
+		void Run() override
+		{
+			/* MS-DOS behavior: If no label provided at the command line, prompt for one.
+			 *
+			 * LABEL [drive:] [label]
+			 *
+			 * No options are supported in MS-DOS, and the label can have spaces in it.
+			 * This is valid, apparently:
+			 *
+			 * LABEL H E L L O
+			 *
+			 * Will set the volume label to "H E L L O"
+			 *
+			 * Label /? will print help.
+			 */
+			std::string label;
+			uint8_t drive = DOS_GetDefaultDrive();
+			const char *raw = cmd->GetRawCmdline().c_str();
 
-        /* skip space */
-        while (*raw == ' ') raw++;
+			/* skip space */
+			while (*raw == ' ') raw++;
 
-        /* options */
-        if (raw[0] == '/') {
-            raw++;
-            if (raw[0] == '?') {
-                Help();
-                return;
-            }
-        }
+			/* options */
+			if (raw[0] == '/') {
+				raw++;
+				if (raw[0] == '?') {
+					Help();
+					return;
+				}
+			}
 
-        /* is the next part a drive letter? */
-        if (raw[0] != 0 && raw[1] != 0) {
-            if (isalpha(raw[0]) && raw[1] == ':') {
-                drive = tolower(raw[0]) - 'a';
-                raw += 2;
-                while (*raw == ' ') raw++;
-            }
-        }
+			/* is the next part a drive letter? */
+			if (raw[0] != 0 && raw[1] != 0) {
+				if (isalpha(raw[0]) && raw[1] == ':') {
+					drive = tolower(raw[0]) - 'a';
+					raw += 2;
+					while (*raw == ' ') raw++;
+				}
+			}
 
-        /* then the label. MS-DOS behavior is to treat the rest of the command line, spaces and all, as the label */
-        if (*raw != 0) {
-            label = raw;
-        }
+			/* then the label. MS-DOS behavior is to treat the rest of the command line, spaces and all, as the label */
+			if (*raw != 0) {
+				label = raw;
+			}
 
-        /* if the label is longer than 11 chars or contains a dot, MS-DOS will reject it and then prompt for another label */
-        if (label.length() > 11) {
-            WriteOut("Label is too long (more than 11 chars)\n");
-            label.clear();
-        }
-        else if (label.find_first_of(".:/\\") != std::string::npos) {
-            WriteOut("Label has invalid chars.\n");
-            label.clear();
-        }
+			/* if the label is longer than 11 chars or contains a dot, MS-DOS will reject it and then prompt for another label */
+			if (label.length() > 11) {
+				WriteOut("Label is too long (more than 11 chars)\n");
+				label.clear();
+			}
+			else if (label.find_first_of(".:/\\") != std::string::npos) {
+				WriteOut("Label has invalid chars.\n");
+				label.clear();
+			}
 
-        /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label. */
-        if (label.empty()) {
-            std::string clabel = Drives[drive]->GetLabel();
+			/* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label. */
+			if (label.empty()) {
+				std::string clabel = Drives[drive]->GetLabel();
 
-            if (!clabel.empty())
-                WriteOut("Volume in drive %c is %s\n",drive+'A',clabel.c_str());
-            else
-                WriteOut("Volume in drive %c has no label\n",drive+'A');
-        }
+				if (!clabel.empty())
+					WriteOut("Volume in drive %c is %s\n",drive+'A',clabel.c_str());
+				else
+					WriteOut("Volume in drive %c has no label\n",drive+'A');
+			}
 
-        /* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
-        if (label.empty()) {
-            uint8_t c,ans=0;
-            uint16_t s;
+			/* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
+			if (label.empty()) {
+				uint8_t c,ans=0;
+				uint16_t s;
 
-            inshell = true;
-            do {
-                WriteOut("Delete the volume label (Y/N)? ");
-                s = 1;
-                DOS_ReadFile(STDIN,&c,&s);
-                WriteOut("\n");
-                if (s != 1 || c == 3) {inshell=false;return;}
-                ans = uint8_t(tolower(char(c)));
-            } while (!(ans == 'y' || ans == 'n'));
-            inshell = false;
+				/* It does not make sense to say drive C: has no label, then prompt to delete it */
+				if ((*Drives[drive]->GetLabel()) == 0) return;
 
-            if (ans != 'y') return;
-        }
+				inshell = true;
+				do {
+					WriteOut("Delete the volume label (Y/N)? ");
+					s = 1;
+					DOS_ReadFile(STDIN,&c,&s);
+					WriteOut("\n");
+					if (s != 1 || c == 3) {inshell=false;return;}
+					ans = uint8_t(tolower(char(c)));
+				} while (!(ans == 'y' || ans == 'n'));
+				inshell = false;
 
-        /* delete then create the label */
-		Drives[drive]->SetLabel("",false,true);
-		Drives[drive]->SetLabel(label.c_str(),false,true);
-    }
+				if (ans != 'y') return;
+			}
+
+			/* delete then create the label */
+			Drives[drive]->SetLabel("",false,true);
+			Drives[drive]->SetLabel(label.c_str(),false,true);
+		}
 };
 
 void LABEL_ProgramStart(Program** make)

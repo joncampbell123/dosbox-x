@@ -47,10 +47,11 @@ endif
 %.o : %.rc
 	$(WINDRES) $< $@
 
+# These are breaking SDL2 MinGW builds for some reason!
 if HAVE_GUI_LIB
-EXAMPLES = showinterfaces chat chatd
+#EXAMPLES = showinterfaces chat chatd
 else
-EXAMPLES = showinterfaces
+#EXAMPLES = showinterfaces
 endif
 noinst_PROGRAMS = $(EXAMPLES)
 

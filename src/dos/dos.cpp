@@ -3844,27 +3844,31 @@ public:
 		callback[5].Install(NULL,CB_IRET/*CB_INT28*/,"DOS idle");
 		callback[5].Set_RealVec(0x28);
 
-        if (IS_PC98_ARCH) {
-            // PC-98 also has INT 29h but the behavior of some games suggest that it is handled
-            // the same as CON device output. Apparently the reason Touhou Project has been unable
-            // to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
-            // standard I/O calls to write to the CON device.
-            callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
-        } else if (IS_DOSV) {
-            int29h_data.ansi.attr = 0x07;
-            callback[6].Install(DOS_29Handler,CB_IRET,"CON Output Int 29");
-        } else {
-            // FIXME: Really? Considering the main CON device emulation has ANSI.SYS emulation
-            //        you'd think that this would route it through the same.
-            callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
-            // pseudocode for CB_INT29:
-            //	push ax
-            //	mov ah, 0x0e
-            //	int 0x10
-            //	pop ax
-            //	iret
-        }
-        callback[6].Set_RealVec(0x29);
+		if (IS_PC98_ARCH) {
+			// PC-98 also has INT 29h but the behavior of some games suggest that it is handled
+			// the same as CON device output. Apparently the reason Touhou Project has been unable
+			// to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
+			// standard I/O calls to write to the CON device.
+			callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+		} else if (IS_DOSV) {
+			int29h_data.ansi.attr = 0x07;
+			callback[6].Install(DOS_29Handler,CB_IRET,"CON Output Int 29");
+		} else if (section->Get_bool("ansi.sys")) { // NTS: DOS CON device is not yet initialized, therefore will not return correct value of "is ANSI.SYS installed"?
+			// ANSI.SYS is installed, and it does hook INT 29h as well. Route INT 29h through it.
+			callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+		} else {
+			// Use the DOSBox SVN callback code that takes the byte and shoves it off to INT 10h.
+			// NTS: This is where DOSBox SVN is wrong. DOSBox SVN treats INT 29h as a straight call
+			//      to INT 10h BUT it also emulates ANSI.SYS and escape codes.
+			callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
+			// pseudocode for CB_INT29:
+			//	push ax
+			//	mov ah, 0x0e
+			//	int 0x10
+			//	pop ax
+			//	iret
+		}
+		callback[6].Set_RealVec(0x29);
 
         if (!IS_PC98_ARCH) {
             /* DOS installs a handler for INT 1Bh */

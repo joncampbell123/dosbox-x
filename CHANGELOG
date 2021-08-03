@@ -1,11 +1,26 @@
+0.83.17
+  - If a drive has no volume label, and user runs
+    LABEL without specifying one, do not ask whether
+    or not to delete the volume label because there
+    is in fact no volume label to delete. (joncampbell123)
+  - Added FreeDOS utilities DEFRAG, FORMAT, FDISK,
+    CHKDSK, and SYS to the built-in Z drive. KERNEL.SYS
+    is not provided so that the user can provide what
+    they consider the best version of the FreeDOS kernel
+    to format with if they use FORMAT /S (joncampbell123)
+  - INT 29h routes output through ANSI.SYS driver in
+    both IBM PC and PC-98 mode, unless ansi.sys=false
+    is set in the config setting. (joncampbell123)
 0.83.16
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.16.html
   - Added support for extended MS-DOS partitions that
     reside in extended partitions. These partitions
     can be manually mounted using -o partidx=n where
     n is 4 or larger. To assist in partition indexes,
     the FAT driver will also print the partition
     table to your log file and console when asked to
-    print debug information (joncampbell123)
+    print debug information. (joncampbell123)
   - Added dosbox-x.conf options to control VESA BIOS
     window size and window granularity. This allows
     DOS development to test VESA BIOS support against
@@ -15,8 +30,9 @@
     of these options is intended solely for DOS
     development and will break S3 drivers that do not
     use the VESA BIOS extensions. (joncampbell123)
-  - Fixed initialization order that prevented Bochs
-    port E9h emulation from working (joncampbell123).
+  - Fixed VESA BIOS S3 modelist to match the VBE 1.2
+    standard modelist properly, including the addition
+    of modes 0x119-0x11B. (joncampbell123)
   - Added machine=vesa_oldvbe10 to emulate a VESA
     BIOS that follows version 1.0 of the standard.
     Specifically, in version 1.0, mode information
@@ -25,13 +41,9 @@
     assume the information from the standard video
     mode number you applied. This setting emulates
     a VESA BIOS that does NOT provide this information,
-    for testing purposes. (joncampbell123)
-  - Fixed VESA BIOS S3 modelist to match the VBE 1.2
-    standard modelist properly, including the addition
-    of modes 0x119-0x11B. (joncampbell123)
-  - Fixed machine=vesa_oldvbe never to report a linear
-    framebuffer, since that was not yet defined for
-    VBE 1.2. (joncampbell123)
+    for testing purposes. Also, machine=vesa_oldvbe is
+    fixed to never report a LFB, since that was not yet
+    defined for VBE 1.2. (joncampbell123)
   - Reorganized Windows installation to 2 installers
     installing 32-bit and 64-bit DOSBox-X binaries,
     for WinXP+ (all) and Vista+ 64-bit respectively,
@@ -50,6 +62,9 @@
   - DOSBox-X will try to load the SarasaGothicFixed
     TTF font when no external TTF font is specified
     and a CJK code page detected at start. (Wengier)
+  - Added Shift+Tab shortcut in Debugger to switch to
+    previous window complimenting existing function of
+    Tab switching to the next window. (cimarronm)
   - LH/LOADHIGH command can now load programs into UMB
     memory if it is available. Also added "shellhigh"
     config option to decide whether to load builtin
@@ -64,6 +79,9 @@
     respectively and continue, whereas -resetconf and
     -resetmapper will erase user config file or user
     mapper file and exit as before. (Wengier)
+  - Added menu group "3dfx" in "Video" menu to toggle
+    the low-level Voodoo card emulation and high-level
+    Glide emulation at run-time. (Wengier)
   - Added menu options "Restart DOSBox-X instance" and
     "Restart DOSBox-X with language file" in "Main"
     menu to reboot the current DOSBox-X instance or
@@ -84,7 +102,7 @@
     to 90, low to high transparency) on the Linux/macOS
     SDL2 and Windows platforms. (Wengier)
   - Added config option "hidenonpresentable" in [dos]
-    section to toggle whether to filter out filesnames
+    section to toggle whether to filter out file names
     on local drives that are non-representative in
     current code page. (Wengier)
   - Added config options "pc-98 try font rom" and
@@ -135,6 +153,12 @@
   - For audio/video recording, DOSBox-X will display
     a message box showing the saved file name when the
     recording has been completed. (Wengier)
+  - Mapper Editor will try to show the actual mod keys
+    for mod1/mod2/mod3 when clicked. (Wengier)
+  - Removed the special DOS function at Int21h/AH=2B/
+    CX=0x4442h/DX=0x2D58h in favor of the DOSBox-X
+    Integration Device at I/O ports 28h-2Bh which works
+    for both integrated DOS and guest OS environments.
   - Enabled MT-32 emulation on ARM-based Mac OS X
     builds (joncampbell123)
   - For Configuration Tool, ensure mouse coordinates
@@ -148,6 +172,8 @@
     [config] section of the config file. (Wengier)
   - Refined the handling of international keyboards and
     fixed some issues in version 0.83.15. (maron2000)
+  - Fixed initialization order that prevented Bochs
+    port E9h emulation from working. (joncampbell123)
   - Fixed menu options in system menu not working in
     Windows SDL1 builds with "windib" driver. (Wengier)
   - Fixed issue that the mouse cursor not showing in
@@ -157,6 +183,9 @@
     (introduced in version 0.83.15). (Wengier)
   - Fixed line endings for SBCS language files such as
     English and Spanish translations. (Wengier)
+  - Fixed resetting the TTF screen when exiting from
+    Configuration Tool or Mapper Editor when TrueType
+    font (TTF) output is active. (Wengier)
   - Fixed the option "drive z expand path" not working
     if Virtual Drive Z: has been moved to a different
     drive letter (e.g. Drive Y:). (Wengier)

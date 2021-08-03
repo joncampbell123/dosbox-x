@@ -517,7 +517,7 @@ uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address) {
 	 * parameter. */
 	address &= 0xFFu;
 
-	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<GetReportedVideoMemorySize()) { /* range check, or silently truncate address depending on dosbox.conf setting */
+	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<GetReportedVideoMemorySize()) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(uint8_t)address); /* NTS: in vga_s3.cpp this is a 7-bit field, wraparound will occur at address >= 128 but only if emulating a full 64KB bank as normal */
 		return VESA_SUCCESS;
@@ -634,7 +634,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
-			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
 			vga.config.scan_len = new_offset;
@@ -655,7 +655,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
-			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
 			vga.config.scan_len = new_offset;

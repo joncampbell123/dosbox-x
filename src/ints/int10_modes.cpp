@@ -58,7 +58,7 @@ extern bool blinking;
  * when the VBE1.2 setting indicates they should be 24bpp.
  *
  * Explicitly 24bpp modes (numbered 0x120 or higher) are available regardless of the VBE1.2
- * setting but only if enabled in dosbox.conf.
+ * setting but only if enabled in dosbox-x.conf.
  *
  * Disabling the explicit 24bpp modes is intended to reflect actual SVGA hardware that tends
  * to support either 24bpp or 32bpp, but not both. */

@@ -726,7 +726,7 @@ void dosbox_integration_trigger_write() {
 #endif
             void CAPTURE_WaveEvent(bool pressed);
 
-            /* TODO: It would be wise to grant/deny access to this register through another dosbox.conf option
+            /* TODO: It would be wise to grant/deny access to this register through another dosbox-x.conf option
              *       so that rogue DOS development cannot shit-spam the capture folder */
 #if (C_SSHOT)
             if (dosbox_int_register & 1)
@@ -5918,11 +5918,11 @@ static Bitu INT15_Handler(void) {
                  * (bugfix for 1993 demo Yodel "Mayday" demo. this demo keeps masking IRQ 2 for some stupid reason.) */
                 if ((t=IO_Read(0x21)) & (1 << 2)) {
                     LOG(LOG_BIOS,LOG_ERROR)("INT15:86:Wait: IRQ 2 masked during wait. "
-                        "Consider adding 'int15 wait force unmask irq=true' to your dosbox.conf");
+                        "Consider adding 'int15 wait force unmask irq=true' to your dosbox-x.conf");
                 }
                 if ((t=IO_Read(0xA1)) & (1 << 0)) {
                     LOG(LOG_BIOS,LOG_ERROR)("INT15:86:Wait: IRQ 8 masked during wait. "
-                        "Consider adding 'int15 wait force unmask irq=true' to your dosbox.conf");
+                        "Consider adding 'int15 wait force unmask irq=true' to your dosbox-x.conf");
                 }
             }
 
@@ -6210,7 +6210,7 @@ static Bitu INT15_Handler(void) {
                     break;
                 case 0x01: // connect real mode interface
                     if(!APMBIOS_allow_realmode) {
-                        LOG_MSG("APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox.conf\n");
+                        LOG_MSG("APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x86;  // APM not present
                         CALLBACK_SCF(true);         
                         break;
@@ -6234,7 +6234,7 @@ static Bitu INT15_Handler(void) {
                     break;
                 case 0x02: // connect 16-bit protected mode interface
                     if(!APMBIOS_allow_prot16) {
-                        LOG_MSG("APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox.conf\n");
+                        LOG_MSG("APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x06;  // not supported
                         CALLBACK_SCF(true);         
                         break;
@@ -6268,7 +6268,7 @@ static Bitu INT15_Handler(void) {
                     // Note that Windows 98 will NOT talk to the APM BIOS unless the 32-bit protected mode connection is available.
                     // And if you lie about it in function 0x00 and then fail, Windows 98 will fail with a "Windows protection error".
                     if(!APMBIOS_allow_prot32) {
-                        LOG_MSG("APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox.conf\n");
+                        LOG_MSG("APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x08;  // not supported
                         CALLBACK_SCF(true);         
                         break;
@@ -6336,7 +6336,7 @@ static Bitu INT15_Handler(void) {
                     //      at all. The APM BIOS standard mentions CPU IDLE either stopping
                     //      the CPU clock temporarily or issuing HLT as a valid method.
                     //
-                    // TODO: Make this a dosbox.conf configuration option: what do we do
+                    // TODO: Make this a dosbox-x.conf configuration option: what do we do
                     //       on APM idle calls? Allow selection between "nothing" "hlt"
                     //       and "software delay".
                     if (!(reg_flags&0x200)) {
@@ -7546,8 +7546,8 @@ private:
              * 00 = old keyboard
              *
              * The old keyboard is documented not to support software control of CAPS and KANA states */
-            /* TODO: Make this a dosbox.conf option. Default is new keyboard without NUM key because that is what
-             *       keyboard emulation currently acts like anyway. */
+            /* TODO: Make this a dosbox-x.conf option. Default is new keyboard without NUM key because that is
+             *       what keyboard emulation currently acts like anyway. */
             mem_writeb(0x481,0x40/*bit 6=1 bit 3=0 new keyboard without NUM key*/);
 
             /* BIOS flags */
@@ -7649,12 +7649,12 @@ private:
             mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00)/*EGC*/ |
                              (enable_pc98_egc ? 0x80 : 0x00)/*supports INT 18h AH=30h and AH=31h*/ |
                              2/*640x400*/);
-            /* TODO: I would like to eventually add a dosbox.conf option that controls whether INT 18h AH=30h and 31h
+            /* TODO: I would like to eventually add a dosbox-x.conf option that controls whether INT 18h AH=30h and 31h
              *       are enabled, so that retro-development can test code to see how it acts on a newer PC-9821
              *       that supports it vs an older PC-9821 that doesn't.
              *
              *       If the user doesn't set the option, then it is "auto" and determined by machine= PC-98 model and
-             *       by another option in dosbox.conf that determines whether 31khz support is enabled.
+             *       by another option in dosbox-x.conf that determines whether 31khz support is enabled.
              *
              *       NOTED: Neko Project II determines INT 18h AH=30h availability by whether or not it was compiled
              *              with 31khz hsync support (SUPPORT_CRT31KHZ) */
@@ -9402,7 +9402,7 @@ public:
         if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
             t_conv = dos_conventional_limit;
 
-        // TODO: Allow dosbox.conf to specify an option to add an EBDA (Extended BIOS Data Area)
+        // TODO: Allow dosbox-x.conf to specify an option to add an EBDA (Extended BIOS Data Area)
         //       at the top of the DOS conventional limit, which we then reduce further to hold
         //       it. Most BIOSes past 1992 or so allocate an EBDA.
 
@@ -9909,9 +9909,9 @@ void write_ID_version_string() {
      *      programs looking for this information have the address hardcoded ALTHOUGH
      *      experiments show you can move the version string around so long as it's
      *      +1 from a paragraph boundary */
-    /* TODO: *DO* allow dynamic relocation however if the dosbox.conf indicates that the user
+    /* TODO: *DO* allow dynamic relocation however if the dosbox-x.conf indicates that the user
      *       is not interested in IBM BIOS compatability. Also, it would be really cool if
-     *       dosbox.conf could override these strings and the user could enter custom BIOS
+     *       dosbox-x.conf could override these strings and the user could enter custom BIOS
      *       version and ID strings. Heh heh heh.. :) */
     str_id_at = 0xFE00E;
     str_ver_at = 0xFE061;
@@ -10047,7 +10047,7 @@ void ROMBIOS_Init() {
         }
     }
 
-    /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute after reset.
+    /* we allow dosbox-x.conf to specify a binary blob to load into ROM BIOS and execute after reset.
      * we allow this for both hacker curiosity and automated CPU testing. */
     {
         std::string path = section->Get_string("call binary on reset");
@@ -10086,7 +10086,7 @@ void ROMBIOS_Init() {
         }
     }
 
-    /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute just before boot.
+    /* we allow dosbox-x.conf to specify a binary blob to load into ROM BIOS and execute just before boot.
      * we allow this for both hacker curiosity and automated CPU testing. */
     {
         std::string path = section->Get_string("call binary on boot");

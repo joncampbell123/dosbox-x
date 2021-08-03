@@ -1062,15 +1062,15 @@ BIOSTEST 镜像文件
 [32;1mIMGMOUNT[0m [37;1m驱动器[0m [-t floppy] -bootcd 光驱盘符 (或 -el-torito 光驱盘符)
 [32;1mIMGMOUNT[0m [37;1m驱动器[0m -t ram -size 大小
 [32;1mIMGMOUNT[0m -u [37;1m驱动器|驱动器号[0m (or [32;1mIMGMOUNT[0m [37;1m驱动器|驱动器号[0m [36;1m文件[0m [选项] -u)
- [37;1m驱动器[0m               镜像文件所要挂载的驱动器盘符.
+ [37;1m驱动器[0m              镜像文件所要挂载的驱动器盘符.
  [37;1m驱动器号[0m            所要挂载的驱动器号, 其中 0-1 为软驱, 2-5 为硬驱.
  [36;1m文件[0m                镜像文件名, 如果未指定将使用 [33;1mIMGMAKE.IMG[0m.
- -t iso              镜像文件类型为光盘.
- -t hdd|floppy|ram   镜像文件类型为硬盘 (含VHD/HDI镜像）|软盘|内存驱动器.
+ -t iso              镜像文件类型为光盘 iso 或 cue / bin 镜像.
+ -t hdd|floppy|ram   镜像文件类型为硬盘 (含VHD/HDI镜像)|软盘|内存驱动器.
  -fs iso             文件系统为 ISO 9660 (自动假设为 .iso/.cue 文件).
  -fs fat             文件系统为 FAT - 支持 FAT12, FAT16 及 FAT32.
  -fs none            不检测文件系统 (提供驱动器号时自动假设).
- -reservecyl #       在 BIOS 中报告使用比实际更少的驻面数目.
+ -reservecyl #       在 BIOS 中报告使用比实际更少的柱面数目.
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以挂载驱动器.
  -size size|ss,s,h,c 指定大小 (单位: KB), 或扇区数和 CHS 参数.
  -bootcd 光驱盘符    指定挂载启动软盘镜像所用的光盘驱动器盘符.
@@ -1095,7 +1095,7 @@ BIOSTEST 镜像文件
                                    进行交换, 其中 dsk1.img 镜像文件为只读
   [32;1mIMGMOUNT A -bootcd D[0m           - 从光驱 D: 中挂载启动软盘镜像为驱动器 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 将硬盘驱动器 C: 挂载为 10MB 内存驱动器
-  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 将镜像文件的第一个逻辑分区挂载为驱动器 D:
+  [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 将 d.img 的第一个逻辑分区挂载为驱动器 D:
   [32;1mIMGMOUNT C disk.img -u[0m         - 强制将硬盘文件镜像 disk.img 挂载为驱动器 C:,
                                    如果之前驱动器已挂载则将自动卸载
   [32;1mIMGMOUNT A -u[0m                  - 卸载之前已挂载的驱动器 A:
@@ -1115,7 +1115,7 @@ BIOSTEST 镜像文件
      hd_st251: 40MB 镜像文件, hd_st225: 20MB 镜像文件 (旧驱动器参数)
     [33;1m自定义硬盘镜像文件:[0m hd (需要 -size 或 -chs 选项)
   -size: 自定义硬盘镜像文件大小 (单位: MB).
-  -chs: CHS 磁盘参数: 驻面(1-1023),磁头(1-255),扇区(1-63).
+  -chs: CHS 磁盘参数: 柱面(1-1023),磁头(1-255),扇区(1-63).
   -nofs: 如果想创建空白镜像文件请加入此参数.
   -force: 强制覆盖已存在的镜像文件.
   -bat: 创建一个包含 IMGMOUNT 命令的批处理文件以挂载此镜像文件.
@@ -2613,6 +2613,15 @@ PC-98 选项
 .
 :MENU:pc98_clear_graphics
 清除图像层
+.
+:MENU:Video3dfxMenu
+3dfx 模拟
+.
+:MENU:3dfx_voodoo
+内置 Voodoo 卡
+.
+:MENU:3dfx_glide
+Glide 直通
 .
 :MENU:load_d3d_shader
 选择 Direct3D 像素着色文件...

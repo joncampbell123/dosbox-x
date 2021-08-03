@@ -363,9 +363,13 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 }
 #endif
 extern int dos_clipboard_device_access;
-extern bool sync_time, manualtime;
+extern bool sync_time, manualtime, addovl;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive, resolveopt;
+extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
+void VFILE_Remove(const char *name,const char *dir = "");
+void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
+void VOODOO_Destroy(Section* /*sec*/), VOODOO_OnPowerOn(Section* /*sec*/);
 
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
@@ -2586,6 +2590,8 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
                 bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
             else if (prevc!=1)
                 bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+	    /* FIXME: GCC warning: bmp can be uninitialized here */
 
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
@@ -10995,6 +11001,37 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     return true;
 }
 
+bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+    if (section == NULL) return false;
+    const char *voodoostr = section->Get_string("voodoo_card");
+    bool voodooon = strcasecmp(voodoostr, "false");
+    SetVal("voodoo", "voodoo_card", voodooon?"false":"auto");
+    VOODOO_Destroy(section);
+    VOODOO_OnPowerOn(section);
+    mainMenu.get_item("3dfx_voodoo").check(!voodooon).refresh_item(mainMenu);
+    return true;
+}
+
+bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+    if (section == NULL) return false;
+    bool glideon = addovl;
+    SetVal("voodoo", "glide", glideon?"false":"true");
+    addovl=false;
+    GLIDE_ShutDown(section);
+    GLIDE_PowerOn(section);
+    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
+    else {
+        VFILE_Remove("GLIDE2X.OVL","SYSTEM");
+        if (!glideon) systemmessagebox("Warning", "Glide passthrough cannot be enabled. Check the Glide wrapper installation.", "ok","warning", 1);
+    }
+    mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
+    return true;
+}
+
 bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
@@ -11272,7 +11309,7 @@ void SetWindowTransparency(int trans) {
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
-#elif defined(WIN32)
+#elif defined(WIN32) && !defined(HX_DOS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
 #elif defined(LINUX) && C_X11
@@ -14005,6 +14042,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
                     set_callback_function(vid_pc98_graphics_menu_callback);
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"Video3dfxMenu");
+                item.set_text("3dfx emulation");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_voodoo").set_text("Internal Voodoo card").
+                    set_callback_function(voodoo_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_glide").set_text("Glide passthrough").
+                    set_callback_function(glide_menu_callback);
+            }
 #ifdef C_D3DSHADERS
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select Direct3D pixel shader...").
@@ -14572,6 +14618,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+        mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
+        mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
 
         mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
         mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);

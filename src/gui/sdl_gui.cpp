@@ -86,6 +86,7 @@ extern bool                 dos_kernel_disabled, confres, swapad, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
+extern void                 resetFontSize(void);
 extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
@@ -573,7 +574,12 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
-    GFX_ForceRedrawScreen();
+    {
+        GFX_ForceRedrawScreen();
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
+    }
 
     in_gui = false;
 }

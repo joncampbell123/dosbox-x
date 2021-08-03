@@ -341,6 +341,14 @@ static const char *def_menu_video_output[] =
     NULL
 };
 
+/* video 3dfx menu ("Video3dfxMenu") */
+static const char *def_menu_video_3dfx[] =
+{
+    "3dfx_voodoo",
+    "3dfx_glide",
+    NULL
+};
+
 /* video text-mode menu ("VideoTextmodeMenu") */
 static const char *def_menu_video_textmode[] =
 {
@@ -483,6 +491,7 @@ static const char *def_menu_video[] =
     "VideoTTFMenu",
 #endif
     "VideoPC98Menu",
+    "Video3dfxMenu",
 #if defined(C_D3DSHADERS) || defined(C_OPENGL)
     "--",
 #endif
@@ -1567,6 +1576,9 @@ void ConstructMenu(void) {
 
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
+
+    /* video 3dfx menu */
+    ConstructSubMenu(mainMenu.get_item("Video3dfxMenu").get_master_id(), def_menu_video_3dfx);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);

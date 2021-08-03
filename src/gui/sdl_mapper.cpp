@@ -43,6 +43,7 @@
 #include "keymap.h"
 #include "support.h"
 #include "mapper.h"
+#include "render.h"
 #include "setup.h"
 #include "menu.h"
 
@@ -293,6 +294,11 @@ static void                                     MAPPER_SaveBinds(void);
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
 
+#if defined(USE_TTF)
+bool                                            TTF_using(void);
+void                                            resetFontSize(void);
+#endif
+
 Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
@@ -315,7 +321,8 @@ public:
     //!              additional information that is only provided by the handler event class
     enum event_type {
         event_t=0,
-        handler_event_t
+        handler_event_t,
+        mod_event_t
     };
 public:
     //! \brief CEvent constructor
@@ -1187,9 +1194,12 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         else {
 #if defined (WIN32)
             switch(keysym.scancode) {
+            case 0x35:  // SLASH
+                if(keysym.sym != SDLK_KP_DIVIDE) {
+                    return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
+                }
             case 0x1c:  // ENTER
             case 0x1d:  // CONTROL
-            case 0x35:  // SLASH
             case 0x37:  // PRINTSCREEN
             case 0x38:  // ALT
             case 0x45:  // PAUSE
@@ -1206,7 +1216,7 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x5b:  // Left Windows
             case 0x5c:  // Right Windows
             case 0x5d:  // App
-                key = keysym.sym; //Hardware scancodes of these keys are not unique, so virtual keycodes are used instead
+                return keysym.sym; //Hardware scancodes of these keys are not unique, so virtual keycodes are used instead
                 break;
             default:
 #elif defined (__linux__)
@@ -1304,6 +1314,12 @@ public:
         else if (!strcmp(r, "right super")) r = "right Windows";
         else if (!strcmp(r, "left meta")) r = "left Command";
         else if (!strcmp(r, "right meta")) r = "right Command";
+        else if (!strcmp(r, "left ctrl")) r = "Left Ctrl";
+        else if (!strcmp(r, "right ctrl")) r = "Right Ctrl";
+        else if (!strcmp(r, "left alt")) r = "Left Alt";
+        else if (!strcmp(r, "right alt")) r = "Right Alt";
+        else if (!strcmp(r, "left shift")) r = "Left Shift";
+        else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
 		sprintf(buf,"Key %s",r);
 #endif
@@ -1340,7 +1356,7 @@ public:
 		}
 #endif
 
-        m = GetModifierText();
+        m = event->type == CEvent::mod_event_t ? "" : GetModifierText();
         if (!m.empty()) r = m + "+" + r;
 
         return r;
@@ -2643,6 +2659,42 @@ protected:
     BB_Types type;
 };
 
+//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
+class CModEvent : public CTriggeredEvent {
+public:
+    //! \brief Constructor to provide entry name and the index of the modifier button
+    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
+        wmod=_wmod;
+        type = wmod==4?event_t:mod_event_t;
+    }
+
+    virtual ~CModEvent() {}
+
+    virtual void Active(bool yesno) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(yesno);
+
+        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
+        else mapper.mods&=~((Bitu)1u << (wmod-1u));
+    };
+
+    //! \brief Associate this object with a text button in the mapper UI
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
+    //! \brief Mapper UI text button to indicate status by
+    CTextButton *notify_button;
+protected:
+    //! \brief Modifier button index
+    Bitu wmod;
+};
+
 class CCheckButton : public CTextButton {
 public: 
     CCheckButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BC_Types _type) 
@@ -2653,15 +2705,22 @@ public:
     void Draw(void) {
         if (!enabled) return;
         bool checked=false;
+        std::string str = "";
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
+            strcpy(text, str.size()>8?"mod1":str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
+            strcpy(text, str.size()>8?"mod2":str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
+            strcpy(text, str.size()>8?"mod3":str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -2920,41 +2979,6 @@ protected:
 
     //! \brief Direction of hat
     Bitu dir;
-};
-
-//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
-class CModEvent : public CTriggeredEvent {
-public:
-    //! \brief Constructor to provide entry name and the index of the modifier button
-    CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
-        wmod=_wmod;
-    }
-
-    virtual ~CModEvent() {}
-
-    virtual void Active(bool yesno) {
-        if (notify_button != NULL)
-            notify_button->SetInvert(yesno);
-
-        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
-        else mapper.mods&=~((Bitu)1u << (wmod-1u));
-    };
-
-    //! \brief Associate this object with a text button in the mapper UI
-    void notifybutton(CTextButton *n) {
-        notify_button = n;
-    }
-
-    virtual void RebindRedraw(void) {
-        if (notify_button != NULL)
-            notify_button->RebindRedraw();
-    }
-
-    //! \brief Mapper UI text button to indicate status by
-    CTextButton *notify_button;
-protected:
-    //! \brief Modifier button index
-    Bitu wmod;
 };
 
 std::string CBind::GetModifierText(void) {
@@ -3593,6 +3617,7 @@ static void SetActiveBind(CBind * _bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
         bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
         bind_but.mod1->Enable(true);
@@ -4051,7 +4076,7 @@ static void CreateLayout(void) {
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(390, 444, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(390, 444, 250, 20); // right next to the Save button
     bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
@@ -4727,7 +4752,7 @@ void BIND_MappingEvents(void) {
                 }
 # endif
 #endif
-                while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
+                while (tmpl < (250 / 8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
                 tmp[tmpl] = 0;
                 bind_but.dbg2->Change("%s", tmp);
@@ -5031,10 +5056,6 @@ void MAPPER_RunInternal() {
         change_output(6);
     }
 #endif
-#if defined(USE_TTF)
-    void resetFontSize();
-    if (ttf.inUse) resetFontSize();
-#endif
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_DISABLE);
 #endif
@@ -5082,10 +5103,14 @@ void MAPPER_RunInternal() {
     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
 #if defined(USE_TTF)
-    bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
-    GFX_ForceRedrawScreen();
+    {
+        GFX_ForceRedrawScreen();
+#if defined(USE_TTF)
+        if (ttf.inUse) resetFontSize();
+#endif
+    }
 
     mapper.running = false;
 

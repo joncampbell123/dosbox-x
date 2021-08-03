@@ -223,8 +223,10 @@ PageHandler* VOODOO_GetPageHandler() {
 
 
 void VOODOO_Destroy(Section* /*sec*/) {
-    delete voodoo_dev;
-    voodoo_dev=NULL;
+    if (voodoo_dev!=NULL) {
+        delete voodoo_dev;
+        voodoo_dev=NULL;
+    }
 }
 
 void VOODOO_OnPowerOn(Section* /*sec*/) {

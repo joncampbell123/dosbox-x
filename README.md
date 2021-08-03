@@ -96,9 +96,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. DOS (MS-DOS 5.0+ or compatible)
 
-Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](https://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
-
-The latest version of DOSBox-X is 0.83.15, released on July 1, 2021. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. All-in-one Windows installers for DOSBox-X are available to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends. The Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](https://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP packages or Windows installers for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Window installers are intended to ease the installation process, and they allow you to start DOSBox-X as soon as the installation ends.
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
@@ -393,8 +391,6 @@ messages in such languages. There are several language files available in the DO
 * Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
 
 * Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
-
-Additional guides and tips for making translations on the Windows platform are available from: [README.translation](https://github.com/joncampbell123/dosbox-x/blob/develop/contrib/translations/docs/README.translation.MD)
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
