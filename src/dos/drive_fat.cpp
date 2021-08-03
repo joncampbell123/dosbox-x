@@ -56,6 +56,8 @@ bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *load
 	partTable smbr;
 
 	parts.clear();
+
+	if (loadedDisk->getSectSize() > sizeof(smbr)) return false;
 	if (loadedDisk->Read_Sector(0,0,1,&smbr) != 0x00) return false;
 	if (smbr.magic1 != 0x55 || smbr.magic2 != 0xaa) return false; /* Must have signature */
 
