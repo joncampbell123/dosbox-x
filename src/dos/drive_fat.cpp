@@ -1520,27 +1520,40 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			 * These boot sectors do not have a valid partition table though the code below might
 			 * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
 			if (!memcmp(mbrData.booter+4,"IPL1",4)) {
-				unsigned char ipltable[SECTOR_SIZE_MAX];
-				unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
-				Bitu i;
+				/* PC-98 IPL1 boot record search */
+				std::vector<_PC98RawPartition> parts;
 
 				LOG_MSG("PC-98 IPL1 signature detected");
+
+				const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+				unsigned char ipltable[SECTOR_SIZE_MAX];
 
 				assert(sizeof(_PC98RawPartition) == 32);
 
 				memset(ipltable,0,sizeof(ipltable));
 				loadedDisk->Read_Sector(0,0,2,ipltable);
 
+				for (size_t i=0;i < max_entries;i++) {
+					const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+
+					if (pe->mid == 0 && pe->sid == 0 &&
+						pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+						pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+						pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+						continue; /* unused */
+
+					parts.push_back(*pe);
+				}
+
 				if (opt_partition_index >= 0) {
 					/* user knows best! */
-					if ((unsigned int)opt_partition_index >= max_entries) {
+					if ((size_t)opt_partition_index >= parts.size()) {
 						LOG_MSG("Partition index out of range");
 						created_successfully = false;
 						return;
 					}
 
-					i = (unsigned int)opt_partition_index;
-					const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+					const _PC98RawPartition *pe = &parts[(size_t)opt_partition_index];
 
 					/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 					 * this is why it matters so much to read the geometry from the HDI header.
@@ -1560,18 +1573,14 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						std::string name = std::string(pe->name,sizeof(pe->name));
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-								(unsigned long)i,name.c_str(),(unsigned long)startSector);
+							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
 					}
 				}
 				else {
-					for (i=0;i < max_entries;i++) {
-						const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+					size_t i = 0;
 
-						if (pe->mid == 0 && pe->sid == 0 &&
-							pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-							pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-							pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
-							continue; /* unused */
+					for (i=0;i < parts.size();i++) {
+						const _PC98RawPartition *pe = &parts[i];
 
 						/* We're looking for MS-DOS partitions.
 						 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
@@ -1603,15 +1612,18 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 							}
 						}
 					}
-				}
 
-				if (i == max_entries)
-					LOG_MSG("No partitions found in the IPL1 table");
+					if (i == parts.size()) {
+						LOG_MSG("No partitions found in the IPL1 table");
+						created_successfully = false;
+						return;
+					}
+				}
 			}
 			else {
 				/* IBM PC master boot record search */
 				std::vector<partTable::partentry_t> parts;
-				int m = 0;
+				size_t m = 0;
 
 				/* store partitions into a vector, including extended partitions */
 				if (!PartitionLoadMBR(parts,loadedDisk)) {
@@ -1632,7 +1644,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 					countSector = parts[m=opt_partition_index].partSize;
 				}
 				else {
-					for(m=0;(size_t)m < parts.size();m++) {
+					for (m=0;(size_t)m < parts.size();m++) {
 						/* Pick the first available partition */
 						if (parts[m].parttype == 0x01 || parts[m].parttype == 0x04 || parts[m].parttype == 0x06) {
 							parts[m].absSectStart = var_read(&parts[m].absSectStart);
@@ -1677,9 +1689,13 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 							break;
 						}
 					}
-				}
 
-				if (m == parts.size()) LOG_MSG("No good partition found in image.");
+					if (m == parts.size()) {
+						LOG_MSG("No good partition found in image.");
+						created_successfully = false;
+						return;
+					}
+				}
 			}
 
 			partSectOff = startSector;
