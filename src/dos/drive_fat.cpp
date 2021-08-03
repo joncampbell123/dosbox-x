@@ -1414,6 +1414,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				std::vector<_PC98RawPartition> parts;
 
 				/* store partitions into a vector, including extended partitions */
+				LOG_MSG("FAT: Partition type is IPL1 (PC-98)");
 				if (!PartitionLoadIPL1(parts,loadedDisk)) {
 					LOG_MSG("Failed to read partition table");
 					created_successfully = false;
@@ -1501,6 +1502,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				size_t m = 0;
 
 				/* store partitions into a vector, including extended partitions */
+				LOG_MSG("FAT: Partition type is MBR (IBM PC)");
 				if (!PartitionLoadMBR(parts,loadedDisk)) {
 					LOG_MSG("Failed to read partition table");
 					created_successfully = false;
