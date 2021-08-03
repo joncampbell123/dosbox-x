@@ -2434,3 +2434,18 @@ bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDi
 	return true;
 }
 
+std::string PartitionIdentifyType(imageDisk *loadedDisk) {
+	struct partTable mbrData;
+
+	if (loadedDisk->Read_Sector(0,0,1,&mbrData) != 0)
+		return std::string();
+
+	if (!memcmp(mbrData.booter+4,"IPL1",4))
+		return "IPL1"; /* PC-98 IPL1 */
+
+	if (mbrData.magic1 == 0x55 && mbrData.magic2 == 0xaa)
+		return "MBR"; /* IBM PC MBR */
+
+	return std::string();
+}
+

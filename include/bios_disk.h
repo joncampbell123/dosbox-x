@@ -500,5 +500,6 @@ imageDisk *GetINT13FloppyDrive(unsigned char drv);
 
 bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk);
 bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk);
+std::string PartitionIdentifyType(imageDisk *loadedDisk);
 
 #endif

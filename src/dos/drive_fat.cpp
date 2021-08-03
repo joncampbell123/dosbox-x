@@ -1351,7 +1351,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
-	struct partTable mbrData;
 
 	physToLogAdj = 0;
 	req_ver_major = req_ver_minor = 0;
@@ -1407,17 +1406,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				return;
 			}
 
-			loadedDisk->Read_Sector(0,0,1,&mbrData);
-
-			if(mbrData.magic1!= 0x55 ||	mbrData.magic2!= 0xaa) LOG_MSG("Possibly invalid partition table in disk image.");
-
 			startSector = 0;
 
-			/* PC-98 bootloader support.
-			 * These can be identified by the "IPL1" in the boot sector.
-			 * These boot sectors do not have a valid partition table though the code below might
-			 * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
-			if (!memcmp(mbrData.booter+4,"IPL1",4)) {
+			const std::string ptype = PartitionIdentifyType(loadedDisk);
+			if (ptype == "IPL1") {
 				/* PC-98 IPL1 boot record search */
 				std::vector<_PC98RawPartition> parts;
 
@@ -1456,7 +1448,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						std::string name = std::string(pe->name,sizeof(pe->name));
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
+								(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
 					}
 				}
 				else {
@@ -1470,8 +1462,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
 						 * FIXME: Is there a better way? */
 						if (!strncasecmp(pe->name,"MS-DOS",6) ||
-							!strncasecmp(pe->name,"MSDOS",5) ||
-							!strncasecmp(pe->name,"Windows",7)) {
+								!strncasecmp(pe->name,"MSDOS",5) ||
+								!strncasecmp(pe->name,"Windows",7)) {
 							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 							 * this is why it matters so much to read the geometry from the HDI header.
 							 *
@@ -1503,7 +1495,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 					}
 				}
 			}
-			else {
+			else if (ptype == "MBR") {
 				/* IBM PC master boot record search */
 				std::vector<partTable::partentry_t> parts;
 				size_t m = 0;
@@ -1579,6 +1571,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						return;
 					}
 				}
+			}
+			else {
+				LOG_MSG("Unknown partition type '%s'",ptype.c_str());
+				created_successfully = false;
+				return;
 			}
 
 			partSectOff = startSector;
