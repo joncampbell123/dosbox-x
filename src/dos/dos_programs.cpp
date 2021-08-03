@@ -4595,7 +4595,10 @@ public:
 	if (bdisk != "") {
 		bdisk_number = atoi(bdisk.c_str());
 		if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
-		if (imageDiskList[bdisk_number] == NULL) return;
+		if (imageDiskList[bdisk_number] == NULL) {
+			WriteOut("BIOS disk index does not have an image assigned");
+			return;
+		}
 	}
 
         //default fstype is fat
@@ -5285,6 +5288,7 @@ private:
 	}
 
 	if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
+		WriteOut("BIOS disk index does not have an image assigned");
 		return false;
 	}
 

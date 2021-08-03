@@ -52,9 +52,12 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
-int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts) {
+int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
 	for (size_t i=0;i < parts.size();i++) {
 		const _PC98RawPartition &pe = parts[i];
+
+		/* skip partitions already in use */
+		if (loadedDisk->partitionInUse(i)) continue;
 
 		/* We're looking for MS-DOS partitions.
 		 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
@@ -69,7 +72,7 @@ int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts) {
 	return -1;
 }
 
-int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
+int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
 	if (use_ver_maj == 0 || use_ver_min == 0) {
 		use_ver_maj = dos.version.major;
 		use_ver_min = dos.version.minor;
@@ -77,6 +80,9 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,uint8_t u
 
 	for (size_t i=0;i < parts.size();i++) {
 		const partTable::partentry_t &pe = parts[i];
+
+		/* skip partitions already in use */
+		if (loadedDisk->partitionInUse(i)) continue;
 
 		if (pe.parttype == 0x01/*FAT12*/ ||
 			pe.parttype == 0x04/*FAT16*/ ||
@@ -1189,6 +1195,7 @@ bool fatDrive::allocateCluster(uint32_t useCluster, uint32_t prevCluster) {
 
 fatDrive::~fatDrive() {
 	if (loadedDisk) {
+		if (partition_index >= 0) loadedDisk->partitionMarkUse(partition_index,false);
 		loadedDisk->Release();
 		loadedDisk = NULL;
 	}
@@ -1472,7 +1479,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				if (opt_partition_index >= 0)
 					chosen_idx = opt_partition_index;
 				else
-					chosen_idx = PC98AutoChoose_FAT(parts);
+					chosen_idx = PC98AutoChoose_FAT(parts,loadedDisk);
 
 				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
 					LOG_MSG("No partition chosen");
@@ -1503,6 +1510,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
 							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
 					}
+
+					partition_index = chosen_idx;
 				}
 			}
 			else if (ptype == "MBR") {
@@ -1525,12 +1534,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 					chosen_idx = opt_partition_index;
 				}
 				else {
-					chosen_idx = MBRAutoChoose_FAT(parts);
+					chosen_idx = MBRAutoChoose_FAT(parts,loadedDisk);
 					if (chosen_idx < 0) {
 						/* If no chosen partition by default, but chosen partition if acting like later DOS version,
 						 * then you need to bump the DOS version number to mount it. NTS: Exit this part with
 						 * chosen_idx < 0 */
-						if (MBRAutoChoose_FAT(parts,7,0) >= 0 || MBRAutoChoose_FAT(parts,7,10) >= 0) {
+						if (MBRAutoChoose_FAT(parts,loadedDisk,7,0) >= 0 || MBRAutoChoose_FAT(parts,loadedDisk,7,10) >= 0) {
 							LOG_MSG("Partitions are available to mount, but a higher DOS version is required");
 						}
 					}
@@ -1545,6 +1554,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				{ /* assume chosen_idx is in range */
 					const partTable::partentry_t &pe = parts[(size_t)chosen_idx];
 
+					partition_index = chosen_idx;
 					startSector = pe.absSectStart;
 					countSector = pe.partSize;
 				}
@@ -1554,6 +1564,15 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				created_successfully = false;
 				return;
 			}
+
+			/* if the partition is already in use, do not mount.
+			 * two drives using the same partition can cause FAT filesystem corruption! */
+			if (loadedDisk->partitionInUse(partition_index)) {
+				LOG_MSG("Partition %u already in use",partition_index);
+				created_successfully = false;
+				return;
+			}
+			loadedDisk->partitionMarkUse(partition_index,true);
 
 			partSectOff = startSector;
 			partSectSize = countSector;
