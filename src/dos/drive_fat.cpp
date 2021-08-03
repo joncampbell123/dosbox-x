@@ -1431,16 +1431,16 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						return;
 					}
 
-					const _PC98RawPartition *pe = &parts[(size_t)opt_partition_index];
+					const _PC98RawPartition &pe = parts[(size_t)opt_partition_index];
 
 					/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 					 * this is why it matters so much to read the geometry from the HDI header.
 					 *
 					 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
 					startSector =
-						(pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
-						(pe->head * loadedDisk->sectors) +
-						pe->sector;
+						(pe.cyl * loadedDisk->sectors * loadedDisk->heads) +
+						(pe.head * loadedDisk->sectors) +
+						pe.sector;
 
 					/* Many HDI images I've encountered so far indicate 512 bytes/sector,
 					 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
@@ -1448,33 +1448,33 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 					{
 						/* FIXME: What if the label contains SHIFT-JIS? */
-						std::string name = std::string(pe->name,sizeof(pe->name));
+						std::string name = std::string(pe.name,sizeof(pe.name));
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-								(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
+							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
 					}
 				}
 				else {
 					size_t i = 0;
 
 					for (i=0;i < parts.size();i++) {
-						const _PC98RawPartition *pe = &parts[i];
+						const _PC98RawPartition &pe = parts[i];
 
 						/* We're looking for MS-DOS partitions.
 						 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
 						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
 						 * FIXME: Is there a better way? */
-						if (!strncasecmp(pe->name,"MS-DOS",6) ||
-							!strncasecmp(pe->name,"MSDOS",5) ||
-							!strncasecmp(pe->name,"Windows",7)) {
+						if (!strncasecmp(pe.name,"MS-DOS",6) ||
+							!strncasecmp(pe.name,"MSDOS",5) ||
+							!strncasecmp(pe.name,"Windows",7)) {
 							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 							 * this is why it matters so much to read the geometry from the HDI header.
 							 *
 							 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
 							startSector =
-								(pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
-								(pe->head * loadedDisk->sectors) +
-								pe->sector;
+								(pe.cyl * loadedDisk->sectors * loadedDisk->heads) +
+								(pe.head * loadedDisk->sectors) +
+								pe.sector;
 
 							/* Many HDI images I've encountered so far indicate 512 bytes/sector,
 							 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
@@ -1482,10 +1482,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 							{
 								/* FIXME: What if the label contains SHIFT-JIS? */
-								std::string name = std::string(pe->name,sizeof(pe->name));
+								std::string name = std::string(pe.name,sizeof(pe.name));
 
 								LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-										(unsigned long)i,name.c_str(),(unsigned long)startSector);
+									(unsigned long)i,name.c_str(),(unsigned long)startSector);
 								break;
 							}
 						}
