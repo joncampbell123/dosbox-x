@@ -52,6 +52,23 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
+int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts) {
+	for (size_t i=0;i < parts.size();i++) {
+		const _PC98RawPartition &pe = parts[i];
+
+		/* We're looking for MS-DOS partitions.
+		 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
+		 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
+		 * FIXME: Is there a better way? */
+		if (!strncasecmp(pe.name,"MS-DOS",6) ||
+			!strncasecmp(pe.name,"MSDOS",5) ||
+			!strncasecmp(pe.name,"Windows",7))
+			return (int)i;
+	}
+
+	return -1;
+}
+
 bool filename_not_8x3(const char *n) {
 	bool lead;
 	unsigned int i;
@@ -1412,6 +1429,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			if (ptype == "IPL1") {
 				/* PC-98 IPL1 boot record search */
 				std::vector<_PC98RawPartition> parts;
+				int chosen_idx = (int)parts.size();
 
 				/* store partitions into a vector, including extended partitions */
 				LOG_MSG("FAT: Partition type is IPL1 (PC-98)");
@@ -1423,15 +1441,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 				LogPrintPartitionTable(parts);
 
-				if (opt_partition_index >= 0) {
-					/* user knows best! */
-					if ((size_t)opt_partition_index >= parts.size()) {
-						LOG_MSG("Partition index out of range");
-						created_successfully = false;
-						return;
-					}
+				/* user knows best! */
+				if (opt_partition_index >= 0)
+					chosen_idx = opt_partition_index;
+				else
+					chosen_idx = PC98AutoChoose_FAT(parts);
 
-					const _PC98RawPartition &pe = parts[(size_t)opt_partition_index];
+				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
+					LOG_MSG("No partition chosen");
+					created_successfully = false;
+					return;
+				}
+
+				{ /* assume chosen_idx is in range */
+					const _PC98RawPartition &pe = parts[(size_t)chosen_idx];
 
 					/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 					 * this is why it matters so much to read the geometry from the HDI header.
@@ -1452,49 +1475,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
 							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
-					}
-				}
-				else {
-					size_t i = 0;
-
-					for (i=0;i < parts.size();i++) {
-						const _PC98RawPartition &pe = parts[i];
-
-						/* We're looking for MS-DOS partitions.
-						 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
-						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
-						 * FIXME: Is there a better way? */
-						if (!strncasecmp(pe.name,"MS-DOS",6) ||
-							!strncasecmp(pe.name,"MSDOS",5) ||
-							!strncasecmp(pe.name,"Windows",7)) {
-							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
-							 * this is why it matters so much to read the geometry from the HDI header.
-							 *
-							 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
-							startSector =
-								(pe.cyl * loadedDisk->sectors * loadedDisk->heads) +
-								(pe.head * loadedDisk->sectors) +
-								pe.sector;
-
-							/* Many HDI images I've encountered so far indicate 512 bytes/sector,
-							 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
-							pc98_512_to_1024_allow = true;
-
-							{
-								/* FIXME: What if the label contains SHIFT-JIS? */
-								std::string name = std::string(pe.name,sizeof(pe.name));
-
-								LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-									(unsigned long)i,name.c_str(),(unsigned long)startSector);
-								break;
-							}
-						}
-					}
-
-					if (i == parts.size()) {
-						LOG_MSG("No partitions found in the IPL1 table");
-						created_successfully = false;
-						return;
 					}
 				}
 			}
