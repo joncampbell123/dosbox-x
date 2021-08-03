@@ -69,7 +69,12 @@ int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts) {
 	return -1;
 }
 
-int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts) {
+int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
+	if (use_ver_maj == 0 || use_ver_min == 0) {
+		use_ver_maj = dos.version.major;
+		use_ver_min = dos.version.minor;
+	}
+
 	for (size_t i=0;i < parts.size();i++) {
 		const partTable::partentry_t &pe = parts[i];
 
@@ -79,11 +84,11 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts) {
 			return (int)i;
 		}
 		else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
-			if (dos.version.major >= 7) /* MS-DOS 7.0 or higher */
+			if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
 				return (int)i;
 		}
 		else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
-			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) /* MS-DOS 7.10 or higher */
+			if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
 				return (int)i;
 		}
 	}
@@ -1516,10 +1521,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				LogPrintPartitionTable(parts);
 
 				/* user knows best! */
-				if (opt_partition_index >= 0)
+				if (opt_partition_index >= 0) {
 					chosen_idx = opt_partition_index;
-				else
+				}
+				else {
 					chosen_idx = MBRAutoChoose_FAT(parts);
+					if (chosen_idx < 0) {
+						/* If no chosen partition by default, but chosen partition if acting like later DOS version,
+						 * then you need to bump the DOS version number to mount it. NTS: Exit this part with
+						 * chosen_idx < 0 */
+						if (MBRAutoChoose_FAT(parts,7,0) >= 0 || MBRAutoChoose_FAT(parts,7,10) >= 0) {
+							LOG_MSG("Partitions are available to mount, but a higher DOS version is required");
+						}
+					}
+				}
 
 				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
 					LOG_MSG("No partition chosen");
