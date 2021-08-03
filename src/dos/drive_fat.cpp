@@ -52,86 +52,6 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
-bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk) {
-	partTable smbr;
-
-	parts.clear();
-
-	if (loadedDisk->getSectSize() > sizeof(smbr)) return false;
-	if (loadedDisk->Read_Sector(0,0,1,&smbr) != 0x00) return false;
-	if (smbr.magic1 != 0x55 || smbr.magic2 != 0xaa) return false; /* Must have signature */
-
-	/* first copy the main partition table entries */
-	for (size_t i=0;i < 4;i++)
-		parts.push_back(smbr.pentry[i]);
-
-	/* then, enumerate extended partitions and add the partitions within, doing it in a way that
-	 * allows recursive extended partitions */
-	{
-		size_t i=0;
-
-		do {
-			if (parts[i].parttype == 0x05/*extended*/ || parts[i].parttype == 0x0F/*LBA extended*/) {
-				unsigned long sect = parts[i].absSectStart;
-				unsigned long send = sect + parts[i].partSize;
-
-				/* partitions within an extended partition form a sort of linked list.
-				 * first entry is the partition, sector start relative to parent partition.
-				 * second entry points to next link in the list. */
-
-				/* parts[i] is the parent partition in this loop.
-				 * this loop will add to the parts vector, the parent
-				 * loop will continue enumerating through the vector
-				 * until all have processed. in this way, extended
-				 * partitions will be expanded into the sub partitions
-				 * until none is left to do. */
-
-				/* FIXME: Extended partitions within extended partitions not yet tested,
-				 *        MS-DOS FDISK.EXE won't generate that. */
-
-				while (sect < send) {
-					smbr.magic1 = smbr.magic2 = 0;
-					loadedDisk->Read_AbsoluteSector(sect,&smbr);
-
-					if (smbr.magic1 != 0x55 || smbr.magic2 != 0xAA)
-						break;
-					if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
-						break; // FIXME: Not sure what MS-DOS considers the end of the linked list
-
-					const size_t idx = parts.size();
-
-					/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
-					 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
-					smbr.pentry[0].absSectStart += sect;
-					if (smbr.pentry[1].absSectStart != 0)
-						smbr.pentry[1].absSectStart += parts[i].absSectStart;
-
-					/* if the partition extends past the parent, then stop */
-					if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
-						break;
-
-					parts.push_back(smbr.pentry[0]);
-
-					/* Based on MS-DOS 5.0, the 2nd entry is a link to the next entry, but only if
-					 * start sector is nonzero and type is 0x05/0x0F. I'm not certain if MS-DOS allows
-					 * the linked list to go either direction, but for the sake of preventing infinite
-					 * loops stop if the link points to a lower sector number. */
-					if (idx < 256 && (smbr.pentry[1].parttype == 0x05 || smbr.pentry[1].parttype == 0x0F) &&
-						smbr.pentry[1].absSectStart != 0 && smbr.pentry[1].absSectStart > sect) {
-						sect = smbr.pentry[1].absSectStart;
-					}
-					else {
-						break;
-					}
-				}
-			}
-			i++;
-		} while (i < parts.size());
-	}
-
-	return true;
-}
-
 bool filename_not_8x3(const char *n) {
 	bool lead;
 	unsigned int i;
@@ -1228,34 +1148,6 @@ fatDrive::~fatDrive() {
 		loadedDisk->Release();
 		loadedDisk = NULL;
 	}
-}
-
-bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
-	unsigned char ipltable[SECTOR_SIZE_MAX];
-
-	parts.clear();
-
-	assert(sizeof(_PC98RawPartition) == 32);
-	if (loadedDisk->getSectSize() > sizeof(ipltable)) return false;
-
-	memset(ipltable,0,sizeof(ipltable));
-	if (loadedDisk->Read_Sector(0,0,2,ipltable) != 0) return false;
-
-	const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
-
-	for (size_t i=0;i < max_entries;i++) {
-		const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
-
-		if (pe->mid == 0 && pe->sid == 0 &&
-			pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-			pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-			pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
-			continue; /* unused */
-
-		parts.push_back(*pe);
-	}
-
-	return true;
 }
 
 FILE * fopen_lock(const char * fname, const char * mode);

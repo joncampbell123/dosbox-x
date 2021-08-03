@@ -456,6 +456,26 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
+struct partTable {
+	uint8_t booter[446];
+	struct partentry_t {
+		uint8_t bootflag;
+		uint8_t beginchs[3];
+		uint8_t parttype;
+		uint8_t endchs[3];
+		uint32_t absSectStart;
+		uint32_t partSize;
+	} pentry[4];
+	uint8_t  magic1; /* 0x55 */
+	uint8_t  magic2; /* 0xaa */
+#ifndef SECTOR_SIZE_MAX
+# pragma warning SECTOR_SIZE_MAX not defined
+#endif
+#if SECTOR_SIZE_MAX > 512
+    uint8_t  extra[SECTOR_SIZE_MAX - 512];
+#endif
+} GCC_ATTRIBUTE(packed);
+
 void updateDPT(void);
 void incrementFDD(void);
 
@@ -477,5 +497,8 @@ void swapInDisks(int drive);
 bool getSwapRequest(void);
 imageDisk *GetINT13HardDrive(unsigned char drv);
 imageDisk *GetINT13FloppyDrive(unsigned char drv);
+
+bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk);
+bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk);
 
 #endif
