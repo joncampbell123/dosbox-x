@@ -2464,8 +2464,8 @@ void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts) {
 	for (size_t i=0;i < parts.size();i++) {
 		const partTable::partentry_t &part = parts[i];
 
-		LOG(LOG_DOSMISC,LOG_DEBUG)("MBR #%u: bootflag=%u beginchs=0x%02x%02x%02x endchs=0x%02x%02x%02x start=%llu size=%llu",
-			(unsigned int)i,(part.bootflag&0x80)?1:0,
+		LOG(LOG_DOSMISC,LOG_DEBUG)("MBR #%u: bootflag=%u parttype=0x%02x beginchs=0x%02x%02x%02x endchs=0x%02x%02x%02x start=%llu size=%llu",
+			(unsigned int)i,(part.bootflag&0x80)?1:0,part.parttype,
 			part.beginchs[0],part.beginchs[1],part.beginchs[2],
 			part.endchs[0],part.endchs[1],part.endchs[2],
 			(unsigned long long)part.absSectStart,
