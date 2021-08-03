@@ -1465,8 +1465,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
 						 * FIXME: Is there a better way? */
 						if (!strncasecmp(pe->name,"MS-DOS",6) ||
-								!strncasecmp(pe->name,"MSDOS",5) ||
-								!strncasecmp(pe->name,"Windows",7)) {
+							!strncasecmp(pe->name,"MSDOS",5) ||
+							!strncasecmp(pe->name,"Windows",7)) {
 							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 							 * this is why it matters so much to read the geometry from the HDI header.
 							 *
