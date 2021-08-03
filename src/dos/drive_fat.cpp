@@ -1608,10 +1608,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			}
 			else {
 				/* IBM PC master boot record search */
+				std::vector<partTable::partentry_t> parts;
 				int m = 0;
 
 				/* store partitions into a vector, including extended partitions */
-				std::vector<partTable::partentry_t> parts;
 				if (!PartitionLoadMBR(parts,loadedDisk)) {
 					LOG_MSG("Failed to read partition table");
 					created_successfully = false;
