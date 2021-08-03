@@ -52,6 +52,84 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
+bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk) {
+	partTable smbr;
+
+	parts.clear();
+	if (loadedDisk->Read_Sector(0,0,1,&smbr) != 0x00) return false;
+	if (smbr.magic1 != 0x55 || smbr.magic2 != 0xaa) return false; /* Must have signature */
+
+	/* first copy the main partition table entries */
+	for (size_t i=0;i < 4;i++)
+		parts.push_back(smbr.pentry[i]);
+
+	/* then, enumerate extended partitions and add the partitions within, doing it in a way that
+	 * allows recursive extended partitions */
+	{
+		size_t i=0;
+
+		do {
+			if (parts[i].parttype == 0x05/*extended*/ || parts[i].parttype == 0x0F/*LBA extended*/) {
+				unsigned long sect = parts[i].absSectStart;
+				unsigned long send = sect + parts[i].partSize;
+
+				/* partitions within an extended partition form a sort of linked list.
+				 * first entry is the partition, sector start relative to parent partition.
+				 * second entry points to next link in the list. */
+
+				/* parts[i] is the parent partition in this loop.
+				 * this loop will add to the parts vector, the parent
+				 * loop will continue enumerating through the vector
+				 * until all have processed. in this way, extended
+				 * partitions will be expanded into the sub partitions
+				 * until none is left to do. */
+
+				/* FIXME: Extended partitions within extended partitions not yet tested,
+				 *        MS-DOS FDISK.EXE won't generate that. */
+
+				while (sect < send) {
+					smbr.magic1 = smbr.magic2 = 0;
+					loadedDisk->Read_AbsoluteSector(sect,&smbr);
+
+					if (smbr.magic1 != 0x55 || smbr.magic2 != 0xAA)
+						break;
+					if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
+						break; // FIXME: Not sure what MS-DOS considers the end of the linked list
+
+					const size_t idx = parts.size();
+
+					/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
+					 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
+					smbr.pentry[0].absSectStart += sect;
+					if (smbr.pentry[1].absSectStart != 0)
+						smbr.pentry[1].absSectStart += parts[i].absSectStart;
+
+					/* if the partition extends past the parent, then stop */
+					if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
+						break;
+
+					parts.push_back(smbr.pentry[0]);
+
+					/* Based on MS-DOS 5.0, the 2nd entry is a link to the next entry, but only if
+					 * start sector is nonzero and type is 0x05/0x0F. I'm not certain if MS-DOS allows
+					 * the linked list to go either direction, but for the sake of preventing infinite
+					 * loops stop if the link points to a lower sector number. */
+					if (idx < 256 && (smbr.pentry[1].parttype == 0x05 || smbr.pentry[1].parttype == 0x0F) &&
+						smbr.pentry[1].absSectStart != 0 && smbr.pentry[1].absSectStart > sect) {
+						sect = smbr.pentry[1].absSectStart;
+					}
+					else {
+						break;
+					}
+				}
+			}
+			i++;
+		} while (i < parts.size());
+	}
+
+	return true;
+}
+
 bool filename_not_8x3(const char *n) {
 	bool lead;
 	unsigned int i;
@@ -1534,94 +1612,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 				/* store partitions into a vector, including extended partitions */
 				std::vector<partTable::partentry_t> parts;
-
-				/* first copy the main partition table entries */
-				for (size_t i=0;i < 4;i++) {
-					parts.push_back(mbrData.pentry[i]);
-					LOG(LOG_DOSMISC,LOG_DEBUG)("Main MBR partition entry #%u: type=0x%02x start=%lu(%llu) len=%lu",
-						(unsigned int)      i,
-						(unsigned int)      mbrData.pentry[i].parttype,
-						(unsigned long)     mbrData.pentry[i].absSectStart,
-						(unsigned long long)mbrData.pentry[i].absSectStart * (unsigned long long)bytesector,
-						(unsigned long)     mbrData.pentry[i].partSize);
-				}
-
-				/* then, enumerate extended partitions and add the partitions within, doing it in a way that
-				 * allows recursive extended partitions */
-				{
-					size_t i=0;
-
-					do {
-						if (parts[i].parttype == 0x05/*extended*/ || parts[i].parttype == 0x0F/*LBA extended*/) {
-							unsigned long sect = parts[i].absSectStart;
-							unsigned long send = sect + parts[i].partSize;
-							partTable smbr;
-
-							/* partitions within an extended partition form a sort of linked list.
-							 * first entry is the partition, sector start relative to parent partition.
-							 * second entry points to next link in the list. */
-
-							/* parts[i] is the parent partition in this loop.
-							 * this loop will add to the parts vector, the parent
-							 * loop will continue enumerating through the vector
-							 * until all have processed. in this way, extended
-							 * partitions will be expanded into the sub partitions
-							 * until none is left to do. */
-
-							/* FIXME: Extended partitions within extended partitions not yet tested,
-							 *        MS-DOS FDISK.EXE won't generate that. */
-
-							while (sect < send) {
-								smbr.magic1 = smbr.magic2 = 0;
-								loadedDisk->Read_AbsoluteSector(sect,&smbr);
-
-								if (smbr.magic1 != 0x55 || smbr.magic2 != 0xAA)
-									break;
-								if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
-									break; // FIXME: Not sure what MS-DOS considers the end of the linked list
-
-								const size_t idx = parts.size();
-								const unsigned long rstart = smbr.pentry[0].absSectStart;
-
-								/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
-								 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
-								smbr.pentry[0].absSectStart += sect;
-								if (smbr.pentry[1].absSectStart != 0)
-									smbr.pentry[1].absSectStart += parts[i].absSectStart;
-
-								LOG(LOG_DOSMISC,LOG_DEBUG)("Ext. MBR partition entry #%u: type=0x%02x start=%lu(%llu) relstart=%lu len=%lu next=%lu ntype=0x%02x partsect=%lu parentidx=%u",
-									(unsigned int)      idx,
-									(unsigned int)      smbr.pentry[0].parttype,
-									(unsigned long)     smbr.pentry[0].absSectStart,
-									(unsigned long long)smbr.pentry[0].absSectStart * (unsigned long long)bytesector,
-									(unsigned long)     rstart,
-									(unsigned long)     smbr.pentry[0].partSize,
-									(unsigned long)     smbr.pentry[1].absSectStart,
-									(unsigned int)      smbr.pentry[1].parttype, /* NTS: MS-DOS sets this to 0x05 or 0x0F */
-									(unsigned long)     sect,
-									(unsigned int)      i);
-
-								/* if the partition extends past the parent, then stop */
-								if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
-									break;
-
-								parts.push_back(smbr.pentry[0]);
-
-								/* Based on MS-DOS 5.0, the 2nd entry is a link to the next entry, but only if
-								 * start sector is nonzero and type is 0x05/0x0F. I'm not certain if MS-DOS allows
-								 * the linked list to go either direction, but for the sake of preventing infinite
-								 * loops stop if the link points to a lower sector number. */
-								if (idx < 256 && (smbr.pentry[1].parttype == 0x05 || smbr.pentry[1].parttype == 0x0F) &&
-									smbr.pentry[1].absSectStart != 0 && smbr.pentry[1].absSectStart > sect) {
-									sect = smbr.pentry[1].absSectStart;
-								}
-								else {
-									break;
-								}
-							}
-						}
-						i++;
-					} while (i < parts.size());
+				if (!PartitionLoadMBR(parts,loadedDisk)) {
+					LOG_MSG("Failed to read partition table");
+					created_successfully = false;
+					return;
 				}
 
 				if (opt_partition_index >= 0) {
