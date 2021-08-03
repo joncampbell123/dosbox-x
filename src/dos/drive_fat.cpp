@@ -1252,6 +1252,34 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
+bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
+	unsigned char ipltable[SECTOR_SIZE_MAX];
+
+	parts.clear();
+
+	assert(sizeof(_PC98RawPartition) == 32);
+	if (loadedDisk->getSectSize() > sizeof(ipltable)) return false;
+
+	memset(ipltable,0,sizeof(ipltable));
+	if (loadedDisk->Read_Sector(0,0,2,ipltable) != 0) return false;
+
+	const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+
+	for (size_t i=0;i < max_entries;i++) {
+		const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+
+		if (pe->mid == 0 && pe->sid == 0 &&
+			pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+			pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+			pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+			continue; /* unused */
+
+		parts.push_back(*pe);
+	}
+
+	return true;
+}
+
 FILE * fopen_lock(const char * fname, const char * mode);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
@@ -1523,26 +1551,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				/* PC-98 IPL1 boot record search */
 				std::vector<_PC98RawPartition> parts;
 
-				LOG_MSG("PC-98 IPL1 signature detected");
-
-				const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
-				unsigned char ipltable[SECTOR_SIZE_MAX];
-
-				assert(sizeof(_PC98RawPartition) == 32);
-
-				memset(ipltable,0,sizeof(ipltable));
-				loadedDisk->Read_Sector(0,0,2,ipltable);
-
-				for (size_t i=0;i < max_entries;i++) {
-					const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
-
-					if (pe->mid == 0 && pe->sid == 0 &&
-						pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-						pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-						pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
-						continue; /* unused */
-
-					parts.push_back(*pe);
+				/* store partitions into a vector, including extended partitions */
+				if (!PartitionLoadIPL1(parts,loadedDisk)) {
+					LOG_MSG("Failed to read partition table");
+					created_successfully = false;
+					return;
 				}
 
 				if (opt_partition_index >= 0) {
