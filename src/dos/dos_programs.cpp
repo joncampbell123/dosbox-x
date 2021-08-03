@@ -5288,6 +5288,16 @@ private:
 		return false;
 	}
 
+	/* FIXME: IMGMOUNT and MOUNT -u are so hard-coded around C: and BIOS device indexes that some confusion may happen
+	 *        if a partition is C: mounted from, say, BIOS device 0x81 and the wrong thing may get unmounted and detached.
+	 *        So for sanity reasons, do not allow mounting to a drive letter if a BIOS disk image WOULD normally be
+	 *        associated with it. This is a mess inherited from back when this code forked from DOSBox SVN, because
+	 *        DOSBox SVN makes these hardcoded assumptions. */
+	if (driveIndex < MAX_DISK_IMAGES && imageDiskList[driveIndex] != NULL) {
+		WriteOut("Partitions cannot be mounted in conflict with the standard INT 13h hard disk\nallotment. Choose a different drive letter to mount to.");
+		return false;
+	}
+
         DOS_Drive* newDrive = new fatDrive(imageDiskList[src_bios_disk], options);
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
