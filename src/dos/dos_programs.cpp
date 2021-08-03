@@ -5284,7 +5284,7 @@ private:
 		return false;
 	}
 
-	if (src_bios_disk < 0 || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
+	if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
 		return false;
 	}
 
