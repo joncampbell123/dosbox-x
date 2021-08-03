@@ -114,7 +114,7 @@ Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_bu
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend"; Filename: "{app}\Win32_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn"; Filename: "{app}\Win32_builds\mingw-sdldraw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
-Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{code:GetDesktopFolder}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [InstallDelete]
@@ -692,4 +692,12 @@ begin
     Result := False;
     if (dir=name) then
       Result := True;
+end;
+
+function GetDesktopFolder(Param: String): String;
+begin
+  if (IsAdminLoggedOn or IsPowerUserLoggedOn) then
+    Result := ExpandConstant('{commondesktop}')
+  else
+    Result := ExpandConstant('{userdesktop}');
 end;
