@@ -4539,6 +4539,8 @@ public:
         std::string el_torito;
         std::string ideattach="auto";
         std::string type="hdd";
+	std::string bdisk;
+	int bdisk_number=-1;
 
         //this code simply sets default type to "floppy" if mounting at A: or B: --- nothing else
         // get first parameter - which is probably the drive letter to mount at (A-Z or A:-Z:) - and check it if is A or B or A: or B:
@@ -4585,6 +4587,16 @@ public:
             //  find the el_torito_floppy_base and el_torito_floppy_type values
             if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
         }
+
+	//the user can use -bd to mount partitions from an INT 13h BIOS disk mounted image,
+	//meaning a disk image attached to INT 13h using IMGMOUNT <number> -fs none. This way,
+	//it is possible to mount multiple partitions from one HDD image.
+	cmd->FindString("-bd",bdisk,true);
+	if (bdisk != "") {
+		bdisk_number = atoi(bdisk.c_str());
+		if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
+		if (imageDiskList[bdisk_number] == NULL) return;
+	}
 
         //default fstype is fat
         std::string fstype="fat";
@@ -4674,7 +4686,7 @@ public:
         }
 
         // find all file parameters, assuming that all option parameters have been removed
-        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
+        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "");
 
         // some generic checks
         if (el_torito != "") {
@@ -4683,6 +4695,8 @@ public:
                 return;
             }
         }
+	else if (bdisk != "") {
+	}
         else if (type == "ram") {
             if (paths.size() != 0) {
                 WriteOut("Do not specify files when mounting RAM drives\n");
@@ -4713,7 +4727,10 @@ public:
         //====== call the proper subroutine ======
         if(fstype=="fat") {
             //mount floppy or hard drive
-            if (el_torito != "") {
+	    if (bdisk != "") {
+		if (!MountPartitionFat(drive, bdisk_number)) return;
+	    }
+	    else if (el_torito != "") {
                 if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
             }
             else if (type == "ram") {
@@ -4725,6 +4742,10 @@ public:
             }
             if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="iso") {
+	    if (bdisk != "") {
+		// TODO
+                return;
+	    }
             if (el_torito != "") {
                 WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
                 return;
@@ -5244,6 +5265,35 @@ private:
             WriteOut("El Torito bootable floppy not found\n");
             return false;
         }
+
+        return true;
+    }
+
+    bool MountPartitionFat(const char drive, const int src_bios_disk) {
+        unsigned char driveIndex = drive - 'A';
+
+	if (driveIndex >= 26) {
+		WriteOut("Invalid drive letter");
+		return false;
+	}
+
+	if (Drives[driveIndex]) {
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+		return false;
+	}
+
+	if (src_bios_disk < 0 || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
+		return false;
+	}
+
+        DOS_Drive* newDrive = new fatDrive(imageDiskList[src_bios_disk], options);
+        if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+            return false;
+        }
+
+        AddToDriveManager(drive, newDrive, 0xF0);
+        DOS_EnableDriveMenu(drive);
 
         return true;
     }
