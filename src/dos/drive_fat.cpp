@@ -1518,6 +1518,17 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 					return;
 				}
 
+				for (size_t i=0;i < parts.size();i++) {
+					partTable::partentry_t &part = parts[i];
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("MBR #%u: bootflag=%u beginchs=0x%02x%02x%02x endchs=0x%02x%02x%02x start=%llu size=%llu",
+						(unsigned int)i,(part.bootflag&0x80)?1:0,
+						part.beginchs[0],part.beginchs[1],part.beginchs[2],
+						part.endchs[0],part.endchs[1],part.endchs[2],
+						(unsigned long long)part.absSectStart,
+						(unsigned long long)part.partSize);
+				}
+
 				if (opt_partition_index >= 0) {
 					/* user knows best! */
 					if ((size_t)opt_partition_index >= parts.size()) {
