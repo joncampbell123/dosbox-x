@@ -301,6 +301,7 @@ public:
 
     bool readonly;
     bool nocachedir;
+    bool partitionMount = false;
 	char curdir[DOS_PATHLENGTH];
 	char info[256];
 	/* Can be overridden for example in iso images */

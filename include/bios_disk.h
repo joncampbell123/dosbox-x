@@ -45,67 +45,86 @@ extern diskGeo DiskGeometryList[];
 extern const uint8_t freedos_mbr[];
 
 class imageDisk {
-public:
-	enum IMAGE_TYPE {
-		ID_BASE=0,
-		ID_EL_TORITO_FLOPPY,
-        ID_VFD,
-		ID_MEMORY,
-		ID_VHD,
-        ID_D88,
-        ID_NFD
-	};
+	public:
+		enum IMAGE_TYPE {
+			ID_BASE=0,
+			ID_EL_TORITO_FLOPPY,
+			ID_VFD,
+			ID_MEMORY,
+			ID_VHD,
+			ID_D88,
+			ID_NFD
+		};
 
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+		virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+		virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+		virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
-	virtual void Set_Reserved_Cylinders(Bitu resCyl);
-	virtual uint32_t Get_Reserved_Cylinders();
-	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
-	virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
-	virtual uint8_t GetBiosType(void);
-	virtual uint32_t getSectSize(void);
-	imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
-	imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
-	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
+		virtual void Set_Reserved_Cylinders(Bitu resCyl);
+		virtual uint32_t Get_Reserved_Cylinders();
+		virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
+		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
+		virtual uint8_t GetBiosType(void);
+		virtual uint32_t getSectSize(void);
+		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
+		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
+		virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
-    IMAGE_TYPE class_id = ID_BASE;
-	std::string diskname;
-    bool active = false;
-    uint32_t sector_size = 512;
-    uint32_t heads = 0;
-    uint32_t cylinders = 0;
-    uint32_t sectors = 0;
-    bool hardDrive = false;
-    uint64_t diskSizeK = 0;
-    FILE* diskimg = NULL;
+		IMAGE_TYPE class_id = ID_BASE;
+		std::string diskname;
+		bool active = false;
+		uint32_t sector_size = 512;
+		uint32_t heads = 0;
+		uint32_t cylinders = 0;
+		uint32_t sectors = 0;
+		bool hardDrive = false;
+		uint64_t diskSizeK = 0;
+		FILE* diskimg = NULL;
 
-protected:
-	imageDisk(IMAGE_TYPE class_id);
-    uint8_t floppytype = 0;
+	protected:
+		imageDisk(IMAGE_TYPE class_id);
+		uint8_t floppytype = 0;
 
-    uint32_t reserved_cylinders = 0;
-    uint64_t image_base = 0;
-    uint64_t image_length = 0;
+		uint32_t reserved_cylinders = 0;
+		uint64_t image_base = 0;
+		uint64_t image_length = 0;
 
-private:
-    volatile int refcount = 0;
+	private:
+		volatile int refcount = 0;
+		std::vector<bool> partition_in_use; /* used by FAT driver to prevent mounting a partition twice */
 
-public:
-	int Addref() {
-		return ++refcount;
-	}
-	int Release() {
-		int ret = --refcount;
-		if (ret < 0) {
-			fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
-			abort();
+	public:
+		int Addref() {
+			return ++refcount;
 		}
-		if (ret == 0) delete this;
-		return ret;
-	}
+		int Release() {
+			int ret = --refcount;
+			if (ret < 0) {
+				fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
+				abort();
+			}
+			if (ret == 0) delete this;
+			return ret;
+		}
+		bool partitionInUse(const size_t i) {
+			if (i < partition_in_use.size())
+				return partition_in_use[i];
+
+			return false;
+		}
+		bool partitionMarkUse(const size_t i,bool inUse) {
+			if (i < 256) {
+				if (partition_in_use.size() != 256) {
+					partition_in_use.resize(256); // keep it simple, this is a bitfield, 256 bits = 32 bytes
+					for (size_t i=0;i < partition_in_use.size();i++) partition_in_use[i] = false;
+				}
+
+				partition_in_use[i] = inUse;
+			}
+
+			return false;
+		}
 };
 
 class imageDiskD88 : public imageDisk {

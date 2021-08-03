@@ -210,6 +210,7 @@ static const char* UnmountHelper(char umount) {
 
     msgget=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
     if (Drives[i_drive]) {
+	const bool partitionMount = Drives[i_drive]->partitionMount;
         const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
         imageDisk* image = drive ? drive->loadedDisk : NULL;
         const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
@@ -217,7 +218,7 @@ static const char* UnmountHelper(char umount) {
             case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
-        if (image) DetachFromBios(image);
+        if (image && !partitionMount) DetachFromBios(image);
         if (cdrom) IDE_CDROM_Detach(i_drive);
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
@@ -4595,7 +4596,10 @@ public:
 	if (bdisk != "") {
 		bdisk_number = atoi(bdisk.c_str());
 		if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
-		if (imageDiskList[bdisk_number] == NULL) return;
+		if (imageDiskList[bdisk_number] == NULL) {
+			WriteOut("BIOS disk index does not have an image assigned");
+			return;
+		}
 	}
 
         //default fstype is fat
@@ -5023,7 +5027,8 @@ private:
                     FDC_UnassignINT13Disk(i_drive);
 
                 //get reference to image and cdrom before they are possibly destroyed
-                const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+		const bool partitionMount = Drives[i_drive]->partitionMount;
+		const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
                 imageDisk* image = drive ? drive->loadedDisk : NULL;
                 const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
 
@@ -5031,7 +5036,7 @@ private:
                 case 0: //success
                 {
                     //detatch hard drive or floppy drive from bios and ide controller
-                    if (image) DetachFromBios(image);
+                    if (image && !partitionMount) DetachFromBios(image);
                     /* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
                     if (cdrom) IDE_CDROM_Detach(i_drive);
                     Drives[i_drive] = NULL;
@@ -5285,6 +5290,7 @@ private:
 	}
 
 	if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
+		WriteOut("BIOS disk index does not have an image assigned");
 		return false;
 	}
 
@@ -5304,6 +5310,7 @@ private:
             return false;
         }
 
+	newDrive->partitionMount = true;
         AddToDriveManager(drive, newDrive, 0xF0);
         DOS_EnableDriveMenu(drive);
 
