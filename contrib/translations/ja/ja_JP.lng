@@ -1783,7 +1783,7 @@ FOR %%variable IN (set) DO command [command-parameters]
 
 .
 :SHELL_CMD_LFNFOR_HELP
-FORワイルドカードにロングファイルネームを使うかどうかの設定をします
+FORワイルドカードに長いファイル名を使うかどうかの設定をします
 
 .
 :SHELL_CMD_LFNFOR_HELP_LONG
@@ -2615,16 +2615,16 @@ GRCG有効
 3dfxエミュレーション
 .
 :MENU:3dfx_voodoo
-内部ブードゥーカード
+内部 Voodoo カード
 .
 :MENU:3dfx_glide
-グライドパススルー
+Glide をパススルー
 .
 :MENU:load_d3d_shader
 Direct3D ピクセルシェーダの選択...
 .
 :MENU:load_glsl_shader
-OpenGL (GLSL)シェーダの選択...
+OpenGL(GLSL)シェーダの選択...
 .
 :MENU:load_ttf_font
 TrueTypeフォント(TTF)の選択...
@@ -2660,7 +2660,7 @@ CDイメージの入替...
 フロッピーイメージの入替...
 .
 :MENU:DOSMouseMenu
-マウスエミュレーション
+マウス エミュレーション
 .
 :MENU:dos_mouse_enable_int33
 内部エミュレーション
@@ -2672,7 +2672,7 @@ Y軸反転
 感度
 .
 :MENU:DOSVerMenu
-返された DOS バージョン
+DOS バージョン戻り値
 .
 :MENU:dos_ver_330
 3.30
@@ -2690,16 +2690,16 @@ Y軸反転
 編集
 .
 :MENU:DOSLFNMenu
-ロングファイルネーム サポート
+長いファイル名(LFN)のサポート
 .
 :MENU:dos_lfn_auto
 DOSのバージョンに応じて自動設定
 .
 :MENU:dos_lfn_enable
-ロングファイルネーム エミュレーション有効
+長いファイル名 エミュレーション有効
 .
 :MENU:dos_lfn_disable
-ロングファイルネーム エミュレーション無効
+長いファイル名 エミュレーション無効
 .
 :MENU:DOSPC98Menu
 PC-98 PIT マスタクロック
@@ -2738,7 +2738,7 @@ Windows のホスト上で実行する
 可能であればアプリケーションを待つ
 .
 :MENU:dos_win_quiet
-非表示モード - スタート時のメッセージを非表示
+非表示モード(スタート時のメッセージを非表示)
 .
 :MENU:CaptureMenu
 キャプチャ
@@ -2753,31 +2753,31 @@ AVI + ZMBV
 MPEG-TS + H.264
 .
 :MENU:saveoptionmenu
-セーブ/ロード オプション
+状態セーブ/ロード オプション
 .
 :MENU:saveslotmenu
 セーブスロットを選択
 .
 :MENU:enable_autosave
-自動ステート(状態)保存を有効化
+自動状態保存を有効化
 .
 :MENU:noremark_savestate
-ステート(状態)保存時に確認しない
+状態保存時に確認しない
 .
 :MENU:force_loadstate
-ステート(状態)読込時に警告しない
+状態読込時に警告しない
 .
 :MENU:removestate
-スロットに保存したステート(状態)を削除
+スロットに保存した状態を削除
 .
 :MENU:refreshslot
 ディスプレイ情報を更新する
 .
 :MENU:lastautosaveslot
-最後にセーブされた自動セーブスロットを選択
+最後にセーブした自動セーブスロットを選択
 .
 :MENU:usesavefile
-セーブ用スロットの代わりにセーブファイルを使用
+セーブスロットではなくセーブファイルを使用
 .
 :MENU:autosavecfg
 自動セーブの設定...
@@ -2804,31 +2804,31 @@ MPEG-TS + H.264
 ドライブ
 .
 :MENU:drive_mountauto
-Windowsのドライブを自動マウント
+Windowsドライブを自動マウント
 .
 :MENU:drive_mounthd
-フォルダをHDDとしてマウント
+フォルダをHDDでマウント
 .
 :MENU:drive_mountcd
-フォルダをCDドライブとしてマウント
+フォルダをCDでマウント
 .
 :MENU:drive_mountfd
-フォルダをFDDとしてマウント
+フォルダをFDDでマウント
 .
 :MENU:drive_mountfro
-オプション: 書込禁止でフォルダをマウント
+オプション: 書込禁止でマウント
 .
 :MENU:drive_mountarc
-書庫ファイル(ZIP/7Z)をマウント
+書庫(ZIP/7Z)をマウント
 .
 :MENU:drive_mountimg
-ディスクまたはCDイメージをマウント
+ディスク/CDイメージをマウント
 .
 :MENU:drive_mountimgs
-複数のディスク/CDイメージをマウント
+複数ディスク/CDイメージをマウント
 .
 :MENU:drive_mountiro
-オプション: 書込禁止でイメージをマウント
+オプション: 書込禁止でマウント
 .
 :MENU:drive_unmount
 ドライブのマウント解除
@@ -2855,7 +2855,7 @@ Windowsのドライブを自動マウント
 ログ用コンソール
 .
 :MENU:help_intro
-DOSBox-Xの紹介
+DOSBox-X の紹介
 .
 :MENU:help_homepage
 DOSBox-X ホームページ
@@ -2873,7 +2873,7 @@ DOSBox-X サポート
 プリンタデバイスの一覧
 .
 :MENU:help_about
-DOSBox-Xについて
+DOSBox-X について
 .
 :MENU:show_console
 ログ用コンソールを表示
@@ -2963,19 +2963,19 @@ INT 21h コールを記録
 アスペクト比に合わせる
 .
 :MENU:mapper_recwave
-音声をWAVに保存
+音声を WAV に保存
 .
 :MENU:mapper_recmtwave
 音声をmulti-track AVIに保存
 .
 :MENU:mapper_caprawmidi
-MIDI出力を保存
+MIDI 出力を保存
 .
 :MENU:mapper_caprawopl
 FM (OPL) 出力を保存
 .
 :MENU:mapper_video
-動画をAVIに保存
+動画を AVI に保存
 .
 :MENU:mapper_scrshot
 スクリーンショット
@@ -3083,19 +3083,19 @@ CD ドライブを入替
 すべてのドライブを再スキャン
 .
 :MENU:hostkey_mapper
-Mapper-defined
+マッパー設定値
 .
 :MENU:showdetails
-FPS とRT スピードをタイトルバーに表示
+FPS と RT スピードをタイトルバーに表示
 .
 :MENU:restartinst
-DOSBox-Xインスタンスを再起動します
+DOSBox-X インスタンスを再起動
 .
 :MENU:restartconf
-設定ファイルを用いてDOSBox-X を再起動 ...
+設定ファイルを用いて DOSBox-X を再起動 ...
 .
 :MENU:restartlang
-言語ファイルを用いてDOSBox-X を再起動 ...
+言語ファイルを用いて DOSBox-X を再起動 ...
 .
 :MENU:auto_lock_mouse
 マウスを自動ロック
@@ -3110,7 +3110,7 @@ DOSBox-Xインスタンスを再起動します
 カーソルキーにより (Home=開始, End=終了)
 .
 :MENU:screen_to_clipboard
-DOS画面のすべてのテキストをコピー
+DOS 画面のすべてのテキストをコピー
 .
 :MENU:clipboard_device
 DOS のクリップボードアクセスを許可
