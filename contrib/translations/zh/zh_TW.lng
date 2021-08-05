@@ -133,7 +133,7 @@ DOSBox-X 紀錄顯示
 IDE 控制器狀態
 .
 :HELP_COMMAND
-DOS 指令說明
+DOS 命令說明
 .
 :CURRENT_VOLUME
 目前混音器音量
