@@ -906,7 +906,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     IO_Write(crtc_base,0x25);IO_Write(crtc_base+1,et4k_ver_overflow);
 
     // Clear remaining ext CRTC registers
-    for (uint8_t i=0x16; i<=0x21; i++) {
+    for (uint8_t i=0x1b; i<=0x21; i++) {
         IO_Write(crtc_base,i);
         IO_Write(crtc_base+1,0);
     }
