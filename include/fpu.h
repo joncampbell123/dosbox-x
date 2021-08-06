@@ -145,11 +145,65 @@ enum FPU_Tag {
 	TAG_Empty = 3
 };
 
-enum FPU_Round {
-	ROUND_Nearest = 0,		
-	ROUND_Down    = 1,
-	ROUND_Up      = 2,	
-	ROUND_Chop    = 3
+template<class T, unsigned bitno, unsigned nbits=1>
+struct RegBit
+{
+	T data;
+	enum { basemask = (1 << nbits) - 1 };
+	enum { mask = basemask << bitno };
+	template <class T2>
+	RegBit& operator=(T2 val)
+	{
+		data = (data & ~mask) | ((nbits > 1 ? val & basemask : !!val) << bitno);
+		return *this;
+	}
+	operator unsigned() const { return (data & mask) >> bitno; }
+};
+
+struct FPUControlWord
+{
+	enum class RoundMode
+	{
+		Nearest = 0,
+		Down    = 1,
+		Up      = 2,
+		Chop    = 3
+	};
+	union
+	{
+		uint16_t raw;
+		RegBit<decltype(raw), 0>     IM;  // Invalid operation mask
+		RegBit<decltype(raw), 1>     DM;  // Denormalized operand mask
+		RegBit<decltype(raw), 2>     ZM;  // Zero divide mask
+		RegBit<decltype(raw), 3>     OM;  // Overflow mask
+		RegBit<decltype(raw), 4>     UM;  // Underflow mask
+		RegBit<decltype(raw), 5>     PM;  // Precision mask
+		RegBit<decltype(raw), 7>     M;   // Interrupt mask
+		RegBit<decltype(raw), 8, 2>  PC;  // Precision control
+		RegBit<decltype(raw), 10, 2> RC;  // Rounding control
+		RegBit<decltype(raw), 12>    IC;  // Infinity control
+	};
+	FPUControlWord& operator=(uint16_t val)
+	{
+		raw = val;
+		return *this;
+	}
+	operator uint16_t() const
+	{
+		return raw;
+	}
+	FPUControlWord allMasked() const
+	{
+		auto masked = *this;
+		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
+		return masked;
+	}
+	template <class T>
+	FPUControlWord& operator |=(T val)
+	{
+		raw |= val;
+		return *this;
+	}
 };
 
 typedef struct {
@@ -166,10 +220,9 @@ typedef struct {
 	bool		use80[9];		// if set, use the 80-bit precision version
 #endif
 	FPU_Tag		tags[9];
-	uint16_t		cw,cw_mask_all;
+	FPUControlWord  cw;
 	uint16_t		sw;
 	uint32_t		top;
-	FPU_Round	round;
 } FPU_rec;
 
 
@@ -201,9 +254,7 @@ static INLINE void FPU_SetCW(Bitu word){
 	//       us as an Intel 287 when cputype == 286.
 	word &= 0x7FFF;
 
-	fpu.cw = (uint16_t)word;
-	fpu.cw_mask_all = (uint16_t)(word | 0x3f);
-	fpu.round = (FPU_Round)((word >> 10) & 3);
+	fpu.cw = word;
 }
 
 
