@@ -2085,6 +2085,7 @@ static void dyn_load_seg(SegNames seg,DynReg * src) {
 	gen_releasereg(&DynRegs[G_ES+seg]);
 }
 
+
 static void dyn_load_seg_off_ea(SegNames seg) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();

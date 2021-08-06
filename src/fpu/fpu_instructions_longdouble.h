@@ -38,7 +38,7 @@ static inline void FPU_SyncCW(void) {
 #endif
 
 static void FPU_FINIT(void) {
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
     FPU_SyncCW();
     fpu.sw = 0;
 	TOP=FPU_GET_TOP();
@@ -84,19 +84,19 @@ static void FPU_FPOP(void){
 }
 
 static long double FROUND(long double in){
-	switch(fpu.round){
-	case ROUND_Nearest:	
+	switch(fpu.cw.RC){
+	case fpu::RoundMode::Nearest:
 		if (in-floorl(in)>0.5) return (floorl(in)+1);
 		else if (in-floorl(in)<0.5) return (floorl(in));
 		else return (((static_cast<int64_t>(floorl(in)))&1)!=0)?(floorl(in)+1):(floorl(in));
 		break;
-	case ROUND_Down:
+	case fpu::RoundMode::Down:
 		return (floorl(in));
 		break;
-	case ROUND_Up:
+	case fpu::RoundMode::Up:
 		return (ceill(in));
 		break;
-	case ROUND_Chop:
+	case fpu::RoundMode::Chop:
 		return in; //the cast afterwards will do it right maybe cast here
 		break;
 	default:
@@ -548,7 +548,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	FPU_SetCW(cw);
+	fpu.cw.init();
     FPU_SyncCW();
 	TOP = FPU_GET_TOP();
 }

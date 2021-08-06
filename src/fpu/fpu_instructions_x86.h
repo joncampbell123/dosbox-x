@@ -77,7 +77,7 @@
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, TOP			\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()  \
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	op		szI PTR fpu.p_regs[128].m1		\
@@ -88,7 +88,7 @@
 		uint16_t new_sw,save_cw;				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()  \
 		__asm	mov		eax, TOP			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, 8				\
@@ -215,7 +215,7 @@
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()	\
 		__asm	mov		ebx, op2			\
 		__asm	shl		ebx, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -229,7 +229,7 @@
 		uint16_t new_sw,save_cw;				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, op2			\
@@ -252,7 +252,7 @@
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	fxch	\
@@ -265,7 +265,7 @@
 		uint16_t new_sw,save_cw;				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -286,7 +286,7 @@
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, TOP			\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	op							\
@@ -298,7 +298,7 @@
 		uint16_t new_sw,save_cw;				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	mov		eax, TOP			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -317,7 +317,7 @@
 		uint16_t new_sw,save_cw;				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, op2			\
@@ -339,7 +339,7 @@
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
-		__asm	fldcw	fpu.cw_mask_all		\
+		__asm	fldcw	fpu.cw.allMasked()		\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	fxch	\
@@ -553,7 +553,7 @@
 
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_STORE(op,szI,szA)				\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm__ volatile (					\
 			"fnstcw		%0				\n"	\
 			"fldcw		%3				\n"	\
@@ -561,11 +561,11 @@
 			#op #szA "	%1				\n"	\
 			"fldcw		%0				"	\
 			:	"=m" (save_cw), "=m" (fpu.p_regs[8])	\
-			:	"m" (fpu.p_regs[TOP]), "m" (fpu.cw_mask_all)		\
+			:	"m" (fpu.p_regs[TOP]), "m" (cw_masked)		\
 		);
 #else
 #define FPUD_STORE(op,szI,szA)				\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%4				\n"	\
@@ -575,7 +575,7 @@
 			"fnstsw		%0				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "=m" (fpu.p_regs[8])	\
-			:	"m" (fpu.p_regs[TOP]), "m" (fpu.cw_mask_all)			\
+			:	"m" (fpu.p_regs[TOP]), "m" (cw_masked)			\
 		);									\
 		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
 #endif
@@ -668,7 +668,7 @@
 // handles fadd,fmul,fsub,fsubr
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH1(op)						\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm__ volatile (					\
 			"fnstcw		%0				\n"	\
 			"fldcw		%3				\n"	\
@@ -678,11 +678,11 @@
 			"fstpt		%1				\n"	\
 			"fldcw		%0				"	\
 			:	"=m" (save_cw), "+m" (fpu.p_regs[op1])				\
-			:	"m" (fpu.p_regs[op2]), "m" (fpu.cw_mask_all)		\
+			:	"m" (fpu.p_regs[op2]), "m" (cw_masked)		\
 		);
 #else
 #define FPUD_ARITH1(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%4				\n"	\
@@ -694,7 +694,7 @@
 			"fstpt		%2				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (fpu.p_regs[op2]), "m" (fpu.cw_mask_all)		\
+			:	"m" (fpu.p_regs[op2]), "m" (cw_masked)		\
 		);									\
 		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
 #endif
@@ -702,7 +702,7 @@
 // handles fadd,fmul,fsub,fsubr
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH1_EA(op)					\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm__ volatile (					\
 			"fnstcw		%0				\n"	\
 			"fldcw		%2				\n"	\
@@ -711,11 +711,11 @@
 			"fstpt		%1				\n"	\
 			"fldcw		%0				"	\
 			:	"=m" (save_cw), "+m" (fpu.p_regs[op1])		\
-			:	"m" (fpu.cw_mask_all)		\
+			:	"m" (cw_masked)		\
 		);
 #else
 #define FPUD_ARITH1_EA(op)					\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%3				\n"	\
@@ -726,7 +726,7 @@
 			"fstpt		%2				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (fpu.cw_mask_all)		\
+			:	"m" (cw_masked)		\
 		);									\
 		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
 #endif
@@ -734,7 +734,7 @@
 // handles fsqrt,frndint
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH2(op)						\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm__ volatile (					\
 			"fnstcw		%0				\n"	\
 			"fldcw		%2				\n"	\
@@ -743,11 +743,11 @@
 			"fstpt		%1				\n"	\
 			"fldcw		%0				"	\
 			:	"=m" (save_cw), "+m" (fpu.p_regs[TOP])		\
-			:	"m" (fpu.cw_mask_all)		\
+			:	"m" (cw_masked)		\
 		);
 #else
 #define FPUD_ARITH2(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%3				\n"	\
@@ -758,7 +758,7 @@
 			"fstpt		%2				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[TOP])	\
-			:	"m" (fpu.cw_mask_all)		\
+			:	"m" (cw_masked)		\
 		);										\
 		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
 #endif
@@ -766,7 +766,7 @@
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1 but without a WEAK_EXCEPTIONS variant)
 #define FPUD_ARITH3(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%4				\n"	\
@@ -778,14 +778,14 @@
 			"fstpt		%2				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (fpu.p_regs[op2]), "m" (fpu.cw_mask_all)		\
+			:	"m" (fpu.p_regs[op2]), "m" (cw_masked)		\
 		);									\
 		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
 
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
 #define FPUD_ARITH3_EA(op)					\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm__ volatile (					\
 			"fnstcw		%1				\n"	\
 			"fldcw		%3				\n"	\
@@ -796,7 +796,7 @@
 			"fstpt		%2				\n"	\
 			"fldcw		%1				"	\
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (fpu.cw_mask_all)		\
+			:	"m" (cw_masked)		\
 		);									\
 		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
 
@@ -934,7 +934,7 @@ const uint16_t exc_mask=0xffbf;
 #endif
 
 static void FPU_FINIT(void) {
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
 	fpu.sw=0;
 	TOP=FPU_GET_TOP();
 	fpu.tags[0]=TAG_Empty;
@@ -1284,7 +1284,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	FPU_SetCW(cw);
+	fpu.cw = cw;
 	TOP=FPU_GET_TOP();
 }
 

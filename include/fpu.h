@@ -145,11 +145,73 @@ enum FPU_Tag {
 	TAG_Empty = 3
 };
 
-enum FPU_Round {
-	ROUND_Nearest = 0,		
-	ROUND_Down    = 1,
-	ROUND_Up      = 2,	
-	ROUND_Chop    = 3
+template<class T, unsigned bitno, unsigned nbits=1>
+struct RegBit
+{
+	T data;
+	enum { basemask = (1 << nbits) - 1 };
+	enum { mask = basemask << bitno };
+	template <class T2>
+	RegBit& operator=(T2 val)
+	{
+		data = (data & ~mask) | ((nbits > 1 ? val & basemask : !!val) << bitno);
+		return *this;
+	}
+	operator unsigned() const { return (data & mask) >> bitno; }
+};
+
+struct FPUControlWord
+{
+	enum
+	{
+		mask8087    = 0x1fff,
+		maskNon8087 = 0x1f7f,
+		initValue   = 0x37f
+	};
+	enum class RoundMode
+	{
+		Nearest = 0,
+		Down    = 1,
+		Up      = 2,
+		Chop    = 3
+	};
+	union
+	{
+		uint16_t raw;
+		RegBit<decltype(raw), 0>     IM;  // Invalid operation mask
+		RegBit<decltype(raw), 1>     DM;  // Denormalized operand mask
+		RegBit<decltype(raw), 2>     ZM;  // Zero divide mask
+		RegBit<decltype(raw), 3>     OM;  // Overflow mask
+		RegBit<decltype(raw), 4>     UM;  // Underflow mask
+		RegBit<decltype(raw), 5>     PM;  // Precision mask
+		RegBit<decltype(raw), 7>     M;   // Interrupt mask
+		RegBit<decltype(raw), 8, 2>  PC;  // Precision control
+		RegBit<decltype(raw), 10, 2> RC;  // Rounding control
+		RegBit<decltype(raw), 12>    IC;  // Infinity control
+	};
+	template<class T>
+	FPUControlWord& operator=(T val)
+	{
+		raw = val & (CPU_ArchitectureType==CPU_ARCHTYPE_8086 ? mask8087 : maskNon8087);
+		return *this;
+	}
+	operator unsigned() const
+	{
+		return raw;
+	}
+	template <class T>
+	FPUControlWord& operator |=(T val)
+	{
+		raw |= val;
+		return *this;
+	}
+	void init() { raw = initValue; }
+	FPUControlWord allMasked() const
+	{
+		auto masked = *this;
+		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
+		return masked;
+	}
 };
 
 typedef struct {
@@ -166,10 +228,9 @@ typedef struct {
 	bool		use80[9];		// if set, use the 80-bit precision version
 #endif
 	FPU_Tag		tags[9];
-	uint16_t		cw,cw_mask_all;
+	FPUControlWord  cw;
 	uint16_t		sw;
 	uint32_t		top;
-	FPU_Round	round;
 } FPU_rec;
 
 
@@ -194,18 +255,6 @@ static INLINE void FPU_SetTag(uint16_t tag){
 	for(Bitu i=0;i<8;i++)
 		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
 }
-
-static INLINE void FPU_SetCW(Bitu word){
-	// HACK: Bits 13-15 are not defined. Apparently, one program likes to test for
-	//       Cyrix EMC87 by trying to set bit 15. We want the test program to see
-	//       us as an Intel 287 when cputype == 286.
-	word &= 0x7FFF;
-
-	fpu.cw = (uint16_t)word;
-	fpu.cw_mask_all = (uint16_t)(word | 0x3f);
-	fpu.round = (FPU_Round)((word >> 10) & 3);
-}
-
 
 static INLINE uint8_t FPU_GET_TOP(void) {
 	return (fpu.sw & 0x3800U) >> 11U;

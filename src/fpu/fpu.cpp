@@ -25,15 +25,15 @@
 #include "paging.h"
 #include "cross.h"
 #include "mem.h"
-#include "fpu.h"
 #include "cpu.h"
+#include "fpu.h"
 #include "../cpu/lazyflags.h"
 
 FPU_rec fpu;
 
-void FPU_FLDCW(PhysPt addr){
-	uint16_t temp = mem_readw(addr);
-	FPU_SetCW(temp);
+void FPU_FLDCW(PhysPt addr)
+{
+	fpu.cw = mem_readw(addr);
 }
 
 uint16_t FPU_GetTag(void){
@@ -434,8 +434,16 @@ void FPU_ESC3_Normal(Bitu rm) {
 	case 0x04:
 		switch (sub) {
 		case 0x00:				//FNENI
+			if (CPU_ArchitectureType==CPU_ARCHTYPE_8086)
+				fpu.cw.M = false;
+			else
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+			break;
 		case 0x01:				//FNDIS
-			LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+			if (CPU_ArchitectureType==CPU_ARCHTYPE_8086)
+				fpu.cw.M = true;
+			else
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
 			break;
 		case 0x02:				//FNCLEX FCLEX
 			FPU_FCLEX();
