@@ -548,7 +548,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	fpu.cw.init();
+	fpu.cw = cw;
     FPU_SyncCW();
 	TOP = FPU_GET_TOP();
 }
