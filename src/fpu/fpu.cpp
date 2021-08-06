@@ -25,15 +25,15 @@
 #include "paging.h"
 #include "cross.h"
 #include "mem.h"
-#include "fpu.h"
 #include "cpu.h"
+#include "fpu.h"
 #include "../cpu/lazyflags.h"
 
 FPU_rec fpu;
 
-void FPU_FLDCW(PhysPt addr){
-	uint16_t temp = mem_readw(addr);
-	FPU_SetCW(temp);
+void FPU_FLDCW(PhysPt addr)
+{
+	fpu.cw = mem_readw(addr);
 }
 
 uint16_t FPU_GetTag(void){

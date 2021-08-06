@@ -21,7 +21,7 @@
 static void FPU_FINIT(void) {
 	unsigned int i;
 
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
 	fpu.sw = 0;
 	TOP=FPU_GET_TOP();
 	fpu.tags[0] = TAG_Empty;
@@ -629,7 +629,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	FPU_SetCW(cw);
+	fpu.cw = cw;
 	TOP = FPU_GET_TOP();
 }
 

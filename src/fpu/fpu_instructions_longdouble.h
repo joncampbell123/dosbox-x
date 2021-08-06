@@ -38,7 +38,7 @@ static inline void FPU_SyncCW(void) {
 #endif
 
 static void FPU_FINIT(void) {
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
     FPU_SyncCW();
     fpu.sw = 0;
 	TOP=FPU_GET_TOP();
@@ -548,7 +548,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	FPU_SetCW(cw);
+	fpu.cw.init();
     FPU_SyncCW();
 	TOP = FPU_GET_TOP();
 }

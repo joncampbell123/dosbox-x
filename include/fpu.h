@@ -162,6 +162,12 @@ struct RegBit
 
 struct FPUControlWord
 {
+	enum
+	{
+		mask8087    = 0x1fff,
+		maskNon8087 = 0x1f7f,
+		initValue   = 0x37f
+	};
 	enum class RoundMode
 	{
 		Nearest = 0,
@@ -183,26 +189,28 @@ struct FPUControlWord
 		RegBit<decltype(raw), 10, 2> RC;  // Rounding control
 		RegBit<decltype(raw), 12>    IC;  // Infinity control
 	};
-	FPUControlWord& operator=(uint16_t val)
+	template<class T>
+	FPUControlWord& operator=(T val)
 	{
-		raw = val;
+		raw = val & (CPU_ArchitectureType==CPU_ARCHTYPE_8086 ? mask8087 : maskNon8087);
 		return *this;
 	}
-	operator uint16_t() const
+	operator unsigned() const
 	{
 		return raw;
-	}
-	FPUControlWord allMasked() const
-	{
-		auto masked = *this;
-		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
-		return masked;
 	}
 	template <class T>
 	FPUControlWord& operator |=(T val)
 	{
 		raw |= val;
 		return *this;
+	}
+	void init() { raw = initValue; }
+	FPUControlWord allMasked() const
+	{
+		auto masked = *this;
+		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
+		return masked;
 	}
 };
 
@@ -247,16 +255,6 @@ static INLINE void FPU_SetTag(uint16_t tag){
 	for(Bitu i=0;i<8;i++)
 		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
 }
-
-static INLINE void FPU_SetCW(Bitu word){
-	// HACK: Bits 13-15 are not defined. Apparently, one program likes to test for
-	//       Cyrix EMC87 by trying to set bit 15. We want the test program to see
-	//       us as an Intel 287 when cputype == 286.
-	word &= 0x7FFF;
-
-	fpu.cw = word;
-}
-
 
 static INLINE uint8_t FPU_GET_TOP(void) {
 	return (fpu.sw & 0x3800U) >> 11U;
