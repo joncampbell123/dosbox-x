@@ -829,7 +829,7 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 DOSBox-X 提供多層次的光碟機模擬.
 
 [33m基本層次[0m支援所有光碟機及普通目錄.
-它將安裝 MSCDEX 並將檔案標識為唯讀.
+它將安裝 MSCDEX 並將檔案標示為唯讀.
 這對於大部分遊戲通常已經足夠:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   或   [34;1mmount d C:\example -t cdrom[0m
 如果不行的話您可以需要讓 DOSBox-X 給予光碟機特定的標籤:
@@ -968,7 +968,7 @@ BIOSTEST 映像檔
 
 .
 :VHD_PARENT_INVALID_MATCH
-指定的 VHD 檔案的父檔案不包含所需的標識.
+指定的 VHD 檔案的父檔案不包含所需的識別項.
 
 .
 :VHD_PARENT_INVALID_DATE
