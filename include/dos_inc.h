@@ -159,6 +159,8 @@ extern DOS_File ** Files;
 extern DOS_Drive * Drives[DOS_DRIVES];
 extern DOS_Device * Devices[DOS_DEVICES];
 
+extern uint8_t ZDRIVE_NUM;
+
 extern uint8_t dos_copybuf[0x10000];
 
 
