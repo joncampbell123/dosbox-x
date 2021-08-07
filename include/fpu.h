@@ -148,11 +148,11 @@ enum FPU_Tag {
 template<class T, unsigned bitno, unsigned nbits=1>
 struct RegBit
 {
-	T data;
 	enum { basemask = (1 << nbits) - 1 };
 	enum { mask = basemask << bitno };
-	template <class T2>
-	RegBit& operator=(T2 val)
+	T& data;
+	RegBit(T& reg) : data(reg) {}
+	template <class T2> RegBit& operator=(T2 val)
 	{
 		data = (data & ~mask) | ((nbits > 1 ? val & basemask : !!val) << bitno);
 		return *this;
@@ -162,11 +162,24 @@ struct RegBit
 
 struct FPUControlWord
 {
+	uint16_t reg;
+	RegBit<FPUControlWord, 0>     IM;  // Invalid operation mask
+	RegBit<FPUControlWord, 1>     DM;  // Denormalized operand mask
+	RegBit<FPUControlWord, 2>     ZM;  // Zero divide mask
+	RegBit<FPUControlWord, 3>     OM;  // Overflow mask
+	RegBit<FPUControlWord, 4>     UM;  // Underflow mask
+	RegBit<FPUControlWord, 5>     PM;  // Precision mask
+	RegBit<FPUControlWord, 7>     M;   // Interrupt mask   (8087-only)
+	RegBit<FPUControlWord, 8, 2>  PC;  // Precision control
+	RegBit<FPUControlWord, 10, 2> RC;  // Rounding control
+	RegBit<FPUControlWord, 12>    IC;  // Infinity control (8087/80287-only)
+
 	enum
 	{
-		mask8087    = 0x1fff,
-		maskNon8087 = 0x1f7f,
-		initValue   = 0x37f
+		mask8087     = 0x1fff,
+		maskNon8087  = 0x1f7f,
+		reservedMask = 0x40,
+		initValue    = 0x37f
 	};
 	enum class RoundMode
 	{
@@ -175,37 +188,32 @@ struct FPUControlWord
 		Up      = 2,
 		Chop    = 3
 	};
-	union
+
+	FPUControlWord() : reg(initValue), IM(*this), DM(*this), ZM(*this), OM(*this),
+					   UM(*this), PM(*this), M(*this), PC(*this), RC(*this), IC(*this) {}
+	FPUControlWord(const FPUControlWord& other) = default;
+	FPUControlWord& operator=(const FPUControlWord& other)
 	{
-		uint16_t raw;
-		RegBit<decltype(raw), 0>     IM;  // Invalid operation mask
-		RegBit<decltype(raw), 1>     DM;  // Denormalized operand mask
-		RegBit<decltype(raw), 2>     ZM;  // Zero divide mask
-		RegBit<decltype(raw), 3>     OM;  // Overflow mask
-		RegBit<decltype(raw), 4>     UM;  // Underflow mask
-		RegBit<decltype(raw), 5>     PM;  // Precision mask
-		RegBit<decltype(raw), 7>     M;   // Interrupt mask
-		RegBit<decltype(raw), 8, 2>  PC;  // Precision control
-		RegBit<decltype(raw), 10, 2> RC;  // Rounding control
-		RegBit<decltype(raw), 12>    IC;  // Infinity control
-	};
+		reg = other.reg;
+		return *this;
+	}
 	template<class T>
 	FPUControlWord& operator=(T val)
 	{
-		raw = val & (CPU_ArchitectureType==CPU_ARCHTYPE_8086 ? mask8087 : maskNon8087);
+		reg = (val & (CPU_ArchitectureType==CPU_ARCHTYPE_8086 ? mask8087 : maskNon8087)) | reservedMask;
 		return *this;
 	}
 	operator unsigned() const
 	{
-		return raw;
+		return reg;
 	}
 	template <class T>
 	FPUControlWord& operator |=(T val)
 	{
-		raw |= val;
+		*this = reg | val;
 		return *this;
 	}
-	void init() { raw = initValue; }
+	void init() { reg = initValue; }
 	FPUControlWord allMasked() const
 	{
 		auto masked = *this;
