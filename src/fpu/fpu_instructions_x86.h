@@ -73,11 +73,11 @@
 
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_STORE(op,szI,szA)				\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, TOP			\
-		__asm	fldcw	fpu.cw.allMasked()  \
+		__asm	fldcw	cw_masked           \
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	op		szI PTR fpu.p_regs[128].m1		\
@@ -85,10 +85,10 @@
 		}
 #else
 #define FPUD_STORE(op,szI,szA)				\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw.allMasked()  \
+		__asm	fldcw	cw_masked           \
 		__asm	mov		eax, TOP			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, 8				\
@@ -210,12 +210,12 @@
 // handles fadd,fmul,fsub,fsubr
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH1(op)						\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
-		__asm	fldcw	fpu.cw.allMasked()	\
+		__asm	fldcw	cw_masked           \
 		__asm	mov		ebx, op2			\
 		__asm	shl		ebx, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -226,10 +226,10 @@
 		}
 #else
 #define FPUD_ARITH1(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked			\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, op2			\
@@ -248,11 +248,11 @@
 // handles fadd,fmul,fsub,fsubr
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH1_EA(op)					\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked    		\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	fxch	\
@@ -262,10 +262,10 @@
 		}
 #else
 #define FPUD_ARITH1_EA(op)					\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked    		\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -282,11 +282,11 @@
 // handles fsqrt,frndint
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH2(op)						\
-		uint16_t save_cw;						\
+		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, TOP			\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	op							\
@@ -295,10 +295,10 @@
 		}
 #else
 #define FPUD_ARITH2(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked			\
 		__asm	mov		eax, TOP			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
@@ -314,10 +314,10 @@
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1 but without a WEAK_EXCEPTIONS variant)
 #define FPUD_ARITH3(op)						\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked			\
 		__asm	mov		eax, op1			\
 		__asm	shl		eax, 4				\
 		__asm	mov		ebx, op2			\
@@ -335,11 +335,11 @@
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
 #define FPUD_ARITH3_EA(op)					\
-		uint16_t new_sw,save_cw;				\
+		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
 		__asm {								\
 		__asm	fnstcw	save_cw				\
 		__asm	mov		eax, op1			\
-		__asm	fldcw	fpu.cw.allMasked()		\
+		__asm	fldcw	cw_masked			\
 		__asm	shl		eax, 4				\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	fxch	\
