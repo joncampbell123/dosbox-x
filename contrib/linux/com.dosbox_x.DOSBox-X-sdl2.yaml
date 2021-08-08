@@ -1,3 +1,4 @@
+---
 app-id: com.dosbox_x.DOSBox-X-sdl2
 runtime: org.freedesktop.Platform
 runtime-version: '20.08'
@@ -5,11 +6,11 @@ sdk: org.freedesktop.Sdk
 
 command: dosbox-x
 
-finish-args: # flatpak permissions
-  - --device=all # needed for gamepads and serial/parallel
-  - --share=ipc	 # needed for X11
-  - --share=network # needed for networking (NE2000, IPX)
-  - --socket=x11
+finish-args:         # flatpak permissions
+  - --device=all     # needed for OpenGL, gamepads and serial/parallel
+  - --share=ipc      # needed for X11
+  - --share=network  # Needed for IPX and serial over TCP/IP
+  - --socket=x11     # default to X11, as Gnome does not provide SSD
   - --socket=pulseaudio
   - --filesystem=home
 
@@ -24,21 +25,21 @@ cleanup:
 
 modules:
 
-# Build Mesa GLU
+  # Build Mesa GLU
   - name: GLU
     config-opts:
       - --disable-static
     sources:
-      - type: archive
-        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.xz
-        sha256: fb5a4c2dd6ba6d1c21ab7c05129b0769544e1d68e1e3b0ffecb18e73c93055bc
+      - type: git
+        url: https://gitlab.freedesktop.org/mesa/glu
+        tag: "glu-9.0.2"
     cleanup:
       - /include
       - /lib/*.a
       - /lib/*.la
       - /lib/pkgconfig
-  
-# Build FluidSynth
+
+  # Build FluidSynth
   - name: FluidSynth
     buildsystem: cmake-ninja
     config-opts:
@@ -50,22 +51,35 @@ modules:
       - /share/man
       - "*.so"
     sources:
-      - type: archive
-        url: https://github.com/FluidSynth/fluidsynth/archive/v2.1.5.tar.gz
-        sha256: b539b7c65a650b56f01cd60a4e83c6125c217c5a63c0c214ef6274894a677d00
+      - type: git
+        url: https://github.com/FluidSynth/fluidsynth
+        tag: "v2.2.2"
 
-# Build libslirp for networking
+  # Build libslirp for networking
   - name: libslirp
     buildsystem: meson
     cleanup:
       - "/include"
       - "/lib/pkgconfig"
     sources:
-      - type: archive
-        url: https://gitlab.freedesktop.org/slirp/libslirp/uploads/a30aeca3c6ad23f176065d0ee832957b/libslirp-4.4.0.tar.xz
-        sha256: e903fc14c26030b51711bd7f098697c2393f237199e3681c2e22ea013c3635a7
+      - type: git
+        url: https://gitlab.freedesktop.org/slirp/libslirp
+        tag: "v4.6.1"
 
-# Build DOSBox-X SDL2
+  # Building mt32emu for MT-32 MIDI emulation
+  - name: mt32emu
+    buildsystem: cmake
+    config-opts:
+      - -Dmunt_WITH_MT32EMU_SMF2WAV=FALSE
+      - -Dmunt_WITH_MT32EMU_QT=FALSE
+      - -Dlibmt32emu_WITH_VERSION_TAGGING=TRUE
+      - -Dlibmt32emu_WITH_SYMBOL_VERSIONING=TRUE
+    sources:
+      - type: git
+        url: https://github.com/munt/munt
+        tag: "libmt32emu_2_5_3"
+
+  # Build DOSBox-X SDL2
   - name: dosbox-x
     rm-configure: true
     config-opts:
@@ -85,3 +99,4 @@ modules:
       - desktop-file-edit --set-key=Name --set-value="DOSBox-X SDL2" /app/share/applications/${FLATPAK_ID}.desktop
       - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml id dosbox-x-sdl2
       - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml name "DOSBox-X SDL2"
+...
