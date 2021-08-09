@@ -48,17 +48,21 @@ The Visual Studio builds are the default Windows builds to use, but they may req
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW SDL1 build for lower-end systems (mingw-lowend), MinGW SDL1 build with custom drawn menu (mingw-sdldraw), and MinGW SDL2 build (mingw-sdl2). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
-## Linux Packages (Flatpak or Fedora package)
+## Linux Packages
+DOSBox-X is available packaged in the following formats:
 
-Both Flatpak and Fedora/RPM packages are officially released for the Linux operating system (with X11). You can select one of these packages depending on your Linux system and your needs. The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
+### Flatpak
+Flatpak packages are officially released for the Linux operating system (with X11).
+You can select one of these packages depending on your Linux system and your needs.
+The Linux Fatpak package has the advantage of being supported by most or all Linux distributions, but it will run in a sandbox on your Linux system so that you may not able to access some system-wide resources.
 
-Flatpak packages are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.1 the Linux Flatpak is available from:
+For the current DOSBox-X version the Linux Flatpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
 You may need to install Flatpak support depending on your Linux distribution for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform. The DOSBox-X Flathub page is also available from [here](https://flathub.org/apps/details/com.dosbox_x.DOSBox-X).
 
-Once Flatpak support is enabled in your Linux system you can install the DOSBox-X Flatpak with the following command:
+Once Flatpak support is enabled on your Linux system you can install the DOSBox-X Flatpak with the following command:
 
 ``flatpak install flathub com.dosbox_x.DOSBox-X``
 
@@ -76,17 +80,29 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 Or just "flatpak update" to update all Flatpak packages.
 
-Alternatively, if you use Fedora Linux you can also get the Fedora Copr package for DOSBox-X from:
+### SnapCraft
+You can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X.
+But please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
+
+### RPM Package
+RPM is a packaging format used by a variety of Linux distributions.
+The current DOSBox-X version is offered via Fedora Copr here:
 
 * [Fedora Copr DOSBox-X page](https://copr.fedorainfracloud.org/coprs/rob72/DOSBox-X/)
 
-Official RPM packages are not available for the current version 0.83.16, but they are available for some previous DOSBox-X versions. Simply pick the RPM package(s) for the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
+This supports the current Fedora Linux versions, Red Hat Enterprise Linux (RHEL) 8 with EPEL and CentOS 8 with EPEL.
+
+In addition, but this is not recommended, some RPM packages for older DOSBox-X version are available for CentOS in the DOSBox-X Github under Releases.
+Simply pick the RPM package(s) for the version you want to use for your Linux platform and install.
+On CentOS, RHEL or Fedora platforms, you can install an RPM package with a command line like this:
 
 ``sudo rpm -i <filename>.rpm``
 
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug build if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). In such case you probably want to use the Flatpak package, which works independent of your Linux distribution.
 
-Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
+### AUR Package
+DOSBox-X is packaged for archlinux (https://aur.archlinux.org/packages/dosbox-x/), and available in the standard arch repo.
+But please note that this package is not built or updated by the DOSBox-X team.
 
 ## macOS Packages (Portable)
 
