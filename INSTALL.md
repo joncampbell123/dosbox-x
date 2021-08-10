@@ -90,7 +90,12 @@ The current DOSBox-X version is offered via Fedora Copr here:
 
 * [Fedora Copr DOSBox-X page](https://copr.fedorainfracloud.org/coprs/rob72/DOSBox-X/)
 
-This supports the current Fedora Linux versions, Red Hat Enterprise Linux (RHEL) 8 with EPEL and CentOS 8 with EPEL.
+This supports the following Linux distributions:
+- Fedora Linux (current versions plus rawhide)
+- Red Hat Enterprise Linux (RHEL) 8 with EPEL
+- and CentOS 8 with EPEL.
+
+Unlike a traditional package download, copr allows for the package to be automatically updated when the next release is available.
 
 In addition, but this is not recommended, some RPM packages for older DOSBox-X version are available for CentOS in the DOSBox-X Github under Releases.
 Simply pick the RPM package(s) for the version you want to use for your Linux platform and install.
