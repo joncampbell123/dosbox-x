@@ -2207,7 +2207,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 主選單
 .
 :MENU:MainSendKey
-輸入特殊鍵
+傳送特殊鍵
 .
 :MENU:MainHostKey
 選擇主機按鍵
@@ -2861,7 +2861,7 @@ DOSBox-X 介紹
 DOSBox-X 首頁
 .
 :MENU:help_wiki
-DOSBox-X 使用者指南
+DOSBox-X 使用指南
 .
 :MENU:help_issue
 DOSBox-X 支援
@@ -2999,7 +2999,7 @@ DOS 命令
 降低錄音音量
 .
 :MENU:mapper_sendkey_mapper
-輸入特殊鍵
+傳送特殊鍵
 .
 :MENU:mapper_cycledown
 減小 CPU 週期
@@ -3125,22 +3125,22 @@ DOS 命令
 使用 BIOS 功能進行剪貼簿貼上
 .
 :MENU:sendkey_winlogo
-輸入 LOGO 鍵
+傳送 LOGO 鍵
 .
 :MENU:sendkey_winmenu
-輸入 MENU 鍵
+傳送 MENU 鍵
 .
 :MENU:sendkey_alttab
-輸入 Alt+Tab
+傳送 Alt+Tab
 .
 :MENU:sendkey_ctrlesc
-輸入 Ctrl+Esc
+傳送 Ctrl+Esc
 .
 :MENU:sendkey_ctrlbreak
-輸入 Ctrl+Break
+傳送 Ctrl+Break
 .
 :MENU:sendkey_cad
-輸入 Ctrl+Alt+Del
+傳送 Ctrl+Alt+Del
 .
 :MENU:hostkey_ctrlalt
 Ctrl+Alt
@@ -3152,22 +3152,22 @@ Ctrl+Shift
 Alt+Shift
 .
 :MENU:sendkey_mapper_winlogo
-Mapper "輸入特殊鍵": logo key
+Mapper "傳送特殊鍵": logo key
 .
 :MENU:sendkey_mapper_winmenu
-Mapper "輸入特殊鍵": menu key
+Mapper "傳送特殊鍵": menu key
 .
 :MENU:sendkey_mapper_alttab
-Mapper "輸入特殊鍵": Alt+Tab
+Mapper "傳送特殊鍵": Alt+Tab
 .
 :MENU:sendkey_mapper_ctrlesc
-Mapper "輸入特殊鍵": Ctrl+Esc
+Mapper "傳送特殊鍵": Ctrl+Esc
 .
 :MENU:sendkey_mapper_ctrlbreak
-Mapper "輸入特殊鍵": Ctrl+Break
+Mapper "傳送特殊鍵": Ctrl+Break
 .
 :MENU:sendkey_mapper_cad
-Mapper "輸入特殊鍵": Ctrl+Alt+Del
+Mapper "傳送特殊鍵": Ctrl+Alt+Del
 .
 :MENU:wheel_none
 不進行轉換
