@@ -1719,9 +1719,9 @@ SET [變數名=[字串]]
 
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL 數字 command
-IF [NOT] 字串1==字串2 command
-IF [NOT] EXIST 檔名 command
+IF [NOT] ERRORLEVEL 數字 命令
+IF [NOT] 字串1==字串2 命令
+IF [NOT] EXIST 檔名 命令
 
   NOT               指定命令僅在條件為偽的情況下執行.
 
@@ -1732,7 +1732,7 @@ IF [NOT] EXIST 檔名 command
   
   EXIST 檔名        指定的檔名存在的情況下, 則條件為真.
 
-  command           指定符合條件的情況下要執行的命令.
+  命令              指定符合條件的情況下要執行的命令.
                     在命令之後可以接著 ELSE 命令.
                     如果在指定條件為偽時, ELSE 關鍵字之後的命令將會被執行.
 
