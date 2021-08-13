@@ -1175,7 +1175,7 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         SDLKey key = SDLK_UNKNOWN;
 
 #if defined (MACOSX)
-        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = keysym.sym;  // zero value makes the keyboard crazy
+        if ((keysym.scancode == 0) && (keysym.sym == 'a')) return keysym.sym;  // zero value makes the keyboard crazy
 #endif
 
         if (keysym.scancode==0
