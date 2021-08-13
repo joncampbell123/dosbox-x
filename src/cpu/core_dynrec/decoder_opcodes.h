@@ -396,7 +396,6 @@ static void dyn_mov_ev_seg(void) {
 
 
 static void dyn_lea(void) {
-	dyn_get_modrm();
 	dyn_fill_ea(FC_ADDR,false);
 	MOV_REG_WORD_FROM_HOST_REG(FC_ADDR,decode.modrm.reg,decode.big_op);
 }
