@@ -162,6 +162,9 @@
     <ClCompile Include="..\src\builtin\buffers_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\chkdsk_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\copy_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
@@ -169,6 +172,9 @@
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\debug_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\defrag_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\dos4gw_exe.cpp">
@@ -186,7 +192,13 @@
     <ClCompile Include="..\src\builtin\fcbs_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\fdisk_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\find_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\format_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\hexmem16_exe.cpp">
@@ -208,6 +220,9 @@
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\sort_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\sys_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp">
