@@ -37,6 +37,8 @@ uint16_t pcol = 0, prow = 0, pchr = 0;
 bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 uint8_t DefaultANSIAttr();
 uint16_t GetTextSeg();
+uint8_t *GetSbcs24Font(Bitu code);
+uint8_t *GetDbcs24Font(Bitu code);
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -92,23 +94,175 @@ static void TANDY16_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rn
 }
 
 static void EGA16_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
-    PhysPt src,dest;Bitu copy;
+	PhysPt src,dest;Bitu copy;
     BIOS_CHEIGHT;
-    dest=base+(CurMode->twidth*rnew)*cheight+cleft;
-    src=base+(CurMode->twidth*rold)*cheight+cleft;
     Bitu nextline=(Bitu)CurMode->twidth;
     /* Setup registers correctly */
-    IO_Write(0x3ce,5);IO_Write(0x3cf,1);        /* Memory transfer mode */
-    IO_Write(0x3c4,2);IO_Write(0x3c5,0xf);      /* Enable all Write planes */
+    IO_Write(0x3ce,5);IO_Write(0x3cf,1);		/* Memory transfer mode */
+    IO_Write(0x3c4,2);IO_Write(0x3c5,0xf);		/* Enable all Write planes */
     /* Do some copying */
     Bitu rowsize=(Bitu)(cright-cleft);
-    copy=cheight;
-    for (;copy>0;copy--) {
-        for (Bitu x=0;x<rowsize;x++) mem_writeb(dest+x,mem_readb(src+x));
-        dest+=nextline;src+=nextline;
+    if(svgaCard != SVGA_TsengET4K) {
+        dest=base+(CurMode->twidth*rnew)*cheight+cleft;
+        src=base+(CurMode->twidth*rold)*cheight+cleft;
+        copy=cheight;
+        for (;copy>0;copy--) {
+            for (Bitu x=0;x<rowsize;x++) mem_writeb(dest+x,mem_readb(src+x));
+            dest+=nextline;src+=nextline;
+        }
+    } else {
+        Bit8u select;
+        dest=(CurMode->twidth*rnew)*cheight+cleft;
+        src=(CurMode->twidth*rold)*cheight+cleft;
+        select = 0x00;
+        if(src >= 0x20000) {
+            select |= 0x20;
+            src -= 0x20000;
+        } else if(src >= 0x10000) {
+            select |= 0x10;
+            src -= 0x10000;
+        }
+        if(dest >= 0x20000) {
+            select |= 0x02;
+            dest -= 0x20000;
+        } else if(dest >= 0x10000) {
+            select |= 0x01;
+            dest -= 0x10000;
+        }
+        IO_Write(0x3cd, select);
+        for(copy = 0 ; copy < cheight ; copy++) {
+            PhysPt src_pt = src;
+            PhysPt dest_pt = dest;
+            for(Bitu x = 0 ; x < rowsize ; x++) {
+                if(src_pt >= 0x10000) {
+                    if((select & 0xf0) == 0x00) {
+                        select = (select & 0x0f) | 0x10;
+                    } else if((select & 0xf0) == 0x10) {
+                        select = (select & 0x0f) | 0x20;
+                    }
+                    src_pt -= 0x10000;
+                    src -= 0x10000;
+                    IO_Write(0x3cd, select);
+                }
+                if(dest_pt >= 0x10000) {
+                    if((select & 0x0f) == 0x00) {
+                        select = (select & 0xf0) | 0x01;
+                    } else if((select & 0x0f) == 0x01) {
+                        select = (select & 0xf0) | 0x02;
+                    }
+                    dest_pt -= 0x10000;
+                    dest -= 0x10000;
+                    IO_Write(0x3cd, select);
+                }
+                mem_writeb(base + dest_pt, mem_readb(base + src_pt));
+                src_pt++;
+                dest_pt++;
+            }
+            dest += nextline;
+            src += nextline;
+        }
+        IO_Write(0x3cd, 0);
     }
     /* Restore registers */
-    IO_Write(0x3ce,5);IO_Write(0x3cf,0);        /* Normal transfer mode */
+    IO_Write(0x3ce,5);IO_Write(0x3cf,0);		/* Normal transfer mode */
+}
+
+static void CopyRowMask(PhysPt base, PhysPt dest_pt, PhysPt src_pt, Bit8u mask)
+{
+    Bit8u no;
+    Bit8u plane[4];
+
+    IO_Write(0x3ce, 5); IO_Write(0x3cf, 0);
+    for(no = 0 ; no < 4 ; no++) {
+        IO_Write(0x3ce, 4); IO_Write(0x3cf, no);
+        plane[no] = mem_readb(base + dest_pt) & (mask ^ 0xff);
+        plane[no] |= mem_readb(base + src_pt) & mask;
+    }
+    IO_Write(0x3ce, 5); IO_Write(0x3cf, 8);
+    IO_Write(0x3ce, 1); IO_Write(0x3cf, 0);
+    IO_Write(0x3ce, 7); IO_Write(0x3cf, 0);
+    IO_Write(0x3ce, 3); IO_Write(0x3cf, 0);
+    IO_Write(0x3ce, 8); IO_Write(0x3cf, 0xff);
+    for(no = 0 ; no < 4 ; no++) {
+        IO_Write(0x3c4, 2); IO_Write(0x3c5, 1 << no);
+        mem_writeb(base + dest_pt, plane[no]);
+    }
+
+    IO_Write(0x3ce, 5); IO_Write(0x3cf, 1);
+    IO_Write(0x3c4, 2); IO_Write(0x3c5, 0xf);
+}
+
+static void EGA16_CopyRow_24(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
+    PhysPt src, dest;
+    Bitu rowsize;
+    Bitu start = (cleft * 12) / 8;
+    Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
+
+    rowsize = (cright - cleft) * 12 / 8;
+    if((cleft & 1) || (cright & 1)) {
+        rowsize++;
+    }
+    dest = (width * rnew) * 24 + start;
+    src = (width * rold) * 24 + start;
+    IO_Write(0x3ce,5); IO_Write(0x3cf,1);
+    IO_Write(0x3c4,2); IO_Write(0x3c5,0xf);
+    uint8_t select;
+    select = 0x00;
+    if(src >= 0x20000) {
+        select |= 0x20;
+        src -= 0x20000;
+    } else if(src >= 0x10000) {
+        select |= 0x10;
+        src -= 0x10000;
+    }
+    if(dest >= 0x20000) {
+        select |= 0x02;
+        dest -= 0x20000;
+    } else if(dest >= 0x10000) {
+        select |= 0x01;
+        dest -= 0x10000;
+    }
+    IO_Write(0x3cd, select);
+    for(Bitu copy = 0 ; copy < 24 ; copy++) {
+        PhysPt src_pt = src;
+        PhysPt dest_pt = dest;
+
+        for(Bitu x = 0 ; x < rowsize ; x++) {
+            if(src_pt  >= 0x10000) {
+                if((select & 0xf0) == 0x00) {
+                    select = (select & 0x0f) | 0x10;
+                } else if((select & 0xf0) == 0x10) {
+                    select = (select & 0x0f) | 0x20;
+                }
+                src_pt -= 0x10000;
+                src -= 0x10000;
+                IO_Write(0x3cd, select);
+            }
+            if(dest_pt >= 0x10000) {
+                if((select & 0x0f) == 0x00) {
+                    select = (select & 0xf0) | 0x01;
+                } else if((select & 0x0f) == 0x01) {
+                    select = (select & 0xf0) | 0x02;
+                }
+                dest_pt -= 0x10000;
+                dest -= 0x10000;
+                IO_Write(0x3cd, select);
+            }
+            if(x == 0 && (cleft & 1)) {
+                CopyRowMask(base, dest_pt, src_pt, 0x0f);
+            } else if(x == rowsize - 1 && (cright & 1)) {
+                CopyRowMask(base, dest_pt, src_pt, 0xf0);
+            } else {
+                mem_writeb(base + dest_pt, mem_readb(base + src_pt));
+            }
+            src_pt++;
+            dest_pt++;
+        }
+        dest += width;
+        src += width;
+    }
+    IO_Write(0x3ce,5);IO_Write(0x3cf,0);
+    IO_Write(0x3cd, 0);
 }
 
 static void VGA_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
@@ -353,10 +507,334 @@ void DOSV_FillScreen() {
     for (int i=0; i<nrows; i++) DOSV_Text_FillRow(0,ncols,i,7);
 }
 
+void WriteCharDOSVSbcs24(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
+{
+	uint8_t back, data, select;
+	uint8_t *font;
+	Bitu off;
+	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
+	volatile uint8_t dummy;
+
+	font = GetSbcs24Font(chr);
+
+	back = attr >> 4;
+	attr &= 0x0f;
+
+	off = row * width * 24 + (col * 12) / 8;
+	if(off >= 0x20000) {
+		select = 0x22;
+		off -= 0x20000;
+	} else if(off >= 0x10000) {
+		select = 0x11;
+		off -= 0x10000;
+	} else {
+		select = 0x00;
+	}
+	IO_Write(0x3cd, select);
+
+	IO_Write(0x3ce, 5); IO_Write(0x3cf, 0);
+	IO_Write(0x3ce, 1); IO_Write(0x3cf, 0xf);
+
+	if(col & 1) {
+		for(uint8_t y = 0 ; y < 24 ; y++) {
+			data = *font++;
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, (data >> 4));
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, (data >> 4) ^ 0x0f);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			data <<= 4;
+			data |= *font++ >> 4;
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off += width - 1;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+		}
+	} else {
+		for(uint8_t y = 0 ; y < 24 ; y++) {
+			data = *font++;
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			data = *font++;
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data & 0xf0);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, (data & 0xf0) ^ 0xf0);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off += width - 1;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+		}
+	}
+	IO_Write(0x3ce, 8); IO_Write(0x3cf, 0xff);
+	IO_Write(0x3ce, 1); IO_Write(0x3cf, 0);
+	IO_Write(0x3cd, 0x00);
+}
+
+void WriteCharDOSVDbcs24(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
+{
+	uint8_t back, select;
+	uint8_t *font;
+	Bitu off;
+	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
+	volatile uint8_t dummy;
+
+	font = GetDbcs24Font(chr);
+
+	back = attr >> 4;
+	attr &= 0x0f;
+
+	off = row * width * 24 + (col * 12) / 8;
+	if(off >= 0x20000) {
+		select = 0x22;
+		off -= 0x20000;
+	} else if(off >= 0x10000) {
+		select = 0x11;
+		off -= 0x10000;
+	} else {
+		select = 0x00;
+	}
+	IO_Write(0x3cd, select);
+
+	IO_Write(0x3ce, 5); IO_Write(0x3cf, 0);
+	IO_Write(0x3ce, 1); IO_Write(0x3cf, 0xf);
+
+	if(col & 1) {
+		uint8_t data[4];
+		for(uint8_t y = 0 ; y < 24 ; y++) {
+			data[0] = *font >> 4;
+			data[1] = (*font << 4) | (*(font + 1) >> 4);
+			data[2] = (*(font + 1) << 4) | (*(font + 2) >> 4);
+			data[3] = *(font + 2) << 4;
+			font += 3;
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[0]);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[0] ^ 0x0f);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[1]);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[1] ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000,  off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[2]);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[2] ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[3]);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[3] ^ 0xf0);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off += width - 3;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+		}
+	} else {
+		uint8_t data;
+		for(uint8_t y = 0 ; y < 24 ; y++) {
+			data = *font++;
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			data = *font++;
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off++;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+			data = *font++;
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			IO_Write(0x3ce, 8); IO_Write(0x3cf, data ^ 0xff);
+			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
+			dummy = real_readb(0xa000, off);
+			real_writeb(0xa000, off, 0xff);
+
+			off += width - 2;
+			if(off >= 0x10000) {
+				if(select == 0x00) {
+					select = 0x11;
+				} else if(select == 0x11) {
+					select = 0x22;
+				}
+				IO_Write(0x3cd, select);
+				off -= 0x10000;
+			}
+		}
+	}
+	IO_Write(0x3ce, 8); IO_Write(0x3cf, 0xff);
+	IO_Write(0x3ce, 1); IO_Write(0x3cf, 0);
+	IO_Write(0x3cd, 0x00);
+}
+
 void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	Bitu off;
 	uint8_t data, select;
 	uint8_t *font;
+
+	if(IS_DOSV && real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT) == 24) {
+		WriteCharDOSVSbcs24(col, row, chr, attr);
+		return;
+	}
 
 	if(CheckJapaneseGraphicsMode(attr)) {
 		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
@@ -436,6 +914,11 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 }
 
 void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
+	if(IS_DOSV && real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT) == 24) {
+		WriteCharDOSVDbcs24(col, row, chr, attr);
+		return;
+	}
+
 	if (IS_DOSV && !IS_JDOSV && col == pcol+2 && row == prow && CheckBoxDrawing(pchr / 0x100, pchr & 0xFF, chr / 0x100, chr & 0xFF)) {
 		WriteCharDOSVSbcs(col - 2, row, pchr / 0x100, attr);
 		WriteCharDOSVSbcs(col - 1, row, pchr & 0xFF, attr);
@@ -639,7 +1122,11 @@ void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t n
             VGA_CopyRow(cul,clr,start,start+nlines,base);break;
         case M_LIN4:
             if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
-                EGA16_CopyRow(cul,clr,start,start+nlines,base);
+                if(real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT) == 24) {
+                    EGA16_CopyRow_24(cul,clr,start,start+nlines,base);
+                } else {
+                    EGA16_CopyRow(cul,clr,start,start+nlines,base);
+                }
                 DOSV_Text_CopyRow(cul,clr,start,start+nlines);
                 break;
             }
