@@ -48,6 +48,7 @@ uint8_t *GetSbcs19Font(Bitu code);
 uint8_t *GetSbcs24Font(Bitu code);
 uint8_t *GetDbcsFont(Bitu code);
 uint8_t *GetDbcs24Font(Bitu code);
+void DOSV_FillScreen();
 void ResolvePath(std::string& in);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
@@ -79,13 +80,14 @@ Bitu INT10_Handler(void) {
 					INT10_SetVideoMode(0x3d);
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else if(vtext_mode == DOSV_VTEXT_SVGA) {
-					INT10_SetVideoMode(0x6a);
+					INT10_SetVideoMode((svgaCard == SVGA_TsengET3K) ? 0x29 : (svgaCard == SVGA_ParadisePVGA1A) ? 0x58 : 0x6a);
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else {
 					INT10_SetVideoMode(0x12);
 					INT10_SetDOSVModeVtext(mode, DOSV_VTEXT_VGA);
 				}
 			}
+			DOSV_FillScreen();
 		} else {
 			if(reg_al == 0x74)
 				break;
