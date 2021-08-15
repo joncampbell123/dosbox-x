@@ -1044,8 +1044,8 @@ void DOSBOX_RealInit() {
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
     if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
-    if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
-        LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
+    if (machine != MCH_VGA || want_fm_towns) {
+        LOG_MSG("WARNING: DOS/V is only supported for VGA video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
     }
     int cp = dos.loaded_codepage;
@@ -2090,6 +2090,9 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
 	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
+
+	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation.");
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);

@@ -100,6 +100,7 @@ static enum DOSV_FEP_CTRL dosv_fep_ctrl;
 static HFONT jfont_16;
 static HFONT jfont_14;
 static HFONT jfont_24;
+static bool use20pixelfont;
 #endif
 #if defined(USE_TTF)
 extern bool autoboxdraw;
@@ -508,6 +509,12 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 				if(width == 24) {
 					pos += off_y;
 				}
+				if(use20pixelfont && height == 24) {
+					pos += 4;
+					if(width == 24) {
+						pos += 2;
+					}
+				}
 			}
 			for(Bitu y = off_y ; y < off_y + gm.gmBlackBoxY; y++) {
 				uint32_t data = 0;
@@ -798,7 +805,7 @@ void InitFontHandle()
 		jfont_16 = CreateFontIndirect(&lf);
 		lf.lfHeight = 14;
 		jfont_14 = CreateFontIndirect(&lf);
-		lf.lfHeight = 24;
+		lf.lfHeight = use20pixelfont ? 20 : 24;
 		jfont_24 = CreateFontIndirect(&lf);
 	}
 #endif
@@ -862,6 +869,7 @@ void JFONT_Init() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
 	getsysfont = section->Get_bool("getsysfont");
 	yen_flag = section->Get_bool("yen");
+    use20pixelfont = section->Get_bool("use20pixelfont");
 
 	Prop_path* pathprop = section->Get_path("fontxsbcs");
 	if (pathprop) {
@@ -1462,9 +1470,7 @@ enum DOSV_VTEXT_MODE DOSV_GetVtextMode(Bitu no)
 
 enum DOSV_VTEXT_MODE DOSV_StringVtextMode(std::string vtext)
 {
-	if(vtext == "vga") {
-		return DOSV_VTEXT_VGA;
-	} else if(svgaCard == SVGA_TsengET4K) {
+	if(svgaCard == SVGA_TsengET4K) {
 		if(vtext == "xga") {
 			return DOSV_VTEXT_XGA;
 		} else if(vtext == "xga24") {
@@ -1475,7 +1481,10 @@ enum DOSV_VTEXT_MODE DOSV_StringVtextMode(std::string vtext)
 			return DOSV_VTEXT_SXGA_24;
 		}
 	}
-	return DOSV_VTEXT_SVGA;
+	if(vtext == "svga" && svgaCard != SVGA_None) {
+		return DOSV_VTEXT_SVGA;
+	}
+	return DOSV_VTEXT_VGA;
 }
 
 enum DOSV_FEP_CTRL DOSV_GetFepCtrl()

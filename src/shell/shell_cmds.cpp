@@ -422,9 +422,9 @@ void DOS_Shell::CMD_CLS(char * args) {
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
        WriteOut("[2J");
    else {
-      reg_ax=(uint16_t)CurMode->mode;
+      if (IS_DOSV && DOSV_CheckCJKVideoMode()) reg_ax = GetTrueVideoMode();
+      else reg_ax=(uint16_t)CurMode->mode;
       CALLBACK_RunRealInt(0x10);
-      if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
    } 
 }
 
