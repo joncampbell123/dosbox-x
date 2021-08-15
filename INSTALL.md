@@ -49,11 +49,12 @@ The Visual Studio builds are the default Windows builds to use, but they may req
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW SDL1 build for lower-end systems (mingw-lowend), MinGW SDL1 build with custom drawn menu (mingw-sdldraw), and MinGW SDL2 build (mingw-sdl2). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 ## Linux Packages
-DOSBox-X is available packaged in the following formats:
+DOSBox-X is available packaged in the below formats. 
+You can select the one that best matches your Linux system and your needs.
 
 ### Flatpak
 Flatpak packages are officially released for the Linux operating system (with X11 or Xwayland).
-You can select one of these packages depending on your Linux system and your needs.
+
 The Linux Fatpak package has the advantage of being supported by most Linux distributions, but it will run in a sandbox on your Linux system so that you may not be able to access some system-wide resources.
 
 For the current DOSBox-X version the Linux Flatpak is available from:
@@ -108,8 +109,11 @@ On CentOS, RHEL or Fedora platforms, you can install an RPM package with a comma
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug build if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). In such case you probably want to use the Flatpak package, which works independent of your Linux distribution.
 
 ### AUR Package
-DOSBox-X is packaged for archlinux (https://aur.archlinux.org/packages/dosbox-x/), and available in the standard arch repo.
+DOSBox-X is packaged for archlinux, and available in the user contributed AUR Package Repository.
 But please note that this package is not built or updated by the DOSBox-X team.
+
+- SDL1 built: https://aur.archlinux.org/packages/dosbox-x/
+- SDL2 built: https://aur.archlinux.org/packages/dosbox-x-sdl2/
 
 ## macOS Packages (Portable)
 
