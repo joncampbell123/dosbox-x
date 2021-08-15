@@ -1745,6 +1745,123 @@ CODE_jmp:
 			LOG(LOG_CPU,LOG_NORMAL)("JMP:TSS to %X",selector);
 			CPU_SwitchTask(selector,TSwitch_JMP,oldeip);
 			break;
+		case DESC_386_CALL_GATE: /* CAUTION: Copy-pasta from CPU_CALL() with stack switching removed */
+		case DESC_286_CALL_GATE:
+			{
+				CPU_CHECK_COND(desc.DPL()<cpu.cpl,
+					"JMP:Gate:Gate DPL<CPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(desc.DPL()<rpl,
+					"JMP:Gate:Gate DPL<RPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(!desc.saved.seg.p,
+					"JMP:Gate:Segment not present",
+					EXCEPTION_NP,selector & 0xfffc)
+				Descriptor n_cs_desc;
+				Bitu n_cs_sel=desc.GetSelector();
+
+				CPU_CHECK_COND((n_cs_sel & 0xfffc)==0,
+					"JMP:Gate:CS selector zero",
+					EXCEPTION_GP,0)
+				CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_cs_sel,n_cs_desc),
+					"JMP:Gate:CS beyond limits",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+				Bitu n_cs_dpl	= n_cs_desc.DPL();
+				CPU_CHECK_COND(n_cs_dpl>cpu.cpl,
+					"JMP:Gate:CS DPL>CPL",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+
+				CPU_CHECK_COND(!n_cs_desc.saved.seg.p,
+					"JMP:Gate:CS not present",
+					EXCEPTION_NP,n_cs_sel & 0xfffc)
+
+				Bitu n_eip		= desc.GetOffset();
+				switch (n_cs_desc.Type()) {
+				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
+				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
+					/* Check if we goto inner priviledge */
+					if (n_cs_dpl < cpu.cpl) {
+						/* Get new SS:ESP out of TSS */
+                        uint16_t n_ss_sel;
+                        uint32_t n_esp;
+						Descriptor n_ss_desc;
+						cpu_tss.Get_SSx_ESPx(n_cs_dpl,n_ss_sel,n_esp);
+						CPU_CHECK_COND((n_ss_sel & 0xfffc)==0,
+							"JMP:Gate:NC:SS selector zero",
+							EXCEPTION_TS,0)
+						CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_ss_sel,n_ss_desc),
+							"JMP:Gate:Invalid SS selector",
+							EXCEPTION_TS,n_ss_sel & 0xfffc)
+						CPU_CHECK_COND(((n_ss_sel & 3)!=n_cs_desc.DPL()) || (n_ss_desc.DPL()!=n_cs_desc.DPL()),
+							"JMP:Gate:Invalid SS selector privileges",
+							EXCEPTION_TS,n_ss_sel & 0xfffc)
+
+						switch (n_ss_desc.Type()) {
+						case DESC_DATA_EU_RW_NA:		case DESC_DATA_EU_RW_A:
+						case DESC_DATA_ED_RW_NA:		case DESC_DATA_ED_RW_A:
+							// writable data segment
+							break;
+						default:
+							E_Exit("Call:Gate:SS no writable data segment");	// or #TS(ss_sel)
+						}
+						CPU_CHECK_COND(!n_ss_desc.saved.seg.p,
+							"JMP:Gate:Stack segment not present",
+							EXCEPTION_SS,n_ss_sel & 0xfffc)
+
+						bool old_allow = dosbox_allow_nonrecursive_page_fault;
+
+						/* this code isn't very easy to make interruptible. so temporarily revert to recursive PF handling method */
+						dosbox_allow_nonrecursive_page_fault = false;
+
+						// commit point
+						Segs.val[ss]=n_ss_sel;
+						Segs.phys[ss]=n_ss_desc.GetBase();
+						Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
+						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
+						if (n_ss_desc.Big()) {
+							cpu.stack.big=true;
+							cpu.stack.mask=0xffffffff;
+							cpu.stack.notmask=0;
+							reg_esp=n_esp;
+						} else {
+							cpu.stack.big=false;
+							cpu.stack.mask=0xffff;
+							cpu.stack.notmask=0xffff0000;
+							reg_sp=n_esp & 0xffff;
+						}
+
+						CPU_SetCPL(n_cs_desc.DPL());
+						/* Switch to new CS:EIP */
+						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+						Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
+						Segs.phys[cs]	= n_cs_desc.GetBase();
+						Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
+						cpu.code.big	= n_cs_desc.Big()>0;
+						reg_eip			= (uint32_t)n_eip;
+						if (!use32)	reg_eip&=0xffff;
+
+						dosbox_allow_nonrecursive_page_fault = old_allow;
+						break;		
+					} else if (n_cs_dpl > cpu.cpl)
+						E_Exit("JMP:GATE:CS DPL>CPL");		// or #GP(sel)
+				case DESC_CODE_N_C_A:case DESC_CODE_N_C_NA:
+				case DESC_CODE_R_C_A:case DESC_CODE_R_C_NA:
+					// zrdx extender
+
+					/* Switch to new CS:EIP */
+					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
+					Segs.phys[cs]	= n_cs_desc.GetBase();
+					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
+					cpu.code.big	= n_cs_desc.Big()>0;
+					reg_eip			= (uint32_t)n_eip;
+					if (!use32)	reg_eip&=0xffff;
+					break;
+				default:
+					E_Exit("JMP:GATE:CS no executable segment");
+				}
+			}			/* Call Gates */
+			break;
 		default:
 			E_Exit("JMP Illegal descriptor type %X",(int)desc.Type());
 		}
