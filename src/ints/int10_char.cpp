@@ -111,7 +111,7 @@ static void EGA16_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew
             dest+=nextline;src+=nextline;
         }
     } else {
-        Bit8u select;
+        uint8_t select;
         dest=(CurMode->twidth*rnew)*cheight+cleft;
         src=(CurMode->twidth*rold)*cheight+cleft;
         select = 0x00;
@@ -167,10 +167,10 @@ static void EGA16_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew
     IO_Write(0x3ce,5);IO_Write(0x3cf,0);		/* Normal transfer mode */
 }
 
-static void CopyRowMask(PhysPt base, PhysPt dest_pt, PhysPt src_pt, Bit8u mask)
+static void CopyRowMask(PhysPt base, PhysPt dest_pt, PhysPt src_pt, uint8_t mask)
 {
-    Bit8u no;
-    Bit8u plane[4];
+    uint8_t no;
+    uint8_t plane[4];
 
     IO_Write(0x3ce, 5); IO_Write(0x3cf, 0);
     for(no = 0 ; no < 4 ; no++) {

@@ -869,7 +869,9 @@ void JFONT_Init() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
 	getsysfont = section->Get_bool("getsysfont");
 	yen_flag = section->Get_bool("yen");
+#if defined(WIN32)
     use20pixelfont = section->Get_bool("use20pixelfont");
+#endif
 
 	Prop_path* pathprop = section->Get_path("fontxsbcs");
 	if (pathprop) {
