@@ -21,6 +21,13 @@
   - INT 29h routes output through ANSI.SYS driver in
     both IBM PC and PC-98 mode, unless ansi.sys=false
     is set in the config setting. (joncampbell123)
+  - Integrated commits from mainline (Allofich)
+    - Fix regression in r4444: Hercules machine type
+    cursor translation.
+    - Remove redundant signature for ET4K that is now
+    done in video BIOS.
+    - Implement mouse driver function 0x27, fixes
+    Alive - Behind the Moon.
 0.83.16
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.16.html
