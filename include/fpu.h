@@ -181,7 +181,7 @@ struct FPUControlWord
 		reservedMask = 0x40,
 		initValue    = 0x37f
 	};
-	enum class RoundMode
+	enum RoundMode
 	{
 		Nearest = 0,
 		Down    = 1,
