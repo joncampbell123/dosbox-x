@@ -1449,6 +1449,10 @@ static Bitu INT33_Handler(void) {
         }
         DrawCursor();
         break;
+    case 0x27:  /* Get Screen/Cursor Masks and Mickey Counts */
+        reg_ax = mouse.textAndMask;
+        reg_bx = mouse.textXorMask;
+        /* FALLTHROUGH */
     case 0x0b:  /* Read Motion Data */
         {
             const auto locked = MOUSE_IsLocked();
