@@ -1224,9 +1224,9 @@ void INT10_SetActivePage(uint8_t page) {
 extern const char* RunningProgram;
 void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     real_writew(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE,last|(first<<8u));
-    if (!IS_EGAVGA_ARCH) goto dowrite;
+    if (machine==MCH_CGA || IS_TANDY_ARCH) goto dowrite;
     /* Skip CGA cursor emulation if EGA/VGA system is active */
-    if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
+    if (machine==MCH_HERC || !(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
         /* Check for CGA type 01, invisible */
         if ((first & 0x60) == 0x20) {
             first=0x1e | 0x20; /* keep the cursor invisible! */
@@ -1237,10 +1237,10 @@ void INT10_SetCursorShape(uint8_t first,uint8_t last) {
         /* FIXME: Some sources including [https://www.stanislavs.org/helppc/bios_data_area.html] [https://www.matrix-bios.nl/system/bda.html]
          *        suggest CGA alphanumeric cursor emulation occurs when bit 0 is SET. This code checks whether the bit is CLEARED.
          *        This test and emulation may have the bit backwards. VERIFY ON REAL HARDWARE -- J.C */
-        if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x1)) { // set by int10 fun12 sub34
+        if (machine==MCH_HERC || !(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x1)) { // set by int10 fun12 sub34
 //          if (CurMode->mode>0x3) goto dowrite;    //Only mode 0-3 are text modes on cga
             if ((first & 0xe0) || (last & 0xe0)) goto dowrite;
-            uint8_t cheight=real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT)-1;
+            uint8_t cheight=((machine==MCH_HERC)?14:real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT))-1;
             /* Creative routine i based of the original ibmvga bios */
 
             if (last<first) {
