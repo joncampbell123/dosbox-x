@@ -2573,7 +2573,7 @@ TTF 字處理軟體: XyWrite
 TTF 字處理軟體: FastEdit
 .
 :MENU:ttf_blinkc
-顯示 TTF 閃爍光標
+顯示 TTF 閃爍游標
 .
 :MENU:ttf_printfont
 使用目前 TTF 字型進行列印
