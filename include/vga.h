@@ -147,6 +147,21 @@ typedef enum {
 	EGALINE
 } Drawmode;
 
+enum MonochromeColor
+{
+    Green,
+    Amber,
+    Gray,
+    White,
+    First = Green,
+    Last = White
+};
+inline MonochromeColor& operator++(MonochromeColor& color)
+{
+    color = static_cast<MonochromeColor>(static_cast<unsigned>(color)+1);
+    return color;
+}
+
 typedef struct {
 	bool resizing;
 	Bitu width;
@@ -204,7 +219,7 @@ typedef struct {
 	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
-	uint8_t monochrome_pal;
+	MonochromeColor monochrome_pal;
 	uint8_t monochrome_bright;
 } VGA_Draw;
 
