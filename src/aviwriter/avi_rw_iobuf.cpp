@@ -18,9 +18,6 @@
 
 #include <stdlib.h>
 #include "avi_rw_iobuf.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
 
 /* common index writing code.
  * This code originally wrote the index one struct at a type.

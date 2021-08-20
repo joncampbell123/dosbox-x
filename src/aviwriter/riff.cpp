@@ -23,7 +23,6 @@
 #include "riff.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #ifdef _MSC_VER
 # include <io.h>

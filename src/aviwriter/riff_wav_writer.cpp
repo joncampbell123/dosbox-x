@@ -19,15 +19,10 @@
 /* Shut up! */
 #define _CRT_NONSTDC_NO_DEPRECATE
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <math.h>
 #ifdef _MSC_VER
 # include <io.h>
 #endif
