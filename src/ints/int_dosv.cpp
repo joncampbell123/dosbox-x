@@ -848,6 +848,58 @@ bool MakeSbcs24Font() {
 	return true;
 }
 
+#if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+extern HWND GetHWND(void);
+bool IME_GetEnable()
+{
+    bool state = false;
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    if(ImmGetOpenStatus(imc)) {
+         state = true;
+    }
+    ImmReleaseContext(wnd, imc);
+    return state;
+}
+
+void IME_SetEnable(BOOL state)
+{
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    ImmSetOpenStatus(imc, state);
+    ImmReleaseContext(wnd, imc);
+}
+
+static wchar_t CompositionFontName[LF_FACESIZE];
+
+void IME_SetCompositionFontName(const char *name)
+{
+	int len = MultiByteToWideChar(CP_ACP, 0, name, -1, NULL, 0);
+	if(len < LF_FACESIZE) {
+		MultiByteToWideChar(CP_ACP, 0, name, -1, CompositionFontName, len);
+	}
+}
+
+void IME_SetFontSize(int size)
+{
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    HDC hc = GetDC(wnd);
+    HFONT hf = (HFONT)GetCurrentObject(hc, OBJ_FONT);
+    LOGFONTW lf;
+    GetObjectW(hf, sizeof(lf), &lf);
+    ReleaseDC(wnd, hc);
+    if(CompositionFontName[0]) {
+        wcscpy(lf.lfFaceName, CompositionFontName);
+    }
+    lf.lfHeight = -size;
+    lf.lfWidth = size / 2;
+    ImmSetCompositionFontW(imc, &lf);
+    ImmReleaseContext(wnd, imc);
+}
+
+#endif
+
 void JFONT_Init() {
 #if defined(LINUX) && C_X11
 	setlocale(LC_CTYPE,"");
@@ -865,6 +917,8 @@ void JFONT_Init() {
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+	IME_SetCompositionFontName(jfont_name);
 #endif
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
 	getsysfont = section->Get_bool("getsysfont");
@@ -1103,8 +1157,20 @@ static Bitu mskanji_api(void)
 					real_writew(param_seg, param_off + 2, 0x0009);
 			}
 		}
-		reg_ax = 0;
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+		if(mode & 0x8000) {
+			if(mode & 0x0001)
+				IME_SetEnable(FALSE);
+			else if(mode & 0x0002)
+				IME_SetEnable(TRUE);
+		} else {
+			if(IME_GetEnable() == NULL)
+				real_writew(param_seg, param_off + 2, 0x000a);
+			else
+				real_writew(param_seg, param_off + 2, 0x0009);
+		}
 #endif
+		reg_ax = 0;
 	}
 	return CBRET_NONE;
 }
@@ -1439,7 +1505,7 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72) {

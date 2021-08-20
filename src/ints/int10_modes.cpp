@@ -2311,17 +2311,23 @@ static VideoModeBlock *ModeListVtext[] = {
 	ModeList_DOSV_SXGA_24,
 };
 
+#if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+extern void IME_SetFontSize(int size);
+#endif
+
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 {
 	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
 		FinishSetMode(true);
 		INT10_SetCursorShape(6, 7);
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		int cheight = CurMode->cheight;
 		if(IS_DOSV && cheight == 19) {
 			cheight = 16;
 		}
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+		IME_SetFontSize(cheight);
 #endif
 	} else {
 		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);

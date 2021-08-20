@@ -1067,6 +1067,17 @@ void DOSBOX_RealInit() {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
     }
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+    if (enableime && !control->opt_silent) {
+        dos.im_enable_flag = true;
+        SDL_StartTextInput();
+#if defined(LINUX)
+        SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
+#endif
+    } else if (!control->opt_silent) {
+        dos.im_enable_flag = false;
+        SDL_StopTextInput();
+    }
 #endif
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time

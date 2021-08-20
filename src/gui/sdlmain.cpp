@@ -308,6 +308,12 @@ void RebootLanguage(std::string filename, bool confirm=false);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+static std::string ime_text = "";
+extern bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool IME_GetEnable();
+#endif
+
 #if defined(USE_TTF)
 Render_ttf ttf;
 bool char512 = true;
@@ -7341,6 +7347,21 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 	}
 	return false;
 }
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
+{
+	if(key.keysym.scancode == 0x29 || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6)) {
+		// ESC, shift, control, alt
+		return true;
+	} else if((key.keysym.mod & 0x03) != 0 && key.keysym.scancode == 0x2c) {
+		// shift + space
+		return true;
+	} else if(key.keysym.mod & 0x40) {
+		// ctrl+
+		return true;
+	}
+	return false;
+}
 #endif
 
 bool sdl_wait_on_error() {
@@ -7419,7 +7440,7 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     return NULL;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint8_t im_x, im_y;
 static uint32_t last_ticks;
 void SetIMPosition() {
@@ -7444,15 +7465,28 @@ void SetIMPosition() {
 #endif
 		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
+        SDL_Rect rect;
 #if defined(USE_TTF)
-        if (ttf.inUse)
-            SDL_SetIMPosition(x * ttf.width, y * ttf.height);
-        else
+        if (ttf.inUse) {
+            rect.x = x * ttf.width;
+            rect.y = y * ttf.height;
+        } else {
 #endif
+            rect.x = x * width;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeightBase);
+            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeight;
 #else
-        SDL_SetIMPosition(x * width, y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0));
+#endif
+#if defined(USE_TTF)
+        }
+#endif
+#if defined(C_SDL2)
+        rect.w = 0;
+        rect.h = 0;
+        SDL_SetTextInputRect(&rect);
+#else
+        SDL_SetIMPosition(rect.x, rect.y);
 #endif
 	}
 }
@@ -7919,6 +7953,37 @@ void GFX_Events() {
 				}
 			}
 			break;
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
+        case SDL_TEXTEDITING:
+            ime_text = event.edit.text;
+            break;
+        case SDL_TEXTINPUT:
+            {
+                int len = strlen(event.text.text);
+                if(ime_text == event.text.text || len > 1) {
+                    uint8_t* buff;
+                    if((buff = (uint8_t *)malloc(len * 2)) != NULL) {
+                        if(CodePageHostToGuestUTF8((char *)buff, event.text.text)) {
+                            for(int no = 0 ; buff[no] != 0 ; no++) {
+                                if (IS_PC98_ARCH || isDBCSCP()) {
+                                    if(dos.loaded_codepage == 932 && isKanji1(buff[no]) && isKanji2(buff[no + 1])) {
+                                        BIOS_AddKeyToBuffer(0xf100 | buff[no++]);
+                                        BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+                                    } else {
+                                        BIOS_AddKeyToBuffer(buff[no]);
+                                    }
+                                } else {
+                                    BIOS_AddKeyToBuffer(buff[no]);
+                                }
+                            }
+                        }
+                        free(buff);
+                    }
+                    SetIMPosition();
+                }
+            }
+            break;
+#endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
@@ -7930,6 +7995,27 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
+            if(dos.im_enable_flag) {
+#if defined (WIN32)
+                if(event.type == SDL_KEYDOWN && IME_GetEnable()) {
+                    // Enter, BS, TAB, <-, ->
+                    if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || event.key.keysym.scancode == 0x4f || event.key.keysym.scancode == 0x50) {
+                        if(ime_text.size() != 0) {
+                            break;
+                        }
+                    } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0) {
+                        // Zenkaku space
+                        BIOS_AddKeyToBuffer(0xf100 | 0x81);
+                        BIOS_AddKeyToBuffer(0xf000 | 0x40);
+                        break;
+                    } else if(!CheckEnableImmOnKey(event.key)) {
+                        break;
+                    }
+                }
+#endif
+                // Hankaku/Zenkaku
+                if(event.key.keysym.scancode == 0x35) break;
+            }
 #endif
 #if defined (MACOSX)
             /* On macs CMD-Q is the default key to close an application */
@@ -13496,9 +13582,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             dos.loaded_codepage=cp;
         }
     }
-#if defined(WIN32) && (defined(C_SDL2) || !defined(SDL_DOSBOX_X_SPECIAL))
-    enableime = false;
-#endif
 #if defined(WIN32) && !defined(HX_DOS)
         if (!enableime) ImmDisableIME((DWORD)(-1));
 #endif
@@ -15161,6 +15244,10 @@ fresh_boot:
     if (!control->opt_silent) {
         SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+    if (!control->opt_silent) {
+        SDL_StopTextInput();
     }
 #endif
 

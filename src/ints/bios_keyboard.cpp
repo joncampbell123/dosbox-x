@@ -1119,6 +1119,11 @@ static bool IsEnhancedKey(uint16_t &key) {
     return false;
 }
 
+#if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+extern void IME_SetEnable(BOOL state);
+extern bool IME_GetEnable();
+#endif
+
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 
@@ -1262,6 +1267,20 @@ Bitu INT16_Handler(void) {
                     if(onoff)
                         reg_dl = 0x81;
                 }
+            }
+        }
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+        if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+            if(reg_al == 0x00) {
+                if(reg_dl & 0x81)
+                    IME_SetEnable(TRUE);
+                else
+                    IME_SetEnable(FALSE);
+            } else if(reg_al == 0x01) {
+                if(IME_GetEnable())
+                    reg_dl = 0x81;
+                else
+                    reg_dl = 0x00;
             }
         }
 #endif
