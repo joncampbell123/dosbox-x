@@ -297,8 +297,8 @@ static double hue_offset = 0.0;
 
 static uint8_t cga16_val = 0;
 static void update_cga16_color(void);
-static uint8_t herc_pal = 0;
-static uint8_t mono_cga_pal = 0;
+static MonochromeColor herc_pal = MonochromeColor::Green;
+static MonochromeColor mono_cga_pal = MonochromeColor::Green;
 static uint8_t mono_cga_bright = 0;
 static uint8_t const mono_cga_palettes[8][16][3] =
 {
@@ -932,13 +932,13 @@ static void write_pcjr(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 void CycleHercPal(bool pressed) {
 	if (!pressed) return;
-	if (++herc_pal>3) herc_pal=0;
+	if (++herc_pal>MonochromeColor::Last) herc_pal=MonochromeColor::First;
 	Herc_Palette();
 }
 
 void CycleMonoCGAPal(bool pressed) {
 	if (!pressed) return;
-	if (++mono_cga_pal>3) mono_cga_pal=0;
+	if (++mono_cga_pal>MonochromeColor::Last) mono_cga_pal=MonochromeColor::First;
 	Mono_CGA_Palette();
 }
 
@@ -956,19 +956,19 @@ void HercBlend(bool pressed) {
 
 void Herc_Palette(void) {	
 	switch (herc_pal) {
-	case 0:	// White
+	case MonochromeColor::White:
 		VGA_DAC_SetEntry(0x7,0x2a,0x2a,0x2a);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3f);
 		break;
-	case 1:	// Amber
+	case MonochromeColor::Amber:
 		VGA_DAC_SetEntry(0x7,0x34,0x20,0x00);
 		VGA_DAC_SetEntry(0xf,0x3f,0x34,0x00);
 		break;
-	case 2:	// Paper-white
+	case MonochromeColor::Gray:
 		VGA_DAC_SetEntry(0x7,0x2c,0x2d,0x2c);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3b);
 		break;
-	case 3:	// Green
+	case MonochromeColor::Green:
 		VGA_DAC_SetEntry(0x7,0x00,0x26,0x00);
 		VGA_DAC_SetEntry(0xf,0x00,0x3f,0x00);
 		break;
