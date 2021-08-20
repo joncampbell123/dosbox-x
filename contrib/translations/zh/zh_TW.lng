@@ -645,7 +645,7 @@ MSCDEX: 指定的位置並非光碟機.
 
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX 錯誤: 不合法的檔案或無法開啟檔案.
+MSCDEX 錯誤: 無效的檔案或無法開啟檔案.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
@@ -1201,7 +1201,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_INVALIDFILE
-鍵盤檔案 %s 不合法的
+鍵盤檔案 %s 不正確
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
@@ -1222,7 +1222,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-不合法的參數.
+無效的參數.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -1253,7 +1253,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :SHELL_ILLEGAL_DRIVE
-指定的磁碟機不合法的
+指定的磁碟機無效
 
 .
 :SHELL_CMD_HELP
@@ -1279,7 +1279,7 @@ ECHO狀態為關.
 
 .
 :SHELL_ILLEGAL_SWITCH
-不合法的切換參數 - %s
+無效的切換參數 - %s
 
 .
 :SHELL_MISSING_PARAMETER
@@ -1410,7 +1410,7 @@ IF ERRORLEVEL: 缺少數字.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
-IF ERRORLEVEL: 不合法的數字.
+IF ERRORLEVEL: 無效的數字.
 
 .
 :SHELL_CMD_GOTO_MISSING_LABEL
@@ -1525,7 +1525,7 @@ SUBST 命令只能掛載本機磁碟機.
 
 .
 :SHELL_CMD_SUBST_INVALID_PATH
-指定的磁碟機或目錄不合法的.
+指定的磁碟機或目錄無效.
 
 .
 :SHELL_CMD_SUBST_FAILURE
@@ -2052,7 +2052,7 @@ TTF 字型中未定義的字元數: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-不合法的字碼頁 - %s
+無效的字碼頁 - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
