@@ -1599,7 +1599,7 @@ CD [..]
 
 .
 :SHELL_CMD_CLS_HELP
-清除螢幕.
+清除畫面.
 
 .
 :SHELL_CMD_CLS_HELP_LONG
@@ -2580,13 +2580,13 @@ TTF 字處理軟體: FastEdit
 使用目前 TTF 字型進行列印
 .
 :MENU:ttf_dbcs_sbcs
-中日韓: 切換雙位元組/單位元組模式
+中日韓文字: 切換雙位元組/單位元組模式
 .
 :MENU:ttf_autoboxdraw
-中日韓: 自動檢測製表符號
+中日韓文字: 自動檢測製表符號
 .
 :MENU:ttf_halfwidthkana
-中日韓: 允許半形日文片假名
+中日韓文字: 允許半形日文片假名
 .
 :MENU:VideoPC98Menu
 PC-98 選項
