@@ -1930,7 +1930,7 @@ PATH ;
 :SHELL_CMD_PUSHD_HELP_LONG
 PUSHD [路徑]
 
-路徑        指定要作為目前目錄的目錄.
+路徑        指定要切換到的目錄.
 
 輸入不含參數的 PUSHD 命令顯示目前儲存的目錄.
 
