@@ -445,7 +445,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_1
-目前已掛載的磁碟機為:
+目前已掛載的磁碟機有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -457,11 +457,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
-目前已掛載的磁碟機編號為:
+目前已掛載的磁碟機編號有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_1
-目前已掛載的 FAT/ISO 磁碟機為:
+目前已掛載的 FAT/ISO 磁碟機有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
@@ -500,7 +500,7 @@ MOUSE [/?] [/U] [/V]
  -label [名稱]     設定磁碟機的標籤名稱 (全部大寫)
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
- -cd               顯示包含光碟機編號的主機光碟機清單.
+ -cd               顯示包含光碟機編號的本機光碟機清單.
  -usecd [磁碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
  -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
@@ -520,7 +520,7 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT c %s[0m
 
 此命令將主機目錄 %s 呈現為 DOSBox-X 中的 C 磁碟機.
-此目錄必須在主機系統中存在. 如果目錄包含空格, 請將它用雙引號包含起來.
+此目錄必須在主系統中存在. 如果目錄包含空格, 請將它用雙引號包含起來.
 例如: %s
 
 更多 MOUNT 命令的使用舉例:
@@ -1046,7 +1046,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
-映像檔必須在主機的本機或網路磁碟機上.
+映像檔必須在主系統的本機或網路磁碟機上.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
@@ -1105,7 +1105,7 @@ BIOSTEST 映像檔
 建立軟碟或硬碟映像檔.
 用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 參數]] [-spc] [-nofs][0m
   [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源磁碟代號] [-retries #][0m
-  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
+  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主系統路徑[0m
   -t: 映像檔類型.
     [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
@@ -1329,10 +1329,10 @@ ECHO狀態為關.
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | 日期]
   日期:       要設定的新日期
-  /S:         DOS日期和時間永久與主機日期和時間同步
+  /S:         DOS日期和時間永久與主系統日期和時間同步
   /F:         切換為DOSBox-X內部日期和時間 (與/S相反)
   /T:         只顯示日期
-  /H:         與主機同步
+  /H:         與主系統同步
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1354,7 +1354,7 @@ DATE [[/T] [/H] [/S] | 日期]
 TIME [[/T] [/H] | 時間]
   時間:       要設定的新時間
   /T:         簡潔顯示時間
-  /H:         與主機同步
+  /H:         與主系統同步
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1509,7 +1509,7 @@ PAUSE
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
-目前已掛載的磁碟機為:
+目前已掛載的本機磁碟機有:
 
 .
 :SHELL_CMD_SUBST_NO_REMOVE
@@ -1858,14 +1858,14 @@ CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
 .
 :SHELL_CMD_SUBST_HELP
-將目錄分配給一個磁碟機.
+將目錄指派給一個磁碟機.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
 SUBST [磁碟機1: [磁碟機2:]路徑]
 SUBST 磁碟機1: /D
 
-  磁碟機1:        指定您想分配路徑的新磁碟機.
+  磁碟機1:        指定您想指派路徑給它的磁碟機.
   [磁碟機2:]路徑  指定已掛載的本機磁碟機和路徑.
   /D              刪除已掛載或代替的磁碟機.
 
@@ -2736,13 +2736,13 @@ EMM386 模擬
 停用 EMS 記憶體模擬
 .
 :MENU:DOSWinMenu
-主機系統程式
+主系統程式
 .
 :MENU:dos_win_autorun
-自動在 Windows 主機中執行
+自動在 Windows 主系統中執行
 .
 :MENU:dos_win_transpath
-將路徑轉換為主機系統路徑
+將路徑轉換為主系統路徑
 .
 :MENU:dos_win_wait
 等待應用程式 (如果可能)
@@ -3213,7 +3213,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 啟用高 DPI 模式
 .
 :MENU:sync_host_datetime
-同步主機日期/時間
+同步主系統日期/時間
 .
 :MENU:shell_config_commands
 組態選項作為命令
