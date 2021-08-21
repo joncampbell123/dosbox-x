@@ -28,6 +28,9 @@
     done in video BIOS.
     - Implement mouse driver function 0x27, fixes
     Alive - Behind the Moon.
+    - Add log message for unusual cases where an
+    executable unsafely places its initial stack outside
+    the memory block.
 0.83.16
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.16.html
