@@ -108,9 +108,6 @@ enum BlockReturn {
 	BR_Cycles,
 	BR_Link1,BR_Link2,
 	BR_Opcode,
-#if (C_DEBUG)
-	BR_OpcodeFull,
-#endif
 	BR_Iret,
 	BR_CallBack,
 	BR_SMCBlock,
@@ -429,13 +426,6 @@ run_block:
 		CPU_Cycles=1;
 		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 		return CPU_Core_Normal_Run();
-#if (C_DEBUG)
-	case BR_OpcodeFull:
-		CPU_CycleLeft+=CPU_Cycles;
-		CPU_Cycles=1;
-		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-		return CPU_Core_Full_Run();
-#endif
 	case BR_Link1:
 	case BR_Link2:
 		{

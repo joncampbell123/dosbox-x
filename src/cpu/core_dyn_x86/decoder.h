@@ -3269,14 +3269,6 @@ illegalopcode:
 	gen_return(BR_Opcode);
 	dyn_closeblock();
 	goto finish_block;
-#if (C_DEBUG)
-	dyn_set_eip_last();
-	dyn_reduce_cycles();
-	dyn_save_critical_regs();
-	gen_return(BR_OpcodeFull);
-	dyn_closeblock();
-	goto finish_block;
-#endif
 finish_block:
 	/* Setup the correct end-address */
 	decode.active_block->page.end=(uint16_t)--decode.page.index;
