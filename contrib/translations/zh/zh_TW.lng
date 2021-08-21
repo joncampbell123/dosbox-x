@@ -3,8 +3,8 @@
 :DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:建議使用繁體/正體中文DOS/V模式或者TTF輸出選項和字碼頁950配合中文TTF字型以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
-本段落各行指令將在啟動時執行.
-你可以把 MOUNT 指令寫在本處.
+本段落各行命令將在啟動時執行.
+你可以把 MOUNT 命令寫在本處.
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案。(敬請用最新版 DOSBox-X)
@@ -489,10 +489,10 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_USAGE
-掛載主系統中的目錄或磁碟機為 DOSBox-X 磁碟機.
+掛載主機系統中的目錄或磁碟機為 DOSBox-X 磁碟機.
 用法: [34;1m[32;1mMOUNT[0m [37;1m磁碟機[0m [36;1m本機目錄[0m [選項][0m
  [37;1m磁碟機[0m            目錄或磁碟機被掛載後所在的磁碟機代號.
- [36;1m本機目錄[0m          主系統中要被掛載的本機目錄或磁碟機.
+ [36;1m本機目錄[0m          主機系統中要被掛載的本機目錄或磁碟機.
  [選項]            掛載選項. 支援以下選項:
  -t                指定所掛載磁碟機的顯現類型.
                    支援的磁碟機類型為: dir, floppy, cdrom, overlay
@@ -519,8 +519,8 @@ MOUSE [/?] [/U] [/V]
 
 [32;1mMOUNT c %s[0m
 
-此命令將主系統目錄 %s 呈現為 DOSBox-X 中的 C 磁碟機.
-此目錄必須在主系統中存在. 如果目錄包含空格, 請將它用雙引號包含起來.
+此命令將主機目錄 %s 呈現為 DOSBox-X 中的 C 磁碟機.
+此目錄必須在主機系統中存在. 如果目錄包含空格, 請將它用雙引號包含起來.
 例如: %s
 
 更多 MOUNT 命令的使用舉例:
@@ -1046,7 +1046,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
-映像檔必須在主系統的本機或網路磁碟機上.
+映像檔必須在主機的本機或網路磁碟機上.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
@@ -1105,7 +1105,7 @@ BIOSTEST 映像檔
 建立軟碟或硬碟映像檔.
 用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 參數]] [-spc] [-nofs][0m
   [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源磁碟代號] [-retries #][0m
-  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主系統路徑[0m
+  檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
   -t: 映像檔類型.
     [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
@@ -1329,10 +1329,10 @@ ECHO狀態為關.
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | 日期]
   日期:       要設定的新日期
-  /S:         DOS日期和時間永久與主系統日期和時間同步
+  /S:         DOS日期和時間永久與主機日期和時間同步
   /F:         切換為DOSBox-X內部日期和時間 (與/S相反)
   /T:         只顯示日期
-  /H:         與主系統同步
+  /H:         與主機系統同步
 
 .
 :SHELL_CMD_TIME_HELP
@@ -2736,13 +2736,13 @@ EMM386 模擬
 停用 EMS 記憶體模擬
 .
 :MENU:DOSWinMenu
-主系統程式
+主機系統程式
 .
 :MENU:dos_win_autorun
-自動在 Windows 主系統中執行
+自動在 Windows 主機中執行
 .
 :MENU:dos_win_transpath
-將路徑轉換為主系統路徑
+將路徑轉換為主機系統路徑
 .
 :MENU:dos_win_wait
 等待應用程式 (如果可能)
@@ -3213,7 +3213,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 啟用高 DPI 模式
 .
 :MENU:sync_host_datetime
-同步主系統日期/時間
+同步主機日期/時間
 .
 :MENU:shell_config_commands
 組態選項作為命令
