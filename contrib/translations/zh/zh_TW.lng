@@ -441,7 +441,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_2
-磁碟機 %c 掛載從 %s
+磁碟機 %c 掛載到 %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
@@ -485,7 +485,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-磁碟機 %c 已掛載從 %s
+磁碟機 %c 已掛載到 %s
 
 .
 :PROGRAM_MOUNT_USAGE
