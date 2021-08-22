@@ -908,7 +908,7 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-調用指定的 ROM 映像檔.
+載入指定的 ROM 映像檔.
 
 LOADROM 映像檔
 
@@ -1848,13 +1848,13 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目標]
 
 .
 :SHELL_CMD_CALL_HELP
-在批次檔中調用批次檔.
+在批次檔中呼叫另一批次檔.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
 CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
-批次處理參數  指定批次檔所需的命令列參數.
+批次處理參數  指定批次程式所需的命令列資訊.
 
 .
 :SHELL_CMD_SUBST_HELP
@@ -2922,10 +2922,10 @@ DOS 命令
 產生 NMI 中斷
 .
 :MENU:debug_int2fhook
-鉤住 INT 2F 中斷
+鉤住 INT 2F 呼叫
 .
 :MENU:debug_logint21
-記錄 INT 21 調用
+記錄 INT 21 呼叫
 .
 :MENU:debug_logfileio
 記錄檔案輸入輸出
@@ -3102,10 +3102,10 @@ DOS 命令
 重開 DOSBox-X 執行個體
 .
 :MENU:restartconf
-重開 DOSBox-X 並調用指定組態檔案...
+重開 DOSBox-X 並載入指定組態檔案...
 .
 :MENU:restartlang
-重開 DOSBox-X 並調用指定語言檔案...
+重開 DOSBox-X 並載入指定語言檔案...
 .
 :MENU:auto_lock_mouse
 自動鎖定滑鼠
