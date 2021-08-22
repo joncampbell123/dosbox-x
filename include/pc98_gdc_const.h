@@ -11,4 +11,3 @@ enum {
     GDC_CMD_PARAMETER_RAM_LOAD = 0x70,          // 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM
     GDC_CMD_CURSOR_ADDRESS_READ = 0xE0          // 1   1   1   0   0   0   0   0
 };
-

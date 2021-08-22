@@ -20,16 +20,10 @@
 #ifndef DOSBOX_DOS_SYSTEM_H
 #define DOSBOX_DOS_SYSTEM_H
 
-#ifndef DOSBOX_CROSS_H
 #include "cross.h"
-#endif
 #include "string.h"
-#ifndef DOSBOX_SUPPORT_H
 #include "support.h"
-#endif
-#ifndef DOSBOX_MEM_H
 #include "mem.h"
-#endif
 
 #define DOS_NAMELENGTH 12u
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)

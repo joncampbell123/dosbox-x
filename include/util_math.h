@@ -45,4 +45,3 @@ struct DOSBox_Vector2
 		return DOSBox_Vector2(this->X * f, this->Y * f);
 	}
 };
-

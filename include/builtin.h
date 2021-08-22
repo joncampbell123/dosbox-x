@@ -71,4 +71,3 @@ extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_CHKDSK_EXE;	// CHKDSK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_SYS_COM;	// SYS.COM (FreeDOS)
-

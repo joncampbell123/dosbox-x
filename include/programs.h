@@ -20,9 +20,7 @@
 #ifndef DOSBOX_PROGRAMS_H
 #define DOSBOX_PROGRAMS_H
 
-#ifndef DOSBOX_DOS_INC_H
 #include "dos_inc.h"
-#endif
 
 class CommandLine {
 public:

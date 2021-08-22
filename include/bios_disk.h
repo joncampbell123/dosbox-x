@@ -19,9 +19,7 @@
 #ifndef DOSBOX_BIOS_DISK_H
 #define DOSBOX_BIOS_DISK_H
 
-#ifndef DOSBOX_DOS_INC_H
 #include "dos_inc.h"
-#endif
 #include "logging.h"
 #include "../src/dos/cdrom.h"
 

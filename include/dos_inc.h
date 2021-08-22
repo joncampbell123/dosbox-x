@@ -22,9 +22,7 @@
 
 #define CTBUF 127
 
-#ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
-#endif
 
 #include <list>
 #include <stddef.h> //for offsetof

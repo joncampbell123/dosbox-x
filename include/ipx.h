@@ -33,9 +33,7 @@
 #endif
 #endif
 
-#ifndef DOSBOX_MEM_H
 #include "mem.h"
-#endif
 
 // In Use Flag codes
 #define USEFLAG_AVAILABLE  0x00

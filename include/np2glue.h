@@ -322,4 +322,3 @@ void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp);
 #ifdef __cplusplus
 }
 #endif
-

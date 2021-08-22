@@ -21,4 +21,3 @@ const char *DKM_to_string(const unsigned int dkm);
 const char *DKM_to_descriptive_string(const unsigned int dkm);
 
 #endif //__DOSBOX_X_KEYMAP
-

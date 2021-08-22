@@ -139,5 +139,3 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 } GCC_ATTRIBUTE(packed) windows_BITMAPV5HEADER;		/* (100) =0x7C =124 */
 
 #endif
-
-

@@ -150,4 +150,3 @@ typedef struct {							/* (sizeof) (offset hex) (offset dec) */
 #endif
 
 #endif /* __ISP_UTILS_V4_WIN_WAVEFORMATEX_H */
-
