@@ -31,9 +31,7 @@ Bitu FillFlags(void);
 void FillFlagsNoCFOF(void);
 void DestroyConditionFlags(void);
 
-#ifndef DOSBOX_REGS_H
 #include "regs.h"
-#endif
 
 struct LazyFlags {
     GenReg32 var1,var2,res;

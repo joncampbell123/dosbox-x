@@ -25,9 +25,7 @@
 //#pragma warning ( disable : 4290 )
 #endif
 
-#ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
-#endif
 #include "setup.h"
 
 class Config{
