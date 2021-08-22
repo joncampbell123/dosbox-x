@@ -3,8 +3,8 @@
 :DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:建議使用繁體/正體中文DOS/V模式或者TTF輸出選項和字碼頁950配合中文TTF字型以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
-本段落各行指令將在啟動時執行.
-你可以把 MOUNT 指令寫在本處.
+本段落各行命令將在啟動時執行.
+你可以把 MOUNT 命令寫在本處.
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案。(敬請用最新版 DOSBox-X)
@@ -109,7 +109,7 @@ DOSBox-X 組態工具
 設定組
 .
 :LOGGING_OUTPUT
-DOSBox-X 紀錄顯示
+DOSBox-X 紀錄輸出
 .
 :CODE_OVERVIEW
 代碼概覽
@@ -133,7 +133,7 @@ DOSBox-X 紀錄顯示
 IDE 控制器狀態
 .
 :HELP_COMMAND
-DOS 指令說明
+DOS 命令說明
 .
 :CURRENT_VOLUME
 目前混音器音量
@@ -207,7 +207,7 @@ DOSBox-X 模擬 DOS 命令列讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-切換儲存位
+切換槽
 .
 :EMPTY_SLOT
 空儲存位
@@ -323,7 +323,7 @@ DOSBox-X 命令列組態工具. 支援的選項為:
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
 -startmapper 啟動 DOSBox-X 的按鍵配置工具.
 -gui 啟動圖形介面的組態工具.
--get "段落 屬性" 返回指定屬性的值 （並設定 CONFIG 環境變數).
+-get "段落 屬性" 傳回指定屬性的值 （並設定 CONFIG 環境變數).
 -set (或 -setf 強制設定) "段落 屬性=值" 設定指定屬性的值.
 
 .
@@ -441,11 +441,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_2
-磁碟機 %c 掛載為 %s
+磁碟機 %c 掛載到 %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
-目前已掛載的磁碟機為:
+目前已掛載的磁碟機有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -457,11 +457,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
-目前已掛載的磁碟機編號為:
+目前已掛載的磁碟機編號有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_1
-目前已掛載的 FAT/ISO 磁碟機為:
+目前已掛載的 FAT/ISO 磁碟機有:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
@@ -485,14 +485,14 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-磁碟機 %c 已掛載為 %s
+磁碟機 %c 已掛載到 %s
 
 .
 :PROGRAM_MOUNT_USAGE
 掛載主機系統中的目錄或磁碟機為 DOSBox-X 磁碟機.
-用法: [34;1m[32;1mMOUNT[0m [37;1m磁碟機[0m [36;1m主機目錄[0m [選項][0m
- [37;1m磁碟機[0m            主機目錄或磁碟機將被掛載的磁碟代號.
- [36;1m主機目錄[0m          主機系統中要被掛載的目錄或磁碟機.
+用法: [34;1m[32;1mMOUNT[0m [37;1m磁碟機[0m [36;1m本機目錄[0m [選項][0m
+ [37;1m磁碟機[0m            目錄或磁碟機被掛載後所在的磁碟機代號.
+ [36;1m本機目錄[0m          主機系統中要被掛載的本機目錄或磁碟機.
  [選項]            掛載選項. 支援以下選項:
  -t                指定所掛載磁碟機的顯現類型.
                    支援的磁碟機類型為: dir, floppy, cdrom, overlay
@@ -500,7 +500,7 @@ MOUSE [/?] [/U] [/V]
  -label [名稱]     設定磁碟機的標籤名稱 (全部大寫)
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
- -cd               顯示包含光碟機編號的主機光碟機清單.
+ -cd               顯示包含光碟機編號的本機光碟機清單.
  -usecd [磁碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
  -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
@@ -508,7 +508,7 @@ MOUSE [/?] [/U] [/V]
  -nocachedir       啟用即時更新而不使用磁碟機快取.
  -z 磁碟機         將虛擬磁碟機 Z: 移動到另一個磁碟代號.
  -o                將磁碟機報告為: local, remote.
- -q                安靜模式 (不顯示消息).
+ -q                安靜模式 (無訊息輸出).
  -u                卸載磁碟機.
  [32;1m-examples         顯示用法舉例.[0m
 輸入不含參數的 MOUNT 命令將顯示已掛載的磁碟機清單.
@@ -555,7 +555,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-警告: 不建議掛載 C 碟根目錄.
+警告: 不建議掛載 C 槽根目錄.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
@@ -645,7 +645,7 @@ MSCDEX: 指定的位置並非光碟機.
 
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX 錯誤: 不合法的檔案或無法開啟檔案.
+MSCDEX 錯誤: 無效的檔案或無法開啟檔案.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
@@ -829,7 +829,7 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 DOSBox-X 提供多層次的光碟機模擬.
 
 [33m基本層次[0m支援所有光碟機及普通目錄.
-它將安裝 MSCDEX 並將檔案標識為唯讀.
+它將安裝 MSCDEX 並將檔案標示為唯讀.
 這對於大部分遊戲通常已經足夠:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   或   [34;1mmount d C:\example -t cdrom[0m
 如果不行的話您可以需要讓 DOSBox-X 給予光碟機特定的標籤:
@@ -868,8 +868,8 @@ DOSBox-X 提供多層次的光碟機模擬.
 您可以在此命令中使用多個軟碟映像檔, 並可通過選單選項進行切換.
 "磁碟機:"將從指定的已掛載的磁碟機開機. 如果沒有指定磁碟機代號,
 將預設從磁碟機 A: 開機. 如果沒有指定參數將試著從目前磁碟機開機.
-只支援從以下磁碟機代號中啟動: A:, C:, 以及 D:. 如果要從硬碟機
-(C: 或 D:) 中啟動, 請保證映像檔已用 [34;1mIMGMOUNT[0m 命令掛載.
+只支援從以下磁碟機代號開機: A:, C:, 以及 D:. 如果要從硬碟機
+(C: 或 D:) 開機, 請保證映像檔已用 [34;1mIMGMOUNT[0m 命令掛載.
 
 此命令的語法為如下之一:
 
@@ -968,7 +968,7 @@ BIOSTEST 映像檔
 
 .
 :VHD_PARENT_INVALID_MATCH
-指定的 VHD 檔案的父檔案不包含所需的標識.
+指定的 VHD 檔案的父檔案不包含所需的識別項.
 
 .
 :VHD_PARENT_INVALID_DATE
@@ -1201,7 +1201,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_INVALIDFILE
-鍵盤檔案 %s 不合法的
+鍵盤檔案 %s 不正確
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
@@ -1222,7 +1222,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-不合法的參數.
+無效的參數.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -1253,17 +1253,17 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :SHELL_ILLEGAL_DRIVE
-指定的磁碟機不合法的
+指定的磁碟機無效
 
 .
 :SHELL_CMD_HELP
 如果您想顯示所有支援的內部命令請輸入 [33;1mHELP /ALL[0m.
-您亦可以在 Z 碟找到其它 DOS 程式，它們是外部命令.
+您亦可以在 Z 槽找到其它 DOS 程式，它們是外部命令.
 以下為常用的 DOS 命令清單:
 
 .
 :SHELL_CMD_HELP_END1
-外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 可以在 Z 碟中找到.
+外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 可以在 Z 槽中找到.
 
 .
 :SHELL_CMD_HELP_END2
@@ -1279,7 +1279,7 @@ ECHO狀態為關.
 
 .
 :SHELL_ILLEGAL_SWITCH
-不合法的切換參數 - %s
+無效的切換參數 - %s
 
 .
 :SHELL_MISSING_PARAMETER
@@ -1304,7 +1304,7 @@ ECHO狀態為關.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
-您仍然在 Z 碟, 而且無法找到指定的目錄.
+您仍然在 Z 槽, 而且無法找到指定的目錄.
 如要想存取其它已掛載的磁碟機請先切換磁碟機，比如 [31mC:[0m.
 
 .
@@ -1332,7 +1332,7 @@ DATE [[/T] [/H] [/S] | 日期]
   /S:         DOS日期和時間永久與主機日期和時間同步
   /F:         切換為DOSBox-X內部日期和時間 (與/S相反)
   /T:         只顯示日期
-  /H:         與主機同步
+  /H:         與主機系統同步
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1354,7 +1354,7 @@ DATE [[/T] [/H] [/S] | 日期]
 TIME [[/T] [/H] | 時間]
   時間:       要設定的新時間
   /T:         簡潔顯示時間
-  /H:         與主機同步
+  /H:         與主機系統同步
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1410,7 +1410,7 @@ IF ERRORLEVEL: 缺少數字.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
-IF ERRORLEVEL: 不合法的數字.
+IF ERRORLEVEL: 無效的數字.
 
 .
 :SHELL_CMD_GOTO_MISSING_LABEL
@@ -1509,7 +1509,7 @@ PAUSE
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
-目前已掛載的磁碟機為:
+目前已掛載的本機磁碟機有:
 
 .
 :SHELL_CMD_SUBST_NO_REMOVE
@@ -1525,7 +1525,7 @@ SUBST 命令只能掛載本機磁碟機.
 
 .
 :SHELL_CMD_SUBST_INVALID_PATH
-指定的磁碟機或目錄不合法的.
+指定的磁碟機或目錄無效.
 
 .
 :SHELL_CMD_SUBST_FAILURE
@@ -1599,7 +1599,7 @@ CD [..]
 
 .
 :SHELL_CMD_CLS_HELP
-清除螢幕.
+清除畫面.
 
 .
 :SHELL_CMD_CLS_HELP_LONG
@@ -1628,22 +1628,22 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
                E  按副檔名 (字母排列)  D  按檔案日期時間 (早的在前)
                G  先顯示目錄           -  首碼表示相反順序
 
-選項可以在 DIRCMD 環境變數中預先設定. 可以用含-首碼的選項(比如/-W)進行覆寫.
+選項可以在 DIRCMD 環境變數中預先設定. 可以用含-首碼的選項(比如/-W)進行覆蓋.
             
 .
 :SHELL_CMD_ECHO_HELP
-顯示資訊,開啟或關閉命令的回顯.
+顯示訊息,或切換命令回應的開啟狀態.
 
 .
 :SHELL_CMD_ECHO_HELP_LONG
   ECHO [ON | OFF]
-  ECHO [消息]
+  ECHO [訊息]
 
-輸入不含參數的 ECHO 將顯示目前命令回顯狀態.
+輸入不含參數的 ECHO 將顯示目前的 ECHO 設定.
 
 .
 :SHELL_CMD_EXIT_HELP
-結束目前的DOS提示字元.
+結束目前的命令列.
 
 .
 :SHELL_CMD_EXIT_HELP_LONG
@@ -1664,7 +1664,7 @@ HELP [命令]
 [0mE.g., [37;1mHELP COPY[0m 或 [37;1mCOPY /?[0m 顯示 COPY 命令的說明資訊.
 
 備註: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不會被 HELP [/A] 命令列出.
-      這些命令可以在 Z 碟中作為程式找到 (比如 MOUNT.COM).
+      這些命令可以在 Z 槽中作為程式找到 (比如 MOUNT.COM).
       輸入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 顯示此命令的說明資訊.
 
 .
@@ -1723,13 +1723,19 @@ IF [NOT] ERRORLEVEL 數字 命令
 IF [NOT] 字串1==字串2 命令
 IF [NOT] EXIST 檔名 命令
 
-  NOT               指定命令僅在條件非真的情況下執行.
+  NOT               指定命令僅在條件為偽的情況下執行.
 
-  ERRORLEVEL 數字   指定條件僅在上個執行程式的返回碼至少達到此數字時為真.
+  ERRORLEVEL 數字   如果上一個程式執行所傳回的結束代碼等於或大於指定的數字,
+                    則條件為真.
 
-  字串1==字串2  指定條件僅在兩個字串相同時為真.
-
+  字串1==字串2      指定的文字字串相符合時, 則條件為真.
   
+  EXIST 檔名        指定的檔名存在的情況下, 則條件為真.
+
+  命令              指定符合條件的情況下要執行的命令.
+                    在命令之後可以接著 ELSE 命令.
+                    如果在指定條件為偽時, ELSE 關鍵字之後的命令將會被執行.
+
 .
 :SHELL_CMD_GOTO_HELP
 在批次檔中跳到指定的標籤行.
@@ -1835,9 +1841,10 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目標]
   /Y            覆寫現存檔案時不進行確認.
   /-Y           覆寫現存檔案時進行確認.
 
-選項 /Y 可以在 COPYCMD 環境變數中預先設定. 可以在命令列中使用 /-Y 選項進行覆寫.
+選項 /Y 可以在 COPYCMD 環境變數中預先設定. 可以在命令列中使用 /-Y 選項進行覆蓋.
 
-要連接檔案, 指定一個檔名作為目標, 同時使用多個檔名作為來源檔案 (使用萬用字元或者檔案1+檔案2+檔案3格式).
+要連接檔案, 指定一個檔名作為目標, 同時使用多個檔名作為來源檔案
+(使用萬用字元或者檔案1+檔案2+檔案3格式).
 
 .
 :SHELL_CMD_CALL_HELP
@@ -1851,18 +1858,18 @@ CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
 .
 :SHELL_CMD_SUBST_HELP
-將目錄分配給一個磁碟機.
+將目錄指派給一個磁碟機.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
 SUBST [磁碟機1: [磁碟機2:]路徑]
 SUBST 磁碟機1: /D
 
-  磁碟機1:        指定您想分配路徑的新磁碟機.
-  [磁碟機2:]路徑  指定已掛載的本機磁碟機和路徑.
+  磁碟機1:        指定您想指派路徑給它的磁碟機.
+  [磁碟機2:]路徑  指定你想要指派的已掛載的本機磁碟機和路徑.
   /D              刪除已掛載或代替的磁碟機.
 
-輸出不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
+輸入不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
@@ -1923,7 +1930,7 @@ PATH ;
 :SHELL_CMD_PUSHD_HELP_LONG
 PUSHD [路徑]
 
-路徑        指定要作為目前目錄的目錄.
+路徑        指定要切換到的目錄.
 
 輸入不含參數的 PUSHD 命令顯示目前儲存的目錄.
 
@@ -2045,7 +2052,7 @@ TTF 字型中未定義的字元數: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-不合法的字碼頁 - %s
+無效的字碼頁 - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
@@ -2108,13 +2115,13 @@ DEBUGBOX [命令] [選項]
 
 .
 :SHELL_CMD_COMMAND_HELP
-啟動 DOSBox-X 命令解釋器.
+啟動 DOSBox-X 命令直譯器.
 
 支援以下選項:
 
-  /C    執行指定的命令並返回.
+  /C    執行指定的命令並傳回.
   /K    執行指定的命令並繼續執行.
-  /P    載入永久性的命令解釋器.
+  /P    載入永久性的命令直譯器.
   /INIT 初始化命令列.
 
 .
@@ -2207,7 +2214,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 主選單
 .
 :MENU:MainSendKey
-輸入特殊鍵
+傳送特殊鍵
 .
 :MENU:MainHostKey
 選擇主機按鍵
@@ -2567,19 +2574,19 @@ TTF 字處理軟體: XyWrite
 TTF 字處理軟體: FastEdit
 .
 :MENU:ttf_blinkc
-顯示 TTF 閃爍光標
+顯示 TTF 閃爍游標
 .
 :MENU:ttf_printfont
 使用目前 TTF 字型進行列印
 .
 :MENU:ttf_dbcs_sbcs
-中日韓: 切換雙位元組/單位元組模式
+中日韓文字: 切換雙位元組/單位元組模式
 .
 :MENU:ttf_autoboxdraw
-中日韓: 自動檢測製表符號
+中日韓文字: 自動檢測製表符號
 .
 :MENU:ttf_halfwidthkana
-中日韓: 允許半形日文片假名
+中日韓文字: 允許半形日文片假名
 .
 :MENU:VideoPC98Menu
 PC-98 選項
@@ -2741,7 +2748,7 @@ EMM386 模擬
 等待應用程式 (如果可能)
 .
 :MENU:dos_win_quiet
-安靜模式 - 無啟動資訊
+安靜模式 - 無啟動訊息
 .
 :MENU:CaptureMenu
 擷取
@@ -2861,7 +2868,7 @@ DOSBox-X 介紹
 DOSBox-X 首頁
 .
 :MENU:help_wiki
-DOSBox-X 使用者指南
+DOSBox-X 使用指南
 .
 :MENU:help_issue
 DOSBox-X 支援
@@ -2999,7 +3006,7 @@ DOS 命令
 降低錄音音量
 .
 :MENU:mapper_sendkey_mapper
-輸入特殊鍵
+傳送特殊鍵
 .
 :MENU:mapper_cycledown
 減小 CPU 週期
@@ -3125,22 +3132,22 @@ DOS 命令
 使用 BIOS 功能進行剪貼簿貼上
 .
 :MENU:sendkey_winlogo
-輸入 LOGO 鍵
+傳送 LOGO 鍵
 .
 :MENU:sendkey_winmenu
-輸入 MENU 鍵
+傳送 MENU 鍵
 .
 :MENU:sendkey_alttab
-輸入 Alt+Tab
+傳送 Alt+Tab
 .
 :MENU:sendkey_ctrlesc
-輸入 Ctrl+Esc
+傳送 Ctrl+Esc
 .
 :MENU:sendkey_ctrlbreak
-輸入 Ctrl+Break
+傳送 Ctrl+Break
 .
 :MENU:sendkey_cad
-輸入 Ctrl+Alt+Del
+傳送 Ctrl+Alt+Del
 .
 :MENU:hostkey_ctrlalt
 Ctrl+Alt
@@ -3152,22 +3159,22 @@ Ctrl+Shift
 Alt+Shift
 .
 :MENU:sendkey_mapper_winlogo
-Mapper "輸入特殊鍵": logo key
+Mapper "傳送特殊鍵": logo key
 .
 :MENU:sendkey_mapper_winmenu
-Mapper "輸入特殊鍵": menu key
+Mapper "傳送特殊鍵": menu key
 .
 :MENU:sendkey_mapper_alttab
-Mapper "輸入特殊鍵": Alt+Tab
+Mapper "傳送特殊鍵": Alt+Tab
 .
 :MENU:sendkey_mapper_ctrlesc
-Mapper "輸入特殊鍵": Ctrl+Esc
+Mapper "傳送特殊鍵": Ctrl+Esc
 .
 :MENU:sendkey_mapper_ctrlbreak
-Mapper "輸入特殊鍵": Ctrl+Break
+Mapper "傳送特殊鍵": Ctrl+Break
 .
 :MENU:sendkey_mapper_cad
-Mapper "輸入特殊鍵": Ctrl+Alt+Del
+Mapper "傳送特殊鍵": Ctrl+Alt+Del
 .
 :MENU:wheel_none
 不進行轉換
