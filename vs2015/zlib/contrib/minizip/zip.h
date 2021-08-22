@@ -46,13 +46,8 @@ extern "C" {
 
 //#define HAVE_BZIP2
 
-#ifndef _ZLIB_H
 #include "zlib.h"
-#endif
-
-#ifndef _ZLIBIOAPI_H
 #include "ioapi.h"
-#endif
 
 #ifdef HAVE_BZIP2
 #include "bzlib.h"
