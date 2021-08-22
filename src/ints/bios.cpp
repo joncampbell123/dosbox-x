@@ -105,6 +105,7 @@ void MOUSE_Startup(Section *sec);
 void change_output(int output);
 void runBoot(const char *str);
 void SetIMPosition(void);
+bool isDBCSCP();
 #if defined(USE_TTF)
 bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
@@ -6636,6 +6637,65 @@ static Bitu INT15_Handler(void) {
                 }
         }
         break;
+    case 0x50:
+        if(isDBCSCP()) {
+            if(reg_al == 0x00) {
+                if(reg_bl == 0x00 && reg_bp == 0x00) {
+                    enum DOSV_FONT font = DOSV_FONT_MAX;
+                    if(reg_bh & 0x01) {
+                        if(reg_dh == 16 && reg_dl == 16) {
+                            font = DOSV_FONT_16X16;
+                        } else if(reg_dh == 24 && reg_dl == 24) {
+                            font = DOSV_FONT_24X24;
+                        }
+                    } else {
+                        if(reg_dh == 8) {
+                            if(reg_dl == 16) {
+                                font = DOSV_FONT_8X16;
+                            } else if(reg_dl == 19) {
+                                font = DOSV_FONT_8X19;
+                            }
+                        } else if(reg_dh == 12 && reg_dl == 24) {
+                            font = DOSV_FONT_12X24;
+                        }
+                    }
+                    if(font != DOSV_FONT_MAX) {
+                        reg_ah = 0x00;
+                        SegSet16(es, CB_SEG);
+                        reg_bx = DOSV_GetFontHandlerOffset(font);
+                        CALLBACK_SCF(false);
+                        break;
+                    }
+                }
+            } else if(reg_al == 0x01) {
+                if(reg_dh == 16 && reg_dl == 16) {
+                    reg_ah = 0x00;
+                    SegSet16(es, CB_SEG);
+                    reg_bx = DOSV_GetFontHandlerOffset(DOSV_FONT_16X16_WRITE);
+                    CALLBACK_SCF(false);
+                    break;
+                } else if(reg_dh == 24 && reg_dl == 24) {
+                    reg_ah = 0x00;
+                    SegSet16(es, CB_SEG);
+                    reg_bx = DOSV_GetFontHandlerOffset(DOSV_FONT_24X24_WRITE);
+                    CALLBACK_SCF(false);
+                    break;
+                } else {
+                    reg_ah = 0x06;		// read only
+                }
+            }
+            CALLBACK_SCF(true);
+        }
+        break;
+    case 0x49:
+        if(isDBCSCP()) {
+            reg_ah = 0x00;
+            reg_bl = 0x00;
+            CALLBACK_SCF(false);
+        } else {
+            CALLBACK_SCF(true);
+        }
+        break;
     default:
         LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ax=%4X",reg_ax);
         reg_ah=0x86;
@@ -7029,12 +7089,12 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
                 bo = (((unsigned int)y * 80u) + (unsigned int)(bios_pc98_posx++)) * 2u; /* NTS: note the post increment */
                 if (boxdraw) {
                     unsigned int ch = (unsigned char)*s;
-                    if (*s=='อ') ch = 0x250B;
-                    else if (*s=='บ') ch = 0x270B;
-                    else if (*s=='ษ') ch = 0x330B;
-                    else if (*s=='ป') ch = 0x370B;
-                    else if (*s=='ศ') ch = 0x3B0B;
-                    else if (*s=='ผ') ch = 0x3F0B;
+                    if (ch==0xcd) ch = 0x250B;
+                    else if (ch==0xba) ch = 0x270B;
+                    else if (ch==0xc9) ch = 0x330B;
+                    else if (ch==0xbb) ch = 0x370B;
+                    else if (ch==0xc8) ch = 0x3B0B;
+                    else if (ch==0xbc) ch = 0x3F0B;
                     mem_writew(0xA0000+bo,ch);
                 } else
                     mem_writew(0xA0000+bo,(unsigned char)*s);
@@ -7054,7 +7114,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
 char *getSetupLine(const char *capt, const char *cont) {
     unsigned int pad1=(unsigned int)(25-strlen(capt)), pad2=(unsigned int)(41-strlen(cont));
     static char line[90];
-    sprintf(line, "บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
+    sprintf(line, "\x0ba%*c%s%*c%s%*c\x0ba", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
     return line;
 }
 
@@ -7213,7 +7273,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     char title[]="                               BIOS Setup Utility                               ";
     char *p=machine == MCH_PC98?title+2:title;
     BIOS_Int10RightJustifiedPrint(x,y,p);
-    BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป", true);
+    BIOS_Int10RightJustifiedPrint(x,y,"\x0c9\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bb", true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
@@ -7257,7 +7317,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
-    BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ", true);
+    BIOS_Int10RightJustifiedPrint(x,y,"\x0c8\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bc", true);
     if (machine == MCH_PC98)
         BIOS_Int10RightJustifiedPrint(x,y,"                                  ESC = Exit                                  ");
     else
