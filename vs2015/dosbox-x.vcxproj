@@ -1609,7 +1609,6 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\hardware\serialport\seriallog.h" />
     <ClInclude Include="..\src\hardware\serialport\serialmouse.h" />
     <ClInclude Include="..\src\hardware\serialport\softmodem.h" />
-    <ClInclude Include="..\src\hardware\sn76496.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h" />
