@@ -40,4 +40,3 @@ static inline uint8_t pc98_font_char_read(const uint16_t code,const uint8_t line
 static inline void pc98_font_char_write(const uint16_t code,const uint8_t line,const uint8_t right_half,const uint8_t byte) {
     vga.draw.font[pc98_font_char_to_ofs(code,line,right_half)] = byte;
 }
-

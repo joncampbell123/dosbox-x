@@ -131,4 +131,3 @@ extern struct PC98_GDC_state        pc98_gdc[2];
 extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_gdc_vramop;
 extern uint8_t                      pc98_gdc_modereg;
-

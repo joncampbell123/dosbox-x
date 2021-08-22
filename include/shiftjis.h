@@ -11,4 +11,3 @@ public:
     bool                fullwidth;
     bool                doublewide; /* character is displayed double-wide */
 };
-

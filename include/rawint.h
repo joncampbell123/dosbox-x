@@ -29,4 +29,3 @@ static inline void __w_le_u64(const void *p,const uint64_t val) {
 }
 
 #endif /* __ISP_UTILS_MISC_RAWINT_H */
-

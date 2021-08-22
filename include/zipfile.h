@@ -134,4 +134,3 @@ void zip_nv_write(ZIPFileEntry &ent,const char *name,bool val);
 void zip_nv_write(ZIPFileEntry &ent,const char *name,long val);
 void zip_nv_write_hex(ZIPFileEntry &ent,const char *name,unsigned long val);
 #endif //ZIPFILE_H
-

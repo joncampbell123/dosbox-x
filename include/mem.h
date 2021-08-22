@@ -282,4 +282,3 @@ static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
 }
 
 #endif
-

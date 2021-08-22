@@ -94,4 +94,3 @@ template <typename T=unsigned char,const uintptr_t A> static inline constexpr T*
 void self_test(void);
 
 }
-

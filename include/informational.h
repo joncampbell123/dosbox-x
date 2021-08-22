@@ -13,4 +13,3 @@
 #define _Mixed_Endian_
 
 #endif /* __ISP_UTILS_V4_MISC_INFORMATIONAL_H */
-

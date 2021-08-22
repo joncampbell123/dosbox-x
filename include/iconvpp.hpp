@@ -413,4 +413,3 @@ typedef _IconvWin32<char,WCHAR> IconvWin32ToW;
 typedef _IconvWin32<WCHAR,char> IconvWin32FromW;
 
 #endif // C_ICONV_WIN32
-

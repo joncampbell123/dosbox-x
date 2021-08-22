@@ -8,4 +8,3 @@
 #define _GB_bytes(x)		(((Bitu)x) << (Bitu)30UL)
 
 #endif /* _UTIL_UNITS_H */
-

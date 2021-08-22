@@ -94,4 +94,3 @@ extern CParallel* parallelPortObjects[];
 extern uint16_t parallel_baseaddr[9];
 
 #endif
-
