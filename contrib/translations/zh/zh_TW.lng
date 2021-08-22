@@ -207,7 +207,7 @@ DOSBox-X 模擬 DOS 命令列讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-切換儲存位
+切換槽
 .
 :EMPTY_SLOT
 空儲存位
@@ -441,7 +441,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_2
-磁碟機 %c 掛載為 %s
+磁碟機 %c 掛載從 %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
@@ -485,7 +485,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-磁碟機 %c 已掛載為 %s
+磁碟機 %c 已掛載從 %s
 
 .
 :PROGRAM_MOUNT_USAGE
@@ -1866,10 +1866,10 @@ SUBST [磁碟機1: [磁碟機2:]路徑]
 SUBST 磁碟機1: /D
 
   磁碟機1:        指定您想指派路徑給它的磁碟機.
-  [磁碟機2:]路徑  指定已掛載的本機磁碟機和路徑.
+  [磁碟機2:]路徑  指定你想要指派的已掛載的本機磁碟機和路徑.
   /D              刪除已掛載或代替的磁碟機.
 
-輸出不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
+輸入不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
