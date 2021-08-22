@@ -7446,24 +7446,27 @@ static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
 	uint8_t page = IS_PC98_ARCH?0:real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	INT10_GetCursorPos(&y, &x, page);
-	int nrows=25, ncols=80;
-	if (IS_PC98_ARCH)
-		nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-	else {
-		nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
-		ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+    if (IS_PC98_ARCH) {
+        uint16_t address = vga.config.cursor_start;
+        x = address % 80;
+        y = address / 80;
+    } else
+        INT10_GetCursorPos(&y, &x, page);
+    int nrows=25, ncols=80;
+    if (IS_PC98_ARCH)
+        nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+    else {
+        nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+        ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     }
-    if (IS_PC98_ARCH && x<ncols-3) x+=2;
-
-	if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
-		last_ticks = GetTicks();
-		im_x = x;
-		im_y = y;
+    if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
+        last_ticks = GetTicks();
+        im_x = x;
+        im_y = y;
 #if defined(LINUX)
-		y++;
+        y++;
 #endif
-		uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+        uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
         SDL_Rect rect;
 #if defined(USE_TTF)
@@ -7481,6 +7484,8 @@ void SetIMPosition() {
 #if defined(USE_TTF)
         }
 #endif
+        if(IS_PC98_ARCH)
+            rect.y--;
 #if defined(C_SDL2)
         rect.w = 0;
         rect.h = 0;
@@ -7683,6 +7688,16 @@ void GFX_Events() {
             SDL_JoystickUpdate();
             MAPPER_UpdateJoysticks();
         }
+    }
+#endif
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+   if(IS_PC98_ARCH) {
+       static uint32_t poll98_delay = 0;
+       uint32_t time = GetTicks();
+       if((int32_t)(time - poll98_delay) > 50) {
+           poll98_delay = time;
+           SetIMPosition();
+       }
     }
 #endif
 
@@ -8046,6 +8061,16 @@ void GFX_Events() {
             SDL_JoystickUpdate();
             MAPPER_UpdateJoysticks();
         }
+    }
+#endif
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+   if(IS_PC98_ARCH) {
+       static uint32_t poll98_delay = 0;
+       uint32_t time = GetTicks();
+       if((int32_t)(time - poll98_delay) > 50) {
+           poll98_delay = time;
+           SetIMPosition();
+       }
     }
 #endif
 
