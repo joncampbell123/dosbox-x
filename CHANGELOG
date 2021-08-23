@@ -1,4 +1,9 @@
 0.83.17
+  - Added cputype=experimental, which is the same as the
+    highest CPU emulation level but with additional
+    instructions from newer processors that do not exist
+    in the era emulated by DOSBox-X i.e. FISTTP which is
+    an SSE3 Pentium 4 instruction. (joncampbell123)
   - Added support for 286/386 call gates to JMP
     instruction (joncampbell123)
   - Added -bd <n> option to IMGMOUNT to allow mounting
