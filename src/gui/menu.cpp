@@ -144,6 +144,7 @@ static const char *def_menu_main[] =
     "--",
     "restartconf",
     "restartlang",
+    "--",
     "mapper_shutdown",
 #endif
     NULL
