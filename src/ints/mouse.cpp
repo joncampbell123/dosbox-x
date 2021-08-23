@@ -1488,6 +1488,9 @@ static Bitu INT33_Handler(void) {
         reg_ax = 0xffff;
         reg_bx = MOUSE_BUTTONS;
         break;
+    case 0x12:  /* MS MOUSE - SET LARGE GRAPHICS CURSOR BLOCK */
+        LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
+        break;
     case 0x13:  /* MS MOUSE v5.0+ - DEFINE DOUBLE-SPEED THRESHOLD */
         mouse.doubleSpeedThreshold = (reg_bx ? reg_bx : 64);
         break;
@@ -1524,10 +1527,10 @@ static Bitu INT33_Handler(void) {
             break;
         }
     case 0x18:  /* MS MOUSE v6.0+ - SET ALTERNATE MOUSE USER HANDLER */
-        LOG(LOG_MOUSE, LOG_ERROR)("Set alternate subroutine call mask and address not implemented");
+        LOG(LOG_MOUSE, LOG_ERROR)("Set alternate mouse user handler not implemented");
         break;
     case 0x19:  /* MS MOUSE v6.0+ - RETURN USER ALTERNATE INTERRUPT VECTOR */
-        LOG(LOG_MOUSE, LOG_ERROR)("Get user alternate interrupt address not implemented");
+        LOG(LOG_MOUSE, LOG_ERROR)("Return user alternate interrupt vector not implemented");
         break;
     case 0x1a:  /* MS MOUSE v6.0+ - SET MOUSE SENSITIVITY */
         // ToDo : double mouse speed value
@@ -1600,6 +1603,9 @@ static Bitu INT33_Handler(void) {
         reg_ch = 0x04;    /* PS/2 type */
         reg_cl = 0;       /* PS/2 (unused) */
         break;
+    case 0x25:  /* MS MOUSE v6.26+ - GET GENERAL DRIVER INFORMATION */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get general driver information not implemented");
+        break;
     case 0x26:  /* MS MOUSE v6.26+ - GET MAXIMUM VIRTUAL COORDINATES */
         reg_bx = (mouse.enabled ? 0x0000 : 0xffff);
         reg_cx = (uint16_t)mouse.max_x;
@@ -1610,17 +1616,59 @@ static Bitu INT33_Handler(void) {
         reg_bx = mouse.textXorMask;
         Mouse_Read_Motion_Data();
         break;
+    case 0x28:  /* MS MOUSE v7.0+ - SET VIDEO MODE */
+        LOG(LOG_MOUSE, LOG_ERROR)("Set video mode not implemented");
+        break;
+    case 0x29: /* MS MOUSE v7.0+ - ENUMERATE VIDEO MODES */
+        LOG(LOG_MOUSE, LOG_ERROR)("Enumerate video modes not implemented");
+        break;
     case 0x2a:  /* MS MOUSE v7.02+ - GET CURSOR HOT SPOT */
         reg_al = (uint8_t)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
         reg_bx = (uint16_t)mouse.hotx;
         reg_cx = (uint16_t)mouse.hoty;
         reg_dx = 0x04;    // PS/2 mouse type
         break;
+    case 0x2b:  /* MS MOUSE v7.0+ - LOAD ACCELERATION PROFILES */
+        LOG(LOG_MOUSE, LOG_ERROR)("Load acceleration profiles not implemented");
+        break;
+    case 0x2c:  /* MS MOUSE v7.0+ - GET ACCELERATION PROFILES */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get acceleration profiles not implemented");
+        break;
+    case 0x2d:  /* MS MOUSE v7.0+ - SELECT ACCELERATION PROFILE */
+        LOG(LOG_MOUSE, LOG_ERROR)("Select acceleration profile not implemented");
+        break;
+    case 0x2e:  /* MS MOUSE v8.10+ - SET ACCELERATION PROFILE NAMES */
+        LOG(LOG_MOUSE, LOG_ERROR)("Set acceleration profile names not implemented");
+        break;
+    case 0x2f:  /* MS MOUSE v7.02+ - MOUSE HARDWARE RESET */
+        LOG(LOG_MOUSE, LOG_ERROR)("INT 33 AX=2F mouse hardware reset not implemented");
+        break;
+    case 0x30:  /* MS MOUSE v7.04+ - GET/SET BallPoint INFORMATION */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get/set BallPoint information not implemented");
+        break;
     case 0x31:  /* MS MOUSE v7.05+ - GET CURRENT MINIMUM/MAXIMUM VIRTUAL COORDINATES */
         reg_ax = (uint16_t)mouse.min_x;
         reg_bx = (uint16_t)mouse.min_y;
         reg_cx = (uint16_t)mouse.max_x;
         reg_dx = (uint16_t)mouse.max_y;
+        break;
+    case 0x32:  /* MS MOUSE v7.05+ - GET ACTIVE ADVANCED FUNCTIONS */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get active advanced functions not implemented");
+        break;
+    case 0x33:  /* MS MOUSE v7.05+ - GET SWITCH SETTINGS AND ACCELERATION PROFILE DATA */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get switch settings and acceleration profile data not implemented");
+        break;
+    case 0x34:  /* MS MOUSE v8.0+ - GET INITIALIZATION FILE */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get initialization file not implemented");
+        break;
+    case 0x35:  /* MS MOUSE v8.10+ - LCD SCREEN LARGE POINTER SUPPORT */
+        LOG(LOG_MOUSE, LOG_ERROR)("LCD screen large pointer support not implemented");
+        break;
+    case 0x4d:  /* MS MOUSE - RETURN POINTER TO COPYRIGHT STRING */
+        LOG(LOG_MOUSE, LOG_ERROR)("Return pointer to copyright string not implemented");
+        break;
+    case 0x6d:  /* MS MOUSE - GET VERSION STRING */
+        LOG(LOG_MOUSE, LOG_ERROR)("Get version string not implemented");
         break;
     case 0x53C1:  /* Logitech CyberMan */
         LOG(LOG_MOUSE, LOG_NORMAL)("Mouse function 53C1 for Logitech CyberMan called. Ignored by regular mouse driver.");
