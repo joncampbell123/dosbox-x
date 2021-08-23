@@ -1243,19 +1243,20 @@ void Mouse_Read_Motion_Data() {
     Mouse_Used();
 }
 
+// Reference: http://www.ctyme.com/intr/int-33.htm
 static Bitu INT33_Handler(void) {
 //  LOG(LOG_MOUSE,LOG_NORMAL)("MOUSE: %04X %X %X %d %d",reg_ax,reg_bx,reg_cx,POS_X,POS_Y);
     switch (reg_ax) {
-    case 0x00:  /* Reset Driver and Read Status */
+    case 0x00:  /* MS MOUSE - RESET DRIVER AND READ STATUS */
         Mouse_ResetHardware();
         goto software_reset;
-    case 0x01:  /* Show Mouse */
+    case 0x01:  /* MS MOUSE v1.0+ - SHOW MOUSE CURSOR */
         if (mouse.hidden) mouse.hidden--;
         mouse.updateRegion_y[1] = -1; //offscreen
         DrawCursor();
         if(!mouse.hidden) Mouse_Used();
         break;
-    case 0x02:  /* Hide Mouse */
+    case 0x02:  /* MS MOUSE v1.0+ - HIDE MOUSE CURSOR */
         {
             if (CurMode->type != M_TEXT) RestoreCursorBackground();
             else RestoreCursorBackgroundText();
@@ -1264,7 +1265,7 @@ static Bitu INT33_Handler(void) {
             if (usesystemcursor&&!MOUSE_IsLocked()) SDL_ShowCursor(SDL_DISABLE);
         }
         break;
-    case 0x03:  /* Return position and Button Status */
+    case 0x03:  /* MS MOUSE v1.0+ - RETURN POSITION AND BUTTON STATUS */
         reg_bx = mouse.buttons;
         reg_cx = (uint16_t)POS_X;
         reg_dx = (uint16_t)POS_Y;
@@ -1273,7 +1274,7 @@ static Bitu INT33_Handler(void) {
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         Mouse_Used();
         break;
-    case 0x04:  /* Position Mouse */
+    case 0x04:  /* MS MOUSE v1.0+ - POSITION MOUSE CURSOR */
         /* If position isn't different from current position
          * don't change it then. (as position is rounded so numbers get
          * lost when the rounded number is set) (arena/simulation Wolf) */
@@ -1287,7 +1288,7 @@ static Bitu INT33_Handler(void) {
         DrawCursor();
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
-    case 0x05:  /* Return Button Press Data */
+    case 0x05:  /* MS MOUSE v1.0+ - RETURN BUTTON PRESS DATA */
         {
             uint16_t but = reg_bx;
             reg_ax = mouse.buttons;
@@ -1300,7 +1301,7 @@ static Bitu INT33_Handler(void) {
         }
         Mouse_Used();
         break;
-    case 0x06:  /* Return Button Release Data */
+    case 0x06:  /* MS MOUSE v1.0+ - RETURN BUTTON RELEASE DATA */
         {
             uint16_t but = reg_bx;
             reg_ax = mouse.buttons;
@@ -1313,7 +1314,7 @@ static Bitu INT33_Handler(void) {
         }
         Mouse_Used();
         break;
-    case 0x07:  /* Define horizontal cursor range */
+    case 0x07:  /* MS MOUSE v1.0+ - DEFINE HORIZONTAL CURSOR RANGE */
         {
             //Lemmings sets 1-640 and wants that. Ironseed sets 0-640 but doesn't like 640
             //Ironseed works if newvideo mode with mode 13 sets 0-639
@@ -1374,7 +1375,7 @@ static Bitu INT33_Handler(void) {
             }
         }
         break;
-    case 0x08:  /* Define vertical cursor range */
+    case 0x08:  /* MS MOUSE v1.0+ - DEFINE VERTICAL CURSOR RANGE */
         {
             // Not sure what to take instead of the CurMode (see case 0x07 as well)
             // especially the cases where sheight= 400 and we set it with the mouse_reset to 200
@@ -1435,7 +1436,7 @@ static Bitu INT33_Handler(void) {
             }
         }
         break;
-    case 0x09:  /* Define GFX Cursor */
+    case 0x09:  /* MS MOUSE v3.0+ - DEFINE GRAPHICS CURSOR */
         {
             PhysPt src = SegPhys(es) + reg_dx;
             MEM_BlockRead(src, userdefScreenMask, CURSORY * 2);
@@ -1448,7 +1449,7 @@ static Bitu INT33_Handler(void) {
             DrawCursor();
             break;
         }
-    case 0x0a:  /* Define Text Cursor */
+    case 0x0a:  /* MS MOUSE v3.0+ - DEFINE TEXT CURSOR */
         mouse.cursorType = (reg_bx ? 1 : 0);
         mouse.textAndMask = reg_cx;
         mouse.textXorMask = reg_dx;
@@ -1458,39 +1459,39 @@ static Bitu INT33_Handler(void) {
         }
         DrawCursor();
         break;
-    case 0x0b:  /* Read Motion Data */
+    case 0x0b:  /* MS MOUSE v1.0+ - READ MOTION COUNTERS */
         Mouse_Read_Motion_Data();
         break;
-    case 0x0c:  /* Define interrupt subroutine parameters */
+    case 0x0c:  /* MS MOUSE v1.0+ - DEFINE INTERRUPT SUBROUTINE PARAMETERS */
         mouse.sub_mask = reg_cx;
         mouse.sub_seg = SegValue(es);
         mouse.sub_ofs = reg_dx;
         if(mouse.sub_mask) Mouse_Used();
         break;
-    case 0x0d:  /* Mouse light pen emulation on */
+    case 0x0d:  /* MS MOUSE v1.0+ - LIGHT PEN EMULATION ON */
         LOG(LOG_MOUSE, LOG_ERROR)("Mouse light pen emulation on not implemented");
         break;
-    case 0x0e:  /* Mouse light pen emulation off */
+    case 0x0e:  /* MS MOUSE v1.0+ - LIGHT PEN EMULATION OFF */
         LOG(LOG_MOUSE, LOG_ERROR)("Mouse light pen emulation off not implemented");
         break;
-    case 0x0f:  /* Define mickey/pixel rate */
+    case 0x0f:  /* MS MOUSE v1.0+ - DEFINE MICKEY/PIXEL RATIO */
         Mouse_SetMickeyPixelRate((int16_t)reg_cx, (int16_t)reg_dx);
         break;
-    case 0x10:  /* Define screen region for updating */
+    case 0x10:  /* MS MOUSE v1.0+ - DEFINE SCREEN REGION FOR UPDATING */
         mouse.updateRegion_x[0] = (int16_t)reg_cx;
         mouse.updateRegion_y[0] = (int16_t)reg_dx;
         mouse.updateRegion_x[1] = (int16_t)reg_si;
         mouse.updateRegion_y[1] = (int16_t)reg_di;
         DrawCursor();
         break;
-    case 0x11:      /* Get number of buttons */
+    case 0x11:  /* Genius Mouse 9.06 - GET NUMBER OF BUTTONS */
         reg_ax = 0xffff;
         reg_bx = MOUSE_BUTTONS;
         break;
-    case 0x13:      /* Set double-speed threshold */
+    case 0x13:  /* MS MOUSE v5.0+ - DEFINE DOUBLE-SPEED THRESHOLD */
         mouse.doubleSpeedThreshold = (reg_bx ? reg_bx : 64);
         break;
-    case 0x14: /* Exchange event-handler */
+    case 0x14:  /* MS MOUSE v3.0+ - EXCHANGE INTERRUPT SUBROUTINES */
         {
             uint16_t oldSeg = mouse.sub_seg;
             uint16_t oldOfs = mouse.sub_ofs;
@@ -1505,51 +1506,51 @@ static Bitu INT33_Handler(void) {
             SegSet16(es, oldSeg);
         }
         break;
-    case 0x15: /* Get Driver storage space requirements */
+    case 0x15:  /* MS MOUSE v6.0+ - RETURN DRIVER STORAGE REQUIREMENTS */
         reg_bx = sizeof(mouse);
         break;
-    case 0x16: /* Save driver state */
+    case 0x16:  /* MS MOUSE v6.0+ - SAVE DRIVER STATE */
         {
             LOG(LOG_MOUSE, LOG_NORMAL)("Saving driver state...");
             PhysPt dest = SegPhys(es) + reg_dx;
             MEM_BlockWrite(dest, &mouse, sizeof(mouse));
         }
         break;
-    case 0x17: /* load driver state */
+    case 0x17:  /* MS MOUSE v6.0+ - RESTORE DRIVER STATE */
         {
             LOG(LOG_MOUSE, LOG_NORMAL)("Loading driver state...");
             PhysPt src = SegPhys(es) + reg_dx;
             MEM_BlockRead(src, &mouse, sizeof(mouse));
             break;
         }
-    case 0x18: /* Set alternate subroutine call mask and address */
+    case 0x18:  /* MS MOUSE v6.0+ - SET ALTERNATE MOUSE USER HANDLER */
         LOG(LOG_MOUSE, LOG_ERROR)("Set alternate subroutine call mask and address not implemented");
         break;
-    case 0x19: /* Get user alternate interrupt address*/
+    case 0x19:  /* MS MOUSE v6.0+ - RETURN USER ALTERNATE INTERRUPT VECTOR */
         LOG(LOG_MOUSE, LOG_ERROR)("Get user alternate interrupt address not implemented");
         break;
-    case 0x1a:  /* Set mouse sensitivity */
+    case 0x1a:  /* MS MOUSE v6.0+ - SET MOUSE SENSITIVITY */
         // ToDo : double mouse speed value
         Mouse_SetSensitivity(reg_bx, reg_cx, reg_dx);
         LOG(LOG_MOUSE, LOG_NORMAL)("Set sensitivity used with %d %d (%d)", reg_bx, reg_cx, reg_dx);
         break;
-    case 0x1b:  /* Get mouse sensitivity */
+    case 0x1b:  /* MS MOUSE v6.0+ - RETURN MOUSE SENSITIVITY */
         reg_bx = mouse.senv_x_val;
         reg_cx = mouse.senv_y_val;
         reg_dx = mouse.dspeed_val;
 
         LOG(LOG_MOUSE, LOG_NORMAL)("Get sensitivity %d %d", reg_bx, reg_cx);
         break;
-    case 0x1c:  /* Set interrupt rate */
+    case 0x1c:  /* MS MOUSE v6.0+ - SET INTERRUPT RATE */
         /* Can't really set a rate this is host determined */
         break;
-    case 0x1d:      /* Set display page number */
+    case 0x1d:  /* MS MOUSE v6.0+ - DEFINE DISPLAY PAGE NUMBER */
         mouse.page = reg_bl;
         break;
-    case 0x1e:      /* Get display page number */
+    case 0x1e:  /* MS MOUSE v6.0+ - RETURN DISPLAY PAGE NUMBER */
         reg_bx = mouse.page;
         break;
-    case 0x1f:  /* Disable Mousedriver */
+    case 0x1f:  /* MS MOUSE v6.0+ - DISABLE MOUSE DRIVER */
         /* ES:BX old mouse driver Zero at the moment TODO */
         reg_bx = 0;
         SegSet16(es, 0);
@@ -1558,11 +1559,11 @@ static Bitu INT33_Handler(void) {
         if (!mouse.hidden) mouse.hidden_at = PIC_FullIndex();
         mouse.hidden = 1;
         break;
-    case 0x20:  /* Enable Mousedriver */
+    case 0x20:  /* MS MOUSE v6.0+ - ENABLE MOUSE DRIVER */
         mouse.enabled = true;
         mouse.hidden = mouse.oldhidden;
         break;
-    case 0x21:  /* Software Reset */
+    case 0x21:  /* MS MOUSE v6.0+ - SOFTWARE RESET */
     software_reset:
         extern bool Mouse_Drv;
         if (Mouse_Drv) {
@@ -1574,7 +1575,7 @@ static Bitu INT33_Handler(void) {
             LOG(LOG_MOUSE, LOG_NORMAL)("INT 33h reset");
         }
         break;
-    case 0x22:      /* Set language for messages */
+    case 0x22:  /* MS MOUSE v6.0+ - SET LANGUAGE FOR MESSAGES */
             /*
              *                        Values for mouse driver language:
              *
@@ -1591,37 +1592,37 @@ static Bitu INT33_Handler(void) {
              */
         mouse.language = reg_bx;
         break;
-    case 0x23:      /* Get language for messages */
+    case 0x23:  /* MS MOUSE v6.0+ - GET LANGUAGE FOR MESSAGES */
         reg_bx = mouse.language;
         break;
-    case 0x24:  /* Get Software version and mouse type */
+    case 0x24:  /* MS MOUSE v6.26+ - GET SOFTWARE VERSION, MOUSE TYPE, AND IRQ NUMBER */
         reg_bx = 0x805;   //Version 8.05 woohoo 
         reg_ch = 0x04;    /* PS/2 type */
         reg_cl = 0;       /* PS/2 (unused) */
         break;
-    case 0x26: /* Get Maximum virtual coordinates */
+    case 0x26:  /* MS MOUSE v6.26+ - GET MAXIMUM VIRTUAL COORDINATES */
         reg_bx = (mouse.enabled ? 0x0000 : 0xffff);
         reg_cx = (uint16_t)mouse.max_x;
         reg_dx = (uint16_t)mouse.max_y;
         break;
-    case 0x27:  /* Get Screen/Cursor Masks and Mickey Counts */
+    case 0x27:  /* MS MOUSE v7.01+ - GET SCREEN/CURSOR MASKS AND MICKEY COUNTS */
         reg_ax = mouse.textAndMask;
         reg_bx = mouse.textXorMask;
         Mouse_Read_Motion_Data();
         break;
-    case 0x2a:  /* Get cursor hot spot */
+    case 0x2a:  /* MS MOUSE v7.02+ - GET CURSOR HOT SPOT */
         reg_al = (uint8_t)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
         reg_bx = (uint16_t)mouse.hotx;
         reg_cx = (uint16_t)mouse.hoty;
         reg_dx = 0x04;    // PS/2 mouse type
         break;
-    case 0x31: /* Get Current Minimum/Maximum virtual coordinates */
+    case 0x31:  /* MS MOUSE v7.05+ - GET CURRENT MINIMUM/MAXIMUM VIRTUAL COORDINATES */
         reg_ax = (uint16_t)mouse.min_x;
         reg_bx = (uint16_t)mouse.min_y;
         reg_cx = (uint16_t)mouse.max_x;
         reg_dx = (uint16_t)mouse.max_y;
         break;
-    case 0x53C1: /* Logitech CyberMan */
+    case 0x53C1:  /* Logitech CyberMan */
         LOG(LOG_MOUSE, LOG_NORMAL)("Mouse function 53C1 for Logitech CyberMan called. Ignored by regular mouse driver.");
         break;
     default:
