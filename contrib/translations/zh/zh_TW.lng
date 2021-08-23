@@ -772,7 +772,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	啟動後直接進入按鍵編輯. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -noautoexec[0m
-	跳過調入的組態檔案中的 [autoexec] 段落.
+	跳過載入的組態檔案中的 [autoexec] 段落.
 
 [33;1m  -c[0m 命令
 	在啟動程式前先執行指定的命令. 可以用多個 -c 參數指定多個命令.
@@ -914,7 +914,7 @@ LOADROM 映像檔
 
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
-必須指定要調入的 ROM 檔案.
+必須指定要載入的 ROM 檔案.
 
 .
 :PROGRAM_LOADROM_CANT_OPEN
@@ -934,7 +934,7 @@ ROM 檔案無法識別.
 
 .
 :PROGRAM_LOADROM_BASIC_LOADED
-BASIC ROM 已調入.
+BASIC ROM 已載入.
 
 .
 :PROGRAM_BIOSTEST_HELP
