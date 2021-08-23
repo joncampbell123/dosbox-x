@@ -94,7 +94,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @USE_VERSION_RC_FALSE@libSDL_net_la_DEPENDENCIES =
-noinst_PROGRAMS = $(am__EXEEXT_1)
+noinst_PROGRAMS =
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude/libtool.m4 \
@@ -114,9 +114,6 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = SDL_net.spec SDL_net.qpg SDL_net.pc
 CONFIG_CLEAN_VPATH_FILES =
-@HAVE_GUI_LIB_FALSE@am__EXEEXT_1 = showinterfaces$(EXEEXT)
-@HAVE_GUI_LIB_TRUE@am__EXEEXT_1 = showinterfaces$(EXEEXT) \
-@HAVE_GUI_LIB_TRUE@	chat$(EXEEXT) chatd$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -158,15 +155,6 @@ am__v_lt_1 =
 libSDL_net_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libSDL_net_la_LDFLAGS) $(LDFLAGS) -o $@
-am_chat_OBJECTS = chat.$(OBJEXT)
-chat_OBJECTS = $(am_chat_OBJECTS)
-chat_DEPENDENCIES = libSDL_net.la
-am_chatd_OBJECTS = chatd.$(OBJEXT)
-chatd_OBJECTS = $(am_chatd_OBJECTS)
-chatd_DEPENDENCIES = libSDL_net.la
-am_showinterfaces_OBJECTS = showinterfaces.$(OBJEXT)
-showinterfaces_OBJECTS = $(am_showinterfaces_OBJECTS)
-showinterfaces_DEPENDENCIES = libSDL_net.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -183,9 +171,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/SDLnet.Plo ./$(DEPDIR)/SDLnetTCP.Plo \
-	./$(DEPDIR)/SDLnetUDP.Plo ./$(DEPDIR)/SDLnetselect.Plo \
-	./$(DEPDIR)/chat.Po ./$(DEPDIR)/chatd.Po \
-	./$(DEPDIR)/showinterfaces.Po
+	./$(DEPDIR)/SDLnetUDP.Plo ./$(DEPDIR)/SDLnetselect.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -205,28 +191,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
-AM_V_CXX = $(am__v_CXX_@AM_V@)
-am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
-am__v_CXX_0 = @echo "  CXX     " $@;
-am__v_CXX_1 = 
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
-am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
-am__v_CXXLD_0 = @echo "  CXXLD   " $@;
-am__v_CXXLD_1 = 
-SOURCES = $(libSDL_net_la_SOURCES) $(chat_SOURCES) $(chatd_SOURCES) \
-	$(showinterfaces_SOURCES)
-DIST_SOURCES = $(libSDL_net_la_SOURCES) $(chat_SOURCES) \
-	$(chatd_SOURCES) $(showinterfaces_SOURCES)
+SOURCES = $(libSDL_net_la_SOURCES)
+DIST_SOURCES = $(libSDL_net_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -455,8 +421,6 @@ EXTRA_DIST = \
 @USE_VERSION_RC_FALSE@libSDL_net_la_LIBADD = @INETLIB@
 @USE_VERSION_RC_TRUE@libSDL_net_la_LIBADD = @INETLIB@
 @USE_VERSION_RC_TRUE@libSDL_net_la_DEPENDENCIES = version.o
-@HAVE_GUI_LIB_FALSE@EXAMPLES = showinterfaces
-@HAVE_GUI_LIB_TRUE@EXAMPLES = showinterfaces chat chatd
 showinterfaces_SOURCES = showinterfaces.c
 showinterfaces_LDADD = libSDL_net.la
 chat_SOURCES = chat.cpp chat.h
@@ -468,7 +432,7 @@ pkgconfig_DATA = SDL_net.pc
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
+.SUFFIXES: .c .lo .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -556,18 +520,6 @@ clean-libLTLIBRARIES:
 libSDL_net.la: $(libSDL_net_la_OBJECTS) $(libSDL_net_la_DEPENDENCIES) $(EXTRA_libSDL_net_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libSDL_net_la_LINK) -rpath $(libdir) $(libSDL_net_la_OBJECTS) $(libSDL_net_la_LIBADD) $(LIBS)
 
-chat$(EXEEXT): $(chat_OBJECTS) $(chat_DEPENDENCIES) $(EXTRA_chat_DEPENDENCIES) 
-	@rm -f chat$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(chat_OBJECTS) $(chat_LDADD) $(LIBS)
-
-chatd$(EXEEXT): $(chatd_OBJECTS) $(chatd_DEPENDENCIES) $(EXTRA_chatd_DEPENDENCIES) 
-	@rm -f chatd$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(chatd_OBJECTS) $(chatd_LDADD) $(LIBS)
-
-showinterfaces$(EXEEXT): $(showinterfaces_OBJECTS) $(showinterfaces_DEPENDENCIES) $(EXTRA_showinterfaces_DEPENDENCIES) 
-	@rm -f showinterfaces$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(showinterfaces_OBJECTS) $(showinterfaces_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -578,9 +530,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SDLnetTCP.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SDLnetUDP.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SDLnetselect.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chat.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chatd.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/showinterfaces.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -608,27 +557,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-.cpp.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
-
-.cpp.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cpp.lo:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -960,9 +888,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/SDLnetTCP.Plo
 	-rm -f ./$(DEPDIR)/SDLnetUDP.Plo
 	-rm -f ./$(DEPDIR)/SDLnetselect.Plo
-	-rm -f ./$(DEPDIR)/chat.Po
-	-rm -f ./$(DEPDIR)/chatd.Po
-	-rm -f ./$(DEPDIR)/showinterfaces.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-libtool distclean-tags
@@ -1015,9 +940,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/SDLnetTCP.Plo
 	-rm -f ./$(DEPDIR)/SDLnetUDP.Plo
 	-rm -f ./$(DEPDIR)/SDLnetselect.Plo
-	-rm -f ./$(DEPDIR)/chat.Po
-	-rm -f ./$(DEPDIR)/chatd.Po
-	-rm -f ./$(DEPDIR)/showinterfaces.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

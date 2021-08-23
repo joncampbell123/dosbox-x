@@ -9008,6 +9008,9 @@ startfunction:
                 case CPU_ARCHTYPE_MIXED:
                     cpuType = "Auto (mixed)";
                     break;
+                case CPU_ARCHTYPE_EXPERIMENTAL:
+                    cpuType = "Experimental";
+                    break;
             }
 
             sprintf(tmp,"%s CPU present",cpuType);

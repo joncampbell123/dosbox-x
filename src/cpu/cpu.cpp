@@ -284,6 +284,9 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
+    mainMenu.get_item("cputype_experimental").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
+        refresh_item(mainMenu);
 }
 
 const char *GetCPUType() {
@@ -2939,7 +2942,7 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
 			reg_eax=0x612;		/* intel pentium pro */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
@@ -3378,6 +3381,9 @@ public:
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
 
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
+            set_text("Experimental").set_callback_function(CpuType_ByName);
+
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -3556,6 +3562,8 @@ public:
 		std::string cputype(section->Get_string("cputype"));
 		if (cputype == "auto") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+		} else if (cputype == "experimental") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_EXPERIMENTAL;
 		} else if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			cpudecoder=&CPU_Core8086_Normal_Run;
