@@ -1234,6 +1234,15 @@ void Mouse_Used(void) {
     }
 }
 
+void Mouse_Read_Motion_Data() {
+    const auto locked = MOUSE_IsLocked();
+    reg_cx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_x : 0);
+    reg_dx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_y : 0);
+    mouse.mickey_x = 0;
+    mouse.mickey_y = 0;
+    Mouse_Used();
+}
+
 static Bitu INT33_Handler(void) {
 //  LOG(LOG_MOUSE,LOG_NORMAL)("MOUSE: %04X %X %X %d %d",reg_ax,reg_bx,reg_cx,POS_X,POS_Y);
     switch (reg_ax) {
@@ -1449,20 +1458,9 @@ static Bitu INT33_Handler(void) {
         }
         DrawCursor();
         break;
-    case 0x27:  /* Get Screen/Cursor Masks and Mickey Counts */
-        reg_ax = mouse.textAndMask;
-        reg_bx = mouse.textXorMask;
-        /* FALLTHROUGH */
     case 0x0b:  /* Read Motion Data */
-        {
-            const auto locked = MOUSE_IsLocked();
-            reg_cx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_x : 0);
-            reg_dx = (uint16_t)static_cast<int16_t>(locked ? mouse.mickey_y : 0);
-            mouse.mickey_x = 0;
-            mouse.mickey_y = 0;
-            Mouse_Used();
-            break;
-        }
+        Mouse_Read_Motion_Data();
+        break;
     case 0x0c:  /* Define interrupt subroutine parameters */
         mouse.sub_mask = reg_cx;
         mouse.sub_seg = SegValue(es);
@@ -1605,6 +1603,11 @@ static Bitu INT33_Handler(void) {
         reg_bx = (mouse.enabled ? 0x0000 : 0xffff);
         reg_cx = (uint16_t)mouse.max_x;
         reg_dx = (uint16_t)mouse.max_y;
+        break;
+    case 0x27:  /* Get Screen/Cursor Masks and Mickey Counts */
+        reg_ax = mouse.textAndMask;
+        reg_bx = mouse.textXorMask;
+        Mouse_Read_Motion_Data();
         break;
     case 0x2a:  /* Get cursor hot spot */
         reg_al = (uint8_t)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
