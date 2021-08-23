@@ -296,6 +296,89 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     return true;
 }
 
+extern bool isKanji1(uint8_t chr), isKanji2(uint8_t chr);
+extern bool CheckHat(uint8_t code);
+
+static uint16_t GetWideCount(char *line, uint16_t str_index)
+{
+	bool kanji_flag = false;
+	uint16_t count = 1;
+	for(uint16_t pos = 0 ; pos < str_index ; pos++) {
+		if(!kanji_flag) {
+			if(isKanji1(line[pos])) {
+				kanji_flag = true;
+			}
+			count = 1;
+		} else {
+			if(isKanji2(line[pos])) {
+				count = 2;
+			}
+			kanji_flag = false;
+		}
+	}
+	return count;
+}
+
+static void RemoveAllChar(char *line, uint16_t str_index)
+{
+	for ( ; str_index > 0 ; str_index--) {
+		// removes all characters
+		if(CheckHat(line[str_index])) {
+			outc(8); outc(8); outc(' '); outc(' '); outc(8); outc(8);
+		} else {
+			outc(8); outc(' '); outc(8);
+		}
+	}
+	if(CheckHat(line[0])) {
+		outc(8); outc(' '); outc(8);
+	}
+}
+
+static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_index, uint16_t &str_len)
+{
+	uint16_t count, pos;
+	uint16_t len;
+
+	pos = str_index;
+	if(delete_flag) {
+		if(isKanji1(line[pos])) {
+			pos += 2;
+		} else {
+			pos += 1;
+		}
+	}
+	count = GetWideCount(line, pos);
+
+	pos = str_index;
+	while(pos < str_len) {
+		len = 1;
+		DOS_WriteFile(STDOUT, (uint8_t *)&line[pos], &len);
+		pos++;
+	}
+	RemoveAllChar(line, str_len);
+	pos = delete_flag ? str_index : str_index - count;
+	while(pos < str_len - count) {
+		line[pos] = line[pos + count];
+		pos++;
+	}
+	line[pos] = 0;
+	if(!delete_flag) {
+		str_index -= count;
+	}
+	str_len -= count;
+	len = str_len;
+	DOS_WriteFile(STDOUT, (uint8_t *)line, &len);
+	pos = str_len;
+	while(pos > str_index) {
+		outc(8);
+		if(CheckHat(line[pos - 1])) {
+			outc(8);
+		}
+		pos--;
+	}
+	return count;
+}
+
 extern bool isDBCSCP();
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
@@ -436,15 +519,30 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0) {
-                    backone();
-                    str_index --;
-                    MoveCaretBackwards();
-                }
-                if (str_index) {
-                    backone();
-                    str_index --;
-                	MoveCaretBackwards();
+                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                    if (str_index) {
+                        uint16_t count = GetWideCount(line, str_index);
+                        uint8_t ch = line[str_index - 1];
+                        while(count > 0) {
+                            outc(8);
+                            str_index --;
+                            count--;
+                        }
+                        if(CheckHat(ch)) {
+                            outc(8);
+                        }
+                    }
+                } else {
+                    if (isDBCSCP()&&str_index>1&&(line[str_index-1]<0||(dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0) {
+                        backone();
+                        str_index --;
+                        MoveCaretBackwards();
+                    }
+                    if (str_index) {
+                        backone();
+                        str_index --;
+                        MoveCaretBackwards();
+                    }
                 }
                 break;
 
@@ -494,11 +592,24 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40)) {
-                    outc((uint8_t)line[str_index++]);
-                }
-                if (str_index < str_len) {
-                    outc((uint8_t)line[str_index++]);
+                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                    if (str_index < str_len) {
+                        uint16_t count = 1;
+                        if(str_index < str_len - 1) {
+                            count = GetWideCount(line, str_index + 2);
+                        }
+                        while(count > 0) {
+                            outc(line[str_index++]);
+                            count--;
+                        }
+                    }
+                } else {
+                    if (isDBCSCP()&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40)) {
+                        outc((uint8_t)line[str_index++]);
+                    }
+                    if (str_index < str_len) {
+                        outc((uint8_t)line[str_index++]);
+                    }
                 }
                 break;
 
@@ -585,10 +696,14 @@ void DOS_Shell::InputCommand(char * line) {
 
                 break;
             case 0x5300:/* DELETE */
-                {
+                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                    if(str_index) {
+                        size += DeleteBackspace(true, line, str_index, str_len);
+                    }
+                } else {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40))
+                    if (isDBCSCP()&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||(dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index+1]>=0x40))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -630,9 +745,13 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x08:				/* BackSpace */
-                {
+                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                    if(str_index) {
+                        size += DeleteBackspace(false, line, str_index, str_len);
+                    }
+                } else {
                     int k=1;
-                    if ((IS_PC98_ARCH||isDBCSCP())&&str_index>1&&(line[str_index-1]<0||(IS_PC98_ARCH||dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0)
+                    if (isDBCSCP()&&str_index>1&&(line[str_index-1]<0||(dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950)&&line[str_index-1]>=0x40)&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
@@ -792,30 +911,69 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = 0;
                 break;
             default:
-                if (cr >= 0x100) break;
-                if (l_completion.size()) l_completion.clear();
-                if(str_index < str_len && !INT10_GetInsertState()) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
-                    outc(' ');//move cursor one to the right.
-                    uint16_t a = str_len - str_index;
-                    uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
-                    DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                    backone();//undo the cursor the right.
-                    for(Bitu i=str_len;i>str_index;i--) {
-                        line[i]=line[i-1]; //move internal buffer
-                        backone(); //move cursor back (from write buffer to screen)
+                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                    bool kanji_flag = false;
+                    uint16_t pos = str_index;
+                    while(1) {
+                        if (l_completion.size()) l_completion.clear();
+                        if(str_index < str_len && true) {
+                            for(Bitu i=str_len;i>str_index;i--) {
+                                line[i]=line[i-1];
+                            }
+                            line[++str_len]=0;
+                            size--;
+                        }
+                        line[str_index]=c;
+                        str_index ++;
+                        if (str_index > str_len) {
+                            line[str_index] = '\0';
+                            str_len++;
+                            size--;
+                        }
+                        if(!isKanji1(c) || kanji_flag) {
+                            break;
+                        }
+                        DOS_ReadFile(input_handle,&c,&n);
+                        kanji_flag = true;
                     }
-                    line[++str_len]=0;//new end (as the internal buffer moved one place to the right
-                    size--;
-                }
+                    while(pos < str_len) {
+                        outc(line[pos]);
+                        pos++;
+                    }
+                    pos = str_len;
+                    while(pos > str_index) {
+                        outc(8);
+                        pos--;
+                        if (CheckHat(line[pos])) {
+                            outc(8);
+                        }
+                    }
+                } else {
+                    if (cr >= 0x100) break;
+                    if (l_completion.size()) l_completion.clear();
+                    if(str_index < str_len && !INT10_GetInsertState()) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
+                        outc(' ');//move cursor one to the right.
+                        uint16_t a = str_len - str_index;
+                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
+                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
+                        backone();//undo the cursor the right.
+                        for(Bitu i=str_len;i>str_index;i--) {
+                            line[i]=line[i-1]; //move internal buffer
+                            backone(); //move cursor back (from write buffer to screen)
+                        }
+                        line[++str_len]=0;//new end (as the internal buffer moved one place to the right
+                        size--;
+                    }
 
-                line[str_index]=(char)(cr&0xFF);
-                str_index ++;
-                if (str_index > str_len){ 
-                    line[str_index] = '\0';
-                    str_len++;
-                    size--;
+                    line[str_index]=(char)(cr&0xFF);
+                    str_index ++;
+                    if (str_index > str_len){ 
+                        line[str_index] = '\0';
+                        str_len++;
+                        size--;
+                    }
+                    DOS_WriteFile(STDOUT,&c,&n);
                 }
-                DOS_WriteFile(STDOUT,&c,&n);
                 break;
         }
     }
