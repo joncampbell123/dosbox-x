@@ -602,30 +602,30 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_ERROR
-記憶體分配錯誤.
+記憶體配置錯誤.
 
 .
 :PROGRAM_LOADFIX_HELP
-減少可用的一般記憶體或 XMS/EMS 記憶體.
+減少傳統記憶體或 XMS/EMS 記憶體的可用大小.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        從 XMS 記憶體中而不是一般記憶體中分配記憶體
-  -ems        從 EMS 記憶體中而不是一般記憶體中分配記憶體
-  -{ram}      指定要分配的記憶體大小（單位:千位元組)
-                 一般記憶體預設為 64kb ; XMS或EMS記憶體預設為 1MB
-  -a          自動分配足夠的記憶體以充滿低端 64KB 記憶體
-  -f (或 -d)  釋放此前分配的記憶體
+  -xms        從延伸記憶體 (XMS) 中配置而不是傳統記憶體
+  -ems        從擴充記憶體 (EMS) 中配置而不是傳統記憶體
+  -{ram}      指定要配置的記憶體大小（單位:千位元組)
+                 傳統記憶體預設為 64kb ; XMS或EMS記憶體預設為 1MB
+  -a          自動配置足夠的記憶體以充滿最下層 64KB 記憶體
+  -f (或 -d)  釋放先前配置的記憶體
   {程式}      執行指定的程式
   {選項}      程式選項 (如果有)
 
 舉例:
-  [32;1mLOADFIX game.exe[0m     分配 64KB 一般記憶體並執行 game.exe
-  [32;1mLOADFIX -a[0m           自動分配足夠的一般記憶體
-  [32;1mLOADFIX -128[0m         分配 128KB 一般記憶體
-  [32;1mLOADFIX -xms[0m         分配 1MB XMS 記憶體
-  [32;1mLOADFIX -f[0m           釋放已分配的一般記憶體
+  [32;1mLOADFIX game.exe[0m     配置 64KB 傳統記憶體並執行 game.exe
+  [32;1mLOADFIX -a[0m           自動配置足夠的傳統記憶體
+  [32;1mLOADFIX -128[0m         配置 128KB 傳統記憶體
+  [32;1mLOADFIX -xms[0m         配置 1MB XMS 記憶體
+  [32;1mLOADFIX -f[0m           釋放已配置的傳統記憶體
 
 .
 :MSCDEX_SUCCESS
@@ -1873,7 +1873,7 @@ SUBST 磁碟機1: /D
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-載入程式至上位記憶體 (需要 XMS 和 UMB 記憶體).
+載入程式至上層記憶體 (需要 XMS 和 UMB 記憶體).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
@@ -2721,7 +2721,7 @@ PC-98 PIT 主時脈
 5MHz/10MHz PIT 主時脈
 .
 :MENU:DOSEMSMenu
-EMS 記憶體
+擴充記憶體 (EMS)
 .
 :MENU:dos_ems_true
 啟用 EMS 記憶體模擬
