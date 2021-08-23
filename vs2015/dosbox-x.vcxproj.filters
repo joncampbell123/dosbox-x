@@ -1700,9 +1700,6 @@
     <ClInclude Include="..\src\hardware\pci_devices.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\hardware\sn76496.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\hardware\voodoo_data.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
