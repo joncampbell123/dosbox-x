@@ -590,11 +590,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_ALLOC
-%d kb 已配置.
+已配置 %d kb.
 
 .
 :PROGRAM_LOADFIX_DEALLOC
-%d 位元組已釋放.
+已釋放 %d kb.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
