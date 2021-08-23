@@ -1358,7 +1358,7 @@ static Bitu INT33_Handler(void) {
                     else {
                         // Apply sanity rounding.
                         //
-                        // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                        // Daggerfall: Sets max x to 310 instead of 320, probably to prevent drawing the cursor
                         //             partially offscreen. */
                         if (nval >= ((int16_t)CurMode->swidth - 32) && nval <= ((int16_t)CurMode->swidth + 32))
                             nval = (int16_t)CurMode->swidth;
@@ -1419,7 +1419,7 @@ static Bitu INT33_Handler(void) {
                     else {
                         // Apply sanity rounding.
                         //
-                        // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                        // Daggerfall: Sets max x to 310 instead of 320, probably to prevent drawing the cursor
                         //             partially offscreen. */
                         if (nval >= ((int16_t)CurMode->sheight - 32) && nval <= ((int16_t)CurMode->sheight + 32))
                             nval = (int16_t)CurMode->sheight;
