@@ -993,6 +993,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         mem_writeb(buffer + 1, status);
         break;
     case 0x0A: /* Audio disk info */
+    {
         uint8_t tr1, tr2; TMSF leadOut;
         if(!mscdex->GetCDInfo(drive_unit, tr1, tr2, leadOut)) return 0x05;
         mem_writeb(buffer + 1, tr1);
@@ -1002,6 +1003,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         mem_writeb(buffer + 5, leadOut.min);
         mem_writeb(buffer + 6, 0x00);
         break;
+    }
     case 0x0B: /* Audio track info */
     {
         uint8_t attr; TMSF start;
@@ -1045,10 +1047,11 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     }
     case 0x0F: /* Audio status info */
     {
-        bool playing, pause;
+        bool playing = false;
+        bool paused = false;
         TMSF resStart, resEnd;
-        mscdex->GetAudioStatus(drive_unit, playing, pause, resStart, resEnd);
-        mem_writeb(buffer + 1u, pause);
+        mscdex->GetAudioStatus(drive_unit, playing, paused, resStart, resEnd);
+        mem_writew(buffer + 1u, paused);
         mem_writeb(buffer + 3u, resStart.min);
         mem_writeb(buffer + 4u, resStart.sec);
         mem_writeb(buffer + 5u, resStart.fr);
