@@ -1027,7 +1027,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
 	return 0x00;	// success
 }
 
-static uint16_t MSCDEX_IOCTL_Optput(PhysPt buffer,uint8_t drive_unit) {
+static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer,uint8_t drive_unit) {
 	uint8_t ioctl_fct = mem_readb(buffer);
 //	MSCDEX_LOG("MSCDEX: IOCTL OUTPUT Subfunction %02X",ioctl_fct);
 	switch (ioctl_fct) {
@@ -1087,7 +1087,7 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 						break;
 					  }
 		case 0x0C	: {	/* IOCTL OUTPUT */
-						uint16_t error=MSCDEX_IOCTL_Optput(buffer,subUnit);
+						uint16_t error=MSCDEX_IOCTL_Output(buffer,subUnit);
 						if (error) errcode = error;
 						break;
 					  }
@@ -1280,7 +1280,7 @@ bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 }
 
 bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
-	if (MSCDEX_IOCTL_Optput(bufptr,0)==0) {
+	if (MSCDEX_IOCTL_Output(bufptr,0)==0) {
 		*retcode=size;
 		return true;
 	}
