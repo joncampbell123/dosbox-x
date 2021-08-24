@@ -1027,35 +1027,37 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
 	return 0x00;	// success
 }
 
-static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer,uint8_t drive_unit) {
-	uint8_t ioctl_fct = mem_readb(buffer);
-//	MSCDEX_LOG("MSCDEX: IOCTL OUTPUT Subfunction %02X",ioctl_fct);
-	switch (ioctl_fct) {
-		case 0x00 :	// Unload /eject media
-					if (!mscdex->LoadUnloadMedia(drive_unit,true)) return 0x02;
-					break;
-		case 0x03: //Audio Channel control
-					TCtrl ctrl;
-					for (uint8_t chan=0;chan<4;chan++) {
-						ctrl.out[chan]=mem_readb(buffer+chan*2u+1u);
-						ctrl.vol[chan]=mem_readb(buffer+chan*2u+2u);
-					}
-					if (!mscdex->ChannelControl(drive_unit,ctrl)) return 0x01;
-					break;
-		case 0x01 : // (un)Lock door 
-					// do nothing -> report as success
-					break;
-		case 0x02 : // Reset Drive
-					LOG(LOG_MISC,LOG_WARN)("cdromDrive reset");
-					if (!mscdex->StopAudio(drive_unit))  return 0x02;
-					break;
-		case 0x05 :	// load media
-					if (!mscdex->LoadUnloadMedia(drive_unit,false)) return 0x02;
-					break;
-		default	:	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL OUTPUT Subfunction %02X",(int)ioctl_fct);
-					return 0x03;	// invalid function
-	}
-	return 0x00;	// success
+// Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
+static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer, uint8_t drive_unit) {
+    uint8_t ioctl_fct = mem_readb(buffer);
+    // MSCDEX_LOG("MSCDEX: IOCTL OUTPUT Subfunction %02X",ioctl_fct);
+    switch(ioctl_fct) {
+    case 0x00: // Eject disk
+        if(!mscdex->LoadUnloadMedia(drive_unit, true)) return 0x02;
+        break;
+    case 0x01: // Lock/unlock door
+        // do nothing -> report as success
+        break;
+    case 0x02: // Reset drive
+        LOG(LOG_MISC, LOG_WARN)("cdromDrive reset");
+        if(!mscdex->StopAudio(drive_unit))  return 0x02;
+        break;
+    case 0x03: // Control audio channel
+        TCtrl ctrl;
+        for(uint8_t chan = 0; chan < 4; chan++) {
+            ctrl.out[chan] = mem_readb(buffer + chan * 2u + 1u);
+            ctrl.vol[chan] = mem_readb(buffer + chan * 2u + 2u);
+        }
+        if(!mscdex->ChannelControl(drive_unit, ctrl)) return 0x01;
+        break;
+    case 0x05: // Close tray
+        if(!mscdex->LoadUnloadMedia(drive_unit, false)) return 0x02;
+        break;
+    default:
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL OUTPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    }
+    return 0x00; // Success
 }
 
 static Bitu MSCDEX_Strategy_Handler(void) {
