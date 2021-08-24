@@ -590,11 +590,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_ALLOC
-已配置 %d kb.
+已配置 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOC
-已釋放 %d kb.
+已釋放 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
@@ -613,9 +613,9 @@ LOADFIX -f [-xms] [-ems]
 
   -xms        從延伸記憶體 (XMS) 中配置而不是傳統記憶體
   -ems        從擴充記憶體 (EMS) 中配置而不是傳統記憶體
-  -{ram}      指定要配置的記憶體大小（單位:千位元組)
-                 傳統記憶體預設為 64kb ; XMS 或 EMS 記憶體預設為 1MB
-  -a          自動配置足夠的記憶體以充滿最低層 64KB 記憶體
+  -{ram}      指定要配置的記憶體大小（單位:KB)
+                 傳統記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
+  -a          自動配置足夠的記憶體將最低層 64KB 記憶體裝滿
   -f (或 -d)  釋放先前配置的記憶體
   {程式}      執行指定的程式
   {選項}      程式選項 (如果有)
@@ -1159,7 +1159,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-沒有足夠的空間生成映像檔. 需要 %u 位元組.
+沒有足夠的空間產生映像檔. 需要 %u 位元組.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
@@ -1961,7 +1961,7 @@ VERIFY [ON | OFF]
 VER [/R]
 VER [SET] 版本號 或 VER SET [主版本號 次版本號]
 
-  /R                   　　顯示 DOSBox-X 的 Git 提交版本和生成日期.
+  /R                   　　顯示 DOSBox-X 的 Git 提交版本和建置日期.
   [SET] 版本號           　設定指定的版本號為要報告的 DOS 版本.
   SET [主版本號 次版本號]  以主版本號+次版本號的格式設定要報告的 DOS 版本.
 
@@ -2724,7 +2724,7 @@ PC-98 PIT 主時脈
 擴充記憶體 (EMS)
 .
 :MENU:dos_ems_true
-啟用 EMS 記憶體模擬
+啟用 EMS 模擬
 .
 :MENU:dos_ems_board
 EMS 板模擬
@@ -2733,7 +2733,7 @@ EMS 板模擬
 EMM386 模擬
 .
 :MENU:dos_ems_false
-停用 EMS 記憶體模擬
+停用 EMS 模擬
 .
 :MENU:DOSWinMenu
 主機系統程式
