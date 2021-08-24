@@ -979,7 +979,11 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
             mem_writew(buffer + 2, 2048);
         else if(read_mode == 1) // Raw
             mem_writew(buffer + 2, 2352);
-        else return 0x03; // Invalid function
+        else
+        {
+            MSCDEX_LOG_ERROR("MSCDEX: Sector size: invalid read mode %x", read_mode);
+            return 0x03; // Invalid function
+        }
         break;
     }
     case 0x08: /* Volume size */
