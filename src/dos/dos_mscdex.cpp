@@ -105,7 +105,7 @@ public:
 	bool		StopAudio			(uint8_t subUnit);
 	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
-	bool		GetSubChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
+	bool		GetQChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
 
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
@@ -488,7 +488,7 @@ bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
 
-bool CMscdex::GetSubChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
+bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
@@ -780,7 +780,7 @@ bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	if (subUnit>=numDrives) return false;
 	TMSF rel;
 	uint8_t attr,track,index;
-	dinfo[subUnit].lastResult = GetSubChannelData(subUnit, attr, track, index, rel, pos);
+	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
 	if (!dinfo[subUnit].lastResult) memset(&pos,0,sizeof(pos));
 	return dinfo[subUnit].lastResult;
 }
@@ -1024,7 +1024,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     {
         uint8_t attr, track, index;
         TMSF abs, rel;
-        mscdex->GetSubChannelData(drive_unit, attr, track, index, rel, abs);
+        mscdex->GetQChannelData(drive_unit, attr, track, index, rel, abs);
         mem_writeb(buffer + 1, attr);
         mem_writeb(buffer + 2, ((track / 10) << 4) | (track % 10)); // track in BCD
         mem_writeb(buffer + 3, index);
