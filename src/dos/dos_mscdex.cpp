@@ -1010,7 +1010,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     }
     case 0x0B: /* Audio track info */
     {
-        uint8_t attr; TMSF start;
+        uint8_t attr = 0; TMSF start;
         uint8_t track = mem_readb(buffer + 1);
         mscdex->GetTrackInfo(drive_unit, track, attr, start);
         mem_writeb(buffer + 2, start.fr);
@@ -1022,7 +1022,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     }
     case 0x0C: /* Audio Q-Channel info */
     {
-        uint8_t attr, track, index;
+        uint8_t attr = 0, track, index;
         TMSF abs, rel;
         mscdex->GetQChannelData(drive_unit, attr, track, index, rel, abs);
         mem_writeb(buffer + 1, attr);
@@ -1042,7 +1042,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         return 0x03; // Invalid function
     case 0x0E: /* UPC code */
     {
-        uint8_t attr; char upc[8];
+        uint8_t attr = 0; char upc[8] = {};
         mscdex->GetUPC(drive_unit, attr, &upc[0]);
         mem_writeb(buffer + 1u, attr);
         for(unsigned int i = 0; i < 7; i++) mem_writeb(buffer + 2u + i, (unsigned char)upc[i]);
