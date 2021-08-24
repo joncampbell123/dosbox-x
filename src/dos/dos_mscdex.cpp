@@ -1050,6 +1050,9 @@ static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer, uint8_t drive_unit) {
         }
         if(!mscdex->ChannelControl(drive_unit, ctrl)) return 0x01;
         break;
+    case 0x04: // Write device control string
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL OUTPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
     case 0x05: // Close tray
         if(!mscdex->LoadUnloadMedia(drive_unit, false)) return 0x02;
         break;
