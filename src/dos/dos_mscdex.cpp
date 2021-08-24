@@ -944,6 +944,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
         return 0x03; // Invalid function
     case 0x03: /* Error statistics */
+        // Undefined as of 5 Aug 88 specification
         LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
         return 0x03; // Invalid function
     case 0x04: /* Audio channel info */
@@ -961,17 +962,22 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         mem_writed(buffer + 1, mscdex->GetDeviceStatus(drive_unit));
         break;
     case 0x07: /* Sector size */
-        if(mem_readb(buffer + 1) == 0) mem_writew(buffer + 2, 2048);
-        else if(mem_readb(buffer + 1) == 1) mem_writew(buffer + 2, 2352);
+    {
+        uint8_t read_mode = mem_readb(buffer + 1);
+        if(read_mode == 0) // Cooked
+            mem_writew(buffer + 2, 2048);
+        else if(read_mode == 1) // Raw
+            mem_writew(buffer + 2, 2352);
         else return 0x03; // Invalid function
         break;
+    }
     case 0x08: /* Volume size */
         mem_writed(buffer + 1, mscdex->GetVolumeSize(drive_unit));
         break;
     case 0x09: /* Media change status */
         uint8_t status;
         if(!mscdex->GetMediaStatus(drive_unit, status)) {
-            status = 0; // State unknown
+            status = 0; // Status unknown
         }
         mem_writeb(buffer + 1, status);
         break;
