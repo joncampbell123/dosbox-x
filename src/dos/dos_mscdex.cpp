@@ -1085,52 +1085,115 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 		buffer = PhysMake(mem_readw(curReqheaderPtr+0x10),mem_readw(curReqheaderPtr+0x0E));
 	}
 
- 	switch (funcNr) {
-		case 0x03	: {	/* IOCTL INPUT */
-						uint16_t error=MSCDEX_IOCTL_Input(buffer,subUnit);
-						if (error) errcode = error;
-						break;
-					  }
-		case 0x0C	: {	/* IOCTL OUTPUT */
-						uint16_t error=MSCDEX_IOCTL_Output(buffer,subUnit);
-						if (error) errcode = error;
-						break;
-					  }
-		case 0x0D	:	// device open
-		case 0x0E	:	// device close - dont care :)
-						break;
-		case 0x80	:	// Read long
-		case 0x82	: { // Read long prefetch -> both the same here :)
-						uint32_t start = mem_readd(curReqheaderPtr+0x14);
-						uint16_t len	 = mem_readw(curReqheaderPtr+0x12);
-						bool raw	 = (mem_readb(curReqheaderPtr+0x18)==1);
-						if (mem_readb(curReqheaderPtr+0x0D)==0x00) // HSG
-							mscdex->ReadSectors(subUnit,raw,start,len,buffer);
-						else 
-							mscdex->ReadSectorsMSF(subUnit,raw,start,len,buffer);
-						break;
-					  }
-		case 0x83	:	// Seek - dont care :)
-						break;
-		case 0x84	: {	/* Play Audio Sectors */
-						uint32_t start = mem_readd(curReqheaderPtr+0x0E);
-						uint32_t len	 = mem_readd(curReqheaderPtr+0x12);
-						if (mem_readb(curReqheaderPtr+0x0D)==0x00) // HSG
-							mscdex->PlayAudioSector(subUnit,start,len);
-						else // RED BOOK
-							mscdex->PlayAudioMSF(subUnit,start,len);
-						break;
-					  }
-		case 0x85	:	/* Stop Audio */
-						mscdex->StopAudio(subUnit);
-						break;
-		case 0x88	:	/* Resume Audio */
-						mscdex->ResumeAudio(subUnit);
-						break;
-		default		:	MSCDEX_LOG_ERROR("Unsupported Driver Request %02X",funcNr);
-						break;
-	
-	}
+// Reference (Microsoft MS-DOS CD-ROM Extensions 2.1): https://tinyurl.com/3spx4dfn
+    switch(funcNr) {
+    case 0x00:      /* INIT */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x01:      /* MEDIA CHECK (block devices) */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x02:      /* BUILD BPB (block devices) */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x03:      /* IOCTL INPUT */
+    {
+        uint16_t error = MSCDEX_IOCTL_Input(buffer, subUnit);
+        if(error) errcode = error;
+        break;
+    }
+    case 0x04:      /* INPUT (read) */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x05:      /* NONDESTRUCTIVE INPUT NO WAIT */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x06:      /* INPUT STATUS */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x07:      /* INPUT FLUSH */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x08:      /* OUTPUT (write) */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x09:      /* OUTPUT WITH VERIFY */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x0A:      /* OUTPUT STATUS */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x0B:      /* OUTPUT FLUSH */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x0C:      /* IOCTL OUTPUT */
+    {
+        uint16_t error = MSCDEX_IOCTL_Output(buffer, subUnit);
+        if(error) errcode = error;
+        break;
+    }
+    case 0x0D:      /* DEVICE OPEN */
+    case 0x0E:      /* DEVICE CLOSE */
+        break;
+    case 0x0F:      /* REMOVABLE MEDIA (block devices) */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x10:      /* OUTPUT UNTIL BUSY */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x80:      /* READ LONG */
+    {
+        uint32_t start = mem_readd(curReqheaderPtr + 0x14);
+        uint16_t len = mem_readw(curReqheaderPtr + 0x12);
+        bool raw = (mem_readb(curReqheaderPtr + 0x18) == 1);
+        if(mem_readb(curReqheaderPtr + 0x0D) == 0x00) // HSG
+            mscdex->ReadSectors(subUnit, raw, start, len, buffer);
+        else
+            mscdex->ReadSectorsMSF(subUnit, raw, start, len, buffer);
+        break;
+    }
+    case 0x81:      /* Reserved */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x82:      /* READ LONG PREFETCH */
+    {
+        uint32_t start = mem_readd(curReqheaderPtr + 0x14);
+        uint16_t len = mem_readw(curReqheaderPtr + 0x12);
+        bool raw = (mem_readb(curReqheaderPtr + 0x18) == 1);
+        if(mem_readb(curReqheaderPtr + 0x0D) == 0x00) // HSG
+            mscdex->ReadSectors(subUnit, raw, start, len, buffer);
+        else
+            mscdex->ReadSectorsMSF(subUnit, raw, start, len, buffer);
+        break;
+    }
+    case 0x83:      /* SEEK */
+        break;
+    case 0x84:      /* PLAY AUDIO */
+    {
+        uint32_t start = mem_readd(curReqheaderPtr + 0x0E);
+        uint32_t len = mem_readd(curReqheaderPtr + 0x12);
+        if(mem_readb(curReqheaderPtr + 0x0D) == 0x00) // HSG
+            mscdex->PlayAudioSector(subUnit, start, len);
+        else // RED BOOK
+            mscdex->PlayAudioMSF(subUnit, start, len);
+        break;
+    }
+    case 0x85:      /* STOP AUDIO */
+        mscdex->StopAudio(subUnit);
+        break;
+    case 0x86:      /* WRITE LONG */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x87:      /* WRITE LONG VERIFY */
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    case 0x88:      /* RESUME AUDIO */
+        mscdex->ResumeAudio(subUnit);
+        break;
+    default:
+        MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
+        break;
+    }
 	
 	// Set Statusword
 	mem_writew(curReqheaderPtr+3,mscdex->GetStatusWord(subUnit,errcode));
