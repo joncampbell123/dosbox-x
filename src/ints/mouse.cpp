@@ -1492,7 +1492,7 @@ static Bitu INT33_Handler(void) {
         LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
         break;
     case 0x13:  /* MS MOUSE v5.0+ - DEFINE DOUBLE-SPEED THRESHOLD */
-        mouse.doubleSpeedThreshold = (reg_bx ? reg_bx : 64);
+        mouse.doubleSpeedThreshold = (reg_dx ? reg_dx : 64);
         break;
     case 0x14:  /* MS MOUSE v3.0+ - EXCHANGE INTERRUPT SUBROUTINES */
         {
