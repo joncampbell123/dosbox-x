@@ -1599,11 +1599,24 @@ static Bitu INT33_Handler(void) {
         reg_bx = mouse.language;
         break;
     case 0x24:  /* MS MOUSE v6.26+ - GET SOFTWARE VERSION, MOUSE TYPE, AND IRQ NUMBER */
+	// TODO: If PC-98 mode, return type 0x01 bus mouse, and bus mouse IRQ.
+	//       If emulating a serial mouse, return type 0x02 and serial port IRQ.
         reg_bx = 0x805;   //Version 8.05 woohoo 
         reg_ch = 0x04;    /* PS/2 type */
-        reg_cl = 0;       /* PS/2 (unused) */
+        reg_cl = 0;       /* PS/2 mouse == 0, for any other type, this would be the IRQ */
         break;
     case 0x25:  /* MS MOUSE v6.26+ - GET GENERAL DRIVER INFORMATION */
+	// TODO: According to PC sourcebook reference
+	//       Returns:
+	//       AH = status
+	//         bit 7 driver type: 1=sys 0=com
+	//         bit 6: 0=non-integrated 1=integrated mouse driver
+	//         bits 4-5: cursor type  00=software text cursor 01=hardware text cursor 1X=graphics cursor
+	//         bits 0-3: Function 28 mouse interrupt rate
+	//       AL = Number of MDDS (?)
+	//       BX = fCursor lock
+	//       CX = FinMouse code
+	//       DX = fMouse busy
         LOG(LOG_MOUSE, LOG_ERROR)("Get general driver information not implemented");
         break;
     case 0x26:  /* MS MOUSE v6.26+ - GET MAXIMUM VIRTUAL COORDINATES */
@@ -1617,12 +1630,28 @@ static Bitu INT33_Handler(void) {
         Mouse_Read_Motion_Data();
         break;
     case 0x28:  /* MS MOUSE v7.0+ - SET VIDEO MODE */
+	// TODO: According to PC sourcebook
+	//       Entry:
+	//       CX = Requested video mode
+	//       DX = Font size, 0 for default
+	//       Returns:
+	//       DX = 0 on success, nonzero (requested video mode) if not
         LOG(LOG_MOUSE, LOG_ERROR)("Set video mode not implemented");
         break;
     case 0x29: /* MS MOUSE v7.0+ - ENUMERATE VIDEO MODES */
+	// TODO: According to PC sourcebook
+	//       Entry:
+	//       CX = 0 for first, != 0 for next
+	//       Exit:
+	//       BX:DX = named string far ptr
+	//       CX = video mode number
         LOG(LOG_MOUSE, LOG_ERROR)("Enumerate video modes not implemented");
         break;
     case 0x2a:  /* MS MOUSE v7.02+ - GET CURSOR HOT SPOT */
+        // NTS: Whoever compiled the INT 33 list in the Microsoft PC sourcebook made a big mistake
+        //      here and started counting hexadecimal as decimal. This function is wrongly listed as INT 33h AH=30H.
+        //      You can tell by the summary list which shows both hexadecimal and decimal side by side, this is
+        //      listed as AH=30h (42). Decimal 42 as hexadecimal would be 0x2A (0x20 + 0x0A) == (32 + 10) == 42 == 0x2A.
         reg_al = (uint8_t)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
         reg_bx = (uint16_t)mouse.hotx;
         reg_cx = (uint16_t)mouse.hoty;
