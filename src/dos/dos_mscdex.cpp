@@ -806,15 +806,25 @@ uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
 			dinfo[subUnit].audioPlay = false;
 	}
 
-	uint32_t status = ((trayOpen?1u:0u) << 0u)					|	// Drive is open ?
-					((dinfo[subUnit].locked?1u:0u) << 1u)		|	// Drive is locked ?
-					(1u<<2u)									|	// raw + cooked sectors
-					(1u<<4u)									|	// Can read sudio
-					(1u<<8u)									|	// Can control audio
-					(1u<<9u)									|	// Red book & HSG
-					((dinfo[subUnit].audioPlay?1u:0u) << 10u)	|	// Audio is playing ?
-					((media?0u:1u) << 11u);						// Drive is empty ?
-	return status;
+// Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
+// Reference (Microsoft MS-DOS CD-ROM Extensions 2.1): https://tinyurl.com/3spx4dfn
+// Bits marked with * have the given function listed in INTERRUP.G, but are listed as "Reserved (all 0)" in Microsoft MS-DOS CD-ROM Extensions 2.1
+    uint32_t status =
+        ((trayOpen ? 1u : 0u) << 0u) |                  // Bit 0:       0 = Door closed                         1 = Door opened
+        ((dinfo[subUnit].locked ? 0u : 1u) << 1u) |     // Bit 1:       0 = Door locked                         1 = Door unlocked
+        (1u << 2u) |                                    // Bit 2:       0 = Supports only cooked reading        1 = Supports cooked and raw reading
+                                                        // Bit 3:       0 = Read only                           1 = Read/write
+        (1u << 4u) |                                    // Bit 4:       0 = Data read only                      1 = Data read and plays audio/video tracks
+                                                        // Bit 5:       0 = No interleaving                     1 = Supports interleaving
+                                                        // Bit 6:       Reserved
+                                                        // Bit 7:       0 = No prefetching                      1 = Supports prefetching requests
+        (1u << 8u) |                                    // Bit 8:       0 = No audio channel manipulation       1 = Supports audio channel manipulation
+        (1u << 9u) |                                    // Bit 9:       0 = Supports HSG addressing mode        1 = Supports HSG and Red Book addressing modes
+        ((dinfo[subUnit].audioPlay ? 1u : 0u) << 10u) | // Bit 10*:     0 = Audio is not playing                1 = Audio is playing
+        ((media ? 0u : 1u) << 11u);                     // Bit 11*:     0 = Disk in drive                       1 = No disk in drive
+                                                        // Bit 12*:     0 = Does not support R-W subchannels    1 = Supports R-W subchannels
+                                                        // Bit 13-31:   Reserved (all 0)
+    return status;
 }
 
 bool CMscdex::GetMediaStatus(uint8_t subUnit, uint8_t& status) {
@@ -910,6 +920,7 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
+// Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
 static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     uint8_t ioctl_fct = mem_readb(buffer);
     MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
