@@ -2778,7 +2778,7 @@ MPEG-TS + H.264
 載入狀態時不顯示警告
 .
 :MENU:removestate
-刪除工作狀態
+刪除狀態
 .
 :MENU:refreshslot
 重新整理顯示狀態
@@ -2949,13 +2949,13 @@ DOS 命令
 編輯 CPU 週期
 .
 :MENU:mapper_savestate
-儲存工作狀態
+儲存狀態
 .
 :MENU:mapper_loadstate
-載入工作狀態
+載入狀態
 .
 :MENU:mapper_showstate
-顯示工作狀態資訊
+顯示狀態資訊
 .
 :MENU:mapper_prevslot
 選擇上一個儲存位
