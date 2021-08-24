@@ -1216,9 +1216,9 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 :PROGRAM_MODE_USAGE
 設定系統裝置.
 
-[34;1mMODE[0m display-type       :display-type codes are [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
-[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
-[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)
+[34;1mMODE[0m 顯示類型           :顯示類型的代碼有 [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, 或 [1mMONO[0m
+[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :欄與列, c=80 或 132, n=25, 43, 50, 或 60
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :鍵盤輸入速率, r=1-32 (32=最快), d=1-4 (1=最低)
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
