@@ -590,19 +590,19 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_ALLOC
-已配置 %d KB.
+已配置用量 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOC
-已釋放 %d KB.
+已釋放用量 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
-已釋放使用的記憶體.
+已釋放記憶體用量.
 
 .
 :PROGRAM_LOADFIX_ERROR
-記憶體配置錯誤.
+記憶體配置用量錯誤.
 
 .
 :PROGRAM_LOADFIX_HELP
@@ -611,21 +611,21 @@ MOUSE [/?] [/U] [/V]
 LOADFIX [-xms] [-ems] [-{ram}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        從延伸記憶體 (XMS) 中配置而不是傳統記憶體
-  -ems        從擴充記憶體 (EMS) 中配置而不是傳統記憶體
-  -{ram}      指定要配置的記憶體大小（單位:KB)
+  -xms        於延伸記憶體 (XMS) 配置用量而不是傳統記憶體
+  -ems        於擴充記憶體 (EMS) 配置用量而不是傳統記憶體
+  -{ram}      指定要配置的記憶體用量（單位:KB)
                  傳統記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
-  -a          自動配置足夠的記憶體將最低層 64KB 記憶體裝滿
-  -f (或 -d)  釋放先前配置的記憶體
+  -a          自動配置足夠的用量以用滿最低層 64KB 記憶體
+  -f (或 -d)  釋放先前配置的記憶體用量
   {程式}      執行指定的程式
   {選項}      程式選項 (如果有)
 
 舉例:
-  [32;1mLOADFIX game.exe[0m     配置 64KB 傳統記憶體並執行 game.exe
-  [32;1mLOADFIX -a[0m           自動配置足夠的傳統記憶體
-  [32;1mLOADFIX -128[0m         配置 128KB 傳統記憶體
-  [32;1mLOADFIX -xms[0m         配置 1MB XMS 記憶體
-  [32;1mLOADFIX -f[0m           釋放已配置的傳統記憶體
+  [32;1mLOADFIX game.exe[0m     配置 64KB 用量於傳統記憶體並執行 game.exe
+  [32;1mLOADFIX -a[0m           自動配置足夠的用量於傳統記憶體
+  [32;1mLOADFIX -128[0m         配置 128KB 用量於傳統記憶體
+  [32;1mLOADFIX -xms[0m         配置 1MB 用量於 XMS 記憶體
+  [32;1mLOADFIX -f[0m           釋放傳統記憶體的已配置用量
 
 .
 :MSCDEX_SUCCESS
