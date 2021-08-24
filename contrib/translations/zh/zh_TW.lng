@@ -2892,7 +2892,7 @@ DOSBox-X 支援
 顯示代碼概覽
 .
 :MENU:show_logtext
-顯示紀錄內容
+顯示紀錄文字
 .
 :MENU:save_logas
 另存記錄檔案...
@@ -2928,7 +2928,7 @@ DOS 命令
 記錄 INT 21 呼叫
 .
 :MENU:debug_logfileio
-記錄檔案輸入輸出
+記錄檔案 I/O
 .
 :MENU:mapper_speedlock
 開啟或關閉快進模式
