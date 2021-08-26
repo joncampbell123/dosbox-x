@@ -210,10 +210,10 @@ IDE 位置
 切換槽
 .
 :EMPTY_SLOT
-空儲存位
+空位
 .
 :SLOT
-儲存位
+位置
 .
 :PREVIOUS_PAGE
 < 上一頁
@@ -1064,10 +1064,10 @@ BIOSTEST 映像檔
 [32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機編號[0m [36;1m檔案[0m [選項] -u)
  [37;1m磁碟機[0m              映像檔所要掛載的磁碟機代號.
  [37;1m磁碟機編號[0m          所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
- [36;1m檔案[0m                映像檔名, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
+ [36;1m檔案[0m                映像檔名稱, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
  -t iso              映像檔類型為光碟 iso 或 cue / bin 映像.
- -t hdd|floppy|ram   映像檔類型為硬碟 (含VHD/HDI檔案)|軟碟|記憶體磁碟機.
- -fs iso             檔案系統為 ISO 9660 (自動假設為 .iso/.cue 檔案).
+ -t hdd|floppy|ram   映像檔類型為硬碟 (含 VHD/HDI 映像)|軟碟|記憶體磁碟機.
+ -fs iso             檔案系統為 ISO 9660 (為 .iso/.cue 檔案自動假設).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
  -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
  -reservecyl #       在 BIOS 中報告使用比實際更少的磁柱數目.
@@ -1075,7 +1075,7 @@ BIOSTEST 映像檔
  -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區數和 CHS 參數.
  -bootcd 光碟機代號  指定載入開機磁片映像所用的光碟機代號.
  -o partidx=#        指定要掛載為磁碟機的硬碟分割區編號.
- -ro                 以唯讀模式掛載映像檔 (或用':'首碼表示唯讀).
+ -ro                 以唯讀模式掛載映像檔 (或用 ':' 首碼表示唯讀).
  -u                  卸載磁碟機或磁碟機編號.
  [32;1m-examples           顯示用法舉例.[0m
 .
@@ -2625,7 +2625,7 @@ PC-98 選項
 3dfx 模擬
 .
 :MENU:3dfx_voodoo
-內接 Voodoo 卡
+內接式 Voodoo 卡
 .
 :MENU:3dfx_glide
 Glide 直通
@@ -2766,7 +2766,7 @@ MPEG-TS + H.264
 儲存/載入選項
 .
 :MENU:saveslotmenu
-選擇儲存位
+選擇儲存位置
 .
 :MENU:enable_autosave
 啟用自動儲存功能
@@ -2781,19 +2781,19 @@ MPEG-TS + H.264
 刪除狀態
 .
 :MENU:refreshslot
-重新整理顯示狀態
+更新顯示狀態
 .
 :MENU:lastautosaveslot
-選擇上次的儲存位
+選擇上次自動儲存位置
 .
 :MENU:usesavefile
-使用存檔
+改用存檔取代儲存位置
 .
 :MENU:autosavecfg
-設定自動儲存...
+自動儲存設定...
 .
 :MENU:browsesavefile
-選擇存檔...
+瀏覽存檔...
 .
 :MENU:current_page
 目前頁: 1/10
@@ -2958,10 +2958,10 @@ DOS 命令
 顯示狀態資訊
 .
 :MENU:mapper_prevslot
-選擇上一個儲存位
+選擇上一個位置
 .
 :MENU:mapper_nextslot
-選擇下一個儲存位
+選擇下一個位置
 .
 :MENU:mapper_decfskip
 減小跳過影格
@@ -3267,7 +3267,7 @@ CPU: 完全核心
 載入按鍵配置檔案
 .
 :MAPPER:nextslot
-下一個儲存位
+下一個儲存位置
 .
 :MAPPER:normal
 CPU: 一般核心
@@ -3282,7 +3282,7 @@ CPU: 一般核心
 暫停並保持中斷
 .
 :MAPPER:prevslot
-上一個儲存位
+上一個儲存位置
 .
 :MAPPER:quickrun
 快速啟動程式
