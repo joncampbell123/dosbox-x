@@ -25,10 +25,10 @@ DOSBox-X 組態工具
 結束組態工具
 .
 :MAPPER_EDITOR_EXIT
-結束按鍵編輯
+結束對應表編輯器
 .
 :SAVE_MAPPER_FILE
-儲存按鍵配置檔案
+儲存對應表檔案
 .
 :WARNING
 警告
@@ -234,7 +234,7 @@ IDE 位置
 已啟用擷取. 按 ESC 鍵停止擷取.
 .
 :MAPPER_FILE_SAVED
-按鍵配置檔案已儲存
+對應表檔案已儲存
 .
 :AUTO_CYCLE_MAX
 自動選擇週期 [最大]
@@ -321,7 +321,7 @@ DOSBox-X 命令列組態工具. 支援的選項為:
 -axtype 顯示 [autoexec] 段落中的內容.
 -avistart, -avistop 開始或結束記錄 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
--startmapper 啟動 DOSBox-X 的按鍵配置工具.
+-startmapper 啟動 DOSBox-X 的對應表編輯器.
 -gui 啟動圖形介面的組態工具.
 -get "段落 屬性" 傳回指定屬性的值 （並設定 CONFIG 環境變數).
 -set (或 -setf 強制設定) "段落 屬性=值" 設定指定屬性的值.
@@ -769,7 +769,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 .
 :PROGRAM_INTRO_USAGE_3
 [33;1m  -startmapper[0m
-	啟動後直接進入按鍵編輯. 特別適用於出現鍵盤問題的使用者.
+	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -noautoexec[0m
 	跳過載入的組態檔案中的 [autoexec] 段落.
@@ -1550,7 +1550,7 @@ SUBST: 命令列參數錯誤.
 .
 :SHELL_STARTUP_TEXT2
 - 切換視窗和全螢幕模式： [31mF11 [37m+ [31mF[37m [37m                                           
-- 開啟 [33m組態工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m按鍵編輯[37m: [31mF11 [37m+ [31mM[37m  [37m                             
+- 開啟 [33m組態工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m對應表編輯器[37m: [31mF11 [37m+ [31mM[37m  [37m                         
 - 提高或降低模擬速度： [31mF11 [37m+ [31m加號[37m[37m 或 [31mF11 [37m+ [31m減號[37m   [37m                          
 .
 :SHELL_STARTUP_CGA
@@ -2160,7 +2160,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重開客體系統
 .
 :MENU:mapper_loadmap
-載入按鍵配置檔案...
+載入對應表檔案...
 .
 :MENU:mapper_quickrun
 快速啟動程式...
@@ -2193,7 +2193,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 組態工具
 .
 :MENU:mapper_mapper
-按鍵編輯
+對應表編輯器
 .
 :MENU:mapper_fullscr
 切換全螢幕模式
@@ -3093,7 +3093,7 @@ DOS 命令
 重新掃描所有磁碟機
 .
 :MENU:hostkey_mapper
-按鍵編輯中設定
+對應表中的定義
 .
 :MENU:showdetails
 標題列上顯示速度
@@ -3264,7 +3264,7 @@ CPU: 完全核心
 加大 TTF 字型
 .
 :MAPPER:loadmap
-載入按鍵配置檔案
+載入對應表檔案
 .
 :MAPPER:nextslot
 下一個儲存位置
