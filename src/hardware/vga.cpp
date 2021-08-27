@@ -142,6 +142,7 @@
 #include "render.h"
 #include "jfont.h"
 #include "bitop.h"
+#include "sdlmain.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -543,7 +544,6 @@ public:
         if (cmd->FindString("SET",temp_line,false))
             SetRate((char *)temp_line.c_str());
 #if defined(USE_TTF)
-        bool TTF_using();
         if (TTF_using()) PIC_AddEvent(&resetSize, 1);
 #endif
         if (vga_force_refresh_rate > 0)

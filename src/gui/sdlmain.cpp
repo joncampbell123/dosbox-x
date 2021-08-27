@@ -54,7 +54,6 @@ int selerow = -1, selecol = -1;
 bool selmark = false;
 extern int enablelfn;
 extern int autosave_second;
-extern int customcp, altcp;
 extern bool swapad;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -286,7 +285,6 @@ static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
-bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
 void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();

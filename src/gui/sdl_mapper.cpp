@@ -295,7 +295,6 @@ CEvent*                                         get_mapper_event_by_name(const s
 bool                                            MAPPER_DemoOnly(void);
 
 #if defined(USE_TTF)
-bool                                            TTF_using(void);
 void                                            resetFontSize(void);
 #endif
 

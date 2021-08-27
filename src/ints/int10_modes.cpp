@@ -33,6 +33,7 @@
 #include "regs.h"
 #include "jfont.h"
 #include "callback.h"
+#include "sdlmain.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -745,7 +746,6 @@ bool INT10_SetCurMode(void) {
 #if defined(USE_TTF)
 extern int switchoutput;
 extern bool firstset;
-bool TTF_using(void);
 #endif
 static void FinishSetMode(bool clearmem) {
 	/* Clear video memory if needs be */

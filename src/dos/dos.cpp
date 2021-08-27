@@ -48,6 +48,7 @@
 #include "jfont.h"
 #include "../ints/int10.h"
 #include "pic.h"
+#include "sdlmain.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
 #include <shellapi.h>
@@ -2468,13 +2469,44 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x66:                  /* Get/Set global code page table  */
-            if (reg_al==1) {
-                LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
-                reg_bx=reg_dx=dos.loaded_codepage;
-                CALLBACK_SCF(false);
-                break;
+            switch (reg_al)
+            {
+                case 1:
+                    LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
+                    reg_bx=reg_dx=dos.loaded_codepage;
+                    CALLBACK_SCF(false);
+                    break;
+                case 2:
+#if defined(USE_TTF)
+                    if (!ttf.inUse)
+#endif
+                    {
+                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported for non-TrueType font output");
+                        CALLBACK_SCF(true);
+                        dos.errorcode = 2;
+                        reg_ax = dos.errorcode;
+                        break;
+                    }
+                    if (!isSupportedCP(reg_bx))
+                    {
+                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Invalid codepage %d", reg_bx);
+                        CALLBACK_SCF(true);
+                        dos.errorcode = 2;
+                        reg_ax = dos.errorcode;
+                        break;
+                    }
+                    dos.loaded_codepage = reg_bx;
+                    setTTFCodePage();
+                    SetupDBCSTable();
+                    CALLBACK_SCF(false);
+                    break;
+                default:
+                    dos.errorcode = 1;
+                    reg_ax = dos.errorcode;
+                    CALLBACK_SCF(true);
+                    LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Invalid code page subfunction requested");
+                    break;
             }
-            LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported");
             break;
         case 0x67:                  /* Set handle count */
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
