@@ -1309,7 +1309,7 @@ ECHO狀態為關.
 
 .
 :SHELL_CMD_DATE_HELP
-顯示或設定日期.
+顯示或設定內部日期.
 
 .
 :SHELL_CMD_DATE_ERROR
@@ -1329,14 +1329,14 @@ ECHO狀態為關.
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | 日期]
   日期:       要設定的新日期
-  /S:         DOS日期和時間永久與主機日期和時間同步
-  /F:         切換為DOSBox-X內部日期和時間 (與/S相反)
+  /S:         永久採用主機系統日期時間作為 DOS 日期時間
+  /F:         換回 DOSBox-X 內部日期時間 (/S 的相反)
   /T:         只顯示日期
   /H:         與主機系統同步
 
 .
 :SHELL_CMD_TIME_HELP
-顯示或設定時間.
+顯示或設定內部時間.
 
 .
 :SHELL_CMD_TIME_ERROR
@@ -1622,11 +1622,11 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
   /A          顯示帶有指定屬性的檔案.
   屬性         D  目錄                 R  唯讀檔案
                H  隱藏檔案             A  保存檔案
-               S  系統檔案             -  首碼表示相反
+               S  系統檔案             -  首碼表示不顯示
   /O          以排序方式列出檔案.
   排列順序     N  按檔名 (字母排列)    S  按檔案大小 (小的在前)
                E  按副檔名 (字母排列)  D  按檔案日期時間 (早的在前)
-               G  先顯示目錄           -  首碼表示相反順序
+               G  先顯示目錄           -  首碼表示反向順序
 
 選項可以在 DIRCMD 環境變數中預先設定. 可以用含-首碼的選項(比如/-W)進行覆蓋.
             
@@ -1858,7 +1858,7 @@ CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
 .
 :SHELL_CMD_SUBST_HELP
-將目錄指派給一個磁碟機.
+將內部目錄指派給磁碟機.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
@@ -2154,7 +2154,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
 :MENU:mapper_reset
-重新開始模擬
+重設虛擬機器
 .
 :MENU:mapper_reboot
 重開客體系統
@@ -2637,7 +2637,7 @@ Glide 直通
 選擇 OpenGL (GLSL) 著色檔案...
 .
 :MENU:load_ttf_font
-選擇 TTF 檔案...
+選取 TrueType 字型 (TTF)...
 .
 :MENU:SoundMenu
 聲音
@@ -3303,7 +3303,7 @@ CPU: 一般核心
 重新掃描磁碟機
 .
 :MAPPER:reset
-重開 DOSBox-X
+重設 DOSBox-X
 .
 :MAPPER:showstate
 顯示狀態資訊
