@@ -372,7 +372,7 @@ DOSBox-X 組態檔案包含以下段落:
 
 .
 :PROGRAM_CONFIG_VALUE_ERROR
-"%s" 不是屬性 %s 的合法值.
+"%s" 不是屬性 %s 的有效值.
 
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
@@ -761,7 +761,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	不顯示主控台視窗. 輸出將重新導向到 stdout.txt 及 stderr.txt.
 
 [33;1m  -machine[0m 機器類型
-	啟動 DOSBox-X 並模擬指定的機器類型. 合法值包括:
+	啟動 DOSBox-X 並模擬指定的機器類型. 有效值包括:
 	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
 	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (預設值).
 	機器類型將同時影響影像和可用音效卡.
@@ -1065,8 +1065,8 @@ BIOSTEST 映像檔
  [37;1m磁碟機[0m              映像檔所要掛載的磁碟機代號.
  [37;1m磁碟機編號[0m          所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
  [36;1m檔案[0m                映像檔名稱, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
- -t iso              映像檔類型為光碟 iso 或 cue / bin 映像.
- -t hdd|floppy|ram   映像檔類型為硬碟 (含 VHD/HDI 映像)|軟碟|記憶體磁碟機.
+ -t iso              映像類型為光碟 iso 或 cue / bin 映像.
+ -t hdd|floppy|ram   映像類型為硬碟 (含 VHD/HDI 映像)|軟碟|記憶體磁碟機.
  -fs iso             檔案系統為 ISO 9660 (為 .iso/.cue 檔案自動假設).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
  -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
