@@ -657,7 +657,7 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
             }
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-            WriteOut("[2J");
+            WriteOut("\033[2J");
 		if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
