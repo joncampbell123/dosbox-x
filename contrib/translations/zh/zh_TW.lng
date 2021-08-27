@@ -1961,7 +1961,7 @@ VERIFY [ON | OFF]
 VER [/R]
 VER [SET] 版本號 或 VER SET [主版本號 次版本號]
 
-  /R                   　　顯示 DOSBox-X 的 Git 提交版本和建置日期.
+  /R                   　　顯示 DOSBox-X 的 Git 認可版本和建置日期.
   [SET] 版本號           　設定指定的版本號為要報告的 DOS 版本.
   SET [主版本號 次版本號]  以主版本號+次版本號的格式設定要報告的 DOS 版本.
 
