@@ -105,7 +105,7 @@ public:
 	bool		StopAudio			(uint8_t subUnit);
 	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
-	bool		GetSubChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
+	bool		GetQChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
 
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
@@ -488,7 +488,7 @@ bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
 
-bool CMscdex::GetSubChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
+bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
@@ -780,7 +780,7 @@ bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	if (subUnit>=numDrives) return false;
 	TMSF rel;
 	uint8_t attr,track,index;
-	dinfo[subUnit].lastResult = GetSubChannelData(subUnit, attr, track, index, rel, pos);
+	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
 	if (!dinfo[subUnit].lastResult) memset(&pos,0,sizeof(pos));
 	return dinfo[subUnit].lastResult;
 }
@@ -806,15 +806,25 @@ uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
 			dinfo[subUnit].audioPlay = false;
 	}
 
-	uint32_t status = ((trayOpen?1u:0u) << 0u)					|	// Drive is open ?
-					((dinfo[subUnit].locked?1u:0u) << 1u)		|	// Drive is locked ?
-					(1u<<2u)									|	// raw + cooked sectors
-					(1u<<4u)									|	// Can read sudio
-					(1u<<8u)									|	// Can control audio
-					(1u<<9u)									|	// Red book & HSG
-					((dinfo[subUnit].audioPlay?1u:0u) << 10u)	|	// Audio is playing ?
-					((media?0u:1u) << 11u);						// Drive is empty ?
-	return status;
+// Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
+// Reference (Microsoft MS-DOS CD-ROM Extensions 2.1): https://tinyurl.com/3spx4dfn
+// Bits marked with * have the given function listed in INTERRUP.G, but are listed as "Reserved (all 0)" in Microsoft MS-DOS CD-ROM Extensions 2.1
+    uint32_t status =
+        ((trayOpen ? 1u : 0u) << 0u) |                  // Bit 0:       0 = Door closed                         1 = Door opened
+        ((dinfo[subUnit].locked ? 0u : 1u) << 1u) |     // Bit 1:       0 = Door locked                         1 = Door unlocked
+        (1u << 2u) |                                    // Bit 2:       0 = Supports only cooked reading        1 = Supports cooked and raw reading
+                                                        // Bit 3:       0 = Read only                           1 = Read/write
+        (1u << 4u) |                                    // Bit 4:       0 = Data read only                      1 = Data read and plays audio/video tracks
+                                                        // Bit 5:       0 = No interleaving                     1 = Supports interleaving
+                                                        // Bit 6:       Reserved
+                                                        // Bit 7:       0 = No prefetching                      1 = Supports prefetching requests
+        (1u << 8u) |                                    // Bit 8:       0 = No audio channel manipulation       1 = Supports audio channel manipulation
+        (1u << 9u) |                                    // Bit 9:       0 = Supports HSG addressing mode        1 = Supports HSG and Red Book addressing modes
+        ((dinfo[subUnit].audioPlay ? 1u : 0u) << 10u) | // Bit 10*:     0 = Audio is not playing                1 = Audio is playing
+        ((media ? 0u : 1u) << 11u);                     // Bit 11*:     0 = Disk in drive                       1 = No disk in drive
+                                                        // Bit 12*:     0 = Does not support R-W subchannels    1 = Supports R-W subchannels
+                                                        // Bit 13-31:   Reserved (all 0)
+    return status;
 }
 
 bool CMscdex::GetMediaStatus(uint8_t subUnit, uint8_t& status) {
@@ -910,121 +920,157 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
-static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
-	uint8_t ioctl_fct = mem_readb(buffer);
-	MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X",(int)ioctl_fct);
-	switch (ioctl_fct) {
-		case 0x00 : /* Get Device Header address */
-					mem_writed(buffer+1,RealMake(mscdex->rootDriverHeaderSeg,0));
-					break;
-		case 0x01 :{/* Get current position */
-					TMSF pos;
-					mscdex->GetCurrentPos(drive_unit,pos);
-					uint8_t addr_mode = mem_readb(buffer+1);
-					if (addr_mode==0) {			// HSG
-						uint32_t frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
-						if (frames<150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
-						else frames-=150;
-						mem_writed(buffer+2,frames);
-					} else if (addr_mode==1) {	// Red book
-						mem_writeb(buffer+2,pos.fr);
-						mem_writeb(buffer+3,pos.sec);
-						mem_writeb(buffer+4,pos.min);
-						mem_writeb(buffer+5,0x00);
-					} else {
-						MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid address mode %x",addr_mode);
-						return 0x03;		// invalid function
-					}
-				   }break;
-		case 0x04 : /* Audio Channel control */
-					TCtrl ctrl;
-					if (!mscdex->GetChannelControl(drive_unit,ctrl)) return 0x01;
-					for (uint8_t chan=0;chan<4;chan++) {
-						mem_writeb(buffer+chan*2u+1u,ctrl.out[chan]);
-						mem_writeb(buffer+chan*2u+2u,ctrl.vol[chan]);
-					}
-					break;
-		case 0x06 : /* Get Device status */
-					mem_writed(buffer+1,mscdex->GetDeviceStatus(drive_unit)); 
-					break;
-		case 0x07 : /* Get sector size */
-					if (mem_readb(buffer+1)==0) mem_writew(buffer+2,2048);
-					else if (mem_readb(buffer+1)==1) mem_writew(buffer+2,2352);
-					else return 0x03;		// invalid function
-					break;
-		case 0x08 : /* Get size of current volume */
-					mem_writed(buffer+1,mscdex->GetVolumeSize(drive_unit));
-					break;
-		case 0x09 : /* Media change ? */
-					uint8_t status;
-					if (!mscdex->GetMediaStatus(drive_unit,status)) {
-						status = 0;		// state unknown
-					}
-					mem_writeb(buffer+1,status);
-					break;
-		case 0x0A : /* Get Audio Disk info */	
-					uint8_t tr1,tr2; TMSF leadOut;
-					if (!mscdex->GetCDInfo(drive_unit,tr1,tr2,leadOut)) return 0x05;
-					mem_writeb(buffer+1,tr1);
-					mem_writeb(buffer+2,tr2);
-					mem_writeb(buffer+3,leadOut.fr);
-					mem_writeb(buffer+4,leadOut.sec);
-					mem_writeb(buffer+5,leadOut.min);
-					mem_writeb(buffer+6,0x00);
-					break;
-		case 0x0B :{/* Audio Track Info */
-					uint8_t attr; TMSF start;
-					uint8_t track = mem_readb(buffer+1);
-					mscdex->GetTrackInfo(drive_unit,track,attr,start);		
-					mem_writeb(buffer+2,start.fr);
-					mem_writeb(buffer+3,start.sec);
-					mem_writeb(buffer+4,start.min);
-					mem_writeb(buffer+5,0x00);
-					mem_writeb(buffer+6,attr);
-					break; }
-		case 0x0C :{/* Get Audio Sub Channel data */
-					uint8_t attr,track,index; 
-					TMSF abs,rel;
-					mscdex->GetSubChannelData(drive_unit,attr,track,index,rel,abs);
-					mem_writeb(buffer+1,attr);
-					mem_writeb(buffer+2,((track/10)<<4)|(track%10)); // track in BCD
-					mem_writeb(buffer+3,index);
-					mem_writeb(buffer+4,rel.min);
-					mem_writeb(buffer+5,rel.sec);
-					mem_writeb(buffer+6,rel.fr);
-					mem_writeb(buffer+7,0x00);
-					mem_writeb(buffer+8,abs.min);
-					mem_writeb(buffer+9,abs.sec);
-					mem_writeb(buffer+10,abs.fr);
-					break;
-				   }
-		case 0x0E :{ /* Get UPC */	
-					uint8_t attr; char upc[8];
-					mscdex->GetUPC(drive_unit,attr,&upc[0]);
-					mem_writeb(buffer+1u,attr);
-					for (unsigned int i=0; i<7; i++) mem_writeb(buffer+2u+i,(unsigned char)upc[i]);
-					mem_writeb(buffer+9,0x00u);
-					break;
-				   }
-		case 0x0F :{ /* Get Audio Status */	
-					bool playing,pause;
-					TMSF resStart,resEnd;
-					mscdex->GetAudioStatus(drive_unit,playing,pause,resStart,resEnd);
-					mem_writeb(buffer+1u,pause);
-					mem_writeb(buffer+3u,resStart.min);
-					mem_writeb(buffer+4u,resStart.sec);
-					mem_writeb(buffer+5u,resStart.fr);
-					mem_writeb(buffer+6u,0x00u);
-					mem_writeb(buffer+7u,resEnd.min);
-					mem_writeb(buffer+8u,resEnd.sec);
-					mem_writeb(buffer+9u,resEnd.fr);
-					mem_writeb(buffer+10u,0x00u);
-					break;
-				   }
-		default :	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X",(int)ioctl_fct);
-					return 0x03;	// invalid function
-	}
-	return 0x00;	// success
+// Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
+static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
+    uint8_t ioctl_fct = mem_readb(buffer);
+    MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+    switch(ioctl_fct) {
+    case 0x00: /* Device driver header address */
+        mem_writed(buffer + 1, RealMake(mscdex->rootDriverHeaderSeg, 0));
+        break;
+    case 0x01: /* Drive head location */
+    {
+        TMSF pos;
+        mscdex->GetCurrentPos(drive_unit, pos);
+        uint8_t addr_mode = mem_readb(buffer + 1);
+        if(addr_mode == 0) { // HSG
+            uint32_t frames = MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
+            if(frames < 150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
+            else frames -= 150;
+            mem_writed(buffer + 2, frames);
+        }
+        else if(addr_mode == 1) { // Red Book
+            mem_writeb(buffer + 2, pos.fr);
+            mem_writeb(buffer + 3, pos.sec);
+            mem_writeb(buffer + 4, pos.min);
+            mem_writeb(buffer + 5, 0x00);
+        }
+        else {
+            MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid address mode %x", addr_mode);
+            return 0x03; // Invalid function
+        }
+        break;
+    }
+    case 0x02: /* Reserved */
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    case 0x03: /* Error statistics */
+        // Undefined as of 5 Aug 88 specification
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    case 0x04: /* Audio channel info */
+        TCtrl ctrl;
+        if(!mscdex->GetChannelControl(drive_unit, ctrl)) return 0x01;
+        for(uint8_t chan = 0; chan < 4; chan++) {
+            mem_writeb(buffer + chan * 2u + 1u, ctrl.out[chan]);
+            mem_writeb(buffer + chan * 2u + 2u, ctrl.vol[chan]);
+        }
+        break;
+    case 0x05: /* Raw drive bytes (uninterpreted and device-specific) */
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    case 0x06: /* Device status */
+        mem_writed(buffer + 1, mscdex->GetDeviceStatus(drive_unit));
+        break;
+    case 0x07: /* Sector size */
+    {
+        uint8_t read_mode = mem_readb(buffer + 1);
+        if(read_mode == 0) // Cooked
+            mem_writew(buffer + 2, 2048);
+        else if(read_mode == 1) // Raw
+            mem_writew(buffer + 2, 2352);
+        else
+        {
+            MSCDEX_LOG_ERROR("MSCDEX: Sector size: invalid read mode %x", read_mode);
+            return 0x03; // Invalid function
+        }
+        break;
+    }
+    case 0x08: /* Volume size */
+        mem_writed(buffer + 1, mscdex->GetVolumeSize(drive_unit));
+        break;
+    case 0x09: /* Media change status */
+        uint8_t status;
+        if(!mscdex->GetMediaStatus(drive_unit, status)) {
+            status = 0; // Status unknown
+        }
+        mem_writeb(buffer + 1, status);
+        break;
+    case 0x0A: /* Audio disk info */
+    {
+        uint8_t tr1, tr2; TMSF leadOut;
+        if(!mscdex->GetCDInfo(drive_unit, tr1, tr2, leadOut)) return 0x05;
+        mem_writeb(buffer + 1, tr1);
+        mem_writeb(buffer + 2, tr2);
+        mem_writeb(buffer + 3, leadOut.fr);
+        mem_writeb(buffer + 4, leadOut.sec);
+        mem_writeb(buffer + 5, leadOut.min);
+        mem_writeb(buffer + 6, 0x00);
+        break;
+    }
+    case 0x0B: /* Audio track info */
+    {
+        uint8_t attr = 0; TMSF start;
+        uint8_t track = mem_readb(buffer + 1);
+        mscdex->GetTrackInfo(drive_unit, track, attr, start);
+        mem_writeb(buffer + 2, start.fr);
+        mem_writeb(buffer + 3, start.sec);
+        mem_writeb(buffer + 4, start.min);
+        mem_writeb(buffer + 5, 0x00);
+        mem_writeb(buffer + 6, attr);
+        break;
+    }
+    case 0x0C: /* Audio Q-Channel info */
+    {
+        uint8_t attr = 0, track, index;
+        TMSF abs, rel;
+        mscdex->GetQChannelData(drive_unit, attr, track, index, rel, abs);
+        mem_writeb(buffer + 1, attr);
+        mem_writeb(buffer + 2, ((track / 10) << 4) | (track % 10)); // track in BCD
+        mem_writeb(buffer + 3, index);
+        mem_writeb(buffer + 4, rel.min);
+        mem_writeb(buffer + 5, rel.sec);
+        mem_writeb(buffer + 6, rel.fr);
+        mem_writeb(buffer + 7, 0x00);
+        mem_writeb(buffer + 8, abs.min);
+        mem_writeb(buffer + 9, abs.sec);
+        mem_writeb(buffer + 10, abs.fr);
+        break;
+    }
+    case 0x0D: /* Audio sub-channel info */
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    case 0x0E: /* UPC code */
+    {
+        uint8_t attr = 0; char upc[8] = {};
+        mscdex->GetUPC(drive_unit, attr, &upc[0]);
+        mem_writeb(buffer + 1u, attr);
+        for(unsigned int i = 0; i < 7; i++) mem_writeb(buffer + 2u + i, (unsigned char)upc[i]);
+        mem_writeb(buffer + 9, 0x00u);
+        break;
+    }
+    case 0x0F: /* Audio status info */
+    {
+        bool playing = false;
+        bool paused = false;
+        TMSF resStart, resEnd;
+        mscdex->GetAudioStatus(drive_unit, playing, paused, resStart, resEnd);
+        mem_writew(buffer + 1u, paused);
+        mem_writeb(buffer + 3u, resStart.min);
+        mem_writeb(buffer + 4u, resStart.sec);
+        mem_writeb(buffer + 5u, resStart.fr);
+        mem_writeb(buffer + 6u, 0x00u);
+        mem_writeb(buffer + 7u, resEnd.min);
+        mem_writeb(buffer + 8u, resEnd.sec);
+        mem_writeb(buffer + 9u, resEnd.fr);
+        mem_writeb(buffer + 10u, 0x00u);
+        break;
+    }
+    default:
+        LOG(LOG_MISC, LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X", (int)ioctl_fct);
+        return 0x03; // Invalid function
+    }
+    return 0x00; // Success
 }
 
 static uint16_t MSCDEX_IOCTL_Optput(PhysPt buffer,uint8_t drive_unit) {
