@@ -25,10 +25,10 @@ DOSBox-X 組態工具
 結束組態工具
 .
 :MAPPER_EDITOR_EXIT
-結束按鍵編輯
+結束對應表編輯器
 .
 :SAVE_MAPPER_FILE
-儲存按鍵配置檔案
+儲存對應表檔案
 .
 :WARNING
 警告
@@ -210,10 +210,10 @@ IDE 位置
 切換槽
 .
 :EMPTY_SLOT
-空儲存位
+空位
 .
 :SLOT
-儲存位
+位置
 .
 :PREVIOUS_PAGE
 < 上一頁
@@ -234,7 +234,7 @@ IDE 位置
 已啟用擷取. 按 ESC 鍵停止擷取.
 .
 :MAPPER_FILE_SAVED
-按鍵配置檔案已儲存
+對應表檔案已儲存
 .
 :AUTO_CYCLE_MAX
 自動選擇週期 [最大]
@@ -321,7 +321,7 @@ DOSBox-X 命令列組態工具. 支援的選項為:
 -axtype 顯示 [autoexec] 段落中的內容.
 -avistart, -avistop 開始或結束記錄 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
--startmapper 啟動 DOSBox-X 的按鍵配置工具.
+-startmapper 啟動 DOSBox-X 的對應表編輯器.
 -gui 啟動圖形介面的組態工具.
 -get "段落 屬性" 傳回指定屬性的值 （並設定 CONFIG 環境變數).
 -set (或 -setf 強制設定) "段落 屬性=值" 設定指定屬性的值.
@@ -372,7 +372,7 @@ DOSBox-X 組態檔案包含以下段落:
 
 .
 :PROGRAM_CONFIG_VALUE_ERROR
-"%s" 不是屬性 %s 的合法值.
+"%s" 不是屬性 %s 的有效值.
 
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
@@ -590,42 +590,42 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_ALLOC
-%d 位元組已分配.
+已配置用量 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOC
-%d 位元組已釋放.
+已釋放用量 %d KB.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
-已釋放使用的記憶體.
+已釋放記憶體用量.
 
 .
 :PROGRAM_LOADFIX_ERROR
-記憶體分配錯誤.
+記憶體配置用量錯誤.
 
 .
 :PROGRAM_LOADFIX_HELP
-減少可用的一般記憶體或 XMS/EMS 記憶體.
+減少傳統記憶體或 XMS/EMS 記憶體的可用大小.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        從 XMS 記憶體中而不是一般記憶體中分配記憶體
-  -ems        從 EMS 記憶體中而不是一般記憶體中分配記憶體
-  -{ram}      指定要分配的記憶體大小（單位:千位元組)
-                 一般記憶體預設為 64kb ; XMS或EMS記憶體預設為 1MB
-  -a          自動分配足夠的記憶體以充滿低端 64KB 記憶體
-  -f (或 -d)  釋放此前分配的記憶體
+  -xms        於延伸記憶體 (XMS) 配置用量而不是傳統記憶體
+  -ems        於擴充記憶體 (EMS) 配置用量而不是傳統記憶體
+  -{ram}      指定要配置的記憶體用量 (單位: KB)
+                 傳統記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
+  -a          自動配置足夠的用量將最低層 64KB 記憶體位址用滿
+  -f (或 -d)  釋放先前配置的記憶體用量
   {程式}      執行指定的程式
   {選項}      程式選項 (如果有)
 
 舉例:
-  [32;1mLOADFIX game.exe[0m     分配 64KB 一般記憶體並執行 game.exe
-  [32;1mLOADFIX -a[0m           自動分配足夠的一般記憶體
-  [32;1mLOADFIX -128[0m         分配 128KB 一般記憶體
-  [32;1mLOADFIX -xms[0m         分配 1MB XMS 記憶體
-  [32;1mLOADFIX -f[0m           釋放已分配的一般記憶體
+  [32;1mLOADFIX game.exe[0m     配置 64KB 用量於傳統記憶體並執行 game.exe
+  [32;1mLOADFIX -a[0m           自動配置足夠的用量於傳統記憶體
+  [32;1mLOADFIX -128[0m         配置 128KB 用量於傳統記憶體
+  [32;1mLOADFIX -xms[0m         配置 1MB 用量於 XMS 記憶體
+  [32;1mLOADFIX -f[0m           釋放傳統記憶體的已配置用量
 
 .
 :MSCDEX_SUCCESS
@@ -761,7 +761,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	不顯示主控台視窗. 輸出將重新導向到 stdout.txt 及 stderr.txt.
 
 [33;1m  -machine[0m 機器類型
-	啟動 DOSBox-X 並模擬指定的機器類型. 合法值包括:
+	啟動 DOSBox-X 並模擬指定的機器類型. 有效值包括:
 	hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
 	pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (預設值).
 	機器類型將同時影響影像和可用音效卡.
@@ -769,10 +769,10 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 .
 :PROGRAM_INTRO_USAGE_3
 [33;1m  -startmapper[0m
-	啟動後直接進入按鍵編輯. 特別適用於出現鍵盤問題的使用者.
+	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -noautoexec[0m
-	跳過調入的組態檔案中的 [autoexec] 段落.
+	跳過載入的組態檔案中的 [autoexec] 段落.
 
 [33;1m  -c[0m 命令
 	在啟動程式前先執行指定的命令. 可以用多個 -c 參數指定多個命令.
@@ -908,13 +908,13 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-調用指定的 ROM 映像檔.
+載入指定的 ROM 映像檔.
 
 LOADROM 映像檔
 
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
-必須指定要調入的 ROM 檔案.
+必須指定要載入的 ROM 檔案.
 
 .
 :PROGRAM_LOADROM_CANT_OPEN
@@ -934,7 +934,7 @@ ROM 檔案無法識別.
 
 .
 :PROGRAM_LOADROM_BASIC_LOADED
-BASIC ROM 已調入.
+BASIC ROM 已載入.
 
 .
 :PROGRAM_BIOSTEST_HELP
@@ -1064,10 +1064,10 @@ BIOSTEST 映像檔
 [32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (or [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機編號[0m [36;1m檔案[0m [選項] -u)
  [37;1m磁碟機[0m              映像檔所要掛載的磁碟機代號.
  [37;1m磁碟機編號[0m          所要掛載的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
- [36;1m檔案[0m                映像檔名, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
- -t iso              映像檔類型為光碟 iso 或 cue / bin 映像.
- -t hdd|floppy|ram   映像檔類型為硬碟 (含VHD/HDI檔案)|軟碟|記憶體磁碟機.
- -fs iso             檔案系統為 ISO 9660 (自動假設為 .iso/.cue 檔案).
+ [36;1m檔案[0m                映像檔名稱, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
+ -t iso              映像類型為光碟 iso 或 cue / bin 映像.
+ -t hdd|floppy|ram   映像類型為硬碟 (含 VHD/HDI 映像)|軟碟|記憶體磁碟機.
+ -fs iso             檔案系統為 ISO 9660 (為 .iso/.cue 檔案自動假設).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
  -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
  -reservecyl #       在 BIOS 中報告使用比實際更少的磁柱數目.
@@ -1075,7 +1075,7 @@ BIOSTEST 映像檔
  -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區數和 CHS 參數.
  -bootcd 光碟機代號  指定載入開機磁片映像所用的光碟機代號.
  -o partidx=#        指定要掛載為磁碟機的硬碟分割區編號.
- -ro                 以唯讀模式掛載映像檔 (或用':'首碼表示唯讀).
+ -ro                 以唯讀模式掛載映像檔 (或用 ':' 首碼表示唯讀).
  -u                  卸載磁碟機或磁碟機編號.
  [32;1m-examples           顯示用法舉例.[0m
 .
@@ -1159,7 +1159,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-沒有足夠的空間生成映像檔. 需要 %u 位元組.
+沒有足夠的空間產生映像檔. 需要 %u 位元組.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
@@ -1216,9 +1216,9 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 :PROGRAM_MODE_USAGE
 設定系統裝置.
 
-[34;1mMODE[0m display-type       :display-type codes are [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, or [1mMONO[0m
-[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
-[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)
+[34;1mMODE[0m 顯示類型           :顯示類型的代碼有 [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, 或 [1mMONO[0m
+[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :欄與列, c=80 或 132, n=25, 43, 50, 或 60
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :鍵盤輸入速率, r=1-32 (32=最快), d=1-4 (1=最低)
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
@@ -1309,7 +1309,7 @@ ECHO狀態為關.
 
 .
 :SHELL_CMD_DATE_HELP
-顯示或設定日期.
+顯示或設定內部日期.
 
 .
 :SHELL_CMD_DATE_ERROR
@@ -1329,14 +1329,14 @@ ECHO狀態為關.
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | 日期]
   日期:       要設定的新日期
-  /S:         DOS日期和時間永久與主機日期和時間同步
-  /F:         切換為DOSBox-X內部日期和時間 (與/S相反)
+  /S:         永久採用主機系統日期時間作為 DOS 日期時間
+  /F:         換回 DOSBox-X 內部日期時間 (/S 的相反)
   /T:         只顯示日期
   /H:         與主機系統同步
 
 .
 :SHELL_CMD_TIME_HELP
-顯示或設定時間.
+顯示或設定內部時間.
 
 .
 :SHELL_CMD_TIME_ERROR
@@ -1550,7 +1550,7 @@ SUBST: 命令列參數錯誤.
 .
 :SHELL_STARTUP_TEXT2
 - 切換視窗和全螢幕模式： [31mF11 [37m+ [31mF[37m [37m                                           
-- 開啟 [33m組態工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m按鍵編輯[37m: [31mF11 [37m+ [31mM[37m  [37m                             
+- 開啟 [33m組態工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m對應表編輯器[37m: [31mF11 [37m+ [31mM[37m  [37m                         
 - 提高或降低模擬速度： [31mF11 [37m+ [31m加號[37m[37m 或 [31mF11 [37m+ [31m減號[37m   [37m                          
 .
 :SHELL_STARTUP_CGA
@@ -1622,11 +1622,11 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
   /A          顯示帶有指定屬性的檔案.
   屬性         D  目錄                 R  唯讀檔案
                H  隱藏檔案             A  保存檔案
-               S  系統檔案             -  首碼表示相反
+               S  系統檔案             -  首碼表示不顯示
   /O          以排序方式列出檔案.
   排列順序     N  按檔名 (字母排列)    S  按檔案大小 (小的在前)
                E  按副檔名 (字母排列)  D  按檔案日期時間 (早的在前)
-               G  先顯示目錄           -  首碼表示相反順序
+               G  先顯示目錄           -  首碼表示反向順序
 
 選項可以在 DIRCMD 環境變數中預先設定. 可以用含-首碼的選項(比如/-W)進行覆蓋.
             
@@ -1704,10 +1704,10 @@ RD [磁碟機:][路徑]
 
 .
 :SHELL_CMD_SET_HELP_LONG
-SET [變數名=[字串]]
+SET [變數名稱=[字串]]
 
-   變數名     指定環境變數的名字.
-   字串     指定分配到變數的字串.
+   變數名稱   指定環境變數名稱.
+   字串       指定設定給變數的一系列字元.
 
 * 如果沒有指定字串, 指定的環境變數將被移除.
 
@@ -1848,17 +1848,17 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目標]
 
 .
 :SHELL_CMD_CALL_HELP
-在批次檔中調用批次檔.
+在批次檔中呼叫另一批次檔.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
 CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
-批次處理參數  指定批次檔所需的命令列參數.
+批次處理參數  指定批次程式所需的命令列資訊.
 
 .
 :SHELL_CMD_SUBST_HELP
-將目錄指派給一個磁碟機.
+將內部目錄指派給磁碟機.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
@@ -1866,14 +1866,14 @@ SUBST [磁碟機1: [磁碟機2:]路徑]
 SUBST 磁碟機1: /D
 
   磁碟機1:        指定您想指派路徑給它的磁碟機.
-  [磁碟機2:]路徑  指定你想要指派的已掛載的本機磁碟機和路徑.
+  [磁碟機2:]路徑  指定你想要指派, 且已掛載的本機磁碟機和路徑.
   /D              刪除已掛載或代替的磁碟機.
 
 輸入不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-載入程式至上位記憶體 (需要 XMS 和 UMB 記憶體).
+將程式載入上層記憶體位址 (需要 XMS 和 UMB 記憶體).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
@@ -1961,7 +1961,7 @@ VERIFY [ON | OFF]
 VER [/R]
 VER [SET] 版本號 或 VER SET [主版本號 次版本號]
 
-  /R                   　　顯示 DOSBox-X 的 Git 提交版本和生成日期.
+  /R                   　　顯示 DOSBox-X 的 Git 認可版本和建置日期.
   [SET] 版本號           　設定指定的版本號為要報告的 DOS 版本.
   SET [主版本號 次版本號]  以主版本號+次版本號的格式設定要報告的 DOS 版本.
 
@@ -2154,13 +2154,13 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
 :MENU:mapper_reset
-重新開始模擬
+重設虛擬機器
 .
 :MENU:mapper_reboot
 重開客體系統
 .
 :MENU:mapper_loadmap
-載入按鍵配置檔案...
+載入對應表檔案...
 .
 :MENU:mapper_quickrun
 快速啟動程式...
@@ -2193,7 +2193,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 組態工具
 .
 :MENU:mapper_mapper
-按鍵編輯
+對應表編輯器
 .
 :MENU:mapper_fullscr
 切換全螢幕模式
@@ -2625,7 +2625,7 @@ PC-98 選項
 3dfx 模擬
 .
 :MENU:3dfx_voodoo
-內接 Voodoo 卡
+內接式 Voodoo 卡
 .
 :MENU:3dfx_glide
 Glide 直通
@@ -2637,7 +2637,7 @@ Glide 直通
 選擇 OpenGL (GLSL) 著色檔案...
 .
 :MENU:load_ttf_font
-選擇 TTF 檔案...
+選擇 TrueType 字型 (TTF)...
 .
 :MENU:SoundMenu
 聲音
@@ -2721,10 +2721,10 @@ PC-98 PIT 主時脈
 5MHz/10MHz PIT 主時脈
 .
 :MENU:DOSEMSMenu
-EMS 記憶體
+擴充記憶體 (EMS)
 .
 :MENU:dos_ems_true
-啟用 EMS 記憶體模擬
+啟用 EMS 模擬
 .
 :MENU:dos_ems_board
 EMS 板模擬
@@ -2733,7 +2733,7 @@ EMS 板模擬
 EMM386 模擬
 .
 :MENU:dos_ems_false
-停用 EMS 記憶體模擬
+停用 EMS 模擬
 .
 :MENU:DOSWinMenu
 主機系統程式
@@ -2766,7 +2766,7 @@ MPEG-TS + H.264
 儲存/載入選項
 .
 :MENU:saveslotmenu
-選擇儲存位
+選擇儲存位置
 .
 :MENU:enable_autosave
 啟用自動儲存功能
@@ -2778,22 +2778,22 @@ MPEG-TS + H.264
 載入狀態時不顯示警告
 .
 :MENU:removestate
-刪除工作狀態
+刪除狀態
 .
 :MENU:refreshslot
-重新整理顯示狀態
+更新顯示狀態
 .
 :MENU:lastautosaveslot
-選擇上次的儲存位
+選擇上次自動儲存位置
 .
 :MENU:usesavefile
-使用存檔
+改用存檔取代儲存位置
 .
 :MENU:autosavecfg
-設定自動儲存...
+自動儲存設定...
 .
 :MENU:browsesavefile
-選擇存檔...
+瀏覽存檔...
 .
 :MENU:current_page
 目前頁: 1/10
@@ -2892,7 +2892,7 @@ DOSBox-X 支援
 顯示代碼概覽
 .
 :MENU:show_logtext
-顯示紀錄內容
+顯示紀錄文字
 .
 :MENU:save_logas
 另存記錄檔案...
@@ -2922,13 +2922,13 @@ DOS 命令
 產生 NMI 中斷
 .
 :MENU:debug_int2fhook
-鉤住 INT 2F 中斷
+鉤住 INT 2F 呼叫
 .
 :MENU:debug_logint21
-記錄 INT 21 調用
+記錄 INT 21 呼叫
 .
 :MENU:debug_logfileio
-記錄檔案輸入輸出
+記錄檔案 I/O
 .
 :MENU:mapper_speedlock
 開啟或關閉快進模式
@@ -2949,19 +2949,19 @@ DOS 命令
 編輯 CPU 週期
 .
 :MENU:mapper_savestate
-儲存工作狀態
+儲存狀態
 .
 :MENU:mapper_loadstate
-載入工作狀態
+載入狀態
 .
 :MENU:mapper_showstate
-顯示工作狀態資訊
+顯示狀態資訊
 .
 :MENU:mapper_prevslot
-選擇上一個儲存位
+選擇上一個位置
 .
 :MENU:mapper_nextslot
-選擇下一個儲存位
+選擇下一個位置
 .
 :MENU:mapper_decfskip
 減小跳過影格
@@ -3093,7 +3093,7 @@ DOS 命令
 重新掃描所有磁碟機
 .
 :MENU:hostkey_mapper
-按鍵編輯中設定
+對應表中的定義
 .
 :MENU:showdetails
 標題列上顯示速度
@@ -3102,10 +3102,10 @@ DOS 命令
 重開 DOSBox-X 執行個體
 .
 :MENU:restartconf
-重開 DOSBox-X 並調用指定組態檔案...
+重開 DOSBox-X 並載入指定組態檔案...
 .
 :MENU:restartlang
-重開 DOSBox-X 並調用指定語言檔案...
+重開 DOSBox-X 並載入指定語言檔案...
 .
 :MENU:auto_lock_mouse
 自動鎖定滑鼠
@@ -3264,10 +3264,10 @@ CPU: 完全核心
 加大 TTF 字型
 .
 :MAPPER:loadmap
-載入按鍵配置檔案
+載入對應表檔案
 .
 :MAPPER:nextslot
-下一個儲存位
+下一個儲存位置
 .
 :MAPPER:normal
 CPU: 一般核心
@@ -3282,7 +3282,7 @@ CPU: 一般核心
 暫停並保持中斷
 .
 :MAPPER:prevslot
-上一個儲存位
+上一個儲存位置
 .
 :MAPPER:quickrun
 快速啟動程式
@@ -3303,7 +3303,7 @@ CPU: 一般核心
 重新掃描磁碟機
 .
 :MAPPER:reset
-重開 DOSBox-X
+重設 DOSBox-X
 .
 :MAPPER:showstate
 顯示狀態資訊
