@@ -571,7 +571,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 
     void GFX_ForceRedrawScreen(void);
 #if defined(USE_TTF)
-    bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
     {

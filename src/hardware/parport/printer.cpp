@@ -37,6 +37,7 @@
 #include "render.h"
 #include "dos_inc.h"
 #include "../../ints/int10.h"
+#include "sdlmain.h"
 
 #if defined(USE_TTF)
 extern unsigned char DOSBoxTTFbi[48868];
@@ -44,7 +45,6 @@ extern bool printfont;
 extern void resetFontSize();
 extern FT_Face GetTTFFace();
 #endif
-extern bool TTF_using(void);
 extern void GFX_CaptureMouse(void);
 extern std::map<int, int> lowboxdrawmap;
 extern uint16_t cpMap[512], cpMap_PC98[256];

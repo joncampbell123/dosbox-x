@@ -785,4 +785,8 @@ struct DOS_GetMemLog_Entry {
 
 extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 
+extern int customcp, altcp;
+bool isSupportedCP(int cp);
+void SetupDBCSTable(void);
+
 #endif

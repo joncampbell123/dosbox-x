@@ -34,6 +34,7 @@
 #include "inout.h"
 #include "shell.h"
 #include "jfont.h"
+#include "sdlmain.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
@@ -812,7 +813,6 @@ extern bool is_paused;
 void DOSBox_SetSysMenu(void);
 #if defined(USE_TTF)
 void resetFontSize();
-bool TTF_using(void);
 #endif
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;

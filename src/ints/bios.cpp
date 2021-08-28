@@ -49,6 +49,7 @@ extern bool PS1AudioCard;
 #include "dma.h"
 #include "shell.h"
 #include "render.h"
+#include "sdlmain.h"
 #include <time.h>
 #include <sys/stat.h>
 
@@ -107,7 +108,6 @@ void runBoot(const char *str);
 void SetIMPosition(void);
 bool isDBCSCP();
 #if defined(USE_TTF)
-bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
 

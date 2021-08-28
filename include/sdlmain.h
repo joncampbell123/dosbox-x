@@ -221,4 +221,9 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 void SDL_GL_SwapBuffers(void);
 #endif
 
+bool TTF_using(void);
+#ifdef USE_TTF
+int setTTFCodePage(void);
+#endif
+
 #endif /*DOSBOX_SDLMAIN_H*/

@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src
 
 noinst_LIBRARIES = libints.a
 libints_a_SOURCES = mouse.cpp xms.cpp xms.h ems.cpp int_dosv.cpp \

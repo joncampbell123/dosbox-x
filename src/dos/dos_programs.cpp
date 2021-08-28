@@ -6031,7 +6031,6 @@ void runImgmount(const char *str) {
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
-void SetupDBCSTable();
 
 class KEYB : public Program {
 public:

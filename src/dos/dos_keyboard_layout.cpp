@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <set>
 
 #include "dosbox.h"
 #include "bios.h"
@@ -34,6 +35,7 @@
 #include "jfont.h"
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
+#include "sdlmain.h"
 
 #if defined (WIN32)
 #include <windows.h>
@@ -41,10 +43,6 @@
 
 int lastcp = 0;
 void DOSBox_SetSysMenu(void);
-#if defined(USE_TTF)
-int setTTFCodePage(void);
-bool TTF_using(void);
-#endif
 bool OpenGL_using(void), isDBCSCP(void);
 void change_output(int output), JFONT_Init(void), UpdateSDLDrawTexture();
 extern bool jfont_init;
@@ -1242,7 +1240,6 @@ const char* DOS_GetLoadedLayout(void) {
 	return NULL;
 }
 
-void SetupDBCSTable();
 class DOS_KeyboardLayout: public Module_base {
 public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
@@ -1534,3 +1531,16 @@ void DOS_KeyboardLayout_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_ShutDown));
 }
 
+static const std::set<int> supportedCodepages =
+{
+	437, 808, 850, 852, 853, 855, 857, 858, 860, 861, 862, 863, 864, 865, 866, 869, 872, 874, 932,
+	936, 949, 950, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258
+};
+
+bool isSupportedCP(int cp)
+{
+	if (supportedCodepages.count(cp)) return true;
+	if (customcp && cp==customcp) return true;
+	if (altcp && cp==altcp) return true;
+	return false;
+}

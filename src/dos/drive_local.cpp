@@ -143,7 +143,7 @@ static std::string ldir[256];
 static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe;
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern int lfn_filefind_handle, freesizecap, file_access_tries, customcp, altcp;
+extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 
