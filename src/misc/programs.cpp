@@ -1514,7 +1514,7 @@ void CONFIG::Run(void) {
                                 else if (!CurMode)
                                     ;
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-                                    WriteOut("[2J");
+                                    WriteOut("\033[2J");
                                 else {
                                     reg_ax=CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);

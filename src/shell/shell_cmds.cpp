@@ -420,7 +420,7 @@ void DOS_Shell::CMD_BREAK(char * args) {
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-       WriteOut("[2J");
+       WriteOut("\033[2J");
    else {
       if (IS_DOSV && DOSV_CheckCJKVideoMode()) reg_ax = GetTrueVideoMode();
       else reg_ax=(uint16_t)CurMode->mode;
