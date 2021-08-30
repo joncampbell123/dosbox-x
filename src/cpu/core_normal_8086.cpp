@@ -18,7 +18,6 @@
 
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"

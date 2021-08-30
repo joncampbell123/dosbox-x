@@ -21,7 +21,6 @@
 
 #if (C_DYNAMIC_X86)
 
-#include <assert.h>
 #include <stdarg.h>
 #include <string.h>
 
