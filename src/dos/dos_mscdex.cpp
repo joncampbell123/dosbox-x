@@ -37,12 +37,6 @@
 #define MSCDEX_VERSION_LOW	23
 #define MSCDEX_MAX_DRIVES	16
 
-// Error Codes
-#define MSCDEX_ERROR_INVALID_FUNCTION	1
-#define MSCDEX_ERROR_BAD_FORMAT			11
-#define MSCDEX_ERROR_UNKNOWN_DRIVE		15
-#define MSCDEX_ERROR_DRIVE_NOT_READY	21
-
 // Request Status
 #define	REQUEST_STATUS_DONE		0x0100
 #define	REQUEST_STATUS_ERROR	0x8000
@@ -577,11 +571,11 @@ uint32_t CMscdex::GetVolumeSize(uint8_t subUnit) {
 bool CMscdex::ReadVTOC(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& offset, uint16_t& error) {
 	uint8_t subunit = GetSubUnit(drive);
 /*	if (subunit>=numDrives) {
-		error=MSCDEX_ERROR_UNKNOWN_DRIVE;
+		error=DOSERR_INVALID_DRIVE;
 		return false;
 	} */
 	if (!ReadSectors(subunit,false,16u+volume,1u,data)) {
-		error=MSCDEX_ERROR_DRIVE_NOT_READY;
+		error=DOSERR_DRIVE_NOT_READY;
 		return false;
 	}
 	char id[5];
@@ -591,7 +585,7 @@ bool CMscdex::ReadVTOC(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& o
 		MEM_BlockRead(data + 9, id, 5);
 		if (strncmp("CDROM", id, 5)==0) offset = 8;
 		else {
-			error = MSCDEX_ERROR_BAD_FORMAT;
+			error = DOSERR_FORMAT_INVALID;
 			return false;
 		}
 	}
@@ -772,7 +766,7 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 			nextPart = false;
 		}
 	}
-	error = 2; // file not found
+    error = DOSERR_FILE_NOT_FOUND;
 	return false; // not found
 }
 
@@ -1285,7 +1279,7 @@ static bool MSCDEX_Handler(void) {
 		case 0x1503:	/* Get Abstract filename */
 		case 0x1504:	/* Get Documentation filename */
 						if (!mscdex->GetFileName(reg_cx,702+(reg_al-2)*37,data)) {
-							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
+							reg_ax = DOSERR_INVALID_DRIVE;
 							CALLBACK_SCF(true);						
 						}
 						break;		
@@ -1305,14 +1299,14 @@ static bool MSCDEX_Handler(void) {
 						if (mscdex->ReadSectors(reg_cx,sector,reg_dx,data)) {
 							reg_ax = 0;
 						} else {
-							// possibly: MSCDEX_ERROR_DRIVE_NOT_READY if sector is beyond total length
-							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
+							// possibly: DOSERR_DRIVE_NOT_READY if sector is beyond total length
+							reg_ax = DOSERR_INVALID_DRIVE;
 							CALLBACK_SCF(true);
 						}
 					}
 						break;
 		case 0x1509:	// write sectors - not supported 
-						reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
+						reg_ax = DOSERR_FUNCTION_NUMBER_INVALID;
 						CALLBACK_SCF(true);
 						break;
 		case 0x150A:	/* Reserved */
@@ -1335,15 +1329,15 @@ static bool MSCDEX_Handler(void) {
 							} else if (reg_bx == 1) {
 								// set preference
 								if (reg_dh != 1) {
-									reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
+									reg_ax = DOSERR_FUNCTION_NUMBER_INVALID;
 									CALLBACK_SCF(true);
 								}
 							} else {
-								reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
+								reg_ax = DOSERR_FUNCTION_NUMBER_INVALID;
 								CALLBACK_SCF(true);
 							}
 						} else {
-							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
+							reg_ax = DOSERR_INVALID_DRIVE;
 							CALLBACK_SCF(true);
 						}
 						break;
@@ -1356,12 +1350,12 @@ static bool MSCDEX_Handler(void) {
 						break;
 		case 0x1510:	/* Device driver request */
 						if (!mscdex->SendDriverRequest(reg_cx,data)) {
-							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
+							reg_ax = DOSERR_INVALID_DRIVE;
 							CALLBACK_SCF(true);
 						}
 						break;
 		default:		LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unknown call : %04X",reg_ax);
-						reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
+						reg_ax = DOSERR_FUNCTION_NUMBER_INVALID;
 						CALLBACK_SCF(true);
 						break;
 	}
