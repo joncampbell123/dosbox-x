@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+
+#include "bitmapinfoheader.h"
 #include "dosbox.h"
 #include "control.h"
 #include "hardware.h"
@@ -33,6 +35,7 @@
 #include "mixer.h"
 #include "render.h"
 #include "cross.h"
+#include "wave_mmreg.h"
 
 #if (C_SSHOT)
 #include <zlib.h>
