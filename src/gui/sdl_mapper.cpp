@@ -1174,7 +1174,11 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         SDLKey key = SDLK_UNKNOWN;
 
 #if defined (MACOSX)
-        if ((keysym.scancode == 0) && (keysym.sym == 'a')) return keysym.sym;  // zero value makes the keyboard crazy
+        // zero value makes the keyboard crazy
+        // Hack for 'a' key (QWERTY, QWERTZ), 'u' key (Turkish-F), 'q' key (AZERTY) on Mac
+        // (FIX ME if there are other keys returning scancode 0)
+        if((keysym.scancode == 0) &&
+            ((keysym.sym == 'a') || (keysym.sym == 'u') || (keysym.sym == 'q'))) return 'a';
 #endif
 
         if (keysym.scancode==0
