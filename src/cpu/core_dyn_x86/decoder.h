@@ -16,6 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "inout.h"
+
 #define X86_DYNFPU_DH_ENABLED
 #define X86_INLINED_MEMACCESS
 

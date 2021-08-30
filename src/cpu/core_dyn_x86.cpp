@@ -16,8 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include "dosbox.h"
+#include "config.h"
 
 #if (C_DYNAMIC_X86)
 #if defined (WIN32)
@@ -37,7 +36,6 @@
 #include "cpu.h"
 #include "debug.h"
 #include "paging.h"
-#include "inout.h"
 #include "fpu.h"
 
 #define CACHE_MAXSIZE	(4096*8)
