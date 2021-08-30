@@ -20,13 +20,8 @@
 #include "dosbox.h"
 
 #if (C_DYNAMIC_X86)
-
-#include <stdarg.h>
-#include <string.h>
-
 #if defined (WIN32)
 #include <windows.h>
-#include <winbase.h>
 #endif
 
 #if (C_HAVE_MPROTECT)
