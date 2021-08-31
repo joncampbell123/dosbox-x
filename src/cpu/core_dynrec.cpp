@@ -19,6 +19,8 @@
 #include "config.h"
 
 #if (C_DYNREC)
+#include <string.h>
+
 #if defined (WIN32)
 #include <windows.h>
 #include <winbase.h>
