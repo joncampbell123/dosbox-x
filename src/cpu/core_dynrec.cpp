@@ -16,14 +16,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include "dosbox.h"
+#include "config.h"
 
 #if (C_DYNREC)
-
-#include <assert.h>
-#include <string.h>
-
 #if defined (WIN32)
 #include <windows.h>
 #include <winbase.h>

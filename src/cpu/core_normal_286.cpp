@@ -16,16 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "dosbox.h"
-#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
-#include "paging.h"
-#include "mmx.h"
 
 bool CPU_RDMSR();
 bool CPU_WRMSR();

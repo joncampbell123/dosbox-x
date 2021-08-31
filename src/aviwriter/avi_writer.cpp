@@ -19,6 +19,7 @@
 /* Shut up! */
 #define _CRT_NONSTDC_NO_DEPRECATE
 
+#include "bitmapinfoheader.h"
 #include "rawint.h"
 #include "avi_writer.h"
 #include "avi_rw_iobuf.h"

@@ -20,6 +20,7 @@
 #define __ISP_UTILS_AVI_WRITER_H
 
 #include "avi.h"
+#include "riff.h"
 
 enum {
 	AVI_WRITER_STATE_INIT=0,
