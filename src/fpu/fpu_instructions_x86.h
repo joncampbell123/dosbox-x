@@ -1066,6 +1066,22 @@ static void FPU_FST_I64(PhysPt addr) {
 	mem_writed(addr+4,fpu.p_regs[8].m2);
 }
 
+static void FPU_FSTT_I16(PhysPt addr) {
+    FPUD_STORE(fisttp, WORD, s)
+    mem_writew(addr, (uint16_t)fpu.p_regs[8].m1);
+}
+
+static void FPU_FSTT_I32(PhysPt addr) {
+    FPUD_STORE(fisttp, DWORD, l)
+    mem_writed(addr, fpu.p_regs[8].m1);
+}
+
+static void FPU_FSTT_I64(PhysPt addr) {
+    FPUD_STORE(fisttp, QWORD, q)
+    mem_writed(addr, fpu.p_regs[8].m1);
+    mem_writed(addr + 4, fpu.p_regs[8].m2);
+}
+
 static void FPU_FBST(PhysPt addr) {
 	FPUD_STORE(fbstp,TBYTE,)
 	mem_writed(addr,fpu.p_regs[8].m1);
