@@ -379,6 +379,8 @@ static char const *fop_15[] = { "fprem", "fyl2xp1", "fsqrt", "fsincos",
                    "frndint", "fscale", "fsin", "fcos" };
 static char const *fop_21[] = { 0, "fucompp", 0, 0, 0, 0, 0, 0 };
 static char const *fop_28[] = { "[fneni]", "[fndis]", "fclex", "finit", "[fnsetpm]", "[frstpm]", 0, 0 };
+static char const* fop_29[] = { "*fucomi %GF" };
+static char const* fop_30[] = { "*fcomi %GF" };
 static char const *fop_32[] = { "*fadd %GF,st" };
 static char const *fop_33[] = { "*fmul %GF,st" };
 static char const *fop_34[] = { "*fcom %GF,st" };
@@ -403,16 +405,18 @@ static char const *fop_54[] = { "*fdivrp %GF,st" };
 static char const *fop_55[] = { "*fdivp %GF,st" };
 static char const *fop_56[] = { "*ffreep %GF" };
 static char const *fop_60[] = { "fstsw ax", 0, 0, 0, 0, 0, 0, 0 };
+static char const* fop_61[] = { "*fucomip %GF" };
+static char const* fop_62[] = { "*fcomip %GF" };
 
 static char const **fspecial[] = { /* 0=use st(i), 1=undefined 0 in fop_* means undefined */
   0, 0, 0, 0, 0, 0, 0, 0,
   fop_8, fop_9, fop_10, fop_11, fop_12, fop_13, fop_14, fop_15,
   f0, f0, f0, f0, f0, fop_21, f0, f0,
-  f0, f0, f0, f0, fop_28, f0, f0, f0,
+  f0, f0, f0, f0, fop_28, fop_29, fop_30, f0,
   fop_32, fop_33, fop_34, fop_35, fop_36, fop_37, fop_38, fop_39,
   fop_40, fop_41, fop_42, fop_43, fop_44, fop_45, f0, f0,
   fop_48, fop_49, fop_50, fop_51, fop_52, fop_53, fop_54, fop_55,
-  fop_56, f0, f0, f0, fop_60, f0, f0, f0,
+  fop_56, f0, f0, f0, fop_60, fop_61, fop_62, f0,
 };
 
 static const char *floatops[] = { /* assumed " %EF" at end of each.  mod != 3 only */
@@ -422,15 +426,15 @@ static const char *floatops[] = { /* assumed " %EF" at end of each.  mod != 3 on
        "fldenv", "fldcw", "fstenv", "fstcw",
 /*16*/ "fiadd", "fimul", "ficomw", "ficompw",
        "fisub", "fisubr", "fidiv", "fidivr",
-/*24*/ "fild", 0, "fist", "fistp",
+/*24*/ "fild", "fisttp", "fist", "fistp",
        "frstor", "fldt", 0, "fstpt",
 /*32*/ "faddq", "fmulq", "fcomq", "fcompq",
        "fsubq", "fsubrq", "fdivq", "fdivrq",
-/*40*/ "fldq", 0, "fstq", "fstpq",
+/*40*/ "fldq", "fisttpq", "fstq", "fstpq",
        0, 0, "fsave", "fstsw",
 /*48*/ "fiaddw", "fimulw", "ficomw", "ficompw",
        "fisubw", "fisubrw", "fidivw", "fidivr",
-/*56*/ "fildw", 0, "fistw", "fistpw",
+/*56*/ "fildw", "fisttpw", "fistw", "fistpw",
        "fbldt", "fildq", "fbstpt", "fistpq"
 };
 
