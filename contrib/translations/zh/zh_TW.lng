@@ -2643,7 +2643,7 @@ Glide 直通
 聲音
 .
 :MENU:mixer_swapstereo
-交換立體聲
+交換左右聲道
 .
 :MENU:mixer_mute
 靜音
@@ -2904,7 +2904,7 @@ DOSBox-X 支援
 偵錯工具選項: 正常執行方式
 .
 :MENU:debugger_runwatch
-偵錯工具選項: 監視執行方式
+偵錯工具選項: 監看執行方式
 .
 :MENU:HelpCommandMenu
 DOS 命令
