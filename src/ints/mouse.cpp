@@ -838,7 +838,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 			text[len++]='\n';
 		}
 	}
-	text[len]=0;
+    text[len] = 0;
 	*textlen=len;
 	return text;
 }

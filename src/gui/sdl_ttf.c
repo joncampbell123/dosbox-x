@@ -1587,14 +1587,14 @@ SDL_Surface* TTF_RenderUNICODE_Shaded( TTF_Font* font,
 		return NULL;
 	}
 
-    if (width < (int)expect_width)
+    if(width < (int)expect_width)
         width = expect_width;
 
-	/* Create the target surface */
-	textbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 8, 0, 0, 0, 0);
-	if( textbuf == NULL ) {
-		return NULL;
-	}
+    /* Create the target surface */
+    textbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 8, 0, 0, 0, 0);
+    if(textbuf == NULL) {
+        return NULL;
+    }
 
 	/* Adding bound checking to avoid all kinds of memory corruption errors
 	   that may occur. */

@@ -3701,7 +3701,7 @@ bool setColors(const char *colorArray, int n) {
             altBGR1[i].green=rgbColors[i].green;
             altBGR1[i].blue=rgbColors[i].blue;
         }
-	const char * nextRGB = colorArray;
+    const char* nextRGB = colorArray;
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int rgbVal[3] = {-1,-1,-1};
 	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
@@ -5346,7 +5346,7 @@ void GFX_SelectFontByPoints(int ptsize) {
         ttf.SDL_fontbi = TTF_OpenFontRW(rwfont, 1, ptsize);
     } else
         ttf.SDL_fontbi = NULL;
-	ttf.pointsize = ptsize;
+    ttf.pointsize = ptsize;
 	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
 	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
 	if (ttf.fullScrn) {
@@ -8850,7 +8850,7 @@ static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLM
 static bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0)
         return false;
-	if (clipboard_biospaste) {
+    if(clipboard_biospaste) {
         if (strPasteBuffer[0]==13) {
             KEYBOARD_AddKey(KBD_enter, true);
             KEYBOARD_AddKey(KBD_enter, false);

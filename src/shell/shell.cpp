@@ -844,12 +844,12 @@ void DOS_Shell::Run(void) {
     if (this != first_shell && !optInit)
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
 
-	if (optInit) {
-		input_line[CMD_MAXLINE-1u] = 0;
-		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
-		line.erase();
-		ParseLine(input_line);
-	}
+    if(optInit) {
+        input_line[CMD_MAXLINE - 1u] = 0;
+        strncpy(input_line, line.c_str(), CMD_MAXLINE - 1u);
+        line.erase();
+        ParseLine(input_line);
+    }
     if (!exit) {
         RunningProgram = "COMMAND";
         GFX_SetTitle(-1,-1,-1,false);
@@ -1739,16 +1739,16 @@ void SHELL_Init() {
     else if (!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
 
-	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
-	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
+    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+    if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
-	/* DSXMENU.EXE */
-	if (IS_PC98_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
-	else {
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+    /* DSXMENU.EXE */
+    if(IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+    else {
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
     }
 
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");

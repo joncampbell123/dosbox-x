@@ -1126,13 +1126,13 @@ bool share(int fd, int mode, uint32_t flags) {
     break;
   }
 #ifdef F_SETLK64
-  ret = lock_file_region( fd, F_SETLK64, &fl, 0x100000000LL, 1 );
-  if ( ret == -1 && errno == EINVAL )
+  ret = lock_file_region(fd, F_SETLK64, &fl, 0x100000000LL, 1);
+  if(ret == -1 && errno == EINVAL)
 #endif
-    lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
-    LOG(LOG_DOSMISC,LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
+      lock_file_region(fd, F_SETLK, &fl, 0x100000000LL, 1);
+  LOG(LOG_DOSMISC, LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
 
-    return true;
+  return true;
 }
 #endif
 

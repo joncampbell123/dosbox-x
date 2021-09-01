@@ -2080,13 +2080,13 @@ protected:
             }
 
             selected++;
-		}
+        }
 
-        if (selected > items.size() - 1)
-	        selected = items.size() - 1;
+        if(selected > items.size() - 1)
+            selected = items.size() - 1;
 
-		if (selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
-	}
+        if(selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
+    }
 
 	virtual Size getPreferredWidth() {
 		Size width = 0,px = 0;
