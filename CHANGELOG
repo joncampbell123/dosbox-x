@@ -1,4 +1,7 @@
 0.83.17
+  - Added FISTTP instruction to experimental cputype (LBi)
+  - Updated debugger to support and decode fisttp, fcomi,
+    fcomip, fucomi, fucomip (LBi)
   - Added cputype=experimental, which is the same as the
     highest CPU emulation level but with additional
     instructions from newer processors that do not exist
