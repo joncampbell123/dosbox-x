@@ -382,7 +382,13 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 		}
 		break;
 	case 0x01:	/* FISTTP */
-		LOG(LOG_FPU,LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
+        if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
+        {
+            FPU_FSTT_I32(addr);
+            FPU_FPOP();
+        }
+        else
+            LOG(LOG_FPU, LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);
 		break;
 	case 0x02:	/* FIST */
 		FPU_FST_I32(addr);
@@ -535,7 +541,13 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 		}
 		break;
 	case 0x01:  /* FISTTP longint*/
-		LOG(LOG_FPU,LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
+        if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
+        {
+            FPU_FSTT_I64(addr);
+            FPU_FPOP();
+        }
+        else
+            LOG(LOG_FPU, LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);
 		break;
 	case 0x02:   /* FST double real*/
 		FPU_FST_F64(addr);
@@ -657,8 +669,14 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
 		}
 		break;
-	case 0x01:
-		LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
+	case 0x01:  /* FISTTP int16_t */
+        if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
+        {
+            FPU_FSTT_I16(addr);
+            FPU_FPOP();
+        }
+        else
+            LOG(LOG_FPU, LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);
 		break;
 	case 0x02:   /* FIST int16_t */
 		FPU_FST_I16(addr);
