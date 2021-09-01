@@ -2615,6 +2615,8 @@ interrupted_char_begin:
                 //      enter the same fullwidth code in both cells.
                 doublewide = false;
 
+                attr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+
                 // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
                 // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
                 // Same applies 0x56 to 0x5F.
@@ -2632,7 +2634,6 @@ interrupted_char_begin:
                     uint16_t n_chr;
 
                     n_chr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-                    attr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
                     if ((chr&0x7F7F) != (n_chr&0x7F7F))
                         goto interrupted_char_begin;
