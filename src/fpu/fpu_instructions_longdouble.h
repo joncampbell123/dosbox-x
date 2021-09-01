@@ -231,6 +231,24 @@ static void FPU_FST_I64(PhysPt addr) {
 	mem_writeq(addr,(uint64_t)static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v)));
 }
 
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I16(PhysPt addr) {
+	mem_writew(addr,(uint16_t)static_cast<int16_t>(fpu.regs_80[TOP].v));
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I32(PhysPt addr) {
+	mem_writed(addr,(uint32_t)static_cast<int32_t>(fpu.regs_80[TOP].v));
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I64(PhysPt addr) {
+	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
+	FPU_FPOP();
+}
+
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg_80 val = fpu.regs_80[TOP];
 	bool sign = false;
