@@ -290,6 +290,40 @@ static void FPU_FST_I64(PhysPt addr) {
 	}
 }
 
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I16(PhysPt addr) {
+	double val = FROUND(fpu.regs[TOP].d);
+	mem_writew(addr,(val < 32768.0 && val >= -32768.0)?static_cast<int16_t>(val):0x8000);
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I32(PhysPt addr) {
+	double val = FROUND(fpu.regs[TOP].d);
+	mem_writed(addr,(val < 2147483648.0 && val >= -2147483648.0)?static_cast<int32_t>(val):0x80000000);
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I64(PhysPt addr) {
+	FPU_Reg blah;
+	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
+		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
+		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
+		//        This cheap hack is good enough for now.
+		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
+		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
+	}
+	else {
+		double val = FROUND(fpu.regs[TOP].d);
+		blah.ll = (val < 9223372036854775808.0 && val >= -9223372036854775808.0)?static_cast<int64_t>(val):LONGTYPE(0x8000000000000000);
+
+		mem_writed(addr,(uint32_t)blah.l.lower);
+		mem_writed(addr+4,(uint32_t)blah.l.upper);
+	}
+	FPU_FPOP();
+}
+
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg val = fpu.regs[TOP];
 	if(val.ll & LONGTYPE(0x8000000000000000)) { // MSB = sign
