@@ -24,7 +24,6 @@
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
-#include "mmx.h"
 
 #define CPU_CORE CPU_ARCHTYPE_386
 

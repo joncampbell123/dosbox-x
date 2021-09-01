@@ -21,14 +21,9 @@
 #include <assert.h>
 #include <string.h>
 
-#include "dosbox.h"
-#include "mem.h"
 #include "paging.h"
-#include "regs.h"
 #include "lazyflags.h"
 #include "cpu.h"
-#include "debug.h"
-#include "setup.h"
 #include "logging.h"
 
 extern bool dos_kernel_disabled;

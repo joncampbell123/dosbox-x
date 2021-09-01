@@ -32,11 +32,8 @@
 #include <thread>
 #endif
 
-#include "dosbox.h"
 #include "mem.h"
 #include "mixer.h"
-#include "SDL.h"
-#include "SDL_thread.h"
 #include "../libs/decoders/SDL_sound.h"
 #include "../libs/libchdr/chd.h"
 

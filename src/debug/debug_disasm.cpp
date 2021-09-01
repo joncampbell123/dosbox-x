@@ -68,7 +68,6 @@ Any comments/updates/bug reports to:
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "mem.h"
 #include "paging.h"
 
 typedef uint8_t  UINT8;

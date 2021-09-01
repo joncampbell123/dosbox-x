@@ -20,19 +20,14 @@
 #include <assert.h>
 #include <sstream>
 #include <stddef.h>
-#include "dosbox.h"
+
 #include "cpu.h"
-#include "memory.h"
 #include "debug.h"
 #include "mapper.h"
-#include "setup.h"
-#include "programs.h"
 #include "paging.h"
 #include "callback.h"
 #include "lazyflags.h"
-#include "support.h"
 #include "control.h"
-#include "zipfile.h"
 #include "logging.h"
 
 /* dynamic core, policy, method, and flags.
