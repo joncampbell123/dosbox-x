@@ -2996,6 +2996,7 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 }
 
 bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
+    (void)attributes;//UNUSED
     if (!getOverlaydir()) {
         DOS_SetError(DOSERR_ACCESS_DENIED);
         return false;
@@ -3148,6 +3149,8 @@ bool physfsDrive::Rename(const char * oldname,const char * newname) {
 }
 
 bool physfsDrive::SetFileAttr(const char * name,uint16_t attr) {
+    (void)name;//UNUSED
+    (void)attr;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
@@ -3485,30 +3488,38 @@ bool physfscdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t fla
 
 bool physfscdromDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes)
 {
+    (void)file;//UNUSED
+    (void)name;//UNUSED
+    (void)attributes;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 };
 
 bool physfscdromDrive::FileUnlink(const char * name)
 {
+    (void)name;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 };
 
 bool physfscdromDrive::RemoveDir(const char * dir)
 {
+    (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 };
 
 bool physfscdromDrive::MakeDir(const char * dir)
 {
+    (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 };
 
 bool physfscdromDrive::Rename(const char * oldname,const char * newname)
 {
+    (void)oldname;//UNUSED
+    (void)newname;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 };
@@ -3522,6 +3533,7 @@ bool physfscdromDrive::GetFileAttr(const char * name,uint16_t * attr)
 
 bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst)
 {
+    (void)fcb_findfirst;//UNUSED
 	// If media has changed, reInit drivecache.
 	if (MSCDEX_HasMediaChanged(subUnit)) {
 		dirCache.EmptyCache();
