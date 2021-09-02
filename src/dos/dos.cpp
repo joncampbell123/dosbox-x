@@ -2496,7 +2496,9 @@ static Bitu DOS_21Handler(void) {
                         break;
                     }
                     dos.loaded_codepage = reg_bx;
+#if defined(USE_TTF)
                     setTTFCodePage();
+#endif
                     SetupDBCSTable();
                     CALLBACK_SCF(false);
                     break;
