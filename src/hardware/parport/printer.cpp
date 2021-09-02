@@ -273,16 +273,16 @@ void CPrinter::selectCodepage(uint16_t cp)
         mapToUse = cpMap;
     else
 #endif
-	while(charmap[i].codepage!=0)
-    {
-		if(charmap[i].codepage==cp)
+        while(charmap[i].codepage != 0)
         {
-			mapToUse = charmap[i].map;
-			break;
-		}
-		i++;
-	}
-	if (mapToUse == NULL)
+            if(charmap[i].codepage == cp)
+            {
+                mapToUse = charmap[i].map;
+                break;
+            }
+            i++;
+        }
+    if(mapToUse == NULL)
     {
 		LOG(LOG_MISC,LOG_WARN)("Unsupported codepage %i. Using CP437 instead.", cp);
 		selectCodepage(437);
@@ -307,7 +307,7 @@ void CPrinter::updateFont()
     if (basedir.back()!='\\' && basedir.back()!='/')
         basedir += CROSS_FILESPLIT;
 
-	switch (LQtypeFace)
+    switch(LQtypeFace)
 	{
 	    case roman:
 		    fontName = basedir + "roman.ttf";
