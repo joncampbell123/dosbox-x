@@ -1,0 +1,113 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.17 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">September 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+Added FISTTP instruction to experimental cputype (LBi)
+</li><li>
+Updated debugger to support and decode fisttp, fcomi,
+fcomip, fucomi, fucomip (LBi)
+</li><li>
+Added cputype=experimental, which is the same as the
+highest CPU emulation level but with additional
+instructions from newer processors that do not exist
+in the era emulated by DOSBox-X i.e. FISTTP which is
+an SSE3 Pentium 4 instruction. (joncampbell123)
+</li><li>
+Added support for 286/386 call gates to JMP
+instruction (joncampbell123)
+</li><li>
+Added -bd option to IMGMOUNT to allow mounting
+partitions from a hard disk image mounted as an
+INT 13h hard disk. is the numeric value the
+hard disk image was mounted to. In this way, it
+becomes possible to mount any or all partitions
+in a hard disk image. WARNING: To safely mount
+multiple partitions, use -o partidx= to specify
+each partition you mount by index. (joncampbell123)
+</li><li>
+If a drive has no volume label, and user runs
+LABEL without specifying one, do not ask whether
+or not to delete the volume label because there
+is in fact no volume label to delete. (joncampbell123)
+</li><li>
+Added FreeDOS utilities DEFRAG, FORMAT, FDISK,
+CHKDSK, and SYS to the built-in Z drive. KERNEL.SYS
+is not provided so that the user can provide what
+they consider the best version of the FreeDOS kernel
+to format with if they use FORMAT /S (joncampbell123)
+</li><li>
+INT 29h routes output through ANSI.SYS driver in
+both IBM PC and PC-98 mode, unless ansi.sys=false
+is set in the config setting. (joncampbell123)
+Integrated commits from mainline (Allofich)
+</li><li>
+Fix regression in r4444: Hercules machine type
+cursor translation.
+<br />
+Remove redundant signature for ET4K that is now
+done in video BIOS.
+<br />
+Implement mouse driver function 0x27, fixes
+Alive - Behind the Moon.
+<br />
+Add log message for unusual cases where an
+executable unsafely places its initial stack outside
+the memory block.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.16 (<a href="release-0.83.16.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
