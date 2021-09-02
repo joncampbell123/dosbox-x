@@ -1,3 +1,5 @@
+0.83.18
+  - 
 0.83.17
   - Added FISTTP instruction to experimental cputype (LBi)
   - Updated debugger to support and decode fisttp, fcomi,
