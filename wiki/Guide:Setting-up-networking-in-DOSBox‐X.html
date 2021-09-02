@@ -507,9 +507,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1 id="_overview" class="sect0">Overview</h1>
 <div class="openblock partintro">
 <div class="content">
-DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.
-<p />
-Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.
+<div class="paragraph">
+<p>DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.</p>
+</div>
+<div class="paragraph">
+<p>Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of
+DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -563,7 +567,7 @@ serial2=disabled</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.</p>
+<p>To enable networking you first need to enable NE2000 adapter emulation in your DOSBox-X config file and select an appropriate back-end for the NE2000 emulation.</p>
 </div>
 </div>
 </div>
@@ -622,6 +626,40 @@ So for the default base value of 300 the full IO range used is actually 300-31F.
 <div class="paragraph">
 <p>This is the IRQ (Interrupt Request Level) of the emulated NE2000 adapter.</p>
 </div>
+<div class="paragraph">
+<p>You cannot just select a random value as many IRQs are already pre-assigned to various devices. e.g.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>IRQ3 to COM2 serial port (enabled by default in DOSBox-X)</p>
+</li>
+<li>
+<p>IRQ4 to COM1 serial port (enabled by default in DOSBox-X)</p>
+</li>
+<li>
+<p>IRQ5 <strong>may</strong> be assigned to the sound card (not the case by default in DOSBox-X)</p>
+</li>
+<li>
+<p>IRQ9 is an alias from IRQ2 but should be safe to use</p>
+</li>
+<li>
+<p>IRQ10 free</p>
+</li>
+<li>
+<p>IRQ11 free</p>
+</li>
+<li>
+<p>IRQ12 used by the PS/2 mouse emulation</p>
+</li>
+<li>
+<p>IRQ14 used by the primary IDE/ATA emulation</p>
+</li>
+<li>
+<p>IRQ15 used by the secondary IDE/ATA emulation (usually CD-ROM drive)</p>
+</li>
+</ul>
+</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -630,6 +668,18 @@ So for the default base value of 300 the full IO range used is actually 300-31F.
 </td>
 <td class="content">
 The default IRQ value (3) conflicts with the emulated COM2 port that is enabled by default.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+If your emulating a 8086 CPU machine type, the valid IRQ needs to be in the range of 0-7, which in this case effectively means 3, 4 or 5. This is because the 8086 only had a single PIC (Programmable Interrupt Controller), while later machines had two.
 </td>
 </tr>
 </table>
@@ -661,17 +711,27 @@ If you want to run multiple DOSBox-X instances on the same network, you MUST ens
 </table>
 </div>
 <div class="paragraph">
-<p>The first 3 bytes are known as the OUI (Organizational Unique Identifier), and typically represent the network card manufacturer.
+<p>The first 3 bytes are known as the OUI (Organisational Unique Identifier), and typically represent the network card manufacturer.
 The <strong>AC:DE:48</strong> OUI used by default, is a special private range, and it is recommended that you use this range.</p>
 </div>
 <div class="paragraph">
 <p>The last 3 bytes can be freely chosen. Each byte can range from 00 to FF.</p>
 </div>
 <div class="paragraph">
-<p>Some examples of valid alternative MAC addresses:
-- AC:DE:48:11:22:33
-- AC:DE:48:AA:BB:CC
-- AC:DE:48:1D:2E:3F</p>
+<p>Some examples of valid alternative MAC addresses with the same OUI:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>AC:DE:48:11:22:33</p>
+</li>
+<li>
+<p>AC:DE:48:AA:BB:CC</p>
+</li>
+<li>
+<p>AC:DE:48:1D:2E:3F</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -1599,7 +1659,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-08-01 23:42:06 -0400
+Last updated 2021-09-02 03:27:17 -0400
 </div>
 </div>
 </body>

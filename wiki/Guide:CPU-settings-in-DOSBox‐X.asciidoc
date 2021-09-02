@@ -40,15 +40,16 @@ This is based on: https://www.vogons.org/viewtopic.php?p=905713#p905713 and exte
 
 |Protected mode                                       |x|x|x|x|x|x|x|x
 |Virtual 8086 mode                                    |x|x|x|x|x|x|x|x
-|486 CPUID                                            |x|x|x|x|x| | |
+|486 CPUID                                            | | |x|x|x| | |
 |Pentium CPUID                                        | | | | | |x|x|
 |Pentium Pro CPUID                                    | | | | | | | |x
 |486 specific page access level calculation           |x|x|x|x| | | |
 |loose (fast) page privilege check                    | | | | | | | |
 |tight (slow) page privilege check                    | | | | | | | |x
-|BSWAP, CMPXCHG, XADD, INVD, WBINVD                   |x|x|x|x|x|x|x|x
+|BSWAP, XADD, INVD, WBINVD                            |x|x|x|x|x|x|x|x
+|CMPXCHG                                              | | |x|x|x|x|x|x
 |RDTSC                                                | | | | |x|x|x|x
-|CPUID, CMPXCHG8B,RDMSR, WRMSR, RSM                   | | | | | |x|x|x
+|CMPXCHG8B,RDMSR, WRMSR, RSM                          | | | | | |x|x|x
 |CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2 | | | | | | | |x
 |486 specific CR register behaviour                   |x|x|x|x|x| | |
 |Pentium specific CR register behaviour               | | | | | |x|x|x
@@ -74,16 +75,23 @@ The following config options are available to change the behaviour.
 
 Under the ``[cpu]`` heading you can set ``fpu=false`` to disable the FPU.
 
-NOTE: On real systems, starting with the Pentium CPU a FPU was always present.
-But DOSBox-X does allow disabling of the FPU with any CPU type.
-This could in cause problems with software that expects a FPU to be present.
-
-``[dosbox]`` ``weitek=``
+NOTE: On real systems, starting with the Pentium CPU generation, a FPU was always present.
+But DOSBox-X allow disabling of the FPU with any CPU type.
+This could cause problems with software that expects a FPU to be present.
 
 WARNING: The real FPUs had an 80bit precision.
 This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
 Very few DOS games used the FPU, but for those that do, this lesser precision can cause a verity of problem, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
-If your running Windows as the host OS, and proper FPU emulation is important, use the MinGW builds.
+If your running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
+
+#### Weitek FPU
+Weitek in the 80's made Math co-processors compatible with the FPU socket found on x86 systemboards.
+But note that these FPUs were not software compatible with Intel and AMD FPU units, and required special software that was specifically written for it.
+DOSBox-X supports emulation of Weitek FPUs, but only in combination with 386 and 486 cpu types.
+....
+[dosbox]
+weitek=true
+....
 
 ## FAQ
 #### Why is there no 8088 CPU option?

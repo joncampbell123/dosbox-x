@@ -654,8 +654,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">486 CPUID</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
@@ -719,9 +719,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">BSWAP, CMPXCHG, XADD, INVD, WBINVD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BSWAP, XADD, INVD, WBINVD</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CMPXCHG</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
@@ -741,7 +752,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CPUID, CMPXCHG8B,RDMSR, WRMSR, RSM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CMPXCHG8B,RDMSR, WRMSR, RSM</p></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -851,15 +862,12 @@ The following config options are available to change the behaviour.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-On real systems, starting with the Pentium CPU a FPU was always present.
-But DOSBox-X does allow disabling of the FPU with any CPU type.
-This could in cause problems with software that expects a FPU to be present.
+On real systems, starting with the Pentium CPU generation, a FPU was always present.
+But DOSBox-X allow disabling of the FPU with any CPU type.
+This could cause problems with software that expects a FPU to be present.
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p><code>[dosbox]</code> <code>weitek=</code></p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -871,10 +879,24 @@ This could in cause problems with software that expects a FPU to be present.
 The real FPUs had an 80bit precision.
 This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
 Very few DOS games used the FPU, but for those that do, this lesser precision can cause a verity of problem, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
-If your running Windows as the host OS, and proper FPU emulation is important, use the MinGW builds.
+If your running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
 </td>
 </tr>
 </table>
+</div>
+<div class="sect3">
+<h4 id="_weitek_fpu">Weitek FPU</h4>
+<div class="paragraph">
+<p>Weitek in the 80&#8217;s made Math co-processors compatible with the FPU socket found on x86 systemboards.
+But note that these FPUs were not software compatible with Intel and AMD FPU units, and required special software that was specifically written for it.
+DOSBox-X supports emulation of Weitek FPUs, but only in combination with 386 and 486 cpu types.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+weitek=true</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -979,7 +1001,7 @@ And therefore used other timing methods, and therefore cycle accurate emulation 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-08-01 23:42:06 -0400
+Last updated 2021-09-02 03:27:17 -0400
 </div>
 </div>
 </body>

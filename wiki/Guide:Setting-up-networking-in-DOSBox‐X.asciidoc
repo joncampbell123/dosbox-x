@@ -37,7 +37,7 @@ If you want to instead disable COM2, and leave the emulated NE2000 at its defaul
 serial2=disabled
 ....
 
-To enable networking you first need to enable NE2000 adapter emulation in your win95.conf config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking you first need to enable NE2000 adapter emulation in your DOSBox-X config file and select an appropriate back-end for the NE2000 emulation.
 
 ## [ne2000] config options
 
@@ -63,7 +63,21 @@ So for the default base value of 300 the full IO range used is actually 300-31F.
 
 This is the IRQ (Interrupt Request Level) of the emulated NE2000 adapter.
 
+You cannot just select a random value as many IRQs are already pre-assigned to various devices. e.g.
+
+- IRQ3 to COM2 serial port (enabled by default in DOSBox-X)
+- IRQ4 to COM1 serial port (enabled by default in DOSBox-X)
+- IRQ5 **may** be assigned to the sound card (not the case by default in DOSBox-X)
+- IRQ9 is an alias from IRQ2 but should be safe to use
+- IRQ10 free
+- IRQ11 free
+- IRQ12 used by the PS/2 mouse emulation
+- IRQ14 used by the primary IDE/ATA emulation
+- IRQ15 used by the secondary IDE/ATA emulation (usually CD-ROM drive)
+
 WARNING: The default IRQ value (3) conflicts with the emulated COM2 port that is enabled by default.
+
+WARNING: If your emulating a 8086 CPU machine type, the valid IRQ needs to be in the range of 0-7, which in this case effectively means 3, 4 or 5. This is because the 8086 only had a single PIC (Programmable Interrupt Controller), while later machines had two.
 
 ### macaddr
 * Default value: AC:DE:48:88:99:AA
@@ -73,12 +87,13 @@ Only one instance of a MAC address may exist on a network.
 
 WARNING: If you want to run multiple DOSBox-X instances on the same network, you MUST ensure they all have a different MAC address.
 
-The first 3 bytes are known as the OUI (Organizational Unique Identifier), and typically represent the network card manufacturer.
+The first 3 bytes are known as the OUI (Organisational Unique Identifier), and typically represent the network card manufacturer.
 The **AC:DE:48** OUI used by default, is a special private range, and it is recommended that you use this range.
 
 The last 3 bytes can be freely chosen. Each byte can range from 00 to FF.
 
-Some examples of valid alternative MAC addresses:
+Some examples of valid alternative MAC addresses with the same OUI:
+
 - AC:DE:48:11:22:33
 - AC:DE:48:AA:BB:CC
 - AC:DE:48:1D:2E:3F

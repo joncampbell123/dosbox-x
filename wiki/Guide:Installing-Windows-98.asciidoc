@@ -274,6 +274,7 @@ Once Windows 98 is installed, here is some additional software you may want to i
 * Install Microsoft .NET framework version 1.0, 1.1 and 2.0
 * Install Visual C++ 2005 runtime
 * Update to Internet Explorer 6.0 (rarely needed)
+* Update to DCOM 4.71.1015.0
 * Update to DirectX 9.0c
 * Install Windows Installer 2.0
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
@@ -390,7 +391,7 @@ A few enhancements have been made to the emulated S3 Trio64, compared to a real 
 * The real cards never supported wide-screen resolutions, wide-screen VESA modes can optionally be enabled in DOSBox-X.
 
 However, these enhancements cannot be used in Windows 98 with the S3 video driver due to driver limitations.
-And no updated S3 Trio64 video driver is available for Windows 98.
+And no updated S3 Trio64 video driver is available for Windows 98 (not even via installing DirectX 9c).
 As such you will be limited to the above video modes with this driver.
 
 ### VESA driver

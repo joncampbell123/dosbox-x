@@ -243,7 +243,8 @@ Once Windows 95 is installed, here is some additional software you may want to i
 * Install Unofficial Windows 95 OSR2 Service Pack 1.05
 * Install/Update to Internet Explorer 5.5SP2 (rarely needed)
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
-* Install/Update to DirectX 8.0a (this will also update your video and audio drivers)
+* Install DCOM 4.71.1015.0 (DCOM95.EXE)
+* Install/Update to DirectX 8.0a
 * Install/Update to Windows Media Player 6.4
 * Install/Update to Adobe Flash Player 8.0.24.0
 * Install Apple Quicktime 5.0.5
