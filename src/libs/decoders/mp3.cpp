@@ -95,7 +95,7 @@ static void MP3_close(Sound_Sample* const sample)
 
 static Uint32 MP3_read(Sound_Sample* const sample)
 {
-    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal* const>(sample->opaque);
+    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal*>(sample->opaque);
     const Sint32 channels = (int) sample->actual.channels;
     mp3_t* p_mp3 = static_cast<mp3_t*>(internal->decoder_private);
 

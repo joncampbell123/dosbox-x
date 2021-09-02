@@ -77,24 +77,24 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
 	uint8_t rdval;
 	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
-	if (GCC_UNLIKELY(mem_readb_checked((const PhysPt)lin_addr,&rdval))) return true;
-	PageHandler * handler=get_tlb_readhandler((const PhysPt)lin_addr);
+	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
+	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
 		cph=( CodePageHandler *)handler;
 		if (handler->flags & cflag) return false;
 		cph->ClearRelease();
 		cph=0;
-		handler=get_tlb_readhandler((const PhysPt)lin_addr);
+		handler=get_tlb_readhandler((PhysPt)lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (PAGING_ForcePageInit(lin_addr)) {
-			handler=get_tlb_readhandler((const PhysPt)lin_addr);
+			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=( CodePageHandler *)handler;
 				if (handler->flags & cflag) return false;
 				cph->ClearRelease();
 				cph=0;
-				handler=get_tlb_readhandler((const PhysPt)lin_addr);
+				handler=get_tlb_readhandler((PhysPt)lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {
@@ -143,7 +143,7 @@ static uint8_t decode_fetchb(void) {
 			/* trigger possible page fault here */
 			decode.page.first++;
 			Bitu fetchaddr=decode.page.first << 12;
-			mem_readb((const PhysPt)fetchaddr);
+			mem_readb((PhysPt)fetchaddr);
 			MakeCodePage(fetchaddr,decode.page.code);
 			CacheBlock * newblock=cache_getblock();
 			decode.active_block->crossblock=newblock;
