@@ -1925,6 +1925,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(wParam))) return;
 #endif
+#else
+    (void)Message;//UNUSED
 #endif
 }
 

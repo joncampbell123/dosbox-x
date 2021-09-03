@@ -460,6 +460,7 @@ void INT10_WriteChar_viaRealInt(uint8_t chr, uint8_t attr, uint8_t page, uint16_
 }
 
 void INT10_ScrollWindow_viaRealInt(uint8_t rul, uint8_t cul, uint8_t rlr, uint8_t clr, int8_t nlines, uint8_t attr, uint8_t page) {
+    (void)page;//UNUSED
 	BIOS_NCOLS;
 	BIOS_NROWS;
 
@@ -1428,6 +1429,8 @@ void INT10_ReadCharAttr(uint16_t * result,uint8_t page) {
 }
 
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page) {
+    (void)flag;//UNUSED
+    (void)attr;//UNUSED
 	uint16_t result;
 	while (count > 0) {
 		ReadCharAttr(col, row, page, &result);

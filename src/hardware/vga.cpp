@@ -1570,6 +1570,7 @@ void JEGA_readFont() {
 }
 
 void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0xb9://Mode register 1
 		jega.RMOD1 = val;
@@ -1645,6 +1646,7 @@ void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
 }
 //CRT Control Register can be read from I/O 3D5h, after setting index at I/O 3D4h
 Bitu read_p3d5_jega(Bitu reg, Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0xb9:
 		return jega.RMOD1;

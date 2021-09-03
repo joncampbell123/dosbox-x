@@ -7121,6 +7121,8 @@ char *getSetupLine(const char *capt, const char *cont) {
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
+    (void)x;//UNUSED
+    (void)y;//UNUSED
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);

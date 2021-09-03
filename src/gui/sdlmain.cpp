@@ -3410,6 +3410,8 @@ void GFX_SetShader(const char* src) {
 		glDeleteProgram(sdl_opengl.program_object);
 		sdl_opengl.program_object = 0;
 	}
+#else
+    (void)src;//UNUSED
 #endif
 }
 
@@ -11113,6 +11115,7 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
 
 bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
     if (section == NULL) return false;
     const char *voodoostr = section->Get_string("voodoo_card");
@@ -11126,6 +11129,7 @@ bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 
 bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
     if (section == NULL) return false;
     bool glideon = addovl;
