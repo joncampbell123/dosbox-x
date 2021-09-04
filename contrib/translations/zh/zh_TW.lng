@@ -115,7 +115,7 @@ DOSBox-X 紀錄輸出
 代碼概覽
 .
 :VISIT_HOMEPAGE
-拜訪首頁
+造訪首頁
 .
 :GET_STARTED
 輕鬆上手
@@ -791,11 +791,11 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 關於特殊按鍵的資訊, 請輸入 [34;1mintro special[0m
 關於使用的資訊, 請輸入 [34;1mintro usage[0m
 
-關於最新版本的 DOSBox-X, 請拜訪其首頁:[34;1m
+關於最新版本的 DOSBox-X, 請造訪其首頁:[34;1m
 
 [34;1mhttps://dosbox-x.com/[0m 或 [34;1mhttp://dosbox-x.software[0m
 
-關於 DOSBox-X 的更多資訊, 請拜訪其 Wiki 系統:
+關於 DOSBox-X 的更多資訊, 請造訪其 Wiki 系統:
 
 [34;1mhttps://dosbox-x.com/wiki[0m
 
