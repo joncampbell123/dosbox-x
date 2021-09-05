@@ -2597,7 +2597,11 @@ interrupted_char_begin:
                     //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
                     //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
                     if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
-                        // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
+                        // left half of doublewide char.
+                        // It appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
+                        // This contradicts common hardware documentation (e.g. the PC-9801 Programmers' Bible, p. 81)
+                        // and NEC's IO.SYS, which suggest that bit 7 has to be set to display the right half of any
+                        // fullwidth char.
                         doublewide = true;
                     }
 
@@ -2609,33 +2613,31 @@ interrupted_char_begin:
             }
             else {
                 // right half of doublewide char.
-                //
-                // NTS: Strange idiosyncratic behavior observed on real hardware shows that MOST fullwidth codes
-                //      fill two cells and ignore the other cell, EXCEPT, that specific ranges require you to
-                //      enter the same fullwidth code in both cells.
                 doublewide = false;
 
                 attr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
-                // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
-                // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
-                // Same applies 0x56 to 0x5F.
+                // Strange idiosyncratic behavior observed on real hardware shows that regular JIS level 1 and 2
+                // characters always show the right half corresponding to the previously drawn char, and ignore
+                // the right half's text (not attribute!) RAM word.
                 //
-                // Real hardware seems to show that this code will show the other half of the character IF the
-                // character code matches. If it does not match, then it will show the first half of the new code.
+                // This does not apply for fullwidth chars from 0x08 to 0x0F (box-drawing, NEC special characters)
+                // and from 0x56 onwards (gaiji, NEC Selection). For these, you need the same code in both cells
+                // for bit[6:0] values to display both halves properly. Specifying a different value from these
+                // ranges (and therefore, a different character) will show the right half of that character
+                // instead. Specifying a character outside these ranges will "interrupt" the current character
+                // and start a new one, with its left half.
                 //
-                // This fix is needed for Touhou Project to show some level titles correctly. The reason this fix
+                // One case of this can be seen in the Stage 2 level title of Touhou 2. The reason this fix
                 // affects it, is that the text RAM covering the playfield is not space or any traditionally empty
                 // cell but a custom character code that is generally empty, but the character cell bitmap is animated
                 // (changed per frame) when doing fade/wipe transitions between levels. Some of the level titles
                 // are displayed starting at an odd column cell number, which means that the Kanji intended for
                 // display "interrupts" the blank custom character cell code. TH02 ~idnight bug fix.
                 if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x56) {
-                    uint16_t n_chr;
+                    chr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
 
-                    n_chr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-
-                    if ((chr&0x7F7F) != (n_chr&0x7F7F))
+                    if((chr & 0x78U) != 0x08 && (chr & 0x7FU) < 0x56)
                         goto interrupted_char_begin;
                 }
 
