@@ -1104,7 +1104,7 @@ BIOSTEST 映像檔
 :PROGRAM_IMGMAKE_SYNTAX
 建立軟碟或硬碟映像檔.
 用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 參數]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源磁碟代號] [-retries #][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源] [-retries #][0m
   檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
   -t: 映像檔類型.
     [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
