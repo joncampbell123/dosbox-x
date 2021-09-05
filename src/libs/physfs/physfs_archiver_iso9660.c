@@ -334,6 +334,7 @@ static int parseVolumeDescriptor(PHYSFS_Io *io, PHYSFS_uint64 *_rootpos,
 static void *ISO9660_openArchive(PHYSFS_Io *io, const char *filename,
                                  int forWriting, int *claimed)
 {
+    (void)filename;//UNUSED
     PHYSFS_uint64 rootpos = 0;
     PHYSFS_uint64 len = 0;
     int joliet = 0;

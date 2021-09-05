@@ -53,6 +53,7 @@
 
 FilterBank *filterbank_new(int banks, spx_word32_t sampling, int len, int type)
 {
+   (void)type;//UNUSED
    FilterBank *bank;
    spx_word32_t df;
    spx_word32_t max_mel, mel_interval;

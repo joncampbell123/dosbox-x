@@ -59,6 +59,7 @@ static int qpakLoadEntries(PHYSFS_Io *io, const PHYSFS_uint32 count, void *arc)
 static void *QPAK_openArchive(PHYSFS_Io *io, const char *name,
                               int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint32 val = 0;
     PHYSFS_uint32 pos = 0;
     PHYSFS_uint32 count = 0;

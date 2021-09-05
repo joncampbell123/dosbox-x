@@ -8,7 +8,11 @@ RetroWaveContext retrowave_global_context;
 int retrowave_global_context_inited = 0;
 
 static void retrowave_iocb_empty(void *userp, uint32_t data_rate, const void *tx_buf, void *rx_buf, uint32_t len) {
-
+	(void)userp;//UNUSED
+	(void)data_rate;//UNUSED
+	(void)tx_buf;//UNUSED
+	(void)rx_buf;//UNUSED
+	(void)len;//UNUSED
 }
 
 static std::vector<std::string> string_split(const std::string &s, char delim) {

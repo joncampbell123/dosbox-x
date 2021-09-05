@@ -89,6 +89,8 @@ static inline void set_device_lock(RetroWavePlatform_POSIXSerialPort *ctx, int v
 }
 
 static void io_callback(void *userp, uint32_t data_rate, const void *tx_buf, void *rx_buf, uint32_t len) {
+	(void)data_rate;//UNUSED
+	(void)rx_buf;//UNUSED
 	RetroWavePlatform_POSIXSerialPort *ctx = userp;
 
 	set_device_lock(ctx, 1);

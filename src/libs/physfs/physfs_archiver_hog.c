@@ -64,6 +64,7 @@ static int hogLoadEntries(PHYSFS_Io *io, void *arc)
 static void *HOG_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint8 buf[3];
     void *unpkarc = NULL;
 

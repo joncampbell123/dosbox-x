@@ -1842,6 +1842,9 @@ CHD_EXPORT chd_error chd_get_metadata(chd_file *chd, UINT32 searchtag, UINT32 se
 
 CHD_EXPORT chd_error chd_codec_config(chd_file *chd, int param, void *config)
 {
+	(void)chd;//UNUSED
+	(void)param;//UNUSED
+	(void)config;//UNUSED
 	return CHDERR_INVALID_PARAMETER;
 }
 
@@ -1852,6 +1855,7 @@ CHD_EXPORT chd_error chd_codec_config(chd_file *chd, int param, void *config)
 
 CHD_EXPORT const char *chd_get_codec_name(UINT32 codec)
 {
+	(void)codec;//UNUSED
 	return "Unknown";
 }
 
@@ -2494,6 +2498,7 @@ static chd_error metadata_find_entry(chd_file *chd, UINT32 metatag, UINT32 metai
 
 static chd_error zlib_codec_init(void *codec, uint32_t hunkbytes)
 {
+	(void)hunkbytes;//UNUSED
 	int zerr;
 	chd_error err;
 	zlib_codec_data *data = (zlib_codec_data*)codec;

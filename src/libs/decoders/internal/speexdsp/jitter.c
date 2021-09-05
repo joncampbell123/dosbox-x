@@ -712,6 +712,8 @@ EXPORT int jitter_buffer_get_another(JitterBuffer *jitter, JitterBufferPacket *p
 /* Let the jitter buffer know it's the right time to adjust the buffering delay to the network conditions */
 static int _jitter_buffer_update_delay(JitterBuffer *jitter, JitterBufferPacket *packet, spx_int32_t *start_offset)
 {
+   (void)packet;//UNUSED
+   (void)start_offset;//UNUSED
    spx_int16_t opt = compute_opt_delay(jitter);
    /*fprintf(stderr, "opt adjustment is %d ", opt);*/
 

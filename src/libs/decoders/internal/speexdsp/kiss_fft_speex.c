@@ -364,6 +364,7 @@ void kf_work(
         int m2
         )
 {
+   (void)s2;//UNUSED
    int i;
     kiss_fft_cpx * Fout_beg=Fout;
     const int p=*factors++; /* the radix  */

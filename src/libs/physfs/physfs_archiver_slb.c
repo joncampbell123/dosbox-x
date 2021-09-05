@@ -62,6 +62,7 @@ static int slbLoadEntries(PHYSFS_Io *io, const PHYSFS_uint32 count, void *arc)
 static void *SLB_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint32 version;
     PHYSFS_uint32 count;
     PHYSFS_uint32 tocPos;

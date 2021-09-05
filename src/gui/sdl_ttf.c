@@ -329,6 +329,7 @@ static void TTF_SetFTError(const char *msg, FT_Error error)
 	}
 	TTF_SetError("%s: %s", msg, err_msg);
 #else
+	(void)error;//UNUSED
 	TTF_SetError("%s", msg);
 #endif /* USE_FREETYPE_ERRORS */
 }

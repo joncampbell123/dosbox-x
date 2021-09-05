@@ -96,6 +96,7 @@ static int vdfLoadEntries(PHYSFS_Io *io, const PHYSFS_uint32 count,
 static void *VDF_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint8 ignore[16];
     PHYSFS_uint8 sig[VDF_SIGNATURE_LENGTH];
     PHYSFS_uint32 count, timestamp, version, dataSize, rootCatOffset;

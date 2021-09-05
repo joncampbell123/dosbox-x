@@ -269,6 +269,9 @@ static PHYSFS_sint64 memoryIo_read(PHYSFS_Io *io, void *buf, PHYSFS_uint64 len)
 static PHYSFS_sint64 memoryIo_write(PHYSFS_Io *io, const void *buffer,
                                     PHYSFS_uint64 len)
 {
+    (void)io;//UNUSED
+    (void)buffer;//UNUSED
+    (void)len;//UNUSED
     BAIL(PHYSFS_ERR_OPEN_FOR_READING, -1);
 } /* memoryIo_write */
 
@@ -332,7 +335,10 @@ static PHYSFS_Io *memoryIo_duplicate(PHYSFS_Io *io)
     return retval;
 } /* memoryIo_duplicate */
 
-static int memoryIo_flush(PHYSFS_Io *io) { return 1;  /* it's read-only. */ }
+static int memoryIo_flush(PHYSFS_Io *io) {
+    (void)io;//UNUSED
+    return 1;  /* it's read-only. */
+    }
 
 static void memoryIo_destroy(PHYSFS_Io *io)
 {
@@ -1884,6 +1890,7 @@ typedef struct setSaneCfgEnumData
 static PHYSFS_EnumerateCallbackResult setSaneCfgEnumCallback(void *_data,
                                                 const char *dir, const char *f)
 {
+    (void)dir;
     setSaneCfgEnumData *data = (setSaneCfgEnumData *) _data;
     const size_t extlen = data->archiveExtLen;
     const size_t l = strlen(f);
@@ -2262,6 +2269,7 @@ static int locateInStringList(const char *str,
 static PHYSFS_EnumerateCallbackResult enumFilesCallback(void *data,
                                         const char *origdir, const char *str)
 {
+    (void)origdir;//UNUSED
     PHYSFS_uint32 pos;
     void *ptr;
     char *newstr;
