@@ -44,5 +44,5 @@ extern uint32_t retrowave_protocol_serial_packed_length(uint32_t len_in);
 extern uint32_t retrowave_protocol_serial_pack(const void *_buf_in, uint32_t len_in, void *_buf_out);
 
 #ifdef __cplusplus
-};
+}
 #endif

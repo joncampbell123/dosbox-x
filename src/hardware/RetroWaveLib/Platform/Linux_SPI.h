@@ -52,7 +52,7 @@ extern int retrowave_init_linux_spi(RetroWaveContext *ctx, const char *spi_dev, 
 extern void retrowave_deinit_linux_spi(RetroWaveContext *ctx);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

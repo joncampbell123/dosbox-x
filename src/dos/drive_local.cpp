@@ -3468,7 +3468,7 @@ physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
-};
+}
 
 const char *physfscdromDrive::GetInfo() {
 	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
@@ -3484,7 +3484,7 @@ bool physfscdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t fla
 		return false;
 	}
 	return physfsDrive::FileOpen(file,name,flags);
-};
+}
 
 bool physfscdromDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes)
 {
@@ -3493,28 +3493,28 @@ bool physfscdromDrive::FileCreate(DOS_File * * file,const char * name,uint16_t a
     (void)attributes;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::FileUnlink(const char * name)
 {
     (void)name;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::RemoveDir(const char * dir)
 {
     (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::MakeDir(const char * dir)
 {
     (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::Rename(const char * oldname,const char * newname)
 {
@@ -3522,14 +3522,14 @@ bool physfscdromDrive::Rename(const char * oldname,const char * newname)
     (void)newname;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::GetFileAttr(const char * name,uint16_t * attr)
 {
 	bool result = physfsDrive::GetFileAttr(name,attr);
 	if (result) *attr |= DOS_ATTR_READ_ONLY;
 	return result;
-};
+}
 
 bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst)
 {
@@ -3542,7 +3542,7 @@ bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfi
 		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 	}
 	return physfsDrive::FindFirst(_dir,dta);
-};
+}
 
 void physfscdromDrive::SetDir(const char* path)
 {
@@ -3554,7 +3554,7 @@ void physfscdromDrive::SetDir(const char* path)
 		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 	}
 	physfsDrive::SetDir(path);
-};
+}
 
 bool physfscdromDrive::isRemote(void) {
 	return true;
