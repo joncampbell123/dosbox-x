@@ -867,7 +867,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
         if (!level) shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
         return level;
     }
-    uint16_t attribute=0;
+    //uint16_t attribute=0; UNUSED
 	strcpy(path,full);
 	*(strrchr_dbcs(path,'\\')+1)=0;
 	char * end=strrchr_dbcs(full,'\\')+1;*end=0;

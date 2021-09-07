@@ -860,7 +860,7 @@ static Bitu IRQ1_Handler_PC98(void) {
         bool kana = modflags & 0x04;  //bit 2
         bool grph = modflags & 0x08;  //bit 3
         bool ctrl = !!(modflags & 0x10);  //bit 4
-        bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
+        //bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */ UNUSED
 
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */

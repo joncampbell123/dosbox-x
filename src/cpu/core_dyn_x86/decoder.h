@@ -2487,7 +2487,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.code_start=start;
 	decode.eip_location=start;
 	decode.code=start;
-	Bitu cycles=0;
+	//Bitu cycles=0; UNUSED
 	decode.page.code=codepage;
 	decode.page.index=start&4095;
 	decode.page.wmap=codepage->write_map;

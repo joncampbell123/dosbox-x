@@ -4990,7 +4990,9 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
 #endif
     if (((sdl.desktop.type != SCREEN_OPENGL) || !RENDER_GetForceUpdate()) && !sdl.updating)
         return;
+#if C_OPENGL
     bool actually_updating = sdl.updating;
+#endif
     sdl.updating = false;
 #if defined(USE_TTF)
     if (ttf.inUse) {
@@ -8916,7 +8918,7 @@ static bool PasteClipboardNext() {
 		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
 #else
     {
-		UINT uiScanCode = cKey;
+		//UINT uiScanCode = cKey; UNUSED
 		const UINT   uiScanCodeAlt = 0xFF;
 #endif
 		if (KEYBOARD_BufferSpaceAvail() < (10+kPasteMinBufExtra)) // For simplicity, we just mimic Alt+<3 digits>
@@ -9586,7 +9588,6 @@ void DOSBox_ConsolePauseWait() {
 bool usecfgdir = false;
 bool DOSBOX_parse_argv() {
     std::string optname,tmp;
-    uint8_t disp2_color=0;
     std::string disp2_opt;
 
     assert(control != NULL);
@@ -9857,6 +9858,7 @@ bool DOSBOX_parse_argv() {
         }
 #if C_DEBUG
         else if (optname == "display2") {
+        uint8_t disp2_color = 0;
             if (control->cmdline->NextOptArgv(tmp)) {
                 if (strcasecmp(tmp.c_str(),"amber")==0) disp2_color=1;
                 else if (strcasecmp(tmp.c_str(),"green")==0) disp2_color=2;

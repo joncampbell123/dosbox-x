@@ -2237,9 +2237,9 @@ bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
 
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
-static bool lockWarn = true;
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
+    static bool lockWarn = true;
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
     if (file_access_tries>0) {
         if (mode > 1) {
@@ -3395,7 +3395,7 @@ bool physfsFile::prepareWrite() {
 		PHYSFS_close(fhandle);
 		fhandle = PHYSFS_openAppend(pname);
 #ifndef WIN32
-		int rc = fcntl(**(int**)fhandle->opaque,F_SETFL,0);
+		fcntl(**(int**)fhandle->opaque,F_SETFL,0);
 #endif
 		PHYSFS_seek(fhandle, pos);
 	}

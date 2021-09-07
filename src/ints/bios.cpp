@@ -8873,7 +8873,7 @@ startfunction:
         BIOS_Int10RightJustifiedPrint(x,y,msg);
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
-            int oldx = x, oldy = y;
+            //int oldx = x, oldy = y; UNUSED
             unsigned int lastline = 7;
             for (unsigned int i=0; i<=lastline; i++) {
                 for (unsigned int j=0; j<strlen(logostr[i]); j++) {

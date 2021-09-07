@@ -551,7 +551,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",4,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
-        uint8_t mediaid = 0xF0;
+        //uint8_t mediaid = 0xF0; UNUSED
         std::vector<std::string> options;
         if (mountiro[drive-'A']) options.emplace_back("readonly");
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
