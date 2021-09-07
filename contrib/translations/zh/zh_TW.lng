@@ -670,7 +670,7 @@ MSCDEX 錯誤: 未知錯誤.
 .
 :PROGRAM_INTRO
 [2J[32;1m歡迎使用 DOSBox-X[0m, 支援聲音和影像且開放原始碼的 x86 模擬器.
-DOSBox-X 建立一個 DOS 環境讓您仿佛正在使用原本的 DOS 系統.
+DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 
 [31;1mDOSBox-X 如果遇到錯誤將會在未警告的情況下停止執行或結束![0m
 
