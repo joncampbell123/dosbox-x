@@ -42,6 +42,7 @@
 #define MAX_FFT_SIZE 2048
 
 #ifdef FIXED_POINT
+/* UNUSED
 static int maximize_range(spx_word16_t *in, spx_word16_t *out, spx_word16_t bound, int len)
 {
    int i, shift;
@@ -64,8 +65,9 @@ static int maximize_range(spx_word16_t *in, spx_word16_t *out, spx_word16_t boun
       out[i] = SHL16(in[i], shift);
    }
    return shift;
-}
+}*/
 
+/* UNUSED
 static void renorm_range(spx_word16_t *in, spx_word16_t *out, int shift, int len)
 {
    int i;
@@ -74,6 +76,7 @@ static void renorm_range(spx_word16_t *in, spx_word16_t *out, int shift, int len
       out[i] = PSHR16(in[i], shift);
    }
 }
+*/
 #endif
 
 #define USE_SMALLFT

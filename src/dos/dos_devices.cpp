@@ -235,6 +235,7 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 	return 0;
 }
 
+/* UNUSED
 static void DOS_CheckOpenExtDevice(const char *name) {
 	uint32_t addr;
 
@@ -242,7 +243,7 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
 		DOS_AddDevice(device);
 	}
-}
+}*/
 
 class device_NUL : public DOS_Device {
 public:
