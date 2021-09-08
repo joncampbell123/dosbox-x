@@ -3009,10 +3009,10 @@ DOS 命令
 傳送特殊鍵
 .
 :MENU:mapper_cycledown
-減少 CPU 週期
+降低 CPU 週期
 .
 :MENU:mapper_cycleup
-增加 CPU 週期
+提高 CPU 週期
 .
 :MENU:mapper_normal
 一般核心
