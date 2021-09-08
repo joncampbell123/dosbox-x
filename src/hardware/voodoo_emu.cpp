@@ -1134,7 +1134,8 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 	INT32 curscan, scaninc=1;
 
 	INT32 v1yclip, v3yclip;
-	INT32 v1y, v3y, v1x;
+    INT32 v1y, v3y;
+    //INT32 v1x; UNUSED
 
 	/* first sort by Y */
 	if (v2->y < v1->y)
@@ -1157,7 +1158,7 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 	}
 
 	/* compute some integral X/Y vertex values */
-	v1x = round_coordinate(v1->x);
+	//v1x = round_coordinate(v1->x); UNUSED
 	v1y = round_coordinate(v1->y);
 	v3y = round_coordinate(v3->y);
 
@@ -1295,10 +1296,10 @@ static void update_statistics(voodoo_state *v, bool accumulate)
  *************************************/
 
 void register_w(UINT32 offset, UINT32 data) {
-	voodoo_reg reg;
+	//voodoo_reg reg; UNUSED
 	UINT32 regnum  = (offset) & 0xff;
 	UINT32 chips   = (offset>>8) & 0xf;
-	reg.u = data;
+	//reg.u = data; UNUSED
 
 	INT64 data64;
 
