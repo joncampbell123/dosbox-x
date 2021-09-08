@@ -154,7 +154,9 @@ EXPORT void speex_decorrelate(SpeexDecorrState *st, const spx_int16_t *in, spx_i
    for (ch=0;ch<st->channels;ch++)
    {
       int i;
+#ifdef VORBIS_PSYCHO
       int N=2*st->frame_size;
+#endif
       float beta, beta2;
       float *x;
       float max_alpha = 0;

@@ -746,12 +746,8 @@ char help_command_temp[MENU_HELP_COMMAND_MAX][30];
 
 /* help debug ("DebugMenu" or "HelpDebugMenu") */
 #if C_DEBUG
-static const char *def_menu_debug[] =
-#else
-static const char *def_menu_help_debug[] =
-#endif
+static const char* def_menu_debug[] =
 {
-#if C_DEBUG
     "mapper_debugger",
     "--",
     "debugger_rundebug",
@@ -768,18 +764,21 @@ static const char *def_menu_help_debug[] =
     "show_logtext",
     "save_logas",
     "--",
-#endif
-#if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
     "wait_on_error",
-#endif
-#if C_DEBUG
     "--",
     "debug_logint21",
     "debug_logfileio",
-#endif
     NULL
 };
+#elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+static const char* def_menu_help_debug[] =
+{
+    "show_console",
+    "wait_on_error",
+    NULL
+};
+#endif
 
 /* help menu ("HelpMenu") */
 static const char *def_menu_help[] =
@@ -1925,6 +1924,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(wParam))) return;
 #endif
+#else
+    (void)Message;//UNUSED
 #endif
 }
 

@@ -2026,7 +2026,7 @@ static bool DRC_CALL_CONV dynrec_io_writeD(Bitu port) {
 	bool ex = CPU_IO_Exception(port,4);
 	if (!ex) IO_WriteD(port,reg_eax);
 	return ex;
-};
+}
 
 static bool DRC_CALL_CONV dynrec_io_readB(Bitu port) DRC_FC;
 static bool DRC_CALL_CONV dynrec_io_readB(Bitu port) {

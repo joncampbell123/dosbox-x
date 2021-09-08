@@ -53,7 +53,7 @@ extern int retrowave_init_posix_serialport(RetroWaveContext *ctx, const char *tt
 extern void retrowave_deinit_posix_serialport(RetroWaveContext *ctx);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

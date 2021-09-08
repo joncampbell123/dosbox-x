@@ -83,6 +83,9 @@ static PHYSFS_sint64 UNPK_read(PHYSFS_Io *io, void *buffer, PHYSFS_uint64 len)
 
 static PHYSFS_sint64 UNPK_write(PHYSFS_Io *io, const void *b, PHYSFS_uint64 len)
 {
+    (void)io;//UNUSED
+    (void)b;//UNUSED
+    (void)len;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, -1);
 } /* UNPK_write */
 
@@ -140,7 +143,10 @@ UNPK_duplicate_failed:
     return NULL;
 } /* UNPK_duplicate */
 
-static int UNPK_flush(PHYSFS_Io *io) { return 1;  /* no write support. */ }
+static int UNPK_flush(PHYSFS_Io *io) {
+    (void)io;//UNUSED
+    return 1;  /* no write support. */
+}
 
 static void UNPK_destroy(PHYSFS_Io *io)
 {
@@ -217,24 +223,32 @@ UNPK_openRead_failed:
 
 PHYSFS_Io *UNPK_openWrite(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* UNPK_openWrite */
 
 
 PHYSFS_Io *UNPK_openAppend(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* UNPK_openAppend */
 
 
 int UNPK_remove(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* UNPK_remove */
 
 
 int UNPK_mkdir(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* UNPK_mkdir */
 

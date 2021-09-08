@@ -164,6 +164,8 @@ bool DOS_ExtDevice::Close() {
 }
 
 bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
+    (void)pos;//UNUSED
+    (void)type;//UNUSED
 	return true;
 }
 

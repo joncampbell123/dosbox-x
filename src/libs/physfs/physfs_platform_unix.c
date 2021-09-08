@@ -334,6 +334,7 @@ char *__PHYSFS_platformCalcBaseDir(const char *argv0)
 
 char *__PHYSFS_platformCalcPrefDir(const char *org, const char *app)
 {
+    (void)org;//UNUSED
     /*
      * We use XDG's base directory spec, even if you're not on Linux.
      *  This isn't strictly correct, but the results are relatively sane

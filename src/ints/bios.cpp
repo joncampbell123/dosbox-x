@@ -7121,6 +7121,8 @@ char *getSetupLine(const char *capt, const char *cont) {
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
+    (void)x;//UNUSED
+    (void)y;//UNUSED
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
@@ -8871,7 +8873,7 @@ startfunction:
         BIOS_Int10RightJustifiedPrint(x,y,msg);
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
-            int oldx = x, oldy = y;
+            //int oldx = x, oldy = y; UNUSED
             unsigned int lastline = 7;
             for (unsigned int i=0; i<=lastline; i++) {
                 for (unsigned int j=0; j<strlen(logostr[i]); j++) {

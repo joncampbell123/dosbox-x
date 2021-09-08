@@ -230,6 +230,7 @@ public:
 	}
 
     bool Open(const char *conf) {
+        (void)conf;//UNUSED
         service = new MT32Emu::Service();
         uint32_t version = service->getLibraryVersionInt();
         if (version < 0x020100) {

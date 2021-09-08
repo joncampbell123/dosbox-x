@@ -192,7 +192,6 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 #endif
 	}
 	if (getfontx2header(mfile, &head) != 0) {
-		long int sz = 0;
 		if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
             fseek(mfile, 0L, SEEK_END);
             long int sz = ftell(mfile);

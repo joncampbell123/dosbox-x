@@ -718,6 +718,7 @@ void speex_echo_get_residual(SpeexEchoState *st, spx_word32_t *Yout, int len);
 
 EXPORT int speex_preprocess(SpeexPreprocessState *st, spx_int16_t *x, spx_int32_t *echo)
 {
+   (void)echo;//UNUSED
    return speex_preprocess_run(st, x);
 }
 

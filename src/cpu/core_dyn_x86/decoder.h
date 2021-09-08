@@ -77,24 +77,24 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
 	uint8_t rdval;
 	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
-	if (GCC_UNLIKELY(mem_readb_checked((const PhysPt)lin_addr,&rdval))) return true;
-	PageHandler * handler=get_tlb_readhandler((const PhysPt)lin_addr);
+	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
+	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
 		cph=( CodePageHandler *)handler;
 		if (handler->flags & cflag) return false;
 		cph->ClearRelease();
 		cph=0;
-		handler=get_tlb_readhandler((const PhysPt)lin_addr);
+		handler=get_tlb_readhandler((PhysPt)lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (PAGING_ForcePageInit(lin_addr)) {
-			handler=get_tlb_readhandler((const PhysPt)lin_addr);
+			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=( CodePageHandler *)handler;
 				if (handler->flags & cflag) return false;
 				cph->ClearRelease();
 				cph=0;
-				handler=get_tlb_readhandler((const PhysPt)lin_addr);
+				handler=get_tlb_readhandler((PhysPt)lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {
@@ -143,7 +143,7 @@ static uint8_t decode_fetchb(void) {
 			/* trigger possible page fault here */
 			decode.page.first++;
 			Bitu fetchaddr=decode.page.first << 12;
-			mem_readb((const PhysPt)fetchaddr);
+			mem_readb((PhysPt)fetchaddr);
 			MakeCodePage(fetchaddr,decode.page.code);
 			CacheBlock * newblock=cache_getblock();
 			decode.active_block->crossblock=newblock;
@@ -336,6 +336,7 @@ static INLINE void dyn_set_eip_end(void) {
 }
 
 static INLINE void dyn_set_eip_end(DynReg * endreg) {
+    (void)endreg;//UNUSED
 	gen_protectflags();
 	if (cpu.code.big) gen_dop_word(DOP_MOV,true,DREG(TMPW),DREG(EIP));
 	else gen_extend_word(false,DREG(TMPW),DREG(EIP));
@@ -2486,7 +2487,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.code_start=start;
 	decode.eip_location=start;
 	decode.code=start;
-	Bitu cycles=0;
+	//Bitu cycles=0; UNUSED
 	decode.page.code=codepage;
 	decode.page.index=start&4095;
 	decode.page.wmap=codepage->write_map;

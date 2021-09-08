@@ -59,6 +59,7 @@ static int grpLoadEntries(PHYSFS_Io *io, const PHYSFS_uint32 count, void *arc)
 static void *GRP_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint8 buf[12];
     PHYSFS_uint32 count = 0;
     void *unpkarc = NULL;

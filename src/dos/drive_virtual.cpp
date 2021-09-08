@@ -530,6 +530,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 }
 
 bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
+    (void)attr;//UNUSED
 	if (*name == 0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return true;
