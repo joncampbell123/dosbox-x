@@ -2931,16 +2931,16 @@ DOS 命令
 記錄檔案 I/O
 .
 :MENU:mapper_speedlock
-開啟或關閉快進模式
+開啟或關閉快轉模式
 .
 :MENU:mapper_speedlock2
-加速/快進模式
+加速模式 (快轉)
 .
 :MENU:mapper_speednorm
 正常速度
 .
 :MENU:mapper_speedup
-加快速度
+提高速度
 .
 :MENU:mapper_slowdown
 降低速度
