@@ -1057,7 +1057,7 @@ BIOSTEST 映像檔
 掛載軟碟, 硬碟或光碟映像檔.
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 控制器]
-[32;1mIMGMOUNT[0m [37;1m磁碟機編號[0m [36;1m檔案[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+[32;1mIMGMOUNT[0m [37;1m磁碟機編號[0m [36;1m檔案[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl 數字]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-t iso] [-fs iso]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [-t floppy] -bootcd 光碟機代號 (或 -el-torito 光碟機代號)
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m -t ram -size 大小
@@ -1070,11 +1070,11 @@ BIOSTEST 映像檔
  -fs iso             檔案系統為 ISO 9660 (為 .iso/.cue 檔案自動假設).
  -fs fat             檔案系統為 FAT - 支援 FAT12, FAT16 及 FAT32.
  -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
- -reservecyl #       在 BIOS 中報告使用比實際更少的磁柱數目.
+ -reservecyl 數字    在 BIOS 中報告使用比實際更少的磁柱數目.
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以掛載磁碟機.
  -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區數和 CHS 參數.
  -bootcd 光碟機代號  指定載入開機磁片映像所用的光碟機代號.
- -o partidx=#        指定要掛載為磁碟機的硬碟分割區編號.
+ -o partidx=數字     指定要掛載為磁碟機的硬碟分割區編號.
  -ro                 以唯讀模式掛載映像檔 (或用 ':' 首碼表示唯讀).
  -u                  卸載磁碟機或磁碟機編號.
  [32;1m-examples           顯示用法舉例.[0m
@@ -1104,7 +1104,7 @@ BIOSTEST 映像檔
 :PROGRAM_IMGMAKE_SYNTAX
 建立軟碟或硬碟映像檔.
 用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 參數]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源] [-retries #][0m
+  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源] [-retries 數字][0m
   檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
   -t: 映像檔類型.
     [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
@@ -2238,58 +2238,58 @@ CPU 類型
 模擬 CPU 速度
 .
 :MENU:cpu88-4
-8088 XT 4.77MHz (~240 週期)
+8088 XT 4.77MHz (約 240 個週期)
 .
 :MENU:cpu286-8
-286 8MHz (~750 週期)
+286 8MHz (約 750 個週期)
 .
 :MENU:cpu286-12
-286 12MHz (~1510 週期)
+286 12MHz (約 1510 個週期)
 .
 :MENU:cpu286-25
-286 25MHz (~3300 週期)
+286 25MHz (約 3300 個週期)
 .
 :MENU:cpu386-25
-386DX 25MHz (~4595 週期)
+386DX 25MHz (約 4595 個週期)
 .
 :MENU:cpu386-33
-386DX 33MHz (~6075 週期)
+386DX 33MHz (約 6075 個週期)
 .
 :MENU:cpu486-33
-486DX 33MHz (~12010 週期)
+486DX 33MHz (約 12010 個週期)
 .
 :MENU:cpu486-66
-486DX2 66MHz (~23880 週期)
+486DX2 66MHz (約 23880 個週期)
 .
 :MENU:cpu486-100
-486DX4 100MHz (~33445 週期)
+486DX4 100MHz (約 33445 個週期)
 .
 :MENU:cpu486-133
-486DX5 133MHz (~47810 週期)
+486DX5 133MHz (約 47810 個週期)
 .
 :MENU:cpu586-60
-奔騰 60MHz (~31545 週期)
+奔騰 60MHz (約 31545 個週期)
 .
 :MENU:cpu586-66
-奔騰 66MHz (~35620 週期)
+奔騰 66MHz (約 35620 個週期)
 .
 :MENU:cpu586-75
-奔騰 75MHz (~43500 週期)
+奔騰 75MHz (約 43500 個週期)
 .
 :MENU:cpu586-90
-奔騰 90MHz (~52000 週期)
+奔騰 90MHz (約 52000 個週期)
 .
 :MENU:cpu586-100
-奔騰 100MHz (~60000 週期)
+奔騰 100MHz (約 60000 個週期)
 .
 :MENU:cpu586-120
-奔騰 120MHz (~74000 週期)
+奔騰 120MHz (約 74000 個週期)
 .
 :MENU:cpu586-133
-奔騰 133MHz (~80000 週期)
+奔騰 133MHz (約 80000 個週期)
 .
 :MENU:cpu586-166
-奔騰 166MHz MMX (~97240 週期)
+奔騰 166MHz MMX (約 97240 個週期)
 .
 :MENU:VideoMenu
 影像
