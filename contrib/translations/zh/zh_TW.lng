@@ -2934,7 +2934,7 @@ DOS 命令
 開啟或關閉快轉模式
 .
 :MENU:mapper_speedlock2
-加速模式 (快轉)
+加速 (快轉模式)
 .
 :MENU:mapper_speednorm
 正常速度
