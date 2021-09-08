@@ -425,7 +425,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
-找到的光碟機: %d
+找到的光碟機: %d 台
 
 .
 :PROGRAM_MOUNT_STATUS_FORMAT
