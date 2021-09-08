@@ -393,7 +393,7 @@ DOSBox-X 是用以下命令列參數啟動:
 缺少參數.
 .
 :PROGRAM_MOUSE_INSTALL
-安裝在 PS/2 連接孔.
+安裝在 PS/2 連接埠.
 
 .
 :PROGRAM_MOUSE_VERTICAL
@@ -409,7 +409,7 @@ DOSBox-X 是用以下命令列參數啟動:
 
 .
 :PROGRAM_MOUSE_ERROR
-已經安裝在 PS/2 連接孔.
+已經安裝在 PS/2 連接埠.
 
 .
 :PROGRAM_MOUSE_NOINSTALLED
