@@ -6156,7 +6156,7 @@ void MODE::Run(void) {
             IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
         }
         if ((optc||optl)&&(cols!=COLS||lines!=LINES)) {
-            std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
+            std::string cmd="line_"+std::to_string((int)cols)+"x"+std::to_string((int)lines);
             if (!setlines(cmd.c_str())) goto modeparam;
         }
         return;

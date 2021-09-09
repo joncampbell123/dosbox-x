@@ -3879,11 +3879,11 @@ std::string GetSBirq() {
 }
 
 std::string GetSBldma() {
-    return sb.hw.dma8==0xff?"None":std::to_string(sb.hw.dma8);
+    return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
 }
 
 std::string GetSBhdma() {
-    return sb.hw.dma16==0xff?"None":std::to_string(sb.hw.dma16);
+    return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
 }
 
 extern void HWOPL_Cleanup();
