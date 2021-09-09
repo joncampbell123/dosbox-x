@@ -3207,7 +3207,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 雙重緩衝 (全螢幕)
 .
 :MENU:alwaysontop
-總在最前
+最上層顯示
 .
 :MENU:highdpienable
 啟用高 DPI 模式
