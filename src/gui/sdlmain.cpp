@@ -2509,7 +2509,7 @@ unsigned char prevc = 0;
 
 void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp;
+    unsigned char *scan, *bmp = NULL;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
@@ -2595,8 +2595,6 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             else if (prevc!=1)
                 bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
 
-	    /* FIXME: GCC warning: bmp can be uninitialized here */
-
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
             scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
@@ -2629,7 +2627,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
 void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp;
+    unsigned char *scan, *bmp = NULL;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||

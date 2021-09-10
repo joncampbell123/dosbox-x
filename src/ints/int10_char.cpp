@@ -829,7 +829,7 @@ void WriteCharDOSVDbcs24(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
 
 void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	Bitu off;
-	uint8_t data, select;
+	uint8_t data, select = 0;
 	uint8_t *font;
 
 	if(IS_DOSV && real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT) == 24) {
@@ -930,7 +930,7 @@ void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 	}
 	Bitu off;
 	uint8_t *font;
-	uint8_t select;
+	uint8_t select = 0;
 	int i = 0;
 
 	if(CheckJapaneseGraphicsMode(attr)) {

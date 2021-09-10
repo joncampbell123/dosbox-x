@@ -1216,7 +1216,7 @@ void DOSV_CursorXor24(Bitu x, Bitu y, Bitu start, Bitu end)
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
 	volatile uint8_t dummy;
 	Bitu off = (y + start) * width + (x * 12) / 8;
-	uint8_t select;
+	uint8_t select = 0;
 	if(svgaCard == SVGA_TsengET4K) {
 		if(off >= 0x20000) {
 			select = 0x22;
@@ -1379,7 +1379,7 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 
 		volatile uint8_t dummy;
 		Bitu off = (y + start) * width + x;
-		uint8_t select;
+		uint8_t select = 0;
 		if(svgaCard == SVGA_TsengET4K) {
 			if(off >= 0x20000) {
 				select = 0x22;

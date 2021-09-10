@@ -261,7 +261,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 	std::string temp_line;
 	std::string str_size;
 	uint16_t sizes[4];
-	uint8_t mediaid;
+	uint8_t mediaid=0;
 
 	if(drive_type=="CDROM") {
 		mediaid=0xF8;		/* Hard Disk */
