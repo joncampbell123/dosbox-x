@@ -2662,8 +2662,7 @@ const char *pc98_shcut_key_defaults[10] = {
 #pragma pack(push,1)
 struct pc98_func_key_shortcut_def {
     unsigned char           length;         /* +0x00  length of text */
-    unsigned char           shortcut[0x0E]; /* +0x01  Shortcut text to insert into CON device */
-    unsigned char           pad;            /* +0x0F  always NUL */
+    unsigned char           shortcut[0x0F]; /* +0x01  Shortcut text to insert into CON device */
 
     std::string getShortcutText(void) const {
         std::string ret;
@@ -2671,7 +2670,7 @@ struct pc98_func_key_shortcut_def {
 
         /* Whether a shortcut or escape (0xFE or not) the first 6 chars are displayed always */
         /* TODO: Strings for display are expected to display as Shift-JIS, convert to UTF-8 for display on host */
-        for (i=0;i < 0x0E;i++) {
+        for (i=0;i < 0x0F;i++) {
             if (shortcut[i] == 0u)
                 break;
             else if (shortcut[i] == 0x1B) {
@@ -2751,10 +2750,10 @@ struct pc98_func_key_shortcut_def {
         unsigned int i=0;
         char c;
 
-        while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = (unsigned char)c;
+        while (i < 0x0F && (c = *str++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
 
-        while (i < 0x0E) shortcut[i++] = 0;
+        while (i < 0x0F) shortcut[i++] = 0;
     }
 
     // set text and escape code. text does NOT include the leading 0xFE char.
@@ -2771,9 +2770,9 @@ struct pc98_func_key_shortcut_def {
         while (i < 6 && (c = *text++) != 0) shortcut[i++] = (unsigned char)c;
         while (i < 6) shortcut[i++] = ' ';
 
-        while (i < 0x0E && (c = *escape++) != 0) shortcut[i++] = (unsigned char)c;
+        while (i < 0x0F && (c = *escape++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
-        while (i < 0x0E) shortcut[i++] = 0;
+        while (i < 0x0F) shortcut[i++] = 0;
     }
 };                                          /* =0x10 */
 #pragma pack(pop)
@@ -2806,7 +2805,7 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int 
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Fu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2823,13 +2822,7 @@ void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned in
         const pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[scan-0x36];
         unsigned int j=0,o=0;
 
-        /* if the shortcut starts with 0xFE then the next 5 chars are intended for display only
-         * and the shortcut starts after that. Else the entire string is stuffed into the CON
-         * device. */
-        if (def.shortcut[0] == 0xFE)
-            j = 6;
-
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x05u,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2852,7 +2845,7 @@ void PC98_GetVFKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Fu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2892,44 +2885,37 @@ void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key[i];
 
-        def.pad = 0x00;
         def.set_text_and_escape(pc98_func_key_default[i],pc98_func_key_escapes_default[i]);
     }
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i];
 
-        def.pad = 0x00;
         def.set_shortcut(pc98_shcut_key_defaults[i]);
     }
     for (unsigned int i=0;i < 11;i++) {
         pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[i];
 
-        def.pad = 0x00;
         def.set_shortcut(pc98_editor_key_escapes_default[i]);
     }
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_ctrl[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     /* MS-DOS by default does not assign the VFn keys anything */
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key_shortcut[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key_ctrl[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
 }
@@ -4827,16 +4813,16 @@ void PC98_INTDC_WriteChar(unsigned char b);
 void INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
     unsigned int i;
 
-    for (i=0;i < 0x0E;i++)
+    for (i=0;i < 0x0F;i++)
         def.shortcut[i] = mem_readb(ofs+0x0+i);
 
-    for (i=0;i < 0x0E && def.shortcut[i] != 0;) i++;
+    for (i=0;i < 0x0F && def.shortcut[i] != 0;) i++;
     def.length = i;
 }
 
 void INTDC_STORE_FUNCDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
-    for (unsigned int i=0;i < 0x0E;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
-    mem_writew(ofs+0xE,0);
+    for (unsigned int i=0;i < 0x0F;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
+    mem_writeb(ofs+0xF,0);
 }
 
 void INTDC_LOAD_EDITDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
@@ -4851,7 +4837,7 @@ void INTDC_LOAD_EDITDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
 
 void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
     for (unsigned int i=0;i < 0x05;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
-    mem_writew(ofs+0x5,0);
+    mem_writeb(ofs+0x5,0);
 }
 
 bool inhibited_ControlFn(void) {
