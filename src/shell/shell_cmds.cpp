@@ -878,7 +878,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
     cdirs.clear();
 	while (res) {
         if (CheckBreak(shell)) return false;
-        strcpy(spath,((plast||level==1&&last?"-":"")+std::to_string(level+1)+":").c_str());
+        strcpy(spath,((plast||(level==1&&last)?"-":"")+std::to_string(level+1)+":").c_str());
         strcat(spath, path);
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {

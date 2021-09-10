@@ -478,7 +478,7 @@ uint8_t DOS_DTA::GetSearchDrive(void) {
 }
 
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
-    if (lfn||uselfn&&lfn_filefind_handle<LFN_FILEFIND_NONE) {
+    if (lfn||(uselfn&&lfn_filefind_handle<LFN_FILEFIND_NONE)) {
 		attr=sattr[lfn_filefind_handle];
         memcpy(pattern,sname[lfn_filefind_handle],LFN_NAMELENGTH);
         pattern[LFN_NAMELENGTH]=0;

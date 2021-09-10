@@ -4744,7 +4744,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     }
     if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
         if (ttf.SDL_fontbi != 0 || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
-        if (ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC) || ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC) || wpType == 4) colorFG = wpFG;
+        if ((ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC)) || (ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC)) || wpType == 4) colorFG = wpFG;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);
@@ -4805,7 +4805,7 @@ void GFX_EndTextLines(bool force=false) {
 
 //		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
 //		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
-		if (ttf.cursor != vga.draw.cursor.address>>1 || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
+		if ((ttf.cursor != vga.draw.cursor.address>>1) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
 			curAC[ttf.cursor] = newAC[ttf.cursor];
             curAC[ttf.cursor].chr ^= 0xf0f0;	// force redraw (differs)
         }
@@ -5292,7 +5292,7 @@ int setTTFCodePage() {
         }
         uint16_t unimap;
         int notMapped = 0;
-        for (int y = (customcp&&dos.loaded_codepage==customcp||altcp&&dos.loaded_codepage==altcp?0:8); y < 16; y++)
+        for (int y = ((customcp&&dos.loaded_codepage==customcp)||(altcp&&dos.loaded_codepage==altcp)?0:8); y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {

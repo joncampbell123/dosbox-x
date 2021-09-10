@@ -590,7 +590,7 @@ void GetExpandedPath(std::string &path) {
     else if (path.size()>3) {
         size_t pos = path.find(";"+udrive+":\\");
         if (pos == std::string::npos) pos = path.find(";"+ldrive+":\\");
-        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos))
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || (path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos)))
             path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(pos+4);
     }
 }

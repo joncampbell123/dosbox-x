@@ -7031,7 +7031,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
             }
             else {
                 if (tobold&&!bold) {
-                    if (strlen(s)>3&&!strncmp(s, "DEL", 3)||!strncmp(s, "ESC", 3)) bold = 3;
+                    if ((strlen(s)>3&&!strncmp(s, "DEL", 3))||!strncmp(s, "ESC", 3)) bold = 3;
                     else if (strlen(s)>5&&!strncmp(s, "ENTER", 5)) bold = 5;
                     else if (strlen(s)>8&&!strncmp(s, "SPACEBAR", 8)) bold = 8;
                 }
@@ -9079,7 +9079,7 @@ startfunction:
                         break;
                     }
 
-                    if (machine != MCH_PC98 && reg_ax == 0x5300 || machine == MCH_PC98 && reg_ax == 0x3900) { // user hit Del
+                    if ((machine != MCH_PC98 && reg_ax == 0x5300) || (machine == MCH_PC98 && reg_ax == 0x3900)) { // user hit Del
                         bios_setup = true;
                         showBIOSSetup(card, x, y);
                         break;
@@ -9097,7 +9097,7 @@ startfunction:
                     CALLBACK_RunRealInt(0x16);
                 }
 
-                if (machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/ || machine == MCH_PC98 && reg_ax == 0x3900) {
+                if ((machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) || (machine == MCH_PC98 && reg_ax == 0x3900)) {
                     bios_setup = true;
                     showBIOSSetup(card, x, y);
                     break;
@@ -9161,17 +9161,17 @@ startfunction:
                             continue;
                         }
                     }
-                    if (machine != MCH_PC98 && reg_ax == 0x4B00 || machine == MCH_PC98 && reg_ax == 0x3B00) { // Left key
+                    if ((machine != MCH_PC98 && reg_ax == 0x4B00) || (machine == MCH_PC98 && reg_ax == 0x3B00)) { // Left key
                         pos=pos>1?pos-1:6;
                         lasttick-=500;
-                    } else if (machine != MCH_PC98 && reg_ax == 0x4D00 || machine == MCH_PC98 && reg_ax == 0x3C00) { // Right key
+                    } else if ((machine != MCH_PC98 && reg_ax == 0x4D00) || (machine == MCH_PC98 && reg_ax == 0x3C00)) { // Right key
                         pos=pos<6?pos+1:1;
                         lasttick-=500;
-                    } else if ((machine != MCH_PC98 && reg_ax == 0x4800 || machine == MCH_PC98 && reg_ax == 0x3A00) && pos>3) { // Up key
+                    } else if (((machine != MCH_PC98 && reg_ax == 0x4800) || (machine == MCH_PC98 && reg_ax == 0x3A00)) && pos>3) { // Up key
                         if (pos==4||pos==5) pos=1;
                         else if (pos==6) pos=2;
                         lasttick-=500;
-                    } else if ((machine != MCH_PC98 && reg_ax == 0x5000 || machine == MCH_PC98 && reg_ax == 0x3D00) && pos<4) { // Down key
+                    } else if (((machine != MCH_PC98 && reg_ax == 0x5000) || (machine == MCH_PC98 && reg_ax == 0x3D00)) && pos<4) { // Down key
                         if (pos==1) pos=4;
                         else if (pos==2||pos==3) pos=6;
                         lasttick-=500;
