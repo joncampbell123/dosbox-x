@@ -1232,7 +1232,8 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 case 'n':/* Device Status Report */
                     switch (ansi.data[0]) {
                         case 6: /* report active position */
-                            dev_con_max = sprintf((char*)dev_con_readbuf,"\x1B[%d;%dR",CURSOR_POS_ROW(page),CURSOR_POS_COL(page));
+                            dev_con_pos = 0;
+                            dev_con_max = sprintf((char*)dev_con_readbuf,"\x1B[%d;%dR",CURSOR_POS_ROW(page)+1,CURSOR_POS_COL(page)+1);
                             break;
                         default:
                             LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled Device Status Report code %d",ansi.data[0]);
