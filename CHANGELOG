@@ -1,5 +1,17 @@
 0.83.18
-  - 
+  - Fixed packed structure alignment problem with MSVC
+    (Microsoft C++) builds regarding some disk image
+    formats. These problems prevented VS2019 builds from
+    mounting hard disk images. (Allofich)
+  - REP STOSB will correctly move one byte if one byte
+    remains to be processed aka CX == 1, this is needed
+    for FD98.COM self clearing code to work properly. (Nanshiki)
+  - Fixed ANSI ESC [6n escape handling to correctly
+    report cursor position as 1-based count, not 0-based
+    count (Nanshiki)
+  - PC-98 INT DCh emulator fixed to better represent the
+    function key shortcuts as real DOS does (Nanshiki)
+  - Emulator fix for HX-DOS builds (Wengier)
 0.83.17
   - Added FISTTP instruction to experimental cputype (LBi)
   - Updated debugger to support and decode fisttp, fcomi,
