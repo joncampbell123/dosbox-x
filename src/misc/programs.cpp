@@ -1353,15 +1353,19 @@ void CONFIG::Run(void) {
                             if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
                                 const char* windowposition = section->Get_string("windowposition");
                                 int GetDisplayNumber(void);
+#if defined(C_SDL2) || defined (WIN32)
                                 int posx = -1, posy = -1;
+#endif
                                 if (windowposition && *windowposition) {
                                     char result[100];
                                     safe_strncpy(result, windowposition, sizeof(result));
                                     char* y = strchr(result, ',');
                                     if (y && *y) {
                                         *y = 0;
+#if defined(C_SDL2) || defined (WIN32)
                                         posx = atoi(result);
                                         posy = atoi(y + 1);
+#endif
                                     }
                                 }
 #if defined(C_SDL2)

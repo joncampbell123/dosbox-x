@@ -3527,7 +3527,7 @@ static Bitu DOS_29Handler(void)
 					break;
 				case 'p':/* reassign keys (needs strings) */
 					{
-						uint16_t src, dst;
+						/*uint16_t src, dst;
 						i = 0;
 						if(int29h_data.ansi.data[i] == 0) {
 							i++;
@@ -3541,7 +3541,7 @@ static Bitu DOS_29Handler(void)
 						} else {
 							dst = int29h_data.ansi.data[i++];
 						}
-						//DOS_SetConKey(src, dst);
+						DOS_SetConKey(src, dst);*/
 						ClearAnsi29h();
 					}
 					break;

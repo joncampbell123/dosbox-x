@@ -7454,13 +7454,14 @@ void SetIMPosition() {
         y = address / 80;
     } else
         INT10_GetCursorPos(&y, &x, page);
-    int nrows=25, ncols=80;
+    /* UNUSED
+    int nrows = 25, ncols = 80;
     if (IS_PC98_ARCH)
         nrows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
     else {
         nrows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
         ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-    }
+    }*/
     if ((im_x != x || im_y != y) && GetTicks() - last_ticks > 100) {
         last_ticks = GetTicks();
         im_x = x;

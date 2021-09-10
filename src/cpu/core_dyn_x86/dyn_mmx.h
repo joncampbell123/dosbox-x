@@ -54,6 +54,7 @@ extern uint32_t * lookupRMEAregd[256];
 #define Fetchb() imm
 #define GetEArd	uint32_t * eard=lookupRMEAregd[rm];
 
+/* UNUSED
 static void gen_mmx_op(Bitu op, Bitu rm, Bitu imm = 0, PhysPt eaa = 0) {
 	switch (op)
 	{
@@ -63,7 +64,7 @@ static void gen_mmx_op(Bitu op, Bitu rm, Bitu imm = 0, PhysPt eaa = 0) {
 	}
 illegal_opcode:
 	return;
-}
+}*/
 
 static void dyn_mmx_op(Bitu op) {
 	//Bitu imm = 0;

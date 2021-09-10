@@ -2143,28 +2143,28 @@ static chd_error hunk_read_uncompressed(chd_file *chd, UINT64 offset, size_t siz
     the CHD's hunk cache
 -------------------------------------------------*/
 
-static chd_error hunk_read_into_cache(chd_file *chd, UINT32 hunknum)
-{
-	chd_error err;
-
-	/* track the max */
-	if (hunknum > chd->maxhunk)
-		chd->maxhunk = hunknum;
-
-	/* if we're already in the cache, we're done */
-	if (chd->cachehunk == hunknum)
-		return CHDERR_NONE;
-	chd->cachehunk = ~0;
-
-	/* otherwise, read the data */
-	err = hunk_read_into_memory(chd, hunknum, chd->cache);
-	if (err != CHDERR_NONE)
-		return err;
-
-	/* mark the hunk successfully cached in */
-	chd->cachehunk = hunknum;
-	return CHDERR_NONE;
-}
+//static chd_error hunk_read_into_cache(chd_file *chd, UINT32 hunknum) UNUSED
+//{
+//	chd_error err;
+//
+//	/* track the max */
+//	if (hunknum > chd->maxhunk)
+//		chd->maxhunk = hunknum;
+//
+//	/* if we're already in the cache, we're done */
+//	if (chd->cachehunk == hunknum)
+//		return CHDERR_NONE;
+//	chd->cachehunk = ~0;
+//
+//	/* otherwise, read the data */
+//	err = hunk_read_into_memory(chd, hunknum, chd->cache);
+//	if (err != CHDERR_NONE)
+//		return err;
+//
+//	/* mark the hunk successfully cached in */
+//	chd->cachehunk = hunknum;
+//	return CHDERR_NONE;
+//}
 #endif
 
 /*-------------------------------------------------

@@ -2179,6 +2179,7 @@ static void dyn_closeblock(void) {
 	cache_closeblock();
 }
 
+/* UNUSED
 static void dyn_normal_exit(BlockReturn code) {
 	gen_protectflags();
 	dyn_reduce_cycles();
@@ -2186,7 +2187,7 @@ static void dyn_normal_exit(BlockReturn code) {
 	dyn_save_critical_regs();
 	gen_return(code);
 	dyn_closeblock();
-}
+}*/
 
 static void dyn_exit_link(Bits eip_change) {
 	gen_protectflags();
