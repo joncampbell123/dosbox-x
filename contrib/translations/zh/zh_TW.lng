@@ -2208,7 +2208,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 減少 TTF 字型大小
 .
 :MENU:mapper_togmenu
-隱藏/顯示下拉選單
+隱藏/顯示選單列
 .
 :MENU:MainMenu
 主選單
@@ -3312,5 +3312,5 @@ CPU: 一般核心
 CPU: 簡單核心
 .
 :MAPPER:togmenu
-開啟或關閉下拉選單
+開啟或關閉選單列
 .
