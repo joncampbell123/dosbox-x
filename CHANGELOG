@@ -9,7 +9,7 @@
   - Fixed ANSI ESC [6n escape handling to correctly
     report cursor position as 1-based count, not 0-based
     count (Nanshiki)
-  - PC-98 INT DCh emulator fixed to better represent the
+  - PC-98 INT DCh emulation fixed to better represent the
     function key shortcuts as real DOS does (Nanshiki)
   - Emulator fix for HX-DOS builds (Wengier)
 0.83.17
