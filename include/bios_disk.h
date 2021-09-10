@@ -471,7 +471,6 @@ struct _PC98RawPartition {
 	uint16_t	end_cyl;	/* end cylinder */
 	char		name[16];
 };
-#pragma pack(pop)
 
 struct partTable {
 	uint8_t booter[446];
@@ -491,7 +490,8 @@ struct partTable {
 #if SECTOR_SIZE_MAX > 512
     uint8_t  extra[SECTOR_SIZE_MAX - 512];
 #endif
-} GCC_ATTRIBUTE(packed);
+};
+#pragma pack(pop)
 
 void updateDPT(void);
 void incrementFDD(void);
