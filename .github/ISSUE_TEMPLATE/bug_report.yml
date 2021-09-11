@@ -1,0 +1,41 @@
+name: Bug report
+about: File a bug report to help us improve DOSBox-X
+title: ''
+labels: bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Please fill out the form as cleanly as possible.
+        Make sure that you have properly filled in the title of this bug report.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is. If applicable, add screenshots to help explain your problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce the behaviour
+      description: How can we reproduce this bug? For example, doing what in what software causes this?
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: false
+
+#**Expected behavior**
+#A clear and concise description of what you expected to happen.
+
+#**Environment (please complete the following information):**
+# - Operating system
+# - DOSBox-X release version or commit SHA1 this issue occurred on
+# - Used configuration, e.g. ```dosbox-x.conf```
+
+#**Additional context**
+#Add any other context about the problem here.
