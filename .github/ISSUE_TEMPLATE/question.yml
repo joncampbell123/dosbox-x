@@ -28,7 +28,7 @@ body:
     id: question
     attributes:
       label: Question
-      description: A clear and concise description of what your question is.
+      description: A clear and concise description of what your question is. If applicable, add screenshots to help in explaining.
       placeholder: "Ex. How do I [...]"
     validations:
       required: true
