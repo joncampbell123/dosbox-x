@@ -1,6 +1,5 @@
 name: Bug report
-about: File a bug report to help us improve DOSBox-X
-title: ''
+description: File a bug report to help us improve DOSBox-X
 labels: bug
 
 body:
