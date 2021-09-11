@@ -35,8 +35,8 @@ body:
   - type: textarea
     id: excepted
     attributes:
-      label: The solution you'd like
-      description: A clear and concise description of what you want to happen. If applicable, add screenshots to help explaining.
+      label: What you want
+      description: A clear and concise description of what you want (to happen). If applicable, add screenshots to help explaining.
     validations:
       required: true
   - type: textarea
