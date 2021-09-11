@@ -33,7 +33,7 @@ body:
     validations:
       required: false
   - type: checkboxes
-    id: checked
+    id: alreadyexists
     attributes:
       label: Have you checked that no other similar bug report(s) already exists?
       description: Search the issues before creating this bug report.
@@ -91,7 +91,7 @@ body:
     validations:
       required: false
   - type: textarea
-    id: excepted
+    id: context
     attributes:
       label: Additional context
       description: Add any other context about the problem here.
