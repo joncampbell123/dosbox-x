@@ -2315,20 +2315,30 @@ static VideoModeBlock *ModeListVtext[] = {
 extern void IME_SetFontSize(int size);
 #endif
 
+void AdjustIMEFontSize()
+{
+	int cheight = CurMode->cheight;
+	if(IS_DOSV && cheight == 19) {
+		cheight = 16;
+	}
+#if defined(USE_TTF)
+	if(dos.im_enable_flag && ttf.inUse) {
+		cheight = TTF_FontAscent(ttf.SDL_font);
+	}
+#endif
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+	SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+	IME_SetFontSize(cheight);
+#endif
+}
+
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 {
 	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
 		FinishSetMode(true);
 		INT10_SetCursorShape(6, 7);
-		int cheight = CurMode->cheight;
-		if(IS_DOSV && cheight == 19) {
-			cheight = 16;
-		}
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-		SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
-		IME_SetFontSize(cheight);
-#endif
+		AdjustIMEFontSize();
 	} else {
 		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);
 		return false;
