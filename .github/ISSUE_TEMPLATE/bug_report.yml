@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        #### Please fill out the form as cleanly as possible.
+        ### Please fill out the form as cleanly as possible.
         Also, make sure that you have properly filled in the title of the bug report.
   - type: checkboxes
     id: terms
@@ -29,7 +29,7 @@ body:
     attributes:
       label: Relevant hardware info
       description: If relevant, describe the hardware this bug occurred on.
-      placeholder: "CPU, GPU, device brand/model. e.g. Raspberry Pi3B+, NVIDIA RTX 2080, etc"
+      placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
     validations:
       required: false
   - type: checkboxes
