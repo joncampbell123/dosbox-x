@@ -16,6 +16,14 @@ body:
       options:
         - label: I agree to follow the code of conduct and the contributing guidelines.
           required: true
+  - type: checkboxes
+    id: alreadyexists
+    attributes:
+      label: Have you checked that no other similar bug report(s) already exists?
+      description: Search the issues before creating this bug report.
+      options:
+        - label: I have searched and didn't find any similar issues.
+          required: true
   - type: input
     id: os
     attributes:
@@ -32,14 +40,6 @@ body:
       placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
     validations:
       required: false
-  - type: checkboxes
-    id: alreadyexists
-    attributes:
-      label: Have you checked that no other similar bug report(s) already exists?
-      description: Search the issues before creating this bug report.
-      options:
-        - label: I have searched and didn't find any similar issues.
-          required: true
   - type: input
     id: version
     attributes:
@@ -78,7 +78,7 @@ body:
     id: config
     attributes:
       label: Used configuration
-      description: Share the configuration (usually from the `dosbox-x.conf` file) that can cause the bug to occur.
+      description: Share the configuration (usually from the `dosbox-x.conf` file) that can cause the bug to occur. Leave this area empty if you're using the default configuration.
       render: ini # Syntax highlighting
     validations:
       required: false
