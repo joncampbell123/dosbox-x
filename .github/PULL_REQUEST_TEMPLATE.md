@@ -1,6 +1,6 @@
 <!-- Summary of changes brought by this PR -->
 
-## What issue tickets does this PR address?
+## What issues does this PR address?
 
 <!-- If there is matching issue tickets, add their numbers there, e.g. #1234 -->
 
