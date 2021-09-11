@@ -2916,7 +2916,7 @@ DOS 命令
 記錄主控台
 .
 :MENU:debug_blankrefreshtest
-刷新測試 (空白顯示)
+畫面重新整理測試 (空白顯示)
 .
 :MENU:debug_generatenmi
 產生 NMI 中斷
