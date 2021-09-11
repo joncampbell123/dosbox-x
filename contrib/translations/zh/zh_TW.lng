@@ -109,7 +109,7 @@ DOSBox-X 組態工具
 設定組
 .
 :LOGGING_OUTPUT
-DOSBox-X 紀錄輸出
+DOSBox-X 記錄輸出
 .
 :CODE_OVERVIEW
 代碼概覽
@@ -2892,10 +2892,10 @@ DOSBox-X 支援
 顯示代碼概覽
 .
 :MENU:show_logtext
-顯示紀錄文字
+顯示記錄文字
 .
 :MENU:save_logas
-另存記錄檔案...
+另存記錄檔...
 .
 :MENU:debugger_rundebug
 偵錯工具選項: 執行偵錯工具
