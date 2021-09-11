@@ -52,14 +52,14 @@ body:
     id: issue
     attributes:
       label: Describe the bug
-      description: A clear and concise description of what the bug is. If applicable, add screenshots to help explaining.
+      description: A clear and concise description of what the bug is. If applicable, add screenshots to help in explaining.
     validations:
       required: true
   - type: textarea
     id: excepted
     attributes:
       label: Expected behavior
-      description: A clear and concise description of what you expected to happen. If applicable, add screenshots to help explaining.
+      description: A clear and concise description of what you expected to happen. If applicable, add screenshots to help in explaining.
     validations:
       required: false
   - type: textarea
