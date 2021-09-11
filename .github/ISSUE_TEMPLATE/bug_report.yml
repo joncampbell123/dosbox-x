@@ -20,7 +20,7 @@ body:
     attributes:
       label: Steps to reproduce the behaviour
       description: How can we reproduce this bug? For example, doing what in what software causes this?
-      value: |
+      placeholder: |
         1. Go to '...'
         2. Click on '....'
         3. Scroll down to '....'
