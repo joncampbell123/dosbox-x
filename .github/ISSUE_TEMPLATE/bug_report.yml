@@ -73,7 +73,7 @@ body:
         3. Scroll down to '....'
         4. See error
     validations:
-      required: false
+      required: true
   - type: textarea
     id: config
     attributes:
