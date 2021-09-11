@@ -1074,9 +1074,10 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
     return CBRET_NONE;
 }
 
+bool isDBCSCP();
 static bool IsKanjiCode(uint16_t key)
 {
-	if(isJEGAEnabled() || IS_DOSV) {
+	if(isDBCSCP()) {
 		// Kanji
 		if((key & 0xff00) == 0xf000 || (key & 0xff00) == 0xf100) {
 			return true;
