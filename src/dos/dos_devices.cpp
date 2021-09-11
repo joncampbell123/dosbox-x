@@ -235,7 +235,6 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 	return 0;
 }
 
-/* UNUSED
 static void DOS_CheckOpenExtDevice(const char *name) {
 	uint32_t addr;
 
@@ -243,7 +242,7 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
 		DOS_AddDevice(device);
 	}
-}*/
+}
 
 class device_NUL : public DOS_Device {
 public:
@@ -755,9 +754,14 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
 uint8_t DOS_FindDevice(char const * name) {
 	/* should only check for the names before the dot and spacepadded */
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
+	bool ime_flag = false;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
-	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
-
+	if(*name == '@' && *(name + 1) == ':') {
+		strcpy(fullname, name + 2);
+		ime_flag = true;
+	} else {
+		if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
+	}
 	char* name_part = strrchr_dbcs(fullname,'\\');
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
@@ -772,6 +776,26 @@ uint8_t DOS_FindDevice(char const * name) {
    
 	char* dot = strrchr(name_part,'.');
 	if(dot) *dot = 0; //no ext checking
+
+	DOS_CheckOpenExtDevice(name_part);
+	for(Bit8s index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
+		if(Devices[index]) {
+			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
+				if(WildFileCmp(name_part, Devices[index]->name)) {
+					if(DOS_CheckExtDevice(name_part, false) != 0) {
+						return index;
+					} else {
+						delete Devices[index];
+						Devices[index] = 0;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if(ime_flag) {
+		return DOS_DEVICES;
+	}
 
 	static char com[5] = { 'C','O','M','1',0 };
 	static char lpt[5] = { 'L','P','T','1',0 };
