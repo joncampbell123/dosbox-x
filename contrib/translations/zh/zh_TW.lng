@@ -1567,7 +1567,7 @@ SUBST: 命令列參數錯誤.
 :SHELL_STARTUP_TEXT3
 [32m專案首頁[37m: [33mhttps://dosbox-x.com/                  [36mDOSBox-X提供完整的 DOS 模擬[37m
 [32m使用指南[37m: [33mhttps://dosbox-x.com/wiki[32m              [36m包括 DOS, Windows 3.x 和 9x[37m
-[32m問題討論[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
+[32m問題建議[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
 .
 :SHELL_STARTUP_LAST
 祝您使用 DOSBox-X 愉快!
