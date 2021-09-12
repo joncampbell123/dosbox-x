@@ -1543,7 +1543,7 @@ SUBST: 命令列參數錯誤.
 您亦可以通過 DOSBox-X 所帶的[33m下拉式選單[37m來完成 DOSBox-X 的各種操作和功能。    
 .
 :SHELL_STARTUP_EXAMPLE
-[32m舉例[37m: 您可以試著在 [32m影像[37m 選單中選擇 [33mTTF[37m 或者 [33mOpenGL perfect[37m 輸出選項。       
+[32m舉例[37m: 可以試著在 [32m影像[37m 選單中選擇 [33mTrueType 字型[37m 或 [33mOpenGL perfect[37m 輸出選項。 
 .
 :SHELL_STARTUP_HEAD2
 [36m常用的預設快速鍵:                                                           [37m
@@ -2445,7 +2445,7 @@ OpenGL nearest
 OpenGL perfect
 .
 :MENU:output_ttf
-TTF
+TrueType 字型
 .
 :MENU:doublescan
 雙重掃描
