@@ -1539,11 +1539,11 @@ SUBST: 命令列參數錯誤.
 [36m輕鬆上手 DOSBox-X:                                                          [37m
 .
 :SHELL_STARTUP_TEXT1
-輸入 [32mHELP[37m 命令檢視DOS命令清單, 或輸入 [32mINTRO[37m 命令進入 DOSBox-X 的簡短介紹。  
+輸入 [32mHELP[37m 命令檢視 DOS 命令清單, 或輸入 [32mINTRO[37m 命令進入 DOSBox-X 的簡短介紹。
 您亦可以通過 DOSBox-X 所帶的[33m下拉式選單[37m來完成 DOSBox-X 的各種操作和功能。    
 .
 :SHELL_STARTUP_EXAMPLE
-[32m舉例[37m: 可以試著在 [32m影像[37m 選單中選擇 [33mTrueType 字型[37m 或 [33mOpenGL perfect[37m 輸出選項。 
+[32m舉例[37m: 您可以試著在[32m影像[37m選單中選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。
 .
 :SHELL_STARTUP_HEAD2
 [36m常用的預設快速鍵:                                                           [37m
@@ -1626,7 +1626,7 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
   /O          依照指定排列順序列出檔案.
   排列順序     N  依檔名 (英文字母)    S  依大小 (最小的在前)
                E  依副檔名 (英文字母)  D  依日期時間 (最早的在前)
-               G  先列出子目錄           -  首碼表示反向順序
+               G  先列出子目錄         -  首碼表示反向順序
 
 選項可以在 DIRCMD 環境變數中預先設定. 可以用含-首碼的選項(比如/-W)進行覆蓋.
             
