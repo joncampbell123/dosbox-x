@@ -20,7 +20,11 @@
 #  error Unable to determine byte order
 # endif
 #else
-# include <endian.h>
+# if defined(__FreeBSD__)
+#  include <sys/endian.h>
+# else
+#  include <endian.h>
+# endif
 # define ICONV_BYTE_ORDER BYTE_ORDER
 # define ICONV_LITTLE_ENDIAN LITTLE_ENDIAN
 # define ICONV_BIG_ENDIAN BIG_ENDIAN

@@ -547,7 +547,11 @@ void voodoo_ogl_invalidate_paltex(void) {
 }
 
 
+#if defined(__FreeBSD__)
+GLhandleARB m_hProgramObject   = (GLhandleARB)0;
+#else
 GLhandleARB m_hProgramObject   = (GLhandleARB)NULL;
+#endif
 
 
 void ogl_printInfoLog(GLhandleARB obj)
