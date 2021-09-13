@@ -1944,7 +1944,7 @@ POPD
 
 .
 :SHELL_CMD_VERIFY_HELP
-控制是否校驗檔案已正確寫入磁碟.
+控制是否要驗證檔案已正確寫入磁碟中.
 
 .
 :SHELL_CMD_VERIFY_HELP_LONG
@@ -1954,16 +1954,16 @@ VERIFY [ON | OFF]
 
 .
 :SHELL_CMD_VER_HELP
-顯示或設定 DOSBox-X 的報告 DOS 版本.
+顯示或設定 DOSBox-X 要報告的 DOS 版本.
 
 .
 :SHELL_CMD_VER_HELP_LONG
 VER [/R]
-VER [SET] 版本號 或 VER SET [主版本號 次版本號]
+VER [SET] 版本號碼 或 VER SET [主版本號 次版本號]
 
   /R                   　　顯示 DOSBox-X 的 Git 認可版本和建置日期.
-  [SET] 版本號           　設定指定的版本號為要報告的 DOS 版本.
-  SET [主版本號 次版本號]  以主版本號+次版本號的格式設定要報告的 DOS 版本.
+  [SET] 版本號碼         　設定指定的版本號碼作為要報告的 DOS 版本.
+  SET [主版本號 次版本號]  用主版本號與次版本號的格式設定要報告的 DOS 版本.
 
   [0m舉例, [37;1mVER 6.0[0m 或 [37;1mVER 7.1[0m 將 DOS 版本分別設定為 6.0 和 7.1.
   另一方面, [37;1mVER SET 7 1[0m 將設定 DOS 版為 7.01 (而不是 7.1).
