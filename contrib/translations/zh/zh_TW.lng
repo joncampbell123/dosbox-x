@@ -1573,13 +1573,13 @@ SUBST: 命令列參數錯誤.
 祝您使用 DOSBox-X 愉快!
 .
 :SHELL_CMD_BREAK_HELP
-設定或清除 CTRL+C 校驗.
+設定或清除延伸的 CTRL+C 檢查.
 
 .
 :SHELL_CMD_BREAK_HELP_LONG
 BREAK [ON | OFF]
 
-輸入不含參數的 BREAK 命令將顯示目前 BREAK 狀態.
+輸入不含參數的 BREAK 命令將顯示目前 BREAK 設定.
 
 .
 :SHELL_CMD_CHDIR_HELP
