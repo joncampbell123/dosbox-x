@@ -633,7 +633,7 @@ MSCDEX 已安裝.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX 錯誤: 多個光碟的磁碟機字母應保持連續.
+MSCDEX 錯誤: 多個光碟的磁碟機英文代號應保持連續.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
@@ -980,7 +980,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
+必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=軟碟a,軟碟b;2,3=硬碟a,硬碟b).
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
