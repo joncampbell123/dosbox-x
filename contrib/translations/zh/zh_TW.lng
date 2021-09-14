@@ -337,7 +337,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 
 .
 :PROGRAM_CONFIG_HLP_LINEHLP
-段落 "%s" 的目的:
+段落 "%s" 的作用:
 %s
 目前值:
 %s
