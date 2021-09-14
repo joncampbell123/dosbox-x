@@ -303,10 +303,10 @@ DOSBox-X 的工作目錄:
 .
 :PROGRAM_CONFIG_USAGE
 DOSBox-X 命令列組態工具. 支援的選項為:
--wc (或 -writeconf) 不含參數: 寫入已載入的主組態檔案.
+-wc (或 -writeconf) 不加參數時: 寫入已載入的主組態檔案.
 -wc (或 -writeconf) 加檔名: 寫入組態目錄中的組態檔案.
 -wl (或 -writelang) 加檔名: 將文字寫入語言檔案.
--ln (或 -langname) 顯示 (不含參數) 或指定語言名稱.
+-ln (或 -langname) 顯示 (不加參數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
 -wcd 寫入組態目錄中的預設組態檔案.
 -all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入所有/修改過的組態選項.
