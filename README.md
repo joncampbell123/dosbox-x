@@ -392,6 +392,8 @@ messages in such languages. There are several language files available in the DO
 
 * Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
 
+* Turkish language file: [contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)
+
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
 uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
