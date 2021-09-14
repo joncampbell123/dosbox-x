@@ -506,7 +506,7 @@ MOUSE [/?] [/U] [/V]
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
  -freesize [大小]  指定磁碟機中的剩餘磁碟空間 (單位: MB, 或軟碟: KB).
  -nocachedir       啟用即時更新而不使用磁碟機快取.
- -z 磁碟機         將虛擬磁碟機 Z: 移動到另一個磁碟代號.
+ -z 磁碟機         將虛擬磁碟機 Z: 移動到另一個磁碟機代號.
  -o                將磁碟機報告為: local, remote.
  -q                安靜模式 (無訊息輸出).
  -u                卸載磁碟機.
@@ -633,7 +633,7 @@ MSCDEX 已安裝.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX 錯誤: 多個光碟的磁碟機英文代號應保持連續.
+MSCDEX 錯誤: 多個光碟機的英文代號應保持連續.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
@@ -845,7 +845,7 @@ DOSBox-X 提供多層次的光碟機模擬.
 對於 [1mWindows 9x[0m 並安裝有 ASPI 層:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
 
-替換 [0;31mD:\[0m 為您的光碟機所在磁碟代號.
+替換 [0;31mD:\[0m 為您的光碟機所在位置.
 替換 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 為當您輸入以下命令時顯示的光碟機編號:
 [34;1mmount -cd[0m
 
