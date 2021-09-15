@@ -1,16 +1,16 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:0.83.16
-:DOSBOX-X:REMARK:建議使用 cht 或 tw 中文 DOS/V 模式; 或改用 TTF 輸出選項 (國家和字碼頁設為 886,950 並搭配中文 TTF 字型)，以直接支援中文顯示和列印
+:DOSBOX-X:REMARK:建議使用 cht 或 tw 中文 DOS/V 模式; 或改用 TTF 輸出選項 (國家和字碼頁設為 886,950 並搭配中文 TTF 字型) 以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
-本段落各行命令將在啟動時執行.
-你可以把 MOUNT 命令寫在本處.
+此段落各行命令會在啟動時執行.
+你可以把 MOUNT 命令寫在這裡.
 .
 :CONFIGFILE_INTRO
-# 這是給 DOSBox-X %s 使用的組態檔案。(敬請用最新版 DOSBox-X)
-# 以 # 開頭的文字行是註解文字行，會被 DOSBox-X 忽略。
-# 這些文字行常用於(簡短)記載每個選項的效果。
-# 要將 全部 選項寫入檔案，使用命令 'config -all' 加上 -wc 或 -writeconf 選項。
+# 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
+# 以 # 開頭的文字行是註解文字行, 會被 DOSBox-X 忽略.
+# 這些文字行常用於(簡短)記載每個選項的效果.
+# 要將 全部 選項寫入檔案, 使用命令 'config -all' 加上 -wc 或 -writeconf 選項.
 .
 :CONFIG_SUGGESTED_VALUES
 可能值
@@ -328,7 +328,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
-屬性 "%s" 的作用 (所在段落 "%s"):
+屬性 "%s" 的作用 (所在的段落 "%s"):
 %s
 
 可能值: %s
