@@ -217,7 +217,9 @@ typedef enum PROCESS_DPI_AWARENESS {
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
+#if !defined(__FreeBSD__)
 #  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
+#endif
 # endif
 #endif
 

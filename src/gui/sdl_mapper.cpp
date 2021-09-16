@@ -990,7 +990,11 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
 };
 
 #else // !MACOSX && !Linux
-
+#if defined(__FreeBSD__)
+// Todo: recheck sdl mapping
+#define SDLK_JP_RO (SDLKey)0x73
+#define SDLK_JP_YEN (SDLKey)0x7d
+#endif
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
     /* Refer to http://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/translate.pdf PS/2 Set 1 Make */
