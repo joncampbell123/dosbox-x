@@ -1,0 +1,99 @@
+name: Bug report
+description: File a bug report to help us improve DOSBox-X
+labels: bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please fill out the form as cleanly as possible.
+        Also, make sure that you have properly filled in the title of the bug report.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct & Contributing Guidelines
+      description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow the code of conduct and the contributing guidelines.
+          required: true
+  - type: checkboxes
+    id: alreadyexists
+    attributes:
+      label: Have you checked that no other similar bug report(s) already exists?
+      description: Search the issues before creating this bug report.
+      options:
+        - label: I have searched and didn't find any similar issues.
+          required: true
+  - type: input
+    id: os
+    attributes:
+      label: What operating system(s) this bug have occurred on?
+      description: Release name of the OS (additionally with a extra version number or a architecture name) this issue have occurred on.
+      placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04, macOS Big Sur arm64, etc."
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Relevant hardware info
+      description: If relevant, describe the hardware this bug have occurred on.
+      placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: What version(s) of DOSBox-X have this bug?
+      description: DOSBox-X release version or git commit/branch this issue have occurred on. Though, please always check the latest version/commit to see if the bug still occurs there.
+      placeholder: "Ex. 0.83.17, latest master, commit 88370683291f5c681d2a7d6fff088b947b783bd4, etc."
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is. If applicable, add screenshots to help in explaining.
+    validations:
+      required: true
+  - type: textarea
+    id: excepted
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen. If applicable, add screenshots to help in explaining.
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce the behaviour
+      description: How can we reproduce this bug? For example, doing what in what software causes the bug to occur?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Used configuration
+      description: Share the configuration (usually from the `dosbox-x.conf` file) that can cause the bug to occur. Leave this area empty if you're using the default configuration.
+      render: ini # Syntax highlighting
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: Emulator log
+      description: The relevant log DOSBox-X outputted.
+      render: text # Syntax highlighting
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
