@@ -3111,10 +3111,10 @@ DOS 命令
 自動鎖定滑鼠
 .
 :MENU:clipboard_right
-通過點按滑鼠右鍵
+通過按住滑鼠右鍵
 .
 :MENU:clipboard_middle
-通過點按滑鼠中鍵
+通過按住滑鼠中鍵
 .
 :MENU:clipboard_arrows
 通過按方向鍵 (Home=開始, End=結束)
