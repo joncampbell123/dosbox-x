@@ -130,7 +130,7 @@ DOSBox-X 記錄輸出
 已掛載的磁碟機編號
 .
 :IDE_CONTROLLER_ASSIGNMENT
-IDE 控制器狀態
+IDE 控制器分配狀態
 .
 :HELP_COMMAND
 DOS 命令說明
@@ -3216,7 +3216,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 同步主機日期/時間
 .
 :MENU:shell_config_commands
-組態選項作為命令
+組態選項當成執行命令
 .
 :MENU:quick_reboot
 啟用快速重開
@@ -3228,7 +3228,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 顯示已掛載的磁碟機編號
 .
 :MENU:list_ideinfo
-顯示 IDE 磁碟機狀態
+顯示 IDE 磁碟或光碟狀態
 .
 :MENU:print_textscreen
 列印 DOS 畫面文字
