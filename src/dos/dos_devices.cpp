@@ -434,7 +434,7 @@ bool getClipboard() {
     clipSize = 0;
     unsigned int extra = 0;
     unsigned char head, last=13;
-    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+    for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
     clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
     if (clipAscii)
         while (strPasteBuffer.length()) {
@@ -778,7 +778,7 @@ uint8_t DOS_FindDevice(char const * name) {
 	if(dot) *dot = 0; //no ext checking
 
 	DOS_CheckOpenExtDevice(name_part);
-	for(Bit8s index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
+	for(int index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
 		if(Devices[index]) {
 			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
 				if(WildFileCmp(name_part, Devices[index]->name)) {
