@@ -52,6 +52,9 @@ void DOSV_FillScreen();
 void ResolvePath(std::string& in);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
+#if defined(USE_TTF)
+extern bool colorChanged, justChanged;
+#endif
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
@@ -203,12 +206,18 @@ Bitu INT10_Handler(void) {
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
+#if defined(USE_TTF)
+			colorChanged = justChanged = true;
+#endif
 			break;
 		case 0x01:							/* SET BORDER (OVERSCAN) COLOR*/
 			INT10_SetOverscanBorderColor(reg_bh);
 			break;
 		case 0x02:							/* SET ALL PALETTE REGISTERS */
 			INT10_SetAllPaletteRegisters(SegPhys(es)+reg_dx);
+#if defined(USE_TTF)
+			colorChanged = justChanged = true;
+#endif
 			break;
 		case 0x03:							/* TOGGLE INTENSITY/BLINKING BIT */
 			blinking=reg_bl==1;

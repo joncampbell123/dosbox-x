@@ -2935,6 +2935,7 @@ void RENDER_Reset(void);
 
 #if defined(USE_TTF)
 bool firstsize = true;
+void AdjustIMEFontSize();
 static Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
     if (text) {
@@ -3031,6 +3032,8 @@ static Bitu OUTPUT_TTF_SetSize() {
     mainMenu.updateRect();
     mainMenu.setRedraw();
 #endif
+
+	AdjustIMEFontSize();
 
     return GFX_CAN_32 | GFX_SCALING;
 }
@@ -7475,7 +7478,7 @@ void SetIMPosition() {
 #if defined(USE_TTF)
         if (ttf.inUse) {
             rect.x = x * ttf.width;
-            rect.y = y * ttf.height;
+            rect.y = y * ttf.height + (ttf.height - TTF_FontAscent(ttf.SDL_font)) / 2;
         } else {
 #endif
             rect.x = x * width;
