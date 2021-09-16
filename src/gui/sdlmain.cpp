@@ -2509,7 +2509,7 @@ unsigned char prevc = 0;
 
 void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp;
+    unsigned char *scan, *bmp = NULL;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
@@ -2595,8 +2595,6 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
             else if (prevc!=1)
                 bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
 
-	    /* FIXME: GCC warning: bmp can be uninitialized here */
-
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
             scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
@@ -2629,7 +2627,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
 void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
     static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp;
+    unsigned char *scan, *bmp = NULL;
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
@@ -4749,7 +4747,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     }
     if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
         if (ttf.SDL_fontbi != 0 || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
-        if (ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC) || ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC) || wpType == 4) colorFG = wpFG;
+        if ((ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC)) || (ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC)) || wpType == 4) colorFG = wpFG;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);
@@ -4810,7 +4808,7 @@ void GFX_EndTextLines(bool force=false) {
 
 //		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
 //		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
-		if (ttf.cursor != vga.draw.cursor.address>>1 || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
+		if ((ttf.cursor != vga.draw.cursor.address>>1) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
 			curAC[ttf.cursor] = newAC[ttf.cursor];
             curAC[ttf.cursor].chr ^= 0xf0f0;	// force redraw (differs)
         }
@@ -5297,7 +5295,7 @@ int setTTFCodePage() {
         }
         uint16_t unimap;
         int notMapped = 0;
-        for (int y = (customcp&&dos.loaded_codepage==customcp||altcp&&dos.loaded_codepage==altcp?0:8); y < 16; y++)
+        for (int y = ((customcp&&dos.loaded_codepage==customcp)||(altcp&&dos.loaded_codepage==altcp)?0:8); y < 16; y++)
             for (int x = 0; x < 16; x++) {
                 unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {

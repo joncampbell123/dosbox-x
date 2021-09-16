@@ -812,7 +812,7 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
-                    if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
+                    if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
@@ -940,7 +940,7 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
-                        if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
+                        if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}

@@ -130,7 +130,7 @@ bool isKanji1(uint8_t chr) {
 }
 
 bool isKanji2(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
         return chr >= 0x40 && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
@@ -197,13 +197,13 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
             long int sz = ftell(mfile);
             rewind(mfile);
             if (height==14) {
-                if (!sz||(sz%14)&&(sz%15)) {fclose(mfile);return false;}
+                if (!sz||((sz%14)&&(sz%15))) {fclose(mfile);return false;}
                 fontdata14 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata14) {fclose(mfile);return false;}
                 fread(fontdata14, sizeof(uint8_t), sz, mfile);
                 fontsize14 = sizeof(uint8_t)*sz;
             } else if (height==16) {
-                if (!sz||(sz%15)&&(sz%16)) {fclose(mfile);return false;}
+                if (!sz||((sz%15)&&(sz%16))) {fclose(mfile);return false;}
                 fontdata16 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata16) {fclose(mfile);return false;}
                 fread(fontdata16, sizeof(uint8_t), sz, mfile);
@@ -1216,7 +1216,7 @@ void DOSV_CursorXor24(Bitu x, Bitu y, Bitu start, Bitu end)
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
 	volatile uint8_t dummy;
 	Bitu off = (y + start) * width + (x * 12) / 8;
-	uint8_t select;
+	uint8_t select = 0;
 	if(svgaCard == SVGA_TsengET4K) {
 		if(off >= 0x20000) {
 			select = 0x22;
@@ -1379,7 +1379,7 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 
 		volatile uint8_t dummy;
 		Bitu off = (y + start) * width + x;
-		uint8_t select;
+		uint8_t select = 0;
 		if(svgaCard == SVGA_TsengET4K) {
 			if(off >= 0x20000) {
 				select = 0x22;

@@ -742,7 +742,7 @@ void Section_prop::PrintData(FILE* outfile,int everything,bool norem) {
     size_t len = 0;
     // Determine maximum length of the props in this section
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified()))) continue;
+        if (!(everything>0 || (everything==-1 && ((*tel)->basic() || (*tel)->modified())) || (!everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified())))) continue;
 
         if ((*tel)->propname.length() > len)
             len = (*tel)->propname.length();
@@ -753,7 +753,7 @@ void Section_prop::PrintData(FILE* outfile,int everything,bool norem) {
     int intlen = (len > 100) ? 100 : static_cast<int>(len);
     if (intlen == 100) return;
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified()))) continue;
+        if (!(everything>0 || (everything==-1 && ((*tel)->basic() || (*tel)->modified())) || (!everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified())))) continue;
 
         std::string pre=everything==2&&!(*tel)->basic()?"#DOSBOX-X-ADV:":"";
         fprintf(outfile,"%s%-*s = %s\n", pre.c_str(), intlen, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
@@ -813,7 +813,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             Property *p;
             size_t i = 0, maxwidth = 0;
             while ((p = sec->Get_prop(int(i++)))) {
-                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                if (!(everything>0 || (everything==-1 && (p->basic() || p->modified())) || (!everything && ((p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config"))) || p->modified()))))
                     continue;
 
                 size_t w = strlen(p->propname.c_str());
@@ -836,7 +836,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             if (!norem)
             while ((p = sec->Get_prop(int(i++)))) {
                 std::string help = p->Get_help();
-                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified()))) {
+                if (!(everything==1 || (everything==-1 && (p->basic() || p->modified())) || (!everything && ((p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config"))) || p->modified())))) {
                     if ((everything==-1 || everything==2) && !p->basic() && !p->modified() && help.size())
                         advopts.push_back(p->propname);
                     if (everything!=2) continue;

@@ -1965,8 +1965,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
-	Bitu background, foreground;
-	Bitu chr, chr_left, attr, bsattr;
+	Bitu background = 0, foreground = 0;
+	Bitu chr, chr_left = 0, attr, bsattr;
 	bool chr_wide = false;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;

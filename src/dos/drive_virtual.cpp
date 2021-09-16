@@ -71,11 +71,11 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                 lead = false;
                 continue;
             }
-            if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+            if ((!lead && IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
                 if (i==m-1) break;
                 sfn[i++]=*(n++);
                 lead = true;
-            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                 sfn[i++]='_';
                 n++;
                 lead = false;
@@ -118,11 +118,11 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                     lead = false;
                     continue;
                 }
-                if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+                if ((!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF))) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
                     if (j==3) break;
                     sfn[i++]=*(n++);
                     lead = true;
-                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                     sfn[i++]='_';
                     n++;
                     lead = false;
