@@ -2172,7 +2172,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 擷取滑鼠
 .
 :MENU:mapper_fastedit
-快速編輯: 選取後複製以及貼上文字
+快速編輯: 複製選取範圍以及貼上文字
 .
 :MENU:mapper_copyall
 複製 DOS 畫面上的所有文字
