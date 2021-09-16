@@ -3096,7 +3096,7 @@ DOS 命令
 對應表中的定義
 .
 :MENU:showdetails
-標題列上顯示速度
+標題列上顯示 FPS 和 RT 速率
 .
 :MENU:restartinst
 重開 DOSBox-X 執行個體
