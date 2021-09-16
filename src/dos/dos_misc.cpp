@@ -481,7 +481,7 @@ static bool DOS_MultiplexFunctions(void) {
             uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
-            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
             if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];
@@ -519,7 +519,7 @@ static bool DOS_MultiplexFunctions(void) {
             uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
-            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
             if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];

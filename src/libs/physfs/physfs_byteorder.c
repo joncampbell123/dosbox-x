@@ -82,7 +82,7 @@ PHYSFS_sint64 PHYSFS_swapSBE64(PHYSFS_sint64 x) { return x; }
 
 static inline int readAll(PHYSFS_File *file, void *val, const size_t len)
 {
-    return (PHYSFS_readBytes(file, val, len) == len);
+    return ((PHYSFS_uint64)PHYSFS_readBytes(file, val, len) == len);
 } /* readAll */
 
 #define PHYSFS_BYTEORDER_READ(datatype, swaptype) \
@@ -110,7 +110,7 @@ PHYSFS_BYTEORDER_READ(uint64, UBE64)
 
 static inline int writeAll(PHYSFS_File *f, const void *val, const size_t len)
 {
-    return (PHYSFS_writeBytes(f, val, len) == len);
+    return ((PHYSFS_uint64)PHYSFS_writeBytes(f, val, len) == len);
 } /* writeAll */
 
 #define PHYSFS_BYTEORDER_WRITE(datatype, swaptype) \

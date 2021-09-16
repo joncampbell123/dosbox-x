@@ -222,7 +222,7 @@ PHYSFS_sint64 __PHYSFS_platformRead(void *opaque, void *buffer,
     rc = read(fd, buffer, (size_t) len);
     BAIL_IF(rc == -1, errcodeFromErrno(), -1);
     assert(rc >= 0);
-    assert(rc <= len);
+    assert((size_t)rc <= len);
     return (PHYSFS_sint64) rc;
 } /* __PHYSFS_platformRead */
 
@@ -239,7 +239,7 @@ PHYSFS_sint64 __PHYSFS_platformWrite(void *opaque, const void *buffer,
     rc = write(fd, (void *) buffer, (size_t) len);
     BAIL_IF(rc == -1, errcodeFromErrno(), rc);
     assert(rc >= 0);
-    assert(rc <= len);
+    assert((size_t)rc <= len);
     return (PHYSFS_sint64) rc;
 } /* __PHYSFS_platformWrite */
 
