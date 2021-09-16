@@ -2172,7 +2172,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 擷取滑鼠
 .
 :MENU:mapper_fastedit
-快速編輯: 選擇後複製或貼上文字
+快速編輯: 選取後複製以及貼上文字
 .
 :MENU:mapper_copyall
 複製 DOS 畫面上的所有文字
@@ -3111,13 +3111,13 @@ DOS 命令
 自動鎖定滑鼠
 .
 :MENU:clipboard_right
-通過按住滑鼠右鍵
+通過滑鼠右鍵
 .
 :MENU:clipboard_middle
-通過按住滑鼠中鍵
+通過滑鼠中鍵
 .
 :MENU:clipboard_arrows
-通過按方向鍵 (Home=開始, End=結束)
+通過方向鍵 (Home=開始選取, End=結束選取)
 .
 :MENU:screen_to_clipboard
 複製 DOS 畫面上的所有文字
