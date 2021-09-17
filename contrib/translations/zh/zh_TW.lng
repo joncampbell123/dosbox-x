@@ -2934,7 +2934,7 @@ DOS 命令
 開啟或關閉快轉模式
 .
 :MENU:mapper_speedlock2
-加速/快轉模式
+Turbo (快轉模式)
 .
 :MENU:mapper_speednorm
 正常速度
@@ -2946,7 +2946,7 @@ DOS 命令
 減慢速度
 .
 :MENU:mapper_editcycles
-編輯 CPU 週期
+編輯週期數
 .
 :MENU:mapper_savestate
 儲存狀態
@@ -3009,10 +3009,10 @@ DOS 命令
 傳送特殊鍵
 .
 :MENU:mapper_cycledown
-減少 CPU 週期
+減少週期數
 .
 :MENU:mapper_cycleup
-增加 CPU 週期
+增加週期數
 .
 :MENU:mapper_normal
 一般核心
