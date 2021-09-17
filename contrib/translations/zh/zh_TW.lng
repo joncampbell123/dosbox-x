@@ -2178,10 +2178,10 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 複製 DOS 畫面上的所有文字
 .
 :MENU:mapper_paste
-從剪貼簿中複製
+貼上剪貼簿內容
 .
 :MENU:mapper_pasteend
-停止剪貼簿複製
+停止貼上剪貼簿內容
 .
 :MENU:mapper_pause
 暫停模擬
@@ -3273,10 +3273,10 @@ CPU: 完全核心
 CPU: 一般核心
 .
 :MAPPER:paste
-貼上剪貼簿文字
+貼上剪貼簿內容
 .
 :MAPPER:pasteend
-停止剪貼簿複製
+停止貼上剪貼簿內容
 .
 :MAPPER:pauseints
 暫停並保持中斷
