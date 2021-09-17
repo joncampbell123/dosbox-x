@@ -100,6 +100,7 @@ extern const char* RunningProgram;
 extern std::string strPasteBuffer;
 extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
+extern uint16_t seg_win_startup_info;
 void PasteClipboard(bool bPressed);
 
 // INT 2F
@@ -305,6 +306,14 @@ static bool DOS_MultiplexFunctions(void) {
 			LOG_MSG("         the call chain. The Windows init broadcast is supposed to be handled\n");
 			LOG_MSG("         going down the chain by calling the previous INT 2Fh handler with registers\n");
 			LOG_MSG("         unmodified, and only modify registers on the way back up the chain!\n");
+		}
+
+		// Dummy data is required for the Microsoft version of Japanese Windows 3.1 in enhanced mode.
+		if(IS_DOSV && (reg_dx & 0x0001) == 0) {
+			real_writew(seg_win_startup_info, 0x02, reg_bx);
+			real_writew(seg_win_startup_info, 0x04, SegValue(es));
+			SegSet16(es, seg_win_startup_info);
+			reg_bx = 0;
 		}
 
 		return false; /* pass it on to other INT 2F handlers */
