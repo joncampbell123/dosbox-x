@@ -2223,7 +2223,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 滑鼠滾輪動作轉換
 .
 :MENU:SharedClipboard
-剪貼簿功能
+剪貼簿共用功能
 .
 :MENU:CpuMenu
 CPU
