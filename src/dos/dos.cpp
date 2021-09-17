@@ -1714,7 +1714,7 @@ static Bitu DOS_21Handler(void) {
                             break;
                         }
                     }
-                    if(!strncmp(name_start, "$IBMAFNT", 8) || !strncmp(name_start, "$IBMADSP", 8)) {
+                    if(!strncmp(name_start, "$IBMAFNT", 8)) {
                         ibmjp_handle = IBMJP_DEVICE_HANDLE;
                         reg_ax = IBMJP_DEVICE_HANDLE;
                         force_sfn = false;
