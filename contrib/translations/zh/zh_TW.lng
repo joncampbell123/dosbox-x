@@ -237,13 +237,13 @@ IDE 位置
 對應表檔案已儲存
 .
 :AUTO_CYCLE_MAX
-自動選擇週期 [最大]
+自動選擇週期數 [最大]
 .
 :AUTO_CYCLE_AUTO
-自動選擇週期 [自動]
+自動選擇週期數 [自動]
 .
 :AUTO_CYCLE_OFF
-自動選擇週期 [關閉]
+自動選擇週期數 [關閉]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 找不到此段落或屬性.
@@ -3243,7 +3243,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 複製畫面文字到剪貼簿
 .
 :MAPPER:cycauto
-切換自動 CPU 週期
+切換自動週期數
 .
 :MAPPER:debugger
 顯示偵錯工具
