@@ -3743,8 +3743,9 @@ bool setColors(const char *colorArray, int n) {
 }
 
 bool readTTFStyle(unsigned long& size, void*& font, FILE * fh) {
-    size = ftell(fh);
-    if (size != -1L) {
+    long pos = ftell(fh);
+    if (pos != -1L) {
+        size = pos;
         font = malloc((size_t)size);
         if (font && !fseek(fh, 0, SEEK_SET) && fread(font, 1, (size_t)size, fh) == (size_t)size) {
             fclose(fh);
@@ -4806,7 +4807,7 @@ void GFX_EndTextLines(bool force=false) {
 #endif
     }
 
-	if (ttf.cursor >= 0 && ttf.cursor < ttf.cols*ttf.lins)	// hide/restore (previous) cursor-character if we had one
+	if (ttf.cursor < ttf.cols*ttf.lins)	// hide/restore (previous) cursor-character if we had one
 
 //		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
 //		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
@@ -4891,8 +4892,8 @@ void GFX_EndTextLines(bool force=false) {
     // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline <= 16 && blinkCursor) {	// Draw cursor?
-		int newPos = (int)(vga.draw.cursor.address>>1);
-		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
+		unsigned int newPos = (unsigned int)(vga.draw.cursor.address>>1);
+		if (newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			if (IS_JEGA_ARCH) {
@@ -8658,7 +8659,7 @@ static bool   bScanCodeMapInited = false;
 static void PasteInitMapSCToSDLKey()
 {
     /* Map the DIK scancodes to SDL keysyms */
-    for (int i = 0; i<SDL_arraysize(aryScanCodeToSDLKey); ++i)
+    for (unsigned int i = 0; i<SDL_arraysize(aryScanCodeToSDLKey); ++i)
         aryScanCodeToSDLKey[i] = SDLK_UNKNOWN;
 
     /* Defined DIK_* constants */

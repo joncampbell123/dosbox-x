@@ -289,7 +289,8 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback_static(const FLAC__St
 
 FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(void *client_data, const FLAC__Frame *frame, const FLAC__int32 * const buffer[])
 {
-	int sampnum, chan;
+	int sampnum;
+	unsigned int chan;
 	int shift, blocksize;
 	flac_decoder * decoder = (flac_decoder *)client_data;
 

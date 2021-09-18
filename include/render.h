@@ -73,7 +73,7 @@ typedef struct Render_t {
 	} src;
 	struct {
 		int count;
-		int max;
+		unsigned int max;
 		Bitu index;
 		uint8_t hadSkip[RENDER_SKIP_CACHE];
 	} frameskip;
@@ -127,7 +127,7 @@ typedef struct {
 	int		pointsize;
 	int		height;								// height of character cell
 	int		width;								// width
-	int		cursor;
+	unsigned int		cursor;
 	int		lins;								// number of lines 24-60
 	int		cols;								// number of columns 80-160
 	bool	fullScrn;							// in fake fullscreen
