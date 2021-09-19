@@ -79,13 +79,13 @@ DOSBox-X 組態工具
 儲存並重開
 .
 :PASTE_CLIPBOARD
-貼上剪貼簿文字
+貼上剪貼簿內容
 .
 :APPEND_HISTORY
-附加歷史
+加上歷程記錄內容
 .
 :EXECUTE_NOW
-立即執行
+現在執行
 .
 :ADDITION_CONTENT
 附加內容:
