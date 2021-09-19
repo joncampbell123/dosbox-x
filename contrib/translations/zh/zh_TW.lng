@@ -1163,7 +1163,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-建立映像檔 "%s" 包含 %u 個磁柱, %u 個磁頭和 %u 個磁區
+建立了映像檔 "%s" 包含 %u 個磁柱, %u 個磁頭和 %u 個磁區
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
@@ -1599,7 +1599,7 @@ CD [..]
 
 .
 :SHELL_CMD_CLS_HELP
-清除畫面.
+清除螢光幕.
 
 .
 :SHELL_CMD_CLS_HELP_LONG
@@ -1837,7 +1837,7 @@ ERASE [/P] [/F] [/Q] 名稱
 COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目標]
 
   來源檔案      指定要複製的檔案.
-  目標          指定要複製到的檔名或目錄.
+  目標          為新檔案指定目錄及 (或) 檔名.
   /Y            覆寫現存檔案時不進行確認.
   /-Y           覆寫現存檔案時進行確認.
 
