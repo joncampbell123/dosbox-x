@@ -497,7 +497,7 @@ MOUSE [/?] [/U] [/V]
  -t                指定所掛載磁碟機的顯現類型.
                    支援的磁碟機類型有: dir, floppy, cdrom, overlay
                    (其中 'overlay' 將掛載磁碟機的寫入操作重新導向至另一個目錄)
- -label [名稱]     設定磁碟機的標籤名稱 (全部大寫)
+ -label [名稱]     設定磁碟機中的磁碟區標籤名稱 (全部大寫)
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
  -cd               顯示包含光碟機編號的本機光碟機清單.
@@ -1235,13 +1235,13 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 .
 :SHELL_CMD_VOL_DRIVE
 
- 磁碟區在磁碟機 %c 
+ 磁碟機 %c 中的磁碟區
 .
 :SHELL_CMD_VOL_SERIAL
  磁碟區序號為 
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
-沒有磁碟區標籤
+沒有標籤
 
 .
 :SHELL_CMD_VOL_SERIAL_LABEL
