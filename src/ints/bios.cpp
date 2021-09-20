@@ -8730,9 +8730,9 @@ private:
         sprintf(logostr[5], "|    %d-bit %s    |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
-#else^M
+#else
         32
-#endif^M
+#endif
         , SDL_STRING);
         sprintf(logostr[6], "|  Version %7s  |", VERSION);
         strcpy(logostr[7], "+-------------------+");
