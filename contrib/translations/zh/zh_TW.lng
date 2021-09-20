@@ -2736,10 +2736,10 @@ EMM386 模擬
 停用 EMS 模擬
 .
 :MENU:DOSWinMenu
-主機系統程式
+主機系統應用程式
 .
 :MENU:dos_win_autorun
-自動在 Windows 主機中執行
+自動在 Windows 主機系統中執行
 .
 :MENU:dos_win_transpath
 將路徑轉換為主機系統路徑
