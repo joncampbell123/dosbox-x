@@ -1632,7 +1632,7 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
             
 .
 :SHELL_CMD_ECHO_HELP
-顯示訊息,或切換命令回應的開啟狀態.
+顯示訊息, 或切換命令回應的開啟狀態.
 
 .
 :SHELL_CMD_ECHO_HELP_LONG
@@ -2964,10 +2964,10 @@ Turbo (快轉模式)
 選擇下一個位置
 .
 :MENU:mapper_decfskip
-減小跳過影格
+減少跳過影格
 .
 :MENU:mapper_incfskip
-加大跳過影格
+增加跳過影格
 .
 :MENU:mapper_aspratio
 符合長寬比模式
