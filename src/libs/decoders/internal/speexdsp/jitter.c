@@ -366,7 +366,8 @@ static void shift_timings(JitterBuffer *jitter, spx_int16_t amount)
 /** Put one packet into the jitter buffer */
 EXPORT void jitter_buffer_put(JitterBuffer *jitter, const JitterBufferPacket *packet)
 {
-   int i,j;
+   int i;
+   unsigned int j;
    int late;
    /*fprintf (stderr, "put packet %d %d\n", timestamp, span);*/
 
@@ -676,7 +677,8 @@ EXPORT int jitter_buffer_get(JitterBuffer *jitter, JitterBufferPacket *packet, s
 
 EXPORT int jitter_buffer_get_another(JitterBuffer *jitter, JitterBufferPacket *packet)
 {
-   int i, j;
+   int i;
+   unsigned int j;
    for (i=0;i<SPEEX_JITTER_MAX_BUFFER_SIZE;i++)
    {
       if (jitter->packets[i].data && jitter->packets[i].timestamp==jitter->last_returned_timestamp)

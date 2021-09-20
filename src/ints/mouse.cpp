@@ -759,19 +759,19 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 	text[0]=0;
     uint16_t seg = IS_DOSV?GetTextSeg():0;
 #if defined(USE_TTF)
-    if (ttf.inUse&&isDBCSCP()&&!(c1==0&&c2==ttf.cols-1&&r1==0&&r2==ttf.lins-1)) {
+    if (ttf.inUse&&isDBCSCP()&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
-        for (int y = 0; y < ttf.lins; y++) {
-            if (y>=r1&&y<=r2)
-                for (int x = 0; x < ttf.cols; x++)
-                    if (x>=c1&&x<=c2&&curAC[x].selected) {
-                        if (x==c1&&c1>0&&curAC[x].skipped&&!curAC[x-1].selected&&curAC[x-1].doublewide) {
+        for (unsigned int y = 0; y < ttf.lins; y++) {
+            if ((int)y>=r1&&(int)y<=r2)
+                for (unsigned int x = 0; x < ttf.cols; x++)
+                    if ((int)x>=c1&&(int)x<=c2&&curAC[x].selected) {
+                        if ((int)x==c1&&c1>0&&curAC[x].skipped&&!curAC[x-1].selected&&curAC[x-1].doublewide) {
                             ReadCharAttr(x-1,y,page,&result);
                             text[len++]=result;
                         }
                         ReadCharAttr(x,y,page,&result);
                         text[len++]=result;
-                        if (x==c2&&c2<ttf.cols-1&&curAC[x].doublewide&&!curAC[x+1].selected&&curAC[x+1].skipped) {
+                        if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[x].doublewide&&!curAC[x+1].selected&&curAC[x+1].skipped) {
                             ReadCharAttr(x+1,y,page,&result);
                             text[len++]=result;
                         }

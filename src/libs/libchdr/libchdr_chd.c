@@ -1459,11 +1459,11 @@ CHD_EXPORT chd_error chd_open_file(core_file *file, int mode, chd_file *parent, 
 	}
 	else
 	{
-		int decompnum;
+		unsigned int decompnum;
 		/* verify the compression types and initialize the codecs */
 		for (decompnum = 0; decompnum < ARRAY_LENGTH(newchd->header.compression); decompnum++)
 		{
-			int i;
+			unsigned int i;
 			for (i = 0 ; i < ARRAY_LENGTH(codec_interfaces) ; i++)
 			{
 				if (codec_interfaces[i].compression == newchd->header.compression[decompnum])

@@ -290,7 +290,7 @@ void d3d_init(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
 void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();
-void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight);
+void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 bool isDBCSCP(), InitCodePage();
 int GetNumScreen();
 extern SHELL_Cmd cmd_list[];
@@ -2976,7 +2976,7 @@ static Bitu OUTPUT_TTF_SetSize() {
     }
 #endif
     if (ttf.inUse && ttf.fullScrn) {
-        int maxWidth, maxHeight;
+        unsigned int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
 #if defined(C_SDL2)
         GFX_SetResizeable(false);
@@ -3905,8 +3905,8 @@ void SetBlinkRate(Section_prop* section) {
 
 int lastset=0;
 void CheckTTFLimit() {
-    ttf.lins = MAX(24, MIN(IS_VGA_ARCH?txtMaxLins:60, ttf.lins));
-    ttf.cols = MAX(40, MIN(IS_VGA_ARCH?txtMaxCols:160, ttf.cols));
+    ttf.lins = MAX(24, MIN(IS_VGA_ARCH?txtMaxLins:60, (int)ttf.lins));
+    ttf.cols = MAX(40, MIN(IS_VGA_ARCH?txtMaxCols:160, (int)ttf.cols));
     if (ttf.cols*ttf.lins>16384) {
         if (lastset==1) {
             ttf.lins=16384/ttf.cols;
@@ -4059,13 +4059,13 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 if (ttf.cols<1)
                     ttf.cols = c;
                 else {
-                    ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+                    ttf.cols = MAX(40, MIN(txtMaxCols, (int)ttf.cols));
                     if (ttf.cols != c) alter_vmode = true;
                 }
                 if (ttf.lins<1)
                     ttf.lins = r;
                 else {
-                    ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+                    ttf.lins = MAX(24, MIN(txtMaxLins, (int)ttf.lins));
                     if (ttf.lins != r) alter_vmode = true;
                 }
             } else {
@@ -4113,7 +4113,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     } else
         ttf.fullScrn = false;
 
-    int maxWidth, maxHeight;
+    unsigned int maxWidth, maxHeight;
     GetMaxWidthHeight(&maxWidth, &maxHeight);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -4778,7 +4778,7 @@ void GFX_EndTextLines(bool force=false) {
 	ttf_cell *newAC = newAttrChar;							// pointer to new/changed buffer
 
 	if (ttf.fullScrn && (ttf.offX || ttf.offY)) {
-        int maxWidth, maxHeight;
+        unsigned int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
         SDL_Rect *rect = &sdl.updateRects[0];
         rect->x = 0; rect->y = 0; rect->w = maxWidth; rect->h = ttf.offY;
@@ -4818,14 +4818,14 @@ void GFX_EndTextLines(bool force=false) {
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
-	for (int y = 0; y < ttf.lins; y++) {
+	for (unsigned int y = 0; y < ttf.lins; y++) {
 		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
-		for (int x = 0; x < ttf.cols; x++) {
+		for (unsigned int x = 0; x < ttf.cols; x++) {
 			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped)) {
 				draw = true;
-				xmin = min(x, xmin);
-				ymin = min(y, ymin);
+				xmin = min((int)x, xmin);
+				ymin = min((int)y, ymin);
 				ymax = y;
 
 				bool dw = false;
@@ -4875,7 +4875,7 @@ void GFX_EndTextLines(bool force=false) {
 
                 {
                     unimap[x-x1] = 0;
-                    xmax = max(x-1, xmax);
+                    xmax = max((int)(x-1), xmax);
 
                     SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
                     ttf_textClip.w = (x-x1)*ttf.width;
@@ -5358,7 +5358,7 @@ void GFX_SelectFontByPoints(int ptsize) {
 	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
 	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
 	if (ttf.fullScrn) {
-        int maxWidth, maxHeight;
+        unsigned int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
 		ttf.offX = (maxWidth-ttf.width*ttf.cols)/2;
 		ttf.offY = (maxHeight-ttf.height*ttf.lins)/2;
@@ -5404,7 +5404,7 @@ void decreaseFontSize() {
 void increaseFontSize() {
 	int inc=ttf.DOSBox ? 2 : 1;
 	if (ttf.inUse) {																	// increase fontsize
-        int maxWidth, maxHeight;
+        unsigned int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
 #if defined(WIN32)
 		if (!ttf.fullScrn) {															// 3D borders
@@ -11443,14 +11443,14 @@ void SetWindowTransparency(int trans) {
     transparency = trans;
 }
 
-void GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight) {
+void GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight) {
     *pdrawWidth = sdl.draw.width;
     *pdrawHeight = sdl.draw.height;
 }
 
-void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
-    int maxWidth = sdl.desktop.full.width;
-    int maxHeight = sdl.desktop.full.height;
+void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight) {
+    unsigned int maxWidth = sdl.desktop.full.width;
+    unsigned int maxHeight = sdl.desktop.full.height;
 
 #if defined(C_SDL2)
     SDL_DisplayMode dm;

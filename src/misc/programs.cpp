@@ -979,8 +979,8 @@ void CONFIG::Run(void) {
 						sec = control->GetSectionFromProperty(pvars[0].c_str());
 					}
 					if (!sec) {
-                        int maxWidth, maxHeight;
-                        void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight), GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight);
+                        unsigned int maxWidth, maxHeight;
+                        void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
                         if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);

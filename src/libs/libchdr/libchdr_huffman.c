@@ -519,7 +519,7 @@ enum huffman_error huffman_assign_canonical_codes(struct huffman_decoder* decode
 
 void huffman_build_lookup_table(struct huffman_decoder* decoder)
 {
-	int curcode;
+	unsigned int curcode;
 	/* iterate over all codes */
 	for (curcode = 0; curcode < decoder->numcodes; curcode++)
 	{
