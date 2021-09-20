@@ -1558,7 +1558,7 @@ SUBST: 命令列參數錯誤.
 按 [31mCtrl+Shift+[F7/F8][37m 變更色度; 按 [31mCtrl+F7[37m 選擇早期/晚期 CGA 型號.          
 .
 :SHELL_STARTUP_HERC
-按 [31mCtrl+F7[37m 鍵在單色間切換： 白色、琥珀色、綠色.                             
+按 [31mCtrl+F7[37m 鍵在單色間切換： 白色、黃褐色、綠色.                             
 按 [31mCtrl+F8[37m 鍵切換水平混合 (僅圖形模式).                                     
 .
 :SHELL_STARTUP_HEAD3
@@ -2150,7 +2150,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 [32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_CGA_MONO
-按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、琥珀色、白色.                             
+按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
 :MENU:mapper_reset
