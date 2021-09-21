@@ -12,6 +12,9 @@
   - PC-98 INT DCh emulation fixed to better represent the
     function key shortcuts as real DOS does (Nanshiki)
   - Emulator fix for HX-DOS builds (Wengier)
+  - Integrated commits from mainline (Allofich)
+    - Fix the return value of register al from INT10 ah=0x0F
+    for non EGA/VGA machines.
 0.83.17
   - Added FISTTP instruction to experimental cputype (LBi)
   - Updated debugger to support and decode fisttp, fcomi,
