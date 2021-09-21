@@ -3,8 +3,8 @@
 :DOSBOX-X:VERSION:0.83.16
 :DOSBOX-X:REMARK:建議使用 cht 或 tw 中文 DOS/V 模式; 或改用 TTF 輸出選項 (國家和字碼頁設為 886,950 並搭配中文 TTF 字型) 以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
-段落中每行命令會在啟動時執行.
-你可以在這裡下達 MOUNT 命令.
+段落中的指令行會在啟動時執行.
+你可以在這裡下達 MOUNT 指令.
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
