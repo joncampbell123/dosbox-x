@@ -314,7 +314,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或載入主組態檔案).
 -norem 與 -wc, -wcp, 或 -wcd 一起使用時不寫入組態檔案的註解.
 -l 列出 DOSBox-X 的組態參數.
--h, -help, -? 顯示本說明; 加上 "sections" 單字以顯示段落清單.
+-h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示段落清單.
 -h, -help, -? 段落 或 屬性 顯示指定段落或屬性的資訊.
 -axclear 清除 [autoexec] 段落.
 -axadd [文字行] 新增文字行至 [autoexec] 段落.
