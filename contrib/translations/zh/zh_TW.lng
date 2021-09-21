@@ -2095,13 +2095,13 @@ TRUENAME [/H] 檔案
 
 .
 :SHELL_CMD_DXCAPTURE_HELP
-執行程式並啟用影像或音訊擷取.
+執行程式並啟用影片或音訊擷取.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-它將啟動影像或音訊擷取, 執行程式, 等程式執行結束時停止擷取.
+它將啟動影片或音訊擷取, 執行程式, 等程式執行結束時停止擷取.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -2985,7 +2985,7 @@ Turbo (快轉模式)
 錄製 FM (OPL) 輸出
 .
 :MENU:mapper_video
-錄製影像到 AVI
+錄製影片到 AVI
 .
 :MENU:mapper_scrshot
 擷取畫面快照
