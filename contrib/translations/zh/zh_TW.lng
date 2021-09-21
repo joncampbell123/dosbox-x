@@ -8,9 +8,9 @@
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
-# 以 # 開頭的文字行是註解文字行, 會被 DOSBox-X 忽略.
-# 這些文字行常用於(簡短)記載每個選項的效果.
-# 要將 全部 選項寫入檔案, 使用命令 'config -all' 加上 -wc 或 -writeconf 選項.
+# 以 # 開頭的行是註解行, 會被 DOSBox-X 忽略.
+# 註解行慣用於 (簡短) 記載每個選項的效果.
+# 要將 全部 組態選項寫入, 使用命令 'config -all' 加上 -wc 或 -writeconf 選項.
 .
 :CONFIG_SUGGESTED_VALUES
 可能值
@@ -317,7 +317,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示段落清單.
 -h, -help, -? 段落 或 屬性 顯示指定段落或屬性的資訊.
 -axclear 清除 [autoexec] 段落.
--axadd [文字行] 新增文字行至 [autoexec] 段落.
+-axadd [指令行] 新增指令行至 [autoexec] 段落.
 -axtype 顯示 [autoexec] 段落中的內容.
 -avistart, -avistop 開始或結束錄製 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
@@ -2217,7 +2217,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 傳送特殊鍵
 .
 :MENU:MainHostKey
-選擇主機按鍵
+選擇主機系統按鍵
 .
 :MENU:WheelToArrow
 滑鼠滾輪動作轉換
