@@ -304,16 +304,16 @@ DOSBox-X 的工作目錄:
 :PROGRAM_CONFIG_USAGE
 DOSBox-X 命令列組態工具. 支援的選項有:
 -wc (或 -writeconf) 不加參數時: 寫入已載入的主組態檔案.
--wc (或 -writeconf) 加檔名: 寫入組態目錄中的組態檔案.
+-wc (或 -writeconf) 加檔名: 寫入組態設定目錄中的組態檔案.
 -wl (或 -writelang) 加檔名: 將文字寫入語言檔案.
 -ln (或 -langname) 顯示 (不加參數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
--wcd 寫入組態目錄中的預設組態檔案.
+-wcd 寫入組態設定目錄中的預設組態檔案.
 -all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入所有或者修改過的組態選項.
 -wcboot, -wcpboot, 或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或載入主組態檔案).
 -norem 與 -wc, -wcp, 或 -wcd 一起使用時不寫入組態檔案的註解.
--l 列出 DOSBox-X 的組態參數.
+-l 列出 DOSBox-X 的設定參數.
 -h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示段落清單.
 -h, -help, -? 段落 或 屬性 顯示指定段落或屬性的資訊.
 -axclear 清除 [autoexec] 段落.
@@ -751,7 +751,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 .
 :PROGRAM_INTRO_USAGE_2
 [33;1m  -conf[0m 組態檔案
-	以指定組態檔案中的設定啟動 DOSBox-X.
+	以指定組態檔案中的選項啟動 DOSBox-X.
 	檢視說明文件取得更詳細資訊.
 
 [33;1m  -lang[0m 語言檔案
@@ -772,7 +772,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -noautoexec[0m
-	跳過載入的組態檔案中的 [autoexec] 段落.
+	跳過載入組態檔案中的 [autoexec] 段落.
 
 [33;1m  -c[0m 命令
 	在啟動程式前先執行指定的命令. 可以用多個 -c 參數指定多個命令.
@@ -3216,7 +3216,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 同步主機日期/時間
 .
 :MENU:shell_config_commands
-組態選項當成執行命令
+把組態選項當成命令
 .
 :MENU:quick_reboot
 啟用快速重開
