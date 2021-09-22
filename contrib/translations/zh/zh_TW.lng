@@ -2514,10 +2514,10 @@ TrueType 字型
 允許 9 像素寬字體
 .
 :MENU:text_background
-高強度文字: 背景色
+高強度標記: 背景色
 .
 :MENU:text_blinking
-高強度文字: 閃爍文字
+高強度標記: 閃爍文字
 .
 :MENU:line_80x25
 畫面: 80 欄 x 25 列
