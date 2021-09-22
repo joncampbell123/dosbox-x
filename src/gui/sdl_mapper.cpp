@@ -1335,7 +1335,7 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
-        sprintf(buf,"key %d",(Bitu)key);
+        sprintf(buf,"key %d",key);
 #endif
     }
     virtual std::string GetBindMenuText(void) override {

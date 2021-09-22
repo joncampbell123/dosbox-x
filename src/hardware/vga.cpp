@@ -1640,7 +1640,7 @@ void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
 		jega.RSTAT = val;
 		break;
 	default:
-		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Write to illegal index %2X", reg);
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Write to illegal index %2X", (unsigned int)reg);
 		break;
 	}
 }
@@ -1690,7 +1690,7 @@ Bitu read_p3d5_jega(Bitu reg, Bitu iolen) {
 	case 0xbf:
 		return 0x03;//Font always read/writeable
 	default:
-		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Read from illegal index %2X", reg);
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Read from illegal index %2X", (unsigned int)reg);
 		break;
 	}
 	return 0x0;

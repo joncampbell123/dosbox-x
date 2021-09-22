@@ -3601,7 +3601,7 @@ static raster_info *add_rasterizer(voodoo_state *v, const raster_info *cinfo)
 
 	if (LOG_RASTERIZERS)
 		LOG_MSG("Adding rasterizer @ %p : %08X %08X %08X %08X %08X %08X (hash=%d)\n",
-				info->callback,
+				(void*)(info->callback),
 				info->eff_color_path, info->eff_alpha_mode, info->eff_fog_mode, info->eff_fbz_mode,
 				info->eff_tex_mode_0, info->eff_tex_mode_1, hash);
 
