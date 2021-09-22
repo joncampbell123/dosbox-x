@@ -169,7 +169,7 @@ MIDI 裝置組態資訊
 使用程式目錄組態檔案
 .
 :USE_USERCONFIG
-使用使用者組態檔案
+使用使用者組態檔
 .
 :CONFIG_SAVETO
 輸入要儲存的組態檔名:
@@ -185,7 +185,7 @@ MIDI 裝置組態資訊
 .
 :INTRO_MESSAGE
 歡迎使用 DOSBox-X, 自由免費且完整的 DOS 模擬器.
-DOSBox-X 模擬 DOS 命令列讓您覺得好像在真正使用 DOS.
+DOSBox-X 模擬 DOS 命令列介面讓您覺得好像在真正使用 DOS.
 您也可以在 DOS 虛擬機中執行 Windows 3.x 和 Windows 95/98.
 .
 :DRIVE
@@ -277,7 +277,7 @@ IDE 位置
 
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s 使用者組態檔案目錄: 
+DOSBox-X %s 使用者組態檔目錄: 
 %s
 
 
@@ -1271,11 +1271,11 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :SHELL_CMD_ECHO_ON
-ECHO狀態為開.
+ECHO 狀態為開.
 
 .
 :SHELL_CMD_ECHO_OFF
-ECHO狀態為關.
+ECHO 狀態為關.
 
 .
 :SHELL_ILLEGAL_SWITCH
@@ -2511,7 +2511,7 @@ TrueType 字型
 清除畫面
 .
 :MENU:vga_9widetext
-允許9像素寬字體
+允許 9 像素寬字體
 .
 :MENU:text_background
 高強度文字: 背景色
@@ -2595,10 +2595,10 @@ PC-98 選項
 5MHz GDC 時脈
 .
 :MENU:pc98_allow_200scanline
-允許200行掃描線效果
+允許 200 行掃描線效果
 .
 :MENU:pc98_allow_4partitions
-允許圖像層4個顯示分區
+允許圖像層 4 個顯示分區
 .
 :MENU:pc98_enable_egc
 啟用 EGC
@@ -2610,10 +2610,10 @@ PC-98 選項
 啟用模擬顯示
 .
 :MENU:pc98_enable_analog256
-模擬256色顯示
+模擬 256 色顯示
 .
 :MENU:pc98_enable_188user
-啟用188+使用者CG單元
+啟用 188 以上使用者 CG 單元
 .
 :MENU:pc98_clear_text
 清除文字層
