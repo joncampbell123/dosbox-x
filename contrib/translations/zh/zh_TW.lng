@@ -166,10 +166,10 @@ MIDI 裝置組態資訊
 使用主組態檔案
 .
 :USE_PORTABLECONFIG
-使用程式目錄組態檔案
+使用程式位置組態檔案
 .
 :USE_USERCONFIG
-使用使用者組態檔
+使用使用者位置組態檔
 .
 :CONFIG_SAVETO
 輸入要儲存的組態檔名:
@@ -277,7 +277,7 @@ IDE 位置
 
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s 使用者組態檔目錄: 
+DOSBox-X %s 使用者組態設定目錄: 
 %s
 
 
