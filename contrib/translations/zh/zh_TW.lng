@@ -2559,19 +2559,19 @@ TTF 選項
 使用 TTF 顯示刪除線文字
 .
 :MENU:ttf_wpno
-TTF 字處理軟體: 無
+TTF 文字處理器: 無
 .
 :MENU:ttf_wpwp
-TTF 字處理軟體: WordPerfect
+TTF 文字處理器: WordPerfect
 .
 :MENU:ttf_wpws
-TTF 字處理軟體: WordStar
+TTF 文字處理器: WordStar
 .
 :MENU:ttf_wpxy
-TTF 字處理軟體: XyWrite
+TTF 文字處理器: XyWrite
 .
 :MENU:ttf_wpfe
-TTF 字處理軟體: FastEdit
+TTF 文字處理器: FastEdit
 .
 :MENU:ttf_blinkc
 顯示 TTF 閃爍游標
