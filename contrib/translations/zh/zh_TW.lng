@@ -1643,7 +1643,7 @@ DIR [磁碟機:][路徑][檔名] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|
 
 .
 :SHELL_CMD_EXIT_HELP
-結束目前的命令列.
+結束命令殼層.
 
 .
 :SHELL_CMD_EXIT_HELP_LONG
@@ -2115,14 +2115,14 @@ DEBUGBOX [命令] [選項]
 
 .
 :SHELL_CMD_COMMAND_HELP
-啟動 DOSBox-X 命令直譯器.
+啟動 DOSBox-X 命令殼層 (直譯器).
 
 支援以下選項:
 
-  /C    執行指定的命令並傳回.
+  /C    執行指定的命令就返回.
   /K    執行指定的命令並繼續執行.
-  /P    載入永久性的命令直譯器.
-  /INIT 初始化命令列.
+  /P    載入命令殼層的永久性複本.
+  /INIT 初始化命令殼層.
 
 .
 :SHELL_STARTUP_HEAD1_PC98
@@ -2172,7 +2172,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 擷取滑鼠
 .
 :MENU:mapper_fastedit
-快速編輯: 複製選取範圍以及貼上文字
+快速編輯模式: 複製選取範圍以及貼上文字
 .
 :MENU:mapper_copyall
 複製 DOS 畫面上的所有文字
