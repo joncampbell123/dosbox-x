@@ -697,7 +697,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 .
 :PROGRAM_INTRO_MENU_BASIC_HELP
 
-[1m   [1m[KMOUNT 允許您將真實電腦硬體與 DOSBox-X 的虛擬電腦連接起來.[0m
+[1m   [1m[KMOUNT 允許您將真實電腦硬體與 DOSBox-X 程式的虛擬電腦連接起來.[0m
 
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
