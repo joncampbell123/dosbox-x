@@ -801,7 +801,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_MOUNT_START
-[32;1m以下為說明讓您上手的一些命令:[0m
+[32;1m以下為幫助您上手的一些命令:[0m
 您必須先將包含檔案的目錄掛載為磁碟機以使用裡面的檔案.
 
 
