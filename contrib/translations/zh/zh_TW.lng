@@ -61,7 +61,7 @@ DOSBox-X 組態工具
 下個
 .
 :SAVE
-儲存
+存檔
 .
 :EXIT
 結束
@@ -76,7 +76,7 @@ DOSBox-X 組態工具
 儲存語言檔案
 .
 :SAVE_RESTART
-儲存並重開
+存檔並重開
 .
 :PASTE_CLIPBOARD
 貼上剪貼簿內容
@@ -693,7 +693,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 資訊 
 .
 :PROGRAM_INTRO_MENU_QUIT
-結束 
+離開 
 .
 :PROGRAM_INTRO_MENU_BASIC_HELP
 
@@ -717,7 +717,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
 
-[1m   [1m[K結束 DOSBox-X 介紹.[0m
+[1m   [1m[K離開 DOSBox-X 介紹.[0m
 
 .
 :PROGRAM_INTRO_USAGE_TOP
