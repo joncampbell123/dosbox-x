@@ -297,8 +297,8 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         cmos.regs[cmos.reg]=val & 0x7f;
         break;
     default:
+        LOG(LOG_BIOS, LOG_NORMAL)("CMOS:Writing to register %x", cmos.reg);
         cmos.regs[cmos.reg]=val & 0x7f;
-        LOG(LOG_BIOS,LOG_ERROR)("CMOS:WRite to unhandled register %x",cmos.reg);
     }
 }
 
