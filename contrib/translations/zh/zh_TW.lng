@@ -309,7 +309,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -ln (或 -langname) 顯示 (不加參數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
 -wcd 寫入設定目錄中的預設組態檔案.
--all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入「所有的」或者只有被改過的組態選項.
+-all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入「所有的」或者修改過的組態選項.
 -wcboot, -wcpboot, 或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或已載入的主組態檔案).
 -norem 與 -wc, -wcp, 或 -wcd 一起使用時不寫入組態檔案的註解.
