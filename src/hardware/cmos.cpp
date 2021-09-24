@@ -203,7 +203,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x01:      /* Seconds Alarm */
         case 0x03:      /* Minutes Alarm */
         case 0x05:      /* Hours Alarm */
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
+            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
             cmos.regs[cmos.reg] = (uint8_t)val;
             return;     // done
         }
@@ -241,13 +241,13 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
         if(!date_host_forced) {
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
+            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
             cmos.regs[cmos.reg]=(uint8_t)val;
             break;
         }
     case 0x0a:      /* Status reg A */
         cmos.regs[cmos.reg]=val & 0x7f;
-        if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS Illegal 22 stage divider value");
+        if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
         cmos.timer.div=(val & 0xf);
         cmos_checktimer();
         break;
@@ -257,7 +257,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
             cmos.ampm = !(val & 0x02);
             cmos.bcd = !(val & 0x04);
-            if ((val & 0x10) != 0) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
+            if ((val & 0x10) != 0) LOG(LOG_BIOS,LOG_ERROR)("CMOS:'Update ended interrupt' not supported yet");
             cmos.timer.enabled = (val & 0x40) > 0;
             cmos.lock = (val & 0x80) != 0;
 
@@ -282,7 +282,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos.bcd=!(val & 0x4);
             cmos.regs[cmos.reg]=val & 0x7f;
             cmos.timer.enabled=(val & 0x40)>0;
-            if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
+            if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:'Update ended interrupt' not supported yet");
             cmos_checktimer();
         }
         break;
@@ -312,7 +312,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
     if (cmos.reg>0x3f) {
-        LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read from illegal register %x",cmos.reg);
+        LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read attempted from illegal register %x",cmos.reg);
         return 0xff;
     }
 
@@ -541,7 +541,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         if( PS1AudioCard )
             return 0xFF;
     default:
-        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X",cmos.reg);
+        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Reading from register %X",cmos.reg);
         return cmos.regs[cmos.reg];
     }
 }
