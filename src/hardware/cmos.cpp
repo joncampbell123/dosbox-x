@@ -236,15 +236,13 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x09:      /* Year */
     case 0x32:              /* Century */
         /* Ignore writes to change alarm */
-        if(!date_host_forced) break;
+        break;
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
-        if(!date_host_forced) {
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
-            cmos.regs[cmos.reg]=(uint8_t)val;
-            break;
-        }
+        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
+        cmos.regs[cmos.reg]=(uint8_t)val;
+        break;
     case 0x0a:      /* Status reg A */
         cmos.regs[cmos.reg]=val & 0x7f;
         if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
