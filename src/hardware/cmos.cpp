@@ -234,7 +234,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x07:      /* Date of month */
     case 0x08:      /* Month */
     case 0x09:      /* Year */
-    case 0x32:              /* Century */
+    case 0x32:      /* Century */
         /* Ignore writes to change alarm */
         break;
     case 0x01:      /* Seconds Alarm */
@@ -284,11 +284,11 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos_checktimer();
         }
         break;
-    case 0x0c:
+    case 0x0c:      /* Status reg C */
         if(date_host_forced) break;
-    case 0x0d:/* Status reg D */
+    case 0x0d:      /* Status reg D */
         if(!date_host_forced) {
-            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Pown on*/
+            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
         }
         break;
     case 0x0f:      /* Shutdown status byte */
