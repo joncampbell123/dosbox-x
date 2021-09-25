@@ -2844,7 +2844,7 @@ MPEG-TS + H.264
 卸載磁碟機
 .
 :MENU:drive_rescan
-重新掃描磁碟機
+重新整理磁碟機內容
 .
 :MENU:drive_swap
 切換映像檔
@@ -3090,7 +3090,7 @@ Turbo (快轉模式)
 傳送印表機換頁符號
 .
 :MENU:mapper_rescanall
-重新掃描所有磁碟機
+重新整理所有磁碟機內容
 .
 :MENU:hostkey_mapper
 對應表中的定義
@@ -3300,7 +3300,7 @@ CPU: 一般核心
 提高錄音音量
 .
 :MAPPER:rescanall
-重新掃描磁碟機
+重新整理磁碟機內容
 .
 :MAPPER:reset
 重設 DOSBox-X
