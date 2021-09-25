@@ -2119,7 +2119,7 @@ DEBUGBOX [命令] [選項]
 
 支援以下選項:
 
-  /C    執行指定的命令就返回.
+  /C    執行指定的命令後返回.
   /K    執行指定的命令並繼續執行.
   /P    載入命令殼層的永久性複本.
   /INIT 初始化命令殼層.
@@ -2172,7 +2172,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 擷取滑鼠
 .
 :MENU:mapper_fastedit
-快速編輯模式: 複製選取範圍以及貼上文字
+快速編輯: 複製選取範圍以及貼上文字
 .
 :MENU:mapper_copyall
 複製 DOS 畫面上的所有文字
