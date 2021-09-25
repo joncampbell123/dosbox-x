@@ -1088,7 +1088,7 @@ BIOSTEST 映像檔
   [32;1mIMGMOUNT D c:\files\game.iso[0m   - 將光碟映像檔 c:\files\game.iso 掛載為 D:
   [32;1mIMGMOUNT D cdaudio.cue[0m         - 將 cue/bin 配對中的 cue 檔案掛載為光碟機 D:
   [32;1mIMGMOUNT 0 dos.ima[0m             - 將軟碟映像檔 dos.ima 掛載為磁碟機編號 0
-                                   ([33;1mBOOT A:[0m 將從此磁碟機中開機, 如果能開機)
+                                   (如果能開機, [33;1mBOOT A:[0m 將從此磁碟機中開機)
   [32;1mIMGMOUNT A -ro dos.ima[0m         - 將軟碟映像 dos.ima 以唯讀模式掛載為磁碟機 A:
   [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m  - 將軟碟映像檔 dsk1.img 和 dsk2.img 掛載為
                                    磁碟機 A:, 可在選單中用 "切換軟碟映像" 選項
@@ -1096,7 +1096,7 @@ BIOSTEST 映像檔
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
   [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
   [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 將 d.img 的第一個邏輯分割區掛載為磁碟機 D:
-  [32;1mIMGMOUNT C disk.img -u[0m         - 強制將硬碟檔案映像 disk.img 掛載為磁碟機 C:,
+  [32;1mIMGMOUNT C disk.img -u[0m         - 強制將硬碟映像檔 disk.img 掛載為磁碟機 C:,
                                    如果之前磁碟機已掛載則將自動卸載
   [32;1mIMGMOUNT A -u[0m                  - 卸載之前已掛載的磁碟機 A:
 
