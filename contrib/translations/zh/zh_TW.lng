@@ -3213,10 +3213,10 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 啟用高 DPI 模式
 .
 :MENU:sync_host_datetime
-同步為主機日期時間
+日期時間與主機系統同步
 .
 :MENU:shell_config_commands
-把組態選項當成命令
+把組態選項當作命令
 .
 :MENU:quick_reboot
 啟用快速重新開機
