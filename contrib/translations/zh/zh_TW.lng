@@ -3213,7 +3213,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 啟用高 DPI 模式
 .
 :MENU:sync_host_datetime
-同步主機日期/時間
+同步為主機日期時間
 .
 :MENU:shell_config_commands
 把組態選項當成命令
