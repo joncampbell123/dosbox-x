@@ -3219,7 +3219,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 把組態選項當成命令
 .
 :MENU:quick_reboot
-啟用快速重開
+啟用快速重新開機
 .
 :MENU:make_diskimage
 建立空白磁碟映像...
