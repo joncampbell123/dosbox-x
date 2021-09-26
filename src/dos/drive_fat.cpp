@@ -2147,6 +2147,7 @@ bool fatDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	/* TODO: check for read-only flag and requested write access */
 	*file = new fatFile(name, BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust, fileEntry.entrysize, this);
+    (*file)->SetName(name);
 	(*file)->flags = flags;
 	((fatFile *)(*file))->dirCluster = dirClust;
 	((fatFile *)(*file))->dirIndex = subEntry;
