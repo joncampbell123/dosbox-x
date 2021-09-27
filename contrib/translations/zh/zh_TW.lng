@@ -161,7 +161,7 @@ MIDI 裝置組態資訊
 .
 :SHOW_ADVOPT
 顯示進階選項
-..
+.
 :USE_PRIMARYCONFIG
 使用主組態檔案
 .
