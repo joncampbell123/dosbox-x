@@ -8730,9 +8730,9 @@ private:
         sprintf(logostr[5], "|    %d-bit %s    |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
-#else^M
+#else
         32
-#endif^M
+#endif
         , SDL_STRING);
         sprintf(logostr[6], "|  Version %7s  |", VERSION);
         strcpy(logostr[7], "+-------------------+");
@@ -9472,7 +9472,7 @@ public:
              * of conventional memory, means that if conventional memory is less than 640KB
              * and not a multiple of 32KB, things can break. */
             if ((t_conv % 32) != 0)
-                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",(unsigned int)t_conv);
         }
         else if (machine == MCH_PCJR) {
             if (t_conv < 64)
@@ -9482,7 +9482,7 @@ public:
              * below 128KB because IBM intended it to only carry 64KB or 128KB on the
              * motherboard. Any memory past 128KB is likely provided by addons (sidecars) */
             if (t_conv < 128 && (t_conv % 32) != 0)
-                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",(unsigned int)t_conv);
         }
 
         /* and then unmap RAM between t_conv and ulimit */

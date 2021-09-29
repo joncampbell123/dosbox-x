@@ -3108,12 +3108,14 @@ void fastfill(voodoo_state *v)
 	int sx = (v->reg[clipLeftRight].u >> 16) & 0x3ff;
 	int ex = (v->reg[clipLeftRight].u >> 0) & 0x3ff;
 	int sy = (v->reg[clipLowYHighY].u >> 16) & 0x3ff;
-	int ey = (v->reg[clipLowYHighY].u >> 0) & 0x3ff;
+	unsigned int ey = (v->reg[clipLowYHighY].u >> 0) & 0x3ff;
 
 	poly_extent extents[64];
 	UINT16 dithermatrix[16];
 	UINT16 *drawbuf = NULL;
-	int extnum, x, y;
+    unsigned int extnum;
+    int x;
+    unsigned int y;
 
 	/* if we're not clearing either, take no time */
 	if (!FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u) && !FBZMODE_AUX_BUFFER_MASK(v->reg[fbzMode].u))
@@ -3599,7 +3601,7 @@ static raster_info *add_rasterizer(voodoo_state *v, const raster_info *cinfo)
 
 	if (LOG_RASTERIZERS)
 		LOG_MSG("Adding rasterizer @ %p : %08X %08X %08X %08X %08X %08X (hash=%d)\n",
-				info->callback,
+				(void*)(info->callback),
 				info->eff_color_path, info->eff_alpha_mode, info->eff_fog_mode, info->eff_fbz_mode,
 				info->eff_tex_mode_0, info->eff_tex_mode_1, hash);
 

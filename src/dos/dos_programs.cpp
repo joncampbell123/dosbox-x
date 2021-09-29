@@ -601,7 +601,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
         if (multiple&&fname.size()) {
             files += "\"";
-            for (int i=0; i<fname.size(); i++)
+            for (size_t i=0; i<fname.size(); i++)
                 files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
             files += "\" ";
         }
@@ -610,7 +610,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             if (lTheOpenFileName) {
                 fname = GetNewStr(lTheOpenFileName);
                 files += "\"";
-                for (int i=0; i<fname.size(); i++)
+                for (size_t i=0; i<fname.size(); i++)
                     files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
                 files += "\" ";
             }
@@ -6875,7 +6875,7 @@ bool setVGAColor(const char *colorArray, int i) {
             if (rgbVal[i] < 0 || rgbVal[i] > 255)
                 return false;
         }
-    } else if (sscanf(nextRGB, " #%6x", &rgbVal[3]) == 1) {
+    } else if (sscanf(nextRGB, " #%6d", &rgbVal[3]) == 1) {
         if (rgbVal[3] < 0)
             return false;
         for (int i = 0; i < 3; i++) {

@@ -554,7 +554,7 @@ static PHYSFS_sint64 zip_find_end_of_central_dir(PHYSFS_Io *io, PHYSFS_sint64 *l
      *  and call it a corrupted zipfile.
      */
 
-    if (sizeof (buf) < filelen)
+    if (sizeof (buf) < (PHYSFS_uint64)filelen)
     {
         filepos = filelen - sizeof (buf);
         maxread = sizeof (buf);

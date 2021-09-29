@@ -593,7 +593,7 @@ static Sint32 opus_seek(Sound_Sample* sample, const Uint32 ms)
 	const ogg_int64_t desired_pcm = ms * OPUS_SAMPLE_RATE_PER_MS;
 
 	// Is our stream already positioned at the requested offset?
-	if (d->of_pcm == desired_pcm){
+	if (d->of_pcm == (ogg_uint64_t)desired_pcm){
 
 		SNDDBG(("Opus seek avoided:      "
 		        "{requested_time: '%02d:%02d:%.2f', becomes_opus_pcm: %ld, actual_pcm_pos: %ld}\n",
@@ -615,7 +615,7 @@ static Sint32 opus_seek(Sound_Sample* sample, const Uint32 ms)
 		//
 
 		// Is the requested pcm offset within our decoded range?
-		if (desired_pcm >= pcm_start && desired_pcm <= pcm_end) {
+		if ((ogg_uint64_t)desired_pcm >= pcm_start && (ogg_uint64_t)desired_pcm <= pcm_end) {
 
 			SNDDBG(("Opus seek avoided:      "
 			        "{requested_time: '%02d:%02d:%.2f', becomes_opus_pcm: %ld, buffer_start: %ld, buffer_end: %ld}\n",

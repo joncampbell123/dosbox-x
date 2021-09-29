@@ -1636,6 +1636,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\hardware\voodoo_vogl.h" />
     <ClInclude Include="..\src\ints\int10.h" />
     <ClInclude Include="..\src\ints\xms.h" />
+    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h" />
     <ClInclude Include="..\src\libs\mt32\Analog.h" />
     <ClInclude Include="..\src\libs\mt32\BReverbModel.h" />
     <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h" />

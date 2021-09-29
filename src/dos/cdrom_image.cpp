@@ -1178,7 +1178,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
             track.skip                 = 0;
             currPregap                 = 0;
             prestart                   = -1;
-            for (int i = 0; i < tokens.size(); i++) {
+            for (unsigned int i = 0; i < tokens.size(); i++) {
                 // "TRACK:1" > "TRACK" "1"
                 std::vector<string> track_meta = split_string_to_list(tokens[i], ":");
                 std::string         key        = track_meta[0];

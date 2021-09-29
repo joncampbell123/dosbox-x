@@ -2486,6 +2486,9 @@
     <ClInclude Include="..\src\cpu\core_dyn_x86\string.h">
       <Filter>Sources\cpu\core_dyn_x86</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h">
+      <Filter>Sources\libs\gui_tk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

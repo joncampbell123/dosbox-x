@@ -206,8 +206,6 @@ uint32_t flac_decoder_finish(flac_decoder* decoder)
  *-------------------------------------------------
  */
 
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-
 FLAC__StreamDecoderReadStatus flac_decoder_read_callback_static(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	(void)decoder;//UNUSED
@@ -291,7 +289,8 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback_static(const FLAC__St
 
 FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(void *client_data, const FLAC__Frame *frame, const FLAC__int32 * const buffer[])
 {
-	int sampnum, chan;
+	int sampnum;
+	unsigned int chan;
 	int shift, blocksize;
 	flac_decoder * decoder = (flac_decoder *)client_data;
 

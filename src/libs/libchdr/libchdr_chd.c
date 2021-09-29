@@ -1164,7 +1164,7 @@ static inline int chd_compressed(chd_header* header) {
 static chd_error decompress_v5_map(chd_file* chd, chd_header* header)
 {
 	int result = 0;
-	int hunknum;
+	unsigned int hunknum;
 	int repcount = 0;
 	uint8_t lastcomp = 0;
 	uint32_t last_self = 0;
@@ -1348,7 +1348,7 @@ CHD_EXPORT chd_error chd_open_file(core_file *file, int mode, chd_file *parent, 
 {
 	chd_file *newchd = NULL;
 	chd_error err;
-	int intfnum;
+	unsigned int intfnum;
 
 	/* verify parameters */
 	if (file == NULL)
@@ -1459,11 +1459,11 @@ CHD_EXPORT chd_error chd_open_file(core_file *file, int mode, chd_file *parent, 
 	}
 	else
 	{
-		int decompnum;
+		unsigned int decompnum;
 		/* verify the compression types and initialize the codecs */
 		for (decompnum = 0; decompnum < ARRAY_LENGTH(newchd->header.compression); decompnum++)
 		{
-			int i;
+			unsigned int i;
 			for (i = 0 ; i < ARRAY_LENGTH(codec_interfaces) ; i++)
 			{
 				if (codec_interfaces[i].compression == newchd->header.compression[decompnum])
@@ -1611,7 +1611,7 @@ CHD_EXPORT void chd_close(chd_file *chd)
 	}
 	else
 	{
-		int i;
+		unsigned int i;
 		/* Free the codecs */
 		for (i = 0 ; i < ARRAY_LENGTH(chd->codecintf); i++)
 		{
@@ -1870,7 +1870,7 @@ CHD_EXPORT const char *chd_get_codec_name(UINT32 codec)
 
 static chd_error header_validate(const chd_header *header)
 {
-	int intfnum;
+	unsigned int intfnum;
 
 	/* require a valid version */
 	if (header->version == 0 || header->version > CHD_HEADER_VERSION)
@@ -2100,7 +2100,7 @@ static chd_error header_read(chd_file *chd, chd_header *header)
 
 static UINT8* hunk_read_compressed(chd_file *chd, UINT64 offset, size_t size)
 {
-	ssize_t bytes;
+	size_t bytes;
 	if (chd->file_cache != NULL)
 	{
 		return chd->file_cache + offset;
@@ -2122,7 +2122,7 @@ static UINT8* hunk_read_compressed(chd_file *chd, UINT64 offset, size_t size)
 
 static chd_error hunk_read_uncompressed(chd_file *chd, UINT64 offset, size_t size, UINT8 *dest)
 {
-	ssize_t bytes;
+	size_t bytes;
 	if (chd->file_cache != NULL)
 	{
 		memcpy(dest, chd->file_cache + offset, size);
@@ -2370,7 +2370,7 @@ static chd_error map_read(chd_file *chd)
 	UINT8 cookie[MAP_ENTRY_SIZE];
 	UINT32 count;
 	chd_error err;
-	int i;
+	unsigned int i;
 
 	/* first allocate memory */
 	chd->map = (map_entry *)malloc(sizeof(chd->map[0]) * chd->header.totalhunks);
