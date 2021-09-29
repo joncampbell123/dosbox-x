@@ -247,6 +247,8 @@ void SetupDBCSTable() {
     }
 }
 
+uint16_t seg_win_startup_info;
+
 void DOS_SetupTables(void) {
 	uint16_t seg;uint16_t i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
@@ -264,14 +266,47 @@ void DOS_SetupTables(void) {
 	real_writed(DOS_CONSTRING_SEG,0x2a,0x204e4f43);
 
 	/* create a CON device driver */
+	if(IS_DOSV) {
+		seg = DOS_GetMemory(2, "device $IBMADSP");
+		real_writew(seg,0x00,0x0000);			// next ptr
+		real_writew(seg,0x02,DOS_CONDRV_SEG);	// next ptr
+		real_writew(seg,0x04,0xc000);			// attributes
+		real_writew(seg,0x06,0x0018);			// strategy routine
+		real_writew(seg,0x08,0x001e);			// interrupt routine
+		real_writed(seg,0x0a,0x4d424924);		// driver name
+		real_writed(seg,0x0e,0x50534441);		// driver name
+		real_writeb(seg,0x18,0x26);				// or word ptr es:[bx+03],0100h .. strategy
+		real_writeb(seg,0x19,0x81);
+		real_writeb(seg,0x1a,0x4f);
+		real_writeb(seg,0x1b,0x03);
+		real_writeb(seg,0x1c,0x00);
+		real_writeb(seg,0x1d,0x01);
+		real_writeb(seg,0x1e,0xcb);				// retf .. interrupt
+		// Windows Startup Information Structure
+		// Dummy data is required for the Microsoft version of Japanese Windows 3.1 in enhanced mode.
+		seg_win_startup_info = DOS_GetMemory(2, "Windows startup information");
+		real_writew(seg_win_startup_info,0x00,0x03);					// version major
+		real_writew(seg_win_startup_info,0x01,0x00);					// version minor
+		real_writed(seg_win_startup_info,0x02,0);						// next startup information
+		real_writed(seg_win_startup_info,0x06,0);						// virtual device name
+		real_writed(seg_win_startup_info,0x0a,0);						// virtual device reference data
+		real_writew(seg_win_startup_info,0x0e,0x0012);					// instance data record offset
+		real_writew(seg_win_startup_info,0x10,seg_win_startup_info);	// instance data record segment
+		real_writew(seg_win_startup_info,0x12,0x001c);					// instance data offset
+		real_writew(seg_win_startup_info,0x14,seg_win_startup_info);	// instance data segment
+		real_writew(seg_win_startup_info,0x16,0x0004);					// instance data size
+		real_writed(seg_win_startup_info,0x18,0);						// instance data table end
+		real_writed(seg_win_startup_info,0x1c,0);						// instance data
+		dos_infoblock.SetDeviceChainStart(RealMake(seg,0));
+	}
 	seg=DOS_CONDRV_SEG;
  	real_writed(seg,0x00,0xffffffff);	// next ptr
  	real_writew(seg,0x04,0x8013);		// attributes
   	real_writed(seg,0x06,0xffffffff);	// strategy routine
   	real_writed(seg,0x0a,0x204e4f43);	// driver name
   	real_writed(seg,0x0e,0x20202020);	// driver name
-	dos_infoblock.SetDeviceChainStart(RealMake(seg,0));
-   
+	if(!IS_DOSV) dos_infoblock.SetDeviceChainStart(RealMake(seg,0));
+
 	/* Create a fake Current Directory Structure */
 	seg=DOS_CDS_SEG;
 	real_writed(seg,0x00,0x005c3a43);
