@@ -186,7 +186,8 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)|(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80);
+		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
+		if (IS_EGAVGA_ARCH) reg_al|=real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80;
 		reg_ah=(uint8_t)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
