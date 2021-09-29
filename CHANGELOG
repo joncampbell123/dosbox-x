@@ -1,4 +1,6 @@
 0.83.18
+  - Fixed the names of virtual files and files on mounted
+    FAT drive images being logged as "(null)". (Allofich)
   - Fixed packed structure alignment problem with MSVC
     (Microsoft C++) builds regarding some disk image
     formats. These problems prevented VS2019 builds from

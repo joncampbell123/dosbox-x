@@ -363,6 +363,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
             strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))) {
 			/* We have a match */
 			*file=new Virtual_File(cur_file->data,cur_file->size);
+            (*file)->SetName(cur_file->name);
 			(*file)->flags=flags;
 			return true;
 		}
