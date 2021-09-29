@@ -32,20 +32,21 @@ body:
       placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04, macOS Big Sur arm64, etc."
     validations:
       required: true
-  - type: input
-    id: hardware
-    attributes:
-      label: Relevant hardware info
-      description: If relevant, describe the hardware this bug have occurred on.
-      placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
-    validations:
-      required: false
+  # This is confusing
+  #- type: input
+  #  id: hardware
+  #  attributes:
+  #    label: Relevant hardware info
+  #    description: If relevant, describe the hardware this bug have occurred on.
+  #    placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
+  #  validations:
+  #    required: false
   - type: input
     id: version
     attributes:
       label: What version(s) of DOSBox-X have this bug?
-      description: DOSBox-X release version or git commit/branch this issue have occurred on. Though, please always check the latest version/commit to see if the bug still occurs there.
-      placeholder: "Ex. 0.83.17, latest master, commit 88370683291f5c681d2a7d6fff088b947b783bd4, etc."
+      description: DOSBox-X release version or git commit/branch + flavor this issue have occurred on. Though, please always check if the bug still occurs in the latest version/commit.
+      placeholder: "Ex. 0.83.17 SDL1 Visual Studio, latest master SDL2, commit 88370683291f5c681d2a7d6fff088b947b783bd4 SDL1, etc."
     validations:
       required: true
   - type: textarea
