@@ -1,4 +1,6 @@
 0.83.18
+  - Cleaned up and more accurately worded CMOS-related
+    log messages. (Allofich)
   - Fixed the names of virtual files and files on mounted
     FAT drive images being logged as "(null)". (Allofich)
   - Fixed packed structure alignment problem with MSVC
