@@ -397,15 +397,15 @@ DOSBox-X 是用以下命令列參數啟動:
 
 .
 :PROGRAM_MOUSE_VERTICAL
-已啟用反轉Y軸.
+已啟用反轉 Y 軸.
 
 .
 :PROGRAM_MOUSE_VERTICAL_BACK
-已停用反轉Y軸.
+已停用反轉 Y 軸.
 
 .
 :PROGRAM_MOUSE_UNINSTALL
-驅動程式已成功卸載...
+驅動程式已成功移除...
 
 .
 :PROGRAM_MOUSE_ERROR
@@ -420,8 +420,8 @@ DOSBox-X 是用以下命令列參數啟動:
 啟用或停用滑鼠.
 
 MOUSE [/?] [/U] [/V]
-  /U: 卸載
-  /V: 反轉Y軸
+  /U: 解除安裝
+  /V: 反轉 Y 軸
 
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
@@ -2676,7 +2676,7 @@ DOS
 內部模擬
 .
 :MENU:dos_mouse_y_axis_reverse
-反轉Y軸
+反轉 Y 軸
 .
 :MENU:dos_mouse_sensitivity
 敏感度
