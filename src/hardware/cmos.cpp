@@ -381,25 +381,25 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 
     switch (cmos.reg) {
     case 0x00:      /* Seconds */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_sec);
+        return    MAKE_RETURN(loctime->tm_sec);
     case 0x02:      /* Minutes */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_min);
+        return    MAKE_RETURN(loctime->tm_min);
     case 0x04:      /* Hours */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_hour);
+        return    MAKE_RETURN(loctime->tm_hour);
     case 0x06:      /* Day of week */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_wday + 1);
+        return    MAKE_RETURN(loctime->tm_wday + 1);
     case 0x07:      /* Date of month */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_mday);
+        return    MAKE_RETURN(loctime->tm_mday);
     case 0x08:      /* Month */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_mon + 1);
+        return    MAKE_RETURN(loctime->tm_mon + 1);
     case 0x09:      /* Year */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_year % 100);
+        return    MAKE_RETURN(loctime->tm_year % 100);
     case 0x32:      /* Century */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_year / 100 + 19);
+        return    MAKE_RETURN(loctime->tm_year / 100 + 19);
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
-        if(!date_host_forced) return cmos.regs[cmos.reg];
+        return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
         if(date_host_forced) {
             // take bit 7 of reg b into account (if set, never updates)
