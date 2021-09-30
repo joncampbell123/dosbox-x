@@ -1192,7 +1192,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-鍵盤配置 %s 已載入作為字碼頁 %i
+鍵盤配置 %s 已載入, 使用字碼頁 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
