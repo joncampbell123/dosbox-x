@@ -575,7 +575,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-重疊目錄需與原磁碟機所指定的定位方式相同，不能混合相對路徑和絕對路徑.
+重疊目錄需與原磁碟機所設定的定址方式相同，不能混合相對路徑和絕對路徑.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
 重疊目錄不能與原磁碟機的目錄相同.
