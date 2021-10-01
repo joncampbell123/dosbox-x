@@ -2202,10 +2202,10 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重設視窗大小
 .
 :MENU:mapper_incsize
-增加 TTF 字型大小
+放大 TTF 字型大小
 .
 :MENU:mapper_decsize
-減少 TTF 字型大小
+縮小 TTF 字型大小
 .
 :MENU:mapper_togmenu
 隱藏/顯示選單列
@@ -3249,7 +3249,7 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 顯示偵錯工具
 .
 :MAPPER:decsize
-減小 TTF 字型
+縮小 TTF 字型
 .
 :MAPPER:dynamic
 CPU: 動態核心
@@ -3261,7 +3261,7 @@ CPU: 動態核心
 CPU: 完全核心
 .
 :MAPPER:incsize
-加大 TTF 字型
+放大 TTF 字型
 .
 :MAPPER:loadmap
 載入對應表檔案
