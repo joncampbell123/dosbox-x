@@ -1120,10 +1120,10 @@ BIOSTEST 映像檔
   -force: 強制覆寫已存在的映像檔.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
   -fat: FAT 檔案系統類型 (12, 16, 或 32).
-  -spc: 強制使用此每個磁簇所包含的磁區數值. 必須為 2 的乘冪.
-  -fatcopies: 強制使用此數量的 FAT 表格複本.
+  -spc: 強制指定每個磁簇所包含的磁區數值. 必須為 2 的乘方數值.
+  -fatcopies: 強制指定此數量的 FAT 表格複本.
   -rootdir: 根目錄下的記錄數. FAT32 檔案系統將忽略此參數.
-  -source: 磁碟機代號 - 如果指定了此參數, 映像檔從此軟碟機讀取.
+  -source: 磁碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
   -retries: 當試圖從一張壞掉的磁片中讀取時所需的重試次數 (1-99).
   [32;1m-examples: 顯示用法舉例.[0m
 .
@@ -2202,10 +2202,10 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重設視窗大小
 .
 :MENU:mapper_incsize
-放大 TTF 字型大小
+放大 TTF 字型
 .
 :MENU:mapper_decsize
-縮小 TTF 字型大小
+縮小 TTF 字型
 .
 :MENU:mapper_togmenu
 隱藏/顯示選單列
