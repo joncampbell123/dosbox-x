@@ -577,6 +577,7 @@ void CMOS_Reset(Section* sec) {
     cmos_writereg(0x71,0x26,1);
     cmos.reg=0xb;
     cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
+    cmos.regs[0x0c] = 0;
     if(date_host_forced) {
         cmos.regs[0x0d]=(uint8_t)0x80;
     } else {
