@@ -826,20 +826,20 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 .
 :PROGRAM_INTRO_CDROM
 [2J[32;1m如何在 DOSBox-X 中掛載真實/虛擬光碟機:[0m
-DOSBox-X 提供多層次的光碟機模擬.
+DOSBox-X 提供多程度的光碟機模擬.
 
-[33m基本層次[0m支援所有光碟機及普通目錄.
+[33m基本的[0m程度能在所有光碟機及一般目錄使用.
 它將安裝 MSCDEX 並將檔案標記為唯讀.
 這對於大部分遊戲通常已經足夠:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   或   [34;1mmount d C:\example -t cdrom[0m
 如果不行的話您可能要讓 DOSBox-X 給予光碟機特定的標籤:
 [34;1mmount d C:\example -t cdrom -label CDLABEL[0m
 
-[33m中間層次[0m加入一些低階支援.
-故它僅支援光碟機 (非普通目錄):
+[33m下一個[0m程度增加一些低階支援.
+因此只能在光碟機使用:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
 
-[33m最後層次[0m將依賴於您所用的作業系統:
+[33m最後一個[0m支援程度要根據您的作業系統:
 對於 [1mWindows 2000[0m, [1mWindows XP[0m 及 [1mLinux[0m:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
 對於 [1mWindows 9x[0m 並安裝有 ASPI 層:
