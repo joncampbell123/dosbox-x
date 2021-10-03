@@ -32,7 +32,6 @@ using namespace std;
 
 #include "debug.h"
 #include "cross.h" //snprintf
-#include "cpu.h"
 #include "fpu.h"
 #include "video.h"
 #include "vga.h"

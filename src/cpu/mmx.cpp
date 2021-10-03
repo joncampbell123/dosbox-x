@@ -17,7 +17,6 @@
  */
 
 #include "mem.h"
-#include "cpu.h"
 #include "fpu.h"
 
 #if C_FPU
