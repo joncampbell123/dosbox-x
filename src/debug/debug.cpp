@@ -32,26 +32,18 @@ using namespace std;
 
 #include "debug.h"
 #include "cross.h" //snprintf
-#include "cpu.h"
 #include "fpu.h"
 #include "video.h"
-#include "pic.h"
 #include "vga.h"
 #include "mapper.h"
-#include "cpu.h"
 #include "pc98_gdc.h"
 #include "callback.h"
 #include "inout.h"
-#include "mixer.h"
-#include "timer.h"
 #include "paging.h"
-#include "support.h"
 #include "shell.h"
-#include "programs.h"
 #include "debug_inc.h"
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
-#include "setup.h"
 #include "control.h"
 
 #ifdef WIN32

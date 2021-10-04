@@ -16,12 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include "dosbox.h"
-
 #include "mem.h"
-#include "mmx.h"
-#include "cpu.h"
 #include "fpu.h"
 
 #if C_FPU

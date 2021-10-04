@@ -21,7 +21,6 @@
 
 #if C_DEBUG
 #include <curses.h>
-#include "mem.h"
 
 #include <string>
 

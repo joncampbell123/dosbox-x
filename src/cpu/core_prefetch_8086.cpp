@@ -24,8 +24,6 @@
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
-#include "paging.h"
-#include "mmx.h"
 
 using namespace std;
 

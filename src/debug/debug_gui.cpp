@@ -29,11 +29,8 @@
 #include <SDL.h>
 #endif
 
-#include "dosbox.h"
 #include "logging.h"
-#include "support.h"
 #include "control.h"
-#include "regs.h"
 #include "menu.h"
 #include "debug.h"
 #include "debug_inc.h"
