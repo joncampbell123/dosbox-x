@@ -87,8 +87,17 @@ static void cmos_timerevent(Bitu val) {
         PIC_ActivateIRQ(8);
     }
     if (cmos.timer.enabled) {
-        PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
-        cmos.regs[0xc] = 0xC0;//Contraption Zack (music)
+        double index = PIC_FullIndex();
+        double remd = fmod(index, (double)cmos.timer.delay);
+        PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
+        if(index >= (cmos.last.timer + cmos.timer.delay)) {
+            cmos.last.timer = index;
+            cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
+        }
+        if(index >= (cmos.last.ended + 1000)) {
+            cmos.last.ended = index;
+            cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
+        }
     }
 }
 
@@ -255,7 +264,6 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
             cmos.ampm = !(val & 0x02);
             cmos.bcd = !(val & 0x04);
-            if ((val & 0x10) != 0) LOG(LOG_BIOS,LOG_ERROR)("CMOS:'Update ended interrupt' not supported yet");
             cmos.timer.enabled = (val & 0x40) > 0;
             cmos.lock = (val & 0x80) != 0;
 
@@ -278,14 +286,13 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos_checktimer();
         } else {
             cmos.bcd=!(val & 0x4);
-            cmos.regs[cmos.reg]=val & 0x7f;
+            cmos.regs[cmos.reg]=(uint8_t)val;
             cmos.timer.enabled=(val & 0x40)>0;
-            if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:'Update ended interrupt' not supported yet");
             cmos_checktimer();
         }
         break;
     case 0x0c:      /* Status reg C */
-        if(date_host_forced) break;
+        break;
     case 0x0d:      /* Status reg D */
         if(!date_host_forced) {
             cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
@@ -418,27 +425,21 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
             }
         }
     case 0x0c:      /* Status register C */
+    {
         cmos.timer.acknowledged=true;
-        if (cmos.timer.enabled) {
-            /* In periodic interrupt mode only care for those flags */
-            uint8_t val=cmos.regs[0xc];
-            cmos.regs[0xc]=0;
-            return val;
-        } else {
-            /* Give correct values at certain times */
-            uint8_t val=0;
-            double index=PIC_FullIndex();
-            if (index>=(cmos.last.timer+cmos.timer.delay)) {
-                cmos.last.timer=index;
-                val|=0x40;
-            } 
-            if (index>=(cmos.last.ended+1000)) {
-                cmos.last.ended=index;
-                val|=0x10;
-            }
-            if(date_host_forced) cmos.regs[0xc] = 0;        // JAL_20060817 - reset here too!
-            return val;
+        uint8_t val = cmos.regs[0xc];
+        if (cmos.timer.enabled && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
         }
+        else if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        }
+        else if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        }
+        cmos.regs[0xc] = 0; // All flags are cleared by reading the register
+        return val;
+    }
     case 0x10:      /* Floppy size */
         drive_a = 0;
         drive_b = 0;
@@ -577,6 +578,7 @@ void CMOS_Reset(Section* sec) {
     cmos_writereg(0x71,0x26,1);
     cmos.reg=0xb;
     cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
+    cmos.regs[0x0c] = 0;
     if(date_host_forced) {
         cmos.regs[0x0d]=(uint8_t)0x80;
     } else {
