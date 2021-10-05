@@ -2187,7 +2187,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 暫停模擬
 .
 :MENU:mapper_pauseints
-暫停並保持插斷
+暫停並啟用插斷
 .
 :MENU:mapper_gui
 組態工具
@@ -3279,7 +3279,7 @@ CPU: 一般核心
 停止將剪貼簿內容貼上
 .
 :MAPPER:pauseints
-暫停並保持插斷
+暫停並啟用插斷
 .
 :MAPPER:prevslot
 上一個儲存位置
