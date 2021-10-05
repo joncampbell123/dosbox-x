@@ -2114,7 +2114,9 @@ bool ParseCommand(char* str) {
 		while (found[0] == ' ') found++;
 		char out1[200],out2[200];
 		GetDescriptorInfo(found,out1,out2);
-		DEBUG_ShowMsg("SelectorInfo %s:\n%s\n%s\n",found,out1,out2);
+        DEBUG_ShowMsg("SelectorInfo %s:\n", found);
+        DEBUG_ShowMsg("%s\n", out1);
+        DEBUG_ShowMsg("%s\n", out2);
 		return true;
 	}
 
