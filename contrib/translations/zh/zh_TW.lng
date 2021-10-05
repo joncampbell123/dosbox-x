@@ -2931,7 +2931,7 @@ DOS 命令
 記錄檔案 I/O
 .
 :MENU:mapper_speedlock
-按住切換快轉模式
+按住時切換快轉模式
 .
 :MENU:mapper_speedlock2
 Turbo (快轉模式)
