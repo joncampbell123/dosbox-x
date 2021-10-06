@@ -1801,7 +1801,7 @@ REM [註解]
 
 .
 :SHELL_CMD_RENAME_HELP
-重新命名檔案或目錄.
+將檔案或目錄重新命名.
 
 .
 :SHELL_CMD_RENAME_HELP_LONG
