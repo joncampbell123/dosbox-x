@@ -1370,7 +1370,7 @@ TIME [[/T] [/H] | 時間]
 
 .
 :SHELL_CMD_RENAME_ERROR
-無法進行重新命名 - %s
+無法更改名稱 - %s
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
@@ -1785,7 +1785,7 @@ LFNFOR [ON | OFF]
 
 .
 :SHELL_CMD_TYPE_HELP
-顯示文字檔案內容.
+顯示純文字檔案的內容.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
@@ -1811,7 +1811,7 @@ REN [磁碟機:][路徑][目錄名稱1 | 檔名1] [目錄名稱2 | 檔名2]
 注意您不能給目的名稱指定新的磁碟機或路徑.
 
 萬用字元 (* 和 ?) 可以在檔名中使用.
-舉例, 此命令將重新命名所有文字檔案: [37;1mREN *.TXT *.BAK[0m
+舉例, 此命令將更改所有純文字檔案名稱: [37;1mREN *.TXT *.BAK[0m
 
 .
 :SHELL_CMD_DELETE_HELP
