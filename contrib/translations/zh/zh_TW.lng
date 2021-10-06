@@ -2556,7 +2556,7 @@ TTF 選項
 使用 TTF 顯示加底線文字
 .
 :MENU:ttf_showsout
-使用 TTF 顯示刪除線文字
+使用 TTF 顯示加刪除線文字
 .
 :MENU:ttf_wpno
 TTF 文字處理器: 無
