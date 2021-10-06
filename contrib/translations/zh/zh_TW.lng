@@ -1136,7 +1136,7 @@ BIOSTEST 映像檔
   [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 建立 50MB 硬碟映像檔 c:\disk.img
   [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - 建立 520MB 空白硬碟映像檔
   [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 建立 2GB FAT32 硬碟映像檔
-  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 以指定的 CHS 參數建立硬碟映像檔
+  [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 以指定的 CHS 版面建立硬碟映像檔
   [32;1mIMGMAKE c:\disk.img -source a[0m           - 從實體磁碟機 A: 中讀取映像
 
 .
