@@ -213,7 +213,7 @@ private:
 	}
 
 public:
-    MidiHandler_mt32() : open(false), chan(NULL), service(NULL), thread(NULL) {
+    MidiHandler_mt32() : chan(NULL), service(NULL), thread(NULL), open(false) {
     }
 
 	~MidiHandler_mt32() {
