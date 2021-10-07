@@ -1192,7 +1192,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-在字碼頁 %i 下的鍵盤配置 %s 已載入
+在字碼頁 %i 作用下的鍵盤配置 %s 已載入
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1205,7 +1205,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-在字碼頁 %i 下的鍵盤配置 %s 無法找到
+在字碼頁 %i 作用下的鍵盤配置 %s 無法找到
 
 .
 :PROGRAM_KEYB_INVCPFILE
