@@ -1176,7 +1176,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-給鍵盤配置 %s 的字碼頁 %i 已載入
+給鍵盤配置 %s 使用的字碼頁 %i 已載入
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -1209,7 +1209,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_INVCPFILE
-給鍵盤配置 %s 的字碼頁檔案不存在或無效
+給鍵盤配置 %s 使用的字碼頁檔案不存在或無效
 
 
 .
