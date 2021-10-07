@@ -316,9 +316,9 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -l 列出 DOSBox-X 程式的設定參數.
 -h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示段落清單.
 -h, -help, -? 段落 或 屬性 顯示指定段落或屬性的資訊.
--axclear 清除 [autoexec] 段落.
--axadd [指令行] 新增指令行至 [autoexec] 段落.
--axtype 顯示 [autoexec] 段落中的內容.
+-axclear 清除 [autoexec] 自動執行段落.
+-axadd [指令行] 新增指令行至 [autoexec] 自動執行段落.
+-axtype 顯示 [autoexec] 自動執行段落中的內容.
 -avistart, -avistop 開始或停止錄製 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
 -startmapper 啟動 DOSBox-X 的對應表編輯器.
@@ -606,26 +606,26 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_HELP
-減少傳統記憶體 (主記憶體) 或 XMS/EMS 記憶體的可用大小.
+減少主記憶體 (傳統記憶體) 或 XMS/EMS 記憶體的可用空間.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        於延伸記憶體 (XMS) 配置用量而不是傳統記憶體
-  -ems        於擴充記憶體 (EMS) 配置用量而不是傳統記憶體
+  -xms        於延伸記憶體 (XMS) 配置用量而不是主記憶體
+  -ems        於擴充記憶體 (EMS) 配置用量而不是主記憶體
   -{ram}      指定要配置的記憶體用量 (單位: KB)
-                 傳統記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
+                 主記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
   -a          自動配置足夠的用量將最低層 64KB 記憶體位址用滿
   -f (或 -d)  釋放先前配置的記憶體用量
   {程式}      執行指定的程式
   {選項}      程式選項 (如果有)
 
 舉例:
-  [32;1mLOADFIX game.exe[0m     配置 64KB 用量於傳統記憶體並執行 game.exe
-  [32;1mLOADFIX -a[0m           自動配置足夠的用量於傳統記憶體
-  [32;1mLOADFIX -128[0m         配置 128KB 用量於傳統記憶體
+  [32;1mLOADFIX game.exe[0m     配置 64KB 用量於主記憶體並執行 game.exe
+  [32;1mLOADFIX -a[0m           自動配置足夠的用量於主記憶體
+  [32;1mLOADFIX -128[0m         配置 128KB 用量於主記憶體
   [32;1mLOADFIX -xms[0m         配置 1MB 用量於 XMS 記憶體
-  [32;1mLOADFIX -f[0m           釋放傳統記憶體的已配置用量
+  [32;1mLOADFIX -f[0m           釋放主記憶體的已配置用量
 
 .
 :MSCDEX_SUCCESS
@@ -772,7 +772,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -noautoexec[0m
-	跳過載入組態檔案中的 [autoexec] 段落.
+	略過載入組態檔案中的 [autoexec] 自動執行段落.
 
 [33;1m  -c[0m 命令
 	在啟動程式前先執行指定的命令. 可以用多個 -c 參數指定多個命令.
@@ -821,7 +821,7 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 :PROGRAM_INTRO_MOUNT_END
 當掛載成功後您可以輸入 [34;1mc:[0m 命令進入您剛掛載的磁碟機 C:.
 輸入 [34;1mdir[0m 命令將顯示其中的內容. [34;1mcd[0m 命令將允許您進入一個目錄 (列出的目錄內容
-中以 [33;1m[][0m 標示). 您可以執行以 [31m.exe .bat[0m 及 [31m.com[0m 結尾的程式及檔案.
+中以 [33;1m[][0m 識別). 您可以執行以 [31m.exe .bat[0m 及 [31m.com[0m 結尾的程式及檔案.
 
 .
 :PROGRAM_INTRO_CDROM
@@ -1123,8 +1123,8 @@ BIOSTEST 映像檔
   -spc: 強制指定每個磁簇所包含的磁區數值. 必須為 2 的乘方數值 (冪).
   -fatcopies: 強制指定此數量的 FAT 表格複本.
   -rootdir: 根目錄下的記錄數. FAT32 檔案系統將忽略此參數.
-  -source: 磁碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
-  -retries: 當試圖從一張壞掉的磁片中讀取時所需的重試次數 (1-99).
+  -source: 軟碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
+  -retries: 當試圖從已損壞磁片中讀取時所需的重試次數 (1-99).
   [32;1m-examples: 顯示用法舉例.[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
@@ -1176,7 +1176,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-字碼頁 %i 已為鍵盤配置 %s 載入
+給鍵盤配置 %s 的字碼頁 %i 已載入
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -1192,7 +1192,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-鍵盤配置 %s 已載入, 使用字碼頁 %i
+在字碼頁 %i 下的鍵盤配置 %s 已載入
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1205,11 +1205,11 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-鍵盤配置 %s 無法在字碼頁 %i 中找到
+在字碼頁 %i 下的鍵盤配置 %s 無法找到
 
 .
 :PROGRAM_KEYB_INVCPFILE
-作為鍵盤配置 %s 的字碼頁檔案不存在或無效
+給鍵盤配置 %s 的字碼頁檔案不存在或無效
 
 
 .
@@ -1279,7 +1279,7 @@ ECHO 狀態為關.
 
 .
 :SHELL_ILLEGAL_SWITCH
-無效的切換參數 - %s
+無效的參數 - %s
 
 .
 :SHELL_MISSING_PARAMETER
@@ -1682,7 +1682,7 @@ LS [磁碟機:][路徑][檔名] [/A] [/L] [/P] [/Z]
 
 .
 :SHELL_CMD_MKDIR_HELP
-建立目錄.
+建立子目錄.
 
 .
 :SHELL_CMD_MKDIR_HELP_LONG
@@ -1691,7 +1691,7 @@ MD [磁碟機:][路徑]
 
 .
 :SHELL_CMD_RMDIR_HELP
-刪除目錄.
+刪除子目錄.
 
 .
 :SHELL_CMD_RMDIR_HELP_LONG
@@ -1848,7 +1848,7 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目的名稱]
 
 .
 :SHELL_CMD_CALL_HELP
-在批次檔中呼叫另一批次檔.
+在批次檔中呼叫另一個批次檔.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
@@ -1890,7 +1890,7 @@ CHOICE [/C:選擇] [/N] [/S] text
   /C[:]選擇  指定允許的按鍵. 預設為: yn.
   /N         不在末尾顯示選擇.
   /S         啟用大小寫相異選擇模式.
-  文字       作為提示字元顯示的文字.
+  文字       作為提示顯示的文字.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -1988,22 +1988,22 @@ VOL [磁碟機]
 
 .
 :SHELL_CMD_PROMPT_HELP
-變更命令提示字元.
+變更命令提示符號.
 
 .
 :SHELL_CMD_PROMPT_HELP_LONG
 PROMPT [文字]
-  文字    指定新的命令提示字元.
+  文字    指定新的命令提示符號.
 
-提示字元可以由一般字元和以下特殊代碼組成:
+提示符號可以由一般字元和以下特殊代碼組成:
   $A   & (& 符號)
   $B   | (直線)
   $C   ( (左括弧)
   $D   目前日期
-  $E   跳出代碼 (ASCII 代碼 27)
+  $E   跳離代碼 (美國標準資訊交換碼 27)
   $F   ) (右括弧)
   $G   > (大於符號)
-  $H   退格符號 (清除前一個字元)
+  $H   退位符號 (清除前一個字元)
   $L   < (小於符號)
   $N   目前磁碟機
   $P   目前磁碟機和路徑
@@ -2077,7 +2077,7 @@ CTTY 裝置名稱
 
 .
 :SHELL_CMD_MORE_HELP
-以一次一頁螢幕的方式來顯示輸出.
+以一次一頁螢幕的方式來逐頁顯示輸出.
 
 .
 :SHELL_CMD_MORE_HELP_LONG
@@ -2511,7 +2511,7 @@ TrueType 字型
 清除畫面
 .
 :MENU:vga_9widetext
-允許 9 像素寬字體
+允許 9 像素字型字寬
 .
 :MENU:text_background
 醒目標記: 背景色
