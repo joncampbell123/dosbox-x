@@ -534,7 +534,7 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT c %s -nocachedir [0m  - 掛載磁碟機 C: 且不使用磁碟機快取
 [32;1mMOUNT c %s -freesize 128[0m - 掛載磁碟機 C: 並報告剩餘磁碟空間為 128MB
 [32;1mMOUNT c %s -u[0m            - 強制掛載磁碟機 C: 即使之前已掛載
-[32;1mMOUNT c %s -t overlay[0m  - 將重疊目錄加在已掛載的磁碟機 C: 上面
+[32;1mMOUNT c %s -t overlay[0m  - 將重疊目錄掛載到磁碟機 C: 上面
 [32;1mMOUNT c -u[0m                        - 卸載磁碟機 C:
 
 .
@@ -582,11 +582,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-加上重疊目錄時發生錯誤.
+嘗試建立重疊化磁碟機時發生錯誤.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已加在磁碟機 %c 上.
+重疊目錄 %s 已掛載到磁碟機 %c 上.
 
 .
 :PROGRAM_LOADFIX_ALLOC
