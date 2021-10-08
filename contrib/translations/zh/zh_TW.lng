@@ -567,7 +567,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-在加上重疊目錄之前請先掛載一般目錄.
+在加上重疊目錄之前請先「掛載」一般目錄.
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
@@ -575,18 +575,18 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-重疊目錄需與下方磁碟機所設定的定址方式相同，不能混合相對路徑和絕對路徑.
+指定的重疊目錄需與下方磁碟機所設定的定址方式相同, 不能混合相對路徑和絕對路徑.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
 重疊目錄不能與下方磁碟機的目錄相同.
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-建立重疊目錄時發生錯誤.
+加上重疊目錄時發生錯誤.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已掛載於磁碟機 %c 上.
+重疊目錄 %s 已加在磁碟機 %c 上.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -1258,7 +1258,7 @@ KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 .
 :SHELL_CMD_HELP
 如果您想顯示所有支援的內部命令請輸入 [33;1mHELP /ALL[0m.
-您亦可以在 Z 槽找到其它 DOS 程式，它們是外部命令.
+您亦可以在 Z 槽找到其它 DOS 程式, 它們是外部命令.
 以下為常用的 DOS 命令清單:
 
 .
@@ -1305,7 +1305,7 @@ ECHO 狀態為關.
 .
 :SHELL_CMD_CHDIR_HINT_3
 您仍然在 Z 槽, 而且無法找到指定的目錄.
-如要想存取其它已掛載的磁碟機請先切換磁碟機，比如 [31mC:[0m.
+如要想存取其它已掛載的磁碟機請先切換磁碟機, 比如 [31mC:[0m.
 
 .
 :SHELL_CMD_DATE_HELP
@@ -1533,25 +1533,25 @@ SUBST: 命令列參數錯誤.
 
 .
 :SHELL_STARTUP_TITLE
-歡迎使用 DOSBox-X !
+歡迎使用 DOSBox-X！
 .
 :SHELL_STARTUP_HEAD1
-[36m輕鬆上手 DOSBox-X:                                                          [37m
+[36m輕鬆上手 DOSBox-X：                                                         [37m
 .
 :SHELL_STARTUP_TEXT1
-輸入 [32mHELP[37m 命令檢視 DOS 命令清單, 或輸入 [32mINTRO[37m 命令進入 DOSBox-X 的簡短介紹。
+輸入 [32mHELP[37m 命令檢視 DOS 命令清單，或輸入 [32mINTRO[37m 命令進入 DOSBox-X 的簡短介紹。
 您亦可以通過 DOSBox-X 所帶的[33m下拉式選單[37m來完成 DOSBox-X 的各種操作和功能。    
 .
 :SHELL_STARTUP_EXAMPLE
-[32m舉例[37m: 您可以試著在[32m影像[37m選單中選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。
+[32m舉例[37m：您可以試著在[32m影像[37m選單中選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。
 .
 :SHELL_STARTUP_HEAD2
-[36m常用的預設快速鍵:                                                           [37m
+[36m常用的預設快速鍵：                                                          [37m
 .
 :SHELL_STARTUP_TEXT2
-- 切換視窗和全螢幕模式： [31mF11 [37m+ [31mF[37m [37m                                           
-- 開啟 [33m組態工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m對應表編輯器[37m: [31mF11 [37m+ [31mM[37m  [37m                         
-- 提高或降低模擬速度： [31mF11 [37m+ [31m加號[37m[37m 或 [31mF11 [37m+ [31m減號[37m   [37m                          
+- 切換視窗和全螢幕模式：[31mF11 [37m+ [31mF[37m [37m                                            
+- 開啟[33m組態工具[37m：[31mF11 [37m+ [31mC[37m[37m；[33m對應表編輯器[37m：[31mF11 [37m+ [31mM[37m  [37m                            
+- 提高或降低模擬速度：[31mF11 [37m+ [31m加號[37m[37m 或 [31mF11 [37m+ [31m減號[37m   [37m                           
 .
 :SHELL_STARTUP_CGA
 支援 CGA 合成模式. 按 [31mCtrl+F8[37m 鍵啟用或停用合成輸出.                         
@@ -1562,12 +1562,12 @@ SUBST: 命令列參數錯誤.
 按 [31mCtrl+F8[37m 鍵切換水平混合 (僅限圖形模式).                                     
 .
 :SHELL_STARTUP_HEAD3
-[36m線上 DOSBox-X 專案:                                                         [37m
+[36m線上 DOSBox-X 專案：                                                        [37m
 .
 :SHELL_STARTUP_TEXT3
-[32m專案首頁[37m: [33mhttps://dosbox-x.com/                  [36mDOSBox-X提供完整的 DOS 模擬[37m
-[32m使用指南[37m: [33mhttps://dosbox-x.com/wiki[32m              [36m包括 DOS, Windows 3.x 和 9x[37m
-[32m問題建議[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
+[32m專案首頁[37m：[33mhttps://dosbox-x.com/                 [36mDOSBox-X 提供完整的 DOS 模擬[37m
+[32m使用指南[37m：[33mhttps://dosbox-x.com/wiki[32m             [36m包括 DOS, Windows 3.x 和 9x [37m
+[32m問題建議[37m：[33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
 .
 :SHELL_STARTUP_LAST
 祝您使用 DOSBox-X 愉快!
