@@ -181,7 +181,7 @@ MIDI 裝置組態資訊
 輸入語言檔的檔名:
 .
 :LANG_LANGNAME
-語言名稱(選填):
+語言名稱 (選填):
 .
 :INTRO_MESSAGE
 歡迎使用 DOSBox-X, 自由免費且完整的 DOS 模擬器.
@@ -305,7 +305,7 @@ DOSBox-X 程式的工作目錄:
 DOSBox-X 命令列組態工具. 支援的選項有:
 -wc (或 -writeconf) 不加參數時: 寫入已載入的主組態檔案.
 -wc (或 -writeconf) 加檔名: 寫入設定目錄中的組態檔案.
--wl (或 -writelang) 加檔名: 將字串寫入語言檔案.
+-wl (或 -writelang) 加檔名: 將目前的語言字串寫入檔案.
 -ln (或 -langname) 顯示 (不加參數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
 -wcd 寫入設定目錄中的預設組態檔案.
@@ -606,7 +606,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_HELP
-減少主記憶體 (傳統記憶體) 或 XMS/EMS 記憶體的可用空間.
+減少主記憶體 (傳統記憶體) 或 XMS/EMS 記憶體的可用量.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
