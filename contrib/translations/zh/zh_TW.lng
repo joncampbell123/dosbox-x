@@ -1533,7 +1533,7 @@ SUBST: 命令列參數錯誤.
 
 .
 :SHELL_STARTUP_TITLE
-歡迎使用 DOSBox-X!
+歡迎使用 DOSBox-X !
 .
 :SHELL_STARTUP_HEAD1
 [36m輕鬆上手 DOSBox-X：                                                         [37m
