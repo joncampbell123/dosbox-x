@@ -1462,7 +1462,7 @@ GOTO: 標籤 %s 找不到.
 您是否想讓 DOSBox-X 存取您真實電腦中的軟碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-您是否想讓 DOSBox-X 存取您真實電腦中的抽取式磁碟機 %c [Y/N]?
+您是否想讓 DOSBox-X 存取您真實電腦中的卸除式磁碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
 您是否想讓 DOSBox-X 存取您真實電腦中的網路磁碟機 %c [Y/N]?
