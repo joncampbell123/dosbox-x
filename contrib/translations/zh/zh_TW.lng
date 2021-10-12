@@ -1180,7 +1180,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_KEYB_SHOWHELP
-為特定的語言設定鍵盤配置.
+設定為特定語言的鍵盤.
 
 KEYB [鍵盤配置 ID [字碼頁 [字碼頁檔案]]]
 
