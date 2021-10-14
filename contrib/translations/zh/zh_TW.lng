@@ -1546,7 +1546,7 @@ SUBST: 命令列參數錯誤.
 [32m舉例[37m：您可以試著在[32m影像[37m選單中選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。
 .
 :SHELL_STARTUP_HEAD2
-[36m常用的預設快速鍵：                                                          [37m
+[36m實用的預設快速鍵：                                                          [37m
 .
 :SHELL_STARTUP_TEXT2
 - 切換視窗和全螢幕模式：[31mF11 [37m+ [31mF[37m [37m                                            
