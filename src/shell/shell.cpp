@@ -557,14 +557,27 @@ const char *ParseMsg(const char *msg) {
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
             if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {
-                msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 1).c_str());
-                msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 2).c_str());
-                msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 3).c_str());
-                msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 4).c_str());
-                msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 6).c_str());
+                if (IS_JEGA_ARCH) {
+                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 0x15).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 0x16).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 0x18).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 0x17).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 0x13).c_str());
+                } else {
+                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 1).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 2).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 3).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 4).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 6).c_str());
+                }
             } else {
-                msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 5)+" ").c_str());
-                msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 5)).c_str());
+                if (IS_JEGA_ARCH) {
+                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 0x14)+" ").c_str());
+                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 0x14)).c_str());
+                } else {
+                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 5)+" ").c_str());
+                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 5)).c_str());
+                }
             }
         }
         return msg;
