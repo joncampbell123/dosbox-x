@@ -994,7 +994,7 @@ BIOSTEST 映像檔
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
 無法獲得映像檔中的磁碟機版面.
-請使用參數 -size 磁區佔用的位元組數,磁區數,磁頭數,磁柱數 指定磁碟機版面.
+請使用參數 -size 每一磁區佔用的位元組數,磁區數,磁頭數,磁柱數 指定磁碟機版面.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
