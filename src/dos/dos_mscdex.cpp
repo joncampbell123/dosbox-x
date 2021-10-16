@@ -437,7 +437,7 @@ bool CMscdex::GetCDInfo(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadO
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioTracks(tr1i,tr2i,leadOut);
 	if (!dinfo[subUnit].lastResult) {
 		tr1 = tr2 = 0;
-		memset(&leadOut,0,sizeof(leadOut));
+        leadOut.fr = leadOut.min = leadOut.sec = 0;
 	} else {
 		tr1 = (uint8_t) tr1i;
 		tr2 = (uint8_t) tr2i;
@@ -450,7 +450,7 @@ bool CMscdex::GetTrackInfo(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& 
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioTrackInfo(track,start,attr);	
 	if (!dinfo[subUnit].lastResult) {
 		attr = 0;
-		memset(&start,0,sizeof(start));
+        start.fr = start.min = start.sec = 0;
 	}
 	return dinfo[subUnit].lastResult;
 }
@@ -487,8 +487,8 @@ bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, ui
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
 		attr = track = index = 0;
-		memset(&rel,0,sizeof(rel));
-		memset(&abs,0,sizeof(abs));
+        rel.fr = rel.min = rel.sec = 0;
+        abs.fr = abs.min = abs.sec = 0;
 	}
 	return dinfo[subUnit].lastResult;
 }
@@ -509,14 +509,14 @@ bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& 
 			end.sec		= (uint8_t)(addr%60); 
 			end.min		= (uint8_t)(addr/60);
 		} else {
-			memset(&start,0,sizeof(start));
-			memset(&end,0,sizeof(end));
+            start.fr = start.min = start.sec = 0;
+            end.fr = end.min = end.sec = 0;
 		}
 	} else {
 		playing		= false;
 		pause		= false;
-		memset(&start,0,sizeof(start));
-		memset(&end,0,sizeof(end));
+        start.fr = start.min = start.sec = 0;
+        end.fr = end.min = end.sec = 0;
 	}
 	
 	return dinfo[subUnit].lastResult;
@@ -775,7 +775,7 @@ bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	TMSF rel;
 	uint8_t attr,track,index;
 	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
-	if (!dinfo[subUnit].lastResult) memset(&pos,0,sizeof(pos));
+    if(!dinfo[subUnit].lastResult) pos.fr = pos.min = pos.sec = 0;
 	return dinfo[subUnit].lastResult;
 }
 
