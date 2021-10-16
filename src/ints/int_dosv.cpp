@@ -831,7 +831,8 @@ bool MakeSbcs19Font() {
 		}
 	}
 	if (fail) memcpy(jfont_sbcs_19, JPNHN19X+NAME_LEN+ID_LEN+3, SBCS19_LEN);
-	if (IS_JDOSV||IS_JEGA_ARCH) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	if (IS_JDOSV) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	else if (IS_JEGA_ARCH) memcpy(jfont_sbcs_19, ax_font19_data, sizeof(ax_font19_data));
 	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_19[ct * 19], &int10_font_19[ct * 19], 19);
 	return true;
 }
