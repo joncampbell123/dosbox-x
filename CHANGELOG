@@ -1,5 +1,9 @@
 0.83.19
+  - Fix SELINFO command not showing output correctly
+    in the debugger window. (Allofich)
   - Better CMOS register B and C emulation. (Allofich)
+  - Integrated commits from mainline (Allofich)
+    - Support for DMF floppy disk images.
 0.83.18
   - Cleaned up and more accurately worded CMOS-related
     log messages. (Allofich)
