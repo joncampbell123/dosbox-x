@@ -3917,7 +3917,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.\n"
+            "For networked database applications (e.g. dBase, FoxPro, etc), it is recommended to set this to e.g. 3 for correct operations.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
