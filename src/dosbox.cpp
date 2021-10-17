@@ -306,6 +306,9 @@ extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 extern bool DOSBox_Paused(), isDBCSCP(), InitCodePage();
 
@@ -1052,7 +1055,11 @@ void DOSBOX_RealInit() {
     if (!cp) InitCodePage();
     if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
         JFONT_Init();  // Load DBCS fonts for JEGA etc
+#if defined(USE_TTF)
+        if (IS_DOSV || ttf_dosv) DOSV_SetConfig(dosv_section);
+#else
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
+#endif
     }
     gbk = dosv_section->Get_bool("gbk");
     dos.loaded_codepage = cp;
@@ -2756,6 +2763,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
+
+	Pbool = secprop->Add_bool("dosv", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If set, enables FEP control to function for DOS/V applications, and changes the blinking of character attributes to high brightness.");
 
     secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
 

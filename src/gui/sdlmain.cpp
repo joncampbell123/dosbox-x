@@ -325,6 +325,7 @@ bool dbcs_sbcs = true;
 bool printfont = true;
 bool autoboxdraw = true;
 bool halfwidthkana = true;
+bool ttf_dosv = false;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -4018,6 +4019,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         dbcs_sbcs = ttf_section->Get_bool("autodbcs");
         autoboxdraw = ttf_section->Get_bool("autoboxdraw");
         halfwidthkana = ttf_section->Get_bool("halfwidthkana");
+        ttf_dosv = ttf_section->Get_bool("dosv");
         const char *outputstr=ttf_section->Get_string("outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))

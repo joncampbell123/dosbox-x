@@ -54,6 +54,7 @@ void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, Phys
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 #if defined(USE_TTF)
 extern bool colorChanged, justChanged;
+extern bool ttf_dosv;
 #endif
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
@@ -606,7 +607,11 @@ CX	640x480	800x600	  1024x768/1280x1024
 			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		break;
 	case 0x18:
+#if defined(USE_TTF)
+		if((IS_DOSV || ttf_dosv) && DOSV_CheckCJKVideoMode()) {
+#else
 		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+#endif
 			uint8_t *font;
 			Bitu size = 0;
 			if(reg_al == 0) {
@@ -687,7 +692,11 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x1d:
+#if defined(USE_TTF)
+		if((IS_DOSV || ttf_dosv) && DOSV_CheckCJKVideoMode()) {
+#else
 		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+#endif
 			if(reg_al == 0x00) {
 				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row - reg_bl);
 			} else if(reg_al == 0x01) {
