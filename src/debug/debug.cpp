@@ -3688,10 +3688,11 @@ static void LogBIOSMem(void) {
     DEBUG_ShowMsg("BIOS memory blocks:");
     DEBUG_ShowMsg("Region            Status What");
     for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
-        sprintf(tmp,"%08lx-%08lx %s",
+        sprintf(tmp,"%08lx-%08lx %s %s",
             (unsigned long)(i->start),
             (unsigned long)(i->end),
-            i->free ? "FREE  " : "ALLOC ");
+            i->free ? "FREE  " : "ALLOC ",
+	    i->free ? "    " : (i->fixed ? "FIX "  : "DYN "));
         DEBUG_ShowMsg("%s %s",tmp,i->who.c_str());
     }
 

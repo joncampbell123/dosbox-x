@@ -34,7 +34,7 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
+RegionAllocTracking::Block::Block() : start(0), end(0), free(true), fixed(false) {
 }
 
 RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), _max_nonfixed(~((Bitu)0)), topDownAlloc(false) {
@@ -110,6 +110,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 			}
 
 			if (base == blk.start && (base+bytes-1u) == blk.end) { /* easy case: perfect match */
+				blk.fixed = (must_be_at != 0u);
 				blk.free = false;
 				blk.who = who;
 			}
@@ -117,6 +118,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 				Block newblk = blk; /* this becomes the new block we insert */
 				blk.start = base+bytes;
 				newblk.end = base+bytes-1u;
+				newblk.fixed = (must_be_at != 0u);
 				newblk.free = false;
 				newblk.who = who;
 				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si,newblk);
@@ -125,6 +127,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 				Block newblk = blk; /* this becomes the new block we insert */
 				blk.end = base-1;
 				newblk.start = base;
+				newblk.fixed = (must_be_at != 0u);
 				newblk.free = false;
 				newblk.who = who;
 				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
@@ -138,6 +141,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
 				newblk2.start = base;
 				newblk2.end = base+bytes-1u;
+				newblk2.fixed = (must_be_at != 0u);
 				newblk2.free = false;
 				newblk2.who = who;
 				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk2);
@@ -280,6 +284,7 @@ bool RegionAllocTracking::freeMemory(Bitu offset) {
 				name.c_str(),(unsigned long)offset,blk.who.c_str(),(unsigned long)blk.start,(unsigned long)blk.end);
 
 			if (!blk.free) {
+				blk.fixed = false;
 				blk.free = true;
 				blk.who.clear();
 				compactFree();

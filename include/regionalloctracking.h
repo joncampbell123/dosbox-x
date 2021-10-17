@@ -13,6 +13,7 @@ public:
 		Bitu				start;		/* start-end of the block inclusive */
 		Bitu				end;
 		bool				free;
+		bool				fixed;
 	};
 public:
 						RegionAllocTracking();
