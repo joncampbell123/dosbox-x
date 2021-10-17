@@ -55,6 +55,7 @@ bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 #if defined(USE_TTF)
 extern bool colorChanged, justChanged;
 extern bool ttf_dosv;
+void ttf_reset(void);
 #endif
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
@@ -297,6 +298,13 @@ Bitu INT10_Handler(void) {
 			break;
 		case 0x02:			/* Load 8x8 font */
 		case 0x12:
+#if defined(USE_TTF)
+			if (ttf.inUse && reg_al == 0x12 && (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x03 || real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x55)) {
+				real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,50-1);
+				ttf_reset();
+				break;
+			}
+#endif
 			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl&0x7f,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
