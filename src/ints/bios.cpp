@@ -10056,6 +10056,14 @@ void ROMBIOS_Init() {
     rombios_alloc.topDownAlloc = true;
     rombios_alloc.initSetRange(rombios_minimum_location,0xFFFF0 - 1);
 
+    if (IS_PC98_ARCH) {
+	    /* TODO: Is this needed? And where? */
+    }
+    else {
+	    /* prevent dynamic allocation from taking reserved fixed addresses above F000:E000 in IBM PC mode. */
+	    rombios_alloc.setMaxDynamicAllocationAddress(0xFE000 - 1);
+    }
+
     write_ID_version_string();
 
     if (IS_PC98_ARCH && enable_pc98_copyright_string) { // PC-98 BIOSes have a copyright string at E800:0DD8
