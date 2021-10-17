@@ -9405,13 +9405,30 @@ public:
         }
 
         /* pick locations */
-        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
-        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
-        BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/4));
-        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
-        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
-        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/4));
-        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/4));
+        if(!IS_PC98_ARCH) {
+            if (machine == MCH_PCJR)
+                BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/, "BIOS default reset location",/*align*/1, 0xF0043)); // POST Entry Point
+            else
+                //BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/, "BIOS default reset location",/*align*/1, 0xFE05B)); // POST Entry Point. TODO: This fails to be allocated.
+                BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/, "BIOS default reset location",/*align*/4));
+            BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default handler location",/*align*/1, 0xFFF53)); // Dummy Interrupt Handler (IRET)
+            BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/1, 0xFFF54)); // INT 05 (Print Screen) Entry Point
+            BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/, "BIOS default IRQ0 location",/*align*/1, 0xFFEA5)); // INT 08 Entry Point
+            BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/, "BIOS default IRQ1 location",/*align*/4));
+            //BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/, "BIOS default IRQ1 location",/*align*/1, 0xFE987)); // INT 09 Entry Point. TODO: This fails to be allocated.
+            BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/, "BIOS default IRQ2-7 location",/*align*/1, 0xFFF55));
+            BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/, "BIOS default IRQ8-15 location",/*align*/1, 0xFE880));
+        }
+        else
+        {
+            BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/, "BIOS default reset location",/*align*/4));
+            BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default handler location",/*align*/4));
+            BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/4));
+            BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/, "BIOS default IRQ0 location",/*align*/4));
+            BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/, "BIOS default IRQ1 location",/*align*/4));
+            BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/, "BIOS default IRQ2-7 location",/*align*/4));
+            BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/, "BIOS default IRQ8-15 location",/*align*/4));
+        }
 
         write_FFFF_signature();
 

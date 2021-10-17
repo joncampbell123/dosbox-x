@@ -1,4 +1,6 @@
 0.83.19
+  - Set some parts of the emulated BIOS to addresses
+    that they are fixed to in real BIOSes. (Allofich)
   - Fix SELINFO command not showing output correctly
     in the debugger window. (Allofich)
   - Better CMOS register B and C emulation. (Allofich)
