@@ -134,6 +134,7 @@ Bitu BIOS_VIDEO_TABLE_LOCATION = ~0u;        // RealMake(0xf000,0xf0a4)
 Bitu BIOS_VIDEO_TABLE_SIZE = 0u;
 
 Bitu BIOS_DEFAULT_RESET_LOCATION = ~0u;      // RealMake(0xf000,0xe05b)
+Bitu BIOS_DEFAULT_RESET_CODE_LOCATION = ~0u;
 
 bool allow_more_than_640kb = false;
 
@@ -9405,13 +9406,15 @@ public:
         }
 
         /* pick locations */
-        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
-        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
-        BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/4));
-        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
-        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
-        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/4));
-        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/4));
+	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm] with some values from a pull request by Allofich. */
+        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
+        BIOS_DEFAULT_RESET_CODE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location (CODE)",/*align*/1));
+        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF53));
+        BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF54));
+        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFEA5));
+        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
+        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
+        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
 
         write_FFFF_signature();
 
@@ -9621,7 +9624,14 @@ public:
         {
             Bitu wo_fence;
 
-            Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+	    {
+		    unsigned int delta = (Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION) - (Real2Phys(BIOS_DEFAULT_RESET_LOCATION) + 3u)) & 0xFFFFu;
+		    Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+		    phys_writeb(wo+0,0xE9);/*JMP near*/
+		    phys_writew(wo+1,delta);
+	    }
+
+            Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION);
             wo_fence = wo + 64;
 
             // POST
