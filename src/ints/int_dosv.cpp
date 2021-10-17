@@ -104,6 +104,7 @@ static bool use20pixelfont;
 #endif
 #if defined(USE_TTF)
 extern bool autoboxdraw;
+extern bool ttf_dosv;
 #endif
 
 bool gbk = false;
@@ -130,7 +131,11 @@ bool isKanji1(uint8_t chr) {
 }
 
 bool isKanji2(uint8_t chr) {
+#if defined(USE_TTF)
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
+#else
     if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
+#endif
         return chr >= 0x40 && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);

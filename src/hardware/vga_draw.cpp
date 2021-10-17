@@ -137,6 +137,10 @@ void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
 uint8_t *GetDbcsFont(Bitu code);
 
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
+
 void memxor(void *_d,unsigned int byte,size_t count) {
     unsigned char *d = (unsigned char*)_d;
     while (count-- > 0) *d++ ^= byte;
@@ -4009,10 +4013,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
-                        if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
+#if defined(USE_TTF)
+                        if (vga.draw.blinking && !ttf_dosv)							// if blinking is enabled bit7 is not mapped to attributes
+#else
+                        if (vga.draw.blinking)							// if blinking is enabled bit7 is not mapped to attributes
+#endif
                             background &= 7;
                         // choose foreground color if blinking not set for this cell or blink on
+#if defined(USE_TTF)
+                        Bitu foreground = (vga.draw.blink || (!(attr&0x80)) || ttf_dosv) ? (attr&0xf) : background;
+#else
                         Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
+#endif
                         // How about underline?
                         (*draw).fg = foreground;
                         (*draw).bg = background;

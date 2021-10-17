@@ -64,6 +64,9 @@ extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 extern int lfn_filefind_handle, autofixwarn;
 extern uint16_t customcp_to_unicode[256];
 int customcp = 0, altcp = 0;
@@ -288,7 +291,11 @@ static bool hat_flag[] = {
 
 bool CheckHat(uint8_t code)
 {
+#if defined(USE_TTF)
+	if(IS_JEGA_ARCH || IS_DOSV || ttf_dosv) {
+#else
 	if(IS_JEGA_ARCH || IS_DOSV) {
+#endif
 		if(code <= 0x1a) {
 			return hat_flag[code];
 		}
@@ -1050,7 +1057,11 @@ static Bitu DOS_21Handler(void) {
                                     if(isKanji1(c)) {
                                         flag = 1;
                                     }
+#if defined(USE_TTF)
+                                    if(IS_JEGA_ARCH || IS_DOSV || ttf_dosv) {
+#else
                                     if(IS_JEGA_ARCH || IS_DOSV) {
+#endif
                                         if(CheckHat(c)) {
                                             flag = 2;
                                         }
@@ -1087,7 +1098,11 @@ static Bitu DOS_21Handler(void) {
                         DOS_BreakAction();
                         if (!DOS_BreakTest()) return CBRET_NONE;
                     }
+#if defined(USE_TTF)
+                    if ((IS_JEGA_ARCH || IS_DOSV || ttf_dosv) && c == 7) {
+#else
                     if ((IS_JEGA_ARCH || IS_DOSV) && c == 7) {
+#endif
                         DOS_WriteFile(STDOUT, &c, &n);
                         continue;
                     }
@@ -1693,7 +1708,11 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+#if defined(USE_TTF)
+            if((IS_DOSV || ttf_dosv) && IS_DOS_JAPANESE) {
+#else
             if(IS_DOSV && IS_DOS_JAPANESE) {
+#endif
                 char *name_start = name1;
                 if(name1[0] == '@' && name1[1] == ':') {
                     name_start += 2;
@@ -1714,7 +1733,11 @@ static Bitu DOS_21Handler(void) {
                             break;
                         }
                     }
+#if defined(USE_TTF)
+                    if(!strncmp(name_start, "$IBMAFNT", 8) || (ttf_dosv && !strncmp(name_start, "$IBMADSP", 8))) {
+#else
                     if(!strncmp(name_start, "$IBMAFNT", 8)) {
+#endif
                         ibmjp_handle = IBMJP_DEVICE_HANDLE;
                         reg_ax = IBMJP_DEVICE_HANDLE;
                         force_sfn = false;
@@ -3887,7 +3910,11 @@ public:
 			// to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
 			// standard I/O calls to write to the CON device.
 			callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+#if defined(USE_TTF)
+		} else if (IS_DOSV || ttf_dosv) {
+#else
 		} else if (IS_DOSV) {
+#endif
 			int29h_data.ansi.attr = 0x07;
 			callback[6].Install(DOS_29Handler,CB_IRET,"CON Output Int 29");
 		} else if (section->Get_bool("ansi.sys")) { // NTS: DOS CON device is not yet initialized, therefore will not return correct value of "is ANSI.SYS installed"?
@@ -4066,7 +4093,11 @@ public:
             INT10_AX_SetCRTBIOSMode(0x51);
             INT16_AX_SetKBDBIOSMode(0x51);
         }
+#if defined(USE_TTF)
+		if(IS_DOSV || ttf_dosv) {
+#else
 		if(IS_DOSV) {
+#endif
 			DOSV_Setup();
 			if(IS_DOSV) {
 				INT10_DOSV_SetCRTBIOSMode(0x03);

@@ -29,6 +29,7 @@
 #include "support.h"
 #include "parport.h"
 #include "drives.h" //Wildcmp
+#include "render.h"
 /* Include all the devices */
 
 #include "dev_con.h"

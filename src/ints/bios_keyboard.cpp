@@ -29,6 +29,7 @@
 #include "SDL.h"
 #include "int10.h"
 #include "jfont.h"
+#include "render.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -297,6 +298,10 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
 #include <queue>
 std::queue <uint16_t>over_key_buffer;
 
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
+
 bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
         if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
@@ -332,7 +337,11 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
     /* Check for buffer Full */
     //TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
     if (ttail==head) {
+#if defined(USE_TTF)
+        if(IS_DOSV || ttf_dosv) {
+#else
         if(IS_DOSV) {
+#endif
             over_key_buffer.push(code);
         }
         return false;
@@ -400,7 +409,11 @@ static bool get_key(uint16_t &code) {
         mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
         code = real_readw(0x40,head);
     }
+#if defined(USE_TTF)
+    if(IS_DOSV || ttf_dosv) {
+#else
     if(IS_DOSV) {
+#endif
         if (!over_key_buffer.empty()) {
             add_key(over_key_buffer.front());
             over_key_buffer.pop();
@@ -1255,7 +1268,11 @@ Bitu INT16_Handler(void) {
         break;
     case 0x13:
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if defined(USE_TTF)
+        if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#else
         if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#endif
             if(reg_al == 0x00) {
                 if(reg_dl & 0x81)
                     SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
@@ -1271,7 +1288,11 @@ Bitu INT16_Handler(void) {
             }
         }
 #elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#if defined(USE_TTF)
+        if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#else
         if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#endif
             if(reg_al == 0x00) {
                 if(reg_dl & 0x81)
                     IME_SetEnable(TRUE);
@@ -1287,7 +1308,11 @@ Bitu INT16_Handler(void) {
 #endif
         break;
     case 0x14:
+#if defined(USE_TTF)
+        if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#else
         if(IS_DOSV && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
+#endif
             if(reg_al == 0x02) {
                 // get
                 reg_al = fep_line;
