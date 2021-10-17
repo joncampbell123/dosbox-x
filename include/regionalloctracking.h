@@ -17,6 +17,7 @@ public:
 public:
 						RegionAllocTracking();
 public:
+	void					setMaxDynamicAllocationAddress(Bitu _new_max);
 	Bitu					getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
 	void					initSetRange(Bitu start,Bitu end);
 	Bitu					freeUnusedMinToLoc(Bitu phys);
@@ -29,6 +30,7 @@ public:
 	std::string				name;
 	std::vector<Block>			alist;
 	Bitu					_min,_max;
+	Bitu					_max_nonfixed; /* above this address, only permit fixed memory allocation */
 	bool					topDownAlloc;
 public:
 	static const Bitu			alloc_failed = ~((Bitu)0);
