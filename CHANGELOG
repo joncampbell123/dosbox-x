@@ -6,7 +6,10 @@
     to reserve F000:E000 or higher for fixed allocation
     and force dynamic allocation below that address to
     prevent further conflicts should others submit
-    pull requests for additional fixed locations.
+    pull requests for additional fixed locations. This
+    fixes some games like "Liao" which appear to assume
+    some of these fixed BIOS addresses and will crash
+    if they are wrong.
   - Fixed bugs in the region memory allocator C++ class
     that claimed the entire free block even if the
     size wanted was smaller. Added field to remember if
