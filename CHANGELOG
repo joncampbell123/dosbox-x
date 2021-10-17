@@ -1,4 +1,18 @@
 0.83.19
+  - IBM PC BIOS emulation fixed to place key pieces of
+    code and entry points at fixed legacy locations
+    required by some older DOS games, instead of
+    by dynamic allocation. Added code to BIOS allocation
+    to reserve F000:E000 or higher for fixed allocation
+    and force dynamic allocation below that address to
+    prevent further conflicts should others submit
+    pull requests for additional fixed locations.
+  - Fixed bugs in the region memory allocator C++ class
+    that claimed the entire free block even if the
+    size wanted was smaller. Added field to remember if
+    the allocated block was allocated for fixed or
+    dynamically allocated memory. Cleaned up allocator
+    code and removed redundancy.
   - Fix SELINFO command not showing output correctly
     in the debugger window. (Allofich)
   - Better CMOS register B and C emulation. (Allofich)
