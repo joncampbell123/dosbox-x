@@ -1,4 +1,6 @@
 0.83.19
+  - If machine is PCjr, place PC BIOS reset code at
+    F000:0043 to match that of the real BIOS.
   - IBM PC BIOS emulation fixed to place key pieces of
     code and entry points at fixed legacy locations
     required by some older DOS games, instead of
