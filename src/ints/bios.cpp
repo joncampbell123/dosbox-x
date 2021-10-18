@@ -9406,8 +9406,14 @@ public:
         }
 
         /* pick locations */
-	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm] with some values from a pull request by Allofich. */
-        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
+	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm]. Some values also provided by Allofich.
+	 * PCJr: The BIOS jumps to an address much lower in segment F000, low enough that the second byte of the offset is zero.
+	 *       "Pitstop II" uses that as a method to test for PCjr [https://www.vogons.org/viewtopic.php?t=50417] */
+	if (machine == MCH_PCJR)
+		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP, PCjr style)",/*align*/1,0xF0043));
+	else
+		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
+
         BIOS_DEFAULT_RESET_CODE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location (CODE)",/*align*/1));
         BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF53));
         BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF54));
