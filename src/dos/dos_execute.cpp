@@ -467,7 +467,10 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		SetupCMDLine(pspseg,block);
 	}
 	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successfull */
-	if (flags==OVERLAY) return true;			/* Everything done for overlays */
+    if(flags == OVERLAY) {
+        reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX is 0 on return.
+        return true;			/* Everything done for overlays */
+    }
 	RealPt csip,sssp;
 	if (iscom) {
 		unsigned int stack_sp = 0xfffe;

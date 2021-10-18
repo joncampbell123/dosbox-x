@@ -1,4 +1,7 @@
 0.83.19
+  - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
+    does. Fixes missing music in "聊齋誌異之幽谷傳奇"
+    (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
   - If machine is PCjr, place PC BIOS reset code at
     F000:0043 to match that of the real BIOS.
   - IBM PC BIOS emulation fixed to place key pieces of
