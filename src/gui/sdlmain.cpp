@@ -4861,7 +4861,11 @@ void GFX_EndTextLines(bool force=false) {
                 }
                 else {
                     uint8_t ascii = newAC[x].chr&255;
-
+#if defined(USE_TTF)
+                    if(ttf_dosv && ascii == 0x5c) {
+                        ascii = 0x9d;
+                    }
+#endif
                     curAC[x] = newAC[x];
                     if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && !(dos.loaded_codepage == 932 && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
                         ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
