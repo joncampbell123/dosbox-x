@@ -29,6 +29,9 @@
   - Better CMOS register B and C emulation. (Allofich)
   - Integrated commits from mainline (Allofich)
     - Support for DMF floppy disk images.
+    - Zero-out DX in EXEC overlay command.
+    - Improve stack check for wrap-around cases.
+    - Change to misc_output for SVGA_S3Trio.
 0.83.18
   - Cleaned up and more accurately worded CMOS-related
     log messages. (Allofich)
