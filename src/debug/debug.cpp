@@ -4492,8 +4492,20 @@ static void OutputVecTable(char* filename) {
 		return;
 	}
 
-	for (unsigned int i=0; i<256; i++)
-		fprintf(f,"INT %02X:  %04X:%04X\n", i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
+    for(unsigned int i = 0; i < 256; i++) {
+        if(cpu.pmode) {
+            Descriptor gate;
+            if(cpu.idt.GetDescriptor((Bitu)i << 3u, gate)) {
+                fprintf(f, "INT %02X:  %04X:%04X\n", i, (int)gate.GetSelector(), (int)gate.GetOffset());
+            }
+            else {
+                DEBUG_ShowMsg("INTVEC unable to retrieve vector");
+            }
+        }
+        else {
+            fprintf(f, "INT %02X:  %04X:%04X\n", i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
+        }
+    }
 
 	fclose(f);
 	DEBUG_ShowMsg("DEBUG: Interrupt vector table written to %s.\n", filename);
