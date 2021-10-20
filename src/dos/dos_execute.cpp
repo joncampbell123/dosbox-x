@@ -468,7 +468,8 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	}
 	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successfull */
     if(flags == OVERLAY) {
-        reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX is 0 on return.
+        reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX and DX are 0 on return.
+        reg_dx = 0;
         return true;			/* Everything done for overlays */
     }
 	RealPt csip,sssp;
@@ -497,7 +498,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		if (sssp >= RealMake(pspseg+memsize,0)) E_Exit("DOS:Initial SS:IP beyond allocated memory block for EXE image");
 		if (csip >= RealMake(pspseg+memsize,0)) E_Exit("DOS:Initial CS:IP beyond allocated memory block for EXE image");
 		if (head.initSP<4) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC SS:SP=%04x:%04x",head.initSS,head.initSP);
-		if ((pspseg+memsize)<(loadseg+head.initSS+(head.initSP>>4)))
+		if ((pspseg+memsize)<(RealSeg(sssp)+(RealOff(sssp)>>4)))
 			LOG(LOG_EXEC,LOG_ERROR)("stack outside memory block at EXEC");
 	}
 
