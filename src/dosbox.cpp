@@ -2764,7 +2764,7 @@ void DOSBOX_SetupConfigSections(void) {
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("dosv", Property::Changeable::OnlyAtStart, false);
+	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("If set, enables FEP control to function for DOS/V applications, and changes the blinking of character attributes to high brightness.");
 
     secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo

@@ -4019,7 +4019,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         dbcs_sbcs = ttf_section->Get_bool("autodbcs");
         autoboxdraw = ttf_section->Get_bool("autoboxdraw");
         halfwidthkana = ttf_section->Get_bool("halfwidthkana");
-        ttf_dosv = ttf_section->Get_bool("dosv");
+        ttf_dosv = ttf_section->Get_bool("dosvfunc");
         const char *outputstr=ttf_section->Get_string("outputswitch");
 #if C_DIRECT3D
         if (!strcasecmp(outputstr, "direct3d"))
