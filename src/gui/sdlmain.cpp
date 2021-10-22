@@ -3944,13 +3944,14 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         const char * fiName = ttf_section->Get_string("fontital");
         const char * fbiName = ttf_section->Get_string("fontboit");
         LOG_MSG("SDL:TTF activated %s", fName);
+        force_conversion = true;
         int cp = dos.loaded_codepage;
-        if (!cp) InitCodePage();
         bool trysgf = false;
         if (!*fName) {
             std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||isDBCSCP()) trysgf = true;
+            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||InitCodePage()&&isDBCSCP()) trysgf = true;
         }
+        force_conversion = false;
         dos.loaded_codepage = cp;
         if (trysgf) failName = "SarasaGothicFixed";
         if ((!*fName&&!trysgf)||!readTTF(*fName?fName:failName.c_str(), false, false)) {
