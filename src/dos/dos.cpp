@@ -3704,7 +3704,9 @@ public:
 		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
+        force_conversion=true;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
+        force_conversion=false;
 		if (dos_clipboard_device_access) {
 			bool valid=true;
 			char ch[]="*? .|<>/\\\"";
@@ -3721,9 +3723,14 @@ public:
             std::string text=mainMenu.get_item("clipboard_device").get_text();
             std::size_t found = text.find(":");
             if (found!=std::string::npos) text = text.substr(0, found);
+            force_conversion=true;
             mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
-		} else
+            force_conversion=false;
+		} else {
+            force_conversion=true;
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
+            force_conversion=false;
+        }
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
         char *cpstr = (char *)section->Get_string("customcodepage"), *r=(char *)strchr(cpstr, ',');
@@ -4119,9 +4126,11 @@ public:
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
+        force_conversion=true;
         mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
+        force_conversion=false;
 
         const char *ver = section->Get_string("ver");
 		if (*ver) {
@@ -4138,9 +4147,11 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
+        force_conversion=true;
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
         update_dos_ems_menu();
+        force_conversion=false;
 
         /* settings */
         if (first_run) {
@@ -4360,7 +4371,9 @@ void DOS_Startup(Section* sec) {
 		test = new DOS(control->GetSection("dos"));
 	}
 
+    force_conversion=true;
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
+    force_conversion=false;
 }
 
 void DOS_RescanAll(bool pressed) {
