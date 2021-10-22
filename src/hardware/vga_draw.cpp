@@ -3999,10 +3999,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
-                                    (*draw).doublewide=1;
                                     (*draw).unicode=1;
-                                    dbw=true;
-                                    dex=false;
+                                    if ((*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                        dbw=false;
+                                        dex=true;
+                                    } else {
+                                        (*draw).doublewide=1;
+                                        dbw=true;
+                                        dex=false;
+                                    }
                                 } else {
                                     (*draw).chr=' ';
                                     dbw=false;
@@ -4067,10 +4072,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 CodePageGuestToHostUTF16(uname,text);
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
-                                    (*draw).doublewide=1;
                                     (*draw).unicode=1;
-                                    dbw=true;
-                                    dex=false;
+                                    if ((*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                        dbw=false;
+                                        dex=true;
+                                    } else {
+                                        (*draw).doublewide=1;
+                                        dbw=true;
+                                        dex=false;
+                                    }
                                 } else {
                                     (*draw).chr=' ';
                                     dbw=false;
