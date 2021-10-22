@@ -24,11 +24,15 @@
 #include "dos_inc.h"
 #include "callback.h"
 #include "control.h"
+#include "render.h"
 #include <assert.h>
 
 extern bool gbk;
 extern int maxfcb;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 void CALLBACK_DeAllocate(Bitu in);
 
@@ -49,6 +53,7 @@ GCC_ATTRIBUTE (packed);
 RealPt DOS_DriveDataListHead=0;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
+uint16_t cmd_line_seg;
 
 static Bitu call_casemap = 0;
 
@@ -306,6 +311,14 @@ void DOS_SetupTables(void) {
   	real_writed(seg,0x0a,0x204e4f43);	// driver name
   	real_writed(seg,0x0e,0x20202020);	// driver name
 	if(!IS_DOSV) dos_infoblock.SetDeviceChainStart(RealMake(seg,0));
+
+#if defined(USE_TTF)
+	if(IS_DOSV || ttf_dosv) {
+#else
+	if(IS_DOSV) {
+#endif
+		cmd_line_seg = DOS_GetMemory(16, "command line buffer");
+	}
 
 	/* Create a fake Current Directory Structure */
 	seg=DOS_CDS_SEG;

@@ -32,6 +32,7 @@
 #include "callback.h"
 #include "support.h"
 #include "inout.h"
+#include "render.h"
 #include "../ints/int10.h"
 #include "../dos/drives.h"
 
@@ -52,6 +53,10 @@ extern int lfn_filefind_handle;
 extern bool ctrlbrk, gbk;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
+extern uint16_t cmd_line_seg;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
@@ -388,6 +393,30 @@ void DOS_Shell::InputCommand(char * line) {
 	uint16_t len=0;
 	bool current_hist=false; // current command stored in history?
     uint16_t cr;
+
+#if defined(USE_TTF)
+	if(IS_DOSV || ttf_dosv) {
+#else
+	if(IS_DOSV) {
+#endif
+		uint16_t int21_seg = mem_readw(0x0086);
+		if(int21_seg != 0xf000) {
+			if(real_readw(int21_seg - 1, 8) == 0x5a56) {
+                // Vz editor resident
+                real_writeb(cmd_line_seg, 0, 250);
+				reg_dx = 0;
+				reg_ah = 0x0a;
+				SegSet16(ds, cmd_line_seg);
+				CALLBACK_RunRealInt(0x21);
+				str_len = real_readb(cmd_line_seg, 1);
+				for(len = 0 ; len < str_len ; len++) {
+					line[len] = real_readb(cmd_line_seg, 2 + len);
+				}
+				line[str_len] = '\0';
+				return;
+			}
+		}
+	}
 
     inshell = true;
     input_eof = false;
