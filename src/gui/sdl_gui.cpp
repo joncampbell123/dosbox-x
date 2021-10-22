@@ -1321,7 +1321,7 @@ public:
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("PASTE_CLIPBOARD"), button_w*2);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, MSG_Get("HELP"), button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
 
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
@@ -1399,8 +1399,9 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == MSG_Get("OK")) section->data = *(std::string*)content->getText();
         std::string lines = *(std::string*)content->getText();
+        strcpy(tmp1, mainMenu.get_item("HelpMenu").get_text().c_str());
         if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
-        else if (arg == MSG_Get("HELP")) {
+        else if (arg == tmp1) {
             std::vector<GUI::Char> new_cfg_sname;
 
             if (!cfg_sname.empty()) {
