@@ -418,7 +418,7 @@ static void DrawSubWinBox(WINDOW *wnd,const char *title) {
     		attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
     }
 
-    mvhline(y-1,x,ACS_HLINE,w);
+    mvhline(y-1,x,ACS_S1,w);
     if (title != NULL) mvaddstr(y-1,x+4,title);
 }
 

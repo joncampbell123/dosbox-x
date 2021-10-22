@@ -1,4 +1,7 @@
 0.83.19
+  - Fix horizontal lines in the debugger window being
+    rendered as unrelated characters in some code
+    pages. (Allofich)
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)
