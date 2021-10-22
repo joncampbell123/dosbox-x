@@ -1220,6 +1220,7 @@ void ttf_switch_on(bool ss=true) {
         CALLBACK_RunRealInt(0x2F);
         if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
         reg_ax=oldax;
+        bool OpenGL_using(void), gl = OpenGL_using();
         change_output(10);
         SetVal("sdl", "output", "ttf");
         void OutputSettingMenuUpdate(void);
@@ -1230,6 +1231,13 @@ void ttf_switch_on(bool ss=true) {
         if (ttf.fullScrn) {
             if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
             OUTPUT_TTF_Select(3);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
+                void GFX_SwitchFullScreen(void);
+                GFX_SwitchFullScreen();
+                GFX_SwitchFullScreen();
+            }
+#endif
             resetreq = true;
         }
         resetFontSize();
