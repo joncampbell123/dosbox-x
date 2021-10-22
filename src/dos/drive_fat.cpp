@@ -90,10 +90,20 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk
 			return (int)i;
 		}
 		else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
+            if (use_ver_maj < 7 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to change the reported DOS version to 7.0 now?","yesno", "question", 1)) {
+                use_ver_maj = dos.version.major = 7;
+                use_ver_min = dos.version.minor = 0;
+                dos_ver_menu(false);
+		}
 			if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
 				return (int)i;
 		}
 		else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
+            if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to change the reported DOS version to 7.10 now?","yesno", "question", 1)) {
+                use_ver_maj = dos.version.major = 7;
+                use_ver_min = dos.version.minor = 10;
+                dos_ver_menu(true);
+            }
 			if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
 				return (int)i;
 		}
