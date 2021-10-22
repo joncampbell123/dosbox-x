@@ -21,6 +21,9 @@
     zhì yì zhī yōugǔ chuánqí) which appear to assume
     some of these fixed BIOS addresses and will
     crash if they are wrong.
+  - Reorganized the "List network interfaces" and "List
+    printer devices" dialogs (under the "Help" menu) to
+    allow the use of scroll bars. (Wengier)
   - Fixed issues after resetting the virtual machine
     when using DBCS language files. (Wengier)
   - Fixed bugs in the region memory allocator C++ class
