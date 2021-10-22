@@ -1738,7 +1738,9 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the correct clock */
 		if (CurMode->mode>=0x100) {
-			misc_output|=0xef;		//Select clock 3 
+			if (CurMode->vdispend>480)
+				misc_output|=0xc0;	//480-line sync
+			misc_output|=0x0c;		//Select clock 3
 			Bitu clock=CurMode->vtotal*8*CurMode->htotal*70;
 			if(CurMode->type==M_LIN15 || CurMode->type==M_LIN16) clock/=2;
 			VGA_SetClock(3,clock/1000);
