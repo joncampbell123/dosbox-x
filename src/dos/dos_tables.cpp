@@ -399,6 +399,9 @@ void DOS_SetupTables(void) {
 	}
     dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 
+	/* Create Device command packet area */
+	dos.dcp = DOS_GetMemory(3, "External device command packet");
+
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
 	for (uint8_t ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
