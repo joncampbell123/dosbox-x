@@ -815,6 +815,15 @@ void InitFontHandle()
 #endif
 }
 
+void ShutFontHandle() {
+#if defined(LINUX) && C_X11
+    font_set16 = font_set14 = font_set24 = NULL;
+#endif
+#if defined(WIN32)
+    jfont_16 = jfont_14 = jfont_24 = NULL;
+#endif
+}
+
 bool MakeSbcs16Font() {
 	InitFontHandle();
 	for(Bitu code = 0 ; code < 256 ; code++) {

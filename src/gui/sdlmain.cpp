@@ -9814,8 +9814,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "userconf") {
             control->opt_userconf = true;
         }
-        else if (optname == "lang") {
+        else if (optname == "lang" || optname == "langcp") {
             if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
+            if (optname == "langcp") control->opt_langcp = true;
         }
         else if (optname == "fastbioslogo") {
             control->opt_fastbioslogo = true;

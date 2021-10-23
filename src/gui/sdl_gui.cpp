@@ -147,7 +147,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-lang \""+filename+"\"":"";
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-langcp \""+filename+"\"":"";
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());

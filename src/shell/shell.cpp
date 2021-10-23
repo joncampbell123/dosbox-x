@@ -55,8 +55,8 @@ extern bool dos_shell_running_program, mountwarning;
 extern bool halfwidthkana, force_conversion, gbk;
 extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
+extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
-extern int enablelfn;
 bool usecon = true;
 bool shellrun = false;
 
@@ -693,21 +693,23 @@ void DOS_Shell::Prepare(void) {
 		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (section!=NULL&&!control->opt_noconfig) {
+		if (section!=NULL&&!control->opt_noconfig||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
-			if (r==NULL || !*(r+1))
+			if ((r==NULL || !*(r+1)) && !control->opt_langcp)
 				country = atoi(trim(countrystr));
 			else {
-				*r=0;
+				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
-				int newCP = atoi(trim(r+1));
-				*r=',';
+				int newCP = r==NULL?dos.loaded_codepage:atoi(trim(r+1));
+                if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != newCP)
+                    newCP = msgcodepage;
+				if (r!=NULL) *r=',';
                 if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
                         if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
-                        else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                        else if (r!=NULL) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
                     if (!newCP && IS_DOSV) {

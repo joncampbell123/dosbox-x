@@ -37,7 +37,7 @@ int msgcodepage = 0;
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
+void ShutFontHandle(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
 
 #define LINE_IN_MAXLEN 2048
@@ -78,6 +78,10 @@ void MSG_Replace(const char * _name, const char* _val) {
 
 bool InitCodePage() {
     if (!dos.loaded_codepage || dos_kernel_disabled || force_conversion) {
+        if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
+            dos.loaded_codepage = msgcodepage;
+            return true;
+        }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
         if (section!=NULL && !control->opt_noconfig) {
             char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
@@ -163,7 +167,7 @@ void LoadMessageFile(const char * fname) {
                     *r=0;
                     if (!strcmp(p, "CODEPAGE")) {
                         int c = atoi(r+1);
-                        if (!res && c>0 && isSupportedCP(c)) {
+                        if ((!res || control->opt_langcp) && c>0 && isSupportedCP(c)) {
                             msgcodepage = c;
                             dos.loaded_codepage = c;
                         }
@@ -219,6 +223,7 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
+    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) ShutFontHandle();
     LOG_MSG("Loaded language file: %s",fname);
 	loadlang=true;
 }
