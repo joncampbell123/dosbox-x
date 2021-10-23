@@ -21,6 +21,12 @@
     zhì yì zhī yōugǔ chuánqí) which appear to assume
     some of these fixed BIOS addresses and will
     crash if they are wrong.
+  - If a program is provided in the command-line when
+    launching DOSBox-X, it will now be executed after
+    any commands in the [autoexec] section by default.
+    A command-line option "-prerun" is added to force
+    the program run before any commands in [autoexec]
+    section like before. (Wengier)
   - Improved the menu option "Restart DOSBox-X with
     language file..." (under "Main") for switching
     between DBCS languages. (Wengier)

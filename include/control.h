@@ -52,6 +52,7 @@ public:
         opt_nogui = false;
         opt_nomenu = false;
         opt_langcp = false;
+        opt_prerun = false;
         opt_showrt = false;
         opt_silent = false;
         opt_startui = false;
@@ -144,6 +145,7 @@ public:
     bool opt_silent;
     bool opt_showrt;
     bool opt_nomenu;
+    bool opt_prerun;
     bool opt_langcp;
     bool opt_debug;
     bool opt_nogui;

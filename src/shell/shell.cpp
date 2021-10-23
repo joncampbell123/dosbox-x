@@ -913,12 +913,7 @@ private:
 	AutoexecObject autoexec_echo;
     AutoexecObject autoexec_auto_bat;
 public:
-	AUTOEXEC(Section* configuration):Module_base(configuration) {
-		/* Register a virtual AUTOEXEC.BAT file */
-		const Section_line * section=static_cast<Section_line *>(configuration);
-
-		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
-		bool secure = control->opt_securemode;
+    void RunAdditional() {
         force_conversion = true;
         int cp=dos.loaded_codepage;
         InitCodePage();
@@ -931,7 +926,7 @@ public:
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
                 if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
                     cmd += control->auto_bat_additional[i]+"\n";
-                    cmd += "@c:\n";
+                    cmd += "@c:";
                 } else {
                     std::string batname;
                     //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
@@ -968,13 +963,23 @@ public:
 #if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";
 #endif
-                    cmd += "@mount c: -q -u\n";
+                    cmd += "@mount c: -q -u";
                 }
+                if (control->opt_prerun) cmd += "\n";
             }
 
             autoexec_auto_bat.Install(cmd);
         }
         dos.loaded_codepage = cp;
+    }
+	AUTOEXEC(Section* configuration):Module_base(configuration) {
+		/* Register a virtual AUTOEXEC.BAT file */
+		const Section_line * section=static_cast<Section_line *>(configuration);
+
+		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
+		bool secure = control->opt_securemode;
+
+		if (control->opt_prerun) RunAdditional();
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		const char * extra = section->data.c_str();
@@ -1009,6 +1014,8 @@ public:
 
 		/* Check for the -exit switch which causes dosbox to when the command on the commandline has finished */
 		bool addexit = control->opt_exit;
+
+		if (!control->opt_prerun) RunAdditional();
 
 #if 0/*FIXME: This is ugly. I don't care to follow through on this nonsense for now. When needed, port to new command line switching. */
 		/* Check for first command being a directory or file */

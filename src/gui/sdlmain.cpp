@@ -9631,7 +9631,7 @@ bool DOSBOX_parse_argv() {
         else if (optname == "?" || optname == "h" || optname == "help") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\ndosbox-x [options]\n");
+            fprintf(stderr,"\ndosbox-x [name] [options]\n");
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
@@ -9664,16 +9664,17 @@ bool DOSBOX_parse_argv() {
 #endif
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 #if C_DEBUG
-            fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>.\n");
+            fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>\n");
 #endif
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
+            fprintf(stderr,"  -prerun                                 If [name] is given, run it before AUTOEXEC.BAT config section\n");
 #if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
             fprintf(stderr,"  -hostrun                                Enable START command, CLIP$ device and long filename support\n");
 #endif
 #if defined(WIN32) && !defined(HX_DOS)
-            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host.\n");
+            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host\n");
 #endif
             fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");
@@ -9756,6 +9757,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
+        }
+        else if (optname == "prerun") {
+            control->opt_prerun = true;
         }
 #if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
         else if (optname == "hostrun") {
