@@ -34,6 +34,7 @@
 #include "inout.h"
 #include "shell.h"
 #include "jfont.h"
+#include "sdlmain.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
@@ -144,6 +145,7 @@ static const char *def_menu_main[] =
     "--",
     "restartconf",
     "restartlang",
+    "--",
     "mapper_shutdown",
 #endif
     NULL
@@ -277,6 +279,8 @@ static const char *def_menu_cpu_type[] =
     "cputype_pentium",
     "cputype_pentium_mmx",
     "cputype_ppro_slow",
+    "--",
+    "cputype_experimental",
     NULL
 };
 
@@ -742,12 +746,8 @@ char help_command_temp[MENU_HELP_COMMAND_MAX][30];
 
 /* help debug ("DebugMenu" or "HelpDebugMenu") */
 #if C_DEBUG
-static const char *def_menu_debug[] =
-#else
-static const char *def_menu_help_debug[] =
-#endif
+static const char* def_menu_debug[] =
 {
-#if C_DEBUG
     "mapper_debugger",
     "--",
     "debugger_rundebug",
@@ -764,18 +764,21 @@ static const char *def_menu_help_debug[] =
     "show_logtext",
     "save_logas",
     "--",
-#endif
-#if defined(C_DEBUG) || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
     "wait_on_error",
-#endif
-#if C_DEBUG
     "--",
     "debug_logint21",
     "debug_logfileio",
-#endif
     NULL
 };
+#elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+static const char* def_menu_help_debug[] =
+{
+    "show_console",
+    "wait_on_error",
+    NULL
+};
+#endif
 
 /* help menu ("HelpMenu") */
 static const char *def_menu_help[] =
@@ -809,7 +812,6 @@ extern bool is_paused;
 void DOSBox_SetSysMenu(void);
 #if defined(USE_TTF)
 void resetFontSize();
-bool TTF_using(void);
 #endif
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
@@ -1204,7 +1206,9 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     LPWSTR ret = def;
     int reqsize = 0, cp = dos.loaded_codepage;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-    if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL && !control->opt_noconfig) {
+    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage)
+        cp = msgcodepage;
+    else if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL && !control->opt_noconfig) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
         if (r!=NULL && *(r+1)) {
             cp = atoi(trim(r+1));
@@ -1922,6 +1926,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(wParam))) return;
 #endif
+#else
+    (void)Message;//UNUSED
 #endif
 }
 

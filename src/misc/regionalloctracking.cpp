@@ -34,10 +34,17 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
+RegionAllocTracking::Block::Block() : start(0), end(0), free(true), fixed(false) {
 }
 
-RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), topDownAlloc(false) {
+RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), _max_nonfixed(~((Bitu)0)), topDownAlloc(false) {
+}
+
+void RegionAllocTracking::setMaxDynamicAllocationAddress(Bitu _new_max) {
+	if (_new_max != 0) /* nonzero to set */
+		_max_nonfixed = _new_max;
+	else /* zero to clear */
+		_max_nonfixed = ~((Bitu)0);
 }
 
 Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
@@ -67,110 +74,77 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 
 			/* if must_be_at != 0 the caller wants a block at a very specific location */
 			if (must_be_at != 0) {
-				/* well, is there room to fit the forced block? if it starts before
-				 * this block or the forced block would end past the block then, no. */
-				if (must_be_at < blk.start || (must_be_at+bytes-1u) > blk.end) {
-					if (topDownAlloc) si--;
-					else si++;
-					continue;
-				}
-
 				base = must_be_at;
-				if (base == blk.start && (base+bytes-1u) == blk.end) { /* easy case: perfect match */
-					blk.free = false;
-					blk.who = who;
-				}
-				else if (base == blk.start) { /* need to split */
-					Block newblk = blk; /* this becomes the new block we insert */
-					blk.start = base+bytes;
-					newblk.end = base+bytes-1u;
-					newblk.free = false;
-					newblk.who = who;
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si,newblk);
-				}
-				else if ((base+bytes-1) == blk.end) { /* need to split */
-					Block newblk = blk; /* this becomes the new block we insert */
-					blk.end = base-1;
-					newblk.start = base;
-					newblk.free = false;
-					newblk.who = who;
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
-				}
-				else { /* complex split */
-					Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
-					Bitu orig_end = blk.end;
-					blk.end = base-1u;
-					newblk.start = base+bytes;
-					newblk.end = orig_end;
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
-					newblk2.start = base;
-					newblk2.end = base+bytes-1u;
-					newblk2.free = false;
-					newblk2.who = who;
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk2);
-				}
+				assert(alignment == 1u);
 			}
 			else {
 				if (topDownAlloc) {
 					base = blk.end + 1u - bytes; /* allocate downward from the top */
 					assert(base >= blk.start);
+
+					if (_max_nonfixed < _max) {
+						/* if instructed to by caller, disallow any dynamic allocation above a certain memory limit */
+						if ((_max_nonfixed + 1u) >= bytes) {
+							const Bitu nbase = _max_nonfixed + 1u - bytes;
+							if (base > nbase) base = nbase;
+						}
+						else {
+							base = 0;
+						}
+					}
 				}
 				else {
 					base = blk.start; /* allocate upward from the bottom */
 					assert(base <= blk.end);
 					base += alignment - 1u; /* alignment round up */
+
+					/* TODO: max_nonfixed... */
 				}
+			}
 
-				base &= ~(alignment - 1u); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
-				if (base < blk.start || (base+bytes-1u) > blk.end) { /* if not possible after alignment, then skip */
-					if (topDownAlloc) si--;
-					else si++;
-					continue;
-				}
+			base &= ~(alignment - 1u); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
+			if (base < blk.start || (base+bytes-1u) > blk.end) {
+				if (topDownAlloc) si--;
+				else si++;
+				continue;
+			}
 
-				if (topDownAlloc) {
-					/* easy case: base matches start, just take the block! */
-					if (base == blk.start) {
-						blk.free = false;
-						blk.who = who;
-						return blk.start;
-					}
-
-					/* not-so-easy: need to split the block and claim the upper half */
-					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
-					newblk.start = base;
-					newblk.free = false;
-					newblk.who = who;
-					blk.end = base - 1u;
-
-					if (blk.start > blk.end) {
-						sanityCheck();
-						abort();
-					}
-
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1,newblk);
-				}
-				else {
-					if ((base+bytes-1u) == blk.end) {
-						blk.free = false;
-						blk.who = who;
-						return blk.start;
-					}
-
-					/* not-so-easy: need to split the block and claim the lower half */
-					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
-					newblk.start = base+bytes;
-					blk.free = false;
-					blk.who = who;
-					blk.end = base+bytes-1u;
-
-					if (blk.start > blk.end) {
-						sanityCheck();
-						abort();
-					}
-
-					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
-				}
+			if (base == blk.start && (base+bytes-1u) == blk.end) { /* easy case: perfect match */
+				blk.fixed = (must_be_at != 0u);
+				blk.free = false;
+				blk.who = who;
+			}
+			else if (base == blk.start) { /* need to split */
+				Block newblk = blk; /* this becomes the new block we insert */
+				blk.start = base+bytes;
+				newblk.end = base+bytes-1u;
+				newblk.fixed = (must_be_at != 0u);
+				newblk.free = false;
+				newblk.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si,newblk);
+			}
+			else if ((base+bytes-1) == blk.end) { /* need to split */
+				Block newblk = blk; /* this becomes the new block we insert */
+				blk.end = base-1;
+				newblk.start = base;
+				newblk.fixed = (must_be_at != 0u);
+				newblk.free = false;
+				newblk.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
+			}
+			else { /* complex split */
+				Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
+				Bitu orig_end = blk.end;
+				blk.end = base-1u;
+				newblk.start = base+bytes;
+				newblk.end = orig_end;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
+				newblk2.start = base;
+				newblk2.end = base+bytes-1u;
+				newblk2.fixed = (must_be_at != 0u);
+				newblk2.free = false;
+				newblk2.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk2);
 			}
 
 			LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
@@ -210,6 +184,7 @@ void RegionAllocTracking::initSetRange(Bitu start,Bitu end) {
 	alist.clear();
 	_min = start;
 	_max = end;
+	_max_nonfixed = end;
 
 	x.end = _max;
 	x.free = true;
@@ -309,6 +284,7 @@ bool RegionAllocTracking::freeMemory(Bitu offset) {
 				name.c_str(),(unsigned long)offset,blk.who.c_str(),(unsigned long)blk.start,(unsigned long)blk.end);
 
 			if (!blk.free) {
+				blk.fixed = false;
 				blk.free = true;
 				blk.who.clear();
 				compactFree();

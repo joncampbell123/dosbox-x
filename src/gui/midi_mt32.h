@@ -213,7 +213,7 @@ private:
 	}
 
 public:
-    MidiHandler_mt32() : open(false), chan(NULL), service(NULL), thread(NULL) {
+    MidiHandler_mt32() : chan(NULL), service(NULL), thread(NULL), open(false) {
     }
 
 	~MidiHandler_mt32() {
@@ -230,6 +230,7 @@ public:
 	}
 
     bool Open(const char *conf) {
+        (void)conf;//UNUSED
         service = new MT32Emu::Service();
         uint32_t version = service->getLibraryVersionInt();
         if (version < 0x020100) {

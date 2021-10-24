@@ -1,4 +1,97 @@
+0.83.19
+  - Fix horizontal lines in the debugger window being
+    rendered as unrelated characters in some code
+    pages. (Allofich)
+  - Added config option "dosvfunc" in [ttf] section to
+    support DOS/V applications when country information
+    is set to Japan in TTF output. (nanshiki)
+  - INTVEC debugger command now correctly outputs
+    addresses when in protected mode. (Allofich)
+  - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
+    does. Fixes missing music in "聊齋誌異之幽谷傳奇"
+    (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
+  - If machine is PCjr, place PC BIOS reset code at
+    F000:0043 to match that of the real BIOS.
+  - IBM PC BIOS emulation fixed to place key pieces of
+    code and entry points at fixed legacy locations
+    required by some older DOS games, instead of
+    by dynamic allocation. Added code to BIOS allocation
+    to reserve F000:E000 or higher for fixed allocation
+    and force dynamic allocation below that address to
+    prevent further conflicts should others submit
+    pull requests for additional fixed locations. This
+    fixes some games like "聊齋誌異之幽谷傳奇" (Liáozhāi
+    zhì yì zhī yōugǔ chuánqí) which appear to assume
+    some of these fixed BIOS addresses and will
+    crash if they are wrong.
+  - If a program is provided in the command-line when
+    launching DOSBox-X, it will now be executed after
+    any commands in the [autoexec] section by default.
+    A command-line option "-prerun" is added to force
+    the program run before any commands in [autoexec]
+    section like before. (Wengier)
+  - Improved the menu option "Restart DOSBox-X with
+    language file..." (under "Main") for switching
+    between DBCS languages. (Wengier)
+  - Reorganized the "List network interfaces" and "List
+    printer devices" dialogs (under the "Help" menu) to
+    allow the use of scroll bars. (Wengier)
+  - Fixed issues after resetting the virtual machine
+    when using DBCS language files. (Wengier)
+  - Fixed bugs in the region memory allocator C++ class
+    that claimed the entire free block even if the
+    size wanted was smaller. Added field to remember if
+    the allocated block was allocated for fixed or
+    dynamically allocated memory. Cleaned up allocator
+    code and removed redundancy.
+  - Fix SELINFO command not showing output correctly
+    in the debugger window. (Allofich)
+  - Better CMOS register B and C emulation. (Allofich)
+  - Integrated commits from mainline (Allofich)
+    - Support for DMF floppy disk images.
+    - Zero-out DX in EXEC overlay command.
+    - Improve stack check for wrap-around cases.
+    - Change to misc_output for SVGA_S3Trio.
+0.83.18
+  - Cleaned up and more accurately worded CMOS-related
+    log messages. (Allofich)
+  - Fixed the names of virtual files and files on mounted
+    FAT drive images being logged as "(null)". (Allofich)
+  - Fixed packed structure alignment problem with MSVC
+    (Microsoft C++) builds regarding some disk image
+    formats. These problems prevented VS2019 builds from
+    mounting hard disk images. (Allofich)
+  - REP STOSB will correctly move one byte if one byte
+    remains to be processed aka CX == 1, this is needed
+    for FD98.COM self clearing code to work properly. (Nanshiki)
+  - Fixed ANSI ESC [6n escape handling to correctly
+    report cursor position as 1-based count, not 0-based
+    count (Nanshiki)
+  - PC-98 INT DCh emulation fixed to better represent the
+    function key shortcuts as real DOS does (Nanshiki)
+  - Emulator fix for HX-DOS builds (Wengier)
+  - Integrated commits from mainline (Allofich)
+    - Fix the return value of register al from INT10 ah=0x0F
+    for non EGA/VGA machines.
 0.83.17
+  - Added FISTTP instruction to experimental cputype (LBi)
+  - Updated debugger to support and decode fisttp, fcomi,
+    fcomip, fucomi, fucomip (LBi)
+  - Added cputype=experimental, which is the same as the
+    highest CPU emulation level but with additional
+    instructions from newer processors that do not exist
+    in the era emulated by DOSBox-X i.e. FISTTP which is
+    an SSE3 Pentium 4 instruction. (joncampbell123)
+  - Added support for 286/386 call gates to JMP
+    instruction (joncampbell123)
+  - Added -bd <n> option to IMGMOUNT to allow mounting
+    partitions from a hard disk image mounted as an
+    INT 13h hard disk. <n> is the numeric value the
+    hard disk image was mounted to. In this way, it
+    becomes possible to mount any or all partitions
+    in a hard disk image. WARNING: To safely mount
+    multiple partitions, use -o partidx=<n> to specify
+    each partition you mount by index. (joncampbell123)
   - If a drive has no volume label, and user runs
     LABEL without specifying one, do not ask whether
     or not to delete the volume label because there
@@ -11,6 +104,16 @@
   - INT 29h routes output through ANSI.SYS driver in
     both IBM PC and PC-98 mode, unless ansi.sys=false
     is set in the config setting. (joncampbell123)
+  - Integrated commits from mainline (Allofich)
+    - Fix regression in r4444: Hercules machine type
+    cursor translation.
+    - Remove redundant signature for ET4K that is now
+    done in video BIOS.
+    - Implement mouse driver function 0x27, fixes
+    Alive - Behind the Moon.
+    - Add log message for unusual cases where an
+    executable unsafely places its initial stack outside
+    the memory block.
 0.83.16
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.16.html
@@ -2974,9 +3077,9 @@
   - Added dosbox.conf option to instruct DOSBox-X to leave
     the PC speaker clock gate enabled if set, for games
     that use that PIT output as a time source. Setting
-    the option to "true" allows "Bàoxiào sānguózhì", a game
-    with strange and elaborate timing code, to run without
-    hanging at the second title screen.
+    the option to "true" allows "爆笑三國志" (Bàoxiào
+    sānguózhì), a game with strange and elaborate timing
+    code, to run without hanging at the second title screen.
   - VGA port 3DAh "undefined bits" setting changed to 0x04
     to accomodate "Blues Brothers"
   - Configuration GUI: If the settings are scrollable,

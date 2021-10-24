@@ -2,6 +2,8 @@
 #ifndef __ISP_UTILS_V4_BITMAPINFOHEADER
 #define __ISP_UTILS_V4_BITMAPINFOHEADER
 
+#include "guid.h"
+
 /* [doc] windows_BITMAPFILEHEADER
  *
  * Packed portable representation of the Microsoft Windows BITMAPFILEHEADER
@@ -139,5 +141,3 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 } GCC_ATTRIBUTE(packed) windows_BITMAPV5HEADER;		/* (100) =0x7C =124 */
 
 #endif
-
-

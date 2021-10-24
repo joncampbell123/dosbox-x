@@ -41,6 +41,7 @@
 #include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
+#include "sdlmain.h"
 #if defined(WIN32)
 #include "windows.h"
 extern RECT monrect;
@@ -95,8 +96,6 @@ public:
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
 void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
-bool TTF_using();
-int setTTFCodePage();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -813,7 +812,7 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
-                    if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
+                    if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
@@ -941,7 +940,7 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
-                        if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
+                        if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
@@ -980,8 +979,8 @@ void CONFIG::Run(void) {
 						sec = control->GetSectionFromProperty(pvars[0].c_str());
 					}
 					if (!sec) {
-                        int maxWidth, maxHeight;
-                        void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight), GetDrawWidthHeight(int *pdrawWidth, int *pdrawHeight);
+                        unsigned int maxWidth, maxHeight;
+                        void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
                         if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
                             GetMaxWidthHeight(&maxWidth, &maxHeight);
                             WriteOut("%d\n",maxWidth);
@@ -1354,15 +1353,19 @@ void CONFIG::Run(void) {
                             if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
                                 const char* windowposition = section->Get_string("windowposition");
                                 int GetDisplayNumber(void);
+#if defined(C_SDL2) || defined (WIN32)
                                 int posx = -1, posy = -1;
+#endif
                                 if (windowposition && *windowposition) {
                                     char result[100];
                                     safe_strncpy(result, windowposition, sizeof(result));
                                     char* y = strchr(result, ',');
                                     if (y && *y) {
                                         *y = 0;
+#if defined(C_SDL2) || defined (WIN32)
                                         posx = atoi(result);
                                         posy = atoi(y + 1);
+#endif
                                     }
                                 }
 #if defined(C_SDL2)
@@ -1514,7 +1517,7 @@ void CONFIG::Run(void) {
                                 else if (!CurMode)
                                     ;
                                 else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-                                    WriteOut("[2J");
+                                    WriteOut("\033[2J");
                                 else {
                                     reg_ax=CurMode->mode;
                                     CALLBACK_RunRealInt(0x10);

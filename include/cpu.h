@@ -20,9 +20,7 @@
 #ifndef DOSBOX_CPU_H
 #define DOSBOX_CPU_H
 
-#ifndef DOSBOX_REGS_H
 #include "regs.h"
-#endif
 
 #define CPU_AUTODETERMINE_NONE		0x00
 #define CPU_AUTODETERMINE_CORE		0x01
@@ -34,7 +32,11 @@
 #define CPU_CYCLES_LOWER_LIMIT		200
 
 
-#define CPU_ARCHTYPE_MIXED			0xff
+/* NTS: MIXED is not EXPERIMENTAL. Do not enable EXPERIMENTAL level instructions in "auto" aka MIXED mode.
+ *      For example, FISTTP is a Pentium 4 SSE3 instruction, which does not belong in MIXED mode, but users
+ *      have requested it's addition for some 256-byte DOS demos that use it. */
+#define CPU_ARCHTYPE_EXPERIMENTAL               0xff
+#define CPU_ARCHTYPE_MIXED			0xfe
 #define CPU_ARCHTYPE_8086			0x05
 #define CPU_ARCHTYPE_80186			0x15
 #define CPU_ARCHTYPE_286			0x25

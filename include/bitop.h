@@ -390,4 +390,3 @@ template <typename T=unsigned int> static inline bitseqlengthandpos_ret_t bitseq
 void self_test(void);
 
 }
-

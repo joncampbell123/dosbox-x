@@ -44,4 +44,3 @@ struct MENU_Block {
 extern MENU_Block menu;
 
 #endif /* MENUDEF_H */
-

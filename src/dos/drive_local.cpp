@@ -143,7 +143,7 @@ static std::string ldir[256];
 static std::string hostname = "";
 extern bool rsize, morelen, force_sfn, enable_share_exe;
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern int lfn_filefind_handle, freesizecap, file_access_tries, customcp, altcp;
+extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 
@@ -1126,13 +1126,13 @@ bool share(int fd, int mode, uint32_t flags) {
     break;
   }
 #ifdef F_SETLK64
-  ret = lock_file_region( fd, F_SETLK64, &fl, 0x100000000LL, 1 );
-  if ( ret == -1 && errno == EINVAL )
+  ret = lock_file_region(fd, F_SETLK64, &fl, 0x100000000LL, 1);
+  if(ret == -1 && errno == EINVAL)
 #endif
-    lock_file_region( fd, F_SETLK, &fl, 0x100000000LL, 1 );
-    LOG(LOG_DOSMISC,LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
+      lock_file_region(fd, F_SETLK, &fl, 0x100000000LL, 1);
+  LOG(LOG_DOSMISC, LOG_DEBUG)("internal SHARE: locking: fd %d, type %d whence %d pid %d\n", fd, fl.l_type, fl.l_whence, fl.l_pid);
 
-    return true;
+  return true;
 }
 #endif
 
@@ -2237,9 +2237,9 @@ bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
 
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
-static bool lockWarn = true;
 bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
+    static bool lockWarn = true;
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
     if (file_access_tries>0) {
         if (mode > 1) {
@@ -2996,6 +2996,7 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 }
 
 bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
+    (void)attributes;//UNUSED
     if (!getOverlaydir()) {
         DOS_SetError(DOSERR_ACCESS_DENIED);
         return false;
@@ -3148,6 +3149,8 @@ bool physfsDrive::Rename(const char * oldname,const char * newname) {
 }
 
 bool physfsDrive::SetFileAttr(const char * name,uint16_t attr) {
+    (void)name;//UNUSED
+    (void)attr;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
@@ -3392,7 +3395,7 @@ bool physfsFile::prepareWrite() {
 		PHYSFS_close(fhandle);
 		fhandle = PHYSFS_openAppend(pname);
 #ifndef WIN32
-		int rc = fcntl(**(int**)fhandle->opaque,F_SETFL,0);
+		fcntl(**(int**)fhandle->opaque,F_SETFL,0);
 #endif
 		PHYSFS_seek(fhandle, pos);
 	}
@@ -3465,7 +3468,7 @@ physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
-};
+}
 
 const char *physfscdromDrive::GetInfo() {
 	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
@@ -3481,47 +3484,56 @@ bool physfscdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t fla
 		return false;
 	}
 	return physfsDrive::FileOpen(file,name,flags);
-};
+}
 
 bool physfscdromDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes)
 {
+    (void)file;//UNUSED
+    (void)name;//UNUSED
+    (void)attributes;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::FileUnlink(const char * name)
 {
+    (void)name;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::RemoveDir(const char * dir)
 {
+    (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::MakeDir(const char * dir)
 {
+    (void)dir;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::Rename(const char * oldname,const char * newname)
 {
+    (void)oldname;//UNUSED
+    (void)newname;//UNUSED
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
-};
+}
 
 bool physfscdromDrive::GetFileAttr(const char * name,uint16_t * attr)
 {
 	bool result = physfsDrive::GetFileAttr(name,attr);
 	if (result) *attr |= DOS_ATTR_READ_ONLY;
 	return result;
-};
+}
 
 bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst)
 {
+    (void)fcb_findfirst;//UNUSED
 	// If media has changed, reInit drivecache.
 	if (MSCDEX_HasMediaChanged(subUnit)) {
 		dirCache.EmptyCache();
@@ -3530,7 +3542,7 @@ bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfi
 		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 	}
 	return physfsDrive::FindFirst(_dir,dta);
-};
+}
 
 void physfscdromDrive::SetDir(const char* path)
 {
@@ -3542,7 +3554,7 @@ void physfscdromDrive::SetDir(const char* path)
 		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 	}
 	physfsDrive::SetDir(path);
-};
+}
 
 bool physfscdromDrive::isRemote(void) {
 	return true;

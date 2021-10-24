@@ -22,9 +22,7 @@
 // set to 1 for debug messages and debugging log:
 #define PARALLEL_DEBUG 0
 
-#ifndef DOSBOX_INOUT_H
 #include "inout.h"
-#endif
 
 #include "programs.h"
 
@@ -96,4 +94,3 @@ extern CParallel* parallelPortObjects[];
 extern uint16_t parallel_baseaddr[9];
 
 #endif
-

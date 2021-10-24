@@ -2345,6 +2345,7 @@ static const Ticks vscroll_unitinit = 50;
 static const Ticks vscroll_unitpersec = 600;
 
 Ticks WindowInWindow::DragTimer_Callback::timerExpired(Ticks time) {
+    (void)time;//UNUSED
     if (wnd != NULL) {
         if (wnd->vscroll_downarrowhold) {
             Ticks tdelta = Timer::now() - wnd->drag_start;

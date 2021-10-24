@@ -115,6 +115,8 @@ public:
 		vsprintf(buf,format,msg);
 		va_end(msg);
 		LOG(LOG_MISC,LOG_NORMAL)("%s",buf);
+#else
+        (void)format;//UNUSED
 #endif
 	}
 

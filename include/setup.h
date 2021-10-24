@@ -27,21 +27,9 @@
 #undef min
 #endif
 
-
-#ifndef CH_LIST
-#define CH_LIST
 #include <list>
-#endif
-
-#ifndef CH_VECTOR
-#define CH_VECTOR
 #include <vector>
-#endif
-
-#ifndef CH_STRING
-#define CH_STRING
 #include <string>
-#endif
 
 class Hex {
 private:

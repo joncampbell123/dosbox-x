@@ -32,11 +32,8 @@
 #include <thread>
 #endif
 
-#include "dosbox.h"
 #include "mem.h"
 #include "mixer.h"
-#include "SDL.h"
-#include "SDL_thread.h"
 #include "../libs/decoders/SDL_sound.h"
 #include "../libs/libchdr/chd.h"
 
@@ -69,11 +66,11 @@ enum { CDROM_USE_SDL, CDROM_USE_ASPI, CDROM_USE_IOCTL_DIO, CDROM_USE_IOCTL_DX, C
 //! \description CD-ROM time is represented as minutes, seconds, and frames (75 per second)
 typedef struct SMSF {
     //! \brief Time, minutes field
-    unsigned char   min;
+    unsigned char   min = 0;
     //! \brief Time, seconds field
-    unsigned char   sec;
+    unsigned char   sec = 0;
     //! \brief Time, frame field
-    unsigned char   fr;
+    unsigned char   fr = 0;
 } TMSF;
 
 //! \brief Output and channel control state

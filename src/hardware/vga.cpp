@@ -142,6 +142,7 @@
 #include "render.h"
 #include "jfont.h"
 #include "bitop.h"
+#include "sdlmain.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -543,7 +544,6 @@ public:
         if (cmd->FindString("SET",temp_line,false))
             SetRate((char *)temp_line.c_str());
 #if defined(USE_TTF)
-        bool TTF_using();
         if (TTF_using()) PIC_AddEvent(&resetSize, 1);
 #endif
         if (vga_force_refresh_rate > 0)
@@ -1570,6 +1570,7 @@ void JEGA_readFont() {
 }
 
 void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0xb9://Mode register 1
 		jega.RMOD1 = val;
@@ -1639,12 +1640,13 @@ void write_p3d5_jega(Bitu reg, Bitu val, Bitu iolen) {
 		jega.RSTAT = val;
 		break;
 	default:
-		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Write to illegal index %2X", reg);
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Write to illegal index %2X", (unsigned int)reg);
 		break;
 	}
 }
 //CRT Control Register can be read from I/O 3D5h, after setting index at I/O 3D4h
 Bitu read_p3d5_jega(Bitu reg, Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0xb9:
 		return jega.RMOD1;
@@ -1688,7 +1690,7 @@ Bitu read_p3d5_jega(Bitu reg, Bitu iolen) {
 	case 0xbf:
 		return 0x03;//Font always read/writeable
 	default:
-		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Read from illegal index %2X", reg);
+		LOG(LOG_VGAMISC, LOG_NORMAL)("VGA:GFX:JEGA:Read from illegal index %2X", (unsigned int)reg);
 		break;
 	}
 	return 0x0;

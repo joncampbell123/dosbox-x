@@ -30,6 +30,7 @@
 #include "menu.h"
 #include "cpu.h"
 #include "callback.h"
+#include "dos_inc.h"
 #include "support.h"
 #include "builtin.h"
 #include "mapper.h"
@@ -54,8 +55,8 @@ extern bool dos_shell_running_program, mountwarning;
 extern bool halfwidthkana, force_conversion, gbk;
 extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
+extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
-extern int enablelfn;
 bool usecon = true;
 bool shellrun = false;
 
@@ -102,7 +103,7 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name,const char *dir="");
 void runRescan(const char *str), DOSBox_SetSysMenu(void);
-void SetupDBCSTable(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+void toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 
 #if defined(WIN32)
 void MountAllDrives(Program * program, bool quiet) {
@@ -513,32 +514,32 @@ const char *ParseMsg(const char *msg) {
     str[12]=0;
     if (machine != MCH_PC98) {
         if (!ANSI_SYS_installed()) {
-            msg = str_replace(str_replace((char *)msg, "\033[0m", ""), "\033[1m", "");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
-                msg = str_replace((char *)msg, str, "");
+                msg = str_replace((char *)msg, str, (char*)"");
                 sprintf(str, "\033[4%d;1m", i);
-                msg = str_replace((char *)msg, str, "");
+                msg = str_replace((char *)msg, str, (char*)"");
             }
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         std::string theme = section->Get_string("bannercolortheme");
         if (theme == "black")
-            msg = str_replace((char *)msg, "\033[44;1m", "\033[40;1m");
+            msg = str_replace((char *)msg, (char*)"\033[44;1m", (char*)"\033[40;1m");
         else if (theme == "red")
-            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[41;1m");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[41;1m");
         else if (theme == "green")
-            msg = str_replace(str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[32m", "\033[36m"), "\033[44;1m", "\033[42;1m");
+            msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[32m", (char*)"\033[36m"), (char*)"\033[44;1m", (char*)"\033[42;1m");
         else if (theme == "yellow")
-            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[43;1m");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[43;1m");
         else if (theme == "blue")
-            msg = str_replace((char *)msg, "\033[44;1m", "\033[44;1m");
+            msg = str_replace((char *)msg, (char*)"\033[44;1m", (char*)"\033[44;1m");
         else if (theme == "magenta")
-            msg = str_replace(str_replace((char *)msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[45;1m");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[45;1m");
         else if (theme == "cyan")
-            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[46;1m");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[46;1m");
         else if (theme == "white")
-            msg = str_replace(str_replace((char *)msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
+            msg = str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[47;1m");
     }
     if (machine == MCH_PC98)
         return msg;
@@ -556,14 +557,27 @@ const char *ParseMsg(const char *msg) {
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
             if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {
-                msg = str_replace((char *)msg, "\xC9", (char *)std::string(1, 1).c_str());
-                msg = str_replace((char *)msg, "\xBB", (char *)std::string(1, 2).c_str());
-                msg = str_replace((char *)msg, "\xC8", (char *)std::string(1, 3).c_str());
-                msg = str_replace((char *)msg, "\xBC", (char *)std::string(1, 4).c_str());
-                msg = str_replace((char *)msg, "\xCD", (char *)std::string(1, 6).c_str());
+                if (IS_JEGA_ARCH) {
+                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 0x15).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 0x16).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 0x18).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 0x17).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 0x13).c_str());
+                } else {
+                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 1).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 2).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 3).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 4).c_str());
+                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 6).c_str());
+                }
             } else {
-                msg = str_replace((char *)msg, "\xBA ", (char *)(std::string(1, 5)+" ").c_str());
-                msg = str_replace((char *)msg, " \xBA", (char *)(" "+std::string(1, 5)).c_str());
+                if (IS_JEGA_ARCH) {
+                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 0x14)+" ").c_str());
+                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 0x14)).c_str());
+                } else {
+                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 5)+" ").c_str());
+                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 5)).c_str());
+                }
             }
         }
         return msg;
@@ -583,14 +597,14 @@ void GetExpandedPath(std::string &path) {
     char pathstr[100];
     strcpy(pathstr, path_string+5);
     if (path==udrive+":\\"||path==ldrive+":\\")
-        path=ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str());
+        path=ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str());
     else if (path.size()>3&&(path.substr(0, 4)==udrive+":\\;"||path.substr(0, 4)==ldrive+":\\;")&&path.substr(4).find(udrive+":\\")==std::string::npos&&path.substr(4).find(ldrive+":\\")==std::string::npos)
-        path=std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(3);
+        path=std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(3);
     else if (path.size()>3) {
         size_t pos = path.find(";"+udrive+":\\");
         if (pos == std::string::npos) pos = path.find(";"+ldrive+":\\");
-        if (pos != std::string::npos && (!path.substr(pos+4).size() || path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos))
-            path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(pos+4);
+        if (pos != std::string::npos && (!path.substr(pos+4).size() || (path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos)))
+            path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(pos+4);
     }
 }
 
@@ -611,14 +625,14 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
                 WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_EXAMPLE_PC98")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
                 WriteOut(ParseMsg("\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                     "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                     "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
@@ -634,30 +648,30 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 if (IS_VGA_ARCH) WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_EXAMPLE")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD2")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
-                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 } else if (machine == MCH_HERC || machine == MCH_MDA) {
-                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 }
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                     "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
             }
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-            WriteOut("[2J");
+            WriteOut("\033[2J");
 		if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
@@ -679,21 +693,23 @@ void DOS_Shell::Prepare(void) {
 		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (section!=NULL&&!control->opt_noconfig) {
+		if (section!=NULL&&!control->opt_noconfig||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
-			if (r==NULL || !*(r+1))
+			if ((r==NULL || !*(r+1)) && !control->opt_langcp)
 				country = atoi(trim(countrystr));
 			else {
-				*r=0;
+				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
-				int newCP = atoi(trim(r+1));
-				*r=',';
+				int newCP = r==NULL?dos.loaded_codepage:atoi(trim(r+1));
+                if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != newCP)
+                    newCP = msgcodepage;
+				if (r!=NULL) *r=',';
                 if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
                         if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
-                        else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
+                        else if (r!=NULL) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
                     if (!newCP && IS_DOSV) {
@@ -843,12 +859,12 @@ void DOS_Shell::Run(void) {
     if (this != first_shell && !optInit)
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
 
-	if (optInit) {
-		input_line[CMD_MAXLINE-1u] = 0;
-		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
-		line.erase();
-		ParseLine(input_line);
-	}
+    if(optInit) {
+        input_line[CMD_MAXLINE - 1u] = 0;
+        strncpy(input_line, line.c_str(), CMD_MAXLINE - 1u);
+        line.erase();
+        ParseLine(input_line);
+    }
     if (!exit) {
         RunningProgram = "COMMAND";
         GFX_SetTitle(-1,-1,-1,false);
@@ -897,12 +913,7 @@ private:
 	AutoexecObject autoexec_echo;
     AutoexecObject autoexec_auto_bat;
 public:
-	AUTOEXEC(Section* configuration):Module_base(configuration) {
-		/* Register a virtual AUTOEXEC.BAT file */
-		const Section_line * section=static_cast<Section_line *>(configuration);
-
-		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
-		bool secure = control->opt_securemode;
+    void RunAdditional() {
         force_conversion = true;
         int cp=dos.loaded_codepage;
         InitCodePage();
@@ -915,7 +926,7 @@ public:
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
                 if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
                     cmd += control->auto_bat_additional[i]+"\n";
-                    cmd += "@c:\n";
+                    cmd += "@c:";
                 } else {
                     std::string batname;
                     //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
@@ -952,13 +963,23 @@ public:
 #if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";
 #endif
-                    cmd += "@mount c: -q -u\n";
+                    cmd += "@mount c: -q -u";
                 }
+                if (control->opt_prerun) cmd += "\n";
             }
 
             autoexec_auto_bat.Install(cmd);
         }
         dos.loaded_codepage = cp;
+    }
+	AUTOEXEC(Section* configuration):Module_base(configuration) {
+		/* Register a virtual AUTOEXEC.BAT file */
+		const Section_line * section=static_cast<Section_line *>(configuration);
+
+		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
+		bool secure = control->opt_securemode;
+
+		if (control->opt_prerun) RunAdditional();
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		const char * extra = section->data.c_str();
@@ -993,6 +1014,8 @@ public:
 
 		/* Check for the -exit switch which causes dosbox to when the command on the commandline has finished */
 		bool addexit = control->opt_exit;
+
+		if (!control->opt_prerun) RunAdditional();
 
 #if 0/*FIXME: This is ugly. I don't care to follow through on this nonsense for now. When needed, port to new command line switching. */
 		/* Check for first command being a directory or file */
@@ -1738,16 +1761,16 @@ void SHELL_Init() {
     else if (!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
 
-	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
-	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
+    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+    if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
-	/* DSXMENU.EXE */
-	if (IS_PC98_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
-	else {
-		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+    /* DSXMENU.EXE */
+    if(IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+    else {
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
     }
 
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");

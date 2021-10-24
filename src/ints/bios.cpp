@@ -49,6 +49,7 @@ extern bool PS1AudioCard;
 #include "dma.h"
 #include "shell.h"
 #include "render.h"
+#include "sdlmain.h"
 #include <time.h>
 #include <sys/stat.h>
 
@@ -105,8 +106,8 @@ void MOUSE_Startup(Section *sec);
 void change_output(int output);
 void runBoot(const char *str);
 void SetIMPosition(void);
+bool isDBCSCP();
 #if defined(USE_TTF)
-bool TTF_using(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
 
@@ -133,6 +134,7 @@ Bitu BIOS_VIDEO_TABLE_LOCATION = ~0u;        // RealMake(0xf000,0xf0a4)
 Bitu BIOS_VIDEO_TABLE_SIZE = 0u;
 
 Bitu BIOS_DEFAULT_RESET_LOCATION = ~0u;      // RealMake(0xf000,0xe05b)
+Bitu BIOS_DEFAULT_RESET_CODE_LOCATION = ~0u;
 
 bool allow_more_than_640kb = false;
 
@@ -2661,8 +2663,7 @@ const char *pc98_shcut_key_defaults[10] = {
 #pragma pack(push,1)
 struct pc98_func_key_shortcut_def {
     unsigned char           length;         /* +0x00  length of text */
-    unsigned char           shortcut[0x0E]; /* +0x01  Shortcut text to insert into CON device */
-    unsigned char           pad;            /* +0x0F  always NUL */
+    unsigned char           shortcut[0x0F]; /* +0x01  Shortcut text to insert into CON device */
 
     std::string getShortcutText(void) const {
         std::string ret;
@@ -2670,7 +2671,7 @@ struct pc98_func_key_shortcut_def {
 
         /* Whether a shortcut or escape (0xFE or not) the first 6 chars are displayed always */
         /* TODO: Strings for display are expected to display as Shift-JIS, convert to UTF-8 for display on host */
-        for (i=0;i < 0x0E;i++) {
+        for (i=0;i < 0x0F;i++) {
             if (shortcut[i] == 0u)
                 break;
             else if (shortcut[i] == 0x1B) {
@@ -2750,10 +2751,10 @@ struct pc98_func_key_shortcut_def {
         unsigned int i=0;
         char c;
 
-        while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = (unsigned char)c;
+        while (i < 0x0F && (c = *str++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
 
-        while (i < 0x0E) shortcut[i++] = 0;
+        while (i < 0x0F) shortcut[i++] = 0;
     }
 
     // set text and escape code. text does NOT include the leading 0xFE char.
@@ -2770,9 +2771,9 @@ struct pc98_func_key_shortcut_def {
         while (i < 6 && (c = *text++) != 0) shortcut[i++] = (unsigned char)c;
         while (i < 6) shortcut[i++] = ' ';
 
-        while (i < 0x0E && (c = *escape++) != 0) shortcut[i++] = (unsigned char)c;
+        while (i < 0x0F && (c = *escape++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
-        while (i < 0x0E) shortcut[i++] = 0;
+        while (i < 0x0F) shortcut[i++] = 0;
     }
 };                                          /* =0x10 */
 #pragma pack(pop)
@@ -2805,7 +2806,7 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int 
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Fu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2822,13 +2823,7 @@ void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned in
         const pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[scan-0x36];
         unsigned int j=0,o=0;
 
-        /* if the shortcut starts with 0xFE then the next 5 chars are intended for display only
-         * and the shortcut starts after that. Else the entire string is stuffed into the CON
-         * device. */
-        if (def.shortcut[0] == 0xFE)
-            j = 6;
-
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x05u,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2851,7 +2846,7 @@ void PC98_GetVFKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < MIN(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Fu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2891,44 +2886,37 @@ void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key[i];
 
-        def.pad = 0x00;
         def.set_text_and_escape(pc98_func_key_default[i],pc98_func_key_escapes_default[i]);
     }
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i];
 
-        def.pad = 0x00;
         def.set_shortcut(pc98_shcut_key_defaults[i]);
     }
     for (unsigned int i=0;i < 11;i++) {
         pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[i];
 
-        def.pad = 0x00;
         def.set_shortcut(pc98_editor_key_escapes_default[i]);
     }
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_ctrl[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     /* MS-DOS by default does not assign the VFn keys anything */
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key_shortcut[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
     for (unsigned int i=0;i < 5;i++) {
         pc98_func_key_shortcut_def &def = pc98_vfunc_key_ctrl[i];
 
-        def.pad = 0x00;
         def.set_shortcut("");
     }
 }
@@ -4826,16 +4814,16 @@ void PC98_INTDC_WriteChar(unsigned char b);
 void INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
     unsigned int i;
 
-    for (i=0;i < 0x0E;i++)
+    for (i=0;i < 0x0F;i++)
         def.shortcut[i] = mem_readb(ofs+0x0+i);
 
-    for (i=0;i < 0x0E && def.shortcut[i] != 0;) i++;
+    for (i=0;i < 0x0F && def.shortcut[i] != 0;) i++;
     def.length = i;
 }
 
 void INTDC_STORE_FUNCDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
-    for (unsigned int i=0;i < 0x0E;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
-    mem_writew(ofs+0xE,0);
+    for (unsigned int i=0;i < 0x0F;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
+    mem_writeb(ofs+0xF,0);
 }
 
 void INTDC_LOAD_EDITDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
@@ -4850,7 +4838,7 @@ void INTDC_LOAD_EDITDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
 
 void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
     for (unsigned int i=0;i < 0x05;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
-    mem_writew(ofs+0x5,0);
+    mem_writeb(ofs+0x5,0);
 }
 
 bool inhibited_ControlFn(void) {
@@ -6636,6 +6624,65 @@ static Bitu INT15_Handler(void) {
                 }
         }
         break;
+    case 0x50:
+        if(isDBCSCP()) {
+            if(reg_al == 0x00) {
+                if(reg_bl == 0x00 && reg_bp == 0x00) {
+                    enum DOSV_FONT font = DOSV_FONT_MAX;
+                    if(reg_bh & 0x01) {
+                        if(reg_dh == 16 && reg_dl == 16) {
+                            font = DOSV_FONT_16X16;
+                        } else if(reg_dh == 24 && reg_dl == 24) {
+                            font = DOSV_FONT_24X24;
+                        }
+                    } else {
+                        if(reg_dh == 8) {
+                            if(reg_dl == 16) {
+                                font = DOSV_FONT_8X16;
+                            } else if(reg_dl == 19) {
+                                font = DOSV_FONT_8X19;
+                            }
+                        } else if(reg_dh == 12 && reg_dl == 24) {
+                            font = DOSV_FONT_12X24;
+                        }
+                    }
+                    if(font != DOSV_FONT_MAX) {
+                        reg_ah = 0x00;
+                        SegSet16(es, CB_SEG);
+                        reg_bx = DOSV_GetFontHandlerOffset(font);
+                        CALLBACK_SCF(false);
+                        break;
+                    }
+                }
+            } else if(reg_al == 0x01) {
+                if(reg_dh == 16 && reg_dl == 16) {
+                    reg_ah = 0x00;
+                    SegSet16(es, CB_SEG);
+                    reg_bx = DOSV_GetFontHandlerOffset(DOSV_FONT_16X16_WRITE);
+                    CALLBACK_SCF(false);
+                    break;
+                } else if(reg_dh == 24 && reg_dl == 24) {
+                    reg_ah = 0x00;
+                    SegSet16(es, CB_SEG);
+                    reg_bx = DOSV_GetFontHandlerOffset(DOSV_FONT_24X24_WRITE);
+                    CALLBACK_SCF(false);
+                    break;
+                } else {
+                    reg_ah = 0x06;		// read only
+                }
+            }
+            CALLBACK_SCF(true);
+        }
+        break;
+    case 0x49:
+        if(isDBCSCP()) {
+            reg_ah = 0x00;
+            reg_bl = 0x00;
+            CALLBACK_SCF(false);
+        } else {
+            CALLBACK_SCF(true);
+        }
+        break;
     default:
         LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ax=%4X",reg_ax);
         reg_ah=0x86;
@@ -6985,7 +7032,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
             }
             else {
                 if (tobold&&!bold) {
-                    if (strlen(s)>3&&!strncmp(s, "DEL", 3)||!strncmp(s, "ESC", 3)) bold = 3;
+                    if ((strlen(s)>3&&!strncmp(s, "DEL", 3))||!strncmp(s, "ESC", 3)) bold = 3;
                     else if (strlen(s)>5&&!strncmp(s, "ENTER", 5)) bold = 5;
                     else if (strlen(s)>8&&!strncmp(s, "SPACEBAR", 8)) bold = 8;
                 }
@@ -7029,12 +7076,12 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
                 bo = (((unsigned int)y * 80u) + (unsigned int)(bios_pc98_posx++)) * 2u; /* NTS: note the post increment */
                 if (boxdraw) {
                     unsigned int ch = (unsigned char)*s;
-                    if (*s=='อ') ch = 0x250B;
-                    else if (*s=='บ') ch = 0x270B;
-                    else if (*s=='ษ') ch = 0x330B;
-                    else if (*s=='ป') ch = 0x370B;
-                    else if (*s=='ศ') ch = 0x3B0B;
-                    else if (*s=='ผ') ch = 0x3F0B;
+                    if (ch==0xcd) ch = 0x250B;
+                    else if (ch==0xba) ch = 0x270B;
+                    else if (ch==0xc9) ch = 0x330B;
+                    else if (ch==0xbb) ch = 0x370B;
+                    else if (ch==0xc8) ch = 0x3B0B;
+                    else if (ch==0xbc) ch = 0x3F0B;
                     mem_writew(0xA0000+bo,ch);
                 } else
                     mem_writew(0xA0000+bo,(unsigned char)*s);
@@ -7054,13 +7101,15 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
 char *getSetupLine(const char *capt, const char *cont) {
     unsigned int pad1=(unsigned int)(25-strlen(capt)), pad2=(unsigned int)(41-strlen(cont));
     static char line[90];
-    sprintf(line, "บ%*c%s%*c%s%*cบ", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
+    sprintf(line, "\x0ba%*c%s%*c%s%*c\x0ba", 12, ' ', capt, pad1, ' ', cont, pad2, ' ');
     return line;
 }
 
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
+    (void)x;//UNUSED
+    (void)y;//UNUSED
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
@@ -7213,7 +7262,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     char title[]="                               BIOS Setup Utility                               ";
     char *p=machine == MCH_PC98?title+2:title;
     BIOS_Int10RightJustifiedPrint(x,y,p);
-    BIOS_Int10RightJustifiedPrint(x,y,"ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป", true);
+    BIOS_Int10RightJustifiedPrint(x,y,"\x0c9\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bb", true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
@@ -7257,7 +7306,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
-    BIOS_Int10RightJustifiedPrint(x,y,"ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ", true);
+    BIOS_Int10RightJustifiedPrint(x,y,"\x0c8\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bc", true);
     if (machine == MCH_PC98)
         BIOS_Int10RightJustifiedPrint(x,y,"                                  ESC = Exit                                  ");
     else
@@ -8682,9 +8731,9 @@ private:
         sprintf(logostr[5], "|    %d-bit %s    |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
-#else^M
+#else
         32
-#endif^M
+#endif
         , SDL_STRING);
         sprintf(logostr[6], "|  Version %7s  |", VERSION);
         strcpy(logostr[7], "+-------------------+");
@@ -8811,7 +8860,7 @@ startfunction:
         BIOS_Int10RightJustifiedPrint(x,y,msg);
         if (machine != MCH_PC98 && textsplash) {
             Bitu edx = reg_edx;
-            int oldx = x, oldy = y;
+            //int oldx = x, oldy = y; UNUSED
             unsigned int lastline = 7;
             for (unsigned int i=0; i<=lastline; i++) {
                 for (unsigned int j=0; j<strlen(logostr[i]); j++) {
@@ -8948,6 +8997,9 @@ startfunction:
                 case CPU_ARCHTYPE_MIXED:
                     cpuType = "Auto (mixed)";
                     break;
+                case CPU_ARCHTYPE_EXPERIMENTAL:
+                    cpuType = "Experimental";
+                    break;
             }
 
             sprintf(tmp,"%s CPU present",cpuType);
@@ -9028,7 +9080,7 @@ startfunction:
                         break;
                     }
 
-                    if (machine != MCH_PC98 && reg_ax == 0x5300 || machine == MCH_PC98 && reg_ax == 0x3900) { // user hit Del
+                    if ((machine != MCH_PC98 && reg_ax == 0x5300) || (machine == MCH_PC98 && reg_ax == 0x3900)) { // user hit Del
                         bios_setup = true;
                         showBIOSSetup(card, x, y);
                         break;
@@ -9046,7 +9098,7 @@ startfunction:
                     CALLBACK_RunRealInt(0x16);
                 }
 
-                if (machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/ || machine == MCH_PC98 && reg_ax == 0x3900) {
+                if ((machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) || (machine == MCH_PC98 && reg_ax == 0x3900)) {
                     bios_setup = true;
                     showBIOSSetup(card, x, y);
                     break;
@@ -9110,17 +9162,17 @@ startfunction:
                             continue;
                         }
                     }
-                    if (machine != MCH_PC98 && reg_ax == 0x4B00 || machine == MCH_PC98 && reg_ax == 0x3B00) { // Left key
+                    if ((machine != MCH_PC98 && reg_ax == 0x4B00) || (machine == MCH_PC98 && reg_ax == 0x3B00)) { // Left key
                         pos=pos>1?pos-1:6;
                         lasttick-=500;
-                    } else if (machine != MCH_PC98 && reg_ax == 0x4D00 || machine == MCH_PC98 && reg_ax == 0x3C00) { // Right key
+                    } else if ((machine != MCH_PC98 && reg_ax == 0x4D00) || (machine == MCH_PC98 && reg_ax == 0x3C00)) { // Right key
                         pos=pos<6?pos+1:1;
                         lasttick-=500;
-                    } else if ((machine != MCH_PC98 && reg_ax == 0x4800 || machine == MCH_PC98 && reg_ax == 0x3A00) && pos>3) { // Up key
+                    } else if (((machine != MCH_PC98 && reg_ax == 0x4800) || (machine == MCH_PC98 && reg_ax == 0x3A00)) && pos>3) { // Up key
                         if (pos==4||pos==5) pos=1;
                         else if (pos==6) pos=2;
                         lasttick-=500;
-                    } else if ((machine != MCH_PC98 && reg_ax == 0x5000 || machine == MCH_PC98 && reg_ax == 0x3D00) && pos<4) { // Down key
+                    } else if (((machine != MCH_PC98 && reg_ax == 0x5000) || (machine == MCH_PC98 && reg_ax == 0x3D00)) && pos<4) { // Down key
                         if (pos==1) pos=4;
                         else if (pos==2||pos==3) pos=6;
                         lasttick-=500;
@@ -9354,13 +9406,21 @@ public:
         }
 
         /* pick locations */
-        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
-        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
-        BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/4));
-        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
-        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
-        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/4));
-        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/4));
+	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm]. Some values also provided by Allofich.
+	 * PCJr: The BIOS jumps to an address much lower in segment F000, low enough that the second byte of the offset is zero.
+	 *       "Pitstop II" uses that as a method to test for PCjr [https://www.vogons.org/viewtopic.php?t=50417] */
+	if (machine == MCH_PCJR)
+		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP, PCjr style)",/*align*/1,0xF0043));
+	else
+		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
+
+        BIOS_DEFAULT_RESET_CODE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location (CODE)",/*align*/1));
+        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF53));
+        BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF54));
+        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFEA5));
+        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
+        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
+        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
 
         write_FFFF_signature();
 
@@ -9421,7 +9481,7 @@ public:
              * of conventional memory, means that if conventional memory is less than 640KB
              * and not a multiple of 32KB, things can break. */
             if ((t_conv % 32) != 0)
-                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in Tandy mode is not a multiple of 32KB, games may not display graphics correctly",(unsigned int)t_conv);
         }
         else if (machine == MCH_PCJR) {
             if (t_conv < 64)
@@ -9431,7 +9491,7 @@ public:
              * below 128KB because IBM intended it to only carry 64KB or 128KB on the
              * motherboard. Any memory past 128KB is likely provided by addons (sidecars) */
             if (t_conv < 128 && (t_conv % 32) != 0)
-                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",t_conv);
+                LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",(unsigned int)t_conv);
         }
 
         /* and then unmap RAM between t_conv and ulimit */
@@ -9570,7 +9630,14 @@ public:
         {
             Bitu wo_fence;
 
-            Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+	    {
+		    unsigned int delta = (Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION) - (Real2Phys(BIOS_DEFAULT_RESET_LOCATION) + 3u)) & 0xFFFFu;
+		    Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+		    phys_writeb(wo+0,0xE9);/*JMP near*/
+		    phys_writew(wo+1,delta);
+	    }
+
+            Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION);
             wo_fence = wo + 64;
 
             // POST
@@ -10004,6 +10071,14 @@ void ROMBIOS_Init() {
     rombios_alloc.name = "ROM BIOS";
     rombios_alloc.topDownAlloc = true;
     rombios_alloc.initSetRange(rombios_minimum_location,0xFFFF0 - 1);
+
+    if (IS_PC98_ARCH) {
+	    /* TODO: Is this needed? And where? */
+    }
+    else {
+	    /* prevent dynamic allocation from taking reserved fixed addresses above F000:E000 in IBM PC mode. */
+	    rombios_alloc.setMaxDynamicAllocationAddress(0xFE000 - 1);
+    }
 
     write_ID_version_string();
 

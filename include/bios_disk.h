@@ -19,9 +19,7 @@
 #ifndef DOSBOX_BIOS_DISK_H
 #define DOSBOX_BIOS_DISK_H
 
-#ifndef DOSBOX_DOS_INC_H
 #include "dos_inc.h"
-#endif
 #include "logging.h"
 #include "../src/dos/cdrom.h"
 
@@ -45,67 +43,86 @@ extern diskGeo DiskGeometryList[];
 extern const uint8_t freedos_mbr[];
 
 class imageDisk {
-public:
-	enum IMAGE_TYPE {
-		ID_BASE=0,
-		ID_EL_TORITO_FLOPPY,
-        ID_VFD,
-		ID_MEMORY,
-		ID_VHD,
-        ID_D88,
-        ID_NFD
-	};
+	public:
+		enum IMAGE_TYPE {
+			ID_BASE=0,
+			ID_EL_TORITO_FLOPPY,
+			ID_VFD,
+			ID_MEMORY,
+			ID_VHD,
+			ID_D88,
+			ID_NFD
+		};
 
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+		virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+		virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+		virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
-	virtual void Set_Reserved_Cylinders(Bitu resCyl);
-	virtual uint32_t Get_Reserved_Cylinders();
-	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
-	virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
-	virtual uint8_t GetBiosType(void);
-	virtual uint32_t getSectSize(void);
-	imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
-	imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
-	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
+		virtual void Set_Reserved_Cylinders(Bitu resCyl);
+		virtual uint32_t Get_Reserved_Cylinders();
+		virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
+		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
+		virtual uint8_t GetBiosType(void);
+		virtual uint32_t getSectSize(void);
+		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
+		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
+		virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
-    IMAGE_TYPE class_id = ID_BASE;
-	std::string diskname;
-    bool active = false;
-    uint32_t sector_size = 512;
-    uint32_t heads = 0;
-    uint32_t cylinders = 0;
-    uint32_t sectors = 0;
-    bool hardDrive = false;
-    uint64_t diskSizeK = 0;
-    FILE* diskimg = NULL;
+		IMAGE_TYPE class_id = ID_BASE;
+		std::string diskname;
+		bool active = false;
+		uint32_t sector_size = 512;
+		uint32_t heads = 0;
+		uint32_t cylinders = 0;
+		uint32_t sectors = 0;
+		bool hardDrive = false;
+		uint64_t diskSizeK = 0;
+		FILE* diskimg = NULL;
 
-protected:
-	imageDisk(IMAGE_TYPE class_id);
-    uint8_t floppytype = 0;
+	protected:
+		imageDisk(IMAGE_TYPE class_id);
+		uint8_t floppytype = 0;
 
-    uint32_t reserved_cylinders = 0;
-    uint64_t image_base = 0;
-    uint64_t image_length = 0;
+		uint32_t reserved_cylinders = 0;
+		uint64_t image_base = 0;
+		uint64_t image_length = 0;
 
-private:
-    volatile int refcount = 0;
+	private:
+		volatile int refcount = 0;
+		std::vector<bool> partition_in_use; /* used by FAT driver to prevent mounting a partition twice */
 
-public:
-	int Addref() {
-		return ++refcount;
-	}
-	int Release() {
-		int ret = --refcount;
-		if (ret < 0) {
-			fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
-			abort();
+	public:
+		int Addref() {
+			return ++refcount;
 		}
-		if (ret == 0) delete this;
-		return ret;
-	}
+		int Release() {
+			int ret = --refcount;
+			if (ret < 0) {
+				fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
+				abort();
+			}
+			if (ret == 0) delete this;
+			return ret;
+		}
+		bool partitionInUse(const size_t i) {
+			if (i < partition_in_use.size())
+				return partition_in_use[i];
+
+			return false;
+		}
+		bool partitionMarkUse(const size_t i,bool inUse) {
+			if (i < 256) {
+				if (partition_in_use.size() != 256) {
+					partition_in_use.resize(256); // keep it simple, this is a bitfield, 256 bits = 32 bytes
+					for (size_t i=0;i < partition_in_use.size();i++) partition_in_use[i] = false;
+				}
+
+				partition_in_use[i] = inUse;
+			}
+
+			return false;
+		}
 };
 
 class imageDiskD88 : public imageDisk {
@@ -434,6 +451,48 @@ public:
     uint64_t current_fpos; */
 };
 
+/* PC-98 IPL1 partition table entry.
+ * Taken from GNU Parted source code.
+ * Maximum 16 entries. */
+#pragma pack(push,1)
+struct _PC98RawPartition {
+	uint8_t		mid;		/* 0x80 - boot */
+	uint8_t		sid;		/* 0x80 - active */
+	uint8_t		dum1;		/* dummy for padding */
+	uint8_t		dum2;		/* dummy for padding */
+	uint8_t		ipl_sect;	/* IPL sector */
+	uint8_t		ipl_head;	/* IPL head */
+	uint16_t	ipl_cyl;	/* IPL cylinder */
+	uint8_t		sector;		/* starting sector */
+	uint8_t		head;		/* starting head */
+	uint16_t	cyl;		/* starting cylinder */
+	uint8_t		end_sector;	/* end sector */
+	uint8_t		end_head;	/* end head */
+	uint16_t	end_cyl;	/* end cylinder */
+	char		name[16];
+};
+
+struct partTable {
+	uint8_t booter[446];
+	struct partentry_t {
+		uint8_t bootflag;
+		uint8_t beginchs[3];
+		uint8_t parttype;
+		uint8_t endchs[3];
+		uint32_t absSectStart;
+		uint32_t partSize;
+	} pentry[4];
+	uint8_t  magic1; /* 0x55 */
+	uint8_t  magic2; /* 0xaa */
+#ifndef SECTOR_SIZE_MAX
+# pragma warning SECTOR_SIZE_MAX not defined
+#endif
+#if SECTOR_SIZE_MAX > 512
+    uint8_t  extra[SECTOR_SIZE_MAX - 512];
+#endif
+};
+#pragma pack(pop)
+
 void updateDPT(void);
 void incrementFDD(void);
 
@@ -455,5 +514,12 @@ void swapInDisks(int drive);
 bool getSwapRequest(void);
 imageDisk *GetINT13HardDrive(unsigned char drv);
 imageDisk *GetINT13FloppyDrive(unsigned char drv);
+
+bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk);
+bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk);
+std::string PartitionIdentifyType(imageDisk *loadedDisk);
+
+void LogPrintPartitionTable(const std::vector<_PC98RawPartition> &parts);
+void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts);
 
 #endif

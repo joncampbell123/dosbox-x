@@ -16,12 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include "dosbox.h"
-
 #include "mem.h"
-#include "mmx.h"
-#include "cpu.h"
 #include "fpu.h"
 
 #if C_FPU
@@ -116,7 +111,7 @@ uint16_t SaturateDwordSToWordU(int32_t value)
 }
 
 void setFPUTagEmpty() {
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
 	fpu.sw = 0;
 	TOP = FPU_GET_TOP();
 	fpu.tags[0] = TAG_Empty;

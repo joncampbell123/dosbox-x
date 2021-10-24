@@ -56,6 +56,7 @@ static int mvlLoadEntries(PHYSFS_Io *io, const PHYSFS_uint32 count, void *arc)
 static void *MVL_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     PHYSFS_uint8 buf[4];
     PHYSFS_uint32 count = 0;
     void *unpkarc;

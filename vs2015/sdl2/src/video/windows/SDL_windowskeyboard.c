@@ -370,7 +370,8 @@ IME_Init(SDL_VideoData *videodata, HWND hwnd)
     videodata->ime_available = SDL_TRUE;
     IME_UpdateInputLocale(videodata);
     IME_SetupAPI(videodata);
-    videodata->ime_uiless = UILess_SetupSinks(videodata);
+    // Disabled because the candidate window will not be displayed.
+    //videodata->ime_uiless = UILess_SetupSinks(videodata);
     IME_UpdateInputLocale(videodata);
     IME_Disable(videodata, hwnd);
 }
@@ -878,14 +879,18 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
     case WM_INPUTLANGCHANGE:
         IME_InputLangChanged(videodata);
         break;
+    case WM_IME_CHAR:
+        trap = SDL_TRUE;
+        break;
     case WM_IME_SETCONTEXT:
-        *lParam = 0;
+        // Disabled because the string being converted will not be displayed.
+        //*lParam = 0;
         break;
     case WM_IME_STARTCOMPOSITION:
-        trap = SDL_TRUE;
+        //trap = SDL_TRUE;
         break;
     case WM_IME_COMPOSITION:
-        trap = SDL_TRUE;
+        //trap = SDL_TRUE;
         himc = ImmGetContext(hwnd);
         if (*lParam & GCS_RESULTSTR) {
             IME_GetCompositionString(videodata, himc, GCS_RESULTSTR);

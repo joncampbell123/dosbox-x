@@ -100,6 +100,7 @@ extern const char* RunningProgram;
 extern std::string strPasteBuffer;
 extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
+extern uint16_t seg_win_startup_info;
 void PasteClipboard(bool bPressed);
 
 // INT 2F
@@ -307,6 +308,14 @@ static bool DOS_MultiplexFunctions(void) {
 			LOG_MSG("         unmodified, and only modify registers on the way back up the chain!\n");
 		}
 
+		// Dummy data is required for the Microsoft version of Japanese Windows 3.1 in enhanced mode.
+		if(IS_DOSV && (reg_dx & 0x0001) == 0) {
+			real_writew(seg_win_startup_info, 0x02, reg_bx);
+			real_writew(seg_win_startup_info, 0x04, SegValue(es));
+			SegSet16(es, seg_win_startup_info);
+			reg_bx = 0;
+		}
+
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1606:	/* Windows exit broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
@@ -481,7 +490,7 @@ static bool DOS_MultiplexFunctions(void) {
             uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
-            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
             if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];
@@ -519,7 +528,7 @@ static bool DOS_MultiplexFunctions(void) {
             uint32_t size = 0, extra = 0;
             unsigned char head, last=13;
             uint8_t *text;
-            for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+            for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
             if (strPasteBuffer.length() && (text = (uint8_t *)malloc(strPasteBuffer.length()+extra))) {
                 while (strPasteBuffer.length()) {
                     head = strPasteBuffer[0];

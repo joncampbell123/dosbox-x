@@ -22,4 +22,3 @@ static inline unsigned char dac_4to6(unsigned char c4) {
      * a b c d a b */
     return (c4 << 2) | (c4 >> 2);
 }
-

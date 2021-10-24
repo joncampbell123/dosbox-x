@@ -33,4 +33,3 @@
 #define alignment_avx			(32)
 
 #endif /* __UTIL_POINTER_H */
-

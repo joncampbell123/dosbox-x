@@ -20,16 +20,10 @@
 #ifndef DOSBOX_DOS_SYSTEM_H
 #define DOSBOX_DOS_SYSTEM_H
 
-#ifndef DOSBOX_CROSS_H
 #include "cross.h"
-#endif
 #include "string.h"
-#ifndef DOSBOX_SUPPORT_H
 #include "support.h"
-#endif
-#ifndef DOSBOX_MEM_H
 #include "mem.h"
-#endif
 
 #define DOS_NAMELENGTH 12u
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)
@@ -132,6 +126,7 @@ public:
 	virtual uint16_t	GetInformation(void);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual uint8_t	GetStatus(bool input_flag);
 	void SetDeviceNumber(Bitu num) { devnum=num;}
 private:
 	Bitu devnum;
@@ -301,6 +296,7 @@ public:
 
     bool readonly;
     bool nocachedir;
+    bool partitionMount = false;
 	char curdir[DOS_PATHLENGTH];
 	char info[256];
 	/* Can be overridden for example in iso images */

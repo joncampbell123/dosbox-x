@@ -477,15 +477,17 @@ static void gen_needcarry(void) {
 	}
 }
 
+/* UNUSED
 static void gen_setzeroflag(void) {
 	if (x64gen.flagsactive) IllegalOption("gen_setzeroflag");
 	opcode(1).setea(4,-1,0,CALLSTACK).setimm(0x40,1).Emit8(0x83); // or dword [rsp+8/40],0x40
-}
+}*/
 
+/* UNUSED
 static void gen_clearzeroflag(void) {
 	if (x64gen.flagsactive) IllegalOption("gen_clearzeroflag");
 	opcode(4).setea(4,-1,0,CALLSTACK).setimm(~0x40,1).Emit8(0x83); // and dword [rsp+8/40],~0x40
-}
+}*/
 
 static bool skip_flags=false;
 

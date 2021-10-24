@@ -295,7 +295,6 @@ CEvent*                                         get_mapper_event_by_name(const s
 bool                                            MAPPER_DemoOnly(void);
 
 #if defined(USE_TTF)
-bool                                            TTF_using(void);
 void                                            resetFontSize(void);
 #endif
 
@@ -991,7 +990,11 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
 };
 
 #else // !MACOSX && !Linux
-
+#if defined(__FreeBSD__)
+// Todo: recheck sdl mapping
+#define SDLK_JP_RO (SDLKey)0x73
+#define SDLK_JP_YEN (SDLKey)0x7d
+#endif
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
     /* Refer to http://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/translate.pdf PS/2 Set 1 Make */
@@ -1175,7 +1178,11 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         SDLKey key = SDLK_UNKNOWN;
 
 #if defined (MACOSX)
-        if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = keysym.sym;  // zero value makes the keyboard crazy
+        // zero value makes the keyboard crazy
+        // Hack for 'a' key (QWERTY, QWERTZ), 'u' key (Turkish-F), 'q' key (AZERTY) on Mac
+        // (FIX ME if there are other keys returning scancode 0)
+        if((keysym.scancode == 0) &&
+            ((keysym.sym == 'a') || (keysym.sym == 'u') || (keysym.sym == 'q'))) return 'a';
 #endif
 
         if (keysym.scancode==0
@@ -1328,7 +1335,7 @@ public:
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
-        sprintf(buf,"key %d",(Bitu)key);
+        sprintf(buf,"key %d",key);
 #endif
     }
     virtual std::string GetBindMenuText(void) override {

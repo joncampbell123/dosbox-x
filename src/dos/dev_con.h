@@ -685,6 +685,9 @@ public:
 // Section 4-8.
 //
 // The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	uint16_t oldax=reg_ax;
@@ -694,7 +697,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
 		if (dos.echo) {
+#if defined(USE_TTF)
+			if (IS_DOSV || ttf_dosv) {
+#else
 			if (IS_DOSV) {
+#endif
 				reg_al = readcache;
 				CALLBACK_RunRealInt(0x29);
 			} else
@@ -729,7 +736,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
+#if defined(USE_TTF)
+				if (IS_DOSV || ttf_dosv) {
+#else
 				if (IS_DOSV) {
+#endif
 					reg_al = 13;
 					CALLBACK_RunRealInt(0x29);
 					reg_al = 10;
@@ -752,7 +763,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0xe0: /* Extended keys in the  int 16 0x10 case */
+#if defined(USE_TTF)
+			if((isJEGAEnabled() || IS_DOSV || ttf_dosv) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+#else
 			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+#endif
 				data[count++]=reg_al;
 			} else if(!reg_ah) { /*extended key if reg_ah isn't 0 */
 				data[count++] = reg_al;
@@ -809,7 +824,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
+#if defined(USE_TTF)
+			if (IS_DOSV || ttf_dosv) {
+#else
 			if (IS_DOSV) {
+#endif
 				if(inshell && CheckHat(reg_al)) {
 					uint8_t ch = reg_al + 0x40;
 					reg_al = '^';
@@ -847,7 +866,11 @@ void DOS_BreakAction();
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 	uint16_t count=0;
+#if defined(USE_TTF)
+	if (IS_DOSV || ttf_dosv) {
+#else
 	if (IS_DOSV) {
+#endif
 		while (*size > count) {
 			reg_al = data[count];
 			if(reg_al == 0x07) {
@@ -1232,7 +1255,8 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 case 'n':/* Device Status Report */
                     switch (ansi.data[0]) {
                         case 6: /* report active position */
-                            dev_con_max = sprintf((char*)dev_con_readbuf,"\x1B[%d;%dR",CURSOR_POS_ROW(page),CURSOR_POS_COL(page));
+                            dev_con_pos = 0;
+                            dev_con_max = sprintf((char*)dev_con_readbuf,"\x1B[%d;%dR",CURSOR_POS_ROW(page)+1,CURSOR_POS_COL(page)+1);
                             break;
                         default:
                             LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled Device Status Report code %d",ansi.data[0]);

@@ -362,6 +362,9 @@ static PHYSFS_sint64 ZIP_read(PHYSFS_Io *_io, void *buf, PHYSFS_uint64 len)
 
 static PHYSFS_sint64 ZIP_write(PHYSFS_Io *io, const void *b, PHYSFS_uint64 len)
 {
+    (void)io;//UNUSED
+    (void)b;//UNUSED
+    (void)len;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, -1);
 } /* ZIP_write */
 
@@ -489,7 +492,10 @@ failed:
     return NULL;
 } /* ZIP_duplicate */
 
-static int ZIP_flush(PHYSFS_Io *io) { return 1;  /* no write support. */ }
+static int ZIP_flush(PHYSFS_Io *io) {
+    (void)io;//UNUSED
+    return 1;  /* no write support. */
+}
 
 static void ZIP_destroy(PHYSFS_Io *io)
 {
@@ -548,7 +554,7 @@ static PHYSFS_sint64 zip_find_end_of_central_dir(PHYSFS_Io *io, PHYSFS_sint64 *l
      *  and call it a corrupted zipfile.
      */
 
-    if (sizeof (buf) < filelen)
+    if (sizeof (buf) < (PHYSFS_uint64)filelen)
     {
         filepos = filelen - sizeof (buf);
         maxread = sizeof (buf);
@@ -1461,6 +1467,7 @@ static void ZIP_closeArchive(void *opaque)
 static void *ZIP_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     ZIPinfo *info = NULL;
     ZIPentry *root = NULL;
     PHYSFS_uint64 dstart = 0;  /* data start */
@@ -1623,24 +1630,32 @@ ZIP_openRead_failed:
 
 static PHYSFS_Io *ZIP_openWrite(void *opaque, const char *filename)
 {
+    (void)opaque;//UNUSED
+    (void)filename;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* ZIP_openWrite */
 
 
 static PHYSFS_Io *ZIP_openAppend(void *opaque, const char *filename)
 {
+    (void)opaque;//UNUSED
+    (void)filename;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* ZIP_openAppend */
 
 
 static int ZIP_remove(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* ZIP_remove */
 
 
 static int ZIP_mkdir(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* ZIP_mkdir */
 

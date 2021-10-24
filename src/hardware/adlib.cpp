@@ -409,10 +409,12 @@ namespace OPL3DUOBOARD {
 		}
 
 		virtual void Generate(MixerChannel* chan, Bitu samples) {
+            (void)samples;//UNUSED
 			int16_t buf[1] = { 0 };
 			chan->AddSamples_m16(1, buf);
 		}
 		virtual void Init(Bitu rate) {
+            (void)rate;//UNUSED
 			opl3DuoBoard.reset();
 		}
 		~Handler() {
@@ -466,6 +468,7 @@ namespace Retrowave_OPL3 {
 		}
 
 		virtual void Generate(MixerChannel* chan, Bitu samples) {
+            (void)samples;//UNUSED
 #ifdef RETROWAVE_USE_BUFFER
 			retrowave_flush(&retrowave_global_context);
 #endif
@@ -474,6 +477,7 @@ namespace Retrowave_OPL3 {
 		}
 
 		virtual void Init(Bitu rate) {
+            (void)rate;//UNUSED
 			retrowave_opl3_reset(&retrowave_global_context);
 		}
 
@@ -1316,7 +1320,12 @@ OPL_Mode Module::oplmode=OPL_none;
 }	//Adlib Namespace
 
 std::string getoplmode() {
+#if !defined(__FreeBSD__)
+	// Todo: is this needed at all? opmode cannot be null...
 	if (Adlib::Module::oplmode == NULL || Adlib::Module::oplmode == OPL_none) return "None";
+#else
+	if (Adlib::Module::oplmode == 0 || Adlib::Module::oplmode == OPL_none) return "None";
+#endif
     else if (Adlib::Module::oplmode == OPL_cms) return "CMS";
     else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
     else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";

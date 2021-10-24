@@ -21,7 +21,7 @@
 static void FPU_FINIT(void) {
 	unsigned int i;
 
-	FPU_SetCW(0x37F);
+	fpu.cw.init();
 	fpu.sw = 0;
 	TOP=FPU_GET_TOP();
 	fpu.tags[0] = TAG_Empty;
@@ -71,19 +71,19 @@ static void FPU_FPOP(void){
 }
 
 static double FROUND(double in){
-	switch(fpu.round){
-	case ROUND_Nearest:	
+	switch (fpu.cw.RC){
+	case FPUControlWord::RoundMode::Nearest:
 		if (in-floor(in)>0.5) return (floor(in)+1);
 		else if (in-floor(in)<0.5) return (floor(in));
 		else return (((static_cast<int64_t>(floor(in)))&1)!=0)?(floor(in)+1):(floor(in));
 		break;
-	case ROUND_Down:
+	case FPUControlWord::RoundMode::Down:
 		return (floor(in));
 		break;
-	case ROUND_Up:
+	case FPUControlWord::RoundMode::Up:
 		return (ceil(in));
 		break;
-	case ROUND_Chop:
+	case FPUControlWord::RoundMode::Chop:
 		return in; //the cast afterwards will do it right maybe cast here
 		break;
 	default:
@@ -288,6 +288,40 @@ static void FPU_FST_I64(PhysPt addr) {
 		mem_writed(addr,(uint32_t)blah.l.lower);
 		mem_writed(addr+4,(uint32_t)blah.l.upper);
 	}
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I16(PhysPt addr) {
+	double val = fpu.regs[TOP].d; /* chop rounding mode */
+	mem_writew(addr,(val < 32768.0 && val >= -32768.0)?static_cast<int16_t>(val):0x8000);
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I32(PhysPt addr) {
+	double val = fpu.regs[TOP].d; /* chop rounding mode */
+	mem_writed(addr,(val < 2147483648.0 && val >= -2147483648.0)?static_cast<int32_t>(val):0x80000000);
+	FPU_FPOP();
+}
+
+// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
+static void FPU_FSTT_I64(PhysPt addr) {
+	FPU_Reg blah;
+	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
+		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
+		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
+		//        This cheap hack is good enough for now.
+		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
+		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
+	}
+	else {
+		double val = fpu.regs[TOP].d; /* chop rounding mode */
+		blah.ll = (val < 9223372036854775808.0 && val >= -9223372036854775808.0)?static_cast<int64_t>(val):LONGTYPE(0x8000000000000000);
+
+		mem_writed(addr,(uint32_t)blah.l.lower);
+		mem_writed(addr+4,(uint32_t)blah.l.upper);
+	}
+	FPU_FPOP();
 }
 
 static void FPU_FBST(PhysPt addr) {
@@ -629,7 +663,7 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
-	FPU_SetCW(cw);
+	fpu.cw = cw;
 	TOP = FPU_GET_TOP();
 }
 

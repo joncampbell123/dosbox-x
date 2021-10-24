@@ -29,6 +29,7 @@
 #include "support.h"
 #include "parport.h"
 #include "drives.h" //Wildcmp
+#include "render.h"
 /* Include all the devices */
 
 #include "dev_con.h"
@@ -164,6 +165,8 @@ bool DOS_ExtDevice::Close() {
 }
 
 bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
+    (void)pos;//UNUSED
+    (void)type;//UNUSED
 	return true;
 }
 
@@ -432,7 +435,7 @@ bool getClipboard() {
     clipSize = 0;
     unsigned int extra = 0;
     unsigned char head, last=13;
-    for (int i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
+    for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
     clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
     if (clipAscii)
         while (strPasteBuffer.length()) {
@@ -721,6 +724,14 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * re
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
+uint8_t DOS_Device::GetStatus(bool input_flag) {
+	uint16_t info = Devices[devnum]->GetInformation();
+	if(info & EXT_DEVICE_BIT) {
+		return Devices[devnum]->GetStatus(input_flag);
+	}
+	return (info & 0x40) ? 0x00 : 0xff;
+}
+
 DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
 time(orig.time), date(orig.date), refCtr(orig.refCtr), hdrive(orig.hdrive) {
 	if(orig.name) {
@@ -752,9 +763,14 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
 uint8_t DOS_FindDevice(char const * name) {
 	/* should only check for the names before the dot and spacepadded */
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
+	bool ime_flag = false;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
-	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
-
+	if(*name == '@' && *(name + 1) == ':') {
+		strcpy(fullname, name + 2);
+		ime_flag = true;
+	} else {
+		if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
+	}
 	char* name_part = strrchr_dbcs(fullname,'\\');
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
@@ -769,6 +785,26 @@ uint8_t DOS_FindDevice(char const * name) {
    
 	char* dot = strrchr(name_part,'.');
 	if(dot) *dot = 0; //no ext checking
+
+	DOS_CheckOpenExtDevice(name_part);
+	for(int index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
+		if(Devices[index]) {
+			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
+				if(WildFileCmp(name_part, Devices[index]->name)) {
+					if(DOS_CheckExtDevice(name_part, false) != 0) {
+						return index;
+					} else {
+						delete Devices[index];
+						Devices[index] = 0;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if(ime_flag) {
+		return DOS_DEVICES;
+	}
 
 	static char com[5] = { 'C','O','M','1',0 };
 	static char lpt[5] = { 'L','P','T','1',0 };

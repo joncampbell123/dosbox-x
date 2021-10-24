@@ -210,6 +210,7 @@ static const char* UnmountHelper(char umount) {
 
     msgget=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
     if (Drives[i_drive]) {
+	const bool partitionMount = Drives[i_drive]->partitionMount;
         const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
         imageDisk* image = drive ? drive->loadedDisk : NULL;
         const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
@@ -217,7 +218,7 @@ static const char* UnmountHelper(char umount) {
             case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
-        if (image) DetachFromBios(image);
+        if (image && !partitionMount) DetachFromBios(image);
         if (cdrom) IDE_CDROM_Detach(i_drive);
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
@@ -238,7 +239,7 @@ static const char* UnmountHelper(char umount) {
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
-        delete imageDiskList[i_drive];
+        imageDiskList[i_drive]->Release();
         imageDiskList[i_drive] = NULL;
     }
     if (swapInDisksSpecificDrive == i_drive) {
@@ -260,7 +261,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 	std::string temp_line;
 	std::string str_size;
 	uint16_t sizes[4];
-	uint8_t mediaid;
+	uint8_t mediaid=0;
 
 	if(drive_type=="CDROM") {
 		mediaid=0xF8;		/* Hard Disk */
@@ -550,7 +551,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",4,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
-        uint8_t mediaid = 0xF0;
+        //uint8_t mediaid = 0xF0; UNUSED
         std::vector<std::string> options;
         if (mountiro[drive-'A']) options.emplace_back("readonly");
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
@@ -600,7 +601,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
         if (multiple&&fname.size()) {
             files += "\"";
-            for (int i=0; i<fname.size(); i++)
+            for (size_t i=0; i<fname.size(); i++)
                 files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
             files += "\" ";
         }
@@ -609,7 +610,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             if (lTheOpenFileName) {
                 fname = GetNewStr(lTheOpenFileName);
                 files += "\"";
-                for (int i=0; i<fname.size(); i++)
+                for (size_t i=0; i<fname.size(); i++)
                     files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
                 files += "\" ";
             }
@@ -4539,6 +4540,8 @@ public:
         std::string el_torito;
         std::string ideattach="auto";
         std::string type="hdd";
+	std::string bdisk;
+	int bdisk_number=-1;
 
         //this code simply sets default type to "floppy" if mounting at A: or B: --- nothing else
         // get first parameter - which is probably the drive letter to mount at (A-Z or A:-Z:) - and check it if is A or B or A: or B:
@@ -4585,6 +4588,19 @@ public:
             //  find the el_torito_floppy_base and el_torito_floppy_type values
             if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
         }
+
+	//the user can use -bd to mount partitions from an INT 13h BIOS disk mounted image,
+	//meaning a disk image attached to INT 13h using IMGMOUNT <number> -fs none. This way,
+	//it is possible to mount multiple partitions from one HDD image.
+	cmd->FindString("-bd",bdisk,true);
+	if (bdisk != "") {
+		bdisk_number = atoi(bdisk.c_str());
+		if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
+		if (imageDiskList[bdisk_number] == NULL) {
+			WriteOut("BIOS disk index does not have an image assigned");
+			return;
+		}
+	}
 
         //default fstype is fat
         std::string fstype="fat";
@@ -4674,7 +4690,7 @@ public:
         }
 
         // find all file parameters, assuming that all option parameters have been removed
-        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
+        bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "");
 
         // some generic checks
         if (el_torito != "") {
@@ -4683,6 +4699,8 @@ public:
                 return;
             }
         }
+	else if (bdisk != "") {
+	}
         else if (type == "ram") {
             if (paths.size() != 0) {
                 WriteOut("Do not specify files when mounting RAM drives\n");
@@ -4713,7 +4731,10 @@ public:
         //====== call the proper subroutine ======
         if(fstype=="fat") {
             //mount floppy or hard drive
-            if (el_torito != "") {
+	    if (bdisk != "") {
+		if (!MountPartitionFat(drive, bdisk_number)) return;
+	    }
+	    else if (el_torito != "") {
                 if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
             }
             else if (type == "ram") {
@@ -4725,6 +4746,10 @@ public:
             }
             if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
         } else if (fstype=="iso") {
+	    if (bdisk != "") {
+		// TODO
+                return;
+	    }
             if (el_torito != "") {
                 WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
                 return;
@@ -5002,7 +5027,8 @@ private:
                     FDC_UnassignINT13Disk(i_drive);
 
                 //get reference to image and cdrom before they are possibly destroyed
-                const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+		const bool partitionMount = Drives[i_drive]->partitionMount;
+		const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
                 imageDisk* image = drive ? drive->loadedDisk : NULL;
                 const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
 
@@ -5010,7 +5036,7 @@ private:
                 case 0: //success
                 {
                     //detatch hard drive or floppy drive from bios and ide controller
-                    if (image) DetachFromBios(image);
+                    if (image && !partitionMount) DetachFromBios(image);
                     /* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
                     if (cdrom) IDE_CDROM_Detach(i_drive);
                     Drives[i_drive] = NULL;
@@ -5244,6 +5270,49 @@ private:
             WriteOut("El Torito bootable floppy not found\n");
             return false;
         }
+
+        return true;
+    }
+
+    bool MountPartitionFat(const char drive, const int src_bios_disk) {
+        unsigned char driveIndex = drive - 'A';
+
+	/* NTS: IBM PC systems: Hard disk partitions must start at C: or higher.
+	 *      PC-98 systems: Any drive letter is valid, A: can be a hard drive. */
+	if ((!IS_PC98_ARCH && driveIndex < 2) || driveIndex >= 26) {
+		WriteOut("Invalid drive letter");
+		return false;
+	}
+
+	if (Drives[driveIndex]) {
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+		return false;
+	}
+
+	if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
+		WriteOut("BIOS disk index does not have an image assigned");
+		return false;
+	}
+
+	/* FIXME: IMGMOUNT and MOUNT -u are so hard-coded around C: and BIOS device indexes that some confusion may happen
+	 *        if a partition is C: mounted from, say, BIOS device 0x81 and the wrong thing may get unmounted and detached.
+	 *        So for sanity reasons, do not allow mounting to a drive letter if a BIOS disk image WOULD normally be
+	 *        associated with it. This is a mess inherited from back when this code forked from DOSBox SVN, because
+	 *        DOSBox SVN makes these hardcoded assumptions. */
+	if (driveIndex < MAX_DISK_IMAGES && imageDiskList[driveIndex] != NULL) {
+		WriteOut("Partitions cannot be mounted in conflict with the standard INT 13h hard disk\nallotment. Choose a different drive letter to mount to.");
+		return false;
+	}
+
+        DOS_Drive* newDrive = new fatDrive(imageDiskList[src_bios_disk], options);
+        if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+            return false;
+        }
+
+	newDrive->partitionMount = true;
+        AddToDriveManager(drive, newDrive, 0xF0);
+        DOS_EnableDriveMenu(drive);
 
         return true;
     }
@@ -5962,7 +6031,6 @@ void runImgmount(const char *str) {
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
-void SetupDBCSTable();
 
 class KEYB : public Program {
 public:
@@ -5979,7 +6047,7 @@ void KEYB::Run(void) {
             std::string cp_string="";
             int32_t tried_cp = -1;
             cmd->FindCommand(2,cp_string);
-            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:((!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950)||!cp_string.size()&&dos.loaded_codepage==950)?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zh")?936:0)));
+            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:((!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||(!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950))||(!cp_string.size()&&dos.loaded_codepage==950))?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zh")?936:0)));
             if (tocp && !IS_PC98_ARCH) {
                 dos.loaded_codepage=tocp;
                 const char* layout_name = DOS_GetLoadedLayout();
@@ -6088,7 +6156,7 @@ void MODE::Run(void) {
             IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
         }
         if ((optc||optl)&&(cols!=COLS||lines!=LINES)) {
-            std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
+            std::string cmd="line_"+std::to_string((int)cols)+"x"+std::to_string((int)lines);
             if (!setlines(cmd.c_str())) goto modeparam;
         }
         return;
@@ -6449,7 +6517,7 @@ bool AUTOTYPE::ReadDoubleArg(const std::string &name,
 	if (cmd->FindString(flag, str_value, true)) {
 		// Can the user's value be parsed?
 		const double user_value = to_finite<double>(str_value);
-#if defined(MACOSX) || defined(EMSCRIPTEN) || ((defined(ANDROID) || defined(__ANDROID__)) && defined(__clang__))
+#if defined(__FreeBSD__) || defined(MACOSX) || defined(EMSCRIPTEN) || ((defined(ANDROID) || defined(__ANDROID__)) && defined(__clang__))
 		if (isfinite(user_value)) { /* *sigh* Really, clang, really? */
 #else
 		if (std::isfinite(user_value)) {
@@ -6787,10 +6855,10 @@ void COLOR::Run()
     } else
        back=true;
     if (back)
-        WriteOut("[0m");
+        WriteOut("\033[0m");
     else {
         bool fgl=fg>='0'&&fg<='7', bgl=bg>='0'&&bg<='7';
-        WriteOut(("["+std::string(fgl||bgl?"0;":"")+std::string(fgl?"":"1;")+std::string(bgl?"":"5;")+std::to_string(fgc)+";"+std::to_string(bgc)+"m").c_str());
+        WriteOut(("\033["+std::string(fgl||bgl?"0;":"")+std::string(fgl?"":"1;")+std::string(bgl?"":"5;")+std::to_string(fgc)+";"+std::to_string(bgc)+"m").c_str());
     }
 }
 

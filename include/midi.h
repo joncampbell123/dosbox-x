@@ -20,9 +20,7 @@
 #ifndef DOSBOX_MIDI_H
 #define DOSBOX_MIDI_H
 
-#ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
-#endif
 
 class MidiHandler {
 public:

@@ -16,6 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "inout.h"
+
 #define X86_DYNFPU_DH_ENABLED
 #define X86_INLINED_MEMACCESS
 
@@ -75,24 +77,24 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
 	uint8_t rdval;
 	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
-	if (GCC_UNLIKELY(mem_readb_checked((const PhysPt)lin_addr,&rdval))) return true;
-	PageHandler * handler=get_tlb_readhandler((const PhysPt)lin_addr);
+	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
+	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
 		cph=( CodePageHandler *)handler;
 		if (handler->flags & cflag) return false;
 		cph->ClearRelease();
 		cph=0;
-		handler=get_tlb_readhandler((const PhysPt)lin_addr);
+		handler=get_tlb_readhandler((PhysPt)lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (PAGING_ForcePageInit(lin_addr)) {
-			handler=get_tlb_readhandler((const PhysPt)lin_addr);
+			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=( CodePageHandler *)handler;
 				if (handler->flags & cflag) return false;
 				cph->ClearRelease();
 				cph=0;
-				handler=get_tlb_readhandler((const PhysPt)lin_addr);
+				handler=get_tlb_readhandler((PhysPt)lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {
@@ -141,7 +143,7 @@ static uint8_t decode_fetchb(void) {
 			/* trigger possible page fault here */
 			decode.page.first++;
 			Bitu fetchaddr=decode.page.first << 12;
-			mem_readb((const PhysPt)fetchaddr);
+			mem_readb((PhysPt)fetchaddr);
 			MakeCodePage(fetchaddr,decode.page.code);
 			CacheBlock * newblock=cache_getblock();
 			decode.active_block->crossblock=newblock;
@@ -334,6 +336,7 @@ static INLINE void dyn_set_eip_end(void) {
 }
 
 static INLINE void dyn_set_eip_end(DynReg * endreg) {
+    (void)endreg;//UNUSED
 	gen_protectflags();
 	if (cpu.code.big) gen_dop_word(DOP_MOV,true,DREG(TMPW),DREG(EIP));
 	else gen_extend_word(false,DREG(TMPW),DREG(EIP));
@@ -1329,7 +1332,7 @@ static INLINE void dyn_get_modrm(void) {
 static void dyn_fill_ea(bool addseg=true, DynReg * reg_ea=DREG(EA)) {
 	DynReg * segbase;
 	if (!decode.big_addr) {
-		Bits imm;
+		Bits imm=0;
 		switch (decode.modrm.mod) {
 		case 0:imm=0;break;
 		case 1:imm=(int8_t)decode_fetchb();break;
@@ -2085,6 +2088,7 @@ static void dyn_load_seg(SegNames seg,DynReg * src) {
 	gen_releasereg(&DynRegs[G_ES+seg]);
 }
 
+
 static void dyn_load_seg_off_ea(SegNames seg) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea();
@@ -2175,6 +2179,7 @@ static void dyn_closeblock(void) {
 	cache_closeblock();
 }
 
+/* UNUSED
 static void dyn_normal_exit(BlockReturn code) {
 	gen_protectflags();
 	dyn_reduce_cycles();
@@ -2182,7 +2187,7 @@ static void dyn_normal_exit(BlockReturn code) {
 	dyn_save_critical_regs();
 	gen_return(code);
 	dyn_closeblock();
-}
+}*/
 
 static void dyn_exit_link(Bits eip_change) {
 	gen_protectflags();
@@ -2483,7 +2488,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.code_start=start;
 	decode.eip_location=start;
 	decode.code=start;
-	Bitu cycles=0;
+	//Bitu cycles=0; UNUSED
 	decode.page.code=codepage;
 	decode.page.index=start&4095;
 	decode.page.wmap=codepage->write_map;
@@ -2782,6 +2787,7 @@ restart_prefix:
 		/* LEA Gv */
 		case 0x8d:
 			dyn_get_modrm();
+			if (GCC_UNLIKELY(decode.modrm.mod==3)) goto illegalopcode;  // Direct register causes #UD exception
 			if (decode.big_op) {
 				dyn_fill_ea(false,&DynRegs[decode.modrm.reg]);
 			} else {
@@ -3267,14 +3273,6 @@ illegalopcode:
 	gen_return(BR_Opcode);
 	dyn_closeblock();
 	goto finish_block;
-#if (C_DEBUG)
-	dyn_set_eip_last();
-	dyn_reduce_cycles();
-	dyn_save_critical_regs();
-	gen_return(BR_OpcodeFull);
-	dyn_closeblock();
-	goto finish_block;
-#endif
 finish_block:
 	/* Setup the correct end-address */
 	decode.active_block->page.end=(uint16_t)--decode.page.index;

@@ -147,7 +147,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-lang \""+filename+"\"":"";
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-langcp \""+filename+"\"":"";
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());
@@ -571,7 +571,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 
     void GFX_ForceRedrawScreen(void);
 #if defined(USE_TTF)
-    bool TTF_using(void);
     if (!TTF_using() || ttf.inUse)
 #endif
     {
@@ -1322,7 +1321,7 @@ public:
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, MSG_Get("PASTE_CLIPBOARD"), button_w*2);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, MSG_Get("HELP"), button_w);
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
 
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
@@ -1400,8 +1399,9 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == MSG_Get("OK")) section->data = *(std::string*)content->getText();
         std::string lines = *(std::string*)content->getText();
+        strcpy(tmp1, mainMenu.get_item("HelpMenu").get_text().c_str());
         if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
-        else if (arg == MSG_Get("HELP")) {
+        else if (arg == tmp1) {
             std::vector<GUI::Char> new_cfg_sname;
 
             if (!cfg_sname.empty()) {
@@ -2545,54 +2545,54 @@ public:
 };
 
 std::string prtlist="Printer support is not enabled. Check [printer] section of the configuration.";
-class ShowHelpPRT : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
+class ShowHelpPRT : public GUI::MessageBox2 {
 public:
-    ShowHelpPRT(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 700, 230, title) {
-            std::istringstream in(prtlist.c_str());
-            int r=0;
-            if (in)	for (std::string line; std::getline(in, line); ) {
-                r+=25;
-                new GUI::Label(this, 40, r, line.c_str());
-            }
-            (new GUI::Button(this, 330, r+40, MSG_Get("CLOSE"), 70))->addActionHandler(this);
-            resize(700, r+120);
-            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
-    }
+    std::vector<GUI::Char> cfg_sname;
+public:
+    ShowHelpPRT(GUI::Screen *parent, int x, int y) :
+        MessageBox2(parent, x, y, 630, "", "") { // 740
+        setTitle(MSG_Get("PRINTER_LIST"));
+        setText(prtlist);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    };
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == MSG_Get("CLOSE"))
-            close();
-        if (shortcut) running = false;
+         if (arg == MSG_Get("CLOSE"))
+         if(shortcut) running=false;
+    }
+
+    ~ShowHelpPRT() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
     }
 };
 
 std::string niclist="The pcap networking for NE2000 Ethernet emulation is not currently active.\nPlease check [ne2000] and [ethernet, pcap] sections of the configuration.";
-class ShowHelpNIC : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
+class ShowHelpNIC : public GUI::MessageBox2 {
 public:
-    ShowHelpNIC(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 700, 230, title) {
-            std::istringstream in(niclist.c_str());
-            int r=0;
-            if (in)	for (std::string line; std::getline(in, line); ) {
-                r+=25;
-                new GUI::Label(this, 40, r, line.c_str());
-            }
-            (new GUI::Button(this, 330, r+40, MSG_Get("CLOSE"), 70))->addActionHandler(this);
-            resize(700, r+120);
-            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
-    }
+    std::vector<GUI::Char> cfg_sname;
+public:
+    ShowHelpNIC(GUI::Screen *parent, int x, int y) :
+        MessageBox2(parent, x, y, 630, "", "") { // 740
+        setTitle(MSG_Get("NETWORK_LIST"));
+        setText(niclist);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    };
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == MSG_Get("CLOSE"))
-            close();
-        if (shortcut) running = false;
+         if (arg == MSG_Get("CLOSE"))
+         if(shortcut) running=false;
+    }
+
+    ~ShowHelpNIC() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
     }
 };
 
@@ -3069,11 +3069,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np14->raise();
             } break;
         case 38: {
-            auto *np15 = new ShowHelpNIC(screen, 70, 70, MSG_Get("NETWORK_LIST"));
+            auto *np15 = new ShowHelpNIC(screen, 70, 70);
             np15->raise();
             } break;
         case 39: {
-            auto *np15 = new ShowHelpPRT(screen, 70, 70, MSG_Get("PRINTER_LIST"));
+            auto *np15 = new ShowHelpPRT(screen, 70, 70);
             np15->raise();
             } break;
 #if C_DEBUG

@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src "-DRESDIR=\"$(resdir)\""
 
 resdir = $(datarootdir)/dosbox-x
 

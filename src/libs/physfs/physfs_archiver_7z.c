@@ -62,11 +62,13 @@ static PHYSFS_ErrorCode szipErrorCode(const SRes rc)
 
 static void *SZIP_ISzAlloc_Alloc(void *p, size_t size)
 {
+    (void)p;//UNUSED
     return allocator.Malloc(size ? size : 1);
 } /* SZIP_ISzAlloc_Alloc */
 
 static void SZIP_ISzAlloc_Free(void *p, void *address)
 {
+    (void)p;//UNUSED
     if (address)
         allocator.Free(address);
 } /* SZIP_ISzAlloc_Free */
@@ -215,6 +217,7 @@ static void SZIP_closeArchive(void *opaque)
 static void *SZIP_openArchive(PHYSFS_Io *io, const char *name,
                               int forWriting, int *claimed)
 {
+    (void)name;//UNUSED
     static const PHYSFS_uint8 wantedsig[] = { '7','z',0xBC,0xAF,0x27,0x1C };
     SZIPLookToRead stream;
     ISzAlloc *alloc = &SZIP_SzAlloc;
@@ -317,24 +320,32 @@ SZIP_openRead_failed:
 
 static PHYSFS_Io *SZIP_openWrite(void *opaque, const char *filename)
 {
+    (void)opaque;//UNUSED
+    (void)filename;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* SZIP_openWrite */
 
 
 static PHYSFS_Io *SZIP_openAppend(void *opaque, const char *filename)
 {
+    (void)opaque;//UNUSED
+    (void)filename;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, NULL);
 } /* SZIP_openAppend */
 
 
 static int SZIP_remove(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* SZIP_remove */
 
 
 static int SZIP_mkdir(void *opaque, const char *name)
 {
+    (void)opaque;//UNUSED
+    (void)name;//UNUSED
     BAIL(PHYSFS_ERR_READ_ONLY, 0);
 } /* SZIP_mkdir */
 

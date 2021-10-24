@@ -2344,7 +2344,7 @@ std::string GetIDEInfo() {
         IDEController *c = GetIDEController(index);
         if (c)
         for (int slave = 0; slave < 2; slave++) {
-            IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
+            //IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]); UNUSED
             info+="IDE position "+std::to_string(index+1)+(slave?'s':'m')+": ";
             if (dynamic_cast<IDEATADevice*>(c->device[slave])) info+="disk image";
             else if (dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave])) info+="CD image";

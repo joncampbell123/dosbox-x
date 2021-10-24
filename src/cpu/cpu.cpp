@@ -20,19 +20,14 @@
 #include <assert.h>
 #include <sstream>
 #include <stddef.h>
-#include "dosbox.h"
+
 #include "cpu.h"
-#include "memory.h"
 #include "debug.h"
 #include "mapper.h"
-#include "setup.h"
-#include "programs.h"
 #include "paging.h"
 #include "callback.h"
 #include "lazyflags.h"
-#include "support.h"
 #include "control.h"
-#include "zipfile.h"
 #include "logging.h"
 
 /* dynamic core, policy, method, and flags.
@@ -283,6 +278,9 @@ void menu_update_cputype(void) {
 #endif
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_experimental").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
         refresh_item(mainMenu);
 }
 
@@ -1745,6 +1743,61 @@ CODE_jmp:
 			LOG(LOG_CPU,LOG_NORMAL)("JMP:TSS to %X",selector);
 			CPU_SwitchTask(selector,TSwitch_JMP,oldeip);
 			break;
+		case DESC_386_CALL_GATE: /* CAUTION: Copy-pasta from CPU_CALL() with stack switching removed */
+		case DESC_286_CALL_GATE:
+			{
+				CPU_CHECK_COND(desc.DPL()<cpu.cpl,
+					"JMP:Gate:Gate DPL<CPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(desc.DPL()<rpl,
+					"JMP:Gate:Gate DPL<RPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(!desc.saved.seg.p,
+					"JMP:Gate:Segment not present",
+					EXCEPTION_NP,selector & 0xfffc)
+				Descriptor n_cs_desc;
+				Bitu n_cs_sel=desc.GetSelector();
+
+				CPU_CHECK_COND((n_cs_sel & 0xfffc)==0,
+					"JMP:Gate:CS selector zero",
+					EXCEPTION_GP,0)
+				CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_cs_sel,n_cs_desc),
+					"JMP:Gate:CS beyond limits",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+				Bitu n_cs_dpl	= n_cs_desc.DPL();
+				CPU_CHECK_COND(n_cs_dpl>cpu.cpl,
+					"JMP:Gate:CS DPL>CPL",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+
+				CPU_CHECK_COND(!n_cs_desc.saved.seg.p,
+					"JMP:Gate:CS not present",
+					EXCEPTION_NP,n_cs_sel & 0xfffc)
+
+				Bitu n_eip		= desc.GetOffset();
+				switch (n_cs_desc.Type()) {
+				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
+				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
+                    CPU_CHECK_COND(n_cs_dpl != cpu.cpl, "JMP:Gate:NC CS DPL!=CPL",
+                                   EXCEPTION_GP, n_cs_sel & 0xfffc)
+                    // fallthrough
+				case DESC_CODE_N_C_A:case DESC_CODE_N_C_NA:
+				case DESC_CODE_R_C_A:case DESC_CODE_R_C_NA:
+					// zrdx extender
+
+					/* Switch to new CS:EIP */
+					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
+					Segs.phys[cs]	= n_cs_desc.GetBase();
+					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
+					cpu.code.big	= n_cs_desc.Big()>0;
+					reg_eip			= (uint32_t)n_eip;
+					if (!use32)	reg_eip&=0xffff;
+					break;
+				default:
+					E_Exit("JMP:GATE:CS no executable segment");
+				}
+			}			/* Call Gates */
+			break;
 		default:
 			E_Exit("JMP Illegal descriptor type %X",(int)desc.Type());
 		}
@@ -2884,7 +2937,7 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
 			reg_eax=0x612;		/* intel pentium pro */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
@@ -3323,6 +3376,9 @@ public:
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
 
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
+            set_text("Experimental").set_callback_function(CpuType_ByName);
+
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -3501,6 +3557,8 @@ public:
 		std::string cputype(section->Get_string("cputype"));
 		if (cputype == "auto") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+		} else if (cputype == "experimental") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_EXPERIMENTAL;
 		} else if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			cpudecoder=&CPU_Core8086_Normal_Run;

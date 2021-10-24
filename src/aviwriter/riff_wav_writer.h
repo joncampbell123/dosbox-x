@@ -19,10 +19,8 @@
 #ifndef __ISP_UTILS_V4_AVI_RIFF_WAV_WRITER_H
 #define __ISP_UTILS_V4_AVI_RIFF_WAV_WRITER_H
 
-#include <stdint.h>
 #include "riff.h"
 #include "waveformatex.h"
-#include "bitmapinfoheader.h"
 
 typedef struct riff_wav_writer {
 	riff_stack*		riff;

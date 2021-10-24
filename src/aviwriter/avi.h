@@ -19,10 +19,7 @@
 #ifndef __VIDEOMGR_UTIL_AVI_H
 #define __VIDEOMGR_UTIL_AVI_H
 
-#include "wave_mmreg.h"
 #include "waveformatex.h"
-#include "bitmapinfoheader.h"
-#include "riff.h"
 
 #if defined(_MSC_VER)
 # pragma pack(push,1)

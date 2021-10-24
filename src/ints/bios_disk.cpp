@@ -47,6 +47,7 @@ diskGeo DiskGeometryList[] = {
     { 720,  9, 2, 80, 3, 512, 112, 2, 0xF9},      // IBM PC double density 3.5" double-sided 720KB
     {1200, 15, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC double density 5.25" double-sided 1.2MB
     {1440, 18, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.44MB
+    {1680, 21, 2, 80, 4, 512,  16, 4, 0xF0},      // IBM PC high density 3.5" double-sided 1.68MB (DMF)
     {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0},      // IBM PC high density 3.5" double-sided 2.88MB
 
     {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
@@ -2324,5 +2325,152 @@ imageDiskNFD::~imageDiskNFD() {
         fclose(diskimg);
         diskimg=NULL; 
     }
+}
+
+bool PartitionLoadMBR(std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk) {
+	partTable smbr;
+
+	parts.clear();
+
+	if (loadedDisk->getSectSize() > sizeof(smbr)) return false;
+	if (loadedDisk->Read_Sector(0,0,1,&smbr) != 0x00) return false;
+	if (smbr.magic1 != 0x55 || smbr.magic2 != 0xaa) return false; /* Must have signature */
+
+	/* first copy the main partition table entries */
+	for (size_t i=0;i < 4;i++)
+		parts.push_back(smbr.pentry[i]);
+
+	/* then, enumerate extended partitions and add the partitions within, doing it in a way that
+	 * allows recursive extended partitions */
+	{
+		size_t i=0;
+
+		do {
+			if (parts[i].parttype == 0x05/*extended*/ || parts[i].parttype == 0x0F/*LBA extended*/) {
+				unsigned long sect = parts[i].absSectStart;
+				unsigned long send = sect + parts[i].partSize;
+
+				/* partitions within an extended partition form a sort of linked list.
+				 * first entry is the partition, sector start relative to parent partition.
+				 * second entry points to next link in the list. */
+
+				/* parts[i] is the parent partition in this loop.
+				 * this loop will add to the parts vector, the parent
+				 * loop will continue enumerating through the vector
+				 * until all have processed. in this way, extended
+				 * partitions will be expanded into the sub partitions
+				 * until none is left to do. */
+
+				/* FIXME: Extended partitions within extended partitions not yet tested,
+				 *        MS-DOS FDISK.EXE won't generate that. */
+
+				while (sect < send) {
+					smbr.magic1 = smbr.magic2 = 0;
+					loadedDisk->Read_AbsoluteSector(sect,&smbr);
+
+					if (smbr.magic1 != 0x55 || smbr.magic2 != 0xAA)
+						break;
+					if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
+						break; // FIXME: Not sure what MS-DOS considers the end of the linked list
+
+					const size_t idx = parts.size();
+
+					/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
+					 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
+					smbr.pentry[0].absSectStart += sect;
+					if (smbr.pentry[1].absSectStart != 0)
+						smbr.pentry[1].absSectStart += parts[i].absSectStart;
+
+					/* if the partition extends past the parent, then stop */
+					if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
+						break;
+
+					parts.push_back(smbr.pentry[0]);
+
+					/* Based on MS-DOS 5.0, the 2nd entry is a link to the next entry, but only if
+					 * start sector is nonzero and type is 0x05/0x0F. I'm not certain if MS-DOS allows
+					 * the linked list to go either direction, but for the sake of preventing infinite
+					 * loops stop if the link points to a lower sector number. */
+					if (idx < 256 && (smbr.pentry[1].parttype == 0x05 || smbr.pentry[1].parttype == 0x0F) &&
+						smbr.pentry[1].absSectStart != 0 && smbr.pentry[1].absSectStart > sect) {
+						sect = smbr.pentry[1].absSectStart;
+					}
+					else {
+						break;
+					}
+				}
+			}
+			i++;
+		} while (i < parts.size());
+	}
+
+	return true;
+}
+
+bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
+	unsigned char ipltable[SECTOR_SIZE_MAX];
+
+	parts.clear();
+
+	assert(sizeof(_PC98RawPartition) == 32);
+	if (loadedDisk->getSectSize() > sizeof(ipltable)) return false;
+
+	memset(ipltable,0,sizeof(ipltable));
+	if (loadedDisk->Read_Sector(0,0,2,ipltable) != 0) return false;
+
+	const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+
+	for (size_t i=0;i < max_entries;i++) {
+		const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+
+		if (pe->mid == 0 && pe->sid == 0 &&
+			pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+			pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+			pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+			continue; /* unused */
+
+		parts.push_back(*pe);
+	}
+
+	return true;
+}
+
+std::string PartitionIdentifyType(imageDisk *loadedDisk) {
+	struct partTable mbrData;
+
+	if (loadedDisk->Read_Sector(0,0,1,&mbrData) != 0)
+		return std::string();
+
+	if (!memcmp(mbrData.booter+4,"IPL1",4))
+		return "IPL1"; /* PC-98 IPL1 */
+
+	if (mbrData.magic1 == 0x55 && mbrData.magic2 == 0xaa)
+		return "MBR"; /* IBM PC MBR */
+
+	return std::string();
+}
+
+void LogPrintPartitionTable(const std::vector<_PC98RawPartition> &parts) {
+	for (size_t i=0;i < parts.size();i++) {
+		const _PC98RawPartition &part = parts[i];
+
+		LOG(LOG_DOSMISC,LOG_DEBUG)("IPL #%u: boot=%u active=%u startchs=%u/%u/%u endchs=%u/%u/%u '%s'",
+			(unsigned int)i,(part.mid&0x80)?1:0,(part.sid&0x80)?1:0,
+			part.cyl,part.head,part.sector,part.end_cyl,part.end_head,part.end_sector,
+			std::string((char*)part.name,sizeof(part.name)).c_str());
+	}
+}
+
+void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts) {
+	for (size_t i=0;i < parts.size();i++) {
+		const partTable::partentry_t &part = parts[i];
+
+		LOG(LOG_DOSMISC,LOG_DEBUG)("MBR #%u: bootflag=%u parttype=0x%02x beginchs=0x%02x%02x%02x endchs=0x%02x%02x%02x start=%llu size=%llu",
+			(unsigned int)i,(part.bootflag&0x80)?1:0,part.parttype,
+			part.beginchs[0],part.beginchs[1],part.beginchs[2],
+			part.endchs[0],part.endchs[1],part.endchs[2],
+			(unsigned long long)part.absSectStart,
+			(unsigned long long)part.partSize);
+	}
 }
 

@@ -16,20 +16,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
 #include <stdio.h>
 #include <string.h>
 
-#include "dosbox.h"
-#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
-#include "paging.h"
-#include "mmx.h"
 
 using namespace std;
 

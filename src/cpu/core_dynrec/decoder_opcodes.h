@@ -396,7 +396,6 @@ static void dyn_mov_ev_seg(void) {
 
 
 static void dyn_lea(void) {
-	dyn_get_modrm();
 	dyn_fill_ea(FC_ADDR,false);
 	MOV_REG_WORD_FROM_HOST_REG(FC_ADDR,decode.modrm.reg,decode.big_op);
 }
@@ -1336,12 +1335,12 @@ static void dyn_read_port_byte_direct(uint8_t port) {
 }
 
 static void dyn_read_port_word_direct(uint8_t port) {
-	gen_mov_dword_to_reg_imm(FC_OP1,port);
+    gen_mov_dword_to_reg_imm(FC_OP1, port);
     if(decode.big_op)
         gen_call_function_raw(dynrec_io_readD);
     else
         gen_call_function_raw(dynrec_io_readW);
-	dyn_check_exception(FC_RETOP);
+    dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_byte_direct(uint8_t port) {
@@ -1351,12 +1350,12 @@ static void dyn_write_port_byte_direct(uint8_t port) {
 }
 
 static void dyn_write_port_word_direct(uint8_t port) {
-	gen_mov_dword_to_reg_imm(FC_OP1,port);
+    gen_mov_dword_to_reg_imm(FC_OP1, port);
     if(decode.big_op)
         gen_call_function_raw(dynrec_io_writeD);
     else
         gen_call_function_raw(dynrec_io_writeW);
-	dyn_check_exception(FC_RETOP);
+    dyn_check_exception(FC_RETOP);
 }
 
 
@@ -1368,13 +1367,13 @@ static void dyn_read_port_byte(void) {
 }
 
 static void dyn_read_port_word(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
-	gen_extend_word(false,FC_OP1);
+    MOV_REG_WORD16_TO_HOST_REG(FC_OP1, DRC_REG_EDX);
+    gen_extend_word(false, FC_OP1);
     if(decode.big_op)
         gen_call_function_raw(dynrec_io_readD);
     else
         gen_call_function_raw(dynrec_io_readW);
-	dyn_check_exception(FC_RETOP);
+    dyn_check_exception(FC_RETOP);
 }
 
 static void dyn_write_port_byte(void) {
@@ -1385,13 +1384,13 @@ static void dyn_write_port_byte(void) {
 }
 
 static void dyn_write_port_word(void) {
-	MOV_REG_WORD16_TO_HOST_REG(FC_OP1,DRC_REG_EDX);
-	gen_extend_word(false,FC_OP1);
+    MOV_REG_WORD16_TO_HOST_REG(FC_OP1, DRC_REG_EDX);
+    gen_extend_word(false, FC_OP1);
     if(decode.big_op)
         gen_call_function_raw(dynrec_io_writeD);
     else
         gen_call_function_raw(dynrec_io_writeW);
-	dyn_check_exception(FC_RETOP);
+    dyn_check_exception(FC_RETOP);
 }
 
 

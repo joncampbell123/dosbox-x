@@ -52,6 +52,66 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
+int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
+	for (size_t i=0;i < parts.size();i++) {
+		const _PC98RawPartition &pe = parts[i];
+
+		/* skip partitions already in use */
+		if (loadedDisk->partitionInUse(i)) continue;
+
+		/* We're looking for MS-DOS partitions.
+		 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
+		 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
+		 * FIXME: Is there a better way? */
+		if (!strncasecmp(pe.name,"MS-DOS",6) ||
+			!strncasecmp(pe.name,"MSDOS",5) ||
+			!strncasecmp(pe.name,"Windows",7))
+			return (int)i;
+	}
+
+	return -1;
+}
+
+int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
+	if (use_ver_maj == 0 || use_ver_min == 0) {
+		use_ver_maj = dos.version.major;
+		use_ver_min = dos.version.minor;
+	}
+
+	for (size_t i=0;i < parts.size();i++) {
+		const partTable::partentry_t &pe = parts[i];
+
+		/* skip partitions already in use */
+		if (loadedDisk->partitionInUse(i)) continue;
+
+		if (pe.parttype == 0x01/*FAT12*/ ||
+			pe.parttype == 0x04/*FAT16*/ ||
+			pe.parttype == 0x06/*FAT16*/) {
+			return (int)i;
+		}
+		else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
+            if (use_ver_maj < 7 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to change the reported DOS version to 7.0 now?","yesno", "question", 1)) {
+                use_ver_maj = dos.version.major = 7;
+                use_ver_min = dos.version.minor = 0;
+                dos_ver_menu(false);
+		}
+			if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
+				return (int)i;
+		}
+		else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
+            if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to change the reported DOS version to 7.10 now?","yesno", "question", 1)) {
+                use_ver_maj = dos.version.major = 7;
+                use_ver_min = dos.version.minor = 10;
+                dos_ver_menu(true);
+            }
+			if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
+				return (int)i;
+		}
+	}
+
+	return -1;
+}
+
 bool filename_not_8x3(const char *n) {
 	bool lead;
 	unsigned int i;
@@ -60,7 +120,7 @@ bool filename_not_8x3(const char *n) {
 	lead = false;
 	while (*n != 0) {
 		if (*n == '.') break;
-		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') return true;
+		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
 		if (lead) lead = false;
 		else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
 		i++;
@@ -77,7 +137,7 @@ bool filename_not_8x3(const char *n) {
 	lead = false;
 	while (*n != 0) {
 		if (*n == '.') return true; /* another '.' means LFN */
-		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') return true;
+		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
 		if (lead) lead = false;
 		else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
 		i++;
@@ -666,7 +726,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	int j=0;
 	bool lead = false;
 	for (int i=0; i<(int)strlen(findFile); i++) {
-		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&!((findFile[i]=='['||findFile[i]==']'||findFile[i]=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk))&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
+		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&!((findFile[i]=='['||findFile[i]==']'||findFile[i]=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
 		if (lead) lead = false;
 		else if ((IS_PC98_ARCH && shiftjis_lead_byte(findFile[i]&0xFF)) || (isDBCSCP() && isKanji1(findFile[i]&0xFF))) lead = true;
 	}
@@ -1145,32 +1205,11 @@ bool fatDrive::allocateCluster(uint32_t useCluster, uint32_t prevCluster) {
 
 fatDrive::~fatDrive() {
 	if (loadedDisk) {
+		if (partition_index >= 0) loadedDisk->partitionMarkUse(partition_index,false);
 		loadedDisk->Release();
 		loadedDisk = NULL;
 	}
 }
-
-/* PC-98 IPL1 partition table entry.
- * Taken from GNU Parted source code.
- * Maximum 16 entries. */
-#pragma pack(push,1)
-struct _PC98RawPartition {
-	uint8_t		mid;		/* 0x80 - boot */
-	uint8_t		sid;		/* 0x80 - active */
-	uint8_t		dum1;		/* dummy for padding */
-	uint8_t		dum2;		/* dummy for padding */
-	uint8_t		ipl_sect;	/* IPL sector */
-	uint8_t		ipl_head;	/* IPL head */
-	uint16_t	ipl_cyl;	/* IPL cylinder */
-	uint8_t		sector;		/* starting sector */
-	uint8_t		head;		/* starting head */
-	uint16_t	cyl;		/* starting cylinder */
-	uint8_t		end_sector;	/* end sector */
-	uint8_t		end_head;	/* end head */
-	uint16_t	end_cyl;	/* end cylinder */
-	char		name[16];
-};
-#pragma pack(pop)
 
 FILE * fopen_lock(const char * fname, const char * mode);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
@@ -1373,7 +1412,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
-	struct partTable mbrData;
 
 	physToLogAdj = 0;
 	req_ver_major = req_ver_minor = 0;
@@ -1429,47 +1467,47 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				return;
 			}
 
-			loadedDisk->Read_Sector(0,0,1,&mbrData);
-
-			if(mbrData.magic1!= 0x55 ||	mbrData.magic2!= 0xaa) LOG_MSG("Possibly invalid partition table in disk image.");
-
 			startSector = 0;
 
-			/* PC-98 bootloader support.
-			 * These can be identified by the "IPL1" in the boot sector.
-			 * These boot sectors do not have a valid partition table though the code below might
-			 * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
-			if (!memcmp(mbrData.booter+4,"IPL1",4)) {
-				unsigned char ipltable[SECTOR_SIZE_MAX];
-				unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
-				Bitu i;
+			const std::string ptype = PartitionIdentifyType(loadedDisk);
+			if (ptype == "IPL1") {
+				/* PC-98 IPL1 boot record search */
+				std::vector<_PC98RawPartition> parts;
+				int chosen_idx = (int)parts.size();
 
-				LOG_MSG("PC-98 IPL1 signature detected");
+				/* store partitions into a vector, including extended partitions */
+				LOG_MSG("FAT: Partition type is IPL1 (PC-98)");
+				if (!PartitionLoadIPL1(parts,loadedDisk)) {
+					LOG_MSG("Failed to read partition table");
+					created_successfully = false;
+					return;
+				}
 
-				assert(sizeof(_PC98RawPartition) == 32);
+				LogPrintPartitionTable(parts);
 
-				memset(ipltable,0,sizeof(ipltable));
-				loadedDisk->Read_Sector(0,0,2,ipltable);
+				/* user knows best! */
+				if (opt_partition_index >= 0)
+					chosen_idx = opt_partition_index;
+				else
+					chosen_idx = PC98AutoChoose_FAT(parts,loadedDisk);
 
-				if (opt_partition_index >= 0) {
-					/* user knows best! */
-					if ((unsigned int)opt_partition_index >= max_entries) {
-						LOG_MSG("Partition index out of range");
-						created_successfully = false;
-						return;
-					}
+				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
+					LOG_MSG("No partition chosen");
+					created_successfully = false;
+					return;
+				}
 
-					i = (unsigned int)opt_partition_index;
-					const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+				{ /* assume chosen_idx is in range */
+					const _PC98RawPartition &pe = parts[(size_t)chosen_idx];
 
 					/* unfortunately start and end are in C/H/S geometry, so we have to translate.
 					 * this is why it matters so much to read the geometry from the HDI header.
 					 *
 					 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
 					startSector =
-						(pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
-						(pe->head * loadedDisk->sectors) +
-						pe->sector;
+						(pe.cyl * loadedDisk->sectors * loadedDisk->heads) +
+						(pe.head * loadedDisk->sectors) +
+						pe.sector;
 
 					/* Many HDI images I've encountered so far indicate 512 bytes/sector,
 					 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
@@ -1477,214 +1515,74 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 					{
 						/* FIXME: What if the label contains SHIFT-JIS? */
-						std::string name = std::string(pe->name,sizeof(pe->name));
+						std::string name = std::string(pe.name,sizeof(pe.name));
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-								(unsigned long)i,name.c_str(),(unsigned long)startSector);
+							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
 					}
+
+					partition_index = chosen_idx;
 				}
-				else {
-					for (i=0;i < max_entries;i++) {
-						const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
-
-						if (pe->mid == 0 && pe->sid == 0 &&
-							pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-							pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-							pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
-							continue; /* unused */
-
-						/* We're looking for MS-DOS partitions.
-						 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
-						 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
-						 * FIXME: Is there a better way? */
-						if (!strncasecmp(pe->name,"MS-DOS",6) ||
-							!strncasecmp(pe->name,"MSDOS",5) ||
-							!strncasecmp(pe->name,"Windows",7)) {
-							/* unfortunately start and end are in C/H/S geometry, so we have to translate.
-							 * this is why it matters so much to read the geometry from the HDI header.
-							 *
-							 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
-							startSector =
-								(pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
-								(pe->head * loadedDisk->sectors) +
-								pe->sector;
-
-							/* Many HDI images I've encountered so far indicate 512 bytes/sector,
-							 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
-							pc98_512_to_1024_allow = true;
-
-							{
-								/* FIXME: What if the label contains SHIFT-JIS? */
-								std::string name = std::string(pe->name,sizeof(pe->name));
-
-								LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-										(unsigned long)i,name.c_str(),(unsigned long)startSector);
-								break;
-							}
-						}
-					}
-				}
-
-				if (i == max_entries)
-					LOG_MSG("No partitions found in the IPL1 table");
 			}
-			else {
+			else if (ptype == "MBR") {
 				/* IBM PC master boot record search */
-				int m = 0;
+				std::vector<partTable::partentry_t> parts;
+				int chosen_idx = (int)parts.size();
 
 				/* store partitions into a vector, including extended partitions */
-				std::vector<partTable::partentry_t> parts;
-
-				/* first copy the main partition table entries */
-				for (size_t i=0;i < 4;i++) {
-					parts.push_back(mbrData.pentry[i]);
-					LOG(LOG_DOSMISC,LOG_DEBUG)("Main MBR partition entry #%u: type=0x%02x start=%lu(%llu) len=%lu",
-						(unsigned int)      i,
-						(unsigned int)      mbrData.pentry[i].parttype,
-						(unsigned long)     mbrData.pentry[i].absSectStart,
-						(unsigned long long)mbrData.pentry[i].absSectStart * (unsigned long long)bytesector,
-						(unsigned long)     mbrData.pentry[i].partSize);
+				LOG_MSG("FAT: Partition type is MBR (IBM PC)");
+				if (!PartitionLoadMBR(parts,loadedDisk)) {
+					LOG_MSG("Failed to read partition table");
+					created_successfully = false;
+					return;
 				}
 
-				/* then, enumerate extended partitions and add the partitions within, doing it in a way that
-				 * allows recursive extended partitions */
-				{
-					size_t i=0;
+				LogPrintPartitionTable(parts);
 
-					do {
-						if (parts[i].parttype == 0x05/*extended*/ || parts[i].parttype == 0x0F/*LBA extended*/) {
-							unsigned long sect = parts[i].absSectStart;
-							unsigned long send = sect + parts[i].partSize;
-							partTable smbr;
-
-							/* partitions within an extended partition form a sort of linked list.
-							 * first entry is the partition, sector start relative to parent partition.
-							 * second entry points to next link in the list. */
-
-							/* parts[i] is the parent partition in this loop.
-							 * this loop will add to the parts vector, the parent
-							 * loop will continue enumerating through the vector
-							 * until all have processed. in this way, extended
-							 * partitions will be expanded into the sub partitions
-							 * until none is left to do. */
-
-							/* FIXME: Extended partitions within extended partitions not yet tested,
-							 *        MS-DOS FDISK.EXE won't generate that. */
-
-							while (sect < send) {
-								smbr.magic1 = smbr.magic2 = 0;
-								loadedDisk->Read_AbsoluteSector(sect,&smbr);
-
-								if (smbr.magic1 != 0x55 || smbr.magic2 != 0xAA)
-									break;
-								if (smbr.pentry[0].absSectStart == 0 || smbr.pentry[0].partSize == 0)
-									break; // FIXME: Not sure what MS-DOS considers the end of the linked list
-
-								const size_t idx = parts.size();
-								const unsigned long rstart = smbr.pentry[0].absSectStart;
-
-								/* Right, get this: absolute start sector in entry #0 is relative to this link in the linked list.
-								 * The pointer to the next link in the linked list is relative to the parent partition. Blegh. */
-								smbr.pentry[0].absSectStart += sect;
-								if (smbr.pentry[1].absSectStart != 0)
-									smbr.pentry[1].absSectStart += parts[i].absSectStart;
-
-								LOG(LOG_DOSMISC,LOG_DEBUG)("Ext. MBR partition entry #%u: type=0x%02x start=%lu(%llu) relstart=%lu len=%lu next=%lu ntype=0x%02x partsect=%lu parentidx=%u",
-									(unsigned int)      idx,
-									(unsigned int)      smbr.pentry[0].parttype,
-									(unsigned long)     smbr.pentry[0].absSectStart,
-									(unsigned long long)smbr.pentry[0].absSectStart * (unsigned long long)bytesector,
-									(unsigned long)     rstart,
-									(unsigned long)     smbr.pentry[0].partSize,
-									(unsigned long)     smbr.pentry[1].absSectStart,
-									(unsigned int)      smbr.pentry[1].parttype, /* NTS: MS-DOS sets this to 0x05 or 0x0F */
-									(unsigned long)     sect,
-									(unsigned int)      i);
-
-								/* if the partition extends past the parent, then stop */
-								if ((smbr.pentry[0].absSectStart+smbr.pentry[0].partSize) > (parts[i].absSectStart+parts[i].partSize))
-									break;
-
-								parts.push_back(smbr.pentry[0]);
-
-								/* Based on MS-DOS 5.0, the 2nd entry is a link to the next entry, but only if
-								 * start sector is nonzero and type is 0x05/0x0F. I'm not certain if MS-DOS allows
-								 * the linked list to go either direction, but for the sake of preventing infinite
-								 * loops stop if the link points to a lower sector number. */
-								if (idx < 256 && (smbr.pentry[1].parttype == 0x05 || smbr.pentry[1].parttype == 0x0F) &&
-									smbr.pentry[1].absSectStart != 0 && smbr.pentry[1].absSectStart > sect) {
-									sect = smbr.pentry[1].absSectStart;
-								}
-								else {
-									break;
-								}
-							}
-						}
-						i++;
-					} while (i < parts.size());
-				}
-
+				/* user knows best! */
 				if (opt_partition_index >= 0) {
-					/* user knows best! */
-					if ((size_t)opt_partition_index >= parts.size()) {
-						LOG_MSG("Partition index out of range");
-						created_successfully = false;
-						return;
-					}
-
-					startSector = parts[m=opt_partition_index].absSectStart;
-					countSector = parts[m=opt_partition_index].partSize;
+					chosen_idx = opt_partition_index;
 				}
 				else {
-					for(m=0;(size_t)m < parts.size();m++) {
-						/* Pick the first available partition */
-						if (parts[m].parttype == 0x01 || parts[m].parttype == 0x04 || parts[m].parttype == 0x06) {
-							parts[m].absSectStart = var_read(&parts[m].absSectStart);
-							parts[m].partSize = var_read(&parts[m].partSize);
-							LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-							startSector = parts[m].absSectStart;
-							countSector = parts[m].partSize;
-							break;
-						}
-						else if (parts[m].parttype == 0x0E/*FAT16B LBA*/) {
-							if (dos.version.major < 7 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to change the reported DOS version to 7.0 now?","yesno", "question", 1)) {
-								dos.version.major = 7;
-								dos.version.minor = 0;
-								dos_ver_menu(false);
-							}
-							if (dos.version.major >= 7) { /* MS-DOS 7.0 or higher */
-								parts[m].absSectStart = var_read(&parts[m].absSectStart);
-								parts[m].partSize = var_read(&parts[m].partSize);
-								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-								startSector = parts[m].absSectStart;
-								countSector = parts[m].partSize;
-							} else {
-								req_ver_major = 7; req_ver_minor = 0;
-							}
-							break;
-						}
-						else if (parts[m].parttype == 0x0B || parts[m].parttype == 0x0C) { /* FAT32 types */
-							if ((dos.version.major < 7 || ((dos.version.major == 7 && dos.version.minor < 10))) && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to change the reported DOS version to 7.10 now?","yesno", "question", 1)) {
-								dos.version.major = 7;
-								dos.version.minor = 10;
-								dos_ver_menu(true);
-							}
-							if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* MS-DOS 7.10 or higher */
-								parts[m].absSectStart = var_read(&parts[m].absSectStart);
-								parts[m].partSize = var_read(&parts[m].partSize);
-								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, parts[m].parttype, parts[m].absSectStart);
-								startSector = parts[m].absSectStart;
-								countSector = parts[m].partSize;
-							} else {
-								req_ver_major = 7; req_ver_minor = 10;
-							}
-							break;
+					chosen_idx = MBRAutoChoose_FAT(parts,loadedDisk);
+					if (chosen_idx < 0) {
+						/* If no chosen partition by default, but chosen partition if acting like later DOS version,
+						 * then you need to bump the DOS version number to mount it. NTS: Exit this part with
+						 * chosen_idx < 0 */
+						if (MBRAutoChoose_FAT(parts,loadedDisk,7,0) >= 0 || MBRAutoChoose_FAT(parts,loadedDisk,7,10) >= 0) {
+							LOG_MSG("Partitions are available to mount, but a higher DOS version is required");
 						}
 					}
 				}
 
-				if (m == parts.size()) LOG_MSG("No good partition found in image.");
+				if (chosen_idx < 0 || (size_t)chosen_idx >= parts.size()) {
+					LOG_MSG("No partition chosen");
+					created_successfully = false;
+					return;
+				}
+
+				{ /* assume chosen_idx is in range */
+					const partTable::partentry_t &pe = parts[(size_t)chosen_idx];
+
+					partition_index = chosen_idx;
+					startSector = pe.absSectStart;
+					countSector = pe.partSize;
+				}
 			}
+			else {
+				LOG_MSG("Unknown partition type '%s'",ptype.c_str());
+				created_successfully = false;
+				return;
+			}
+
+			/* if the partition is already in use, do not mount.
+			 * two drives using the same partition can cause FAT filesystem corruption! */
+			if (loadedDisk->partitionInUse(partition_index)) {
+				LOG_MSG("Partition %u already in use",partition_index);
+				created_successfully = false;
+				return;
+			}
+			loadedDisk->partitionMarkUse(partition_index,true);
 
 			partSectOff = startSector;
 			partSectSize = countSector;
@@ -2259,6 +2157,7 @@ bool fatDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	/* TODO: check for read-only flag and requested write access */
 	*file = new fatFile(name, BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust, fileEntry.entrysize, this);
+    (*file)->SetName(name);
 	(*file)->flags = flags;
 	((fatFile *)(*file))->dirCluster = dirClust;
 	((fatFile *)(*file))->dirIndex = subEntry;

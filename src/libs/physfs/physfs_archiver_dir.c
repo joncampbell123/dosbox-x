@@ -42,6 +42,7 @@ static char *cvtToDependent(const char *prepend, const char *path,
 static void *DIR_openArchive(PHYSFS_Io *io, const char *name,
                              int forWriting, int *claimed)
 {
+    (void)forWriting;//UNUSED
     PHYSFS_Stat st;
     const char dirsep = __PHYSFS_platformDirSeparator;
     char *retval = NULL;

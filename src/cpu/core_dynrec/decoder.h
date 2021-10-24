@@ -329,7 +329,11 @@ restart_prefix:
 		case 0x8c:dyn_mov_ev_seg();break;
 
 		// load effective address
-		case 0x8d:dyn_lea();break;
+		case 0x8d:
+			dyn_get_modrm();
+			if (GCC_UNLIKELY(decode.modrm.mod==3)) goto illegalopcode;  // Direct register causes #UD exception
+			dyn_lea();
+			break;
 
 		// move a value from memory or a 16bit register into a segment register
 		case 0x8e:dyn_mov_seg_ev();break;

@@ -1184,7 +1184,7 @@ void RENDER_Init() {
 	}
 
 	//Set monochrome mode color and brightness
-	vga.draw.monochrome_pal=0;
+	vga.draw.monochrome_pal=MonochromeColor::Green;
 	vga.draw.monochrome_bright=1;
   Prop_multival* prop = section->Get_multival("monochrome_pal");
   std::string s_bright = prop->GetSection()->Get_string("bright");
@@ -1194,13 +1194,13 @@ void RENDER_Init() {
 		vga.draw.monochrome_bright=0;
 	}
 	if("green"==s_color){
-		vga.draw.monochrome_pal=0;
+		vga.draw.monochrome_pal=MonochromeColor::Green;
 	}else if("amber"==s_color){
-		vga.draw.monochrome_pal=1;
-	}else if("gray"==s_color){
-		vga.draw.monochrome_pal=2;
+		vga.draw.monochrome_pal=MonochromeColor::Amber;
+	}else if("gray"==s_color || "grey"==s_color){
+		vga.draw.monochrome_pal=MonochromeColor::Gray;
 	}else if("white"==s_color){
-		vga.draw.monochrome_pal=3;
+		vga.draw.monochrome_pal=MonochromeColor::White;
 	}
 
     //For restarting the renderer.

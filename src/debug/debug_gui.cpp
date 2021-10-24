@@ -29,11 +29,8 @@
 #include <SDL.h>
 #endif
 
-#include "dosbox.h"
 #include "logging.h"
-#include "support.h"
 #include "control.h"
-#include "regs.h"
 #include "menu.h"
 #include "debug.h"
 #include "debug_inc.h"
@@ -421,7 +418,7 @@ static void DrawSubWinBox(WINDOW *wnd,const char *title) {
     		attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
     }
 
-    mvhline(y-1,x,ACS_HLINE,w);
+    mvhline(y-1,x,ACS_S1,w);
     if (title != NULL) mvaddstr(y-1,x+4,title);
 }
 

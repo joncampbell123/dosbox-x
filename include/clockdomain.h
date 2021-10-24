@@ -55,4 +55,3 @@ public:
 };
 
 #endif //DOSBOX_CLOCKDOMAIN_H
-

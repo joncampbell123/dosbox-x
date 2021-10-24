@@ -32,26 +32,18 @@ using namespace std;
 
 #include "debug.h"
 #include "cross.h" //snprintf
-#include "cpu.h"
 #include "fpu.h"
 #include "video.h"
-#include "pic.h"
 #include "vga.h"
 #include "mapper.h"
-#include "cpu.h"
 #include "pc98_gdc.h"
 #include "callback.h"
 #include "inout.h"
-#include "mixer.h"
-#include "timer.h"
 #include "paging.h"
-#include "support.h"
 #include "shell.h"
-#include "programs.h"
 #include "debug_inc.h"
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
-#include "setup.h"
 #include "control.h"
 
 #ifdef WIN32
@@ -2122,7 +2114,9 @@ bool ParseCommand(char* str) {
 		while (found[0] == ' ') found++;
 		char out1[200],out2[200];
 		GetDescriptorInfo(found,out1,out2);
-		DEBUG_ShowMsg("SelectorInfo %s:\n%s\n%s\n",found,out1,out2);
+        DEBUG_ShowMsg("SelectorInfo %s:\n", found);
+        DEBUG_ShowMsg("%s\n", out1);
+        DEBUG_ShowMsg("%s\n", out2);
 		return true;
 	}
 
@@ -2768,8 +2762,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("Up/Down                   - Scroll up/down in the current window.\n");
 		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
 		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
-        DEBUG_ShowMsg("TAB                       - Select next window\n");
-        DEBUG_ShowMsg("Shift + TAB               - Select previous window\n");
+        DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
         DEBUG_EndPagedContent();
 
 		return true;
@@ -3695,10 +3688,11 @@ static void LogBIOSMem(void) {
     DEBUG_ShowMsg("BIOS memory blocks:");
     DEBUG_ShowMsg("Region            Status What");
     for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
-        sprintf(tmp,"%08lx-%08lx %s",
+        sprintf(tmp,"%08lx-%08lx %s %s",
             (unsigned long)(i->start),
             (unsigned long)(i->end),
-            i->free ? "FREE  " : "ALLOC ");
+            i->free ? "FREE  " : "ALLOC ",
+	    i->free ? "    " : (i->fixed ? "FIX "  : "DYN "));
         DEBUG_ShowMsg("%s %s",tmp,i->who.c_str());
     }
 
@@ -4498,8 +4492,20 @@ static void OutputVecTable(char* filename) {
 		return;
 	}
 
-	for (unsigned int i=0; i<256; i++)
-		fprintf(f,"INT %02X:  %04X:%04X\n", i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
+    for(unsigned int i = 0; i < 256; i++) {
+        if(cpu.pmode) {
+            Descriptor gate;
+            if(cpu.idt.GetDescriptor((Bitu)i << 3u, gate)) {
+                fprintf(f, "INT %02X:  %04X:%04X\n", i, (int)gate.GetSelector(), (int)gate.GetOffset());
+            }
+            else {
+                DEBUG_ShowMsg("INTVEC unable to retrieve vector");
+            }
+        }
+        else {
+            fprintf(f, "INT %02X:  %04X:%04X\n", i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
+        }
+    }
 
 	fclose(f);
 	DEBUG_ShowMsg("DEBUG: Interrupt vector table written to %s.\n", filename);

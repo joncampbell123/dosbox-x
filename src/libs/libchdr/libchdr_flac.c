@@ -27,12 +27,12 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(void* client_data, co
 static void flac_decoder_error_callback_static(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 /* getters (valid after reset) */
-static uint32_t sample_rate(flac_decoder *decoder)  { return decoder->sample_rate; }
+//static uint32_t sample_rate(flac_decoder *decoder)  { return decoder->sample_rate; } UNUSED
 static uint8_t channels(flac_decoder *decoder)  { return decoder->channels; }
-static uint8_t bits_per_sample(flac_decoder *decoder) { return decoder->bits_per_sample; }
-static uint32_t total_samples(flac_decoder *decoder)  { return FLAC__stream_decoder_get_total_samples(decoder->decoder); }
-static FLAC__StreamDecoderState state(flac_decoder *decoder) { return FLAC__stream_decoder_get_state(decoder->decoder); }
-static const char *state_string(flac_decoder *decoder) { return FLAC__stream_decoder_get_resolved_state_string(decoder->decoder); }
+//static uint8_t bits_per_sample(flac_decoder *decoder) { return decoder->bits_per_sample; } UNUSED
+//static uint32_t total_samples(flac_decoder *decoder)  { return FLAC__stream_decoder_get_total_samples(decoder->decoder); } UNUSED
+//static FLAC__StreamDecoderState state(flac_decoder *decoder) { return FLAC__stream_decoder_get_state(decoder->decoder); } UNUSED
+//static const char *state_string(flac_decoder *decoder) { return FLAC__stream_decoder_get_resolved_state_string(decoder->decoder); } UNUSED
 
 /*-------------------------------------------------
  *  flac_decoder - constructor
@@ -206,10 +206,9 @@ uint32_t flac_decoder_finish(flac_decoder* decoder)
  *-------------------------------------------------
  */
 
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-
 FLAC__StreamDecoderReadStatus flac_decoder_read_callback_static(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
+	(void)decoder;//UNUSED
 	return flac_decoder_read_callback(client_data, buffer, bytes);
 }
 
@@ -250,6 +249,7 @@ FLAC__StreamDecoderReadStatus flac_decoder_read_callback(void* client_data, FLAC
 
 void flac_decoder_metadata_callback_static(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
+	(void)decoder;//UNUSED
 	flac_decoder *fldecoder;
 	/* ignore all but STREAMINFO metadata */
 	if (metadata->type != FLAC__METADATA_TYPE_STREAMINFO)
@@ -270,6 +270,7 @@ void flac_decoder_metadata_callback_static(const FLAC__StreamDecoder *decoder, c
 
 FLAC__StreamDecoderTellStatus flac_decoder_tell_callback_static(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
+	(void)decoder;//UNUSED
 	*absolute_byte_offset = ((flac_decoder *)client_data)->compressed_offset;
 	return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 }
@@ -282,12 +283,14 @@ FLAC__StreamDecoderTellStatus flac_decoder_tell_callback_static(const FLAC__Stre
 
 FLAC__StreamDecoderWriteStatus flac_decoder_write_callback_static(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
+	(void)decoder;//UNUSED
 	return flac_decoder_write_callback(client_data, frame, buffer);
 }
 
 FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(void *client_data, const FLAC__Frame *frame, const FLAC__int32 * const buffer[])
 {
-	int sampnum, chan;
+	int sampnum;
+	unsigned int chan;
 	int shift, blocksize;
 	flac_decoder * decoder = (flac_decoder *)client_data;
 
@@ -329,4 +332,7 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(void *client_data, co
 
 void flac_decoder_error_callback_static(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
+	(void)decoder;//UNUSED
+	(void)status;//UNUSED
+	(void)client_data;//UNUSED
 }

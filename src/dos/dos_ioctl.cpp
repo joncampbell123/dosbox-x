@@ -625,7 +625,7 @@ bool DOS_IOCTL(void) {
 	switch(reg_al) {
 	case 0x00:		/* Get Device Information */
 		if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
-			reg_dx=Files[handle]->GetInformation();
+			reg_dx=Files[handle]->GetInformation() & ~EXT_DEVICE_BIT;
 		} else {
 			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
@@ -676,7 +676,7 @@ bool DOS_IOCTL(void) {
 		return false;
 	case 0x06:      /* Get Input Status */
 		if (Files[handle]->GetInformation() & 0x8000) {		//Check for device
-			reg_al=(Files[handle]->GetInformation() & 0x40) ? 0x0 : 0xff;
+			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(true);
 		} else { // FILE
 			uint32_t oldlocation=0;
 			Files[handle]->Seek(&oldlocation, DOS_SEEK_CUR);
@@ -692,6 +692,10 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x07:		/* Get Output Status */
+		if (Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(false);
+			return true;
+		}
 		LOG(LOG_IOCTL,LOG_NORMAL)("07:Fakes output status is ready for handle %d",(int)handle);
 		reg_al=0xff;
 		return true;

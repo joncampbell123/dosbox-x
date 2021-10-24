@@ -352,26 +352,6 @@ static_assert(offsetof(direntry_lfn,LDIR_Name3) == 0x1C,"Oops");
 
 #define MAX_DIRENTS_PER_SECTOR (SECTOR_SIZE_MAX / sizeof(direntry))
 
-struct partTable {
-	uint8_t booter[446];
-	struct partentry_t {
-		uint8_t bootflag;
-		uint8_t beginchs[3];
-		uint8_t parttype;
-		uint8_t endchs[3];
-		uint32_t absSectStart;
-		uint32_t partSize;
-	} pentry[4];
-	uint8_t  magic1; /* 0x55 */
-	uint8_t  magic2; /* 0xaa */
-#ifndef SECTOR_SIZE_MAX
-# pragma warning SECTOR_SIZE_MAX not defined
-#endif
-#if SECTOR_SIZE_MAX > 512
-    uint8_t  extra[SECTOR_SIZE_MAX - 512];
-#endif
-} GCC_ATTRIBUTE(packed);
-
 #ifdef _MSC_VER
 #pragma pack ()
 #endif
@@ -491,6 +471,7 @@ private:
 	uint32_t firstDataSector = 0;
 	uint32_t firstRootDirSect = 0;
 	uint32_t physToLogAdj = 0; // Some PC-98 HDI images have larger logical than physical bytes/sector and the partition is not a multiple of it, so this is needed
+	int partition_index = -1;
 
 	uint32_t cwdDirCluster = 0;
 

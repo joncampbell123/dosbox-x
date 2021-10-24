@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src
 
 noinst_LIBRARIES = libdos.a
 EXTRA_DIST = scsidefs.h wnaspi32.h dos_codepages.h dos_keyboard_layout_data.h

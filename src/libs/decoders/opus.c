@@ -185,6 +185,7 @@ static Sint32 RWops_opus_seek(void* stream, const opus_int64 offset, const Sint3
  */
 static Sint32 RWops_opus_close(void* stream)
 {
+	(void)stream;//UNUSED
 	/* SDL closes this for us */
 	// return SDL_RWclose((SDL_RWops*)stream);
 	return 0;
@@ -289,6 +290,9 @@ static __inline__ void output_opus_info(const OggOpusFile* of, const OpusHead* o
 	SNDDBG(("Opus vendor:            %s\n", ot->vendor));
 	for (int i = 0; i < ot->comments; i++)
 		SNDDBG(("Opus: user comment:     '%s'\n", ot->user_comments[i]));
+#else
+	(void)of;//UNUSED
+	(void)oh;//UNUSED
 #endif
 } /* output_opus_comments */
 
@@ -301,6 +305,7 @@ static __inline__ void output_opus_info(const OggOpusFile* of, const OpusHead* o
  */
 static Sint32 opus_open(Sound_Sample* sample, const char* ext)
 {
+	(void)ext;//UNUSED
 	Sint32 rcode;
 	Sound_SampleInternal* internal = (Sound_SampleInternal*)sample->opaque;
 
@@ -588,7 +593,7 @@ static Sint32 opus_seek(Sound_Sample* sample, const Uint32 ms)
 	const ogg_int64_t desired_pcm = ms * OPUS_SAMPLE_RATE_PER_MS;
 
 	// Is our stream already positioned at the requested offset?
-	if (d->of_pcm == desired_pcm){
+	if (d->of_pcm == (ogg_uint64_t)desired_pcm){
 
 		SNDDBG(("Opus seek avoided:      "
 		        "{requested_time: '%02d:%02d:%.2f', becomes_opus_pcm: %ld, actual_pcm_pos: %ld}\n",
@@ -610,7 +615,7 @@ static Sint32 opus_seek(Sound_Sample* sample, const Uint32 ms)
 		//
 
 		// Is the requested pcm offset within our decoded range?
-		if (desired_pcm >= pcm_start && desired_pcm <= pcm_end) {
+		if ((ogg_uint64_t)desired_pcm >= pcm_start && (ogg_uint64_t)desired_pcm <= pcm_end) {
 
 			SNDDBG(("Opus seek avoided:      "
 			        "{requested_time: '%02d:%02d:%.2f', becomes_opus_pcm: %ld, buffer_start: %ld, buffer_end: %ld}\n",

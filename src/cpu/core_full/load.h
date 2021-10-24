@@ -175,6 +175,7 @@ l_M_Ed:
 			inst_op2_d=LoadMw(inst.rm_eaa+4);
 			break;
 		case M_EA:
+			if (inst.rm>=0xc0) goto illegalopcode;
 			inst_op1_d=inst.rm_off;
 			break;
 		case M_POPw:

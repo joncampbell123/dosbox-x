@@ -21,10 +21,8 @@
 	Probably still some bugs left in here.
 */
 
-#include "dosbox.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "pic.h"
 #include "logging.h"
 
 LazyFlags lflags;

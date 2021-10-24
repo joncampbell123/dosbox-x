@@ -26,6 +26,7 @@
 #include "logging.h"
 #include "shell.h"
 #include "callback.h"
+#include "dos_inc.h"
 #include "regs.h"
 #include "pic.h"
 #include "keyboard.h"
@@ -47,6 +48,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include "sdlmain.h"
 #include "build_timestamp.h"
 
 #if defined(_MSC_VER)
@@ -114,7 +116,7 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
-extern int enablelfn, lfn_filefind_handle, file_access_tries, customcp, altcp;
+extern int enablelfn, lfn_filefind_handle, file_access_tries;
 extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo, altcp_to_unicode[256];
@@ -420,11 +422,11 @@ void DOS_Shell::CMD_BREAK(char * args) {
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-       WriteOut("[2J");
+       WriteOut("\033[2J");
    else {
-      reg_ax=(uint16_t)CurMode->mode;
+      if (IS_DOSV && DOSV_CheckCJKVideoMode()) reg_ax = GetTrueVideoMode();
+      else reg_ax=(uint16_t)CurMode->mode;
       CALLBACK_RunRealInt(0x10);
-      if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
    } 
 }
 
@@ -865,7 +867,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
         if (!level) shell->WriteOut(MSG_Get("SHELL_CMD_TREE_ERROR"));
         return level;
     }
-    uint16_t attribute=0;
+    //uint16_t attribute=0; UNUSED
 	strcpy(path,full);
 	*(strrchr_dbcs(path,'\\')+1)=0;
 	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
@@ -876,7 +878,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
     cdirs.clear();
 	while (res) {
         if (CheckBreak(shell)) return false;
-        strcpy(spath,((plast||level==1&&last?"-":"")+std::to_string(level+1)+":").c_str());
+        strcpy(spath,((plast||(level==1&&last)?"-":"")+std::to_string(level+1)+":").c_str());
         strcat(spath, path);
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
@@ -4057,14 +4059,9 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
-bool isSupportedCP(int newCP) {
-    return newCP == 437 || newCP == 808 || newCP == 850 || newCP == 852 || newCP == 853 || newCP == 855 || newCP == 857 || newCP == 858 || (newCP >= 860 && newCP <= 866) || newCP == 869 || newCP == 872 || newCP == 874 || newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || (newCP >= 1250 && newCP <= 1258 || (customcp > 0 && newCP == customcp) || (altcp > 0 && newCP == altcp));
-}
-
 #if defined(USE_TTF)
 extern bool jfont_init, isDBCSCP();
-int setTTFCodePage(void);
-void runRescan(const char *str), MSG_Init(), JFONT_Init(), SetupDBCSTable(), DOSBox_SetSysMenu();
+void runRescan(const char *str), MSG_Init(), JFONT_Init(), DOSBox_SetSysMenu();
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;

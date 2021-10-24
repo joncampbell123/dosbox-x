@@ -174,4 +174,3 @@ protected:
         return (str != NULL) ? str : "";
     }
 };
-

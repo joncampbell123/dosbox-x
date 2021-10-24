@@ -25,9 +25,7 @@
 //#pragma warning ( disable : 4290 )
 #endif
 
-#ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
-#endif
 #include "setup.h"
 
 class Config{
@@ -53,6 +51,8 @@ public:
         opt_debug = false;
         opt_nogui = false;
         opt_nomenu = false;
+        opt_langcp = false;
+        opt_prerun = false;
         opt_showrt = false;
         opt_silent = false;
         opt_startui = false;
@@ -145,6 +145,8 @@ public:
     bool opt_silent;
     bool opt_showrt;
     bool opt_nomenu;
+    bool opt_prerun;
+    bool opt_langcp;
     bool opt_debug;
     bool opt_nogui;
     bool opt_exit;

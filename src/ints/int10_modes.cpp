@@ -33,6 +33,7 @@
 #include "regs.h"
 #include "jfont.h"
 #include "callback.h"
+#include "sdlmain.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -745,7 +746,6 @@ bool INT10_SetCurMode(void) {
 #if defined(USE_TTF)
 extern int switchoutput;
 extern bool firstset;
-bool TTF_using(void);
 #endif
 static void FinishSetMode(bool clearmem) {
 	/* Clear video memory if needs be */
@@ -846,10 +846,7 @@ static void FinishSetMode(bool clearmem) {
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
-		if (machine==MCH_HERC || machine==MCH_MDA)
-			INT10_SetCursorShape(0x0c,0x0d);
-		else
-			INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
+		INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 	}
 	// Set cursor pos for page 0..7
 	for (uint8_t ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
@@ -1223,6 +1220,7 @@ void ttf_switch_on(bool ss=true) {
         CALLBACK_RunRealInt(0x2F);
         if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
         reg_ax=oldax;
+        bool OpenGL_using(void), gl = OpenGL_using();
         change_output(10);
         SetVal("sdl", "output", "ttf");
         void OutputSettingMenuUpdate(void);
@@ -1233,6 +1231,13 @@ void ttf_switch_on(bool ss=true) {
         if (ttf.fullScrn) {
             if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
             OUTPUT_TTF_Select(3);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
+                void GFX_SwitchFullScreen(void);
+                GFX_SwitchFullScreen();
+                GFX_SwitchFullScreen();
+            }
+#endif
             resetreq = true;
         }
         resetFontSize();
@@ -1741,7 +1746,9 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the correct clock */
 		if (CurMode->mode>=0x100) {
-			misc_output|=0xef;		//Select clock 3 
+			if (CurMode->vdispend>480)
+				misc_output|=0xc0;	//480-line sync
+			misc_output|=0x0c;		//Select clock 3
 			Bitu clock=CurMode->vtotal*8*CurMode->htotal*70;
 			if(CurMode->type==M_LIN15 || CurMode->type==M_LIN16) clock/=2;
 			VGA_SetClock(3,clock/1000);
@@ -2314,18 +2321,34 @@ static VideoModeBlock *ModeListVtext[] = {
 	ModeList_DOSV_SXGA_24,
 };
 
+#if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+extern void IME_SetFontSize(int size);
+#endif
+
+void AdjustIMEFontSize()
+{
+	int cheight = CurMode->cheight;
+	if(IS_DOSV && cheight == 19) {
+		cheight = 16;
+	}
+#if defined(USE_TTF)
+	if(dos.im_enable_flag && ttf.inUse) {
+		cheight = TTF_FontAscent(ttf.SDL_font);
+	}
+#endif
+#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+	SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+	IME_SetFontSize(cheight);
+#endif
+}
+
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 {
 	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
 		FinishSetMode(true);
 		INT10_SetCursorShape(6, 7);
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-		int cheight = CurMode->cheight;
-		if(IS_DOSV && cheight == 19) {
-			cheight = 16;
-		}
-		SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
-#endif
+		AdjustIMEFontSize();
 	} else {
 		LOG(LOG_INT10, LOG_ERROR)("DOS/V:Trying to set illegal mode %X", mode);
 		return false;

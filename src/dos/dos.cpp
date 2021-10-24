@@ -48,6 +48,7 @@
 #include "jfont.h"
 #include "../ints/int10.h"
 #include "pic.h"
+#include "sdlmain.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
 #include <shellapi.h>
@@ -63,6 +64,9 @@ extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 extern int lfn_filefind_handle, autofixwarn;
 extern uint16_t customcp_to_unicode[256];
 int customcp = 0, altcp = 0;
@@ -287,7 +291,11 @@ static bool hat_flag[] = {
 
 bool CheckHat(uint8_t code)
 {
+#if defined(USE_TTF)
+	if(IS_JEGA_ARCH || IS_DOSV || ttf_dosv) {
+#else
 	if(IS_JEGA_ARCH || IS_DOSV) {
+#endif
 		if(code <= 0x1a) {
 			return hat_flag[code];
 		}
@@ -1049,7 +1057,11 @@ static Bitu DOS_21Handler(void) {
                                     if(isKanji1(c)) {
                                         flag = 1;
                                     }
+#if defined(USE_TTF)
+                                    if(IS_JEGA_ARCH || IS_DOSV || ttf_dosv) {
+#else
                                     if(IS_JEGA_ARCH || IS_DOSV) {
+#endif
                                         if(CheckHat(c)) {
                                             flag = 2;
                                         }
@@ -1086,7 +1098,11 @@ static Bitu DOS_21Handler(void) {
                         DOS_BreakAction();
                         if (!DOS_BreakTest()) return CBRET_NONE;
                     }
+#if defined(USE_TTF)
+                    if ((IS_JEGA_ARCH || IS_DOSV || ttf_dosv) && c == 7) {
+#else
                     if ((IS_JEGA_ARCH || IS_DOSV) && c == 7) {
+#endif
                         DOS_WriteFile(STDOUT, &c, &n);
                         continue;
                     }
@@ -1692,7 +1708,11 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+#if defined(USE_TTF)
+            if((IS_DOSV || ttf_dosv) && IS_DOS_JAPANESE) {
+#else
             if(IS_DOSV && IS_DOS_JAPANESE) {
+#endif
                 char *name_start = name1;
                 if(name1[0] == '@' && name1[1] == ':') {
                     name_start += 2;
@@ -1713,7 +1733,11 @@ static Bitu DOS_21Handler(void) {
                             break;
                         }
                     }
-                    if(!strncmp(name_start, "$IBMAFNT", 8) || !strncmp(name_start, "$IBMADSP", 8)) {
+#if defined(USE_TTF)
+                    if(!strncmp(name_start, "$IBMAFNT", 8) || (ttf_dosv && !strncmp(name_start, "$IBMADSP", 8))) {
+#else
+                    if(!strncmp(name_start, "$IBMAFNT", 8)) {
+#endif
                         ibmjp_handle = IBMJP_DEVICE_HANDLE;
                         reg_ax = IBMJP_DEVICE_HANDLE;
                         force_sfn = false;
@@ -2364,16 +2388,19 @@ static Bitu DOS_21Handler(void) {
                         mem_writeb(data + 0x00,reg_al);
                         mem_writew(data + 0x01,0x26);
 						if (!countryNo) {
-							char buffer[128];
                             if (IS_PC98_ARCH)
                                 countryNo = 81;
 #if defined(WIN32)
-							else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
+							else
+                            {
+                                char buffer[128];
+                                if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 								countryNo = uint16_t(atoi(buffer));
 								DOS_SetCountry(countryNo);
+                                }
 							}
 #endif
-							else
+							if (!countryNo)
 								countryNo = 1;													// Defaults to 1 (US) if failed
 						}
 						mem_writew(data + 0x03, countryNo);
@@ -2468,13 +2495,46 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x66:                  /* Get/Set global code page table  */
-            if (reg_al==1) {
-                LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
-                reg_bx=reg_dx=dos.loaded_codepage;
-                CALLBACK_SCF(false);
-                break;
+            switch (reg_al)
+            {
+                case 1:
+                    LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
+                    reg_bx=reg_dx=dos.loaded_codepage;
+                    CALLBACK_SCF(false);
+                    break;
+                case 2:
+#if defined(USE_TTF)
+                    if (!ttf.inUse)
+#endif
+                    {
+                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported for non-TrueType font output");
+                        CALLBACK_SCF(true);
+                        dos.errorcode = 2;
+                        reg_ax = dos.errorcode;
+                        break;
+                    }
+                    if (!isSupportedCP(reg_bx))
+                    {
+                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Invalid codepage %d", reg_bx);
+                        CALLBACK_SCF(true);
+                        dos.errorcode = 2;
+                        reg_ax = dos.errorcode;
+                        break;
+                    }
+                    dos.loaded_codepage = reg_bx;
+#if defined(USE_TTF)
+                    setTTFCodePage();
+#endif
+                    SetupDBCSTable();
+                    CALLBACK_SCF(false);
+                    break;
+                default:
+                    dos.errorcode = 1;
+                    reg_ax = dos.errorcode;
+                    CALLBACK_SCF(true);
+                    LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Invalid code page subfunction requested");
+                    break;
             }
-            LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported");
             break;
         case 0x67:                  /* Set handle count */
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
@@ -3490,7 +3550,7 @@ static Bitu DOS_29Handler(void)
 					break;
 				case 'p':/* reassign keys (needs strings) */
 					{
-						uint16_t src, dst;
+						/*uint16_t src, dst;
 						i = 0;
 						if(int29h_data.ansi.data[i] == 0) {
 							i++;
@@ -3504,7 +3564,7 @@ static Bitu DOS_29Handler(void)
 						} else {
 							dst = int29h_data.ansi.data[i++];
 						}
-						//DOS_SetConKey(src, dst);
+						DOS_SetConKey(src, dst);*/
 						ClearAnsi29h();
 					}
 					break;
@@ -3644,7 +3704,9 @@ public:
 		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
+        force_conversion=true;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
+        force_conversion=false;
 		if (dos_clipboard_device_access) {
 			bool valid=true;
 			char ch[]="*? .|<>/\\\"";
@@ -3661,9 +3723,14 @@ public:
             std::string text=mainMenu.get_item("clipboard_device").get_text();
             std::size_t found = text.find(":");
             if (found!=std::string::npos) text = text.substr(0, found);
+            force_conversion=true;
             mainMenu.get_item("clipboard_device").set_text(text+": "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
-		} else
+            force_conversion=false;
+		} else {
+            force_conversion=true;
             mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
+            force_conversion=false;
+        }
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
         char *cpstr = (char *)section->Get_string("customcodepage"), *r=(char *)strchr(cpstr, ',');
@@ -3850,7 +3917,11 @@ public:
 			// to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
 			// standard I/O calls to write to the CON device.
 			callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+#if defined(USE_TTF)
+		} else if (IS_DOSV || ttf_dosv) {
+#else
 		} else if (IS_DOSV) {
+#endif
 			int29h_data.ansi.attr = 0x07;
 			callback[6].Install(DOS_29Handler,CB_IRET,"CON Output Int 29");
 		} else if (section->Get_bool("ansi.sys")) { // NTS: DOS CON device is not yet initialized, therefore will not return correct value of "is ANSI.SYS installed"?
@@ -4021,6 +4092,7 @@ public:
 
 		DOS_SetupPrograms();
 		DOS_SetupMisc();							/* Some additional dos interrupts */
+		ZDRIVE_NUM = 25;
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
 
@@ -4028,7 +4100,11 @@ public:
             INT10_AX_SetCRTBIOSMode(0x51);
             INT16_AX_SetKBDBIOSMode(0x51);
         }
+#if defined(USE_TTF)
+		if(IS_DOSV || ttf_dosv) {
+#else
 		if(IS_DOSV) {
+#endif
 			DOSV_Setup();
 			if(IS_DOSV) {
 				INT10_DOSV_SetCRTBIOSMode(0x03);
@@ -4050,9 +4126,11 @@ public:
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
+        force_conversion=true;
         mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
+        force_conversion=false;
 
         const char *ver = section->Get_string("ver");
 		if (*ver) {
@@ -4069,9 +4147,11 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
+        force_conversion=true;
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
         update_dos_ems_menu();
+        force_conversion=false;
 
         /* settings */
         if (first_run) {
@@ -4213,8 +4293,6 @@ void DOS_ShutdownDrives() {
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void DOS_Casemap_Free();
 
-extern uint8_t ZDRIVE_NUM;
-
 void DOS_EnableDriveMenu(char drv) {
     if (drv >= 'A' && drv <= 'Z') {
 		std::string name;
@@ -4293,7 +4371,9 @@ void DOS_Startup(Section* sec) {
 		test = new DOS(control->GetSection("dos"));
 	}
 
+    force_conversion=true;
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
+    force_conversion=false;
 }
 
 void DOS_RescanAll(bool pressed) {

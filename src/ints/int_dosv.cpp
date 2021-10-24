@@ -100,9 +100,11 @@ static enum DOSV_FEP_CTRL dosv_fep_ctrl;
 static HFONT jfont_16;
 static HFONT jfont_14;
 static HFONT jfont_24;
+static bool use20pixelfont;
 #endif
 #if defined(USE_TTF)
 extern bool autoboxdraw;
+extern bool ttf_dosv;
 #endif
 
 bool gbk = false;
@@ -129,7 +131,11 @@ bool isKanji1(uint8_t chr) {
 }
 
 bool isKanji2(uint8_t chr) {
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_DOSV && !IS_JDOSV)
+#if defined(USE_TTF)
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
+#else
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
+#endif
         return chr >= 0x40 && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
@@ -191,19 +197,18 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 #endif
 	}
 	if (getfontx2header(mfile, &head) != 0) {
-		long int sz = 0;
 		if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
             fseek(mfile, 0L, SEEK_END);
             long int sz = ftell(mfile);
             rewind(mfile);
             if (height==14) {
-                if (!sz||(sz%14)&&(sz%15)) {fclose(mfile);return false;}
+                if (!sz||((sz%14)&&(sz%15))) {fclose(mfile);return false;}
                 fontdata14 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata14) {fclose(mfile);return false;}
                 fread(fontdata14, sizeof(uint8_t), sz, mfile);
                 fontsize14 = sizeof(uint8_t)*sz;
             } else if (height==16) {
-                if (!sz||(sz%15)&&(sz%16)) {fclose(mfile);return false;}
+                if (!sz||((sz%15)&&(sz%16))) {fclose(mfile);return false;}
                 fontdata16 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata16) {fclose(mfile);return false;}
                 fread(fontdata16, sizeof(uint8_t), sz, mfile);
@@ -508,6 +513,12 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 				if(width == 24) {
 					pos += off_y;
 				}
+				if(use20pixelfont && height == 24) {
+					pos += 4;
+					if(width == 24) {
+						pos += 2;
+					}
+				}
 			}
 			for(Bitu y = off_y ; y < off_y + gm.gmBlackBoxY; y++) {
 				uint32_t data = 0;
@@ -798,9 +809,18 @@ void InitFontHandle()
 		jfont_16 = CreateFontIndirect(&lf);
 		lf.lfHeight = 14;
 		jfont_14 = CreateFontIndirect(&lf);
-		lf.lfHeight = 24;
+		lf.lfHeight = use20pixelfont ? 20 : 24;
 		jfont_24 = CreateFontIndirect(&lf);
 	}
+#endif
+}
+
+void ShutFontHandle() {
+#if defined(LINUX) && C_X11
+    font_set16 = font_set14 = font_set24 = NULL;
+#endif
+#if defined(WIN32)
+    jfont_16 = jfont_14 = jfont_24 = NULL;
 #endif
 }
 
@@ -825,7 +845,8 @@ bool MakeSbcs19Font() {
 		}
 	}
 	if (fail) memcpy(jfont_sbcs_19, JPNHN19X+NAME_LEN+ID_LEN+3, SBCS19_LEN);
-	if (IS_JDOSV||IS_JEGA_ARCH) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	if (IS_JDOSV) memcpy(jfont_sbcs_19, dosv_font19_data, sizeof(dosv_font19_data));
+	else if (IS_JEGA_ARCH) memcpy(jfont_sbcs_19, ax_font19_data, sizeof(ax_font19_data));
 	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_19[ct * 19], &int10_font_19[ct * 19], 19);
 	return true;
 }
@@ -840,6 +861,58 @@ bool MakeSbcs24Font() {
 	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_24[ct * 24 + 2], &int10_font_19[ct * 19], 19);
 	return true;
 }
+
+#if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+extern HWND GetHWND(void);
+bool IME_GetEnable()
+{
+    bool state = false;
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    if(ImmGetOpenStatus(imc)) {
+         state = true;
+    }
+    ImmReleaseContext(wnd, imc);
+    return state;
+}
+
+void IME_SetEnable(BOOL state)
+{
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    ImmSetOpenStatus(imc, state);
+    ImmReleaseContext(wnd, imc);
+}
+
+static wchar_t CompositionFontName[LF_FACESIZE];
+
+void IME_SetCompositionFontName(const char *name)
+{
+	int len = MultiByteToWideChar(CP_ACP, 0, name, -1, NULL, 0);
+	if(len < LF_FACESIZE) {
+		MultiByteToWideChar(CP_ACP, 0, name, -1, CompositionFontName, len);
+	}
+}
+
+void IME_SetFontSize(int size)
+{
+    HWND wnd = GetHWND();
+    HIMC imc = ImmGetContext(wnd);
+    HDC hc = GetDC(wnd);
+    HFONT hf = (HFONT)GetCurrentObject(hc, OBJ_FONT);
+    LOGFONTW lf;
+    GetObjectW(hf, sizeof(lf), &lf);
+    ReleaseDC(wnd, hc);
+    if(CompositionFontName[0]) {
+        wcscpy(lf.lfFaceName, CompositionFontName);
+    }
+    lf.lfHeight = -size;
+    lf.lfWidth = size / 2;
+    ImmSetCompositionFontW(imc, &lf);
+    ImmReleaseContext(wnd, imc);
+}
+
+#endif
 
 void JFONT_Init() {
 #if defined(LINUX) && C_X11
@@ -858,10 +931,15 @@ void JFONT_Init() {
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetCompositionFontName(jfont_name);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+	IME_SetCompositionFontName(jfont_name);
 #endif
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
 	getsysfont = section->Get_bool("getsysfont");
 	yen_flag = section->Get_bool("yen");
+#if defined(WIN32)
+    use20pixelfont = section->Get_bool("use20pixelfont");
+#endif
 
 	Prop_path* pathprop = section->Get_path("fontxsbcs");
 	if (pathprop) {
@@ -1093,8 +1171,20 @@ static Bitu mskanji_api(void)
 					real_writew(param_seg, param_off + 2, 0x0009);
 			}
 		}
-		reg_ax = 0;
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+		if(mode & 0x8000) {
+			if(mode & 0x0001)
+				IME_SetEnable(FALSE);
+			else if(mode & 0x0002)
+				IME_SetEnable(TRUE);
+		} else {
+			if(IME_GetEnable() == NULL)
+				real_writew(param_seg, param_off + 2, 0x000a);
+			else
+				real_writew(param_seg, param_off + 2, 0x0009);
+		}
 #endif
+		reg_ax = 0;
 	}
 	return CBRET_NONE;
 }
@@ -1141,7 +1231,7 @@ void DOSV_CursorXor24(Bitu x, Bitu y, Bitu start, Bitu end)
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
 	volatile uint8_t dummy;
 	Bitu off = (y + start) * width + (x * 12) / 8;
-	uint8_t select;
+	uint8_t select = 0;
 	if(svgaCard == SVGA_TsengET4K) {
 		if(off >= 0x20000) {
 			select = 0x22;
@@ -1304,7 +1394,7 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 
 		volatile uint8_t dummy;
 		Bitu off = (y + start) * width + x;
-		uint8_t select;
+		uint8_t select = 0;
 		if(svgaCard == SVGA_TsengET4K) {
 			if(off >= 0x20000) {
 				select = 0x22;
@@ -1429,10 +1519,10 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
-	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72) {
+	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72 && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x12) {
 		if(dosv_cursor_stat == 0) {
 			Bitu x = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS);
 			Bitu y = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + 1) * real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
@@ -1462,9 +1552,7 @@ enum DOSV_VTEXT_MODE DOSV_GetVtextMode(Bitu no)
 
 enum DOSV_VTEXT_MODE DOSV_StringVtextMode(std::string vtext)
 {
-	if(vtext == "vga") {
-		return DOSV_VTEXT_VGA;
-	} else if(svgaCard == SVGA_TsengET4K) {
+	if(svgaCard == SVGA_TsengET4K) {
 		if(vtext == "xga") {
 			return DOSV_VTEXT_XGA;
 		} else if(vtext == "xga24") {
@@ -1475,7 +1563,10 @@ enum DOSV_VTEXT_MODE DOSV_StringVtextMode(std::string vtext)
 			return DOSV_VTEXT_SXGA_24;
 		}
 	}
-	return DOSV_VTEXT_SVGA;
+	if(vtext == "svga" && svgaCard != SVGA_None) {
+		return DOSV_VTEXT_SVGA;
+	}
+	return DOSV_VTEXT_VGA;
 }
 
 enum DOSV_FEP_CTRL DOSV_GetFepCtrl()

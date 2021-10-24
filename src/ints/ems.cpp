@@ -716,7 +716,7 @@ static uint8_t GetSetHandleName(void) {
 		break;
 	case 0x01:	/* Set Handle Name */
 		if (handle>=EMM_MAX_HANDLES || emm_handles[handle].pages==NULL_HANDLE) return EMM_INVALID_HANDLE;
-		MEM_BlockRead(SegPhys(es)+reg_di,emm_handles[handle].name,8);
+		MEM_BlockRead(SegPhys(ds)+reg_si,emm_handles[handle].name,8);
 		break;
 	default:
 		LOG(LOG_MISC,LOG_ERROR)("EMS:Call %2X Subfunction %2X not supported",reg_ah,reg_al);

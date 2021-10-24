@@ -16,18 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <stdio.h>
-
-#include "dosbox.h"
-#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
-#include "paging.h"
-#include "mmx.h"
 
 #define CPU_CORE CPU_ARCHTYPE_8086
 #define CPU_Core_Normal_Trap_Run CPU_Core8086_Normal_Trap_Run

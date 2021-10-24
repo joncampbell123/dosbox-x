@@ -1947,42 +1947,10 @@ public:
 
 class VGA_AMS_Handler : public PageHandler {
 public:
-	template< bool wrapping>
 	void writeHandler(PhysPt start, uint8_t val) {
         assert(start < vga.mem.memsize);
 		vga.tandy.mem_base[ start ] = val;
-#ifdef DIJDIJD
-		uint32_t data=ModeOperation(val);
-		/* Update video memory and the pixel buffer */
-		VGA_Latch pixels;
-		pixels.d=((uint32_t*)vga.mem.linear)[start];
-		pixels.d&=vga.config.full_not_map_mask;
-		pixels.d|=(data & vga.config.full_map_mask);
-		((uint32_t*)vga.mem.linear)[start]=pixels.d;
-		uint8_t * write_pixels=&vga.mem.linear[VGA_CACHE_OFFSET+(start<<3)];
-
-		uint32_t colors0_3, colors4_7;
-		VGA_Latch temp;temp.d=(pixels.d>>4) & 0x0f0f0f0f;
-			colors0_3 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(uint32_t *)write_pixels=colors0_3;
-		temp.d=pixels.d & 0x0f0f0f0f;
-		colors4_7 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(uint32_t *)(write_pixels+4)=colors4_7;
-		if (wrapping && GCC_UNLIKELY( start < 512)) {
-			*(uint32_t *)(write_pixels+512*1024)=colors0_3;
-			*(uint32_t *)(write_pixels+512*1024+4)=colors4_7;
-		}
-#endif
 	}
-//	template< bool wrapping>
 	uint8_t readHandler(PhysPt start) {
         assert(start < vga.mem.memsize);
 		return vga.tandy.mem_base[ start ];
@@ -2011,10 +1979,10 @@ public:
 		VGAMEM_USEC_write_delay();
 		addr = wrAddr( addr );
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
-		if( plane & 0x08 ) writeHandler<false>(addr+49152,(uint8_t)(val >> 0));
-		if( plane & 0x04 ) writeHandler<false>(addr+32768,(uint8_t)(val >> 0));
-		if( plane & 0x02 ) writeHandler<false>(addr+16384,(uint8_t)(val >> 0));
-		if( plane & 0x01 ) writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+		if( plane & 0x08 ) writeHandler(addr+49152,(uint8_t)(val >> 0));
+		if( plane & 0x04 ) writeHandler(addr+32768,(uint8_t)(val >> 0));
+		if( plane & 0x02 ) writeHandler(addr+16384,(uint8_t)(val >> 0));
+		if( plane & 0x01 ) writeHandler(addr+0,(uint8_t)(val >> 0));
 	}
 	void writew(PhysPt addr,uint16_t val) {
 		VGAMEM_USEC_write_delay();
@@ -2022,26 +1990,26 @@ public:
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
 		if( plane & 0x01 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x02 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x04 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x08 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
 		}
 
 	}
@@ -2051,34 +2019,34 @@ public:
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
 		if( plane & 0x01 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
-			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
-			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+2,(uint8_t)(val >> 16));
+			writeHandler(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x02 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
-			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
-			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+2,(uint8_t)(val >> 16));
+			writeHandler(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x04 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
-			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
-			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+2,(uint8_t)(val >> 16));
+			writeHandler(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x08 )
 		{
-			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
-			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
-			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
-			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+2,(uint8_t)(val >> 16));
+			writeHandler(addr+3,(uint8_t)(val >> 24));
 		}
 
 	}

@@ -306,6 +306,9 @@ extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 extern bool DOSBox_Paused(), isDBCSCP(), InitCodePage();
 
@@ -1044,15 +1047,19 @@ void DOSBOX_RealInit() {
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
     if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
-    if (svgaCard != SVGA_TsengET4K && svgaCard != SVGA_S3Trio) {
-        LOG_MSG("WARNING: DOS/V is only supported for SVGA_TsengET4K and SVGA_S3Trio video cards.");
+    if (machine != MCH_VGA || want_fm_towns) {
+        LOG_MSG("WARNING: DOS/V is only supported for VGA video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
     }
     int cp = dos.loaded_codepage;
     if (!cp) InitCodePage();
     if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
         JFONT_Init();  // Load DBCS fonts for JEGA etc
+#if defined(USE_TTF)
+        if (IS_DOSV || ttf_dosv) DOSV_SetConfig(dosv_section);
+#else
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
+#endif
     }
     gbk = dosv_section->Get_bool("gbk");
     dos.loaded_codepage = cp;
@@ -1066,6 +1073,17 @@ void DOSBOX_RealInit() {
     } else if (!control->opt_silent) {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+    if (enableime && !control->opt_silent) {
+        dos.im_enable_flag = true;
+        SDL_StartTextInput();
+#if defined(LINUX)
+        SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
+#endif
+    } else if (!control->opt_silent) {
+        dos.im_enable_flag = false;
+        SDL_StopTextInput();
     }
 #endif
 #if defined(USE_TTF)
@@ -1157,7 +1175,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", 0};
+    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "experimental", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
@@ -1383,7 +1401,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("ime",Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_help("Enables support for the system input methods (IME) for inputting characters in Windows SDL1 builds.\n"
+    Pstring->Set_help("Enables support for the system input methods (IME) for inputting characters in Windows and Linux builds.\n"
                       "If set to auto, this feature is only enabled if DOSBox-X starts with a Chinese/Japanese/Korean code page.");
     Pstring->Set_values(truefalseautoopt);
     Pstring->SetBasic(true);
@@ -2091,6 +2109,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
 	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
 
+	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation.");
+
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,1000000);
@@ -2507,7 +2528,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("cputype",Property::Changeable::Always,"auto");
     Pstring->Set_values(cputype_values);
-    Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.");
+    Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.\n"
+            "experimental enables newer instructions not normally found in the CPU types emulated by DOSBox, such as FISTTP.");
     Pstring->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
@@ -2728,6 +2750,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("autoboxdraw", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
@@ -2741,6 +2764,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
+
+	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If set, enables FEP control to function for Japanese DOS/V applications, and changes the blinking of character attributes to high brightness.");
+    Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
 
@@ -3902,12 +3929,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.\n"
+            "For networked database applications (e.g. dBase, FoxPro, etc), it is recommended to set this to e.g. 3 for correct operations.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report DOS network redirector as resident. This will allow the host name to be returned unless the secure mode is enabled.\n"
-            "You can also directly access UNC network paths in the form \\MACHINE\\SHARE even if they are not mounted as drives on Windows systems.\n"
+            "You can also directly access UNC network paths in the form \\\\MACHINE\\SHARE even if they are not mounted as drives on Windows systems.\n"
             "Set either \"ipx=true\" in [ipx] section or \"ne2000=true\" in [ne2000] section for a full network redirector environment.");
     Pbool->SetBasic(true);
 

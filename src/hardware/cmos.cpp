@@ -87,8 +87,17 @@ static void cmos_timerevent(Bitu val) {
         PIC_ActivateIRQ(8);
     }
     if (cmos.timer.enabled) {
-        PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
-        cmos.regs[0xc] = 0xC0;//Contraption Zack (music)
+        double index = PIC_FullIndex();
+        double remd = fmod(index, (double)cmos.timer.delay);
+        PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
+        if(index >= (cmos.last.timer + cmos.timer.delay)) {
+            cmos.last.timer = index;
+            cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
+        }
+        if(index >= (cmos.last.ended + 1000)) {
+            cmos.last.ended = index;
+            cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
+        }
     }
 }
 
@@ -141,14 +150,14 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
         if (cmos.lock)              // if locked, use locktime instead of current time
         {
-            loctime = localtime((time_t*)&cmos.locktime.tv_sec);
+            loctime = localtime((const time_t*)&cmos.locktime.tv_sec);
         }
         else                        // not locked, use current time
         {
             struct timeval curtime;
             gettimeofday(&curtime, NULL);
             curtime.tv_sec += cmos.time_diff;
-            loctime = localtime((time_t*)&curtime.tv_sec);
+            loctime = localtime((const time_t*)&curtime.tv_sec);
         }
 
         switch (cmos.reg)
@@ -203,7 +212,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x01:      /* Seconds Alarm */
         case 0x03:      /* Minutes Alarm */
         case 0x05:      /* Hours Alarm */
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
+            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
             cmos.regs[cmos.reg] = (uint8_t)val;
             return;     // done
         }
@@ -234,20 +243,18 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x07:      /* Date of month */
     case 0x08:      /* Month */
     case 0x09:      /* Year */
-    case 0x32:              /* Century */
+    case 0x32:      /* Century */
         /* Ignore writes to change alarm */
-        if(!date_host_forced) break;
+        break;
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
-        if(!date_host_forced) {
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
-            cmos.regs[cmos.reg]=(uint8_t)val;
-            break;
-        }
+        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
+        cmos.regs[cmos.reg]=(uint8_t)val;
+        break;
     case 0x0a:      /* Status reg A */
         cmos.regs[cmos.reg]=val & 0x7f;
-        if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS Illegal 22 stage divider value");
+        if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
         cmos.timer.div=(val & 0xf);
         cmos_checktimer();
         break;
@@ -257,7 +264,6 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
             cmos.ampm = !(val & 0x02);
             cmos.bcd = !(val & 0x04);
-            if ((val & 0x10) != 0) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
             cmos.timer.enabled = (val & 0x40) > 0;
             cmos.lock = (val & 0x80) != 0;
 
@@ -280,25 +286,24 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos_checktimer();
         } else {
             cmos.bcd=!(val & 0x4);
-            cmos.regs[cmos.reg]=val & 0x7f;
+            cmos.regs[cmos.reg]=(uint8_t)val;
             cmos.timer.enabled=(val & 0x40)>0;
-            if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
             cmos_checktimer();
         }
         break;
-    case 0x0c:
-        if(date_host_forced) break;
-    case 0x0d:/* Status reg D */
+    case 0x0c:      /* Status reg C */
+        break;
+    case 0x0d:      /* Status reg D */
         if(!date_host_forced) {
-            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Pown on*/
+            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
         }
         break;
     case 0x0f:      /* Shutdown status byte */
         cmos.regs[cmos.reg]=val & 0x7f;
         break;
     default:
+        LOG(LOG_BIOS, LOG_NORMAL)("CMOS:Writing to register %x", cmos.reg);
         cmos.regs[cmos.reg]=val & 0x7f;
-        LOG(LOG_BIOS,LOG_ERROR)("CMOS:WRite to unhandled register %x",cmos.reg);
     }
 }
 
@@ -312,7 +317,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
     if (cmos.reg>0x3f) {
-        LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read from illegal register %x",cmos.reg);
+        LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read attempted from illegal register %x",cmos.reg);
         return 0xff;
     }
 
@@ -322,7 +327,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 
         if (cmos.lock)              // if locked, use locktime instead of current time
         {
-            loctime = localtime((time_t*)&cmos.locktime.tv_sec);
+            loctime = localtime((const time_t*)&cmos.locktime.tv_sec);
         }
         else                        // not locked, get current time
         {
@@ -337,7 +342,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
             }
 
             curtime.tv_sec += cmos.time_diff;
-            loctime = localtime((time_t*)&curtime.tv_sec);
+            loctime = localtime((const time_t*)&curtime.tv_sec);
         }
 
         switch (cmos.reg)
@@ -383,25 +388,25 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 
     switch (cmos.reg) {
     case 0x00:      /* Seconds */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_sec);
+        return    MAKE_RETURN(loctime->tm_sec);
     case 0x02:      /* Minutes */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_min);
+        return    MAKE_RETURN(loctime->tm_min);
     case 0x04:      /* Hours */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_hour);
+        return    MAKE_RETURN(loctime->tm_hour);
     case 0x06:      /* Day of week */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_wday + 1);
+        return    MAKE_RETURN(loctime->tm_wday + 1);
     case 0x07:      /* Date of month */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_mday);
+        return    MAKE_RETURN(loctime->tm_mday);
     case 0x08:      /* Month */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_mon + 1);
+        return    MAKE_RETURN(loctime->tm_mon + 1);
     case 0x09:      /* Year */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_year % 100);
+        return    MAKE_RETURN(loctime->tm_year % 100);
     case 0x32:      /* Century */
-        if(!date_host_forced) return    MAKE_RETURN(loctime->tm_year / 100 + 19);
+        return    MAKE_RETURN(loctime->tm_year / 100 + 19);
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
-        if(!date_host_forced) return cmos.regs[cmos.reg];
+        return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
         if(date_host_forced) {
             // take bit 7 of reg b into account (if set, never updates)
@@ -420,27 +425,21 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
             }
         }
     case 0x0c:      /* Status register C */
+    {
         cmos.timer.acknowledged=true;
-        if (cmos.timer.enabled) {
-            /* In periodic interrupt mode only care for those flags */
-            uint8_t val=cmos.regs[0xc];
-            cmos.regs[0xc]=0;
-            return val;
-        } else {
-            /* Give correct values at certain times */
-            uint8_t val=0;
-            double index=PIC_FullIndex();
-            if (index>=(cmos.last.timer+cmos.timer.delay)) {
-                cmos.last.timer=index;
-                val|=0x40;
-            } 
-            if (index>=(cmos.last.ended+1000)) {
-                cmos.last.ended=index;
-                val|=0x10;
-            }
-            if(date_host_forced) cmos.regs[0xc] = 0;        // JAL_20060817 - reset here too!
-            return val;
+        uint8_t val = cmos.regs[0xc];
+        if (cmos.timer.enabled && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
         }
+        else if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        }
+        else if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
+            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        }
+        cmos.regs[0xc] = 0; // All flags are cleared by reading the register
+        return val;
+    }
     case 0x10:      /* Floppy size */
         drive_a = 0;
         drive_b = 0;
@@ -541,7 +540,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         if( PS1AudioCard )
             return 0xFF;
     default:
-        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X",cmos.reg);
+        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Reading from register %X",cmos.reg);
         return cmos.regs[cmos.reg];
     }
 }
@@ -579,6 +578,7 @@ void CMOS_Reset(Section* sec) {
     cmos_writereg(0x71,0x26,1);
     cmos.reg=0xb;
     cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
+    cmos.regs[0x0c] = 0;
     if(date_host_forced) {
         cmos.regs[0x0d]=(uint8_t)0x80;
     } else {

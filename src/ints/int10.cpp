@@ -48,9 +48,15 @@ uint8_t *GetSbcs19Font(Bitu code);
 uint8_t *GetSbcs24Font(Bitu code);
 uint8_t *GetDbcsFont(Bitu code);
 uint8_t *GetDbcs24Font(Bitu code);
+void DOSV_FillScreen();
 void ResolvePath(std::string& in);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
+#if defined(USE_TTF)
+extern bool colorChanged, justChanged;
+extern bool ttf_dosv;
+void ttf_reset(void);
+#endif
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
@@ -79,13 +85,14 @@ Bitu INT10_Handler(void) {
 					INT10_SetVideoMode(0x3d);
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else if(vtext_mode == DOSV_VTEXT_SVGA) {
-					INT10_SetVideoMode(0x6a);
+					INT10_SetVideoMode((svgaCard == SVGA_TsengET3K) ? 0x29 : (svgaCard == SVGA_ParadisePVGA1A) ? 0x58 : 0x6a);
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else {
 					INT10_SetVideoMode(0x12);
 					INT10_SetDOSVModeVtext(mode, DOSV_VTEXT_VGA);
 				}
 			}
+			DOSV_FillScreen();
 		} else {
 			if(reg_al == 0x74)
 				break;
@@ -181,7 +188,8 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)|(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80);
+		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
+		if (IS_EGAVGA_ARCH) reg_al|=real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80;
 		reg_ah=(uint8_t)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
@@ -201,12 +209,18 @@ Bitu INT10_Handler(void) {
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
+#if defined(USE_TTF)
+			colorChanged = justChanged = true;
+#endif
 			break;
 		case 0x01:							/* SET BORDER (OVERSCAN) COLOR*/
 			INT10_SetOverscanBorderColor(reg_bh);
 			break;
 		case 0x02:							/* SET ALL PALETTE REGISTERS */
 			INT10_SetAllPaletteRegisters(SegPhys(es)+reg_dx);
+#if defined(USE_TTF)
+			colorChanged = justChanged = true;
+#endif
 			break;
 		case 0x03:							/* TOGGLE INTENSITY/BLINKING BIT */
 			blinking=reg_bl==1;
@@ -284,6 +298,13 @@ Bitu INT10_Handler(void) {
 			break;
 		case 0x02:			/* Load 8x8 font */
 		case 0x12:
+#if defined(USE_TTF)
+			if (ttf.inUse && reg_al == 0x12 && (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x03 || real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x55)) {
+				real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,50-1);
+				ttf_reset();
+				break;
+			}
+#endif
 			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl&0x7f,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
@@ -594,7 +615,11 @@ CX	640x480	800x600	  1024x768/1280x1024
 			INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		break;
 	case 0x18:
+#if defined(USE_TTF)
+		if((IS_DOSV || ttf_dosv) && DOSV_CheckCJKVideoMode()) {
+#else
 		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+#endif
 			uint8_t *font;
 			Bitu size = 0;
 			if(reg_al == 0) {
@@ -675,7 +700,11 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x1d:
+#if defined(USE_TTF)
+		if((IS_DOSV || ttf_dosv) && DOSV_CheckCJKVideoMode()) {
+#else
 		if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+#endif
 			if(reg_al == 0x00) {
 				real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, int10.text_row - reg_bl);
 			} else if(reg_al == 0x01) {

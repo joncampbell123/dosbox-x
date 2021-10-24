@@ -22,9 +22,7 @@
 
 #define CTBUF 127
 
-#ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
-#endif
 
 #include <list>
 #include <stddef.h> //for offsetof
@@ -158,6 +156,8 @@ extern uint16_t DOS_PRIVATE_SEGMENT_END;// 0xd000
 extern DOS_File ** Files;
 extern DOS_Drive * Drives[DOS_DRIVES];
 extern DOS_Device * Devices[DOS_DEVICES];
+
+extern uint8_t ZDRIVE_NUM;
 
 extern uint8_t dos_copybuf[0x10000];
 
@@ -347,6 +347,7 @@ static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 #define DOSERR_NOT_SAME_DEVICE 17
 #define DOSERR_NO_MORE_FILES 18
 #define DOSERR_WRITE_PROTECTED 19
+#define DOSERR_DRIVE_NOT_READY 21
 #define DOSERR_FILE_ALREADY_EXISTS 80
 
 
@@ -784,5 +785,9 @@ struct DOS_GetMemLog_Entry {
 };
 
 extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
+
+extern int customcp, altcp;
+bool isSupportedCP(int cp);
+void SetupDBCSTable(void);
 
 #endif

@@ -71,11 +71,11 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                 lead = false;
                 continue;
             }
-            if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+            if ((!lead && IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
                 if (i==m-1) break;
                 sfn[i++]=*(n++);
                 lead = true;
-            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                 sfn[i++]='_';
                 n++;
                 lead = false;
@@ -118,11 +118,11 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                     lead = false;
                     continue;
                 }
-                if (!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
+                if ((!lead && (IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF))) || (isDBCSCP() && isKanji1(*n & 0xFF))) {
                     if (j==3) break;
                     sfn[i++]=*(n++);
                     lead = true;
-                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||(*n=='['||*n==']'||*n=='|')&&(!lead||(dos.loaded_codepage==936||IS_PDOSV)&&!gbk)||*n=='?'||*n=='*') {
+                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                     sfn[i++]='_';
                     n++;
                     lead = false;
@@ -363,6 +363,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
             strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))) {
 			/* We have a match */
 			*file=new Virtual_File(cur_file->data,cur_file->size);
+            (*file)->SetName(cur_file->name);
 			(*file)->flags=flags;
 			return true;
 		}
@@ -530,6 +531,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 }
 
 bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
+    (void)attr;//UNUSED
 	if (*name == 0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return true;

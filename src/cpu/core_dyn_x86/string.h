@@ -16,6 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "inout.h"
+
 enum STRING_OP {
 	STR_OUTSB=0,STR_OUTSW,STR_OUTSD,
 	STR_INSB=4,STR_INSW,STR_INSD,
@@ -81,7 +83,7 @@ static void dyn_string(STRING_OP op) {
 	DynState rep_state, cmp_state;
 	dyn_savestate(&rep_state);
 	uint8_t * rep_start=cache.pos;
-	uint8_t * rep_ecx_jmp, * rep_cmp_jmp;
+	uint8_t * rep_ecx_jmp=NULL, * rep_cmp_jmp=NULL;
 	/* Check if ECX!=zero */
 	if (decode.rep) {
 		gen_dop_word(DOP_TEST,decode.big_addr,DREG(ECX),DREG(ECX));

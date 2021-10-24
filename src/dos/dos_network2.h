@@ -38,9 +38,10 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
  bool Network_IsNetworkResource(const char * filename)
 {
-	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode())
-		return (filename[0]=='\\' && filename[1]=='\\' || strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\');
-	else
+	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode() && (filename[0]=='\\' && filename[1]=='\\' || strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\')) {
+        char *p = strrchr_dbcs((char *)filename, '\\');
+        return p && (filename[0]=='\\' && p > filename+1 || filename[0]=='"' && p > filename+2);
+    } else
 		return false;
 }//bool	Network_IsNetworkFile(uint16_t entry)
 

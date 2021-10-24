@@ -117,13 +117,22 @@
 					} while (count != 0); break;
 
 				case R_STOSB:
-					do {
-						SaveMb(di_base+di_index,reg_al);
-						di_index=(di_index+(Bitu)add_index) & add_mask;
-						count--;
+					/* Countermeasures against code self-clearing in FD98.COM */
+					{
+						bool break_flag = true;
+						if(count_left == 1) {
+							count++;
+							count_left = 0;
+							break_flag = false;
+						}
+						do {
+							SaveMb(di_base+di_index,reg_al);
+							di_index=(di_index+(Bitu)add_index) & add_mask;
+							count--;
 
-						if ((--CPU_Cycles) <= 0) break;
-					} while (count != 0); break;
+							if ((--CPU_Cycles) <= 0 && break_flag) break;
+						} while (count != 0); break;
+					}
 				case R_STOSW:
 					add_index<<=1;
 					do {
