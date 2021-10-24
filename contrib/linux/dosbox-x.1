@@ -3,6 +3,13 @@
 dosbox\-x \- a x86/DOS and PC98 emulator
 .SH "SYNOPSIS"
 \fB\ dosbox\-x [OPTIONS] [NAME]\fR
+.br 
+\fB\ dosbox\-x -c "\fIcommand parameter\fB" [OPTIONS] [NAME]\fR
+.br
+\fB\ dosbox\-x -set "\fIconfig option=value\fB" [OPTIONS] [NAME]\fR
+.br
+\fB\ dosbox\-x -conf \fIconfig_file.conf\fB [OPTIONS] [NAME]\fR
+
 .SH "DESCRIPTION"
 This manual page briefly documents \fBdosbox\-x\fR, an x86/DOS and PC98
 emulator.
@@ -216,7 +223,7 @@ specified scaler even if it might not fit.
 .B dosbox\-x
 Supports most of the internal DOS commands found in COMMAND.COM. Help text is integrated for these commands in DOSBox\-X, and will not be duplicated here.
 An explanation of these commands can also be found on the DOSBox\-X wiki on the Supported Commands page.
-.TP 
+.TP
 .RS
 .IP "\- ALIAS, ATTRIB, BREAK, CALL, CD/CDDIR, CHCP, CHOICE, CLS, COPY"
 .IP "\- COUNTRY, CTTY, DATE, DEL/ERASE, DELTREE, ECHO, EXIT, DIR, FOR"
