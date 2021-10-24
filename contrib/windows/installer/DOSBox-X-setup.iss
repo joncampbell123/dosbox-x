@@ -1,5 +1,5 @@
 ﻿#define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.18"
+#define MyAppVersion "0.83.19"
 #define MyAppBit "(32-bit)"
 #define MyAppPublisher "joncampbell123 [DOSBox-X Team]"
 #define MyAppURL "https://dosbox-x.com/"
@@ -80,6 +80,7 @@ Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ig
 Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\fr\fr_FR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
+Source: "..\..\translations\tr\tr_TR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\translations\zh\zh_TW.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
 Source: "..\..\glshaders\*"; DestDir: "{app}\glshaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full typical
@@ -251,7 +252,7 @@ begin
     PageOutput.Add('OpenGL with pixel-perfect scaling');
     PageOutput.Add('TrueType font (TTF) / Direct3D output');
     PageOutput.Values[2] := True;
-    msg:='DOSBox-X supports language files to display messages in different languages.' #13#13 'By default the user interface is English, but you may want to select a different language for its user interface.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
+    msg:='DOSBox-X supports language files to display messages in different languages. The user interface is English by default, but you may want to select a different language for its user interface.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageLang:=CreateInputOptionPage(101, 'User interface language', 'Select the language for DOSBox-X''s user interface', msg, True, False);
     PageLang.Add('Default (English)');
     PageLang.Add('French (français)');
@@ -259,6 +260,7 @@ begin
     PageLang.Add('Simplified Chinese (简体中文)');
     PageLang.Add('Spanish (Español)');
     PageLang.Add('Traditional Chinese (繁體/正體中文)');
+    PageLang.Add('Turkish (Türkçe)');
     PageLang.Values[0] := True;
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(102, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
@@ -322,7 +324,7 @@ begin
           msg:='TrueType font (TTF) / Direct3D output';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end;
-      if PageLang.Values[0] or PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] then
+      if PageLang.Values[0] or PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6] then
       begin
         Wizardform.ReadyMemo.Lines.Add('');
         Wizardform.ReadyMemo.Lines.Add('User interface language:');
@@ -337,6 +339,8 @@ begin
           msg:='Spanish (Español)';
         if (PageLang.Values[5]) then
           msg:='Traditional Chinese (繁體/正體中文)';
+        if (PageLang.Values[6]) then
+          msg:='Turkish (Türkçe)';
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end;
       if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
@@ -436,7 +440,7 @@ begin
         end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end;
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5]) then
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6]) then
       begin
         FileLines := TStringList.Create;
         FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
@@ -462,6 +466,8 @@ begin
                 FileLines[i] := linetmp+' es_ES';
               if (PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
                 FileLines[i] := linetmp+' zh_TW';
+              if (PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
+                FileLines[i] := linetmp+' tr_TR';
             end;
             if (CompareText(linetmp, 'country') = 0) and (CompareText(section, 'config') = 0) then
             begin
@@ -476,6 +482,8 @@ begin
                 FileLines[i] := linetmp+' 34,858';
               if (PageLang.Values[5]) then
                 FileLines[i] := linetmp+' 886,950';
+              if (PageLang.Values[6]) then
+                FileLines[i] := linetmp+' 90,857';
               break;
             end
           end
