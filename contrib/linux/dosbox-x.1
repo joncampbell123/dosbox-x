@@ -234,7 +234,7 @@ An explanation of these commands can also be found on the DOSBox\-X wiki on the 
 
 .SH "OTHER INTERNAL COMMANDS"
 These are internal DOSBox\-X commands that are are not part of DOS. They are documented on the DOSBox\-X wiki on the Supported Commands page.
-.TP 
+.TP
 .RS
 .IP "\- DEBUGBOX (only on debug enabled builds)"
 .IP "\- DX\-CAPTURE"
@@ -251,7 +251,7 @@ These are external DOS commands located on the emulated Z:\ drive.
 
 .SH "OTHER EXTERNAL COMMANDS"
 In addition, the following extra commands are available on the emulated Z:\ drive:
-.TP 
+.TP
 .RS
 .IP "\- 25, 28, 50, 4DOS, A20GATE, ADDKEY, AUTOTYPE, BOOT, CAPMOUSE"
 .IP "\- CDPLAY, CFGTOOL, CONFIG, CWSDPMI, DOS32A, DOS4GW, DOSIDLE"
@@ -261,7 +261,7 @@ In addition, the following extra commands are available on the emulated Z:\ driv
 .RE
 
 The following external commands are only available on debug enabled builds:
-.TP 
+.TP
 .RS
 .IP "\- BIOSTEST, NMITEST, INT2FDBG"
 .RE
@@ -345,31 +345,28 @@ Paste the text in the host clipboard to the DOS screen.
 Exit DOSBox\-X.
 .IP Ctrl+F10
 Capture the mouse for use with the emulated DOS.
-.PP 
+.PP
 These are the default keybindings. They can be changed in the keymapper.
-.PP 
+.PP
 Saved/recorded files can be found in current_directory/capture
 (can be changed in the configfile). The directory has to exist prior to starting
 dosbox\-x else nothing gets saved or recorded!
-.PP 
+.PP
 \fBNote:\fR Once you increase your dosbox\-x cycles beyond your computer's
 maximum capacity, it will produce the same effect as slowing down the emulation.
 This maximum will vary from computer to computer, there is no standard.
-
 .SH "ENVIRONMENT"
 Any configuration option can be overridden using an environment variable.
 Environment variables starting with prefix \fBDOSBOX\fR are processed and
 interpreted as follows:
 \fBDOSBOX_SECTIONNAME_PROPERTYNAME=value\fR
-.PP 
+.PP
 For example, you can override the render aspect this way:
-.PP 
+.PP
 \fB$ DOSBOX_RENDER_ASPECT=false dosbox\-x\fR
 .SH "BUGS"
 To report a bug, please visit \fIhttps://github.com/joncampbell123/dosbox\-x/issues\fR
-
 .SH "SEE ALSO"
 You can find a wiki dedicated to DOSBox\-X at \fIhttps://dosbox\-x.com/wiki\fR
-
 .SH "AUTHOR"
 DOSBox\-X project is maintained by the DOSBox\-X Team (\fIhttps://dosbox\-x.com/\fR)
