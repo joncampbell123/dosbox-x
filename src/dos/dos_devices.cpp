@@ -724,6 +724,14 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * re
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
+uint8_t DOS_Device::GetStatus(bool input_flag) {
+	Bit16u info = Devices[devnum]->GetInformation();
+	if(info & EXT_DEVICE_BIT) {
+		return Devices[devnum]->GetStatus(input_flag);
+	}
+	return (info & 0x40) ? 0x00 : 0xff;
+}
+
 DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
 time(orig.time), date(orig.date), refCtr(orig.refCtr), hdrive(orig.hdrive) {
 	if(orig.name) {
