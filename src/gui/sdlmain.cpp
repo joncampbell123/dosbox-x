@@ -4868,7 +4868,7 @@ void GFX_EndTextLines(bool force=false) {
                     }
 #endif
                     curAC[x] = newAC[x];
-                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && !(dos.loaded_codepage == 932 && halfwidthkana)) {	// special: shade characters 176-178 unless PC-98
+                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && dos.loaded_codepage != 864 && !(dos.loaded_codepage == 932 && halfwidthkana) && !(altcp && dos.loaded_codepage == altcp)) {	// special: shade characters 176-178 unless PC-98
                         ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
                         ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
                         ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
