@@ -4000,7 +4000,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
                                         dbw=false;
                                         dex=true;
                                     } else {
@@ -4073,7 +4073,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
                                         dbw=false;
                                         dex=true;
                                     } else {
