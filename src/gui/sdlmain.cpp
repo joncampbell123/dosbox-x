@@ -3721,7 +3721,7 @@ bool setColors(const char *colorArray, int n) {
 			while (*nextRGB != ')')
 				nextRGB++;
 			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6d", &rgbVal[0]) == 1) {							// Hexadecimal
+		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
 			if (rgbVal[0] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
