@@ -2750,6 +2750,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
+    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("autoboxdraw", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("If set, DOSBox-X will auto-detect ASCII box-drawing characters for CJK (Chinese/Japanese/Korean) support in the TTF output.\n"
@@ -2765,7 +2766,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
-    Pbool->Set_help("If set, enables FEP control to function for DOS/V applications, and changes the blinking of character attributes to high brightness.");
+    Pbool->Set_help("If set, enables FEP control to function for Japanese DOS/V applications, and changes the blinking of character attributes to high brightness.");
+    Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
 
