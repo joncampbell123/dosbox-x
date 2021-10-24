@@ -725,7 +725,7 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * re
 }
 
 uint8_t DOS_Device::GetStatus(bool input_flag) {
-	Bit16u info = Devices[devnum]->GetInformation();
+	uint16_t info = Devices[devnum]->GetInformation();
 	if(info & EXT_DEVICE_BIT) {
 		return Devices[devnum]->GetStatus(input_flag);
 	}
