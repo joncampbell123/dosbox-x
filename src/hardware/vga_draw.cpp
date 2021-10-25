@@ -3847,7 +3847,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
-        uint16_t uname[4];
+        int width, height;
+        uint16_t uname[4], unimap[2];
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
@@ -4000,7 +4001,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    unimap[0] = uname[0];
+                                    unimap[1] = 0;
+                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, unimap, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
                                         dbw=false;
                                         dex=true;
                                     } else {
@@ -4073,7 +4076,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    unimap[0] = uname[0];
+                                    unimap[1] = 0;
+                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, unimap, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
                                         dbw=false;
                                         dex=true;
                                     } else {
