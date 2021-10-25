@@ -2747,7 +2747,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("autodbcs", Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
+    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japanese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
     Pbool->SetBasic(true);
@@ -2762,7 +2762,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
-                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
+                      "You can also change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
