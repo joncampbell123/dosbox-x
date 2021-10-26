@@ -1873,7 +1873,7 @@ SUBST 磁碟機1: /D
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-將程式載入上層記憶體位址 (需要 XMS 和 UMB 記憶體).
+將程式載入到上層記憶體位址 (需要 XMS 和 UMB 記憶體).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
