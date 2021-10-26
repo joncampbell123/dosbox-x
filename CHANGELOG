@@ -16,6 +16,10 @@
   - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
     does. Fixes missing music in "聊齋誌異之幽谷傳奇"
     (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
+  - Allowed machine types "pcjr_composite" and
+    "pcjr_composite2", similar to "cga_composite" and
+    "cga_composite2", instead of having to switch the
+    composite type manually. (Wengier)
   - If machine is PCjr, place PC BIOS reset code at
     F000:0043 to match that of the real BIOS.
   - IBM PC BIOS emulation fixed to place key pieces of
@@ -30,9 +34,6 @@
     zhì yì zhī yōugǔ chuánqí) which appear to assume
     some of these fixed BIOS addresses and will
     crash if they are wrong.
-  - Allowed machine types "pcjr_composite" and
-    "pcjr_composite2", similar to "cga_composite" and
-    "cga_composite2". (Wengier)
   - If a program is provided in the command-line when
     launching DOSBox-X, it will now be executed after
     any commands in the [autoexec] section by default.

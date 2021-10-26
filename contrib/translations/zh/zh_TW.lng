@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
-:DOSBOX-X:VERSION:0.83.18
+:DOSBOX-X:VERSION:0.83.19
 :DOSBOX-X:REMARK:可使用 cht 或 tw 中文 DOS/V 模式; 或改用 TTF 輸出選項 (國家和字碼頁設為 886,950 並搭配中文 TTF 字型) 以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
 段落中的指令行會在啟動時執行.
@@ -2545,6 +2545,9 @@ TrueType 字型
 .
 :MENU:VideoTTFMenu
 TTF 選項
+.
+:MENU:ttf_resetcolor
+重設 TTF 配色方案
 .
 :MENU:ttf_showbold
 使用 TTF 顯示粗體文字

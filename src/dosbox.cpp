@@ -2232,7 +2232,7 @@ void DOSBOX_SetupConfigSections(void) {
             "not rendering highcolor 16bpp correctly.");
 
     Pbool = secprop->Add_bool("vga fill active memory",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows ETen Chinese system 2000 to run.");
+    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows the ETen Chinese DOS system (e.g. 3.5 ET24VA and 2000) to run.");
 
     Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
@@ -3934,8 +3934,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.\n"
-            "For networked database applications (e.g. dBase, FoxPro, etc), it is recommended to set this to e.g. 3 for correct operations.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times without caching before failing on Windows systems.\n"
+            "For networked database applications (e.g. dBase, FoxPro, etc), it is strongly recommended to set this to e.g. 3 for correct operations.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
