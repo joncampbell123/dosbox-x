@@ -27,6 +27,7 @@
 #include "pic.h"
 #include "render.h"
 #include "mapper.h"
+#include "control.h"
 
 #define crtc(blah) vga.crtc.blah
 
@@ -743,7 +744,8 @@ static void TANDY_FindMode(void) {
 }
 
 static void PCJr_FindMode(void) {
-	new_cga = 1;
+	std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+	if (mtype != "pcjr_composite") new_cga = 1;
 	if (vga.tandy.mode_control & 0x2) {
 		if (vga.tandy.mode_control & 0x10) {
 			/* bit4 of mode control 1 signals 16 colour graphics mode */

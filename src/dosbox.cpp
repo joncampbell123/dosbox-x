@@ -1010,6 +1010,8 @@ void DOSBOX_RealInit() {
     else if (mtype == "mcga")          { machine = MCH_MCGA; }
     else if (mtype == "tandy")         { machine = MCH_TANDY; }
     else if (mtype == "pcjr")          { machine = MCH_PCJR; }
+    else if (mtype == "pcjr_composite") { machine = MCH_PCJR; cga_comp = 1; new_cga = false; }
+    else if (mtype == "pcjr_composite2"){ machine = MCH_PCJR; cga_comp = 1; new_cga = true; }
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
@@ -1248,7 +1250,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
+        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "pcjr_composite", "pcjr_composite2", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "amstrad", "pc98", "pc9801", "pc9821",
 

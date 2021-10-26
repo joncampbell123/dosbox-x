@@ -4283,6 +4283,7 @@ void change_output(int output) {
 #endif
     mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_resetcolor").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
@@ -11643,6 +11644,13 @@ bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 #endif
 
+bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+    return true;
+}
+
 bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
@@ -14064,6 +14072,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
                 item.set_text("TTF options");
 
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_resetcolor").set_text("Reset TTF color scheme").
+                    set_callback_function(ttf_reset_colors_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -14721,6 +14731,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(USE_TTF)
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
+        mainMenu.get_item("ttf_resetcolor").enable(TTF_using());
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);
