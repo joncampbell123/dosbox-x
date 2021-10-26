@@ -41,6 +41,7 @@ uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
+extern bool vga_fill_inactive_ram;
 extern bool vga_ignore_extended_memory_bit;
 extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
@@ -2370,21 +2371,34 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_A0;
 		vgapages.mask = 0xffff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-		MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
+        if (vga_fill_inactive_ram)
+            MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
+        else
+            MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
 		break;
 	case 2:
 		vgapages.base = VGA_PAGE_B0;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
+        if (vga_fill_inactive_ram) {
+            MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+            MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
+        } else {
+            MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+            MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
+        }
         break;
 	case 3:
 		vgapages.base = VGA_PAGE_B8;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-		MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
+        if (vga_fill_inactive_ram) {
+            MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+            MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
+        } else {
+            MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+            MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
+        }
         break;
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))

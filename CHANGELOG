@@ -2,6 +2,10 @@
   - Fix horizontal lines in the debugger window being
     rendered as unrelated characters in some code
     pages. (Allofich)
+  - Added config option "vga fill active memory" which
+    when set will fill inactive video memory regions
+    with RAM rather than mapping them as empty. This
+    allows ETen Chinese system 2000 to run. (Wengier)
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)

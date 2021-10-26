@@ -2229,6 +2229,9 @@ void DOSBOX_SetupConfigSections(void) {
             "games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
             "not rendering highcolor 16bpp correctly.");
 
+    Pbool = secprop->Add_bool("vga fill active memory",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows ETen Chinese system 2000 to run.");
+
     Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
             "This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
