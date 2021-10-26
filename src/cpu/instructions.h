@@ -700,7 +700,7 @@ extern bool enable_fpu;
 	Bits quo=((int16_t)reg_ax) / val;						\
 	int8_t rem=(int8_t)((int16_t)reg_ax % val);				\
 	int8_t quo8s=(int8_t)(quo&0xff);							\
-	if (quo!=(int16_t)quo8s) EXCEPTION(0);					\
+	if (quo!=(int16_t)quo8s && quo != 0x80) EXCEPTION(0);					\
 	reg_ah=(uint8_t)rem;												\
 	reg_al=(uint8_t)quo8s;											\
 	FillFlags();											\
@@ -721,7 +721,7 @@ extern bool enable_fpu;
 	Bits quo=num/val;										\
 	int16_t rem=(int16_t)(num % val);							\
 	int16_t quo16s=(int16_t)quo;								\
-	if (quo!=(int32_t)quo16s) EXCEPTION(0);					\
+	if (quo!=(int32_t)quo16s && quo != 0x8000) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
 	FillFlags();											\
@@ -741,7 +741,7 @@ extern bool enable_fpu;
 	int64_t quo=num/val;										\
 	int32_t rem=(int32_t)(num % val);							\
 	int32_t quo32s=(int32_t)(quo&0xffffffff);					\
-	if (quo!=(int64_t)quo32s) EXCEPTION(0);					\
+	if (quo!=(int64_t)quo32s && quo != 0x80000000) EXCEPTION(0);					\
 	reg_edx=(uint32_t)rem;											\
 	reg_eax=(uint32_t)quo32s;											\
 	FillFlags();											\
