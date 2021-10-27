@@ -799,6 +799,8 @@ uint8_t DOS_FindDevice(char const * name) {
 						break;
 					}
 				}
+			} else {
+				break;
 			}
 		}
 	}
