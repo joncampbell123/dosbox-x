@@ -9,6 +9,9 @@
     with RAM rather than mapping them as empty. This
     allows the ETen Chinese DOS system (倚天中文系統)
     3.5/2000 (e.g. ET16V and ET24VA) to run. (Wengier)
+  - Added config option "middle_unlock" ([sdl] section)
+    to control whether to unlock the mouse with middle
+    mouse button click. (Wengier)
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)

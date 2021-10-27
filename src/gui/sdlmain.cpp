@@ -51,6 +51,7 @@ int transparency=0;
 int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
+int middleunlock = 1;
 bool selmark = false;
 extern int enablelfn;
 extern int autosave_second;
@@ -5689,6 +5690,16 @@ static void GUI_StartUp() {
     else if (feedback == "flash")
         sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
 
+    const std::string munlock = section->Get_string("middle_unlock");
+    if (munlock == "none")
+        middleunlock = 0;
+    else if (munlock == "auto")
+        middleunlock = 2;
+    else if (munlock == "both")
+        middleunlock = 3;
+    else if (munlock == "manual")
+        middleunlock = 1;
+
     const char *clip_mouse_button = section->Get_string("clip_mouse_button");
     if (!strcmp(clip_mouse_button, "middle")) mbutton=2;
     else if (!strcmp(clip_mouse_button, "right")) mbutton=3;
@@ -7194,7 +7205,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
             // Don't pass click to mouse handler
             break;
         }
-        if (!sdl.mouse.autoenable && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
+        if (((middleunlock == 1 && !sdl.mouse.autoenable) || (middleunlock == 2 && sdl.mouse.autoenable) || middleunlock == 3) && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
             GFX_CaptureMouse();
             break;
         }
@@ -8517,6 +8528,13 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
+
+    const char* unlocks[] = { "none", "manual", "auto", "both", nullptr};
+    Pstring = sdl_sec->Add_string("middle_unlock",Property::Changeable::Always, unlocks[1]);
+    Pstring->Set_help("Whether you can press the middle mouse button to unlock the mouse when the mouse has been locked.\n"
+        "If set to \"manual\", it works only with \"autolock=false\"; if set to \"auto\", it works only with \"autolock=true\".");
+    Pstring->SetBasic(true);
+    Pstring->Set_values(unlocks);
 
 	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", 0};
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");

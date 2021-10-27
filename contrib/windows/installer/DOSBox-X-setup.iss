@@ -364,7 +364,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
-  tsection, vsection: Boolean;
+  tsection, vsection, found1, found2: Boolean;
   refname, section, line, linetmp, lineold, linenew: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -396,6 +396,8 @@ begin
         FileLines := TStringList.Create;
         FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
         section := '';
+        found1 := False;
+        found2 := False;
         for i := 0 to FileLines.Count - 1 do
         begin
           line := Trim(FileLines[i]);
@@ -408,8 +410,16 @@ begin
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
               FileLines[i] := linetmp+' printer';
+              found1 := True;
+            end;
+            if (CompareText(linetmp, 'file access tries') = 0) and (CompareText(section, 'dos') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              FileLines[i] := linetmp+' 3';
+              found2 := True;
+            end;
+            if found1 and found2 then
               break;
-            end
           end
         end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
