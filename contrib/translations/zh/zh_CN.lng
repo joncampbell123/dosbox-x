@@ -161,7 +161,7 @@ MIDI 设备配置信息
 .
 :SHOW_ADVOPT
 显示高级选项
-..
+.
 :USE_PRIMARYCONFIG
 使用主配置文件
 .

@@ -4191,7 +4191,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("customcodepage",Property::Changeable::WhenIdle, "");
-    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file.");
+    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file, following the standard SBCS code page format.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
@@ -4200,17 +4200,17 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable filename char table");
+    Pbool->Set_help("Enable DOS filename char table.");
 
     Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable collating and uppercase table");
+    Pbool->Set_help("Enable DOS collating and uppercase table.");
 
     // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
             "peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
             "option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
-            "Microsoft Scandisk needs this option to respond to keyboard input correctly.");
+            "Microsoft SCANDISK needs this option to respond to keyboard input correctly.");
 
     Pbool = secprop->Add_bool("zero memory on int 21h memory allocation",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, memory returned by the INT 21h allocation call is zeroed first. This is NOT what\n"
