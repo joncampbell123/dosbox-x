@@ -7,7 +7,8 @@
   - Added config option "vga fill active memory" which
     when set will fill inactive video memory regions
     with RAM rather than mapping them as empty. This
-    allows ETen Chinese system 2000 to run. (Wengier)
+    allows the ETen Chinese system 3.5/2000 (e.g.
+    ET16V and ET24VA) to run. (Wengier)
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)

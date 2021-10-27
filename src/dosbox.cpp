@@ -2232,7 +2232,7 @@ void DOSBOX_SetupConfigSections(void) {
             "not rendering highcolor 16bpp correctly.");
 
     Pbool = secprop->Add_bool("vga fill active memory",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows the ETen Chinese DOS system (e.g. 3.5 ET24VA and 2000) to run.");
+    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows the ETen Chinese DOS system (e.g. ET16V and ET24VA) to run.");
 
     Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
