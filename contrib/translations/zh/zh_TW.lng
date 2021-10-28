@@ -2547,7 +2547,7 @@ TrueType 字型
 TTF 選項
 .
 :MENU:ttf_resetcolor
-重設 TTF 配色方案
+重設 TTF 色彩配置
 .
 :MENU:ttf_showbold
 使用 TTF 顯示粗體文字
