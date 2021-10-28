@@ -2579,6 +2579,10 @@ TTF 文字處理器: FastEdit
 :MENU:ttf_blinkc
 顯示 TTF 閃爍游標
 .
+:MENU:ttf_right_left
+:MENU:ttf_right_left
+從右到左顯示文字
+.
 :MENU:ttf_printfont
 使用目前 TTF 字型進行列印
 .

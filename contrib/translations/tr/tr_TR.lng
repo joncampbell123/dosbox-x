@@ -2609,6 +2609,9 @@ TTF sözcük işlemci: FastEdit
 :MENU:ttf_blinkc
 TTF yanıp sönen imleci göster
 .
+:MENU:ttf_right_left
+Metni sağdan sola göster
+.
 :MENU:ttf_printfont
 Yazdırma için geçerli TTF yazıtipini kullan
 .

@@ -2607,6 +2607,9 @@ TTF word processor: FastEdit
 :MENU:ttf_blinkc
 Display TTF blinking cursor
 .
+:MENU:ttf_right_left
+Display text from right to left
+.
 :MENU:ttf_printfont
 Use current TTF font for printing
 .

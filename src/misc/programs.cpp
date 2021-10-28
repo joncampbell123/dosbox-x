@@ -55,7 +55,7 @@ Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1581,6 +1581,12 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
 #if defined(USE_TTF)
                                 char512 = section->Get_bool("char512");
+                                if (TTF_using()) resetFontSize();
+#endif
+							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "righttoleft=")) {
+#if defined(USE_TTF)
+                                rtl = section->Get_bool("righttoleft");
+                                mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
                                 if (TTF_using()) resetFontSize();
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {

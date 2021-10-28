@@ -2572,6 +2572,9 @@ TTF 字处理软件: FastEdit
 :MENU:ttf_blinkc
 显示 TTF 闪烁光标
 .
+:MENU:ttf_right_left
+从右到左显示文字
+.
 :MENU:ttf_printfont
 使用当前 TTF 字体进行打印
 .

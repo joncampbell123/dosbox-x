@@ -2594,6 +2594,9 @@ Procesador de texto TTF: FastEdit
 :MENU:ttf_blinkc
 Mostrar el cursor parpadeante en TTF
 .
+:MENU:ttf_right_left
+Mostrar texto de derecha a izquierda
+.
 :MENU:ttf_dbcs_sbcs
 CJK: Cambiar modo DBCS/SBCS
 .

@@ -2709,6 +2709,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
     Pint->SetBasic(true);
 
+	Pbool = secprop->Add_bool("righttoleft", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will display text from right to left instead of left to right for the TTF output.");
+    Pbool->SetBasic(true);
+
 	Pstring = secprop->Add_string("wp", Property::Changeable::Always, "");
     Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
                     "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"

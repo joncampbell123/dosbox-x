@@ -4,10 +4,16 @@
     pages. (Allofich)
   - Added menu option "Reset TTF color scheme" to reset
     the current color scheme for TTF output. (Wengier)
+  - Added config option "righttoleft" in [TTF] section
+    which when set to "true" will cause DOSBox-X to
+    display text from right to left (instead of left to
+    right) for the TTF output. It can also be toggled
+    from the menu ("Video" => "TTF options" => "Display
+    text from right to left"). (Wengier)
   - Added config option "vga fill active memory" which
-    when set will fill inactive video memory regions
-    with RAM rather than mapping them as empty. This
-    allows the ETen Chinese DOS system (倚天中文系統)
+    when set to "true" will fill inactive video memory
+    regions with RAM rather than mapping them as empty.
+    This allows the ETen Chinese DOS system (倚天中文系統)
     3.5/2000 (e.g. ET16V and ET24VA) to run. (Wengier)
   - Added config option "middle_unlock" ([sdl] section)
     to control whether to unlock the mouse with middle

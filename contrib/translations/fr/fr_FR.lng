@@ -2614,6 +2614,9 @@ Traitement de texte: FastEdit
 :MENU:ttf_blinkc
 Afficher le curseur clignotant
 .
+:MENU:ttf_right_left
+Afficher le texte de droite à gauche
+.
 :MENU:ttf_printfont
 Utiliser la police actuelle pour l'impression
 .
