@@ -1469,9 +1469,13 @@ void BIOS_SetupKeyboard(void) {
          * a+4 = iret (1 bytes) */
         phys_writeb(a+5,0x50);          /* push ax */
         phys_writew(a+6,0x60E4);        /* in al,60h */
-        phys_writew(a+8,0x09CD);        /* int 9h */
-        phys_writeb(a+10,0x58);         /* pop ax */
-        phys_writew(a+11,0x00EB + ((256-13)<<8));    /* jmp a+0 */
+        phys_writeb(a+8,0x1e);          /* push ds */
+        phys_writew(a+9,0x406a);        /* push 0x0040 */
+        phys_writeb(a+11,0x1f);         /* pop ds */
+        phys_writew(a+12,0x09CD);       /* int 9h */
+        phys_writeb(a+14,0x1f);         /* pop ds */
+        phys_writeb(a+15,0x58);         /* pop ax */
+        phys_writew(a+16,0x00EB + ((256-18)<<8));    /* jmp a+0 */
     }
 
     if (IS_PC98_ARCH) {
