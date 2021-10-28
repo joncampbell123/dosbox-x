@@ -360,6 +360,8 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 		DOS_WriteFile(STDOUT, (uint8_t *)&line[pos], &len);
 		pos++;
 	}
+    if (delete_flag && str_index >= str_len)
+        return 0;
 	RemoveAllChar(line, str_len);
 	pos = delete_flag ? str_index : str_index - count;
 	while(pos < str_len - count) {
@@ -734,7 +736,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
             case 0x5300:/* DELETE */
                 if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
-                    if(str_index) {
+                    if(str_len) {
                         size += DeleteBackspace(true, line, str_index, str_len);
                     }
                 } else {
