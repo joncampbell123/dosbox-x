@@ -241,6 +241,7 @@ bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
 bool egavga_per_scanline_hpel = true;
 bool vga_sierra_lock_565 = false;
+bool vga_fill_inactive_ram = false;
 bool enable_vga_resize_delay = false;
 bool vga_ignore_hdispend_change_if_smaller = false;
 bool ignore_vblank_wraparound = false;
@@ -838,6 +839,7 @@ void VGA_Reset(Section*) {
     vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
     vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
+    vga_fill_inactive_ram = section->Get_bool("vga fill active memory");
     hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
     egavga_per_scanline_hpel = section->Get_bool("ega per scanline hpel");
     ignore_vblank_wraparound = section->Get_bool("ignore vblank wraparound");

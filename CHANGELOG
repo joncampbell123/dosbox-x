@@ -2,6 +2,22 @@
   - Fix horizontal lines in the debugger window being
     rendered as unrelated characters in some code
     pages. (Allofich)
+  - Added menu option "Reset TTF color scheme" to reset
+    the current color scheme for TTF output. (Wengier)
+  - Added config option "righttoleft" in [TTF] section
+    which when set to "true" will cause DOSBox-X to
+    display text from right to left (instead of left to
+    right) for the TTF output. It can also be toggled
+    from the menu ("Video" => "TTF options" => "Display
+    text from right to left"). (Wengier)
+  - Added config option "vga fill active memory" which
+    when set to "true" will fill inactive video memory
+    regions with RAM rather than mapping them as empty.
+    This allows the ETen Chinese DOS system (倚天中文系統)
+    3.5/2000 (e.g. ET16V and ET24VA) to run. (Wengier)
+  - Added config option "middle_unlock" ([sdl] section)
+    to control whether to unlock the mouse with middle
+    mouse button click. (Wengier)
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)
@@ -10,6 +26,10 @@
   - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
     does. Fixes missing music in "聊齋誌異之幽谷傳奇"
     (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
+  - Allowed machine types "pcjr_composite" and
+    "pcjr_composite2", similar to "cga_composite" and
+    "cga_composite2", instead of having to switch the
+    composite type manually. (Wengier)
   - If machine is PCjr, place PC BIOS reset code at
     F000:0043 to match that of the real BIOS.
   - IBM PC BIOS emulation fixed to place key pieces of
@@ -30,14 +50,20 @@
     A command-line option "-prerun" is added to force
     the program run before any commands in [autoexec]
     section like before. (Wengier)
+  - Added auto-detection for single-wide DBCS-encoded
+    characters for the TTF output (non-PC98). (Wengier)
   - Improved the menu option "Restart DOSBox-X with
     language file..." (under "Main") for switching
     between DBCS languages. (Wengier)
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
     allow the use of scroll bars. (Wengier)
+  - Fixed COLORS config option (in [ttf] section) not
+    working in the previous version. (Wengier)
   - Fixed issues after resetting the virtual machine
     when using DBCS language files. (Wengier)
+  - Fixed some issues related to IME support for CJK
+    (Chinese/Japanese/Korean) languages. (nanshiki)
   - Fixed bugs in the region memory allocator C++ class
     that claimed the entire free block even if the
     size wanted was smaller. Added field to remember if

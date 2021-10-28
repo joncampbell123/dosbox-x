@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.18
+:DOSBOX-X:VERSION:0.83.19
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -2574,6 +2574,9 @@ Screen: 132 columns x 60 lines
 :MENU:VideoTTFMenu
 TTF options
 .
+:MENU:ttf_resetcolor
+Reset TTF color scheme
+.
 :MENU:ttf_showbold
 Display bold text in TTF
 .
@@ -2603,6 +2606,9 @@ TTF word processor: FastEdit
 .
 :MENU:ttf_blinkc
 Display TTF blinking cursor
+.
+:MENU:ttf_right_left
+Display text from right to left
 .
 :MENU:ttf_printfont
 Use current TTF font for printing

@@ -1010,6 +1010,8 @@ void DOSBOX_RealInit() {
     else if (mtype == "mcga")          { machine = MCH_MCGA; }
     else if (mtype == "tandy")         { machine = MCH_TANDY; }
     else if (mtype == "pcjr")          { machine = MCH_PCJR; }
+    else if (mtype == "pcjr_composite") { machine = MCH_PCJR; cga_comp = 1; new_cga = false; }
+    else if (mtype == "pcjr_composite2"){ machine = MCH_PCJR; cga_comp = 1; new_cga = true; }
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
@@ -1248,7 +1250,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega", "jega",
+        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "pcjr_composite", "pcjr_composite2", "ega", "jega",
         "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "amstrad", "pc98", "pc9801", "pc9821",
 
@@ -2229,6 +2231,9 @@ void DOSBOX_SetupConfigSections(void) {
             "games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
             "not rendering highcolor 16bpp correctly.");
 
+    Pbool = secprop->Add_bool("vga fill active memory",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty. This allows the ETen Chinese DOS system (e.g. ET16V and ET24VA) to run.");
+
     Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
             "This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
@@ -2704,6 +2709,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
     Pint->SetBasic(true);
 
+	Pbool = secprop->Add_bool("righttoleft", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will display text from right to left instead of left to right for the TTF output.");
+    Pbool->SetBasic(true);
+
 	Pstring = secprop->Add_string("wp", Property::Changeable::Always, "");
     Pstring->Set_help("You can specify a word processor for the TTF output and optionally also a version number for the word processor.\n"
                     "Supported word processors are WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit, and an optional version number.\n"
@@ -2747,7 +2756,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("autodbcs", Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japnese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
+    Pbool->Set_help("If set, DOSBox-X enables Chinese/Japanese/Korean DBCS (double-byte) characters when these code pages are active by default.\n"
                     "Only applicable when using a DBCS code page (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese)\n"
                     "This applies to both the display and printing of these characters (see the [printer] section for details of the latter).");
     Pbool->SetBasic(true);
@@ -2762,7 +2771,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("blinkc", Property::Changeable::Always, "true");
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
-                      "You can also change the blinking rate by setting an interger between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
+                      "You can also change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
@@ -3929,8 +3938,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times before failing on Windows systems.\n"
-            "For networked database applications (e.g. dBase, FoxPro, etc), it is recommended to set this to e.g. 3 for correct operations.");
+    Pint->Set_help("If a positive integer is set, DOSBox-X will try to read/write/lock files directly on mounted local drives for the specified number of times without caching before failing on Windows systems.\n"
+            "For networked database applications (e.g. dBase, FoxPro, etc), it is strongly recommended to set this to e.g. 3 for correct operations.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("network redirector",Property::Changeable::WhenIdle,true);
@@ -4186,7 +4195,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("customcodepage",Property::Changeable::WhenIdle, "");
-    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file.");
+    Pstring->Set_help("Set a custom code page for CHCP command and specify a SBCS code page file, following the standard SBCS code page format.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
@@ -4195,17 +4204,17 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable filename char table");
+    Pbool->Set_help("Enable DOS filename char table.");
 
     Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable collating and uppercase table");
+    Pbool->Set_help("Enable DOS collating and uppercase table.");
 
     // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
             "peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
             "option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
-            "Microsoft Scandisk needs this option to respond to keyboard input correctly.");
+            "Microsoft SCANDISK needs this option to respond to keyboard input correctly.");
 
     Pbool = secprop->Add_bool("zero memory on int 21h memory allocation",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, memory returned by the INT 21h allocation call is zeroed first. This is NOT what\n"

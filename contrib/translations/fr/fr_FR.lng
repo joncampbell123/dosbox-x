@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.18
+:DOSBOX-X:VERSION:0.83.19
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -2581,6 +2581,9 @@ Haute intensité : texte clignotant
 :MENU:VideoTTFMenu
 Police TrueType
 .
+:MENU:ttf_resetcolor
+Réinitialiser le schéma de couleurs TTF
+.
 :MENU:ttf_showbold
 Afficher le texte en gras
 .
@@ -2610,6 +2613,9 @@ Traitement de texte: FastEdit
 .
 :MENU:ttf_blinkc
 Afficher le curseur clignotant
+.
+:MENU:ttf_right_left
+Afficher le texte de droite à gauche
 .
 :MENU:ttf_printfont
 Utiliser la police actuelle pour l'impression

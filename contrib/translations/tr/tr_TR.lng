@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Turkish (Turkey)
 :DOSBOX-X:CODEPAGE:857
-:DOSBOX-X:VERSION:0.83.18
+:DOSBOX-X:VERSION:0.83.19
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -2576,6 +2576,9 @@ Ekran: 132 sütun x 60 satır
 :MENU:VideoTTFMenu
 TTF seçenekleri
 .
+:MENU:ttf_resetcolor
+TTF renk şemasını sıfırla
+.
 :MENU:ttf_showbold
 TTF'de kalın metni görüntüle
 .
@@ -2605,6 +2608,9 @@ TTF sözcük işlemci: FastEdit
 .
 :MENU:ttf_blinkc
 TTF yanıp sönen imleci göster
+.
+:MENU:ttf_right_left
+Metni sağdan sola göster
 .
 :MENU:ttf_printfont
 Yazdırma için geçerli TTF yazıtipini kullan

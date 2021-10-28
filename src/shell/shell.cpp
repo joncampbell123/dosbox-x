@@ -693,7 +693,7 @@ void DOS_Shell::Prepare(void) {
 		bool zdirpath = section->Get_bool("drive z expand path");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (section!=NULL&&!control->opt_noconfig||control->opt_langcp) {
+		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
 			if ((r==NULL || !*(r+1)) && !control->opt_langcp)

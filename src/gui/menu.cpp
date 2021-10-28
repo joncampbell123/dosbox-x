@@ -379,6 +379,7 @@ static const char *def_menu_video_ttf[] =
 {
     "mapper_incsize",
     "mapper_decsize",
+    "ttf_resetcolor",
     "--",
     "ttf_showbold",
     "ttf_showital",
@@ -392,9 +393,11 @@ static const char *def_menu_video_ttf[] =
     "ttf_wpfe",
     "--",
     "ttf_blinkc",
+    "ttf_right_left",
 #if C_PRINTER
     "ttf_printfont",
 #endif
+    "--",
     "ttf_dbcs_sbcs",
     "ttf_autoboxdraw",
     "ttf_halfwidthkana",

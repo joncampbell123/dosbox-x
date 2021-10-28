@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.18
+:DOSBOX-X:VERSION:0.83.19
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.
@@ -2561,6 +2561,9 @@ Pantalla: 132 columnas x 60 líneas
 :MENU:VideoTTFMenu
 Opciones TTF
 .
+:MENU:ttf_resetcolor
+Restablecer el esquema de color TTF
+.
 :MENU:ttf_showbold
 Mostrar texto en negrita en TTF
 .
@@ -2590,6 +2593,9 @@ Procesador de texto TTF: FastEdit
 .
 :MENU:ttf_blinkc
 Mostrar el cursor parpadeante en TTF
+.
+:MENU:ttf_right_left
+Mostrar texto de derecha a izquierda
 .
 :MENU:ttf_dbcs_sbcs
 CJK: Cambiar modo DBCS/SBCS

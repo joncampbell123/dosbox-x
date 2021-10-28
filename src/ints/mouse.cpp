@@ -122,7 +122,7 @@ struct button_event {
     uint8_t buttons;
 };
 
-extern bool enable_slave_pic;
+extern bool enable_slave_pic, rtl;
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
 uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
@@ -758,21 +758,25 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 	}
 	text[0]=0;
     uint16_t seg = IS_DOSV?GetTextSeg():0;
+    bool ttfuse = false;
+    int ttfcols = 0;
 #if defined(USE_TTF)
-    if (ttf.inUse&&isDBCSCP()&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
+    ttfuse = ttf.inUse;
+    ttfcols = ttf.cols;
+    if (ttfuse&&isDBCSCP()&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
             if ((int)y>=r1&&(int)y<=r2)
                 for (unsigned int x = 0; x < ttf.cols; x++)
-                    if ((int)x>=c1&&(int)x<=c2&&curAC[x].selected) {
-                        if ((int)x==c1&&c1>0&&curAC[x].skipped&&!curAC[x-1].selected&&curAC[x-1].doublewide) {
-                            ReadCharAttr(x-1,y,page,&result);
+                    if ((int)x>=c1&&(int)x<=c2&&curAC[rtl?ttf.cols-x-1:x].selected) {
+                        if ((int)x==c1&&c1>0&&curAC[rtl?ttf.cols-x-1:x].skipped&&!curAC[rtl?ttf.cols-x-2:x-1].selected&&curAC[rtl?ttf.cols-x-2:x-1].doublewide) {
+                            ReadCharAttr(rtl?ttf.cols-x-2:x-1,y,page,&result);
                             text[len++]=result;
                         }
-                        ReadCharAttr(x,y,page,&result);
+                        ReadCharAttr(rtl?ttf.cols-x-1:x,y,page,&result);
                         text[len++]=result;
-                        if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[x].doublewide&&!curAC[x+1].selected&&curAC[x+1].skipped) {
-                            ReadCharAttr(x+1,y,page,&result);
+                        if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[rtl?ttf.cols-x-1:x].doublewide&&!curAC[rtl?ttf.cols-x:x+1].selected&&curAC[rtl?ttf.cols-x:x+1].skipped) {
+                            ReadCharAttr(rtl?ttf.cols-x:x+1,y,page,&result);
                             text[len++]=result;
                         }
                     }
@@ -790,10 +794,10 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
         }
 		for (int j=c1+(lead1?1:0); j<=c2; j++) {
 			if (IS_PC98_ARCH) {
-				uint16_t address=((i*80)+j)*2;
+				uint16_t address=((i*80)+(ttfuse&&rtl?ttfcols-j-1:j))*2;
 				PhysPt where = CurMode->pstart+address;
 				result=mem_readw(where);
-				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+2) && ++j<c) {
+				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+(ttfuse&&rtl?-2:2)) && ++j<c) {
 					result&=0x7F7F;
 					uint8_t j1=(result%0x100)+0x20, j2=result/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
@@ -802,7 +806,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 						if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
 					}
 				} else if (j==c1&&c1>0) {
-                    uint16_t prevres=mem_readw(where-2);
+                    uint16_t prevres=mem_readw(where-(ttfuse&&rtl?-2:2));
                     if (!((prevres & 0xFF00u) != 0u && (prevres & 0xFCu) != 0x08u && prevres==result))
                         text[len++]=result;
                 } else
@@ -821,12 +825,12 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
             } else {
                 bool find = isJEGAEnabled()?std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
                 if (!isJEGAEnabled()||j>c1||!find) {
-                    ReadCharAttr(j,i,page,&result);
+                    ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
                     text[len++]=result;
                     if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
                 if (isJEGAEnabled()&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
-                    ReadCharAttr(j+1,i,page,&result);
+                    ReadCharAttr(ttfuse&&rtl?(ttfcols-j):(j+1),i,page,&result);
                     text[len++]=result;
                     if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
@@ -839,6 +843,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		}
 	}
     text[len] = 0;
+    if (ttfuse&&rtl) std::reverse(text, text+len);
 	*textlen=len;
 	return text;
 }
@@ -872,14 +877,18 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 		r2=t;
 	}
     uint16_t seg = IS_DOSV?GetTextSeg():0;
+    bool ttfuse = false;
+    int ttfcols = 0;
 #if defined(USE_TTF)
-    if (ttf.inUse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP())) {
+    ttfuse = ttf.inUse;
+    ttfcols = ttf.cols;
+    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP())) {
         ttf_cell *newAC = newAttrChar;
-        for (int y = 0; y < ttf.lins; y++) {
+        for (unsigned int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
-                for (int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP())&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
-                        newAC[x].selected = select?1:0;
+                for (unsigned int x = 0; x < ttf.cols; x++)
+                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP())&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
+                        newAC[rtl?ttf.cols-x-1:x].selected = select?1:0;
             newAC += ttf.cols;
         }
         void GFX_EndTextLines(bool force=false);
@@ -896,7 +905,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 				real_writeb(seg,(i*c+j)*2+1,attr/0x10+(attr&0xF)*0x10);
 				if (j==c2) WriteCharTopView(c*i*2,j+1);
 			} else
-				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
+				real_writeb(0xb800,(i*c+(ttfuse&&rtl?ttfcols-j-1:j))*2+1,real_readb(0xb800,(i*c+(ttfuse&&rtl?ttfcols-j-1:j))*2+1)^119);
 		}
 }
 #endif

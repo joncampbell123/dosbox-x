@@ -3847,6 +3847,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
+        int width, height;
         uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
@@ -4000,7 +4001,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
                                         dbw=false;
                                         dex=true;
                                     } else {
@@ -4018,18 +4019,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
-#if defined(USE_TTF)
                         if (vga.draw.blinking && !ttf_dosv)							// if blinking is enabled bit7 is not mapped to attributes
-#else
-                        if (vga.draw.blinking)							// if blinking is enabled bit7 is not mapped to attributes
-#endif
                             background &= 7;
                         // choose foreground color if blinking not set for this cell or blink on
-#if defined(USE_TTF)
                         Bitu foreground = (vga.draw.blink || (!(attr&0x80)) || ttf_dosv) ? (attr&0xf) : background;
-#else
-                        Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
-#endif
                         // How about underline?
                         (*draw).fg = foreground;
                         (*draw).bg = background;
@@ -4073,7 +4066,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if ((*draw).chr==0x2014||(*draw).chr>=0x2488&&(*draw).chr<=0x2490) { // Single wide, yet DBCS encoding. More to be added
+                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
                                         dbw=false;
                                         dex=true;
                                     } else {
