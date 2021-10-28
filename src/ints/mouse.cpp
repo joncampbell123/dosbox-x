@@ -801,8 +801,9 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 					result&=0x7F7F;
 					uint8_t j1=(result%0x100)+0x20, j2=result/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
+						if (ttfuse&&rtl) text[len++]=j2+(j1%2?31+(j2/96):126);
 						text[len++]=(j1+1)/2+(j1<95?112:176);
-						text[len++]=j2+(j1%2?31+(j2/96):126);
+						if (!ttfuse||!rtl) text[len++]=j2+(j1%2?31+(j2/96):126);
 						if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
 					}
 				} else if (j==c1&&c1>0) {
