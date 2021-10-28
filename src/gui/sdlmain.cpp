@@ -4960,7 +4960,7 @@ void GFX_EndTextLines(bool force=false) {
 				// first redraw character
 				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
 				ttf_textClip.w = ttf.width*(dw?2:1);
-				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-1):x)*ttf.width;
+				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-(dw?2:1)):x)*ttf.width;
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);

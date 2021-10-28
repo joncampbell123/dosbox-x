@@ -50,7 +50,7 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
-extern bool ctrlbrk, gbk;
+extern bool ctrlbrk, gbk, rtl;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
@@ -531,6 +531,14 @@ void DOS_Shell::InputCommand(char * line) {
             }
         }
 
+#if defined(USE_TTF)
+        if (ttf.inUse && rtl) {
+            if (cr == 0x4B00) cr = 0x4D00;
+            else if (cr == 0x4D00) cr = 0x4B00;
+            else if (cr == 0x7300) cr = 0x7400;
+            else if (cr == 0x7400) cr = 0x7300;
+        }
+#endif
         switch (cr) {
             case 0x3d00:	/* F3 */
                 if (!l_history.size()) break;
