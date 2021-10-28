@@ -1299,6 +1299,11 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
+							if (!strcasecmp(inputline.substr(0, 12).c_str(), "sensitivity=")) {
+                                Prop_multival* p3 = static_cast<Section_prop *>(section)->Get_multival("sensitivity");
+                                sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
+                                sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+                            }
 							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
                                 if (section->Get_bool("fullscreen")) {
                                     if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
