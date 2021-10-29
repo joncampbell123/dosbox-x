@@ -13732,6 +13732,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
             putenv("SDL_AUDIODRIVER=directsound");
         }
+        if (getenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4") == NULL)
+            putenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4=1");
 #endif
 
         sdl.init_ignore = true;
