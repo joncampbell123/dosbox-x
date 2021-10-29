@@ -5504,13 +5504,13 @@ static Bitu INT8_Handler(void) {
     mem_writed(BIOS_TIMER,value);
 
 	if(bootdrive>=0) {
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
         SetIMPosition();
 #endif
     } else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
 		INT8_DOSV();
     } else if (IS_DOS_CJK) {
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
         SetIMPosition();
 #endif
     }

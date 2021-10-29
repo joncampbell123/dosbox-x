@@ -7998,9 +7998,7 @@ void GFX_Events() {
 			break;
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
         case SDL_TEXTEDITING:
-#ifdef WIN32
-            if (ime_text.size() && !strlen(event.text.text)) endtick = GetTickCount();
-#endif
+            if (ime_text.size() && !strlen(event.text.text)) endtick = GetTicks();
             ime_text = event.edit.text;
             break;
         case SDL_TEXTINPUT:
@@ -8050,11 +8048,11 @@ void GFX_Events() {
                             break;
                         }
                     } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0) {
-                        // Zenkaku space
                         if (dos.loaded_codepage == 932) {
+                            // Zenkaku space
                             BIOS_AddKeyToBuffer(0xf100 | 0x81);
                             BIOS_AddKeyToBuffer(0xf000 | 0x40);
-                        } else if (GetTickCount() - endtick >= 50)
+                        } else if (GetTicks() - endtick >= 50)
                             BIOS_AddKeyToBuffer(0x20);
                         break;
                     } else if(!CheckEnableImmOnKey(event.key)) {
