@@ -58,6 +58,9 @@
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
     allow the use of scroll bars. (Wengier)
+  - Disabled the Alt+F4 key for closing the DOSBox-X
+    window in MinGW SDL2 builds. (Wengier)
+  - Fixed issue with DELETE key in PC-98 mode. (Wengier)
   - Fixed COLORS config option (in [ttf] section) not
     working in the previous version. (Wengier)
   - Fixed issues after resetting the virtual machine
