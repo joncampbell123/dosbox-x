@@ -93,10 +93,10 @@
   - Fixed IOCTL support for character device drivers. (nanshiki)
   - Fixed ANSI ESC [6n escape handling to correctly
     report cursor position as 1-based count, not 0-based
-    count (Nanshiki)
+    count. (nanshiki)
   - PC-98 INT DCh emulation fixed to better represent the
-    function key shortcuts as real DOS does (Nanshiki)
-  - Emulator fix for HX-DOS builds (Wengier)
+    function key shortcuts as real DOS does. (nanshiki)
+  - Emulator fix for HX-DOS builds. (Wengier)
   - Integrated commits from mainline (Allofich)
     - Fix the return value of register al from INT10 ah=0x0F
     for non EGA/VGA machines.
