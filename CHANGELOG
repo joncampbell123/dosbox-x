@@ -89,7 +89,8 @@
     mounting hard disk images. (Allofich)
   - REP STOSB will correctly move one byte if one byte
     remains to be processed aka CX == 1, this is needed
-    for FD98.COM self clearing code to work properly. (Nanshiki)
+    for FD98.COM self clearing code to work properly. (nanshiki)
+  - Fixed IOCTL support for character device drivers. (nanshiki)
   - Fixed ANSI ESC [6n escape handling to correctly
     report cursor position as 1-based count, not 0-based
     count (Nanshiki)
@@ -103,6 +104,8 @@
   - Added FISTTP instruction to experimental cputype (LBi)
   - Updated debugger to support and decode fisttp, fcomi,
     fcomip, fucomi, fucomip (LBi)
+  - Added support for Chinese/Japanese/Korean IMEs on
+    Windows/Linux SDL2 builds. (nanshiki)
   - Added cputype=experimental, which is the same as the
     highest CPU emulation level but with additional
     instructions from newer processors that do not exist
