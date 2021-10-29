@@ -8,7 +8,7 @@
 
 /*
 
-This is DosBox handler of 93c46 copy-protection dongle connected to LPT port.
+This is DOSBox-X's handler of 93c46 copy-protection dongle connected to LPT port.
 At least Rainbow Sentinel Cplus and MicroPhar are 93c46-based dongles.
 
 93c46 memory chip contain 64*16 words. More on it:
@@ -25,7 +25,7 @@ taken from D0..D7 in some order.
 
 * DO (data output) may be connected to ACK or BUSY printer lines.
 
-Add this file to DosBox project, patch dosbox.cpp patch and add to dosbox.conf
+Add this file to the DOSBox-X project, patch dosbox.cpp patch and add to dosbox-x.conf
 "dongle=true" under "[speaker]" section.
 
 More information: http://blogs.conus.info/node/56

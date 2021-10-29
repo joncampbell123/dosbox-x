@@ -104,7 +104,7 @@ But please note the DOSBox-X Linux packages on this website are built and update
 
 ### AUR Package
 DOSBox-X is packaged for archlinux, and available in the user contributed AUR Package Repository.
-But please note that this package is not built or updated by the DOSBox-X team.
+But please note that this package is not built or updated by the DOSBox-X Team.
 
 - SDL1 built: https://aur.archlinux.org/packages/dosbox-x/
 - SDL2 built: https://aur.archlinux.org/packages/dosbox-x-sdl2/
@@ -155,7 +155,7 @@ macOS versions earlier than 10.12 (Sierra) are not officially supported. If you 
 
 Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator. With DOSBox-X running in DOS you are able to emulate another DOS system with a different PC configuration (such as different machine types, video and sound cards etc) that works better for the purpose of the users. But please note that due to the limitations of this environment not all features of DOSBox-X that are available in other platforms can be supported in the DOS version.
 
-For the previuos DOSBox-X version 0.83.16, the official DOS version is available in the following zip package:
+For the previous DOSBox-X version 0.83.16, the official DOS version is available in the following zip package:
 
 * [dosbox-x-mingw-hx-dos-20210801212637.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.16/dosbox-x-mingw-hx-dos-20210801212637.zip)
 

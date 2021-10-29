@@ -2073,7 +2073,7 @@ void IDEATADevice::generate_identify_device() {
 }
 
 IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index)
-    : IDEDevice(c), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox IDE disk"), bios_disk_index(disk_index) {
+    : IDEDevice(c), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
     sector_i = sector_total = 0;
 
     headshr = 0;
