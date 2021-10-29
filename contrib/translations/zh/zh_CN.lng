@@ -2150,7 +2150,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 重新开始模拟
 .
 :MENU:mapper_reboot
-重启DOS系统
+重启 DOS 系统
 .
 :MENU:mapper_loadmap
 加载按键配置文件...

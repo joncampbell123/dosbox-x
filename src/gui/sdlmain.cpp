@@ -8047,8 +8047,11 @@ void GFX_Events() {
                         }
                     } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0) {
                         // Zenkaku space
-                        BIOS_AddKeyToBuffer(0xf100 | 0x81);
-                        BIOS_AddKeyToBuffer(0xf000 | 0x40);
+                        if (dos.loaded_codepage == 932) {
+                            BIOS_AddKeyToBuffer(0xf100 | 0x81);
+                            BIOS_AddKeyToBuffer(0xf000 | 0x40);
+                        } else
+                            BIOS_AddKeyToBuffer(0x20);
                         break;
                     } else if(!CheckEnableImmOnKey(event.key)) {
                         break;
