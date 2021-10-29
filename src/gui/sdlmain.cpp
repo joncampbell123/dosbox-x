@@ -52,6 +52,7 @@ int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 int middleunlock = 1;
+unsigned long endtick = 0;
 bool rtl = false;
 bool selmark = false;
 extern int enablelfn;
@@ -7997,6 +7998,9 @@ void GFX_Events() {
 			break;
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
         case SDL_TEXTEDITING:
+#ifdef WIN32
+            if (ime_text.size() && !strlen(event.text.text)) endtick = GetTickCount();
+#endif
             ime_text = event.edit.text;
             break;
         case SDL_TEXTINPUT:
@@ -8050,7 +8054,7 @@ void GFX_Events() {
                         if (dos.loaded_codepage == 932) {
                             BIOS_AddKeyToBuffer(0xf100 | 0x81);
                             BIOS_AddKeyToBuffer(0xf000 | 0x40);
-                        } else
+                        } else if (GetTickCount() - endtick >= 50)
                             BIOS_AddKeyToBuffer(0x20);
                         break;
                     } else if(!CheckEnableImmOnKey(event.key)) {
