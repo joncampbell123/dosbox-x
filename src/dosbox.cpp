@@ -2710,7 +2710,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pbool = secprop->Add_bool("righttoleft", Property::Changeable::Always, false);
-    Pbool->Set_help("If set, DOSBox-X will display text from right to left instead of left to right for the TTF output.");
+    Pbool->Set_help("If set, DOSBox-X will display text from right to left instead of left to right on the screen for the TTF output.\n"
+                    "This is especially useful for languages which use right-to-left scripts (such as Arabic and Hebrew).");
     Pbool->SetBasic(true);
 
 	Pstring = secprop->Add_string("wp", Property::Changeable::Always, "");
