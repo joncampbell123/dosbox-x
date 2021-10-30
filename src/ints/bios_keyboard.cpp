@@ -1520,26 +1520,4 @@ void BIOS_SetupKeyboard(void) {
     //  out 0x20, al
     //  pop ax
     //  iret
-
-    if (machine==MCH_PCJR) {
-        call_irq6=CALLBACK_Allocate();
-        CALLBACK_Setup(call_irq6,NULL,CB_IRQ6_PCJR,"PCJr kb irq");
-        RealSetVec(0x0e,CALLBACK_RealPointer(call_irq6));
-        // pseudocode for CB_IRQ6_PCJR:
-        //  push ax
-        //  in al, 0x60
-        //  cmp al, 0xe0
-        //  je skip
-        //  push ds
-        //  push 0x40
-        //  pop ds
-        //  int 0x09
-        //  pop ds
-        //  label skip:
-        //  cli
-        //  mov al, 0x20
-        //  out 0x20, al
-        //  pop ax
-        //  iret
-    }
 }
