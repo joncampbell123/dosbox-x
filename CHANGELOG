@@ -1,4 +1,7 @@
 0.83.19
+  - Fix PCjr NMI handler to use 8086-level instructions
+    when loading DS with segment 0x0040 so that it
+    works properly with cputype=8086.
   - Fix IDIV instruction incorrectly raising a divide
     error exception for some borderline values. Fixes
     Microsoft Flight Simulator. (Allofich)
