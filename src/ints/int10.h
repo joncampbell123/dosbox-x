@@ -102,6 +102,7 @@ extern uint8_t int10_font_08[256 * 8];
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern uint8_t int10_font_19[256 * 19];
+extern uint8_t int10_font_24[256 * 48];
 extern uint8_t int10_font_14_alternate[20 * 15 + 1];
 extern uint8_t int10_font_16_alternate[19 * 17 + 1];
 extern uint8_t int10_font_14_init[256 * 14];

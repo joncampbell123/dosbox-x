@@ -2071,7 +2071,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
@@ -2086,7 +2087,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode (with V-text and 24-pixel fonts enabled).\n"
+                    "For Simplified Chinese DOS/V, loading the HZK24? font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
+                    "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
+    Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese DOS/V emulation or TTF output.");
@@ -2098,6 +2102,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Maps the undefined del symbol (0x7F) to the next character (0x80) for the Japanese DOS/V and other Japanese mode emulations.");
+    Pbool->SetBasic(true);
 
 	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
 	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
@@ -2105,14 +2110,17 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("FEP control API for the DOS/V emulation.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("vtext",Property::Changeable::OnlyAtStart,"svga");
-	Pstring->Set_help("V-text screen mode for the DOS/V emulation.");
+	Pstring = secprop->Add_path("vtext1",Property::Changeable::OnlyAtStart,"svga");
+	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Use command \"VTEXT\" to control. Supported modes: xga,xga24,sxga,sxga24");
+    Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation.");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Use command \"VTEXT\" to control. Supported modes: xga,xga24,sxga,sxga24");
+    Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation.");
+	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
+    Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);

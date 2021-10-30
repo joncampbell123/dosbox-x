@@ -305,6 +305,10 @@ public:
     */
 	void CMD_ALIAS(char* args);
 
+    /*! \brief      VTEXT
+    */
+	void CMD_VTEXT(char *args);
+
     /*! \brief      LS
     */
 	void CMD_LS(char *args);

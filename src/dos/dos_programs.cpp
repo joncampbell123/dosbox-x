@@ -6648,6 +6648,35 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class VTEXT : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Changes V-text mode for the DOS/V emulation.\n\nVTEXT [mode]\n\n[mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.\n\nType VTEXT without a parameter to show the current V-text mode status.\n";
+        WriteOut(msg);
+	}
+};
+
+void VTEXT::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
+	DOS_Shell temp;
+	temp.CMD_VTEXT(args);
+}
+
+static void VTEXT_ProgramStart(Program * * make) {
+    *make=new VTEXT;
+}
+
 class HELP : public Program {
 public:
     void Run(void);
@@ -8021,4 +8050,6 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+    if (IS_DOSV)
+        PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 }

@@ -4141,3 +4141,39 @@ void DOS_Shell::CMD_CHCP(char * args) {
 #endif
 	return;
 }
+
+void DOS_Shell::CMD_VTEXT(char *args)
+{
+	HELP("VTEXT");
+    if (!IS_DOSV) {
+        WriteOut("This command is only supported in DOS/V mode.\n");
+        return;
+    }
+	if (char* rem = ScanCMDRemain(args)) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
+		return;
+	}
+	args = trim(args);
+	if(args && *args) {
+		uint8_t new_mode = 0xff;
+		char *word  = StripWord(args);
+		if(!strcasecmp(word, "1"))
+			new_mode = 0x70;
+		else if(!strcasecmp(word, "2"))
+			new_mode = 0x78;
+		else if(!strcasecmp(word, "0"))
+			new_mode = 0x03;
+		else {
+            WriteOut("Invalid parameter - %s\n", word);
+            return;
+        }
+		if(new_mode != 0xff) {
+            reg_ax = new_mode;
+            CALLBACK_RunRealInt(0x10);
+			if(new_mode == 0x78) new_mode = 0x70;
+		}
+	}
+	uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);
+	WriteOut("DOS/V V-text is currently %s. Video mode is %02xh.\n", mode == 0x70?"enabled":"disabled", mode);
+}
+

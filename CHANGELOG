@@ -27,6 +27,12 @@
   - Added config option "dosvfunc" in [ttf] section to
     support DOS/V applications when country information
     is set to Japan in TTF output. (nanshiki)
+  - Added "VTEXT" command to view or change the current
+    V-text mode for the DOS/V emulation. Also improved
+    the font support for 24-pixel font DOS/V mode, such
+    as supporting HZK24? fonts for Simplified Chinese
+    DOS/V mode and STDFONT.24 from ETen Chinese system
+    for Traditional Chinese DOS/V mode. (Wengier)
   - INTVEC debugger command now correctly outputs
     addresses when in protected mode. (Allofich)
   - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
