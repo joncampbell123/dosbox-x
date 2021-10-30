@@ -1,309 +1,372 @@
-.\"                                      Hey, EMACS: -*- nroff -*-
-.TH DOSBOX-X 1 "Feb 28, 2021"
-.\" Please adjust this date whenever revising the manpage.
-.SH NAME
-dosbox-x \- an x86/DOS and PC98 emulator with sound/graphics
-.SH SYNOPSIS
-.B dosbox-x
-.B [OPTIONS]
-.BI [NAME]
-.SH DESCRIPTION
-This manual page briefly documents
-.BR "dosbox-x" ", an x86/DOS and PC98 emulator."
-.LP
-.RB "Options are listed below. Depending on the option, one or more may be specified."
-.LP
-.RB "The optional " NAME " argument should be a DOS executable or a"
-directory. If it is a dos executable (.com .exe .bat) the program will 
+.TH "DOSBOX-X" "1" "Oct 24, 2021" "" ""
+.SH "NAME"
+dosbox\-x \- a x86/DOS and PC98 emulator
+.SH "SYNOPSIS"
+\fB\ dosbox\-x [OPTIONS] [NAME]\fR
+.br 
+\fB\ dosbox\-x -c "\fIcommand parameter\fB" [OPTIONS] [NAME]\fR
+.br
+\fB\ dosbox\-x -set "\fIconfig option=value\fB" [OPTIONS] [NAME]\fR
+.br
+\fB\ dosbox\-x -conf \fIconfig_file.conf\fB [OPTIONS] [NAME]\fR
+
+.SH "DESCRIPTION"
+This manual page briefly documents \fBdosbox\-x\fR, an x86/DOS and PC98
+emulator.
+.LP 
+.LP 
+Options are listed below. Depending on the option, one or more may be specified.
+.LP 
+The optional \fBNAME\fR argument should be a DOS executable or a
+directory. If it is a dos executable (.com .exe .bat), the program will 
 run automatically. If it is a directory, a DOS session will run with 
 the directory specified mounted as the C:\\ drive.
-.R If the dos executable requires parameters, enclose the command and it's parameters in quotes.
-.LP
-.RI "For an introduction type " INTRO 
-.RB "inside " dosbox-x .
-.SH OPTIONS
+If the dos executable requires parameters, enclose the command and 
+it's parameters in quotes.
+.LP 
+For an introduction type \fIINTRO\fR inside dosbox\-x.
+.SH "OPTIONS"
 A summary of available options.
-.TP
-.BR \-? " or " \-h " or " \-help
-.R "Display the help screen and exit."
-.TP
-.BR \-v " or " \-ver " or " \-version
-.R "Display the version information and exit."
-.TP
-.BR \-fullscreen " or " \-fs
-.RB "Start " dosbox-x " in fullscreen mode."
-.TP
-.BI \-conf " configfile"
-.RB "Start " dosbox-x " with the options specified in "
-.IR configfile ". This file has also has a section called "
-.BR [autoexec] " in which you can put commands you "
-.R wish to execute on startup. Multiple
-.BI \-conf "
-options with
-.IR configfiles " can be specified."
-.TP
-.BI "\-editconf ["editor ]
-.R Open the default configuration file in a text editor. If no editor name
+.PP 
+\fB\-? \fRor \fB\-h \fRor \fB\-help\fR
+.RS
+Display the help screen and exit.
+.RE
+\fB\-v \fR or\fB\-ver \fRor \fB\-version\fR
+.RS
+Display the version information and exit.
+.RE
+\fB\-fullscreen \fRor\fB \-fs\fR
+.RS
+Start dosbox\-x in fullscreen mode.
+.RE
+\fB\-conf \fIconfigfile\fR
+.RS
+Start \fBdosbox\-x\fR with the options specified in
+\fIconfigfile\fR. This file has also has a section called
+\fI[autoexec]\fR\ in which you can put commands you wish to execute on startup.
+Multiple \fB\-conf\fR options with \fIconfigfiles\fR can be specified and
+they will be overlayed on each other.
+.RE
+\fB\-editconf\fI[editor]\fR
+.RS
+Open the default configuration file in a text editor. If no editor name
 is given, then use the program from the EDITOR environment variable.
-.TP
-.B \-userconf
-Load the configuration file located in ~/.config/dosbox-x. Can be combined with
-.RB "the " \-conf " option." 
-.TP
-.B \-printconf
+.RE
+\fB\-userconf\fR
+.RS
+Load the configuration file located in ~/.config/dosbox\-x. Can be combined with
+the \fB\-conf \fRoption.
+.RE
+\fB\-printconf\fR
+.RS
 Prints the location of the default configuration file and exit.
-.TP
-.B \-eraseconf, \-resetconf
+.RE
+\fB\-eraseconf, \-resetconf\fR
+.RS
 Removes the default configuration file and exit.
-.TP
-.B \-erasemapper, \-resetmapper
-Removes the mapperfile configured in the clean default configuration file and exit.
-.TP
-.BI \-opencaptures " program"
-.RI "Calls " program " with as first parameter the location of the captures folder and exit."
-.TP
-.BI \-opensaves " program"
-.RI "Calls " program " with as first parameter the location of the saves folder and exit."
-.TP
-.BR \-startui " or " \-startgui " or " \-starttool
-.R Start DOSBox-X with GUI configuration tool.
-.TP
-.B \-startmapper
-.RB "Start the internal keymapper on startup of " dosbox-x ". You can use it to change the keys " dosbox-x " uses."
-.TP
-.BR \-nogui " or " \-nomenu
-.R Do not show the GUI menu bar when in windowed mode.
-.TP
-.B \-showcycles
-.R Show cycles count (FPS) in the title.
-.TP
-.B \-showrt
-.R Show emulation speed relative to realtime in the title.
-.TP
-.BI \-socket " socketnumber"
-.RI "Passes the socket number " socketnumber " to the nullmodem emulation. See WIKI for details."
-.TP
-.BI \-savedir " path"
-.R Set path for the save slots.
-.TP
-.BI \-defaultdir " path"
-.R Set the default working path for DOSBox-X.
-.TP
-.B \-defaultconf
-.R Use the default config settings for DOSBox-X.
-.TP
-.B \-defaultmapper
-.R Use the default key mappings for DOSBox-X.
-.TP
-.B \-data-host-forced
-.R Force synchronization of date and time with the host.
-.TP
-.BI \-lang " langfile"
-.RB "Start " dosbox-x " with the language specified in "
-.IR langfile .
-.TP
-.B \-nodpiaware
-.R Ignore (do not signal) Windows DPI awareness.
-.TP
-.B \-securemode
-.R Enable secure mode, which is meant to prevent a DOS program potentially gaining access to
-files outside directories mounted in the [autoexec] section of the config file. It does this
-.R by running
-.B Z:\\\CONFIG.COM \-securemode
-.R after completing the [autoexec] section
-.R (which in turn disables any changes to how the drives are mounted 
-.RB "inside " dosbox ).
-.RB "It also disables various other "CONFIG.COM
-.R options that could be exploited.
-.TP
-.B \-noconfig
+.RE
+\fB\-erasemapper, \-resetmapper\fR
+.RS
+Removes the mapperfile configured in the clean default configuration file and
+exit.
+.RE
+\fB\-opencaptures \fIprogram\fR
+.RS
+Calls \fIprogram\fR with as first parameter the location of the captures
+folder and exit.
+.RE
+\fB\-opensaves \fIprogram\fR
+.RS
+Calls \fIprogram\fR with as first parameter the location of the saves folder
+and exit.
+.RE
+\fB\-startui\fR or \fB\-startgui\fR or \fB\-starttool\fR
+.RS
+Start DOSBox\-X with GUI configuration tool.
+.RE
+\fB\-startmapper\fR
+.RS
+Start the internal keymapper on startup of dosbox\-x. You can use it to change
+the keys dosbox\-x uses.
+.RE
+\fB\-promptfolder\fR
+.RS
+Prompt for the working directory when DOSBox\-X starts.
+.RE
+\fB\-nopromptfolder\fR
+.RS
+Do not prompt for the working directory when DOSBox\-X starts.
+.RE
+\fB\-nogui\fR or \fB\-nomenu\fR
+.RS
+Do not show the GUI menu bar when in windowed mode.
+.RE
+\fB\-showcycles\fR
+.RS
+Show cycles count (FPS) in the title.
+.RE
+\fB\-showrt\fR
+.RS
+Show emulation speed relative to realtime in the title.
+.RE
+\fB\-socket\fI socketnumber\fR
+.RS
+Passes the TCP socket number \fIsocketnumber\fR to the nullmodem emulation.
+See WIKI for details.
+.RE
+\fB\-savedir \fIpath\fR
+.RS
+Set path for the save slots.
+.RE
+\fB\-defaultdir \fIpath\fR
+.RS
+Set the default working path for DOSBox\-X.
+.RE
+\fB\-defaultconf\fR
+.RS
+Use the default config settings for DOSBox\-X.
+.RE
+\fB\-defaultmapper\fR
+.RS
+Use the default key mappings for DOSBox\-X.
+.RE
+\fB\-data\-host\-forced\fR
+.RS
+Force synchronization of date and time with the host.
+.RE
+\fB\-display2 \fIcolor\fR
+.RS
+Enable standard & monochrome dual\-screen mode with \fIcolor\fR.
+.RE
+\fB\-lang \fImessage_file\fR
+.RS
+Start dosbox\-x with the language specified in \fImessage_file\fR.
+.RE
+\fB\-nodpiaware\fR
+.RS
+Ignore (do not signal) Windows DPI awareness.
+.RE
+\fB\-securemode\fR
+.RS
+Enable secure mode, which is meant to prevent a DOS program potentially gaining
+access to files outside directories mounted in the [autoexec] section of the
+config file. It does this by running \fBZ:\\SYSTEM\\CONFIG.COM \-securemode\fR
+after completing the [autoexec] section (which in turn disables any changes to
+how the drives are mounted "inside" dosbox). It also disables various other
+CONFIG.COM options that could be exploited.
+.RE
+\fB\-prerun\fR
+.RS
+If \fBname\fR is given, run it before the AUTOEXEC.B AT config section
+.RE
+\fB\-hostrun\fR
+.RS
+Enable START command, CLIP$ device and long filename support
+.RE
+\fB\-noconfig\fR
+.RS
 Skips the [config] section of the loaded configuration file. This is equivalent to CONFIG.SYS in DOS.
-.TP
-.B \-noautoexec
-Skips the [autoexec] section of the loaded configuration file. This is equivalent to AUTOEXEC.BAT in DOS.
-.TP
-.B \-exit
-.BR "dosbox-x" " will close itself when the DOS program specified by "NAME " ends."
-.TP
-.B \-silent
-.R Run DOSBox-X silently and exit after executing the [autoexec] section of the loaded config file.
-.TP
-.BI \-c  " command" 
-.RI "Runs the specified " command " before running " 
-.BR NAME . 
-.RI "Multiple commands can be specified. Each " command " should start with "
-.BR \-c " though. A command can be:"
-an Internal Program, a DOS command or an executable on a mounted drive.
-.R If the command requires parameters, enclose the command and it's parameters in quotes.
-.TP
-.BI \-set " section property=value"
-.R Set the config option (override any config file). If the property contains spaces, ensure to enclose the string in quotes.
-.R The section is the name of a dosbox-x config section such as [video] without the brackets.
-.RB "Multiple "\-set " commands may be specified."
-.R If a property is unique, the section may be ommitted. e.g.
-.B \-set dosbox machine=hercules
-.R is equivalent to
-.B \-set machine=hercules
-.TP
-.BI \-time-limit " n"
-.RI "Kill the emulator after "'n' " seconds."
-.TP
-.B \-fastlaunch
-.R Fast launch mode (skip the BIOS logo and welcome banner).
-.TP
-.B \-helpdebug
-.R Show debug-related options and exit.
-.TP
-.BI \-scaler " scaler"
-.RI "Uses the graphical scaler specified by " scaler ". See the configuration"
-file for the available scalers
-.TP
-.BI \-forcescaler " scaler"
-.RB "Similar to the " \-scaler " parameter, but tries to force usage of"
-the specified scaler even if it might not fit.
-
+.RE
+\fB\-noautoexec\fR
+.RS
+Skips the [autoexec] section of the loaded configuration file. This is equivalent to AUTOEXEC.B AT in DOS.
+.RE
+\fB\-exit\fR
+.RS
+dosbox\-x will close itself when the DOS program specified by \fBNAME\fR ends.
+.RE
+\fB\-silent\fR
+.RS
+Run DOSBox\-X silently and exit after executing the [autoexec] section of the loaded config file.
+.RE
+\fB\-c  \fIcommand\fR
+.RS
+Runs the specified \fIcommand \fRbefore running \fBNAME\fR. Multiple
+commands can be specified. Each \fIcommand\fR should start with \fB\-c\fR
+though. A command can be an Internal Program, a DOS command or an executable on
+a mounted drive. If the command requires parameters, enclose the command and
+its parameters in quotes.
+.RE
+\fB\-set \fIsection property=value\fR
+.RS
+Set the config option (override any config file). If the property contains
+spaces, ensure to enclose the string in quotes. The section is the name of a
+dosbox\-x config section such as [video] without the brackets. Multiple \fB\-set 
+\fR commands may be specified. If a property is unique, the section may be
+ommitted. e.g. \fB\-set dosbox machine=hercules\fR is equivalent to
+\fB\-set machine=hercules\fR
+.RE
+\fB\-time\-limit\fIn\fR
+.RS
+Kill the emulator after\fI\'n'\fR seconds.
+.RE
+\fB\-fastlaunch\fR
+.RS
+Fast launch mode (skip the BIOS logo and welcome banner).
+.RE
+\fB\-helpdebug\fR
+.RS
+Show debug\-related options and exit.
+.RE
+\fB\-scaler \fIscaler\fR
+.RS
+Uses the graphical scaler specified by \fIscaler\fR. See the configuration
+file for the available scalers.
+.RE
+\fB\-forcescaler \fIscaler\fR
+.RS
+Similar to the \fB\-scaler\fR parameter, but tries to force usage of the
+specified scaler even if it might not fit.
+.RE
 .SH "INTERNAL COMMAND.COM COMMANDS"
-.B dosbox-x
-Supports most of the internal DOS commands found in COMMAND.COM. Help text is integrated for these commands in DOSBox-X, and will not be duplicated here.
-An explanation of these commands can also be found on the DOSBox-X wiki on the Supported Commands page.
+.B dosbox\-x
+Supports most of the internal DOS commands found in COMMAND.COM. Help text is integrated for these commands in DOSBox\-X, and will not be duplicated here.
+An explanation of these commands can also be found on the DOSBox\-X wiki on the Supported Commands page.
 .TP
 .RS
-.IP "- ALIAS, ATTRIB, BREAK, CALL, CD/CDDIR, CHCP, CHOICE, CLS, COPY"
-.IP "- COUNTRY, CTTY, DATE, DEL/ERASE, DELTREE, ECHO, EXIT, DIR, FOR"
-.IP "- GOTO, HELP, IF, LFNFOR, LH/LOADHIGH, MD/MKDIR, MORE, PATH"
-.IP "- PAUSE, PROMPT, RD/RMDIR, REM, REN/RENAME, SET, SHIFT, SUBST"
-.IP "- TIME, TRUENAME, TYPE, VER, VERIFY, VOL"
+.IP "\- ALIAS, ATTRIB, BREAK, CALL, CD/CDDIR, CHCP, CHOICE, CLS, COPY"
+.IP "\- COUNTRY, CTTY, DATE, DEL/ERASE, DELTREE, ECHO, EXIT, DIR, FOR"
+.IP "\- GOTO, HELP, IF, LFNFOR, LH/LOADHIGH, MD/MKDIR, MORE, PATH"
+.IP "\- PAUSE, PROMPT, RD/RMDIR, REM, REN/RENAME, SET, SHIFT, SUBST"
+.IP "\- TIME, TRUENAME, TYPE, VER, VERIFY, VOL"
 .RE
 
 .SH "OTHER INTERNAL COMMANDS"
-These are internal DOSBox-X commands that are are not part of DOS. They are documented on the DOSBox-X wiki on the Supported Commands page.
+These are internal DOSBox\-X commands that are are not part of DOS. They are documented on the DOSBox\-X wiki on the Supported Commands page.
 .TP
 .RS
-.IP "- DEBUGBOX (only on debug enabled builds)"
-.IP "- DX-CAPTURE"
+.IP "\- DEBUGBOX (only on debug enabled builds)"
+.IP "\- DX\-CAPTURE"
 .RE
 
 .SH "EXTERNAL DOS COMMANDS"
 These are external DOS commands located on the emulated Z:\ drive.
-.TP
+.TP 
 .RS
-.IP "- APPEND, BUFFERS, COMMAND, DEBUG, DEVICE, EDIT, FCBS, FIND"
-.IP "- KEYB, LABEL, LASTDRIV, LOADFIX, MEM, MODE, MOVE, SORT"
-.IP "- TREE, XCOPY
+.IP "\- APPEND, BUFFERS, COMMAND, DEBUG, DEVICE, EDIT, FCBS, FIND, FORMAT"
+.IP "\- KEYB, LABEL, LASTDRIV, LOADFIX, MEM, MODE, MOVE, SORT"
+.IP "\- TREE, XCOPY
 .RE
 
 .SH "OTHER EXTERNAL COMMANDS"
 In addition, the following extra commands are available on the emulated Z:\ drive:
 .TP
 .RS
-.IP "- 25, 28, 50, 4DOS, A20GATE, ADDKEY, AUTOTYPE, BOOT, CAPMOUSE"
-.IP "- CDPLAY, CFGTOOL, CONFIG, CWSDPMI, DOS32A, DOS4GW, DOSIDLE"
-.IP "- DOSMID, DSXMENU, FLAGSAVE, HEXMEM16, HEXMEM32, IMGMAKE"
-.IP "- IMGMOUNT, INTRO, LOADROM, LS, MIXER, MOUNT, MOUSE, MPXPLAY"
-.IP "- RE-DOS, RESCAN, SETCOLOR, START, VESAMOED, VFRCRATE
+.IP "\- 25, 28, 50, 4DOS, A20GATE, ADDKEY, AUTOTYPE, BOOT, CAPMOUSE"
+.IP "\- CDPLAY, CFGTOOL, CONFIG, CWSDPMI, DOS32A, DOS4GW, DOSIDLE"
+.IP "\- DOSMID, DSXMENU, FLAGSAVE, HEXMEM16, HEXMEM32, IMGMAKE"
+.IP "\- IMGMOUNT, INTRO, LOADROM, LS, MIXER, MOUNT, MOUSE, MPXPLAY"
+.IP "\- RE\-DOS, RESCAN, SETCOLOR, START, VESAMOED, VFRCRATE
 .RE
 
 The following external commands are only available on debug enabled builds:
 .TP
 .RS
-.IP "- BIOSTEST, NMITEST, INT2FDBG"
+.IP "\- BIOSTEST, NMITEST, INT2FDBG"
 .RE
 
 .SH "SPECIAL KEYS"
-.TP 12m
+.TP 14m
+.IP CTRL\-F7
+CGA emulation only \- Switch between early and late model IBM CGA emulation.
+.IP CTRL\-F8
+CGA emulation only \- Switch beteen Auto, RGBI and Composite monitor output
+emulation.
+.IP CTRL\-SHIFT\-F7
+CGA emulation only \- Decrease Hue
+.IP CTRL\-SHIFT\-F8
+CGA emulation only \- Increase Hue
+.IP CTRL\-F7
+CGA Mono and Hercules emulation only \- Cycle between Green, Amber, White and Grey
+.IP CTRL\-F8
+CGA Mono and Hercules emulation only \- Cycle between low and high bightness
 .IP F12\-F
 Switch between fullscreen and window mode.
-.IP F12-R
-Reset the virtual machine inside DOSBox-X
-.IP F12-B
-Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
-.IP F12-C
-Start DOSBox-X’s graphical configuration tool.
-.IP F12-M
-Start DOSBox-X’s mapper editor.
-.IP F12-Esc
-Show/hide DOSBox-X’s drop-down menu bar.
-.IP F12-Del
+.IP F12\-R
+Reset the virtual machine inside DOSBox\-X
+.IP F12\-B
+Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox\-X.
+.IP F12\-C
+Start DOSBox\-X’s graphical configuration tool.
+.IP F12\-M
+Start DOSBox\-X’s mapper editor.
+.IP F12\-Esc
+Show/hide DOSBox\-X’s drop\-down menu bar.
+.IP F12\-Del
 Send the selected special key combination (Ctrl+Alt+Del by default) to the guest system.
-.IP F12-{+}
-Increase the sound volume of DOSBox-X’s emulated DOS.
-.IP F12-{-}
-Decrease the sound volume of DOSBox-X’s emulated DOS.
-.IP F12-]
-Increase the emulated DOS’s current speed relative to real-time.
-.IP F12-[
-Decrease the emulated DOS’s current speed relative to real-time.
-.IP F12-{=}
-Increase DOSBox-X’s emulation CPU cycles.
-.IP F12-{-}
-Decrease DOSBox-X’s emulation CPU cycles.
-.IP F12-Up
+.IP F12\-{+}
+Increase the sound volume of DOSBox\-X’s emulated DOS.
+.IP F12\-{\-}
+Decrease the sound volume of DOSBox\-X’s emulated DOS.
+.IP F12\-]
+Increase the emulated DOS’s current speed relative to real\-time.
+.IP F12\-[
+Decrease the emulated DOS’s current speed relative to real\-time.
+.IP F12\-{=}
+Increase DOSBox\-X’s emulation CPU cycles.
+.IP F12\-{\-}
+Decrease DOSBox\-X’s emulation CPU cycles.
+.IP F12\-Up
 Increase the font size for the TrueType font (TTF) output.
-.IP F12-Down
+.IP F12\-Down
 Decrease the font size for the TrueType font (TTF) output.
-.IP F12-Left
+.IP F12\-Left
 Reset the emulated DOS’s current CPU speed to the normal speed.
-.IP F12-Right
-Toggle DOSBox-X’s speed lock.
-.IP F12-D
+.IP F12\-Right
+Toggle DOSBox\-X’s speed lock.
+.IP F12\-D
 Swap between mounted CD images.
-.IP F12-O
+.IP F12\-O
 Swap between mounted floppy images.
-.IP F12-P
+.IP F12\-P
 Take a screenshot of the current screen in PNG format.
-.IP F12-I
+.IP F12\-I
 Start/Stop capturing an AVI video of the current session.
-.IP F12-W
+.IP F12\-W
 Start/Stop recording a WAV audio of the current session.
 Alt+Pause
-Start DOSBox-X’s Debugger.
-.IP F12-[,]
+Start DOSBox\-X’s Debugger.
+.IP F12\-[,]
 Select the previous save slot to save to or load from.
-.IP F12-[.]
+.IP F12\-[.]
 Select the next save slot to save to or load from.
-.IP F12-S
+.IP F12\-S
 Save current state to the selected save slot.
-.IP F12-L
+.IP F12\-L
 Load the state from the selected save slot.
-.IP F12-Pause
+.IP F12\-Pause
 Pause emulation (press again to continue).
 .IP Ctrl+F5
 Copy all text on the DOS screen to the host clipboard.
 .IP Ctrl+F6
 Paste the text in the host clipboard to the DOS screen.
 .IP Ctrl+F9
-Exit DOSBox-X.
+Exit DOSBox\-X.
 .IP Ctrl+F10
 Capture the mouse for use with the emulated DOS.
 .PP
 These are the default keybindings. They can be changed in the keymapper.
 .PP
 Saved/recorded files can be found in current_directory/capture
-(can be changed in the configfile).
-.RB "The directory has to exist prior to starting " dosbox-x " else nothing"
-gets saved/recorded !
+(can be changed in the configfile). The directory has to exist prior to starting
+dosbox\-x else nothing gets saved or recorded!
 .PP
-.BR "Note: " "Once you increase your " dosbox-x " cycles beyond your computer's maximum
-capacity, it will produce the same effect as slowing down the emulation.
+\fBNote:\fR Once you increase your dosbox\-x cycles beyond your computer's
+maximum capacity, it will produce the same effect as slowing down the emulation.
 This maximum will vary from computer to computer, there is no standard.
-
-.SH ENVIRONMENT
+.SH "ENVIRONMENT"
 Any configuration option can be overridden using an environment variable.
-.RB "Environment variables starting with prefix " DOSBOX " are processed and
+Environment variables starting with prefix \fBDOSBOX\fR are processed and
 interpreted as follows:
-.B DOSBOX_SECTIONNAME_PROPERTYNAME=value
+\fBDOSBOX_SECTIONNAME_PROPERTYNAME=value\fR
 .PP
-.R For example, you can override render aspect this way:
+For example, you can override the render aspect this way:
 .PP
-.B $ DOSBOX_RENDER_ASPECT=false dosbox-x
-.SH BUGS
-.RI "To report a bug, please visit " https://github.com/joncampbell123/dosbox-x/issues
-
+\fB$ DOSBOX_RENDER_ASPECT=false dosbox\-x\fR
+.SH "BUGS"
+To report a bug, please visit \fIhttps://github.com/joncampbell123/dosbox\-x/issues\fR
 .SH "SEE ALSO"
-You can find a wiki dedicated to DOSBox-X at https://dosbox-x.com/wiki
-
-.SH AUTHOR
-.RI "DOSBox-X project is maintained by the DOSBox-X Team (" https://dosbox-x.com/ ")
-
-This manual page was originally written by Peter Veenstra <H.P.Veenstra@student.rug.nl> and James Oakley <jfunk@funktronics.ca>,
-for the Debian system (but may be used by others). Updated by the DOSBox-X team for DOSBox-X.
+You can find a wiki dedicated to DOSBox\-X at \fIhttps://dosbox\-x.com/wiki\fR
+.SH "AUTHOR"
+DOSBox\-X project is maintained by the DOSBox\-X Team (\fIhttps://dosbox\-x.com/\fR)
