@@ -13260,6 +13260,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- -- second the -conf switches from the command line */
         for (size_t si=0;si < control->config_file_list.size();si++) {
             std::string &cfg = control->config_file_list[si];
+#if defined(WIN32) && defined(C_SDL2)
+            std::string localname = cfg;
+            if (!FileDirExistCP(cfg.c_str()) && FileDirExistUTF8(localname, cfg.c_str())) cfg = localname;
+#endif
             if (!control->ParseConfigFile(cfg.c_str())) {
                 // try to load it from the user directory
                 if (!control->ParseConfigFile((config_path + cfg).c_str())) {

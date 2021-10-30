@@ -831,15 +831,13 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
 #else
     return 0;
 #endif
-    if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {dos.loaded_codepage = cp;return 0;}
-    if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_ltemp, (char *)cpcnv_temp)) {dos.loaded_codepage = cp;return 0;}
+    if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {
+        dos.loaded_codepage = cp;
+        return 0;
+    }
     dos.loaded_codepage = cp;
-    ht_stat_t st;
-    if (cpcnv_ltemp == NULL || ht_stat(cpcnv_ltemp, &st)) return 0;
     localname = (char *)cpcnv_temp;
-    if ((st.st_mode & S_IFREG) == S_IFREG) return 1;
-    else if (st.st_mode & S_IFDIR) return 2;
-    return 0;
+    return FileDirExistCP(localname.c_str());
 }
 
 extern uint16_t fztime, fzdate;
