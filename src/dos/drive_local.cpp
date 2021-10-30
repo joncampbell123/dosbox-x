@@ -816,10 +816,27 @@ char *CodePageHostToGuestL(const host_cnv_char_t *s) {
     return (char*)cpcnv_ltemp;
 }
 
-int FileDirExist(const char *name) {
+int FileDirExistCP(const char *name) {
+    struct stat st;
+    if (stat(name, &st)) return 0;
+    if ((st.st_mode & S_IFREG) == S_IFREG) return 1;
+    else if (st.st_mode & S_IFDIR) return 2;
+    return 0;
+}
+
+int FileDirExistUTF8(std::string &localname, const char *name) {
+    int cp = dos.loaded_codepage;
+#ifdef WIN32
+    dos.loaded_codepage = GetOEMCP();
+#else
+    return 0;
+#endif
+    if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {dos.loaded_codepage = cp;return 0;}
+    if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_ltemp, (char *)cpcnv_temp)) {dos.loaded_codepage = cp;return 0;}
+    dos.loaded_codepage = cp;
     ht_stat_t st;
-    host_cnv_char_t *host_name = CodePageGuestToHost(name);
-    if (host_name == NULL || ht_stat(host_name, &st)) return 0;
+    if (cpcnv_ltemp == NULL || ht_stat(cpcnv_ltemp, &st)) return 0;
+    localname = (char *)cpcnv_temp;
     if ((st.st_mode & S_IFREG) == S_IFREG) return 1;
     else if (st.st_mode & S_IFDIR) return 2;
     return 0;

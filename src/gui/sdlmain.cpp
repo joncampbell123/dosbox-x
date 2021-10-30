@@ -310,6 +310,7 @@ ScreenSizeInfo screen_size_info;
 void RebootLanguage(std::string filename, bool confirm=false);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
 static std::string ime_text = "";
@@ -9950,19 +9951,22 @@ bool DOSBOX_parse_argv() {
     while (!control->cmdline->CurrentArgvEnd()) {
         control->cmdline->GetCurrentArgv(tmp);
         trim(tmp);
-        {
-            struct stat st;
-            const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
-            if (stat(tmp.c_str(), &st) == 0) {
-                if (st.st_mode & S_IFDIR || (ext != NULL && S_ISREG(st.st_mode) && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
-                    control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
-                    control->cmdline->EatCurrentArgv();
-                    continue;
-                } else if (ext != NULL && S_ISREG(st.st_mode) && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
-                    control->auto_bat_additional.push_back(tmp);
-                    control->cmdline->EatCurrentArgv();
-                    continue;
-                }
+        std::string localname = tmp;
+        int rescp = FileDirExistCP(tmp.c_str()), resutf8 = rescp||!tmp.size()?0:FileDirExistUTF8(localname, tmp.c_str());
+        if (!rescp && resutf8) {
+            tmp = localname;
+            rescp = resutf8;
+        }
+        const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
+        if (rescp) {
+            if (rescp == 2 || (ext != NULL && rescp == 1 && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
+                control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
+                control->cmdline->EatCurrentArgv();
+                continue;
+            } else if (ext != NULL && rescp == 1 && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
+                control->auto_bat_additional.push_back(tmp);
+                control->cmdline->EatCurrentArgv();
+                continue;
             }
         }
 
