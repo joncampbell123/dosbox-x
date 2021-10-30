@@ -1471,7 +1471,7 @@ void BIOS_SetupKeyboard(void) {
 	phys_writeb(a+6,0x1e);		/* push ds */
 	phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
 	phys_writew(a+9,0x0040);	/* <---------' */
-	phys_writew(a+11,0xD88E);	/* mov ax,ds */
+	phys_writew(a+11,0xD88E);	/* mov ds,ax */
 	phys_writew(a+13,0x60E4);	/* in al,60h */
 	phys_writew(a+15,0x09CD);	/* int 9h */
 	phys_writeb(a+17,0x1f);		/* pop ds */
