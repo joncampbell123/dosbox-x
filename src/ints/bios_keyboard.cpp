@@ -1464,18 +1464,19 @@ void BIOS_SetupKeyboard(void) {
 
         /* TODO: PCjr calls INT 48h to convert PCjr scan codes to IBM PC/XT compatible */
 
-        a = ((a >> 16) << 4) + (a & 0xFFFF);
-        /* a+0 = callback instruction (4 bytes)
-         * a+4 = iret (1 bytes) */
-        phys_writeb(a+5,0x50);          /* push ax */
-        phys_writew(a+6,0x60E4);        /* in al,60h */
-        phys_writeb(a+8,0x1e);          /* push ds */
-        phys_writew(a+9,0x406a);        /* push 0x0040 */
-        phys_writeb(a+11,0x1f);         /* pop ds */
-        phys_writew(a+12,0x09CD);       /* int 9h */
-        phys_writeb(a+14,0x1f);         /* pop ds */
-        phys_writeb(a+15,0x58);         /* pop ax */
-        phys_writew(a+16,0x00EB + ((256-18)<<8));    /* jmp a+0 */
+	a = ((a >> 16) << 4) + (a & 0xFFFF);
+	/* a+0 = callback instruction (4 bytes)
+	 * a+4 = iret (1 bytes) */
+	phys_writeb(a+5,0x50);		/* push ax */
+	phys_writeb(a+6,0x1e);		/* push ds */
+	phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
+	phys_writew(a+9,0x0040);	/* <---------' */
+	phys_writew(a+11,0xD88E);	/* mov ax,ds */
+	phys_writew(a+13,0x60E4);	/* in al,60h */
+	phys_writew(a+15,0x09CD);	/* int 9h */
+	phys_writeb(a+17,0x1f);		/* pop ds */
+	phys_writeb(a+18,0x58);		/* pop ax */
+	phys_writew(a+19,0x00EB + ((256-21)<<8)); /* jmp a+0 */
     }
 
     if (IS_PC98_ARCH) {
