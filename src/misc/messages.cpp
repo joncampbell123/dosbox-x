@@ -289,6 +289,18 @@ void MSG_Init() {
 	if (control->opt_lang != "") {
 		LoadMessageFile(control->opt_lang.c_str());
 		SetVal("dosbox", "language", control->opt_lang.c_str());
+        if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage)) {
+            Section_prop *sec = static_cast<Section_prop *>(control->GetSection("config"));
+            char cstr[20];
+            cstr[0] = 0;
+            if (sec!=NULL) {
+                char *countrystr = (char *)sec->Get_string("country"), *r=strchr(countrystr, ',');
+                if (r!=NULL) *r=0;
+                if (strlen(countrystr)>10) countrystr[0] = 0;
+                sprintf(cstr, "%s,%d", countrystr, msgcodepage);
+                SetVal("config", "country", cstr);
+            }
+        }
 	}
 	else {
 		Prop_path* pathprop = section->Get_path("language");
