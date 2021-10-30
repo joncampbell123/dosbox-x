@@ -1,4 +1,7 @@
 0.83.19
+  - Fix IDIV instruction incorrectly raising a divide
+    error exception for some borderline values. Fixes
+    Microsoft Flight Simulator. (Allofich)
   - Fix horizontal lines in the debugger window being
     rendered as unrelated characters in some code
     pages. (Allofich)
