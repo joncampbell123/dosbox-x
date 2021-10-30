@@ -50,6 +50,9 @@
     zhì yì zhī yōugǔ chuánqí) which appear to assume
     some of these fixed BIOS addresses and will
     crash if they are wrong.
+  - Added tool EMSMAGIC.COM as alternative EMS manager,
+    which can be dynamically installed or uninstalled
+    with the setting ems=false. (Wengier)
   - If a program is provided in the command-line when
     launching DOSBox-X, it will now be executed after
     any commands in the [autoexec] section by default.

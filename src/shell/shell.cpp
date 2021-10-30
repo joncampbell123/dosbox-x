@@ -1722,6 +1722,7 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EMSMAGIC_COM, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");

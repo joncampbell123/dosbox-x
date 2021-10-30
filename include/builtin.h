@@ -7,6 +7,7 @@
 #include "../src/builtin/mpxplay.h"
 #include "../src/builtin/ne2000.h"
 #include "../src/builtin/glide2x.h"
+#include "../src/builtin/emsmagic.h"
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
 
@@ -16,22 +17,22 @@ extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC98;		// DSXMENU.EXE
 extern struct BuiltinFileBlob bfb_CWSDPMI_EXE;		// CWSDPMI.EXE
 extern struct BuiltinFileBlob bfb_DOS32A_EXE;		// DOS32A.EXE
 extern struct BuiltinFileBlob bfb_DOS4GW_EXE;		// DOS4GW.EXE
+extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 extern struct BuiltinFileBlob bfb_HEXMEM16_EXE;		// HEXMEM16.EXE
 extern struct BuiltinFileBlob bfb_HEXMEM32_EXE;		// HEXMEM32.EXE
-extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE
 extern struct BuiltinFileBlob bfb_REPLACE_EXE;		// REPLACE.EXE
-extern struct BuiltinFileBlob bfb_SORT_EXE;		// SORT.EXE
-extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE
-extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE
-extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE
-extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
-extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
-extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
-extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE
-extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE
-extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM
+extern struct BuiltinFileBlob bfb_SORT_EXE;		// SORT.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
+extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
+extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
 extern struct BuiltinFileBlob bfb_COPY_EXE;		// COPY.EXE
 extern struct BuiltinFileBlob bfb_EVAL_EXE;		// EVAL.EXE
 extern struct BuiltinFileBlob bfb_EVAL_HLP;		// EVAL.HLP
@@ -66,6 +67,7 @@ extern struct BuiltinFileBlob bfb_132X60_COM;	// 132X60.COM
 extern struct BuiltinFileBlob bfb_132X50_COM;	// 132X50.COM
 extern struct BuiltinFileBlob bfb_132X43_COM;	// 132X43.COM
 extern struct BuiltinFileBlob bfb_132X25_COM;	// 132X25.COM
+extern struct BuiltinFileBlob bfb_EMSMAGIC_COM;	// EMSMAGIC.COM
 extern struct BuiltinFileBlob bfb_DEFRAG_EXE;	// DEFRAG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
