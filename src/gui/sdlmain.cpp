@@ -9628,8 +9628,7 @@ void DOSBox_ConsolePauseWait() {
 
 bool usecfgdir = false;
 bool DOSBOX_parse_argv() {
-    std::string optname,tmp;
-    std::string disp2_opt;
+    std::string tmp,optname,localname;
 
     assert(control != NULL);
     assert(control->cmdline != NULL);
@@ -9830,14 +9829,22 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "savedir") {
             if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+#if defined(WIN32) && defined(C_SDL2)
+            localname = custom_savedir;
+            if (!FileDirExistCP(custom_savedir.c_str()) && FileDirExistUTF8(localname, custom_savedir.c_str()) == 2)
+                custom_savedir = localname;
+#endif
         }
         else if (optname == "defaultdir") {
             control->opt_used_defaultdir = true;
             if (control->cmdline->NextOptArgv(tmp)) {
-                struct stat st;
-                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
-                    if (chdir(tmp.c_str()) == -1)
-                        return false;
+                localname = tmp;
+                if (FileDirExistCP(tmp.c_str()) == 2)
+                    chdir(tmp.c_str());
+#if defined(WIN32) && defined(C_SDL2)
+                else if (FileDirExistUTF8(localname, tmp.c_str()) == 2)
+                    chdir(localname.c_str());
+#endif
             } else
                 usecfgdir = true;
         }
@@ -9951,7 +9958,7 @@ bool DOSBOX_parse_argv() {
     while (!control->cmdline->CurrentArgvEnd()) {
         control->cmdline->GetCurrentArgv(tmp);
         trim(tmp);
-        std::string localname = tmp;
+        localname = tmp;
         int rescp = FileDirExistCP(tmp.c_str()), resutf8 = rescp||!tmp.size()?0:FileDirExistUTF8(localname, tmp.c_str());
         if (!rescp && resutf8) {
             tmp = localname;
