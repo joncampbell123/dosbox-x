@@ -1,21 +1,7 @@
 0.83.19
-  - Modify exception handling so that for cputype=8086
-    the return address for an exception handler points
-    at instruction after fault location.
-  - Use 0x1E to 0x3E for the keyboard buffer of the CGA
-    machine. Fixes the controls locking up in the PC booter
-    version of Apple Panic. (Allofich)
-  - Fix PCjr NMI handler to use 8086-level instructions
-    when loading DS with segment 0x0040 so that it
-    works properly with cputype=8086.
-  - Fix PCjr NMI handler to load DS with segment 0x0040.
-    Fixes crashes in SHAMUS. (Allofich)
-  - Fix IDIV instruction incorrectly raising a divide
-    error exception for some borderline values. Fixes
-    Microsoft Flight Simulator. (Allofich)
-  - Fix horizontal lines in the debugger window being
-    rendered as unrelated characters in some code
-    pages. (Allofich)
+  - Reorganized the "List network interfaces" and "List
+    printer devices" dialogs (under the "Help" menu) to
+    allow the use of scroll bars. (Wengier)
   - Added menu option "Reset TTF color scheme" to reset
     the current color scheme for TTF output. (Wengier)
   - Added config option "righttoleft" in [TTF] section
@@ -51,15 +37,32 @@
     current lines/columns instead of usage. (Wengier)
   - INTVEC debugger command now correctly outputs
     addresses when in protected mode. (Allofich)
+  - Fix horizontal lines in the debugger window being
+    rendered as unrelated characters in some code
+    pages. (Allofich)
   - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
     does. Fixes missing music in "聊齋誌異之幽谷傳奇"
     (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
+  - Use 0x1E to 0x3E for the keyboard buffer of the CGA
+    machine, which fixes the controls locking up in the
+    PC booter version of Apple Panic. (Allofich)
   - Allowed machine types "pcjr_composite" and
     "pcjr_composite2", similar to "cga_composite" and
     "cga_composite2", instead of having to switch the
     composite type manually. (Wengier)
   - If machine is PCjr, place PC BIOS reset code at
     F000:0043 to match that of the real BIOS.
+  - Fix PCjr NMI handler to load DS with segment 0x0040.
+    Fixes crashes in SHAMUS. (Allofich)
+  - Fix PCjr NMI handler to use 8086-level instructions
+    when loading DS with segment 0x0040 so that it
+    works properly with cputype=8086.
+  - Modify exception handling so that for cputype=8086
+    the return address for an exception handler points
+    at instruction after fault location.
+  - Fix IDIV instruction incorrectly raising a divide
+    error exception for some borderline values. Fixes
+    Microsoft Flight Simulator. (Allofich)
   - IBM PC BIOS emulation fixed to place key pieces of
     code and entry points at fixed legacy locations
     required by some older DOS games, instead of
@@ -86,9 +89,6 @@
   - Improved the menu option "Restart DOSBox-X with
     language file..." (under "Main") for switching
     between DBCS languages. (Wengier)
-  - Reorganized the "List network interfaces" and "List
-    printer devices" dialogs (under the "Help" menu) to
-    allow the use of scroll bars. (Wengier)
   - Disabled the Alt+F4 key for closing the DOSBox-X
     window in MinGW SDL2 builds. (Wengier)
   - Fixed program or config file containing Unicode
@@ -99,8 +99,9 @@
     working in the previous version. (Wengier)
   - Fixed issues after resetting the virtual machine
     when using DBCS language files. (Wengier)
-  - Fixed some issues related to IME support for CJK
-    (Chinese/Japanese/Korean) languages. (nanshiki)
+  - Fixed some issues related to system IME support for
+    CJK (Chinese/Japanese/Korean) languages, for both
+    Windows SDL1 and SDL2 builds. (nanshiki & Wengier)
   - Fixed bugs in the region memory allocator C++ class
     that claimed the entire free block even if the
     size wanted was smaller. Added field to remember if
