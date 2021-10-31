@@ -92,9 +92,9 @@ bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
 extern int lastcp;
-extern bool inshell, mountfro[26], mountiro[26], OpenGL_using(void);
-void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), UpdateSDLDrawTexture();
+extern bool inshell, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -6700,7 +6700,9 @@ void TEXT80X25::Run()
 		 WriteOut("Changes to 80x25 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_80x25");
+    show_prompt();
 }
 
 static void TEXT80X25_ProgramStart(Program * * make) {
@@ -6718,7 +6720,9 @@ void TEXT80X43::Run()
 		 WriteOut("Changes to 80x43 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_80x43");
+    show_prompt();
 }
 
 static void TEXT80X43_ProgramStart(Program * * make) {
@@ -6736,7 +6740,9 @@ void TEXT80X50::Run()
 		 WriteOut("Changes to 80x50 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_80x50");
+    show_prompt();
 }
 
 static void TEXT80X50_ProgramStart(Program * * make) {
@@ -6754,7 +6760,9 @@ void TEXT80X60::Run()
 		 WriteOut("Changes to 80x60 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_80x60");
+    show_prompt();
 }
 
 static void TEXT80X60_ProgramStart(Program * * make) {
@@ -6772,7 +6780,9 @@ void TEXT132X25::Run()
 		 WriteOut("Changes to 132x25 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_132x25");
+    show_prompt();
 }
 
 static void TEXT132X25_ProgramStart(Program * * make) {
@@ -6790,7 +6800,9 @@ void TEXT132X43::Run()
 		 WriteOut("Changes to 132x43 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_132x43");
+    show_prompt();
 }
 
 static void TEXT132X43_ProgramStart(Program * * make) {
@@ -6808,7 +6820,9 @@ void TEXT132X50::Run()
 		 WriteOut("Changes to 132x50 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_132x50");
+    show_prompt();
 }
 
 static void TEXT132X50_ProgramStart(Program * * make) {
@@ -6826,7 +6840,9 @@ void TEXT132X60::Run()
 		 WriteOut("Changes to 132x60 text mode.\n");
 		return;
 	}
+    clear_screen();
     setlines("line_132x60");
+    show_prompt();
 }
 
 static void TEXT132X60_ProgramStart(Program * * make) {

@@ -68,7 +68,7 @@ extern bool noremark_save_state;
 extern bool use_quick_reboot;
 extern bool force_load_state;
 extern bool force_conversion;
-extern bool pc98_force_ibm_layout;
+extern bool pc98_force_ibm_layout, clearline;
 extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
 bool tooutttf = false;
@@ -11404,11 +11404,9 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     return true;
 }
 
-bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
+bool clear_screen() {
     if (CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
-        return true;
+        return false;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
         const auto rows = (IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS):24);
         const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
@@ -11425,11 +11423,23 @@ bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
         reg_ax = oldax;
     }
-    if (!strcmp(mname, "clear_screen") && !dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
+    clearline=true;
+    return true;
+}
+
+void show_prompt() {
+    if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
         DOS_Shell temp;
         temp.exit = true;
         temp.ShowPrompt();
     }
+}
+
+bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!clear_screen()) return true;
+    show_prompt();
     return true;
 }
 
@@ -11753,16 +11763,12 @@ bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
 
 bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
-    clear_menu_callback(menu, menuitem);
+    clear_screen();
     const char *mname = menuitem->get_name().c_str();
     if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
         return true;
     if (!setlines(mname)) return true;
-    if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
-        DOS_Shell temp;
-        temp.exit = true;
-        temp.ShowPrompt();
-    }
+    show_prompt();
     return true;
 }
 
