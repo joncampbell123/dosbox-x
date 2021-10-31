@@ -32,6 +32,8 @@ using namespace std;
 bool CPU_RDMSR();
 bool CPU_WRMSR();
 
+#define PRE_EXCEPTION { }
+
 #define CPU_CORE CPU_ARCHTYPE_286
 #define CPU_Core_Prefetch_Trap_Run CPU_Core286_Prefetch_Trap_Run
 

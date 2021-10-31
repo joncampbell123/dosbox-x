@@ -29,6 +29,9 @@ using namespace std;
 
 #include <algorithm>
 
+/* 8086: Apparently exceptions like DIVIDE BY ZERO are given a return address of the next instruction */
+#define PRE_EXCEPTION SAVEIP
+
 #define CPU_CORE CPU_ARCHTYPE_8086
 #define CPU_Core_Prefetch_Trap_Run CPU_Core8086_Prefetch_Trap_Run
 

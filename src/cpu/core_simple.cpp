@@ -25,6 +25,8 @@
 #include "pic.h"
 #include "fpu.h"
 
+#define PRE_EXCEPTION { }
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 extern bool ignore_opcode_63;

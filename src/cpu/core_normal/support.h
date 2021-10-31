@@ -42,12 +42,14 @@ static INLINE int32_t Fetchds() {
 
 
 #define RUNEXCEPTION() {										\
+	PRE_EXCEPTION \
 	CPU_Exception(cpu.exception.which,cpu.exception.error);		\
 	continue;													\
 }
 
 #define EXCEPTION(blah)										\
 	{														\
+		PRE_EXCEPTION \
 		CPU_Exception(blah);								\
 		continue;											\
 	}

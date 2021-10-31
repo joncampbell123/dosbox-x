@@ -27,6 +27,8 @@
 bool CPU_RDMSR();
 bool CPU_WRMSR();
 
+#define PRE_EXCEPTION { }
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Normal
