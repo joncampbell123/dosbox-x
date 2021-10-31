@@ -1736,14 +1736,6 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
 		VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
 		VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_80X60_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_80X50_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_80X43_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_80X25_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_132X60_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_132X50_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_132X43_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_132X25_COM, "/TEXTUTIL/");
 	}
 
 	/* don't register 50 unless VGA */

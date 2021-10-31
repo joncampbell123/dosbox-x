@@ -6123,22 +6123,34 @@ static void KEYB_ProgramStart(Program * * make) {
 class MODE : public Program {
 public:
     void Run(void);
+private:
+	void PrintStatus() {
+        WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n", COLS, LINES);
+#if defined(USE_TTF)
+        if (!ttf.inUse)
+#endif
+        WriteOut("\nCode page operation not supported on this device\n");
+	}
+    int LINES = 25, COLS = 80;
 };
 
 bool setlines(const char *mname);
 void MODE::Run(void) {
     uint16_t rate=0,delay=0,cols=0,lines=0,mode;
-    if (!cmd->FindCommand(1,temp_line) || temp_line=="/?") {
+    LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+    COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+    if (!cmd->FindCommand(1,temp_line)) {
+        PrintStatus();
+        return;
+    }
+    if (temp_line=="-?" || temp_line=="/?") {
         WriteOut(MSG_Get("PROGRAM_MODE_USAGE"));
         return;
     }
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
         if (IS_PC98_ARCH) return;
-        int LINES = 25, COLS = 80;
-        LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
-        COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (cmd->GetCount()<2) {
-            WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
+            PrintStatus();
             return;
         }
         if (cmd->FindStringBegin("rate=", temp_line,false)) rate=atoi(temp_line.c_str());
@@ -6675,6 +6687,150 @@ void VTEXT::Run()
 
 static void VTEXT_ProgramStart(Program * * make) {
     *make=new VTEXT;
+}
+
+class TEXT80X25 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT80X25::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 80x25 text mode.\n");
+		return;
+	}
+    setlines("line_80x25");
+}
+
+static void TEXT80X25_ProgramStart(Program * * make) {
+    *make=new TEXT80X25;
+}
+
+class TEXT80X43 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT80X43::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 80x43 text mode.\n");
+		return;
+	}
+    setlines("line_80x43");
+}
+
+static void TEXT80X43_ProgramStart(Program * * make) {
+    *make=new TEXT80X43;
+}
+
+class TEXT80X50 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT80X50::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 80x50 text mode.\n");
+		return;
+	}
+    setlines("line_80x50");
+}
+
+static void TEXT80X50_ProgramStart(Program * * make) {
+    *make=new TEXT80X50;
+}
+
+class TEXT80X60 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT80X60::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 80x60 text mode.\n");
+		return;
+	}
+    setlines("line_80x60");
+}
+
+static void TEXT80X60_ProgramStart(Program * * make) {
+    *make=new TEXT80X60;
+}
+
+class TEXT132X25 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT132X25::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 132x25 text mode.\n");
+		return;
+	}
+    setlines("line_132x25");
+}
+
+static void TEXT132X25_ProgramStart(Program * * make) {
+    *make=new TEXT132X25;
+}
+
+class TEXT132X43 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT132X43::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 132x43 text mode.\n");
+		return;
+	}
+    setlines("line_132x43");
+}
+
+static void TEXT132X43_ProgramStart(Program * * make) {
+    *make=new TEXT132X43;
+}
+
+class TEXT132X50 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT132X50::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 132x50 text mode.\n");
+		return;
+	}
+    setlines("line_132x50");
+}
+
+static void TEXT132X50_ProgramStart(Program * * make) {
+    *make=new TEXT132X50;
+}
+
+class TEXT132X60 : public Program {
+public:
+    void Run(void);
+};
+
+void TEXT132X60::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		 WriteOut("Changes to 132x60 text mode.\n");
+		return;
+	}
+    setlines("line_132x60");
+}
+
+static void TEXT132X60_ProgramStart(Program * * make) {
+    *make=new TEXT132X60;
 }
 
 class HELP : public Program {
@@ -8018,14 +8174,20 @@ void DOS_SetupPrograms(void) {
     if (IS_VGA_ARCH && svgaCard != SVGA_None)
         PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
 
-    if (!IS_PC98_ARCH)
-        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
-
     if (!IS_PC98_ARCH) {
+        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
+		PROGRAMS_MakeFile("80X60.COM", TEXT80X60_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X50.COM", TEXT80X50_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X43.COM", TEXT80X43_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X25.COM", TEXT80X25_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X60.COM", TEXT132X60_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X50.COM", TEXT132X50_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X43.COM", TEXT132X43_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X25.COM", TEXT132X25_ProgramStart,"/TEXTUTIL/");
 	}
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");

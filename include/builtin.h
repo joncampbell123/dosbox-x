@@ -59,14 +59,6 @@ extern struct BuiltinFileBlob bfb_SCANRES_COM;	// SCANRES.COM
 extern struct BuiltinFileBlob bfb_EGA_COM;	// EGA.COM
 extern struct BuiltinFileBlob bfb_CLR_COM;	// CLR.COM
 extern struct BuiltinFileBlob bfb_CGA_COM;	// CGA.COM
-extern struct BuiltinFileBlob bfb_80X60_COM;	// 80X60.COM
-extern struct BuiltinFileBlob bfb_80X50_COM;	// 80X50.COM
-extern struct BuiltinFileBlob bfb_80X43_COM;	// 80X43.COM
-extern struct BuiltinFileBlob bfb_80X25_COM;	// 80X25.COM
-extern struct BuiltinFileBlob bfb_132X60_COM;	// 132X60.COM
-extern struct BuiltinFileBlob bfb_132X50_COM;	// 132X50.COM
-extern struct BuiltinFileBlob bfb_132X43_COM;	// 132X43.COM
-extern struct BuiltinFileBlob bfb_132X25_COM;	// 132X25.COM
 extern struct BuiltinFileBlob bfb_EMSMAGIC_COM;	// EMSMAGIC.COM
 extern struct BuiltinFileBlob bfb_DEFRAG_EXE;	// DEFRAG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)

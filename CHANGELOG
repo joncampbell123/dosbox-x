@@ -41,6 +41,11 @@
     font is specified via "fontxdbcs", "fontxdbcs14" or
     "fontxdbcs24" options, it will be loaded before
     system font even with "getsysfont=true". (Wengier)
+  - Commands like 80x25, 80x43, ... now use internal
+    function for better compatibility with the TrueType
+    font (TTF) output. (Wengier)
+  - MODE command without a parameter will now print the
+    current lines/columns instead of usage. (Wengier)
   - INTVEC debugger command now correctly outputs
     addresses when in protected mode. (Allofich)
   - INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
