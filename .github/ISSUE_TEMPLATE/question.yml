@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         ### Please fill out the form as cleanly as possible.
-        Also, make sure that you have properly filled in the title of the question.
+        Also, make sure that you have properly filled in the title of the question. You can also visit [our wiki](https://dosbox-x.com/wiki), which may be able to answer your question.
   - type: checkboxes
     id: terms
     attributes:
