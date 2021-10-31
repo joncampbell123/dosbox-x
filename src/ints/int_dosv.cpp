@@ -101,6 +101,8 @@ static HFONT jfont_16;
 static HFONT jfont_14;
 static HFONT jfont_24;
 static bool use20pixelfont;
+#else
+# define use20pixelfont (0) /* try to avoid a lot of #ifdefs here */
 #endif
 #if defined(USE_TTF)
 extern bool autoboxdraw;
