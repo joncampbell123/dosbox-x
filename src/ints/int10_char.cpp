@@ -994,7 +994,7 @@ void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 	i = -1;
 	for(uint8_t h = 0 ; h < height ; h++) {
-		if (height == 19 && (h == 0 || h > 16)) {
+		if (h == 0 || (h > 16 && height == 19)) {
             real_writeb(0xa000, off, 0);
             real_writeb(0xa000, off+1+(col==width-1?width*height:0), 0);
 		} else {

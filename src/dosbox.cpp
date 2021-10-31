@@ -2113,12 +2113,12 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", 0};
 	Pstring = secprop->Add_path("vtext1",Property::Changeable::OnlyAtStart,"svga");
 	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Set \"machine=svga_et4000\" for all options, and use command \"VTEXT\" to control V-text mode.");
+	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 1\" for this mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
 	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Set \"machine=svga_et4000\" for all options, and use command \"VTEXT\" to control V-text mode.");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 2\" for this mode.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
