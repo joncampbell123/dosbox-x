@@ -312,8 +312,8 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
         start=0x502;
         end=0x522;
     }
-    else if (machine==MCH_PCJR) {
-        /* should be done for cga and others as well, to be tested */
+    else if (machine==MCH_PCJR || machine==MCH_CGA) {
+        /* should be done for others as well, to be tested */
         start=0x1e;
         end=0x3e;
     } else {
@@ -374,8 +374,8 @@ static bool get_key(uint16_t &code) {
         start=0x502;
         end=0x522;
     }
-    else if (machine==MCH_PCJR) {
-        /* should be done for cga and others as well, to be tested */
+    else if (machine==MCH_PCJR || machine==MCH_CGA) {
+        /* should be done for others as well, to be tested */
         start=0x1e;
         end=0x3e;
     } else {

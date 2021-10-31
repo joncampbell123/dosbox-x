@@ -1,7 +1,12 @@
 0.83.19
+  - Use 0x1E to 0x3E for the keyboard buffer of the CGA
+    machine. Fixes the controls locking up in the PC booter
+    version of Apple Panic. (Allofich)
   - Fix PCjr NMI handler to use 8086-level instructions
     when loading DS with segment 0x0040 so that it
     works properly with cputype=8086.
+  - Fix PCjr NMI handler to load DS with segment 0x0040.
+    Fixes crashes in SHAMUS. (Allofich)
   - Fix IDIV instruction incorrectly raising a divide
     error exception for some borderline values. Fixes
     Microsoft Flight Simulator. (Allofich)
