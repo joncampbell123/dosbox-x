@@ -1,4 +1,4 @@
-Add a summary of changes brought by this PR.
+Add a summary of the change(s) brought by this PR here.
 
 ## What issue(s) does this PR address?
 
