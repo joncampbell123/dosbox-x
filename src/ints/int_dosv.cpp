@@ -741,7 +741,7 @@ uint8_t *GetDbcs24Font(Bitu code)
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
 		} else {
-			if(GetWindowsFont(code, jfont_dbcs, 24, 24)&&false) {
+			if(GetWindowsFont(code, jfont_dbcs, 24, 24)) {
 				memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 				jfont_cache_dbcs_24[code] = 1;
 			} else {
@@ -852,10 +852,14 @@ void ShutFontHandle() {
 
 bool MakeSbcs16Font() {
 	InitFontHandle();
+	bool fail=false;
 	for(Bitu code = 0 ; code < 256 ; code++) {
-		if(!GetWindowsFont(code, &jfont_sbcs_16[code * 16], 8, 16))
-			return false;
+		if(!GetWindowsFont(code, &jfont_sbcs_16[code * 16], 8, 16)) {
+			fail=true;
+			break;
+		}
 	}
+	if (fail) memcpy(jfont_sbcs_16, JPNHN16X+NAME_LEN+ID_LEN+3, SBCS16_LEN);
 	if (IS_JDOSV||IS_JEGA_ARCH) memcpy(jfont_sbcs_16, dosv_font16_data, sizeof(dosv_font16_data));
 	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_16[ct * 16], &int10_font_16[ct * 16], 16);
 	return true;
