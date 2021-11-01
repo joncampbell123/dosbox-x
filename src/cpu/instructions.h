@@ -709,7 +709,15 @@ extern bool enable_fpu;
  *      which would allow -32768 to work.
  *
  *      The 8086 cannot ever trigger IDIVD so IDIVD does not need to check for the 8086
- *      case. */
+ *      case.
+ *
+ *      Note Microsoft Flight Simulator 1.0 is affected here because of some internal math
+ *      like FD28000h / 1FA5h = 8000h which is technically incorrect because the result
+ *      is 32768, not -32768 [https://github.com/joncampbell123/dosbox-x/commit/9be458ba0689d8c60c962808ead4cb11b99c6740].
+ *
+ *      Some confusion exists here whether to throw an exception for x / y = 32768, and
+ *      whether to throw an exception for x / y = -32768, more testing is needed on 8086
+ *      and 386 processors. */
 
 #define IDIVB(op1,load,save)								\
 {															\
@@ -718,8 +726,8 @@ extern bool enable_fpu;
 	Bits quo=((int16_t)reg_ax) / val;						\
 	int8_t rem=(int8_t)((int16_t)reg_ax % val);				\
 	int8_t quo8s=(int8_t)(quo&0xff);							\
-	if (CPU_CORE == CPU_ARCHTYPE_8086 && quo == -0x80) EXCEPTION(0);				\
-	if (quo!=(int16_t)quo8s) EXCEPTION(0);					\
+	if (CPU_CORE == CPU_ARCHTYPE_8086 && (quo == -0x80 || quo == 0x80)) EXCEPTION(0);				\
+	if (quo!=(int16_t)quo8s && (CPU_CORE == CPU_ARCHTYPE_8086 || quo != 0x80)) EXCEPTION(0);					\
 	reg_ah=(uint8_t)rem;												\
 	reg_al=(uint8_t)quo8s;											\
 	FillFlags();											\
@@ -740,8 +748,8 @@ extern bool enable_fpu;
 	Bits quo=num/val;										\
 	int16_t rem=(int16_t)(num % val);							\
 	int16_t quo16s=(int16_t)(quo&0xffff);								\
-	if (CPU_CORE == CPU_ARCHTYPE_8086 && quo == -0x8000) EXCEPTION(0);				\
-	if (quo!=(int32_t)quo16s) EXCEPTION(0);					\
+	if (CPU_CORE == CPU_ARCHTYPE_8086 && (quo == -0x8000 || quo == 0x8000)) EXCEPTION(0);				\
+	if (quo!=(int32_t)quo16s && (CPU_CORE == CPU_ARCHTYPE_8086 || quo != 0x8000)) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
 	FillFlags();											\
@@ -761,7 +769,7 @@ extern bool enable_fpu;
 	int64_t quo=num/val;										\
 	int32_t rem=(int32_t)(num % val);							\
 	int32_t quo32s=(int32_t)(quo&0xffffffff);					\
-	if (quo!=(int64_t)quo32s) EXCEPTION(0);					\
+	if (quo!=(int64_t)quo32s && (quo != 0x80000000)) EXCEPTION(0);					\
 	reg_edx=(uint32_t)rem;											\
 	reg_eax=(uint32_t)quo32s;											\
 	FillFlags();											\
