@@ -2,29 +2,6 @@
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
     allow the use of scroll bars. (Wengier)
-  - Remove useless check for signed divide quotient
-    of 0x80/0x8000/etc. (the result was -0x80/0x8000/etc
-    anyway. Add code to check specifically for these
-    values after signed divide if cputype=8086 and
-    trigger divide overflow exception, to match behavior
-    described for the 8086 processor.
-  - Modify exception handling so that for cputype=8086
-    the return address for an exception handler points
-    at instruction after fault location.
-  - Use 0x1E to 0x3E for the keyboard buffer of the CGA
-    machine. Fixes the controls locking up in the PC booter
-    version of Apple Panic. (Allofich)
-  - Fix PCjr NMI handler to use 8086-level instructions
-    when loading DS with segment 0x0040 so that it
-    works properly with cputype=8086.
-  - Fix PCjr NMI handler to load DS with segment 0x0040.
-    Fixes crashes in SHAMUS. (Allofich)
-  - Fix IDIV instruction incorrectly raising a divide
-    error exception for some borderline values. Fixes
-    Microsoft Flight Simulator. (Allofich)
-  - Fix horizontal lines in the debugger window being
-    rendered as unrelated characters in some code
-    pages. (Allofich)
   - Added menu option "Reset TTF color scheme" to reset
     the current color scheme for TTF output. (Wengier)
   - Added config option "righttoleft" in [TTF] section
@@ -80,6 +57,12 @@
   - Fix PCjr NMI handler to use 8086-level instructions
     when loading DS with segment 0x0040 so that it
     works properly with cputype=8086.
+  - Remove useless check for signed divide quotient
+    of 0x80/0x8000/etc. (the result was -0x80/0x8000/etc
+    anyway. Add code to check specifically for these
+    values after signed divide if cputype=8086 and
+    trigger divide overflow exception, to match behavior
+    described for the 8086 processor.
   - Modify exception handling so that for cputype=8086
     the return address for an exception handler points
     at instruction after fault location.
