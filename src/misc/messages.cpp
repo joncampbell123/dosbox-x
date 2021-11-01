@@ -37,7 +37,7 @@ int msgcodepage = 0;
 extern bool dos_kernel_disabled, force_conversion;
 bool morelen = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void ShutFontHandle(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
+void InitFontHandle(void), ShutFontHandle(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname);
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
 
 #define LINE_IN_MAXLEN 2048
@@ -223,7 +223,15 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
-    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) ShutFontHandle();
+    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
+        ShutFontHandle();
+        if (msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950) {
+            dos.loaded_codepage = msgcodepage;
+            InitFontHandle();
+            dos.loaded_codepage = cp;
+        }
+    }
+
     LOG_MSG("Loaded language file: %s",fname);
 	loadlang=true;
 }
