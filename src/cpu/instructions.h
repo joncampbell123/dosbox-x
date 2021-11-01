@@ -720,7 +720,7 @@ extern bool enable_fpu;
 	Bits num=(int32_t)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
 	Bits quo=num/val;										\
 	int16_t rem=(int16_t)(num % val);							\
-	int16_t quo16s=(int16_t)quo;								\
+	int16_t quo16s=(int16_t)(quo&0xffff);								\
 	if (quo!=(int32_t)quo16s && quo != 0x8000) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
