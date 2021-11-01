@@ -75,14 +75,14 @@ Source: ".\dosbox-x.reference.setup.conf"; DestDir: "{app}"; Flags: ignoreversio
 Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
-Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\fr\fr_FR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\tr\tr_TR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
-Source: "..\..\translations\zh\zh_TW.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical
+Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\fr\fr_FR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\tr\tr_TR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\zh\zh_TW.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\glshaders\*"; DestDir: "{app}\glshaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full typical
 Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full typical
 Source: ".\drivez_readme.txt"; DestDir: "{app}\drivez"; DestName: "README.TXT"; Flags: ignoreversion; Components: full typical
@@ -365,7 +365,7 @@ procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
   tsection, vsection, found1, found2: Boolean;
-  refname, section, line, linetmp, lineold, linenew: String;
+  refname, section, line, linetmp, lineold, linenew, SetupType: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
   if (CurrentStep = ssPostInstall) then
@@ -449,6 +449,35 @@ begin
           end
         end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end;
+	  SetupType := WizardSetupType(False);
+    if SetupType = 'compact' then
+	  begin
+		if (not PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
+		begin
+		  DeleteFile(ExpandConstant('{app}\languages\fr_FR.lng'));
+		end;
+		if (not PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
+		begin
+		  DeleteFile(ExpandConstant('{app}\languages\ja_JP.lng'));
+		end;
+		if (not PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
+		begin
+		  DeleteFile(ExpandConstant('{app}\languages\zh_CN.lng'));
+		end;
+		if (not PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
+		begin
+		  DeleteFile(ExpandConstant('{app}\languages\es_ES.lng'));
+		end;
+		if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
+		begin
+		  DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
+		end;
+		if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) then
+		begin
+			if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
+				DeleteFile(ExpandConstant('{app}\SarasaGothicFixed.ttf'));
+		end;
       end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6]) then
       begin
