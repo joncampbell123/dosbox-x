@@ -107,6 +107,13 @@ Displays the current DOS code page, or changes the current code page when using 
 Usage: CHCP [codepage [file]]
 +
 Note: Type CHCP /? to see a list of supported code pages. Specify a code page file for a custom code page.
+* **CHKDSK** (external command)
++
+Checks a volume and returns a status report.
++
+Usage: CHKDSK [drive:] [options]
++
+Note: It uses the CHKDSK command from FreeDOS.
 * **CHOICE** (internal command)
 +
 Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.
@@ -166,6 +173,13 @@ Usage: DATE [ [/T] [/H] [/S] | MM-DD-YYYY ]
 The DOS DEBUG tool used to test and edit programs.
 +
 Usage: DEBUG [ [drive:][path]progname [arglist] ]
+* **DEFRAG** (external command)
++
+Optimizes file loading times by moving file fragments together.
++
+Usage: DEFRAG [drive:] [options]
++
+Note: It uses the DEFRAG command from FreeDOS.
 * **DEL/ERASE** (internal command)
 +
 Removes one or more files.
@@ -246,6 +260,13 @@ Usage: Simply enter EXIT without any parameters.
 Displays or changes the CONFIG.SYS's FCBS setting.
 +
 Usage: FCBS [fcbnum]
+* **FDISK** (external command)
++
+Manages partitions on the hard drive.
++
+Usage: FDISK [options]
++
+Note: It uses the FDISK command from FreeDOS.
 * **FIND** (external command)
 +
 Prints lines of a file that contains the specified string.
@@ -263,6 +284,13 @@ Runs a specified command for each file in a set of files.
 Usage: FOR %variable IN (set) DO command [command-parameters]
 +
 Note: Specify %%variable instead of %variable when used in a batch file. It is also possible to use nested FOR commands.
+* **FORMAT** (external command)
++
+Formats the specified disk volume.
++
+Usage: FORMAT drive: [options]
++
+Note: It uses the FORMAT command from FreeDOS.
 * **GOTO** (internal command)
 +
 Jumps to a labeled line in a batch script.
@@ -494,6 +522,13 @@ Note: This command is disabled by default, but can be enabled either by the star
 Assigns an internal directory to a drive.
 +
 Usage: SUBST [drive1: [drive2:]path] or SUBST drive1: /D
+* **SYS** (external command)
++
+Transfers DOS system files and command interpreter to a disk.
++
+Usage: SYS [source] drive: [bootsect] [{option}]
++
+Note: It uses the SYS command from FreeDOS.
 * **TIME** (internal command)
 +
 Displays or changes the internal time.
@@ -538,6 +573,14 @@ Usage: VERIFY [ON | OFF]
 Displays the disk volume label and serial number, if they exist.
 +
 Usage: VOL [drive]
+* **VTEXT** (external command)
++
+Changes V-text mode for the DOS/V emulation.
++
+Usage: VTEXT [0|1|2]
++
+Note: This command is only available in DOS/V emulation mode.
+
 * **XCOPY** (external command)
 +
 Copies files and directory trees.

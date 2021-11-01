@@ -20,7 +20,8 @@ This guide will give a general description of installing Windows 95 in DOSBox-X,
 * Windows 95 OSR2.1 (aka 95B) - OEM Full
 * Windows 95 OSR2.5 (aka 95C) - OEM Full
 
-NOTE: This guide is not meant for the Windows 95 diskette edition, as that uses a special format (DMF) which is not supported by DOSBox-X.
+NOTE: This guide is meant for the Windows 95 CD-ROM editions.
+The Windows 95 diskette edition can also be used starting with DOSBox-X 0.83.19, but requires a lot of tedious disk swapping and is therefore not recommended.
 
 NOTE: Windows 95 **Upgrade** editions have additional requirements and are not covered by this guide.
 

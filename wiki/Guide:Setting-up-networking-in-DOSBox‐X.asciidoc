@@ -550,13 +550,13 @@ A disadvantage of this approach is that you cannot communicate with retro PCs on
 
 This process is described on the link:https://www.dosbox.com/wiki/Connectivity[DOSBox wiki].
 
-### Using the NetWare DOS Client
+### Using the NetWare 16-bit DOS Client
 
 This example uses Novell's IPX, and only works with the PCAP back-end.
 A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network.
 An advantage is that it can communicate with a real retro DOS PC on your local network.
 
-This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare DOS Client.
+This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare 16-bit DOS Client.
 The rest of the files are not needed for our purpose of running DOS games that require IPX.
 
 *External links*
@@ -569,7 +569,8 @@ The easiest way is probably to extract them in DOSBox-X itself.
 
 *Notes*
 
-* If you want to do a full install of the NetWare Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.
+* If you want to do a full install of the NetWare 16-bit Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.
+* These instructions do not apply to the 32-bit NetWare client (client32) for DOS and 16-bit Windows.
 * You can extract the self-extracting EXE files on Linux with the command-line ``arj`` utility, but you need to use the ``-he`` switch to disable the Security Envelope check.
 
 #### Unpacking the VLM archive in DOSBox-X

@@ -71,9 +71,12 @@ Prompts for a folder which will become DOSBox-X's working directory when it star
 * **-nopromptfolder**
 +
 Do not prompt for a folder to become the DOSBox-X working directory when it starts.
-* **-winrun**
+* **-prerun**
 +
-Enables launching Windows programs to run on the host (such as the use of START command), long filenames support and Windows clipboard communications via the CLIP$ device (Windows version only).
+If a program is provided in the command line, run it before (instead of after) the AUTOEXEC.BAT config section.
+* **-hostrun**
++
+Enables launching Windows programs to run on the Windows host, and for all systems the addition of START command, long filenames support and shared clipboard communications via the CLIP$ device.
 * **-display2 <color>**
 +
 Enables standard (VGA/EGA/CGA) and monochrome dual-screen mode with the specified color: white, green, amber.

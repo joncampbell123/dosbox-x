@@ -54,9 +54,6 @@ For the */286* editions this meant not using ``HIMEM.SYS``, while for the */386*
 
 * At least 512KB RAM was required
 * Officially requires a HDD
-* Running Windows 2.03 requires at least DOS 2.0.
-* Running a Windows/286 edition requires at least DOS 3.0.
-* Running a Windows/386 edition requires at least DOS 3.1.
 
 Windows 2.x has problems starting if the reported DOS version is 5.0 or higher.
 Therefore, it is necessary to set the reported DOS version to something like 4.0.
@@ -262,10 +259,10 @@ image::images/Windows:Windows_2.03_SETUP_02.png[Windows 2.03 SETUP drive]
 
 You can optionally specify a different directory to install into.
 
-* **Windows 2.03** and **Windows/386 2.1x** will propose to install into ``C:\WINDOWS``.
+* **Windows 2.03** and **Windows/286 2.1x** will propose to install into ``C:\WINDOWS``.
 * **Windows/386 2.x** will propose to install into ``C:\WIN386``.
 
-Simply press Enter when ready.
+Simply press Enter when ready to use the default.
 
 image::images/Windows:Windows_2.03_SETUP_03.png[Windows 2.03 SETUP directory]
 '''
@@ -292,7 +289,7 @@ image::images/Windows:Windows_2.03_SETUP_05.png[Windows 2.03 SETUP GRAPHICS]
 '''
 *Keyboard selection*
 
-Select your keyboard layout, and press Enter.
+Select your desired keyboard layout, and press Enter.
 
 image::images/Windows:Windows_2.03_SETUP_06.png[Windows 2.03 SETUP Keyboard]
 
@@ -413,9 +410,9 @@ Adjust the path for mounting the C: drive as needed.
 If you don't want DOSBox-X to close when exiting Windows 2.x, remove the ``EXIT`` command.
 
 # Starting Windows 2.x after installation
-After the installation is finished, you can start Windows 2.x from the command-prompt with the following command:
+After the installation is finished, you can start Windows 2.x from the command-prompt with the below command:
 
-You can optionally create a shortcut on your desktop to start Windows 2.x directly.
+NOTE: You can optionally create a shortcut on your desktop to start Windows 2.x directly.
 
 ....
 dosbox-x -conf win2x.conf

@@ -497,7 +497,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_ipx_example">IPX example</a>
 <ul class="sectlevel2">
 <li><a href="#_using_dosbox_x_integrated_ipx_support">Using DOSBox-X integrated IPX support</a></li>
-<li><a href="#_using_the_netware_dos_client">Using the NetWare DOS Client</a></li>
+<li><a href="#_using_the_netware_16_bit_dos_client">Using the NetWare 16-bit DOS Client</a></li>
 </ul>
 </li>
 </ul>
@@ -1517,14 +1517,14 @@ To test this, first <code>ping</code> the remote systems from the host OS to ens
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_the_netware_dos_client">Using the NetWare DOS Client</h3>
+<h3 id="_using_the_netware_16_bit_dos_client">Using the NetWare 16-bit DOS Client</h3>
 <div class="paragraph">
 <p>This example uses Novell&#8217;s IPX, and only works with the PCAP back-end.
 A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network.
 An advantage is that it can communicate with a real retro DOS PC on your local network.</p>
 </div>
 <div class="paragraph">
-<p>This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare DOS Client.
+<p>This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare 16-bit DOS Client.
 The rest of the files are not needed for our purpose of running DOS games that require IPX.</p>
 </div>
 <div class="paragraph">
@@ -1548,7 +1548,10 @@ The easiest way is probably to extract them in DOSBox-X itself.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>If you want to do a full install of the NetWare Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.</p>
+<p>If you want to do a full install of the NetWare 16-bit Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.</p>
+</li>
+<li>
+<p>These instructions do not apply to the 32-bit NetWare client (client32) for DOS and 16-bit Windows.</p>
 </li>
 <li>
 <p>You can extract the self-extracting EXE files on Linux with the command-line <code>arj</code> utility, but you need to use the <code>-he</code> switch to disable the Security Envelope check.</p>
@@ -1659,7 +1662,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-09-02 03:42:50 -0400
+Last updated 2021-11-01 19:42:46 -0400
 </div>
 </div>
 </body>

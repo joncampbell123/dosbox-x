@@ -34,6 +34,7 @@ Note that both of these options will only show image mounts, not folder mounts.
 DOSBox-X supports mounting diskette images in the following formats:
 
 * MFM sector image format (typically .ima or .img)
+* Microsoft DMF (typically .dmf)
 * NEC PC-98 diskette images (.fdd .fdi .nfd or .d88)
 
 NOTE: The IMG extension is also used for harddisk images, so there can be some confusion.
@@ -49,7 +50,6 @@ Some examples of diskette image files that DOSBox-X **does not** support:
 * link:https://github.com/joncampbell123/dosbox-x/issues/711[ImageDisk] (.IMD)
 * Interchangeable Preservation Format (.IPF)
 * KryoFlux Stream files (.RAW)
-* link:https://github.com/joncampbell123/dosbox-x/issues/1472[Microsoft DMF] (.DMF)
 * Teledisk (.TD0)
 * Transcopy (.TC)
 

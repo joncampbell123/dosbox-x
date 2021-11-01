@@ -24,7 +24,7 @@ For image files, DOSBox-X allows you to mount them automatically without specify
 With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications, as well as the Japanese AX (JEGA) system. Set ``machine=pc98`` or ``machine=jega`` in the config file to start DOSBox-X in the PC-98 or JEGA mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information about PC-98 support.
 * **Support for native DOS/V service emulations**
 +
-DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set "dosv" to "jp", "chs" (or "cn"), "cht" (or "tw"), or "ko" for different CJK languages.
+DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set "dosv" to "jp", "chs" (or "cn"), "cht" (or "tw"), or "ko" for different CJK languages. Look at the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support in DOSBox‐X] guide page for more information about support for East Asian languages and systems.
 * **Support for SDL2 in addition to SDL1**
 +
 DOSBox-X officially supports both SDL1 and SDL2 and provides both SDL1 and SDL2 builds, so that you can choose either the SDL1 or SDL2 build to use. While most features are common to both SDL builds, certain functions are only found in one of them.
