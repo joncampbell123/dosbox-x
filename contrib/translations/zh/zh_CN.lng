@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
 :DOSBOX-X:VERSION:0.83.19
-:DOSBOX-X:REMARK:可使用简体中文 DOS/V 模式, 或建议使用 TTF 输出选项 (国家和代码页设为 86,936 并搭配中文 TTF 字体) 以直接支持中文显示和打印
+:DOSBOX-X:REMARK:可使用 chs 或 cn 中文 DOS/V 模式, 或建议使用 TrueType 字体输出选项 (国家和代码页设为 86,936 并搭配中文 TTF 字体) 以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
 You can put your MOUNT lines here.
@@ -1540,10 +1540,10 @@ SUBST: 命令行参数错误.
 .
 :SHELL_STARTUP_TEXT1
 输入 [32mHELP[37m 命令查看DOS命令列表, 或输入 [32mINTRO[37m 命令进入 DOSBox-X 的简短介绍。  
-您亦可以通过 DOSBox-X 所带的[33m下拉式菜单[37m来完成 DOSBox-X 的各种操作和功能。    
+您同样可以通过 DOSBox-X 所带的[33m下拉式菜单[37m来完成 DOSBox-X 的各种操作和功能。  
 .
 :SHELL_STARTUP_EXAMPLE
-[32m举例[37m: 您可以试着在 [32m视频[37m 菜单中选择 [33mTTF[37m 或者 [33mOpenGL perfect[37m 输出选项。       
+[32m举例[37m：您可以试着在[32m视频[37m菜单中选择 [33mTrueType 字体[37m或者 [33mOpenGL perfect[37m 输出选项。
 .
 :SHELL_STARTUP_HEAD2
 [36m常用的默认快捷方式:                                                         [37m
@@ -2438,7 +2438,7 @@ OpenGL nearest
 OpenGL perfect
 .
 :MENU:output_ttf
-TTF
+TrueType 字体
 .
 :MENU:doublescan
 双重扫描
