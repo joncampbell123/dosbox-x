@@ -329,13 +329,13 @@ static void RemoveAllChar(char *line, uint16_t str_index)
 	for ( ; str_index > 0 ; str_index--) {
 		// removes all characters
 		if(CheckHat(line[str_index])) {
-			outc(8); outc(8); outc(' '); outc(' '); outc(8); outc(8);
+			backone(); backone(); outc(' '); outc(' '); backone(); backone();
 		} else {
-			outc(8); outc(' '); outc(8);
+			backone(); outc(' '); backone();
 		}
 	}
 	if(CheckHat(line[0])) {
-		outc(8); outc(' '); outc(8);
+		backone(); outc(' '); backone();
 	}
 }
 
@@ -377,9 +377,9 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 	DOS_WriteFile(STDOUT, (uint8_t *)line, &len);
 	pos = str_len;
 	while(pos > str_index) {
-		outc(8);
+		backone();
 		if(CheckHat(line[pos - 1])) {
-			outc(8);
+			backone();
 		}
 		pos--;
 	}
@@ -563,12 +563,12 @@ void DOS_Shell::InputCommand(char * line) {
                         uint16_t count = GetWideCount(line, str_index);
                         uint8_t ch = line[str_index - 1];
                         while(count > 0) {
-                            outc(8);
+                            backone();
                             str_index --;
                             count--;
                         }
                         if(CheckHat(ch)) {
-                            outc(8);
+                            backone();
                         }
                     }
                 } else {
@@ -981,10 +981,10 @@ void DOS_Shell::InputCommand(char * line) {
                     }
                     pos = str_len;
                     while(pos > str_index) {
-                        outc(8);
+                        backone();
                         pos--;
                         if (CheckHat(line[pos])) {
-                            outc(8);
+                            backone();
                         }
                     }
                 } else {
