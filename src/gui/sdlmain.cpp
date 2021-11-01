@@ -7353,7 +7353,7 @@ bool GFX_IsFullscreen(void) {
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F || key.keysym.sym >= 0x111 && key.keysym.sym <= 0x119))) {
+	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F || key.keysym.sym >= 0x111 && key.keysym.sym <= 0x119) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
 	}
@@ -7378,7 +7378,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 #elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-	if(key.keysym.scancode == 0x29 || (key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6)) {
+	if(key.keysym.scancode == 0x29 || (key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6) || (strPasteBuffer.length() && key.keysym.sym >= 0x20)) {
 		// ESC, shift, control, alt, PgUp, PgDn, etc.
 		return true;
 	} else if((key.keysym.mod & 0x03) != 0 && key.keysym.scancode == 0x2c) {
