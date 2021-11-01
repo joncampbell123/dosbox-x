@@ -1,4 +1,10 @@
 0.83.19
+  - Remove useless check for signed divide quotient
+    of 0x80/0x8000/etc. (the result was -0x80/0x8000/etc
+    anyway. Add code to check specifically for these
+    values after signed divide if cputype=8086 and
+    trigger divide overflow exception, to match behavior
+    described for the 8086 processor.
   - Modify exception handling so that for cputype=8086
     the return address for an exception handler points
     at instruction after fault location.
