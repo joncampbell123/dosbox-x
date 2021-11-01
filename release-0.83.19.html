@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.19 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">November 1, 2021</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    Reorganized the "List network interfaces" and "List
+    printer devices" dialogs (under the "Help" menu) to
+    allow the use of scroll bars. (Wengier)
+</li><li>
+    Added menu option "Reset TTF color scheme" to reset
+    the current color scheme for TTF output. (Wengier)
+</li><li>
+    Added config option "righttoleft" in [TTF] section
+    which when set to "true" will cause DOSBox-X to
+    display text from right to left (instead of left to
+    right) for the TTF output. It can also be toggled
+    from the menu ("Video" => "TTF options" => "Display
+    text from right to left"). (Wengier)
+</li><li>
+    Added config option "vga fill active memory" which
+    when set to "true" will fill inactive video memory
+    regions with RAM rather than mapping them as empty.
+    This allows the ETen Chinese DOS system (倚天中文系統)
+    3.5/2000 (e.g. ET16V and ET24VA) to run. (Wengier)
+</li><li>
+    Added config option "middle_unlock" ([sdl] section)
+    to control whether to unlock the mouse with middle
+    mouse button click. (Wengier)
+</li><li>
+    Added config option "dosvfunc" in [ttf] section to
+    support DOS/V applications when country information
+    is set to Japan in TTF output. (nanshiki)
+</li><li>
+    Added "VTEXT" command to view or change the current
+    V-text mode for the DOS/V emulation. Also improved
+    the font support for 24-pixel font DOS/V mode, such
+    as supporting HZK24? fonts for Simplified Chinese
+    DOS/V mode and STDFONT.24 from ETen Chinese system
+    for Traditional Chinese DOS/V mode. If a Chinese
+    font is specified via "fontxdbcs", "fontxdbcs14" or
+    "fontxdbcs24" options, it will be loaded before
+    system font even with "getsysfont=true". (Wengier)
+</li><li>
+    Commands like 80x25, 80x43, ... now use internal
+    function for better compatibility with the TrueType
+    font (TTF) output. (Wengier)
+</li><li>
+    MODE command without a parameter will now print the
+    current lines/columns instead of usage. (Wengier)
+</li><li>
+    INTVEC debugger command now correctly outputs
+    addresses when in protected mode. (Allofich)
+</li><li>
+    Fix horizontal lines in the debugger window being
+    rendered as unrelated characters in some code
+    pages. (Allofich)
+</li><li>
+    INT 21 AX=4B03 now sets AX to 0000 like MS-DOS
+    does. Fixes missing music in "聊齋誌異之幽谷傳奇"
+    (Liáozhāi zhì yì zhī yōugǔ chuánqí) (Allofich)
+</li><li>
+    Use 0x1E to 0x3E for the keyboard buffer of the CGA
+    machine, which fixes the controls locking up in the
+    PC booter version of Apple Panic. (Allofich)
+</li><li>
+    Allowed machine types "pcjr_composite" and
+    "pcjr_composite2", similar to "cga_composite" and
+    "cga_composite2", instead of having to switch the
+    composite type manually. (Wengier)
+</li><li>
+    If machine is PCjr, place PC BIOS reset code at
+    F000:0043 to match that of the real BIOS.
+</li><li>
+    Fix PCjr NMI handler to load DS with segment 0x0040.
+    Fixes crashes in SHAMUS. (Allofich)
+</li><li>
+    Fix PCjr NMI handler to use 8086-level instructions
+    when loading DS with segment 0x0040 so that it
+    works properly with cputype=8086.
+</li><li>
+    Remove useless check for signed divide quotient
+    of 0x80/0x8000/etc. (the result was -0x80/0x8000/etc
+    anyway. Add code to check specifically for these
+    values after signed divide if cputype=8086 and
+    trigger divide overflow exception, to match behavior
+    described for the 8086 processor.
+</li><li>
+    Modify exception handling so that for cputype=8086
+    the return address for an exception handler points
+    at instruction after fault location.
+</li><li>
+    Fix IDIV instruction incorrectly raising a divide
+    error exception for some borderline values. Fixes
+    Microsoft Flight Simulator. (Allofich)
+</li><li>
+    IBM PC BIOS emulation fixed to place key pieces of
+    code and entry points at fixed legacy locations
+    required by some older DOS games, instead of
+    by dynamic allocation. Added code to BIOS allocation
+    to reserve F000:E000 or higher for fixed allocation
+    and force dynamic allocation below that address to
+    prevent further conflicts should others submit
+    pull requests for additional fixed locations. This
+    fixes some games like "聊齋誌異之幽谷傳奇" (Liáozhāi
+    zhì yì zhī yōugǔ chuánqí) which appear to assume
+    some of these fixed BIOS addresses and will
+    crash if they are wrong.
+</li><li>
+    Added tool EMSMAGIC.COM as alternative EMS manager,
+    which can be dynamically installed or uninstalled
+    with the setting ems=false. (Wengier)
+</li><li>
+    If a program is provided in the command-line when
+    launching DOSBox-X, it will now be executed after
+    any commands in the [autoexec] section by default.
+    A command-line option "-prerun" is added to force
+    the program run before any commands in [autoexec]
+    section like before. (Wengier)
+</li><li>
+    Added auto-detection for single-wide DBCS-encoded
+    characters for the TTF output (non-PC98). (Wengier)
+</li><li>
+    Improved the menu option "Restart DOSBox-X with
+    language file..." (under "Main") for switching
+    between DBCS languages. (Wengier)
+</li><li>
+    Disabled the Alt+F4 key for closing the DOSBox-X
+    window in MinGW SDL2 builds. (Wengier)
+</li><li>
+    Fixed program or config file containing Unicode
+    characters passed from command-line when launching
+    DOSBox-X in Windows SDL2 builds. (Wengier)
+</li><li>
+    Fixed issue with DELETE key in PC-98 mode. (Wengier)
+</li><li>
+    Fixed COLORS config option (in [ttf] section) not
+    working in the previous version. (Wengier)
+</li><li>
+    Fixed issues after resetting the virtual machine
+    when using DBCS language files. (Wengier)
+</li><li>
+    Fixed some issues related to system IME support for
+    CJK (Chinese/Japanese/Korean) languages, for both
+    Windows SDL1 and SDL2 builds. (nanshiki & Wengier)
+</li><li>
+    Fixed bugs in the region memory allocator C++ class
+    that claimed the entire free block even if the
+    size wanted was smaller. Added field to remember if
+    the allocated block was allocated for fixed or
+    dynamically allocated memory. Cleaned up allocator
+    code and removed redundancy.
+</li><li>
+    Fix SELINFO command not showing output correctly
+    in the debugger window. (Allofich)
+</li><li>
+    Better CMOS register B and C emulation. (Allofich)
+</li><li>
+    Integrated commits from mainline (Allofich)
+<br/>
+      Support for DMF floppy disk images.
+<br/>
+      Zero-out DX in EXEC overlay command.
+<br/>
+      Improve stack check for wrap-around cases.
+      Change to misc_output for SVGA_S3Trio.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.18 (<a href="release-0.83.18.html">release notes</a>)<b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
