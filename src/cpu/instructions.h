@@ -692,6 +692,24 @@ extern bool enable_fpu;
 	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff)^FLAG_PF);					\
 }
 
+/* NTS: 8086 processors are said to treat a signed divide result of 0x8000 (-32768) as a
+ *      divide overflow, while later processors allow it.
+ *
+ *      See also: [https://pdos.csail.mit.edu/6.828/2008/readings/i386/s14_07.htm]
+ *
+ *      11. IDIV exceptions for quotients of 80H or 8000H.
+ *          The 80386 can generate the largest negative number as a quotient for
+ *          the IDIV instruction. The 8086/8088 causes exception zero instead. */
+
+/* NTS: A previous patch attempted to fix this by identifying quo == 0x80, quo == 0x8000,
+ *      etc. The problem with that is that a signed divide does not give quo == 0x80/0x8000/etc,
+ *      it gives -0x80/-0x8000/etc. The 8086 signed divide issue checks for THAT.
+ *
+ *      Note that each quotient overflow check uses the next largest datatype to check it,
+ *      which would allow -32768 to work.
+ *
+ *      The 8086 cannot ever trigger IDIVD so IDIVD does not need to check for the 8086
+ *      case. */
 
 #define IDIVB(op1,load,save)								\
 {															\
@@ -700,7 +718,8 @@ extern bool enable_fpu;
 	Bits quo=((int16_t)reg_ax) / val;						\
 	int8_t rem=(int8_t)((int16_t)reg_ax % val);				\
 	int8_t quo8s=(int8_t)(quo&0xff);							\
-	if (quo!=(int16_t)quo8s && quo != 0x80) EXCEPTION(0);					\
+	if (CPU_CORE == CPU_ARCHTYPE_8086 && quo == -0x80) EXCEPTION(0);				\
+	if (quo!=(int16_t)quo8s) EXCEPTION(0);					\
 	reg_ah=(uint8_t)rem;												\
 	reg_al=(uint8_t)quo8s;											\
 	FillFlags();											\
@@ -720,8 +739,9 @@ extern bool enable_fpu;
 	Bits num=(int32_t)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
 	Bits quo=num/val;										\
 	int16_t rem=(int16_t)(num % val);							\
-	int16_t quo16s=(int16_t)quo;								\
-	if (quo!=(int32_t)quo16s && quo != 0x8000) EXCEPTION(0);					\
+	int16_t quo16s=(int16_t)(quo&0xffff);								\
+	if (CPU_CORE == CPU_ARCHTYPE_8086 && quo == -0x8000) EXCEPTION(0);				\
+	if (quo!=(int32_t)quo16s) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
 	FillFlags();											\
@@ -741,7 +761,7 @@ extern bool enable_fpu;
 	int64_t quo=num/val;										\
 	int32_t rem=(int32_t)(num % val);							\
 	int32_t quo32s=(int32_t)(quo&0xffffffff);					\
-	if (quo!=(int64_t)quo32s && quo != 0x80000000) EXCEPTION(0);					\
+	if (quo!=(int64_t)quo32s) EXCEPTION(0);					\
 	reg_edx=(uint32_t)rem;											\
 	reg_eax=(uint32_t)quo32s;											\
 	FillFlags();											\
