@@ -884,11 +884,12 @@ bool MakeSbcs24Font() {
 	InitFontHandle();
 	bool fail=false;
 	for(Bitu code = 0 ; code < 256 ; code++) {
-		if(!GetWindowsFont(code, &jfont_sbcs_24[code * 24 * 2], 12, 24))
+		if(!GetWindowsFont(code, &jfont_sbcs_24[code * 24 * 2], 12, 24)) {
 			fail=true;
 			break;
+		}
 	}
-	if (fail||!use20pixelfont) memcpy(jfont_sbcs_24, JPNHN24X+NAME_LEN+ID_LEN+3, SBCS24_LEN);
+	if (fail) memcpy(jfont_sbcs_24, JPNHN24X+NAME_LEN+ID_LEN+3, SBCS24_LEN);
 	if (IS_JDOSV||IS_JEGA_ARCH) memcpy(jfont_sbcs_24, dosv_font24_data, sizeof(dosv_font24_data));
 	else if (IS_DOSV) for(Bitu ct = 0 ; ct < 0x100 ; ct++) memcpy(&jfont_sbcs_24[ct * 24 * 2], &int10_font_24[ct * 24 * 2], 48);
 	return true;
