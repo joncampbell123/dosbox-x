@@ -9279,7 +9279,8 @@ startfunction:
     }
     CALLBACK_HandlerObject cb_bios_boot;
     CALLBACK_HandlerObject cb_bios_bootfail;
-    CALLBACK_HandlerObject cb_pc98_rombasic;
+    CALLBACK_HandlerObject cb_pc98_rombasic; /* hardcoded entry point used by various PC-98 games that jump to N88 ROM BASIC */
+    CALLBACK_HandlerObject cb_ibm_basic; /* hardcoded entry point used by MS-DOS 1.x BASIC.COM and BASICA.COM to jump to IBM ROM BASIC (F600:4C79) */
     static Bitu cb_pc98_entry__func(void) {
         /* the purpose of this function is to say "N88 ROM BASIC NOT FOUND" */
         int x,y;
@@ -9288,6 +9289,17 @@ startfunction:
 
         /* PC-98 MS-DOS boot sector may RETF back to the BIOS, and this is where execution ends up */
         BIOS_Int10RightJustifiedPrint(x,y,"N88 ROM BASIC NOT IMPLEMENTED");
+
+        return CBRET_NONE;
+    }
+    static Bitu cb_ibm_basic_entry__func(void) {
+        /* the purpose of this function is to say "IBM ROM BASIC NOT FOUND" */
+        int x,y;
+
+        x = y = 0;
+
+        /* PC-98 MS-DOS boot sector may RETF back to the BIOS, and this is where execution ends up */
+        BIOS_Int10RightJustifiedPrint(x,y,"IBM ROM BASIC NOT IMPLEMENTED");
 
         return CBRET_NONE;
     }
@@ -9623,8 +9635,16 @@ public:
         cb_bios_boot.Install(&cb_bios_boot__func,CB_RETF,"BIOS BOOT");
         cb_bios_bootfail.Install(&cb_bios_bootfail__func,CB_RETF,"BIOS BOOT FAIL");
 
-        if (IS_PC98_ARCH)
-            cb_pc98_rombasic.Install(&cb_pc98_entry__func,CB_RETF,"N88 ROM BASIC");
+        if (IS_PC98_ARCH) {
+		cb_pc98_rombasic.Install(&cb_pc98_entry__func,CB_RETF,"N88 ROM BASIC");
+	}
+	else {
+		/* IBM ROM BASIC resides at segment F600:0000 just below the 5150 ROM BIOS.
+		 * MS-DOS 1.x and 2.x BASIC(A).COM jump to specific addresses in the ROM BASIC to do their thing.
+		 * The purpose of these callbacks is to catch those programs and safely halt emulation to
+		 * state that ROM BASIC is not present */
+		cb_ibm_basic.Install(&cb_ibm_basic_entry__func,CB_RETF,"IBM ROM BASIC entry");
+	}
 
         // Compatible POST routine location: jump to the callback
         {
@@ -9704,6 +9724,28 @@ public:
                 phys_writeb(bo+0x04,0xEB);                             // JMP $-2
                 phys_writeb(bo+0x05,0xFE);
             }
+	    else {
+		/* IBM MS-DOS 1.x/2.x BASIC and BASICA, stopgap */
+		PhysPt bo;
+
+		bo = 0xF6000+0x2DB0; // F600:2DB0
+
+                phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
+                phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
+                phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+
+                phys_writeb(bo+0x04,0xEB);                             // JMP $-2
+                phys_writeb(bo+0x05,0xFE);
+
+		bo = 0xF6000+0x4C79; // F600:4C79
+
+                phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
+                phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
+                phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+
+                phys_writeb(bo+0x04,0xEB);                             // JMP $-2
+                phys_writeb(bo+0x05,0xFE);
+	    }
 
             if (IS_PC98_ARCH && enable_pc98_copyright_string) {
                 size_t i=0;
