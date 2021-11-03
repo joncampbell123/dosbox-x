@@ -5256,6 +5256,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 break;
             }
             break;
+	case MCH_PC98:
+	    /* NTS: According to Spaztron64 PC-98 monitors have a 16:10 aspect ratio, not a 4:3 aspect ratio.
+	     *      [https://github.com/joncampbell123/dosbox-x/issues/3032] */
+	    if (height >= 480)
+	            scanfield_ratio = (4.0/3.0) / scanratio;
+	    else
+	            scanfield_ratio = (16.0/10.0) / scanratio;
+	    break;
 
         default: // VGA
             switch (vga.misc_output >> 6) {
@@ -5278,13 +5286,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     double screenratio = scanratio * scanfield_ratio;
 
     // override screenratio for certain cases:
-    if (vratio == 1.6) screenratio = 4.0 / 3.0;
-    else if (vratio == 0.8) screenratio = 4.0 / 3.0;
-    else if (vratio == 3.2) screenratio = 4.0 / 3.0;
-    else if (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
-    else if (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
-    else if ((width >= 800)&&(height>=600)) screenratio = 4.0 / 3.0;
-    else if (render.aspect) screenratio = 4.0 / 3.0;
+    if (!IS_PC98_ARCH) {
+	    if (vratio == 1.6) screenratio = 4.0 / 3.0;
+	    else if (vratio == 0.8) screenratio = 4.0 / 3.0;
+	    else if (vratio == 3.2) screenratio = 4.0 / 3.0;
+	    else if (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
+	    else if (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
+	    else if ((width >= 800)&&(height>=600)) screenratio = 4.0 / 3.0;
+	    else if (render.aspect) screenratio = 4.0 / 3.0;
+    }
 
 #if C_DEBUG
             LOG(LOG_VGA,LOG_NORMAL)("screen: %1.3f, scanfield: %1.3f, scan: %1.3f, vratio: %1.3f",
