@@ -2,7 +2,10 @@
   - Added stub IBM ROM BASIC points in the BIOS area
     so that when MS-DOS 1.x and 2.x BASIC.COM and BASICA.COM
     are run, a polite message is displayed instead of
-    invalid code and crashes.
+    invalid code and crashes. (joncampbell123)
+  - Video emulation for PC-98 mode (for 400-line modes)
+    is now 16:10 instead of 4:3. 480-line PC-98 modes
+    are still 4:3. (joncampbell123)
 0.83.19
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
