@@ -631,17 +631,96 @@
 			if (rm >= 0xc0 ) {GetEArw;val=*earw;}
 			else {GetEAa;val=LoadMw(eaa);}
 			switch (which) {
-#if CPU_CORE <= CPU_ARCHTYPE_8086
-			case 0x01:					/* MOV CS,Ew (8086 only) */
+            case 0x00:                  /* MOV ES,Ew */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x01:                  /* MOV CS,Ew (8086) */
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x01:                  /* MOV CS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
 #endif
-			case 0x02:					/* MOV SS,Ew */
-				CPU_Cycles++; //Always do another instruction
-			case 0x00:					/* MOV ES,Ew */
-			case 0x03:					/* MOV DS,Ew */
-			case 0x05:					/* MOV GS,Ew */
-			case 0x04:					/* MOV FS,Ew */
-				if (CPU_SetSegGeneral((SegNames)which,val)) RUNEXCEPTION();
-				break;
+#endif
+            case 0x02:                  /* MOV SS,Ew */
+                CPU_Cycles++; //Always do another instruction
+            case 0x03:                  /* MOV DS,Ew */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x04:                  /* Alias of MOV ES,Ew (8086) */
+                which = 0;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x04:                  /* Alias of MOV ES,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 0;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+            case 0x04:                  /* MOV FS,Ew (386+) */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x05:                  /* Alias of MOV CS,Ew (8086) */
+                which = 1;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x05:                  /* Alias of MOV CS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 1;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+            case 0x05:                  /* MOV FS,Ew (386+) */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x06:                  /* Alias of MOV SS,Ew (8086) */
+                which = 2;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x06:                  /* Alias of MOV SS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 2;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x07:                  /* Alias of MOV DS,Ew (8086) */
+                which = 3;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x07:                  /* Alias of MOV DS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 3;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
 			default:
 				goto illegal_opcode;
 			}
