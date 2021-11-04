@@ -1,7 +1,10 @@
 0.83.20
+  - Added code to INT 18h emulation (IBM PC mode) to
+    jump to ROM BASIC if the user provided an IBM
+    ROM BASIC image to load. (joncampbell123)
   - Added dosbox.conf option to load a ROM image
     containing IBM PC ROM BASIC, for disk images
-    and MS-DOS setups that need it.
+    and MS-DOS setups that need it. (joncampbell123)
   - Made 8086 treat opcodes 0x60-0x6F as aliases of
     opcodes 0x70-0x7F. (Allofich)
   - Fixed 0x0F opcode being valid on 80186 core when
