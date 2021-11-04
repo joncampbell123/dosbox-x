@@ -290,8 +290,9 @@
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         if (CPU_ArchitectureType < CPU_ARCHTYPE_286) goto illegal_opcode;
+        else
 #endif
-#if CPU_CORE > CPU_ARCHTYPE_286
+#if CPU_CORE >= CPU_ARCHTYPE_286
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;
