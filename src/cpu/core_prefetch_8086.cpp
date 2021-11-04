@@ -314,6 +314,7 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+skip_saveip:
 
 #ifdef PREFETCH_DEBUG
     if (PIC_FullIndex() > pq_next_dbg) {
