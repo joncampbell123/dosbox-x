@@ -923,10 +923,106 @@ template <class AWT> static inline void egc_fetch_planar(egc_quad &dst,const Phy
     dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
 }
 
-static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
-    (void)ad;//UNUSED
-    LOG_MSG("EGC ROP 0x%2x not impl",ope);
-    return pc98_egc_last_vram;
+/* Generic EGC ROP handling according to Neko Project II.
+ * I assume it uses specialized functions for common ROPs as an optimization method
+ * since this generic handler does a lot of conditional bit operations. This is
+ * ope_xx transcribed for DOSBox-X. */
+static egc_quad &ope_xx(uint8_t ope, const PhysPt vramoff) {
+	egc_quad pat;
+	egc_quad dst;
+
+	egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
+
+	switch(pc98_egc_fgc) {
+		case 1:
+			pat[0].w = pc98_egc_bgcm[0].w;
+			pat[1].w = pc98_egc_bgcm[1].w;
+			pat[2].w = pc98_egc_bgcm[2].w;
+			pat[3].w = pc98_egc_bgcm[3].w;
+			break;
+
+		case 2:
+			pat[0].w = pc98_egc_fgcm[0].w;
+			pat[1].w = pc98_egc_fgcm[1].w;
+			pat[2].w = pc98_egc_fgcm[2].w;
+			pat[3].w = pc98_egc_fgcm[3].w;
+			break;
+
+		// TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
+		//       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
+		//       it might improve emulation accuracy to support it.
+
+		default:
+			if (pc98_egc_regload & 1) {
+				pat[0].w = pc98_egc_src[0].w;
+				pat[1].w = pc98_egc_src[1].w;
+				pat[2].w = pc98_egc_src[2].w;
+				pat[3].w = pc98_egc_src[3].w;
+			}
+			else {
+				pat[0].w = pc98_gdc_tiles[0].w;
+				pat[1].w = pc98_gdc_tiles[1].w;
+				pat[2].w = pc98_gdc_tiles[2].w;
+				pat[3].w = pc98_gdc_tiles[3].w;
+			}
+			break;
+	}
+
+	pc98_egc_data[0].w = 0;
+	pc98_egc_data[1].w = 0;
+	pc98_egc_data[2].w = 0;
+	pc98_egc_data[3].w = 0;
+
+	if (ope & 0x80) {
+		pc98_egc_data[0].w |= (pat[0].w & pc98_egc_src[0].w & dst[0].w);
+		pc98_egc_data[1].w |= (pat[1].w & pc98_egc_src[1].w & dst[1].w);
+		pc98_egc_data[2].w |= (pat[2].w & pc98_egc_src[2].w & dst[2].w);
+		pc98_egc_data[3].w |= (pat[3].w & pc98_egc_src[3].w & dst[3].w);
+	}
+	if (ope & 0x40) {
+		pc98_egc_data[0].w |= ((~pat[0].w) & pc98_egc_src[0].w & dst[0].w);
+		pc98_egc_data[1].w |= ((~pat[1].w) & pc98_egc_src[1].w & dst[1].w);
+		pc98_egc_data[2].w |= ((~pat[2].w) & pc98_egc_src[2].w & dst[2].w);
+		pc98_egc_data[3].w |= ((~pat[3].w) & pc98_egc_src[3].w & dst[3].w);
+	}
+	if (ope & 0x20) {
+		pc98_egc_data[0].w |= (pat[0].w & pc98_egc_src[0].w & (~dst[0].w));
+		pc98_egc_data[1].w |= (pat[1].w & pc98_egc_src[1].w & (~dst[1].w));
+		pc98_egc_data[2].w |= (pat[2].w & pc98_egc_src[2].w & (~dst[2].w));
+		pc98_egc_data[3].w |= (pat[3].w & pc98_egc_src[3].w & (~dst[3].w));
+	}
+	if (ope & 0x10) {
+		pc98_egc_data[0].w |= ((~pat[0].w) & pc98_egc_src[0].w & (~dst[0].w));
+		pc98_egc_data[1].w |= ((~pat[1].w) & pc98_egc_src[1].w & (~dst[1].w));
+		pc98_egc_data[2].w |= ((~pat[2].w) & pc98_egc_src[2].w & (~dst[2].w));
+		pc98_egc_data[3].w |= ((~pat[3].w) & pc98_egc_src[3].w & (~dst[3].w));
+	}
+	if (ope & 0x08) {
+		pc98_egc_data[0].w |= (pat[0].w & (~pc98_egc_src[0].w) & dst[0].w);
+		pc98_egc_data[1].w |= (pat[1].w & (~pc98_egc_src[1].w) & dst[1].w);
+		pc98_egc_data[2].w |= (pat[2].w & (~pc98_egc_src[2].w) & dst[2].w);
+		pc98_egc_data[3].w |= (pat[3].w & (~pc98_egc_src[3].w) & dst[3].w);
+	}
+	if (ope & 0x04) {
+		pc98_egc_data[0].w |= ((~pat[0].w) & (~pc98_egc_src[0].w) & dst[0].w);
+		pc98_egc_data[1].w |= ((~pat[1].w) & (~pc98_egc_src[1].w) & dst[1].w);
+		pc98_egc_data[2].w |= ((~pat[2].w) & (~pc98_egc_src[2].w) & dst[2].w);
+		pc98_egc_data[3].w |= ((~pat[3].w) & (~pc98_egc_src[3].w) & dst[3].w);
+	}
+	if (ope & 0x02) {
+		pc98_egc_data[0].w |= (pat[0].w & (~pc98_egc_src[0].w) & (~dst[0].w));
+		pc98_egc_data[1].w |= (pat[1].w & (~pc98_egc_src[1].w) & (~dst[1].w));
+		pc98_egc_data[2].w |= (pat[2].w & (~pc98_egc_src[2].w) & (~dst[2].w));
+		pc98_egc_data[3].w |= (pat[3].w & (~pc98_egc_src[3].w) & (~dst[3].w));
+	}
+	if (ope & 0x01) {
+		pc98_egc_data[0].w |= ((~pat[0].w) & (~pc98_egc_src[0].w) & (~dst[0].w));
+		pc98_egc_data[1].w |= ((~pat[1].w) & (~pc98_egc_src[1].w) & (~dst[1].w));
+		pc98_egc_data[2].w |= ((~pat[2].w) & (~pc98_egc_src[2].w) & (~dst[2].w));
+		pc98_egc_data[3].w |= ((~pat[3].w) & (~pc98_egc_src[3].w) & (~dst[3].w));
+	}
+
+	return pc98_egc_data;
 }
 
 static egc_quad &ope_00(uint8_t ope, const PhysPt vramoff) {
@@ -1023,6 +1119,10 @@ static egc_quad &ope_nd(uint8_t ope, const PhysPt vramoff) {
 			pat[3].w = pc98_egc_fgcm[3].w;
 			break;
 
+		// TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
+		//       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
+		//       it might improve emulation accuracy to support it.
+
 		default:
 			if (pc98_egc_regload & 1) {
 				pat[0].w = pc98_egc_src[0].w;
@@ -1045,29 +1145,29 @@ static egc_quad &ope_nd(uint8_t ope, const PhysPt vramoff) {
 	pc98_egc_data[3].w = 0;
 
 	if (ope & 0x80) {
-        pc98_egc_data[0].w |= (pat[0].w & pc98_egc_src[0].w);
-        pc98_egc_data[1].w |= (pat[1].w & pc98_egc_src[1].w);
-        pc98_egc_data[2].w |= (pat[2].w & pc98_egc_src[2].w);
-        pc98_egc_data[3].w |= (pat[3].w & pc98_egc_src[3].w);
-    }
+		pc98_egc_data[0].w |= (pat[0].w & pc98_egc_src[0].w);
+		pc98_egc_data[1].w |= (pat[1].w & pc98_egc_src[1].w);
+		pc98_egc_data[2].w |= (pat[2].w & pc98_egc_src[2].w);
+		pc98_egc_data[3].w |= (pat[3].w & pc98_egc_src[3].w);
+	}
 	if (ope & 0x40) {
-        pc98_egc_data[0].w |= ((~pat[0].w) & pc98_egc_src[0].w);
-        pc98_egc_data[1].w |= ((~pat[1].w) & pc98_egc_src[1].w);
-        pc98_egc_data[2].w |= ((~pat[2].w) & pc98_egc_src[2].w);
-        pc98_egc_data[3].w |= ((~pat[3].w) & pc98_egc_src[3].w);
-    }
+		pc98_egc_data[0].w |= ((~pat[0].w) & pc98_egc_src[0].w);
+		pc98_egc_data[1].w |= ((~pat[1].w) & pc98_egc_src[1].w);
+		pc98_egc_data[2].w |= ((~pat[2].w) & pc98_egc_src[2].w);
+		pc98_egc_data[3].w |= ((~pat[3].w) & pc98_egc_src[3].w);
+	}
 	if (ope & 0x08) {
-        pc98_egc_data[0].w |= (pat[0].w & (~pc98_egc_src[0].w));
-        pc98_egc_data[1].w |= (pat[1].w & (~pc98_egc_src[1].w));
-        pc98_egc_data[2].w |= (pat[2].w & (~pc98_egc_src[2].w));
-        pc98_egc_data[3].w |= (pat[3].w & (~pc98_egc_src[3].w));
-    }
+		pc98_egc_data[0].w |= (pat[0].w & (~pc98_egc_src[0].w));
+		pc98_egc_data[1].w |= (pat[1].w & (~pc98_egc_src[1].w));
+		pc98_egc_data[2].w |= (pat[2].w & (~pc98_egc_src[2].w));
+		pc98_egc_data[3].w |= (pat[3].w & (~pc98_egc_src[3].w));
+	}
 	if (ope & 0x04) {
-        pc98_egc_data[0].w |= ((~pat[0].w) & (~pc98_egc_src[0].w));
-        pc98_egc_data[1].w |= ((~pat[1].w) & (~pc98_egc_src[1].w));
-        pc98_egc_data[2].w |= ((~pat[2].w) & (~pc98_egc_src[2].w));
-        pc98_egc_data[3].w |= ((~pat[3].w) & (~pc98_egc_src[3].w));
-    }
+		pc98_egc_data[0].w |= ((~pat[0].w) & (~pc98_egc_src[0].w));
+		pc98_egc_data[1].w |= ((~pat[1].w) & (~pc98_egc_src[1].w));
+		pc98_egc_data[2].w |= ((~pat[2].w) & (~pc98_egc_src[2].w));
+		pc98_egc_data[3].w |= ((~pat[3].w) & (~pc98_egc_src[3].w));
+	}
 
 	(void)ope;
 	(void)vramoff;
@@ -1135,6 +1235,10 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 			pat[2].w = pc98_egc_fgcm[2].w;
 			pat[3].w = pc98_egc_fgcm[3].w;
 			break;
+
+		// TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
+		//       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
+		//       it might improve emulation accuracy to support it.
 
 		default:
 			if (pc98_egc_regload & 1) {
@@ -1287,6 +1391,9 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                 return pc98_egc_bgcm;
             else if (pc98_egc_fgc == 2)
                 return pc98_egc_fgcm;
+	    // TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
+	    //       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
+	    //       it might improve emulation accuracy to support it.
 
             if (pc98_egc_shiftinput) {
                 pc98_egc_shift.input<AWT>(
