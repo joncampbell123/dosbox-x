@@ -9717,6 +9717,8 @@ public:
                 /* Boot disks that run N88 basic, stopgap */
                 PhysPt bo = 0xE8002; // E800:0002
 
+		ROMBIOS_GetMemory(6,"N88 ROM BASIC entry point",/*align*/1,bo);
+
                 phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
                 phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
                 phys_writew(bo+0x02,(uint16_t)cb_pc98_rombasic.Get_callback());           //The immediate word
@@ -9730,6 +9732,8 @@ public:
 
 		bo = 0xF6000+0x2DB0; // F600:2DB0
 
+		ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
+
                 phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
                 phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
                 phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
@@ -9738,6 +9742,8 @@ public:
                 phys_writeb(bo+0x05,0xFE);
 
 		bo = 0xF6000+0x4C79; // F600:4C79
+
+		ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
 
                 phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
                 phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
@@ -9750,10 +9756,14 @@ public:
             if (IS_PC98_ARCH && enable_pc98_copyright_string) {
                 size_t i=0;
 
+		ROMBIOS_GetMemory(pc98_copyright_str.length()+1,"NEC PC-98 copyright string",/*align*/1,0xE8000 + 0x0DD8);
+
                 for (;i < pc98_copyright_str.length();i++)
                     phys_writeb(0xE8000 + 0x0DD8 + (PhysPt)i,(uint8_t)pc98_copyright_str[i]);
 
                 phys_writeb(0xE8000 + 0x0DD8 + (PhysPt)i,0);
+
+		ROMBIOS_GetMemory(sizeof(pc98_epson_check_2),"NEC PC-98 Epson check data #2",/*align*/1,0xF5200 + 0x018E);
 
                 for (i=0;i < sizeof(pc98_epson_check_2);i++)
                     phys_writeb(0xF5200 + 0x018E + (PhysPt)i,(uint8_t)pc98_epson_check_2[i]);
