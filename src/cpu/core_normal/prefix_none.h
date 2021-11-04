@@ -814,14 +814,19 @@
 		reg_di=Fetchw();break;
 #if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xc0)												/* GRP2 Eb,Ib */
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2B(Fetchb());break;
 	CASE_W(0xc1)												/* GRP2 Ew,Ib */
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2W(Fetchb());break;
+#else
+    CASE_W(0xc0)												/* Alias of RETN Iw (0xC2) on 8086 */
+        goto opcode_c2;
+    CASE_W(0xc1)												/* Alias of RETN (0xC3) on 8086 */
+        reg_eip = Pop_16();
+        continue;
 #endif
 	CASE_W(0xc2)												/* RETN Iw */
 		{
+        opcode_c2:
 			uint32_t old_esp = reg_esp;
 
 			try {
@@ -871,8 +876,8 @@
 			else {GetEAa;SaveMw(eaa,Fetchw());}
 			break;
 		}
+#if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_W(0xc8)												/* ENTER Iw,Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			Bitu bytes=Fetchw();
 			Bitu level=Fetchb();
@@ -880,7 +885,6 @@
 		}
 		break;
 	CASE_W(0xc9)												/* LEAVE */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			uint32_t old_esp = reg_esp;
 
@@ -895,14 +899,22 @@
 				throw;
 			}
 		} break;
+#else
+    CASE_W(0xc8)												/* Alias of RETF Iw (0xCA) on 8086 */
+        goto opcode_ca;
+    CASE_W(0xc9)												/* Alias of RETF (0xCB) on 8086 */
+        goto opcode_cb;
+#endif
 	CASE_W(0xca)												/* RETF Iw */
 		{
+        opcode_ca:
 			Bitu words=Fetchw();
 			FillFlags();
 			CPU_RET(false,words,GETIP);
 			continue;
 		}
-	CASE_W(0xcb)												/* RETF */			
+	CASE_W(0xcb)												/* RETF */
+        opcode_cb:
 		FillFlags();
 		CPU_RET(false,0,GETIP);
 		continue;
@@ -1175,15 +1187,21 @@
 		IO_WriteW(reg_dx,reg_ax);
 		break;
 	CASE_B(0xf0)												/* LOCK */
+        opcode_f0:
 // todo: make an option to show this
 //		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xf1)												/* ICEBP */
 		CPU_SW_Interrupt_NoIOPLCheck(1,GETIP);
 #if CPU_TRAP_CHECK
 		cpu.trap_skip=true;
 #endif
 		continue;
+#else
+     CASE_B(0xf1)                                                /* Believed to be alias of LOCK (0xf0) on 8086 */
+        goto opcode_f0;
+#endif
 	CASE_B(0xf2)												/* REPNZ */
 		DO_PREFIX_REP(false);	
 		break;		
