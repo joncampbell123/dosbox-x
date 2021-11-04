@@ -1,4 +1,6 @@
 0.83.20
+  - Fixed 0x0F opcode being valid on 80186 core when
+    it should be invalid. (Allofich)
   - Added stub IBM ROM BASIC points in the BIOS area
     so that when MS-DOS 1.x and 2.x BASIC.COM and BASICA.COM
     are run, a polite message is displayed instead of

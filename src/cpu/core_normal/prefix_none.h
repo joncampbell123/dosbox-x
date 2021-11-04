@@ -48,18 +48,17 @@
 	CASE_W(0x0e)												/* PUSH CS */		
 		Push_16(SegValue(cs));break;
 	CASE_B(0x0f)												/* 2 byte opcodes*/
-#if CPU_CORE < CPU_ARCHTYPE_286
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
-			/* 8086 emulation: treat as "POP CS" */
-			if (CPU_PopSeg(cs,false)) RUNEXCEPTION();
-			break;
-		}
-		else
+#if CPU_CORE == CPU_ARCHTYPE_8086
+		/* 8086 emulation: treat as "POP CS" */
+		if (CPU_PopSeg(cs,false)) RUNEXCEPTION();
+		break;
+#else
+        if (CPU_ArchitectureType == CPU_ARCHTYPE_80186)
+            goto illegal_opcode;
+        core.opcode_index|=OPCODE_0F;
+        goto restart_opcode;
+        break;
 #endif
-		{
-			core.opcode_index|=OPCODE_0F;
-			goto restart_opcode;
-		} break;
 	CASE_B(0x10)												/* ADC Eb,Gb */
 		RMEbGb(ADCB);break;
 	CASE_W(0x11)												/* ADC Ew,Gw */
