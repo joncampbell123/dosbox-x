@@ -6744,10 +6744,17 @@ static Bitu IRQ15_Dummy(void) {
 void On_Software_CPU_Reset();
 
 static Bitu INT18_Handler(void) {
-    LOG_MSG("Restart by INT 18h requested\n");
-    On_Software_CPU_Reset();
-    /* does not return */
-    return CBRET_NONE;
+	if (ibm_rom_basic_size != 0) {
+		/* jump to BASIC (usually F600:0000 for IBM 5150 ROM BASIC) */
+		SegSet16(cs, ibm_rom_basic_base >> 4);
+		reg_eip = 0;
+	}
+	else {
+		LOG_MSG("Restart by INT 18h requested\n");
+		On_Software_CPU_Reset();
+		/* does not return */
+	}
+	return CBRET_NONE;
 }
 
 static Bitu INT19_Handler(void) {
