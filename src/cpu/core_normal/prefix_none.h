@@ -57,7 +57,7 @@
 #  if CPU_CORE == CPU_ARCHTYPE_286
 	/* try not to slow down 386+ emulation with a check for 186 every time we hit an opcode starting with 0x0F,
 	 * do this check only for the 80186 and 286 emulation provided by normal/prefetch 286 core code. */
-        if (CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        if (CPU_ArchitectureType < CPU_ARCHTYPE_286)
             goto illegal_opcode;
 #  endif
 
