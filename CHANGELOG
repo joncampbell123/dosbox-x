@@ -1,4 +1,6 @@
 0.83.20
+  - Made 8086 treat opcodes 0x60-0x6F as aliases of
+    opcodes 0x70-0x7F. (Allofich)
   - Fixed 0x0F opcode being valid on 80186 core when
     it should be invalid. (Allofich)
   - Added stub IBM ROM BASIC points in the BIOS area
