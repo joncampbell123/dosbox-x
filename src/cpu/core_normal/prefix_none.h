@@ -233,7 +233,9 @@
 	CASE_W(0x5f)												/* POP DI */
 		reg_di=Pop_16();break;
 	CASE_W(0x60)												/* PUSHA */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_O); break;
+#else
 		{
 			uint32_t old_esp = reg_esp;
 			try {
@@ -248,8 +250,11 @@
 				throw;
 			}
 		} break;
+#endif
 	CASE_W(0x61)												/* POPA */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NO); break;
+#else
 		{
 			uint32_t old_esp = reg_esp;
 			try {
@@ -263,8 +268,11 @@
 				throw;
 			}
 		} break;
+#endif
 	CASE_W(0x62)												/* BOUND */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_B); break;
+#else
 		{
 			int16_t bound_min, bound_max;
 			GetRMrw;GetEAa;
@@ -275,8 +283,15 @@
 			}
 		}
 		break;
+#endif
 	CASE_W(0x63)												/* ARPL Ew,Rw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NB); break;
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        if (CPU_ArchitectureType < CPU_ARCHTYPE_286) goto illegal_opcode;
+#endif
+#if CPU_CORE > CPU_ARCHTYPE_286
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;
@@ -291,52 +306,104 @@
 			}
 		}
 		break;
+#endif
 	CASE_B(0x64)												/* SEG FS: */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
-		DO_PREFIX_SEG(fs);break;
-	CASE_B(0x65)												/* SEG GS: */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
-		DO_PREFIX_SEG(gs);break;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_Z); break;
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		DO_PREFIX_SEG(fs);break;
+#endif
+	CASE_B(0x65)												/* SEG GS: */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NZ); break;
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+		DO_PREFIX_SEG(gs);break;
+#endif
+
 	CASE_B(0x66)												/* Operand Size Prefix (386+) */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_BE); break;
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
 		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 		goto restart_opcode;
 #endif
-#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_B(0x67)												/* Address Size Prefix (386+) */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NBE); break;
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
 		DO_PREFIX_ADDR();
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_S); break;
+#else
 		Push_16(Fetchw());break;
+#endif
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NS); break;
+#else
 		RMGwEwOp3(DIMULW,Fetchws());
 		break;
+#endif
 	CASE_W(0x6a)												/* PUSH Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_P); break;
+#else
 		Push_16((uint16_t)Fetchbs());
 		break;
+#endif
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NP); break;
+#else
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
+#endif
 	CASE_B(0x6c)												/* INSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_L); break;
+#else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_INSB);break;
+#endif
 	CASE_W(0x6d)												/* INSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NL); break;
+#else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_INSW);break;
+#endif
 	CASE_B(0x6e)												/* OUTSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_LE); break;
+#else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_OUTSB);break;
+#endif
 	CASE_W(0x6f)												/* OUTSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NLE); break;
+#else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_OUTSW);break;
+#endif
 	CASE_W(0x70)												/* JO */
 		JumpCond16_b(TFLG_O);break;
 	CASE_W(0x71)												/* JNO */
