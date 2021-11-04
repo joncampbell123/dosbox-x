@@ -234,7 +234,7 @@
 		reg_di=Pop_16();break;
 	CASE_W(0x60)												/* PUSHA */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_O); break;
+        JumpCond16_b(TFLG_O); break; /* alias of 0x70, jo. see also [http://www.os2museum.com/wp/undocumented-8086-opcodes/] */
 #else
 		{
 			uint32_t old_esp = reg_esp;
@@ -253,7 +253,7 @@
 #endif
 	CASE_W(0x61)												/* POPA */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NO); break;
+        JumpCond16_b(TFLG_NO); break; /* alias of 0x71, jno */
 #else
 		{
 			uint32_t old_esp = reg_esp;
@@ -271,7 +271,7 @@
 #endif
 	CASE_W(0x62)												/* BOUND */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_B); break;
+        JumpCond16_b(TFLG_B); break; /* alias of 0x72, jb */
 #else
 		{
 			int16_t bound_min, bound_max;
@@ -286,7 +286,7 @@
 #endif
 	CASE_W(0x63)												/* ARPL Ew,Rw */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NB); break;
+        JumpCond16_b(TFLG_NB); break; /* alias of 0x73, jnb */
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         if (CPU_ArchitectureType < CPU_ARCHTYPE_286) goto illegal_opcode;
@@ -309,7 +309,7 @@
 #endif
 	CASE_B(0x64)												/* SEG FS: */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_Z); break;
+        JumpCond16_b(TFLG_Z); break; /* alias of 0x74, jz */
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         goto illegal_opcode;
@@ -319,7 +319,7 @@
 #endif
 	CASE_B(0x65)												/* SEG GS: */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NZ); break;
+        JumpCond16_b(TFLG_NZ); break; /* alias of 0x75, jnz */
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         goto illegal_opcode;
@@ -330,7 +330,7 @@
 
 	CASE_B(0x66)												/* Operand Size Prefix (386+) */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_BE); break;
+        JumpCond16_b(TFLG_BE); break; /* alias of 0x76, jbe */
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         goto illegal_opcode;
@@ -341,7 +341,7 @@
 #endif
 	CASE_B(0x67)												/* Address Size Prefix (386+) */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NBE); break;
+        JumpCond16_b(TFLG_NBE); break; /* alias of 0x77, jnbe */
 #endif
 #if CPU_CORE == CPU_ARCHTYPE_286
         goto illegal_opcode;
@@ -351,55 +351,55 @@
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_S); break;
+        JumpCond16_b(TFLG_S); break; /* alias of 0x78, js */
 #else
 		Push_16(Fetchw());break;
 #endif
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NS); break;
+        JumpCond16_b(TFLG_NS); break; /* alias of 0x79, jns */
 #else
 		RMGwEwOp3(DIMULW,Fetchws());
 		break;
 #endif
 	CASE_W(0x6a)												/* PUSH Ib */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_P); break;
+        JumpCond16_b(TFLG_P); break; /* alias of 0x7A, jp */
 #else
 		Push_16((uint16_t)Fetchbs());
 		break;
 #endif
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NP); break;
+        JumpCond16_b(TFLG_NP); break; /* alias of 0x7B, jnp */
 #else
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
 #endif
 	CASE_B(0x6c)												/* INSB */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_L); break;
+        JumpCond16_b(TFLG_L); break; /* alias of 0x7C, jl */
 #else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_INSB);break;
 #endif
 	CASE_W(0x6d)												/* INSW */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NL); break;
+        JumpCond16_b(TFLG_NL); break; /* alias of 0x7D, jnl */
 #else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_INSW);break;
 #endif
 	CASE_B(0x6e)												/* OUTSB */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_LE); break;
+        JumpCond16_b(TFLG_LE); break; /* alias of 0x7E, jle */
 #else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_OUTSB);break;
 #endif
 	CASE_W(0x6f)												/* OUTSW */
 #if CPU_CORE == CPU_ARCHTYPE_8086
-        JumpCond16_b(TFLG_NLE); break;
+        JumpCond16_b(TFLG_NLE); break; /* alias of 0x7F, jnle */
 #else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_OUTSW);break;
