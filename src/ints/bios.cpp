@@ -72,6 +72,10 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+std::string ibm_rom_basic;
+size_t ibm_rom_basic_size = 0;
+uint32_t ibm_rom_basic_base = 0;
+
 /* NTS: The "Epson check" code in Windows 2.1 only compares up to the end of "NEC Corporation" */
 const std::string pc98_copyright_str = "Copyright (C) 1983 by NEC Corporation / Microsoft Corp.\x0D\x0A";
 
@@ -9727,30 +9731,32 @@ public:
                 phys_writeb(bo+0x05,0xFE);
             }
 	    else {
-		/* IBM MS-DOS 1.x/2.x BASIC and BASICA, stopgap */
-		PhysPt bo;
+		    if (ibm_rom_basic_size == 0) {
+			    /* IBM MS-DOS 1.x/2.x BASIC and BASICA, stopgap */
+			    PhysPt bo;
 
-		bo = 0xF6000+0x2DB0; // F600:2DB0
+			    bo = 0xF6000+0x2DB0; // F600:2DB0
 
-		ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
+			    ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
 
-                phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
-                phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-                phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+			    phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
+			    phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
+			    phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
 
-                phys_writeb(bo+0x04,0xEB);                             // JMP $-2
-                phys_writeb(bo+0x05,0xFE);
+			    phys_writeb(bo+0x04,0xEB);                             // JMP $-2
+			    phys_writeb(bo+0x05,0xFE);
 
-		bo = 0xF6000+0x4C79; // F600:4C79
+			    bo = 0xF6000+0x4C79; // F600:4C79
 
-		ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
+			    ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
 
-                phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
-                phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-                phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+			    phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
+			    phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
+			    phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
 
-                phys_writeb(bo+0x04,0xEB);                             // JMP $-2
-                phys_writeb(bo+0x05,0xFE);
+			    phys_writeb(bo+0x04,0xEB);                             // JMP $-2
+			    phys_writeb(bo+0x05,0xFE);
+		    }
 	    }
 
             if (IS_PC98_ARCH && enable_pc98_copyright_string) {
@@ -10059,6 +10065,9 @@ void ROMBIOS_Init() {
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");
 
+    ibm_rom_basic.clear();
+    ibm_rom_basic_size = 0;
+
     oi = (Bitu)section->Get_int("rom bios minimum size"); /* in KB */
     oi = (oi + 3u) & ~3u; /* round to 4KB page */
     if (oi > 128u) oi = 128u;
@@ -10130,6 +10139,27 @@ void ROMBIOS_Init() {
     else {
 	    /* prevent dynamic allocation from taking reserved fixed addresses above F000:E000 in IBM PC mode. */
 	    rombios_alloc.setMaxDynamicAllocationAddress(0xFE000 - 1);
+    }
+
+    if (!IS_PC98_ARCH) {
+	    ibm_rom_basic = section->Get_string("ibm rom basic");
+	    if (!ibm_rom_basic.empty()) {
+		    struct stat st;
+
+		    if (stat(ibm_rom_basic.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size >= (off_t)(32u*1024u) && st.st_size <= (off_t)(64u*1024u) && (st.st_size % 4096) == 0) {
+			    ibm_rom_basic_size = (size_t)st.st_size;
+			    ibm_rom_basic_base = rombios_alloc._max_nonfixed + 1 - st.st_size;
+			    LOG_MSG("Will load IBM ROM BASIC to %05lx-%05lx",(unsigned long)ibm_rom_basic_base,(unsigned long)(ibm_rom_basic_base+ibm_rom_basic_size-1));
+			    Bitu base = ROMBIOS_GetMemory(ibm_rom_basic_size,"IBM ROM BASIC",1u/*page align*/,ibm_rom_basic_base);
+			    rombios_alloc.setMaxDynamicAllocationAddress(ibm_rom_basic_base - 1);
+
+			    FILE *fp = fopen(ibm_rom_basic.c_str(),"rb");
+			    if (fp != NULL) {
+				    fread(GetMemBase()+ibm_rom_basic_base,(size_t)ibm_rom_basic_size,1u,fp);
+				    fclose(fp);
+			    }
+		    }
+	    }
     }
 
     write_ID_version_string();
