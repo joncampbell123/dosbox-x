@@ -726,12 +726,12 @@ void DOS_Shell::Prepare(void) {
                     }
                 }
             }
-			if (country>0) {
+			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
 			const char * extra = section->data.c_str();
-			if (extra&&!control->opt_securemode&&!control->SecureMode()) {
+			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];

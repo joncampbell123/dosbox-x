@@ -2704,7 +2704,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("outputswitch", Property::Changeable::Always, "auto");
-    Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requiested, or auto for automatic selection.");
+    Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requested, or auto for automatic selection.");
     Pstring->Set_values(switchoutputs);
     Pstring->SetBasic(true);
 
