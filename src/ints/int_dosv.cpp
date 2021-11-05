@@ -896,6 +896,7 @@ bool MakeSbcs24Font() {
 }
 
 #if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#include "imm.h"
 extern HWND GetHWND(void);
 bool IME_GetEnable()
 {
