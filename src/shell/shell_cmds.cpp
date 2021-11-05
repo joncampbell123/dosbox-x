@@ -3338,7 +3338,9 @@ void DOS_Shell::CMD_PATH(char *args){
 		char pathstring[DOS_PATHLENGTH+CROSS_LEN+20]={ 0 };
 		strcpy(pathstring,"set PATH=");
 		while(args && (*args=='='|| *args==' ')) 
-		     args++;
+			args++;
+		if (strlen(args) == 1 && *args == ';')
+			*args = 0;
         if (args) {
             std::string vstr = args;
             bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
