@@ -294,8 +294,10 @@ void CPrinter::selectCodepage(uint16_t cp)
 
 void CPrinter::updateFont()
 {
-	if (curFont != NULL)
+	if (curFont != NULL) {
 		FT_Done_Face(curFont);
+		curFont = NULL;
+	}
 
 #if defined(USE_TTF)
     if (TTF_using()&&printfont) curFont = GetTTFFace();
