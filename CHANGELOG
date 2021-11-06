@@ -6,6 +6,10 @@
     section which allows users to load a ROM image
     containing IBM PC ROM BASIC, for disk images
     and MS-DOS setups that need it. (joncampbell123)
+  - Added stub IBM ROM BASIC points in the BIOS area
+    so that when BASIC(A).COM from MS-DOS 1.x and 2.x
+    are run, a polite message is displayed instead of
+    invalid code and crashes. (joncampbell123)
   - Put in undocumented behavior in opcode 0x8e for
     8086 and 80186. (Allofich)
   - Made 8086 treat opcodes C0,C1,C8,C9,F1 as aliases
@@ -19,10 +23,6 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - The command "config -set" is now case-insensitive
     for property names. (Wengier)
-  - Added stub IBM ROM BASIC points in the BIOS area
-    so that when MS-DOS 1.x and 2.x BASIC.COM and BASICA.COM
-    are run, a polite message is displayed instead of
-    invalid code and crashes. (joncampbell123)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)

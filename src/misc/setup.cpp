@@ -682,16 +682,9 @@ Property* Section_prop::Get_prop(int index) {
     return NULL;
 }
 
-bool strequals(const string a, const string b) {
-    unsigned int sz = a.size();
-    if (b.size() != sz) return false;
-    for (unsigned int i = 0; i < sz; ++i) if (tolower(a[i]) != tolower(b[i])) return false;
-    return true;
-}
-
 Property* Section_prop::Get_prop(string const& _propname) {
     for(it tel = properties.begin();tel != properties.end();++tel){
-        if ((*tel)->propname == _propname || strequals((*tel)->propname, _propname)){
+        if (!strcasecmp((*tel)->propname.c_str(), _propname.c_str())){
             return (*tel);
         }
     }
