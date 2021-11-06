@@ -5,6 +5,10 @@
   - Added dosbox.conf option to load a ROM image
     containing IBM PC ROM BASIC, for disk images
     and MS-DOS setups that need it. (joncampbell123)
+  - Put in undocumented behavior in opcode 0x8e for
+    8086 and 80186. (Allofich)
+  - Made 8086 treat opcodes C0,C1,C8,C9,F1 as aliases
+    of C2,C3,CA,CB,F0. (Allofich)
   - Made 8086 treat opcodes 0x60-0x6F as aliases of
     opcodes 0x70-0x7F. (Allofich)
   - Fixed 0x0F opcode being valid on 80186 core when
