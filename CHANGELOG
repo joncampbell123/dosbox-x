@@ -13,6 +13,8 @@
     opcodes 0x70-0x7F. (Allofich)
   - Fixed 0x0F opcode being valid on 80186 core when
     it should be invalid. (Allofich)
+  - Adjusted multiple-prefix bug for 8086/286 to only
+    apply when REP or REPZ is used. (Allofich)
   - Added stub IBM ROM BASIC points in the BIOS area
     so that when MS-DOS 1.x and 2.x BASIC.COM and BASICA.COM
     are run, a polite message is displayed instead of
