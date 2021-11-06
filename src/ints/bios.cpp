@@ -10151,8 +10151,9 @@ void ROMBIOS_Init() {
     if (!IS_PC98_ARCH) {
 	    ibm_rom_basic = section->Get_string("ibm rom basic");
 	    if (!ibm_rom_basic.empty()) {
+            void ResolvePath(std::string& in);
+            ResolvePath(ibm_rom_basic);
 		    struct stat st;
-
 		    if (stat(ibm_rom_basic.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size >= (off_t)(32u*1024u) && st.st_size <= (off_t)(64u*1024u) && (st.st_size % 4096) == 0) {
 			    ibm_rom_basic_size = (size_t)st.st_size;
 			    ibm_rom_basic_base = rombios_alloc._max_nonfixed + 1 - st.st_size;

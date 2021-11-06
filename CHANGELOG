@@ -2,7 +2,8 @@
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)
-  - Added dosbox.conf option to load a ROM image
+  - Added config option "ibm rom basic" in [dosbox]
+    section which allows users to load a ROM image
     containing IBM PC ROM BASIC, for disk images
     and MS-DOS setups that need it. (joncampbell123)
   - Put in undocumented behavior in opcode 0x8e for
@@ -11,10 +12,13 @@
     of C2,C3,CA,CB,F0. (Allofich)
   - Made 8086 treat opcodes 0x60-0x6F as aliases of
     opcodes 0x70-0x7F. (Allofich)
-  - Fixed 0x0F opcode being valid on 80186 core when
-    it should be invalid. (Allofich)
   - Adjusted multiple-prefix bug for 8086/286 to only
     apply when REP or REPZ is used. (Allofich)
+  - Fixed 0x0F opcode being valid on 80186 core when
+    it should be invalid. (Allofich)
+  - Fixed possible crash with printing. (jamesbond3142)
+  - The command "config -set" is now case-insensitive
+    for property names. (Wengier)
   - Added stub IBM ROM BASIC points in the BIOS area
     so that when MS-DOS 1.x and 2.x BASIC.COM and BASICA.COM
     are run, a polite message is displayed instead of
