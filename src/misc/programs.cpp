@@ -1514,6 +1514,10 @@ void CONFIG::Run(void) {
                                 if (TTF_using() && printfont) UpdateDefaultPrinterFont();
 #endif
 #endif
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
+#if defined(USE_TTF)
+                                ttf_reset();
+#endif
 							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
 #if defined(USE_TTF)
                                 bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
