@@ -129,7 +129,12 @@ Bits CPU_Core_Prefetch_Trap_Run(void);
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
-    if (GETFLAG(IF) && CPU_Cycles <= 0) goto prefix_out; \
+    if (GETFLAG(IF) && CPU_Cycles <= 0) \
+    {   \
+        uint8_t next = LoadMb(core.cseip + 1);  \
+        if (next == 0xf2 || next == 0xf3)   \
+            goto prefix_out;    \
+    }   \
 	BaseDS=SegBase(_SEG);					\
 	BaseSS=SegBase(_SEG);					\
 	core.base_val_ds=_SEG;					\
