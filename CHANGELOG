@@ -27,6 +27,10 @@
     apply when REP or REPZ is used. (Allofich)
   - Fixed 0x0F opcode being valid on 80186 core when
     it should be invalid. (Allofich)
+  - Fixed CGA modes to always use a character height
+    of 8, rather than reading it from address 485h.
+    Fixes corrupt graphics in the PC Booter version
+    of Apple Panic. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes

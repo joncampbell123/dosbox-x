@@ -1140,7 +1140,7 @@ static void INT10_Seg40Init(void) {
 	}
 	else {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x00);
-		if (machine == MCH_TANDY || machine == MCH_CGA || machine == MCH_PCJR)
+		if (machine == MCH_TANDY || machine == MCH_PCJR)
 			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,8); /* FIXME: INT 10h teletext routines depend on this */
 		else
 			real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,0);

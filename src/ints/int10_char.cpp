@@ -1529,7 +1529,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
     /* Externally used by the mouse routine */
     PhysPt fontdata;
     uint16_t cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-    uint8_t back, cheight = IS_PC98_ARCH ? 16 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+    uint8_t back, cheight = IS_PC98_ARCH ? 16 : machine == MCH_CGA ? 8 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 
     if (CurMode->type != M_PC98)
         chr &= 0xFF;
