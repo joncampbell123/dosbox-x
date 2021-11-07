@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:0.83.19
+:DOSBOX-X:VERSION:0.83.20
 :DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
@@ -416,7 +416,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_FORMAT
-%-5s  %-58s %-12s
+%-5s  %-58s %-7s
 
 .
 :PROGRAM_MOUNT_STATUS_ELTORITO
@@ -436,11 +436,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
-%-5s  %-47s  %-12s  %s
+%-5s  %-41s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
-%-12s  %-40s  %-12s  %s
+%-12s  %-33s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
@@ -453,6 +453,14 @@ MOUSE [/?] [/U] [/V]
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
 マウントされたドライブがありません。
+
+.
+:PROGRAM_IMGSWAP_STATUS
+現在交換可能なドライブは次のとおりです:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+このドライブの位置は1-%dである必要があります.
 
 .
 :PROGRAM_MOUNT_ERROR_1
@@ -550,37 +558,48 @@ MOUNTのその他の使用例:
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
 PhysFS ドライブのマウントに失敗しました。
+
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
 Overlayを追加する前に、通常のディレクトリを MOUNT する必要があります。
+
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
 指定のドライブには overlay は追加できません。
+
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
 Overlayのディレクトリは、追加前のディレクトリと同じアドレス指定方法で指定する必要があります。相対パス・絶対パスの混在はできません。
+
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
 Overlay のディレクトリには、追加前のディレクトリと同じものは指定できません。
+
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
 Overlayドライブの作成でエラーがありました。
+
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
 Overlay %s を %c ドライブにマウントしました。
+
 .
 :PROGRAM_LOADFIX_ALLOC
 %d kb 確保しました。
+
 .
 :PROGRAM_LOADFIX_DEALLOC
 %d kb 解放しました。
+
 .
 :PROGRAM_LOADFIX_DEALLOCALL
 使用していたメモリを解放しました。
 .
+
 :PROGRAM_LOADFIX_ERROR
 メモリ確保エラー。
 .
+
 :PROGRAM_LOADFIX_HELP
 使用可能なコンベンショナルメモリ・XMS/EMSメモリの量を減らします。
 
@@ -606,30 +625,39 @@ LOADFIX -f [-xms] [-ems]
 .
 :MSCDEX_SUCCESS
 MSCDEX をインストールしました。
+
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
 MSCDEX: エラー: 複数のCD-ROMドライブのドライブ文字は連続させる必要があります。
+
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
 MSCDEX: エラー: 未サポート
+
 .
 :MSCDEX_ERROR_PATH
 MSCDEX: エラー: 指定の場所はCD-ROM ドライブではありません。
+
 .
 :MSCDEX_ERROR_OPEN
 MSCDEX: エラー: ファイルが無効または開けません。
+
 .
 :MSCDEX_TOO_MANY_DRIVES
 MSCDEX: エラー: CD-ROM ドライブが多すぎます (最大: 5). MSCDEX インストールできませんでした。
+
 .
 :MSCDEX_LIMITED_SUPPORT
 MSCDEX: サブディレクトリをマウントしました。: 部分的サポート
+
 .
 :MSCDEX_INVALID_FILEFORMAT
 MSCDEX: エラー: 指定のファイルはISO/CUE イメージでないか、不具合があります。
+
 .
 :MSCDEX_UNKNOWN_ERROR
 MSCDEX: エラー: 不明なエラー。
+
 .
 :PROGRAM_RESCAN_SUCCESS
 ドライブキャッシュをクリアしました。

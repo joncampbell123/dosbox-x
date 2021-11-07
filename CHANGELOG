@@ -1,4 +1,11 @@
 0.83.20
+  - Added IMGSWAP command to swap disks for drives.
+    e.g. "IMGSWAP A 2" to swap A: drive to the 2nd
+    swap position. (Wengier)
+  - The CAPMOUSE command without a paramter now shows
+    whether the mouse is captured/released. (Wengier)
+  - The command "config -set" is now case-insensitive
+    for property names. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)
@@ -21,8 +28,6 @@
   - Fixed 0x0F opcode being valid on 80186 core when
     it should be invalid. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
-  - The command "config -set" is now case-insensitive
-    for property names. (Wengier)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)

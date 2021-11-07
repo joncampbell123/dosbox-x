@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Turkish (Turkey)
 :DOSBOX-X:CODEPAGE:857
-:DOSBOX-X:VERSION:0.83.19
+:DOSBOX-X:VERSION:0.83.20
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -469,6 +469,14 @@ Bulunan CD-ROM'lar: %d
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
 Kullanılabilir sürücü yok
+
+.
+:PROGRAM_IMGSWAP_STATUS
+Şu anda takas için kullanılabilen sürücüler:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+Bu sürücü için konum 1 ile %d arasında olmalıdır.
 
 .
 :PROGRAM_MOUNT_ERROR_1

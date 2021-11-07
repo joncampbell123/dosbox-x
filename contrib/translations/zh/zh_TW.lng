@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
-:DOSBOX-X:VERSION:0.83.19
+:DOSBOX-X:VERSION:0.83.20
 :DOSBOX-X:REMARK:可使用 cht 或 tw 中文 DOS/V 模式; 或改用 TrueType 字型輸出選項 (國家和字碼頁設為 886,950 並搭配中文 TTF 字型) 以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
 段落中的指令行會在啟動時執行.
@@ -466,6 +466,14 @@ MOUSE [/?] [/U] [/V]
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
 沒有已掛載的磁碟機
+
+.
+:PROGRAM_IMGSWAP_STATUS
+目前可用於切換的磁碟機有:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+此磁碟機的位置必須在 1 和 %d 之間.
 
 .
 :PROGRAM_MOUNT_ERROR_1

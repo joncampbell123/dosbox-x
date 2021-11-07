@@ -363,13 +363,18 @@ void DriveManager::CycleDisk(bool pressed) {
 }
 */
 
-void DriveManager::CycleDisks(int drive, bool notify) {
+void DriveManager::CycleDisks(int drive, bool notify, int position) {
 	unsigned int numDisks = (unsigned int)driveInfos[drive].disks.size();
 	if (numDisks > 1) {
 		// cycle disk
 		unsigned int currentDisk = (unsigned int)driveInfos[drive].currentDisk;
         const DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
-		currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
+        if (position<1)
+            currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
+        else if (position>numDisks)
+            currentDisk = 0;
+        else
+            currentDisk = position - 1;
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
 		
@@ -428,6 +433,10 @@ int DriveManager::UnmountDrive(int drive) {
 	}
 	
 	return result;
+}
+
+int DriveManager::GetDisksSize(int drive) {
+    return (int)driveInfos[drive].disks.size();
 }
 
 char swappos[10];

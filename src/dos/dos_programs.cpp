@@ -966,7 +966,7 @@ public:
 
             /* Change 8.3 to 11.0 */
             const char* dot = strchr(name, '.');
-            if(dot && (dot - name == 8) ) { 
+            if(dot && (dot - name == 8) ) {
                 name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
             }
 
@@ -3752,6 +3752,115 @@ void runImgmake(const char *str) {
 	imgmake.Run();
 }
 
+void swapInDrive(int drive, int position=0);
+class IMGSWAP : public Program
+{
+public:
+    void ListImgSwaps(void) {
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        /* Command uses dta so set it to our internal dta */
+        RealPt save_dta = dos.dta();
+        dos.dta(dos.tables.tempdta);
+        DOS_DTA dta(dos.dta());
+        WriteOut(MSG_Get("PROGRAM_IMGSWAP_STATUS"));
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
+        bool none=true;
+        for (int d = 0;d < DOS_DRIVES;d++) {
+            if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))||(int)DriveManager::GetDisksSize(d)<2) continue;
+            char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
+            bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+            if (ret) {
+                dta.GetResult(name,lname,size,date,time,attr);
+                DOS_FindNext(); //Mark entry as invalid
+            } else name[0] = 0;
+
+            /* Change 8.3 to 11.0 */
+            const char* dot = strchr(name, '.');
+            if(dot && (dot - name == 8) ) {
+                name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
+            }
+
+            root[1] = 0; //This way, the format string can be reused.
+            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name,DriveManager::GetDrivePosition(d));
+            none=false;
+        }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
+        dos.dta(save_dta);
+    }
+	void Run() override
+    {
+        //Hack To allow long commandlines
+        ChangeToLongCmd();
+
+        if(cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true)) {
+            WriteOut("Swaps floppy, hard drive and optical disc images.\n\n"
+                "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
+                " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
+                " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
+            return;
+        }
+        if (!cmd->GetCount()) {
+            ListImgSwaps();
+            return;
+        }
+        if (!cmd->FindCommand(1,temp_line) || (temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':')) || !(temp_line[0] >= 'A' && temp_line[0] <= 'Z') && !(temp_line[0] >= 'a' && temp_line[0] <= 'z')) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
+        int d=temp_line[0] - (temp_line[0] >= 'a' && temp_line[0] <= 'z' ?  'a' : 'A');
+        if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9)) || (int)DriveManager::GetDisksSize(d)<2) {
+            ListImgSwaps();
+            return;
+        }
+        if (cmd->FindCommand(2,temp_line)) {
+            int swap=atoi(temp_line.c_str());
+            if (swap<1||swap>DriveManager::GetDisksSize(d)) {
+                WriteOut(MSG_Get("PROGRAM_IMGSWAP_ERROR"), DriveManager::GetDisksSize(d));
+                return;
+            }
+            swapInDrive(d,swap);
+        } else
+            swapInDrive(d);
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        /* Command uses dta so set it to our internal dta */
+        RealPt save_dta = dos.dta();
+        dos.dta(dos.tables.tempdta);
+        DOS_DTA dta(dos.dta());
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),MSG_Get("DRIVE"),MSG_Get("TYPE"),MSG_Get("LABEL"),MSG_Get("SWAP_SLOT"));
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 1;p < cols;p++) WriteOut("-");
+        WriteOut("\n");
+        char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
+        bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+        if (ret) {
+            dta.GetResult(name,lname,size,date,time,attr);
+            DOS_FindNext(); //Mark entry as invalid
+        } else name[0] = 0;
+
+        /* Change 8.3 to 11.0 */
+        const char* dot = strchr(name, '.');
+        if(dot && (dot - name == 8) ) {
+            name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
+        }
+
+        root[1] = 0; //This way, the format string can be reused.
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name,DriveManager::GetDrivePosition(d));
+        dos.dta(save_dta);
+    }
+};
+
+void IMGSWAP_ProgramStart(Program** make)
+{
+	*make = new IMGSWAP;
+}
+
 // LOADFIX
 
 class LOADFIX : public Program {
@@ -4464,7 +4573,7 @@ public:
 
             /* Change 8.3 to 11.0 */
             const char* dot = strchr(name, '.');
-            if(dot && (dot - name == 8) ) { 
+            if(dot && (dot - name == 8) ) {
                 name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
             }
 
@@ -6269,7 +6378,9 @@ public:
         auto val = 0;
         auto tmp = std::string("");
 
-        if(cmd->GetCount() == 0 || cmd->FindExist("/?", true))
+        if(cmd->GetCount() == 0)
+            val = -1;
+        else if(cmd->FindExist("/?", true))
             val = 0;
         else if(cmd->FindExist("/C", false))
             val = 1;
@@ -6279,6 +6390,7 @@ public:
         auto cap = false;
         switch(val)
         {
+        case -1:
         case 2:
             break;
         case 1:
@@ -6293,12 +6405,15 @@ public:
             return;
         }
 
-        CaptureMouseNotify(!cap);
-        GFX_CaptureMouse(cap);
+        if (val>-1) {
+            CaptureMouseNotify(!cap);
+            GFX_CaptureMouse(cap);
+        }
         std::string msg;
         msg.append("Mouse ");
+        if (val==-1) msg.append("is currently ");
         msg.append(Mouse_IsLocked() ? "captured" : "released");
-        msg.append("\n");
+        msg.append(".\n");
         WriteOut(msg.c_str());
     }
 };
@@ -7719,6 +7834,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
+    MSG_Add("PROGRAM_IMGSWAP_STATUS","Drives currently available for swapping are:\n");
+    MSG_Add("PROGRAM_IMGSWAP_ERROR","Position must be between 1 and %d for this drive.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s does not exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_IMGMOUNT","To mount image files, use the \033[34;1mIMGMOUNT\033[0m command, not the \033[34;1mMOUNT\033[0m command.\n");
@@ -8175,6 +8292,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");

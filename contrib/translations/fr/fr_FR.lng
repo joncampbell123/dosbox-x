@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.19
+:DOSBOX-X:VERSION:0.83.20
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -469,6 +469,14 @@ Les lecteurs FAT/ISO actuellement montés sont les suivants :
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
 Aucun lecteur disponible
+
+.
+:PROGRAM_IMGSWAP_STATUS
+Les lecteurs actuellement disponibles pour l'échange sont:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+La position doit être comprise entre 1 et %d pour ce lecteur.
 
 .
 :PROGRAM_MOUNT_ERROR_1

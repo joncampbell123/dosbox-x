@@ -39,10 +39,11 @@ public:
 	static void ChangeDisk(int drive, DOS_Drive* disk);
 	static void InitializeDrive(int drive);
 	static int UnmountDrive(int drive);
+	static int GetDisksSize(int drive);
 	static char * GetDrivePosition(int drive);
 //	static void CycleDrive(bool pressed);
 //	static void CycleDisk(bool pressed);
-	static void CycleDisks(int drive, bool notify);
+	static void CycleDisks(int drive, bool notify, int position=0);
 	static void CycleAllDisks(void);
 	static void CycleAllCDs(void);
 	static void Init(Section* s);
