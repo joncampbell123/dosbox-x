@@ -351,6 +351,9 @@ Valor actual:
 Esta propiedad no puede ser cambiada durante la ejecución.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+¿Desea reiniciar ahora para aplicar la configuración [Y/N] ?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 entero positivo
 .

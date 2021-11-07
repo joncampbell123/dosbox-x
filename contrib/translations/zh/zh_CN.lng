@@ -347,6 +347,9 @@ DOSBox-X 命令行配置工具. 支持的选项为:
 该属性不能在运行时改变.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+是否要立即重新启动以应用设置 [Y/N]?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 正整数
 .

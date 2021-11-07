@@ -349,6 +349,9 @@ Valeur actuelle :
 Cette propriété ne peut pas être modifiée au moment de l'exécution.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+Voulez-vous redémarrer maintenant pour appliquer le paramètre [Y/N] ?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 nombre entier positif
 .
@@ -1406,7 +1409,7 @@ Impossible de supprimer - %s
 .
 :SHELL_CMD_DEL_SURE
 Tous les fichiers du répertoire seront supprimés !
-Êtes-vous sûr [O/N] ?
+Êtes-vous sûr [Y/N] ?
 .
 :SHELL_SYNTAXERROR
 Erreur de syntaxe
@@ -1475,23 +1478,23 @@ Vous devez d'abord le ←[31mmonter←[0m. Tapez ←[1;33mintro←[0m ou ←[1;3
 
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
-Voulez-vous donner à DOSBox-X l'accès à votre lecteur de CD-ROM réel %c [O/N] ?
+Voulez-vous donner à DOSBox-X l'accès à votre lecteur de CD-ROM réel %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
-Voulez-vous donner à DOSBox-X l'accès à votre vrai lecteur de disquettes %c [O/N] ?
+Voulez-vous donner à DOSBox-X l'accès à votre vrai lecteur de disquettes %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Voulez-vous donner à DOSBox-X l'accès à votre lecteur amovible réel %c [O/N] ?
+Voulez-vous donner à DOSBox-X l'accès à votre lecteur amovible réel %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
-Voulez-vous donner à DOSBox-X l'accès à votre lecteur réseau réel %c [O/N] ?
+Voulez-vous donner à DOSBox-X l'accès à votre lecteur réseau réel %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
 Voulez-vous vraiment donner à DOSBox-X l'accès à tout
-sur votre disque dur réel %c [O/N] ?
+sur votre disque dur réel %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-Voulez-vous donner à DOSBox-X l'accès à votre vrai disque dur %c [O/N] ?
+Voulez-vous donner à DOSBox-X l'accès à votre vrai disque dur %c [Y/N] ?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Mauvaise commande ou mauvais nom de fichier - "%s"

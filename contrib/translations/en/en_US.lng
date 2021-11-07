@@ -349,6 +349,9 @@ Current value:
 This property cannot be changed at runtime.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+Do you want to restart now to apply the setting [Y/N]?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 positive integer
 .

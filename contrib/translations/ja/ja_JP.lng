@@ -344,6 +344,10 @@ DOSBox-X コマンドライン設定ユーティリティ 設定可能なオプ�
 .
 :PROGRAM_CONFIG_HLP_NOCHANGE
 実行中はこのプロパティを変更できません。
+
+.
+:PROGRAM_CONFIG_APPLY_RESTART
+今すぐ再起動して設定を適用しますか [Y/N]?
 .
 :PROGRAM_CONFIG_HLP_POSINT
 正の整数

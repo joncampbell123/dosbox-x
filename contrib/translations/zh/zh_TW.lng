@@ -347,6 +347,9 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 此屬性不能在執行時變更.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+是否要立即重開以套用設定 [Y/N]?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 正整數
 .

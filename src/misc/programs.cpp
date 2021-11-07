@@ -94,8 +94,8 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void EMS_Startup(Section* sec), EMS_DoShutDown(), resetFontSize(), UpdateDefaultPrinterFont();
-void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
+void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans), resetFontSize(void);
+void EMS_Startup(Section* sec), EMS_DoShutDown(), UpdateDefaultPrinterFont(), RebootLanguage(std::string filename, bool confirm=false);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1242,11 +1242,55 @@ void CONFIG::Run(void) {
 					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
 				return;
 			}
+            bool applynew=false;
 			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
 			if ((p==NULL||p->getChange()==Property::Changeable::OnlyAtStart)&&presult!=P_SETFORCE) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
-				return;
+first_1:
+				WriteOut(MSG_Get("PROGRAM_CONFIG_APPLY_RESTART"));
+first_2:
+                uint8_t c;uint16_t n=1;
+                DOS_ReadFile (STDIN,&c,&n);
+                do switch (c) {
+                    case 'n':			case 'N':
+                    {
+                        DOS_WriteFile (STDOUT,&c, &n);
+                        DOS_ReadFile (STDIN,&c,&n);
+                        do switch (c) {
+                            case 0xD: WriteOut("\n");goto next;
+                            case 0x03: goto next;
+                            case 0x08: WriteOut("\b \b"); goto first_2;
+                        } while (DOS_ReadFile (STDIN,&c,&n));
+                    }
+                    case 'y':			case 'Y':
+                    {
+                        DOS_WriteFile (STDOUT,&c, &n);
+                        DOS_ReadFile (STDIN,&c,&n);
+                        do switch (c) {
+                            case 0xD: WriteOut("\n"); applynew = true; goto next;
+                            case 0x03: goto next;
+                            case 0x08: WriteOut("\b \b"); goto first_2;
+                        } while (DOS_ReadFile (STDIN,&c,&n));
+                    }
+                    case 0xD: WriteOut("\n"); goto first_1;
+                    case 0x03: goto next;
+                    case '\t':
+                    case 0x08:
+                        goto first_2;
+                    default:
+                    {
+                        DOS_WriteFile (STDOUT,&c, &n);
+                        DOS_ReadFile (STDIN,&c,&n);
+                        do switch (c) {
+                            case 0xD: WriteOut("\n"); goto first_1;
+                            case 0x03: goto next;
+                            case 0x08: WriteOut("\b \b"); goto first_2;
+                        } while (DOS_ReadFile (STDIN,&c,&n));
+                        goto first_2;
+                    }
+                } while (DOS_ReadFile (STDIN,&c,&n));
 			}
+next:
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
 			// now execute
 			Section* tsec = control->GetSection(pvars[0]);
@@ -1257,6 +1301,7 @@ void CONFIG::Run(void) {
 			std::string inputline = pvars[1] + "=" + value;
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
+                if (applynew) RebootLanguage("");
 				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
@@ -1739,8 +1784,9 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
-	MSG_Add("PROGRAM_CONFIG_HLP_POSINT","positive integer"); 
-	MSG_Add("PROGRAM_CONFIG_HLP_SECTHLP","Section %s contains the following properties:\n");				
+	MSG_Add("PROGRAM_CONFIG_APPLY_RESTART","Do you want to restart now to apply the setting [Y/N]?");
+	MSG_Add("PROGRAM_CONFIG_HLP_POSINT","positive integer");
+	MSG_Add("PROGRAM_CONFIG_HLP_SECTHLP","Section %s contains the following properties:\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_SECTLIST","DOSBox-X configuration contains the following sections:\n\n");
 
 	MSG_Add("PROGRAM_CONFIG_SECURE_ON","Switched to secure mode.\n");

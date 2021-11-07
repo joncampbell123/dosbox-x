@@ -148,7 +148,10 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=(filename.size()?"-langcp \""+filename+"\"":"")+(ttfswitch||switch_output_from_ttf?" -set output=ttf":"");
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=(filename.size()?"-langcp \""+filename+"\"":"");
+#if defined(USE_TTF)
+    para+=ttfswitch||switch_output_from_ttf?" -set output=ttf":"";
+#endif
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());

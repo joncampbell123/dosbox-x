@@ -349,6 +349,9 @@ Geçerli değer:
 Bu özellik çalışma zamanında değiştirilemez.
 
 .
+:PROGRAM_CONFIG_APPLY_RESTART
+ayarını uygulamak için şimdi yeniden başlatmak istiyor musunuz [Y/N]?
+.
 :PROGRAM_CONFIG_HLP_POSINT
 pozitif tamsayı
 .
