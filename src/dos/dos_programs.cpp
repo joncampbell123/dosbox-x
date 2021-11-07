@@ -91,8 +91,8 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern int lastcp;
 extern bool inshell, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
+extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
 
@@ -783,17 +783,19 @@ void MenuBrowseProgramFile() {
     if (lTheOpenFileName) {
         const char *ext = strrchr(lTheOpenFileName,'.');
         struct stat st;
-        std::string full = std::string(lTheOpenFileName);
-        if (stat(lTheOpenFileName, &st) || !S_ISREG(st.st_mode)) {
+        std::string localname = lTheOpenFileName;
+        std::string base = !FileDirExistCP(lTheOpenFileName) && FileDirExistUTF8(localname, lTheOpenFileName) ? localname : lTheOpenFileName;
+        std::string full = base;
+        if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
             if(ext!=NULL) {
                 tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
                 return;
             }
-            full=std::string(lTheOpenFileName)+".com";
+            full=base+".com";
             if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                full=std::string(lTheOpenFileName)+".exe";
+                full=base+".exe";
                 if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                    full=std::string(lTheOpenFileName)+".bat";
+                    full=base+".bat";
                     if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
                         tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
                         return;

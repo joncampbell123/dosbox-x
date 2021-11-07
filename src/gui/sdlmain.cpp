@@ -10961,8 +10961,13 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
                 !strcasecmp(n, "sharp.glsl") || !strcasecmp(n, "default.glsl")) {
                     tmp = n;
                     tmp.erase(tmp.size()-5, string::npos);
-            } else
-                tmp = name;
+            } else {
+                std::string localname = name;
+                if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
+                    tmp = localname;
+                else
+                    tmp = name;
+            }
         }
 
         if (tmp.size()) {
@@ -11020,7 +11025,11 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
         }
 
         if (*name) {
-            SetVal("ttf", "font", name);
+            std::string localname = name;
+            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
+                SetVal("ttf", "font", localname.c_str());
+            else
+                SetVal("ttf", "font", name);
             ttf_reset();
 #if C_PRINTER
             if (TTF_using() && printfont) UpdateDefaultPrinterFont();
@@ -11073,13 +11082,14 @@ void Load_mapper_file() {
 #else
             pp = section->Get_path("mapperfile_sdl1");
 #endif
+            std::string localname = name;
             if (pp->realpath=="")
-                SetVal("sdl", "mapperfile", name);
+                SetVal("sdl", "mapperfile", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
             else {
 #if defined(C_SDL2)
-                SetVal("sdl", "mapperfile_sdl2", name);
+                SetVal("sdl", "mapperfile_sdl2", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
 #else
-                SetVal("sdl", "mapperfile_sdl1", name);
+                SetVal("sdl", "mapperfile_sdl1", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
 #endif
             }
             void ReloadMapper(Section_prop *sec, bool init);
@@ -11120,7 +11130,11 @@ void Restart_config_file() {
 
         if (*name) {
             void RebootConfig(std::string filename, bool confirm=false);
-            RebootConfig(name, true);
+            std::string localname = name;
+            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
+                RebootConfig(localname.c_str(), true);
+            else
+                RebootConfig(name, true);
         }
     }
     if(chdir(Temp_CurrentDir) == -1) {
@@ -11155,7 +11169,13 @@ void Restart_language_file() {
             while (*name == CROSS_FILESPLIT) name++;
         }
 
-        if (*name) RebootLanguage(name, true);
+        if (*name) {
+            std::string localname = name;
+            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
+                RebootLanguage(localname.c_str(), true);
+            else
+                RebootLanguage(name, true);
+        }
     }
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
