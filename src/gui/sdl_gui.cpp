@@ -82,7 +82,8 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres, swapad, font_14_init;
+extern bool                 ttfswitch, switch_output_from_ttf, swapad;
+extern bool                 dos_kernel_disabled, confres, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
@@ -147,7 +148,7 @@ void RebootConfig(std::string filename, bool confirm=false) {
 }
 
 void RebootLanguage(std::string filename, bool confirm=false) {
-    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=filename.size()?"-langcp \""+filename+"\"":"";
+    std::string exepath=GetDOSBoxXPath(true), tmpconfig = "~dbxtemp.conf", para=(filename.size()?"-langcp \""+filename+"\"":"")+(ttfswitch||switch_output_from_ttf?" -set output=ttf":"");
     struct stat st;
     if ((!confirm||CheckQuit())&&exepath.size()) {
         if (!stat(tmpconfig.c_str(), &st)) remove(tmpconfig.c_str());

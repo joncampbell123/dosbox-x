@@ -652,25 +652,6 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
 {
     memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
     if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
-    if (fontdata14 && fontsize14) {
-        if (dos.loaded_codepage == 936 && !(fontsize14%14) && (code/0x100)>0xa0 && (code/0x100)<0xff) {
-            int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 28;
-            if (offset + 28 <= fontsize14) {
-                memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
-                jfont_cache_dbcs_14[code] = 1;
-                return &jfont_dbcs_14[code * 28];
-            }
-        } else if (dos.loaded_codepage == 950 && !(fontsize16%15) && isKanji1(code/0x100)) {
-            int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
-            if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
-            else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
-            if (offset>-1) {
-                memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
-                jfont_cache_dbcs_14[code] = 1;
-                return &jfont_dbcs_14[code * 28];
-            }
-        }
-    }
     if(jfont_cache_dbcs_14[code] == 0) {
         if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
             memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
@@ -678,6 +659,25 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
             is14 = true;
             return jfont_dbcs;
         } else {
+            if (fontdata14 && fontsize14) {
+                if (dos.loaded_codepage == 936 && !(fontsize14%14) && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+                    int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 28;
+                    if (offset + 28 <= fontsize14) {
+                        memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
+                        jfont_cache_dbcs_14[code] = 1;
+                        return &jfont_dbcs_14[code * 28];
+                    }
+                } else if (dos.loaded_codepage == 950 && !(fontsize16%15) && isKanji1(code/0x100)) {
+                    int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
+                    if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
+                    else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                    if (offset>-1) {
+                        memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
+                        jfont_cache_dbcs_14[code] = 1;
+                        return &jfont_dbcs_14[code * 28];
+                    }
+                }
+            }
             if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
                 code = GetConvertedCode(code);
             int p = NAME_LEN+ID_LEN+3;
