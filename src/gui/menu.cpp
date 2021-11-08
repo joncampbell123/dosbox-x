@@ -1213,7 +1213,7 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
         cp = msgcodepage;
     else if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL && !control->opt_noconfig) {
         char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
-        if (r!=NULL && *(r+1)) {
+        if (r!=NULL && *(r+1) && !IS_PC98_ARCH && !IS_JEGA_ARCH && !IS_DOSV) {
             cp = atoi(trim(r+1));
             if ((cp<1 || !isSupportedCP(cp)) && msgcodepage>0) cp = msgcodepage;
         } else if (msgcodepage>0)

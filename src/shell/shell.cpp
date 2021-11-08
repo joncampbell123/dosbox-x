@@ -701,7 +701,7 @@ void DOS_Shell::Prepare(void) {
 			else {
 				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
-				int newCP = r==NULL?dos.loaded_codepage:atoi(trim(r+1));
+				int newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
                 if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != newCP)
                     newCP = msgcodepage;
 				if (r!=NULL) *r=',';

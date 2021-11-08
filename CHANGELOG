@@ -8,6 +8,9 @@
     for property names. Also, if an option cannot be
     changed at run-time, DOSBox-X will ask whether to
     restart itself to apply the new setting. (Wengier)
+  - The code page setting of "country" option will now
+    be ignored for PC-98, JEGA and DOS/V modes. These
+    modes will enforce the desired code page. (Wengier)
   - Applied UTF-8 conversions to file browse dialog
     boxes for selecting files containing Unicode
     characters (e.g. CJK characters). (Wengier)

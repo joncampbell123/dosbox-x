@@ -33,7 +33,7 @@
 #include <string>
 using namespace std;
 
-extern bool dos_kernel_disabled, force_conversion, jfont_init;
+extern bool dos_kernel_disabled, force_conversion;
 int msgcodepage = 0, FileDirExistUTF8(std::string &localname, const char *name);
 bool morelen = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -83,7 +83,7 @@ bool InitCodePage() {
             return true;
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-        if (section!=NULL && !control->opt_noconfig) {
+        if (section!=NULL && !control->opt_noconfig && !IS_PC98_ARCH && !IS_JEGA_ARCH && !IS_DOSV) {
             char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
             if (r!=NULL && *(r+1)) {
                 int cp = atoi(trim(r+1));
