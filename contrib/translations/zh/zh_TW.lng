@@ -1187,7 +1187,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-給鍵盤配置 %s 使用的字碼頁 %i 已載入
+字碼頁 %i 已為鍵盤配置 %s 載入
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -1203,7 +1203,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-在字碼頁 %i 作用下的鍵盤配置 %s 已載入
+已載入鍵盤配置 %s 作用於字碼頁 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1216,7 +1216,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-在字碼頁 %i 作用下的鍵盤配置 %s 無法找到
+無法找到鍵盤配置 %s 作用於字碼頁 %i
 
 .
 :PROGRAM_KEYB_INVCPFILE

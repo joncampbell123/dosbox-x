@@ -6158,7 +6158,7 @@ void KEYB::Run(void) {
             std::string cp_string="";
             int32_t tried_cp = -1;
             cmd->FindCommand(2,cp_string);
-            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:((!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||(!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950))||(!cp_string.size()&&dos.loaded_codepage==950))?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zh")?936:0)));
+            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:(!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zht")||(!strcmp(temp_line.c_str(), "zh")&&(cp_string.size()&&atoi(cp_string.c_str())==950))?950:(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zhs")||!strcmp(temp_line.c_str(), "zh")?936:0)));
             if (tocp && !IS_PC98_ARCH) {
                 dos.loaded_codepage=tocp;
                 const char* layout_name = DOS_GetLoadedLayout();

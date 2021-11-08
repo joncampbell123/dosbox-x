@@ -11,6 +11,9 @@
   - Applied UTF-8 conversions to file browse dialog
     boxes for selecting files containing Unicode
     characters (e.g. CJK characters). (Wengier)
+  - Added warning message if the Japanese PC-98 or JEGA
+    machine type is selected and a language file with
+    an incompatible code page is specified. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)

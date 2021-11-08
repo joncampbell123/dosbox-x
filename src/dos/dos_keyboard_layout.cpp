@@ -1246,7 +1246,7 @@ public:
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		const char * layoutname=section->Get_string("keyboardlayout");
 		dos.loaded_codepage=(IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV ? 932 : (IS_KDOSV ? 949 : (IS_CDOSV ? 950 : (IS_PDOSV ? 936 : 437))));	// US codepage already initialized
-        int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||IS_CDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
+        int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_CDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
         if (tocp) layoutname="us";
 
 #if defined(USE_TTF)
