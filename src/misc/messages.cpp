@@ -173,6 +173,11 @@ void LoadMessageFile(const char * fname) {
                     if (!strcmp(p, "CODEPAGE")) {
                         int c = atoi(r+1);
                         if ((!res || control->opt_langcp) && c>0 && isSupportedCP(c)) {
+                            if ((IS_PC98_ARCH||IS_JEGA_ARCH) && c!=437 && c!=932 && !systemmessagebox("DOSBox-X language file", "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\nAre you sure to use the language file for this machine type?", "yesno","question", 2)) {
+                                fclose(mfile);
+                                dos.loaded_codepage = cp;
+                                return;
+                            }
                             msgcodepage = c;
                             dos.loaded_codepage = c;
                         }
