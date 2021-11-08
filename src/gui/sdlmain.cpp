@@ -5309,6 +5309,10 @@ std::map<int, int> lowboxdrawmap {
     {1, 218}, {2, 191}, {3, 192}, {4, 217}, {5, 179}, {6, 196}, {0xe, 178},
     {0x10, 197}, {0x14, 177}, {0x15, 193}, {0x16, 194}, {0x17, 180}, {0x19, 195}, {0x1a, 176},
 };
+uint16_t cpMap_AX[32] = {
+	0x0020, 0x00b6, 0x2195, 0x2194, 0x2191, 0x2193, 0x2192, 0x2190, 0x2500, 0x2502, 0x250c, 0x2510, 0x2518, 0x2514, 0x251c, 0x252c,
+	0x2524, 0x2534, 0x253c, 0x2550, 0x2551, 0x2554, 0x2557, 0x255d, 0x255a, 0x2560, 0x2566, 0x2563, 0x2569, 0x256c, 0x00ab, 0x00bb
+};
 int setTTFCodePage() {
     int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
@@ -5355,6 +5359,9 @@ int setTTFCodePage() {
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif
+        if(IS_JEGA_ARCH) {
+            memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
+        }
         if (cp == 932 && halfwidthkana) resetFontSize();
         return notMapped;
     } else
