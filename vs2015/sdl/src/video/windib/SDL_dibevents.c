@@ -752,6 +752,18 @@ void DIB_InitOSKeymapPriv(void) {
 
 	VK_keymap[VK_OEM_102] = SDLK_LESS;
 
+#if !defined(VK_OEM_PLUS)
+#define VK_OEM_PLUS 0xBB
+#endif
+#if !defined(VK_OEM_COMMA)
+#define VK_OEM_COMMA 0xBC
+#endif
+#if !defined(VK_OEM_MINUS)
+#define VK_OEM_MINUS 0xBD
+#endif
+#if !defined(VK_OEM_PERIOD)
+#define VK_OEM_PERIOD 0xBE
+#endif
 	/* per-layout adjustments */
 	switch (LOWORD(hLayout)) {
 		case 0x411: /* JP */
