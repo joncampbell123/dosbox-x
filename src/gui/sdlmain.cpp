@@ -3050,6 +3050,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
         return 0;
     }
+    bool diff = width != sdl.draw.width || height != sdl.draw.height;
 
     if (sdl.updating)
         GFX_EndUpdate( 0 );
@@ -3138,6 +3139,32 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     if (!sdl.mouse.autoenable && !sdl.mouse.locked)
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
+#if defined(C_SDL2)
+    if (diff && posx < 0 && posy < 0) {
+        if (sdl.displayNumber==0)
+            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        else {
+            int bx = 0, by = 0;
+            int displays = SDL_GetNumVideoDisplays();
+            SDL_Rect bound;
+            for( int i = 1; i <= displays; i++ ) {
+                bound = SDL_Rect();
+                SDL_GetDisplayBounds(i-1, &bound);
+                if (i == sdl.displayNumber) {
+                    bx = bound.x;
+                    by = bound.y;
+                    break;
+                }
+            }
+            SDL_DisplayMode dm;
+            if (SDL_GetDesktopDisplayMode(sdl.displayNumber?sdl.displayNumber-1:0,&dm) == 0) {
+                bx += (dm.w - sdl.draw.width - sdl.clip.x)/2;
+                by += (dm.h - sdl.draw.height - sdl.clip.y)/2;
+            }
+            SDL_SetWindowPosition(sdl.window, bx, by);
+        }
+    }
+#endif
     UpdateWindowDimensions();
 
 #if defined(WIN32) && !defined(HX_DOS)
