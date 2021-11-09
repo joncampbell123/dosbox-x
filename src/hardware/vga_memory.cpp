@@ -2283,6 +2283,7 @@ void VGA_SetupHandlers(void) {
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
+        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
 		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
 			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.cgatext );
 		else
