@@ -582,7 +582,15 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 	/* Open the actual file */
 	FILE * handle=fopen(file_name,"wb");
 	if (handle) {
-		LOG_MSG("Capturing %s to %s",type,file_name);
+        std::string path = file_name;
+#if defined(WIN32)
+        char fullpath[MAX_PATH];
+        if (GetFullPathName(path.c_str(), MAX_PATH, fullpath, NULL)) path = fullpath;
+#elif defined(HAVE_REALPATH)
+        char fullpath[PATH_MAX];
+        if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
+#endif
+		LOG_MSG("Capturing %s to %s",type,path.c_str());
 	} else {
 		LOG_MSG("Failed to open %s for capturing %s",file_name,type);
 	}
