@@ -5994,9 +5994,13 @@ static void GUI_StartUp() {
 #endif
     char pos[100];
     if (posx >= 0 && posy >= 0 && SDL_getenv("SDL_VIDEO_WINDOW_POS") == NULL) {
+#if defined(WIN32)
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(posx)+","+std::to_string(posy)).c_str());
         SDL_putenv(pos);
+#else
+        setenv("SDL_VIDEO_WINDOW_POS",(std::to_string(posx)+","+std::to_string(posy)).c_str(),0);
+#endif
 #if defined(WIN32) && !defined(HX_DOS)
     } else if (sdl.displayNumber>0) {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
