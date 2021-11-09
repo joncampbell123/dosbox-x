@@ -66,7 +66,7 @@ extern "C" {
 #endif
 
 bool            skip_encoding_unchanged_frames = false;
-std::string pathvid = "", pathwav = "", pathmtw = "";
+std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 #if (C_AVCODEC)
@@ -542,6 +542,9 @@ std::string GetCaptureFilePath(const char * type,const char * ext) {
 }
 
 FILE * OpenCaptureFile(const char * type,const char * ext) {
+    if (!strcmp(type, "Raw Midi")) pathmid = "";
+    if (!strcmp(type, "Raw Opl")) pathopl = "";
+    if (!strcmp(type, "Screenshot")) pathscr = "";
 	if(capturedir.empty()) {
 		LOG_MSG("Please specify a capture directory");
 		return 0;
@@ -591,6 +594,9 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
         if (realpath(path.c_str(), fullpath) != NULL) path = fullpath;
 #endif
 		LOG_MSG("Capturing %s to %s",type,path.c_str());
+        if (!strcmp(type, "Raw Midi")) pathmid = file_name;
+        if (!strcmp(type, "Raw Opl")) pathopl = file_name;
+        if (!strcmp(type, "Screenshot")) pathscr = file_name;
 	} else {
 		LOG_MSG("Failed to open %s for capturing %s",file_name,type);
 	}
@@ -637,7 +643,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 			avi_writer_finish(capture.video.writer);
 			avi_writer_close_file(capture.video.writer);
 			capture.video.writer = avi_writer_destroy(capture.video.writer);
-			if (pathvid.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
+			if (pathvid.size()) systemmessagebox("Recording completed",("Saved AVI output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
 		}
 #if (C_AVCODEC)
 		if (ffmpeg_fmt_ctx != NULL) {
@@ -899,7 +905,10 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		/*close file*/
 		fclose(fp);
+		if (pathscr.size()) systemmessagebox("Recording completed",("Saved screenshot to the file:\n\n"+pathscr).c_str(),"ok", "info", 1);
+
 	}
+	pathscr = "";
 skip_shot:
 	if (CaptureState & CAPTURE_VIDEO) {
 		zmbv_format_t format;
@@ -1758,7 +1767,7 @@ void CAPTURE_MTWaveEvent(bool pressed) {
             avi_writer_close_file(capture.multitrack_wave.writer);
             capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_MULTITRACK_WAVE);
-            if (pathmtw.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
+            if (pathmtw.size()) systemmessagebox("Recording completed",("Saved multi-track AVI output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
         }
     }
     else {
@@ -1785,7 +1794,7 @@ void CAPTURE_WaveEvent(bool pressed) {
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
-            if (pathwav.size()) systemmessagebox("Recording completed",("Saved recording output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
+            if (pathwav.size()) systemmessagebox("Recording completed",("Saved WAV output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
         }
     }
     else {
@@ -1870,10 +1879,13 @@ void CAPTURE_MidiEvent(bool pressed) {
 		size[3]=(uint8_t)(capture.midi.done >> 0);
 		fwrite(&size,1,4,capture.midi.handle);
 		fclose(capture.midi.handle);
+		if (pathmid.size()) systemmessagebox("Recording completed",("Saved MIDI output to the file:\n\n"+pathmid).c_str(),"ok", "info", 1);
 		capture.midi.handle=0;
 		CaptureState &= ~((unsigned int)CAPTURE_MIDI);
+		mainMenu.get_item("mapper_caprawmidi").check(false).refresh_item(mainMenu);
 		return;
 	} 
+	pathmid = "";
 	CaptureState ^= CAPTURE_MIDI;
 	if (CaptureState & CAPTURE_MIDI) {
 		LOG_MSG("Preparing for raw midi capture, will start with first data.");

@@ -14,6 +14,10 @@
   - Applied UTF-8 conversions to file browse dialog
     boxes for selecting files containing Unicode
     characters (e.g. CJK characters). (Wengier)
+  - For screenshot and MIDI/OPL recording, DOSBox-X
+    will now display a message box showing the saved
+    file name when the recording has been completed.
+    The full paths will also be logged. (Wengier)
   - Added warning message if the Japanese PC-98 or JEGA
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
