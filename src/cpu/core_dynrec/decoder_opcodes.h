@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <stddef.h>
 
 /*
 	The functions in this file are called almost exclusively by	decoder.h,

@@ -23,6 +23,7 @@
 #include "decoder_opcodes.h"
 
 #include "dyn_fpu.h"
+#include <stddef.h>
 
 /*
 	The function CreateCacheBlock translates the instruction stream

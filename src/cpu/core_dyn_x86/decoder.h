@@ -17,6 +17,7 @@
  */
 
 #include "inout.h"
+#include <stddef.h>
 
 #define X86_DYNFPU_DH_ENABLED
 #define X86_INLINED_MEMACCESS
