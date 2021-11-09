@@ -63,11 +63,12 @@ cp src/dosbox-x.exe dosbox-x.exe || exit 1
 $hxdir/pestub.exe -n dosbox-x.exe
 cp CHANGELOG CHANGELOG.txt || exit 1
 cp dosbox-x.reference.conf dosbox-x.ref || exit 1
-cp dosbox-x.reference.full.conf dosbox-x.ful || exit 1
+cp dosbox-x.reference.full.conf dosbox-x.ref.full || exit 1
 cp $hxdir/DPMILD32.EXE . || exit 1
 cp $hxdir/HDPMI32.EXE . || exit 1
 cp $hxdir/HXGUIHLP.INI . || exit 1
 cp $hxdir/README.TXT . || exit 1
+cp $hxdir/WINSPOOL.DRV . || exit 1
 cp $hxdir/*.DLL . || exit 1
 
 cd "$top"/dosbox-x-mingw-hx-dos || exit 1
