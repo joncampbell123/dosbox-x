@@ -132,7 +132,7 @@ extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
 extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
-extern std::string autosave_name[10];
+extern std::string failName, autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
 uint8_t *GetDbcsFont(Bitu code);
@@ -3967,6 +3967,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
+                    uint16_t last = 0;
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
@@ -3977,6 +3978,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
+                            if (col && failName == "SarasaGothicFixed" && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x2520 || last == 0x2523 || last == 0x252f || last == 0x2533 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                               (*draw).unicode = 1;
+                               (*draw).chr = last == 0x2520 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                            }
+                            last = 0;
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
@@ -4002,10 +4008,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
                                     } else {
-                                        (*draw).doublewide=1;
+                                        (*draw).doublewide = 1;
                                         dbw=true;
                                         dex=false;
                                     }
@@ -4034,6 +4041,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             } else {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
+                    uint16_t last = 0;
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
@@ -4042,6 +4050,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
+                            if (col && failName == "SarasaGothicFixed" && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x2520 || last == 0x2523 || last == 0x252f || last == 0x2533 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                               (*draw).unicode = 1;
+                               (*draw).chr = last == 0x2520 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                            }
+                            last = 0;
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
@@ -4067,10 +4080,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
                                     } else {
-                                        (*draw).doublewide=1;
+                                        (*draw).doublewide = 1;
                                         dbw=true;
                                         dex=false;
                                     }

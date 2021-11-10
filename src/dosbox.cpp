@@ -4103,16 +4103,16 @@ void DOSBOX_SetupConfigSections(void) {
 			"Similarly, FAT32 disk images will be supported with a reported DOS version of 7.1 or higher.\n");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Load the DOSBox-X command shell into the upper memory when the UMB is available.\n"
-                      "If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
-    Pstring->SetBasic(true);
-
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
     Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Load the DOSBox-X command shell into the upper memory when the UMB is available.\n"
+                      "If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);

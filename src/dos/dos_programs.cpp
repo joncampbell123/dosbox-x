@@ -4048,7 +4048,7 @@ public:
 void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut("Rescans for changes on mounted drives made on the host by clearing caches.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
 		return;
 	}
     bool all = false, quiet = false;

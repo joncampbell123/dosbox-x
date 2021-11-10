@@ -8533,7 +8533,7 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
-    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200). If empty, the window will be centered.");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
