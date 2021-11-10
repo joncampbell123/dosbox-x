@@ -11765,11 +11765,15 @@ bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 #endif
 
+void ttf_reset_colors() {
+    SetVal("ttf", "colors", "");
+    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+}
+
 bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    SetVal("ttf", "colors", "");
-    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+    ttf_reset_colors();
     return true;
 }
 

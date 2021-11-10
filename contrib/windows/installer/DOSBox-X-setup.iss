@@ -389,7 +389,7 @@ begin
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end
     end
-  end;
+  end
 end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
@@ -418,42 +418,42 @@ begin
     refname:='{app}\dosbox-x.reference.full.conf';
     if IsTaskSelected('commonoption') then
       refname:='{app}\dosbox-x.reference.conf';
+    if FileExists(ExpandConstant(refname)) then
+    begin
+      FileLines := TStringList.Create;
+      FileLines.LoadFromFile(ExpandConstant(refname));
+      section := '';
+      found1 := False;
+      found2 := False;
+      for i := 0 to FileLines.Count - 1 do
+      begin
+        line := Trim(FileLines[i]);
+        if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+          section := Copy(line, 2, Length(line)-2);
+        if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+        begin
+          linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+          if (CompareText(linetmp, 'printoutput') = 0) and (CompareText(section, 'printer') = 0) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line)));
+            FileLines[i] := linetmp+' printer';
+            found1 := True;
+          end;
+          if (CompareText(linetmp, 'file access tries') = 0) and (CompareText(section, 'dos') = 0) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line)));
+            FileLines[i] := linetmp+' 3';
+            found2 := True;
+          end;
+          if found1 and found2 then
+            break;
+        end
+      end;
+      FileLines.SaveToFile(ExpandConstant(refname));
+    end;
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
-      begin
-        FileLines := TStringList.Create;
-        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
-        section := '';
-        found1 := False;
-        found2 := False;
-        for i := 0 to FileLines.Count - 1 do
-        begin
-          line := Trim(FileLines[i]);
-          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
-            section := Copy(line, 2, Length(line)-2);
-          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
-          begin
-            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
-            if (CompareText(linetmp, 'printoutput') = 0) and (CompareText(section, 'printer') = 0) then
-            begin
-              linetmp := Trim(Copy(line, 1, Pos('=', line)));
-              FileLines[i] := linetmp+' printer';
-              found1 := True;
-            end;
-            if (CompareText(linetmp, 'file access tries') = 0) and (CompareText(section, 'dos') = 0) then
-            begin
-              linetmp := Trim(Copy(line, 1, Pos('=', line)));
-              FileLines[i] := linetmp+' 3';
-              found2 := True;
-            end;
-            if found1 and found2 then
-              break;
-          end
-        end;
-        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
-      end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageOutput.Values[1] or PageOutput.Values[2]) then
       begin
         FileLines := TStringList.Create;
@@ -480,39 +480,29 @@ begin
         end;
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end;
-	  SetupType := WizardSetupType(False);
-    if SetupType = 'compact' then
-	  begin
-		if (not PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
-		begin
-		  DeleteFile(ExpandConstant('{app}\languages\fr_FR.lng'));
-		end;
-		if (not PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
-		begin
-		  DeleteFile(ExpandConstant('{app}\languages\ja_JP.lng'));
-		end;
-		if (not PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
-		begin
-		  DeleteFile(ExpandConstant('{app}\languages\zh_CN.lng'));
-		end;
-		if (not PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
-		begin
-		  DeleteFile(ExpandConstant('{app}\languages\es_ES.lng'));
-		end;
-		if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
-		begin
-		  DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
-		end;
-		if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) and (not PageFont.Values[1]) then
-		begin
-			if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
-				DeleteFile(ExpandConstant('{app}\SarasaGothicFixed.ttf'));
-		end;
-		if (not PageFont.Values[4]) then
-		begin
-			if FileExists(ExpandConstant('{app}\Nouveau_IBM.ttf')) then
-				DeleteFile(ExpandConstant('{app}\Nouveau_IBM.ttf'));
-		end;
+      SetupType := WizardSetupType(False);
+      if SetupType = 'compact' then
+      begin
+        if (not PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\fr_FR.lng'));
+        if (not PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\ja_JP.lng'));
+        if (not PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\zh_CN.lng'));
+        if (not PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\es_ES.lng'));
+        if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
+        if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) and (not PageFont.Values[1]) then
+        begin
+          if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
+            DeleteFile(ExpandConstant('{app}\SarasaGothicFixed.ttf'));
+        end;
+        if (not PageFont.Values[4]) then
+        begin
+          if FileExists(ExpandConstant('{app}\Nouveau_IBM.ttf')) then
+            DeleteFile(ExpandConstant('{app}\Nouveau_IBM.ttf'));
+        end;
       end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6]) then
       begin
@@ -762,7 +752,12 @@ begin
               end
             end;
             if (res = 0) and ((adv = 0) or not IsTaskSelected('commonoption')) then
+            begin
+              linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
+              if (CompareText(Trim(linetmp), 'file access tries') = 0) then
+                linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 1) + '3';
               FileLinesave.add(linenew);
+            end
           end
         end;
         FileLinesave.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
@@ -772,7 +767,7 @@ begin
       end
     end;
     DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
-  end;
+  end
 end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
@@ -808,7 +803,6 @@ begin
     if (dir=name) then
       Result := True;
 end;
-
 function GetDesktopFolder(Param: String): String;
 begin
   if (IsAdminLoggedOn or IsPowerUserLoggedOn) then
