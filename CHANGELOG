@@ -52,6 +52,9 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed config option windowposition=x,y not working
     in Linux/macOS SDL1 builds. (Wengier)
+  - Make memory B0000-B7FFF unmapped for the CGA
+    emulation. Fixes "Backgammon 5.0" detecting that
+    an MDA is also present when using CGA. (Allofich)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
