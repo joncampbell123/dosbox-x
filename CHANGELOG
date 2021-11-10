@@ -21,6 +21,9 @@
   - Added warning message if the Japanese PC-98 or JEGA
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
+  - Added a TrueType font selection page into Windows
+    installer, which will show when TrueType font (TTF)
+    output is selected for new installations. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)
@@ -47,6 +50,8 @@
     Fixes corrupt graphics in the PC Booter version
     of Apple Panic. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
+  - Fixed config option windowposition=x,y not working
+    in Linux/macOS SDL1 builds. (Wengier)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)

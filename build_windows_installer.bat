@@ -1,6 +1,6 @@
 rem This script will build Inno-Setup based Windows installer for DOSBox-X (Wengier).
 rem All Visual Studio and MinGW builds will be extracted from the Windows ZIP packages
-rem located in %%vsbinpath%% and %%mgbinpath%% directories (built with other scripts).
+rem located in the directory as specified in %%binpath%% (built with other scripts).
 rem One of them will be selected by user as the default Windows version to be executed.
 
 @echo off
@@ -10,8 +10,7 @@ rem Make sure to surround the directory in quotes (") in case it includes spaces
 set rootdir=.
 
 set isspath=%rootdir%\contrib\windows\installer
-set vsbinpath=%rootdir%\release\windows
-set mgbinpath=%rootdir%\..
+set binpath=%rootdir%\release\windows
 
 cls
 
@@ -62,40 +61,40 @@ set varm64zip=
 set m32zip=
 set m64zip=
 
-for %%i in (%vsbinpath%\dosbox-x-vsbuild-win32-%datestr%*.zip) do set vwin32zip=%%i
-for %%i in (%vsbinpath%\dosbox-x-vsbuild-win64-%datestr%*.zip) do set vwin64zip=%%i
-for %%i in (%vsbinpath%\dosbox-x-vsbuild-arm32-%datestr%*.zip) do set varm32zip=%%i
-for %%i in (%vsbinpath%\dosbox-x-vsbuild-arm64-%datestr%*.zip) do set varm64zip=%%i
-for %%i in (%mgbinpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
-for %%i in (%mgbinpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
+for %%i in (%binpath%\dosbox-x-vsbuild-win32-%datestr%*.zip) do set vwin32zip=%%i
+for %%i in (%binpath%\dosbox-x-vsbuild-win64-%datestr%*.zip) do set vwin64zip=%%i
+for %%i in (%binpath%\dosbox-x-vsbuild-arm32-%datestr%*.zip) do set varm32zip=%%i
+for %%i in (%binpath%\dosbox-x-vsbuild-arm64-%datestr%*.zip) do set varm64zip=%%i
+for %%i in (%binpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
+for %%i in (%binpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
 if not exist "%vwin32zip%" (
-	echo Couldn't find dosbox-x-vsbuild-win32-%datestr%*.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-win32-%datestr%*.zip at %binpath%
 	goto error
 )
 
 if not exist "%vwin64zip%" (
-	echo Couldn't find dosbox-x-vsbuild-win64-%datestr%*.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-win64-%datestr%*.zip at %binpath%
 	goto error
 )
 
 if not exist "%varm32zip%" (
-	echo Couldn't find dosbox-x-vsbuild-arm32-%datestr%*.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-arm32-%datestr%*.zip at %binpath%
 	goto error
 )
 
 if not exist "%varm64zip%" (
-	echo Couldn't find dosbox-x-vsbuild-arm64-%datestr%*.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-arm64-%datestr%*.zip at %binpath%
 	goto error
 )
 
 if not exist "%m32zip%" (
-	echo Couldn't find dosbox-x-mingw-win32-%datestr%*.zip at %mgbinpath%
+	echo Couldn't find dosbox-x-mingw-win32-%datestr%*.zip at %binpath%
 	goto error
 )
 
 if not exist "%m64zip%" (
-	echo Couldn't find dosbox-x-mingw-win64-%datestr%*.zip at %mgbinpath%
+	echo Couldn't find dosbox-x-mingw-win64-%datestr%*.zip at %binpath%
 	goto error
 )
 
@@ -114,13 +113,9 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release %varm64zip% "bin\ARM64\Release\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release_SDL2 %varm64zip% "bin\ARM64\Release SDL2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw %m32zip% "mingw-build\mingw\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend %m32zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-sdl2 %m32zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-sdldraw %m32zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw %m64zip% "mingw-build\mingw\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-lowend %m64zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdldraw %m64zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
 for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
 	copy /y %rootdir%\%%i %isspath%\%%i >nul
 	if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\%%i
@@ -133,13 +128,9 @@ for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
 	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release
 	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release_SDL2
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw
-	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdl2
-	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdldraw
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw
-	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-lowend
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdl2
-	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdldraw
 )
 if exist %isspath%\PatchPE.exe (
 	%isspath%\PatchPE.exe %isspath%\Win32_builds\x86_Release\dosbox-x.exe
@@ -180,9 +171,9 @@ copy /y %isspath%\DOSBox-X-setup.iss %isspath%\64bit\DOSBox-X-setup.iss
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
 %isspath%\64bit\ISCC.exe %isspath%\64bit\DOSBox-X-setup.iss
 if exist %isspath%\dosbox-x-win32-*-setup.exe if exist %isspath%\dosbox-x-win64-*-setup.exe (
-	for %%i in (%isspath%\dosbox-x-win32-*-setup.exe %isspath%\dosbox-x-win64-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
-	copy /y %isspath%\dosbox-x-win32-*-setup.exe %vsbinpath%
-	copy /y %isspath%\dosbox-x-win64-*-setup.exe %vsbinpath%
+	for %%i in (%isspath%\dosbox-x-win32-*-setup.exe %isspath%\dosbox-x-win64-*-setup.exe) do echo Copying to %binpath%\%%~nxi...
+	copy /y %isspath%\dosbox-x-win32-*-setup.exe %binpath%
+	copy /y %isspath%\dosbox-x-win64-*-setup.exe %binpath%
 	goto success
 )
 
@@ -204,8 +195,7 @@ goto end
 set datestr=
 set rootdir=
 set isspath=
-set vsbinpath=
-set mgbinpath=
+set binpath=
 set vwin32zip=
 set vwin64zip=
 set varm32zip=

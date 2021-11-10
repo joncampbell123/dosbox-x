@@ -1,5 +1,5 @@
 ﻿#define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.19"
+#define MyAppVersion "0.83.20"
 #define MyAppBit "(32-bit)"
 #define MyAppPublisher "joncampbell123 [DOSBox-X Team]"
 #define MyAppURL "https://dosbox-x.com/"
@@ -75,6 +75,7 @@ Source: ".\dosbox-x.reference.setup.conf"; DestDir: "{app}"; Flags: ignoreversio
 Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
+Source: "..\..\fonts\Nouveau_IBM.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
@@ -94,9 +95,7 @@ Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: i
 Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release'); Components: full typical compact
 Source: "Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release_SDL2'); Components: full typical compact
 Source: "Win32_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw'); Components: full typical compact
-Source: "Win32_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend'); Components: full typical compact
 Source: "Win32_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdl2'); Components: full typical compact
-Source: "Win32_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdldraw'); Components: full typical compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -112,8 +111,6 @@ Name: "{group}\All DOSBox-X builds\x86 Release SDL2"; Filename: "{app}\Win32_bui
 Name: "{group}\All DOSBox-X builds\ARM Release SDL1"; Filename: "{app}\Win32_builds\ARM_Release\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\ARM Release SDL2"; Filename: "{app}\Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
-Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend"; Filename: "{app}\Win32_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
-Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn"; Filename: "{app}\Win32_builds\mingw-sdldraw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
 Name: "{code:GetDesktopFolder}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
@@ -175,7 +172,8 @@ Type: files; Name: "{app}\stderr.txt"
 var
   msg: string;
   HelpButton: TNewButton;
-  PageBuild, PageLang, PageOutput, PageVer: TInputOptionWizardPage;
+  PageCustom: TInputFileWizardPage;
+  PageBuild, PageLang, PageOutput, PageFont, PageVer: TInputOptionWizardPage;
 function IsVerySilent(): Boolean;
 var
   k: Integer;
@@ -199,7 +197,7 @@ begin
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in 64-bit MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -227,8 +225,6 @@ begin
     PageBuild.Add('ARM Release SDL1 (ARM platform only)');
     PageBuild.Add('ARM Release SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
-    PageBuild.Add('MinGW build SDL1 for lower-end systems');
-    PageBuild.Add('MinGW build SDL1 with custom drawn menu');
     PageBuild.Add('MinGW build SDL2 (Alternative MinGW build)');
     if IsX86 or IsX64 then
     begin
@@ -243,13 +239,13 @@ begin
       PageBuild.Values[0] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
     msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
-    PageOutput:=CreateInputOptionPage(100, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
+    PageOutput:=CreateInputOptionPage(PageBuild.ID, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
     PageOutput.Add('Default output (Direct3D)');
     PageOutput.Add('OpenGL with pixel-perfect scaling');
     PageOutput.Add('TrueType font (TTF) / Direct3D output');
     PageOutput.Values[2] := True;
     msg:='DOSBox-X supports language files to display messages in different languages. The user interface is English by default, but you may want to select a different language for its user interface. This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
-    PageLang:=CreateInputOptionPage(101, 'User interface language', 'Select the language for DOSBox-X''s user interface', msg, True, False);
+    PageLang:=CreateInputOptionPage(PageOutput.ID, 'User interface language', 'Select the language for DOSBox-X''s user interface', msg, True, False);
     PageLang.Add('Default (English)');
     PageLang.Add('French (français)');
     PageLang.Add('Japanese (日本語)');
@@ -258,8 +254,23 @@ begin
     PageLang.Add('Traditional Chinese (繁體/正體中文)');
     PageLang.Add('Turkish (Türkçe)');
     PageLang.Values[0] := True;
+    msg:='DOSBox-X allows you to select a TrueType font (or OpenType font) for the TrueType font (TTF) output. It has a builtin TTF font as the default font for the output, but you may want to select a different TTF (or TTC/OTF) font than the default one.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
+    PageFont:=CreateInputOptionPage(PageLang.ID, 'TrueType font', 'Select the font for the TrueType font output', msg, True, False);
+    PageFont.Add('Default TrueType font');
+    PageFont.Add('Sarasa Gothic font');
+    PageFont.Add('Consolas font');
+    PageFont.Add('Courier New font');
+    PageFont.Add('Nouveau IBM font');
+    PageFont.Add('Custom TrueType font');
+    if not FileExists(ExpandConstant('{fonts}\consola.ttf')) then
+      PageFont.CheckListBox.ItemEnabled[2] := False;
+    if not FileExists(ExpandConstant('{fonts}\cour.ttf')) then
+      PageFont.CheckListBox.ItemEnabled[3] := False;
+    PageFont.Values[0] := True;
+    PageCustom := CreateInputFilePage(PageFont.ID, 'TrueType font', 'Select a custom TrueType font', 'Please select where your custom TrueType font (or OpenType font) is located, then click "Next" to continue.');
+    PageCustom.Add('&Location of your custom TrueType font (TTF/TTC/OTF):', 'TrueType font files|*.ttf;*.ttc;*.otf|All files|*.*','.ttf;.ttc;.otf');
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
-    PageVer:=CreateInputOptionPage(102, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
+    PageVer:=CreateInputOptionPage(PageCustom.ID, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
     PageVer.Add('DOS version 5.00 (reported by default)');
     PageVer.Add('DOS version 6.22');
@@ -267,11 +278,21 @@ begin
 end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := ((PageID = 101) or (PageID = 102) or (PageID = 103)) and FileExists(ExpandConstant('{app}\dosbox-x.conf')) or ((PageID = 102) and not PageOutput.Values[2]);
+  Result := ((PageID = PageOutput.ID) or (PageID = PageLang.ID) or (PageID = PageFont.ID) or (PageID = PageCustom.ID) or (PageID = PageVer.ID)) and FileExists(ExpandConstant('{app}\dosbox-x.conf')) or ((PageID = PageLang.ID) and not PageOutput.Values[2]) or ((PageID = PageFont.ID) and (not PageOutput.Values[2] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[5])) or ((PageID = PageCustom.ID) and (not PageOutput.Values[2] or not PageFont.Values[5]));
+end;
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := True;
+  if (CurPageID = PageCustom.ID) and (Length(PageCustom.Edits[0].Text) = 0) then
+  begin
+    MsgBox('Please select a custom TrueType font (or OpenType font) file.', mbError, MB_OK);
+    WizardForm.ActiveControl := PageCustom.Edits[0];
+    Result := False;
+  end;
 end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  HelpButton.Visible:=CurPageID=100;
+  HelpButton.Visible := CurPageID = PageBuild.ID;
   if (CurPageID=wpSelectDir) then
   begin
     if (IsAdminLoggedOn or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{localappdata}\{#MyAppName}')) then
@@ -301,10 +322,6 @@ begin
     if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
-      msg:=msg+'MinGW build SDL1 for lower-end systems';
-    if (PageBuild.Values[6]) then
-      msg:=msg+'MinGW build SDL1 with custom drawn menu';
-    if (PageBuild.Values[7]) then
       msg:=msg+'MinGW build SDL2';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
@@ -337,6 +354,23 @@ begin
           msg:='Traditional Chinese (繁體/正體中文)';
         if (PageLang.Values[6]) then
           msg:='Turkish (Türkçe)';
+        Wizardform.ReadyMemo.Lines.Add('      '+msg);
+      end;
+      if PageFont.Values[0] or PageFont.Values[1] or PageFont.Values[2] or PageFont.Values[3] or PageFont.Values[4] or PageFont.Values[5] then
+      begin
+        Wizardform.ReadyMemo.Lines.Add('');
+        Wizardform.ReadyMemo.Lines.Add('TrueType font:');
+        msg:='Default TrueType font';
+        if (PageFont.Values[1]) then
+          msg:='SarasaGothicFixed font';
+        if (PageFont.Values[2]) then
+          msg:='Consolas font';
+        if (PageFont.Values[3]) then
+          msg:='Courier New font';
+        if (PageFont.Values[4]) then
+          msg:='Nouveau IBM font';
+        if (PageFont.Values[5]) then
+          msg:='Custom TrueType font: ' + PageCustom.Values[0];
         Wizardform.ReadyMemo.Lines.Add('      '+msg);
       end;
       if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
@@ -469,10 +503,15 @@ begin
 		begin
 		  DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
 		end;
-		if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) then
+		if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) and (not PageFont.Values[1]) then
 		begin
 			if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
 				DeleteFile(ExpandConstant('{app}\SarasaGothicFixed.ttf'));
+		end;
+		if (not PageFont.Values[4]) then
+		begin
+			if FileExists(ExpandConstant('{app}\Nouveau_IBM.ttf')) then
+				DeleteFile(ExpandConstant('{app}\Nouveau_IBM.ttf'));
 		end;
       end;
       if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6]) then
@@ -519,6 +558,38 @@ begin
                 FileLines[i] := linetmp+' 886,950';
               if (PageLang.Values[6]) then
                 FileLines[i] := linetmp+' 90,857';
+              break;
+            end
+          end
+        end;
+        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end;
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageFont.Values[1] or PageFont.Values[2] or PageFont.Values[3] or PageFont.Values[4] or PageFont.Values[5]) then
+      begin
+        FileLines := TStringList.Create;
+        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
+        for i := 0 to FileLines.Count - 1 do
+        begin
+          line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
+          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+            if (CompareText(linetmp, 'font') = 0) and (CompareText(section, 'ttf') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              if (PageFont.Values[1]) then
+                FileLines[i] := linetmp+' SarasaGothicFixed';
+              if (PageFont.Values[2]) then
+                FileLines[i] := linetmp+' Consola';
+              if (PageFont.Values[3]) then
+                FileLines[i] := linetmp+' Cour';
+              if (PageFont.Values[4]) then
+                FileLines[i] := linetmp+' Nouveau_IBM';
+              if (PageFont.Values[5]) then
+                FileLines[i] := linetmp+' '+PageCustom.Values[0];
               break;
             end
           end
@@ -679,6 +750,11 @@ begin
               if (Length(lineold)>0) and (Pos('=', lineold) > 1) and (CompareText(Trim(linetmp), Trim(Copy(lineold, 1, Pos('=', lineold) - 1))) = 0) then
               begin
                 res := 1;
+                if (CompareText(section, 'dos') = 0) and (CompareText(Trim(linetmp), 'file access tries') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '0') then
+                begin
+                  FileLinesave.add(linetmp + '= 3');
+                  continue;
+                end;
                 if not ((adv = 1) and IsTaskSelected('commonoption') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = Trim(Copy(linenew, Pos('=', linenew) + 1, Length(linenew)))) or ((CompareText(Trim(linetmp), 'drive z hide files') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM')))) then
                   FileLinesave.add(linetmp + '= ' + Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))));
                 FileLines.Delete(j);
@@ -727,10 +803,6 @@ begin
     if (PageBuild.Values[4]) then
       dir:=dir+'mingw';
     if (PageBuild.Values[5]) then
-      dir:=dir+'mingw-lowend';
-    if (PageBuild.Values[6]) then
-      dir:=dir+'mingw-sdldraw';
-    if (PageBuild.Values[7]) then
       dir:=dir+'mingw-sdl2';
     Result := False;
     if (dir=name) then
