@@ -10971,7 +10971,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the GLSL shader setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11053,7 +11053,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the TrueType font setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11104,7 +11104,7 @@ void Load_mapper_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the mapper file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11157,7 +11157,7 @@ void Restart_config_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the config file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11198,7 +11198,7 @@ void Restart_language_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the language file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -14280,7 +14280,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #ifdef USE_TTF
             {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF)...").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF/OTF)...").
                     set_callback_function(vid_select_ttf_font_menu_callback);
             }
 #endif

@@ -18,6 +18,9 @@
     will now display a message box showing the saved
     file name when the recording has been completed.
     The full paths will also be logged. (Wengier)
+  - Added confirmation message while trying to load a
+    Direct3D pixel shader which may not be needed or
+    may have undesired effect. (Wengier)
   - Added warning message if the Japanese PC-98 or JEGA
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
