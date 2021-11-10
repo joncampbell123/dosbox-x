@@ -348,7 +348,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 
 .
 :PROGRAM_CONFIG_APPLY_RESTART
-是否要立即重開以套用設定 [Y/N]?
+是否要立即重新啟動以套用設定 [Y/N]?
 .
 :PROGRAM_CONFIG_HLP_POSINT
 正整數
@@ -1203,7 +1203,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-已載入鍵盤配置 %s 作用於字碼頁 %i
+已載入鍵盤配置 %s 於字碼頁 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1216,7 +1216,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-無法找到鍵盤配置 %s 作用於字碼頁 %i
+無法找到鍵盤配置 %s 於字碼頁 %i
 
 .
 :PROGRAM_KEYB_INVCPFILE
