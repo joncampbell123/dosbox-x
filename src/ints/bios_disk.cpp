@@ -685,7 +685,8 @@ static uint8_t GetDosDriveNumber(uint8_t biosNum) {
 
 static bool driveInactive(uint8_t driveNum) {
     if(driveNum>=(2 + MAX_HDD_IMAGES)) {
-        LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existant", (int)driveNum);
+        int driveCalledFor = reg_dl & 0x7f;
+        LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existent", driveCalledFor);
         last_status = 0x01;
         CALLBACK_SCF(true);
         return true;
