@@ -493,6 +493,8 @@ begin
           DeleteFile(ExpandConstant('{app}\languages\es_ES.lng'));
         if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
+        if (not PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\tr_TR.lng'));
         if (not PageLang.Values[2]) and (not PageLang.Values[3]) and (not PageLang.Values[5]) and (not PageFont.Values[1]) then
         begin
           if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
