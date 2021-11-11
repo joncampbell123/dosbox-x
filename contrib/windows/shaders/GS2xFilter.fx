@@ -36,7 +36,7 @@ const float lum_add = 0.25;  // effects smoothing
 
 
 string preprocessTechique : PREPROCESSTECHNIQUE = "GS2x";
-string combineTechique : COMBINETECHNIQUE =  "linear";
+string combineTechique : COMBINETECHNIQUE =  "lin";
 
 
 VERTEX_STUFF0 PASS1_VERTEX (float3 p : POSITION, float2 tc : TEXCOORD0)
@@ -130,7 +130,7 @@ technique GS2x
 }
 
 
-technique linear
+technique lin
 {
    pass P0
    {

@@ -55,7 +55,7 @@ float scaling   : SCALING = 1.1;
 
 
 string preprocessTechique : PREPROCESSTECHNIQUE = "GS4x";
-string combineTechique : COMBINETECHNIQUE =  "linear";
+string combineTechique : COMBINETECHNIQUE =  "lin";
 
 
 VERTEX_STUFF2 PASS1_VERTEX (float3 p : POSITION, float2 tc : TEXCOORD0)
@@ -145,7 +145,7 @@ technique GS4x
 }
 
 
-technique linear
+technique lin
 {
    pass P0
    {
