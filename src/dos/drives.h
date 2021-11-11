@@ -662,6 +662,7 @@ public:
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
 	bool readSector(uint8_t *buffer, uint32_t sector);
+	void setFileName(const char* fileName);
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:

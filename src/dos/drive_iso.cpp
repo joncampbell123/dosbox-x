@@ -192,6 +192,12 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 
 isoDrive::~isoDrive() { }
 
+void isoDrive::setFileName(const char* fileName) {
+	safe_strncpy(this->fileName, fileName, CROSS_LEN);
+	strcpy(info, "isoDrive ");
+	strcat(info, fileName);
+}
+
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);

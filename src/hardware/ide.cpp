@@ -2265,6 +2265,24 @@ void IDE_CDROM_Detach(unsigned char drive_index) {
     }
 }
 
+void IDE_CDROM_Detach_Ret(signed char &indexret,bool &slaveret,unsigned char drive_index) {
+    indexret = -1;
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = idecontroller[index];
+        if (c)
+        for (int slave = 0; slave < 2; slave++) {
+            IDEATAPICDROMDevice *dev;
+            dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+            if (dev && dev->drive_index == drive_index) {
+                delete dev;
+                c->device[slave] = NULL;
+                slaveret = slave;
+                indexret = index;
+            }
+        }
+    }
+}
+
 void IDE_CDROM_DetachAll() {
     for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
         IDEController *c = idecontroller[index];

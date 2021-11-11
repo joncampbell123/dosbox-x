@@ -509,16 +509,22 @@ void MenuBrowseCDImage(char drive, int num) {
     lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","",14,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
-        uint8_t mediaid = 0xF8;
-        int error = -1;
-        qmount = true;
-        DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
-        qmount = false;
-        if (error) {
-            tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
-            return;
+        isoDrive *cdrom = dynamic_cast<isoDrive*>(Drives[drive-'A']);
+        DOS_Drive *newDrive = NULL;
+        if (cdrom && dos_kernel_disabled) {
+            cdrom->setFileName(lTheOpenFileName);
+        } else {
+            uint8_t mediaid = 0xF8;
+            int error = -1;
+            DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+            if (error) {
+                tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
+                chdir( Temp_CurrentDir );
+                return;
+            }
+            cdrom = dynamic_cast<isoDrive*>(newDrive);
         }
-        DriveManager::ChangeDisk(drive-'A', newDrive);
+        if (cdrom) DriveManager::ChangeDisk(drive-'A', cdrom);
 	}
 	chdir( Temp_CurrentDir );
 #endif
@@ -557,6 +563,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
         if (!newDrive->created_successfully) {
             tinyfd_messageBox("Error","Could not mount the selected floppy disk image.","ok","error", 1);
+            chdir( Temp_CurrentDir );
             return;
         }
         DriveManager::ChangeDisk(drive-'A', newDrive);

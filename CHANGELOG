@@ -53,6 +53,8 @@
     Fixes corrupt graphics in the PC Booter version
     of Apple Panic. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
+  - Fixed possible freeze when shutting down Windows 9x
+    after changing a CD image from the menu. (Wengier)
   - Fixed config option windowposition=x,y not working
     in Linux/macOS SDL1 builds. (Wengier)
   - Make memory B0000-B7FFF unmapped for the CGA
