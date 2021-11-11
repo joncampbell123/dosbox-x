@@ -851,9 +851,12 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
     GFX_LosingFocus();
     GFX_ReleaseMouse();
     for (unsigned int idrive=0; idrive<2; idrive++) {
-        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
-        if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
-        MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
+        if (Drives[idrive]) {
+            fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
+            if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
+            MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
+        } else if (imageDiskList[idrive])
+            MenuBrowseFDImage('A'+idrive, ++num, -1);
     }
 #if !defined(HX_DOS)
     if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);

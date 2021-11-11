@@ -27,6 +27,8 @@
   - Added a TrueType font selection page into Windows
     installer, which will show when TrueType font (TTF)
     output is selected for new installations. (Wengier)
+  - Added ability to change floppy images with drive
+    number (0 or 1) only. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)

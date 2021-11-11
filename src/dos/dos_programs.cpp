@@ -538,10 +538,10 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 		return;
 	}
 
-    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9)) {
+    if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
 #if !defined(HX_DOS)
-        std::string image = type==1?"El Torito floppy image":(type==2?"RAM floppy image":Drives[drive-'A']->GetInfo()+9);
-        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
+        std::string image = type==1||type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL?"El Torito floppy image":(type==2||type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL?"RAM floppy image":(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
+        std::string drive_warn = "Floppy drive "+(type==-1?std::string(1, drive-'A'+'0'):(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":"))+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
         if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -566,7 +566,23 @@ void MenuBrowseFDImage(char drive, int num, int type) {
             chdir( Temp_CurrentDir );
             return;
         }
-        if (newDrive) DriveManager::ChangeDisk(drive-'A', newDrive);
+        if (newDrive) {
+            if (type>-1)
+                DriveManager::ChangeDisk(drive-'A', newDrive);
+            else if (newDrive->loadedDisk) {
+                if (imageDiskList[drive-'A']) {
+                    imageDiskList[drive-'A']->Release();
+                    imageDiskList[drive-'A'] = newDrive->loadedDisk;
+                    imageDiskList[drive-'A']->Addref();
+                    imageDiskChange[drive-'A'] = true;
+                }
+                if (swapInDisksSpecificDrive == drive-'A' && diskSwap[swapPosition]) {
+                    diskSwap[swapPosition]->Release();
+                    diskSwap[swapPosition] = newDrive->loadedDisk;
+                    diskSwap[swapPosition]->Addref();
+                }
+            }
+        }
 	}
 	chdir( Temp_CurrentDir );
 #endif
