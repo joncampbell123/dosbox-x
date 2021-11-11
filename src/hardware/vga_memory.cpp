@@ -38,6 +38,7 @@
 
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
+bool enveten = false;
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -48,6 +49,7 @@ extern bool enable_pc98_256color;
 
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
+extern const char* RunningProgram;
 
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
@@ -2447,6 +2449,9 @@ void VGA_SetupHandlers(void) {
 		newHandler = &vgaph.map;
 		break;
 	}
+    // Workaround for ETen Chinese DOS system (e.g. ET24VA)
+    if (dos.loaded_codepage == 950 && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
+    bool runeten = !vga_fill_inactive_ram && dos.loaded_codepage == 950 && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
 	case 0:
         vgapages.base = VGA_PAGE_A0;
@@ -2479,7 +2484,7 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_A0;
 		vgapages.mask = 0xffff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-        if (vga_fill_inactive_ram)
+        if (vga_fill_inactive_ram || runeten)
             MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
         else
             MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
@@ -2488,7 +2493,7 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_B0;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-        if (vga_fill_inactive_ram) {
+        if (vga_fill_inactive_ram || runeten) {
             MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
             MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
         } else {
@@ -2500,7 +2505,7 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_B8;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-        if (vga_fill_inactive_ram) {
+        if (vga_fill_inactive_ram || runeten) {
             MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
             MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
         } else {

@@ -1832,8 +1832,8 @@ public:
 
         cmd->FindString("-boothax",boothax_str,true);
 
-        if (boothax_str == "msdos") // WARNING: For MS-DOS only, or the real-mode portion of Windows 95/98/ME.
-            boothax = BOOTHAX_MSDOS; // do NOT use while in the graphical portion of Windows 95/98/ME especially a DOS VM.
+        if (boothax_str == "msdos") // WARNING: For MS-DOS only, including MS-DOS 7/8 included in Windows 95/98/ME.
+            boothax = BOOTHAX_MSDOS; // do NOT use while in the graphical interface of Windows 95/98/ME especially a DOS VM.
         else if (boothax_str == "")
             boothax = BOOTHAX_NONE;
         else {
