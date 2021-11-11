@@ -257,6 +257,11 @@ uint8_t imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,v
     if (req_sector_size != sector_size)
         return 0x05;
 
+    if (sector == 0) {
+        LOG_MSG("Attempted to read invalid sector 0.");
+        return 0x05;
+    }
+
     sectnum = ( (cylinder * heads + head) * sectors ) + sector - 1L;
 
     return Read_AbsoluteSector(sectnum, data);
