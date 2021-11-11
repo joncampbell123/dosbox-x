@@ -493,7 +493,7 @@ void MenuBrowseCDImage(char drive, int num) {
 
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
 #if !defined(HX_DOS)
-        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
+        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
         if (!tinyfd_messageBox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -516,7 +516,7 @@ void MenuBrowseCDImage(char drive, int num) {
         } else {
             uint8_t mediaid = 0xF8;
             int error = -1;
-            DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+            newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
             if (error) {
                 tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
                 chdir( Temp_CurrentDir );
@@ -541,7 +541,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9)) {
 #if !defined(HX_DOS)
         std::string image = type==1?"El Torito floppy image":(type==2?"RAM floppy image":Drives[drive-'A']->GetInfo()+9);
-        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+image+"\n\nDo you want to change the floppy disk image now?";
+        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
         if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -566,7 +566,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
             chdir( Temp_CurrentDir );
             return;
         }
-        DriveManager::ChangeDisk(drive-'A', newDrive);
+        if (newDrive) DriveManager::ChangeDisk(drive-'A', newDrive);
 	}
 	chdir( Temp_CurrentDir );
 #endif
