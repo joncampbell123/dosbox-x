@@ -3987,7 +3987,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2) & 0xFF)) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2) & 0xFF) && !(autoboxdraw && (uint8_t)(*vidmem >> 8u) != (uint8_t)(*(vidmem+2) >> 8u) && ((*draw).chr == 0xB3 || (*draw).chr == 0xBA || (uint8_t)*(vidmem+2) == 0xB3 || (uint8_t)*(vidmem+2) == 0xBA))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -4050,16 +4050,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
-                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x2520 || last == 0x2523 || last == 0x252f || last == 0x2533 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
                                (*draw).unicode = 1;
-                               (*draw).chr = last == 0x2520 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                               (*draw).chr = last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
                             }
                             last = 0;
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1) & 0xFF)) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1) & 0xFF) && !(autoboxdraw && (uint8_t)(*vidmem >> 8u) != (uint8_t)(*(vidmem+1) >> 8u) && ((*draw).chr == 0xB3 || (*draw).chr == 0xBA || (uint8_t)*(vidmem+1) == 0xB3 || (uint8_t)*(vidmem+1) == 0xBA))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
