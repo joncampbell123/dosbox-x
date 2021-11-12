@@ -3345,16 +3345,16 @@ bool connectRight(uint8_t c, bool db, bool first) {
 }
 
 bool isBDV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6, bool first) {
-    return c1 == 179 && c2 == 179 && (c3 == 179 || c3 == 192 && connectRight(c6, false, first) || c3 == 193 && (connectRight(c6, false, first) || connectLeft(c6, false, first)) || c3 == 195 && connectRight(c6, false, first) || c3 == 197 && (connectLeft(c6, false, first) || connectRight(c6, false, first)) || c3 == 217 && connectLeft(c6, false, first)) ||
-           (c1 == 180 || c1 == 191) && connectLeft(c4, false, first) && c2 == 179 && (c3 == 179 || c3 == 180 && connectLeft(c6, false, first) || c3 == 217 && connectLeft(c6, false, first)) ||
-           (c1 == 195 || c1 == 218) && connectRight(c4, false, first) && c2 == 179 && (c3 == 179 || c3 == 192 && connectRight(c6, false, first) || c3 == 195 && connectRight(c6, false, first)) ||
-           (c1 == 180 && connectLeft(c4, false, first) || c1 == 191 && connectLeft(c4, false, first) || c1 == 194 && (connectLeft(c4, false, first) || connectRight(c4, false, first)) || c1 == 195 && connectRight(c4, false, first) || c1 == 197 && (connectLeft(c4, false, first) || connectRight(c4, false, first)) || c1 == 218 && connectRight(c4, false, first)) && c2 == 179 && c3 == 179 ||
-           c1 == 179 && (c2 == 180 && connectLeft(c5, false, first) || c2 == 195 && connectRight(c5, false, first) || c2 == 197 && (connectLeft(c5, false, first) || connectRight(c5, false, first))) && c3 == 179 ||
-           c1 == 186 && c2 == 186 && (c3 == 185 && connectLeft(c6, true, first) || c3 == 186 || c3 == 188 && connectLeft(c6, true, first) || c3 == 200 && connectRight(c6, true, first) || c3 == 204 && connectRight(c6, true, first) || c3 == 206 && (connectRight(c6, true, first) || connectRight(c6, true, first))) ||
-           (c1 == 185 || c1 == 187) && connectLeft(c4, true, first) && c2 == 186 && (c3 == 185 && connectLeft(c6, true, first) || c3 == 186 || c3 == 188 && connectLeft(c6, true, first)) ||
-           (c1 == 201 || c1 == 204) && connectRight(c4, true, first) && c2 == 186 && (c3 == 186 || c3 == 200 && connectRight(c6, true, first) || c3 == 204 && connectRight(c6, true, first)) ||
-           (c1 == 185 && connectLeft(c4, true, first) || c1 == 187 && connectLeft(c4, true, first) || c1 == 201 && connectRight(c4, true, first) || c1 == 203 && (connectLeft(c4, true, first) || connectRight(c4, true, first)) || c1 == 204 && connectRight(c4, true, first) || c1 == 206 && (connectLeft(c4, true, first) || connectRight(c4, true, first))) && c2 == 186 && c3 == 186 ||
-           c1 == 186 && (c2 == 185 && connectLeft(c5, true, first) || c2 == 204 && connectRight(c5, true, first) || c2 == 206 && (connectLeft(c5, true, first) || connectRight(c5, true, first))) && c3 == 186;
+    return (c1 == 179 && c2 == 179 || (c3 == 193 || c3 == 197) && c1 == 197 && connectLeft(c4, false, first) && connectRight(c4, false, first) && c2 == 197 && connectLeft(c5, false, first) && connectRight(c5, false, first)) && (c3 == 179 || c3 == 180 && connectLeft(c6, false, first) || c3 == 192 && connectRight(c6, false, first) || c3 == 193 && connectRight(c6, false, first) && connectLeft(c6, false, first) || c3 == 195 && connectRight(c6, false, first) || c3 == 197 && connectLeft(c6, false, first) && connectRight(c6, false, first) || c3 == 217 && connectLeft(c6, false, first)) ||
+           (c1 == 180 || c1 == 191) && connectLeft(c4, false, first) && (c2 == 179 || c2 == 180 && connectLeft(c5, false, first)) && (c3 == 179 || c3 == 180 && connectLeft(c6, false, first) || c3 == 217 && connectLeft(c6, false, first)) ||
+           (c1 == 195 || c1 == 218) && connectRight(c4, false, first) && (c2 == 179 || c2 == 195 && connectRight(c5, false, first)) && (c3 == 179 || c3 == 192 && connectRight(c6, false, first) || c3 == 195 && connectRight(c6, false, first)) ||
+           (c1 == 180 && connectLeft(c4, false, first) || c1 == 191 && connectLeft(c4, false, first) || c1 == 194 && connectLeft(c4, false, first) && connectRight(c4, false, first) || c1 == 195 && connectRight(c4, false, first) || c1 == 197 && connectLeft(c4, false, first) && connectRight(c4, false, first) || c1 == 218 && connectRight(c4, false, first)) && (c2 == 179 && c3 == 179 || (c1 == 194 || c1 == 197) && c2 == 197 && connectLeft(c5, false, first) && connectRight(c5, false, first) && c3 == 197 && connectLeft(c6, false, first) && connectRight(c6, false, first)) ||
+           c1 == 179 && (c2 == 180 && connectLeft(c5, false, first) || c2 == 195 && connectRight(c5, false, first) || c2 == 197 && connectLeft(c5, false, first) && connectRight(c5, false, first)) && c3 == 179 ||
+           (c1 == 186 && c2 == 186 || (c3 == 202 || c3 == 206) && c1 == 206 && connectLeft(c4, true, first) && connectRight(c4, true, first) && c2 == 206 && connectLeft(c5, true, first) && connectRight(c5, true, first)) && (c3 == 185 && connectLeft(c6, true, first) || c3 == 186 || c3 == 188 && connectLeft(c6, true, first) || c3 == 200 && connectRight(c6, true, first) || c3 == 202 && connectRight(c6, true, first) && connectRight(c6, true, first) || c3 == 204 && connectRight(c6, true, first) || c3 == 206 && connectRight(c6, true, first) && connectRight(c6, true, first)) ||
+           (c1 == 185 || c1 == 187) && connectLeft(c4, true, first) && (c2 == 185 && connectLeft(c5, true, first) || c2 == 186) && (c3 == 185 && connectLeft(c6, true, first) || c3 == 186 || c3 == 188 && connectLeft(c6, true, first)) ||
+           (c1 == 201 || c1 == 204) && connectRight(c4, true, first) && (c2 == 186 || c2 == 204 && connectLeft(c5, true, first)) && (c3 == 186 || c3 == 200 && connectRight(c6, true, first) || c3 == 204 && connectRight(c6, true, first)) ||
+           (c1 == 185 && connectLeft(c4, true, first) || c1 == 187 && connectLeft(c4, true, first) || c1 == 201 && connectRight(c4, true, first) || c1 == 203 && connectLeft(c4, true, first) && connectRight(c4, true, first) || c1 == 204 && connectRight(c4, true, first) || c1 == 206 && connectLeft(c4, true, first) && connectRight(c4, true, first)) && (c2 == 186 && c3 == 186 || (c1 == 203 || c1 == 206) && c2 == 206 && connectLeft(c6, true, first) && connectRight(c5, true, first) && c3 == 206 && connectLeft(c6, true, first) && connectRight(c6, true, first)) ||
+           c1 == 186 && (c2 == 185 && connectLeft(c5, true, first) || c2 == 204 && connectRight(c5, true, first) || c2 == 206 && connectLeft(c5, true, first) && connectRight(c5, true, first)) && c3 == 186;
 }
 
 bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6) {
@@ -3362,9 +3362,7 @@ bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5
     if (dos.loaded_codepage == 932 && halfwidthkana) return false;
 #endif
     if (isBDV(c1, c2, c3, c4, c5, c6, true) || isBDV(c4, c5, c6, c1, c2, c3, false)) return true;
-    return c1 == 176 && c2 == 176 && c3 == 176 && c4 == 176 && c5 == 176 && c6 == 176 ||
-           c1 == 177 && c2 == 177 && c3 == 177 && c4 == 177 && c5 == 177 && c6 == 177 ||
-           c1 == 178 && c2 == 178 && c3 == 178 && c4 == 176 && c5 == 178 && c6 == 178;
+    return (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) && (c1 >= 176 && c1 <= 178);
 }
 
 bool isDBCSCP() {
