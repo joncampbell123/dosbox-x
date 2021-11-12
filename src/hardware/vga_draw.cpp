@@ -3332,6 +3332,29 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220);
 }
 
+bool isBDV(uint8_t c1, uint8_t c2, uint8_t c3) {
+    return c1 == 179 && c2 == 179 && (c3 == 179 || c3 == 192 || c3 == 193 || c3 == 195 || c3 == 197 || c3 == 217) ||
+           (c1 == 180 || c1 == 191) && c2 == 179 && (c3 == 179 || c3 == 180 || c3 == 217) ||
+           (c1 == 195 || c1 == 218) && c2 == 179 && (c3 == 179 || c3 == 192 || c3 == 195) ||
+           (c1 == 180 || c1 == 191 || c1 == 194 || c1 == 195 || c1 == 197 || c1 == 218) && c2 == 179 && c3 == 179 ||
+           c1 == 179 && (c2 == 180 || c2 == 195 || c2 == 197) && c3 == 179 ||
+           c1 == 186 && c2 == 186 && (c3 == 185 || c3 == 186 || c3 == 188 || c3 == 200 || c3 == 204 || c3 == 206) ||
+           (c1 == 185 || c1 == 187) && c2 == 186 && (c3 == 185 || c3 == 186 || c3 == 188) ||
+           (c1 == 201 || c1 == 204) && c2 == 186 && (c3 == 186 || c3 == 200 || c3 == 204) ||
+           (c1 == 185 || c1 == 187 || c1 == 201 || c1 == 203 || c1 == 204 || c1 == 206) && c2 == 186 && c3 == 186 ||
+           c1 == 186 && (c2 == 185 || c2 == 204 || c2 == 206) && c3 == 186;
+}
+
+bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6) {
+#if defined(USE_TTF)
+    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
+#endif
+    if (isBDV(c1, c2, c3) || isBDV(c4, c5, c6)) return true;
+    return c1 == 176 && c2 == 176 && c3 == 176 && c4 == 176 && c5 == 176 && c6 == 176 ||
+           c1 == 177 && c2 == 177 && c3 == 177 && c4 == 177 && c5 == 177 && c6 == 177 ||
+           c1 == 178 && c2 == 178 && c3 == 178 && c4 == 176 && c5 == 178 && c6 == 178;
+}
+
 bool isDBCSCP() {
     return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950) && enable_dbcs_tables;
 }
@@ -3987,7 +4010,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2) & 0xFF) && !(autoboxdraw && (uint8_t)(*vidmem >> 8u) != (uint8_t)(*(vidmem+2) >> 8u) && ((*draw).chr == 0xB3 || (*draw).chr == 0xBA || (uint8_t)*(vidmem+2) == 0xB3 || (uint8_t)*(vidmem+2) == 0xBA))) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2)) && !(autoboxdraw && (row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add)) || row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add)) || row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+2-2*vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -4059,7 +4082,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1) & 0xFF) && !(autoboxdraw && (uint8_t)(*vidmem >> 8u) != (uint8_t)(*(vidmem+1) >> 8u) && ((*draw).chr == 0xB3 || (*draw).chr == 0xBA || (uint8_t)*(vidmem+1) == 0xB3 || (uint8_t)*(vidmem+1) == 0xBA))) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1)) && !(autoboxdraw && (row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add)) || row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2)) || row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add)/2, (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))

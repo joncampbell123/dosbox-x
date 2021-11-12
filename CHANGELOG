@@ -11,6 +11,8 @@
   - The code page setting of "country" option will now
     be ignored for PC-98, JEGA and DOS/V modes. These
     modes will enforce the desired code page. (Wengier)
+  - Improved auto-detection of box-drawing characters
+    when using DBCS code pages. (Wengier)
   - Applied UTF-8 conversions to file browse dialog
     boxes for selecting files containing Unicode
     characters (e.g. CJK characters). (Wengier)
