@@ -2281,7 +2281,7 @@ void VGA_SetupHandlers(void) {
 	 * and 4KB granularity. */
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
 	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
-
+	bool runeten = false;
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
@@ -2451,7 +2451,7 @@ void VGA_SetupHandlers(void) {
 	}
     // Workaround for ETen Chinese DOS system (e.g. ET24VA)
     if (dos.loaded_codepage == 950 && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
-    bool runeten = !vga_fill_inactive_ram && dos.loaded_codepage == 950 && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
+    runeten = !vga_fill_inactive_ram && dos.loaded_codepage == 950 && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
 	case 0:
         vgapages.base = VGA_PAGE_A0;
