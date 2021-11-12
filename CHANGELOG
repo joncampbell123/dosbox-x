@@ -56,6 +56,8 @@
     of 8, rather than reading it from address 485h.
     Fixes corrupt graphics in the PC Booter version
     of Apple Panic. (Allofich)
+  - Fixed underflow when INT 13 AH=2 called for
+    sector 0. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
