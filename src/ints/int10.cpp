@@ -210,7 +210,7 @@ Bitu INT10_Handler(void) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
 #if defined(USE_TTF)
-			colorChanged = justChanged = true;
+			if (IS_EGAVGA_ARCH) colorChanged = justChanged = true;
 #endif
 			break;
 		case 0x01:							/* SET BORDER (OVERSCAN) COLOR*/
@@ -219,7 +219,7 @@ Bitu INT10_Handler(void) {
 		case 0x02:							/* SET ALL PALETTE REGISTERS */
 			INT10_SetAllPaletteRegisters(SegPhys(es)+reg_dx);
 #if defined(USE_TTF)
-			colorChanged = justChanged = true;
+			if (IS_EGAVGA_ARCH) colorChanged = justChanged = true;
 #endif
 			break;
 		case 0x03:							/* TOGGLE INTENSITY/BLINKING BIT */

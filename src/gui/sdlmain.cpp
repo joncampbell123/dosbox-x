@@ -4027,6 +4027,15 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
+        } else if (IS_EGAVGA_ARCH) {
+            alt_rgb *rgbcolors = (alt_rgb*)render.pal.rgb;
+            std::string str = "";
+            char value[30];
+            for (int i = 0; i < 16; i++) {
+                sprintf(value,"#%02x%02x%02x",rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                str+=std::string(value)+" ";
+            }
+            if (str.size()) setColors(str.c_str(),-1);
         }
         SetBlinkRate(ttf_section);
         const char *wpstr=ttf_section->Get_string("wp");

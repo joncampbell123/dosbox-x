@@ -61,6 +61,9 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
+  - Fixed TTF color issue with some DOS GUI programs by
+    initializing the color scheme when with default
+    COLORS= setting in EGA or VGA mode. (Wengier)
   - Fixed some Direct3D pixel shaders not working (such
     as GS2x and CRT-geom-blend). (Wengier & depaljas)
   - Fixed config option windowposition=x,y not working
