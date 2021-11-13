@@ -227,6 +227,10 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 						}
 					}
 				}
+				// Exclude the default CON and NUL
+				if(real_readd(seg, off + 6) == 0 || real_readd(seg, off + 6) == 0xffffffff) {
+					return 0;
+				}
 				return (uint32_t)seg << 16 | (uint32_t)off;
 			}
 		}
@@ -788,7 +792,7 @@ uint8_t DOS_FindDevice(char const * name) {
 
 	DOS_CheckOpenExtDevice(name_part);
 	for(int index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
-		if(Devices[index] && strcmp(name_part, "CON")) {
+		if(Devices[index]) {
 			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
 				if(WildFileCmp(name_part, Devices[index]->name)) {
 					if(DOS_CheckExtDevice(name_part, false) != 0) {
