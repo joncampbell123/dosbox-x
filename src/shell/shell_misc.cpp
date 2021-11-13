@@ -1419,8 +1419,7 @@ bool DOS_Shell::hasExecutableExtension(const char* name)
 {
     auto extension = strrchr(name, '.');
     if (!extension) return false;
-    return (strcasecmp(extension, com_ext) || strcasecmp(extension, exe_ext) ||
-            strcasecmp(extension, bat_ext));
+    return (!strcasecmp(extension, com_ext) || !strcasecmp(extension, exe_ext) || !strcasecmp(extension, bat_ext));
 }
 
 char * DOS_Shell::Which(char * name) {
