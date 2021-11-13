@@ -401,7 +401,7 @@ static bool DOS_MultiplexFunctions(void) {
             char psp_name[9];
             DOS_MCB psp_mcb(dos.psp()-1);
             psp_mcb.GetFileName(psp_name);
-            if (!strcmp(psp_name, "INSTALL")) return false;
+            if (!strcmp(psp_name, "INSTALL") && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E) return false;
         }
 		reg_al = 1;
 		reg_ah = 1;
