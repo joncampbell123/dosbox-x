@@ -3370,8 +3370,9 @@ bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5
 #if defined(USE_TTF)
     if (dos.loaded_codepage == 932 && halfwidthkana) return false;
 #endif
-    if (isBDV(c1, c2, c3, c4, c5, c6, b1, b2, b3, b7, b8, true) || isBDV(c4, c5, c6, c1, c2, c3, b4, b5, b6, b9, b10, false)) return true;
-    return (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) && (c1 >= 176 && c1 <= 178);
+    if ((c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) && c1 >= 176 && c1 <= 178) return true;
+    if ((c1 < 179 || c1 > 218 || c2 < 179 || c2 > 218 || c3 < 179 || c3 > 218) && (c4 < 179 || c4 > 218 || c5 < 179 || c5 > 218 || c6 < 179 || c6 > 218)) return false;
+    return isBDV(c1, c2, c3, c4, c5, c6, b1, b2, b3, b7, b8, true) || isBDV(c4, c5, c6, c1, c2, c3, b4, b5, b6, b9, b10, false);
 }
 
 bool isDBCSCP() {
