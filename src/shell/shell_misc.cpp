@@ -360,8 +360,8 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 		DOS_WriteFile(STDOUT, (uint8_t *)&line[pos], &len);
 		pos++;
 	}
-    if (delete_flag && str_index >= str_len)
-        return 0;
+	if (delete_flag && str_index >= str_len)
+		return 0;
 	RemoveAllChar(line, str_len);
 	pos = delete_flag ? str_index : str_index - count;
 	while(pos < str_len - count) {
@@ -1153,6 +1153,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
+		uint8_t c;uint16_t n;
 		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
@@ -1170,7 +1171,7 @@ first_1:
 			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 
 first_2:
-		uint8_t c;uint16_t n=1;
+		n=1;
 		DOS_ReadFile (STDIN,&c,&n);
 		do switch (c) {
 			case 'n':			case 'N':

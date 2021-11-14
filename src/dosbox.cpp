@@ -4081,7 +4081,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("keep private area on boot",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+    Pstring->Set_help("If set to true, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If false, unmap and discard the private area when you boot an operating system.\n"
+            "If set to auto, DOSBox-X will unmap and discard the private area while booting to a guest system unless Glide passthrough is enabled (useful for Windows 9x Glide support).\n");
 
     Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
@@ -4106,7 +4107,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
     Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
-                      "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
+                      "If set to autostart, the builtin VER command won't activate/deactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
@@ -4125,7 +4126,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("mountwarning",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, a warning will be displayed while trying to auto-mount your Windows host drives.");
+    Pbool->Set_help("If set, a warning message will be displayed while trying to auto-mount your Windows host drives.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
