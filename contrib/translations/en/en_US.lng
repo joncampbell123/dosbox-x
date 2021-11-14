@@ -578,7 +578,7 @@ Warning: Mounting / is not recommended.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-Failed to mount the PhysFS drive.
+Failed to mount the PhysFS drive with the archive file.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1492,11 +1492,7 @@ Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?
 Do you want to give DOSBox-X access to your real network drive %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-Do you really want to give DOSBox-X access to everything
-on your real hard drive %c [Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?
+Do you really want to give DOSBox-X access to your real hard drive %c [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Bad command or filename - "%s"

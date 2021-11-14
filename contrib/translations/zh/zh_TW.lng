@@ -574,7 +574,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-無法掛載 PhysFS 磁碟機.
+無法從此壓縮檔中掛載 PhysFS 磁碟機.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1479,7 +1479,7 @@ GOTO: 標籤 %s 找不到.
 您是否想讓 DOSBox-X 存取您真實電腦中的網路磁碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-您認真要讓 DOSBox-X 存取位於您真實電腦中硬碟機 %c 上的所有內容 [Y/N]?
+您認真要讓 DOSBox-X 存取位於您真實電腦中硬碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
 您是否想讓 DOSBox-X 存取您真實電腦中的硬碟機 %c [Y/N]?

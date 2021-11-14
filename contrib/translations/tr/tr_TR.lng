@@ -491,7 +491,7 @@ Bu sürücü için konum 1 ile %d arasında olmalıdır.
 
 .
 :PROGRAM_MOUNT_IMGMOUNT
-Kalıp dosyalarını bağlamak için ←[34;1mIMGMOUNT←[0m komutunu kullanın, ←[34;1mMOUNT←[0m komutunu değil.
+Kalıp dosyaları bağlamak için ←[34;1mIMGMOUNT←[0m komutunu kullanın, ←[34;1mMOUNT←[0m komutunu değil.
 
 .
 :PROGRAM_MOUNT_ILL_TYPE
@@ -578,7 +578,7 @@ Uyarı: /'nin bağlanması önerilmez.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-PhysFS sürücüsü bağlanılamadı.
+Arşiv dosyasıyla PhysFS sürücüsü bağlanamadı.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1492,10 +1492,6 @@ DOSBox-X'e %c sürücünüze erişim vermek istediğinize emin misiniz [Y/N]?
 DOSBox-X'e %c ağ sürücünüze erişim vermek istediğinize emin misiniz [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-DOSBox-X'e %c sabit diskinizdeki her şeye erişim vermek istediğinize emin
-misiniz [Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
 DOSBox-X'e %c sabit diskinize erişim vermek istediğinize emin misiniz [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
