@@ -83,8 +83,8 @@
     an MDA is also present when using CGA. (Allofich)
   - Make floppy I/O delay separataly configurable from
     hard drive delay, and make it slower than before
-    by default.(Allofich)
-  - Fixed possible crash with printing. (jamesbond3142)
+    by default. It is adjustable via the "floppy drive
+    data rate limit" config option. (Allofich)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
