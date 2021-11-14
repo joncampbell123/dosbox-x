@@ -108,8 +108,7 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
-
-bool gbk = false;
+extern bool gbk;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;

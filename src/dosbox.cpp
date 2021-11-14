@@ -139,13 +139,15 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb, del_flag;
-extern bool         sync_time, enableime, gbk;
+extern bool         sync_time, enableime;
 extern int          freesizecap;
 extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
+bool                gbk = false;
+bool                chinasea = false;
 bool                jp_ega = false;
 bool                want_fm_towns = false;
 
@@ -1063,7 +1065,9 @@ void DOSBOX_RealInit() {
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
 #endif
     }
-    gbk = dosv_section->Get_bool("gbk");
+    Section_prop *ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+    gbk = ttf_section->Get_bool("gbk");
+    chinasea = ttf_section->Get_bool("chinasea");
     dos.loaded_codepage = cp;
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
@@ -2096,10 +2100,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese DOS/V emulation or TTF output.");
-    Pbool->SetBasic(true);
-
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the Japanese yen symbol at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
@@ -2789,6 +2789,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
+
+	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese TTF output or DOS/V emulation.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("chinasea",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the ChinaSea extension (in addition to the standard Big5 charset) for the Traditional Chinese TTF output or DOS/V emulation.");
+    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("If set, enables FEP control to function for Japanese DOS/V applications, and changes the blinking of character attributes to high brightness.");
