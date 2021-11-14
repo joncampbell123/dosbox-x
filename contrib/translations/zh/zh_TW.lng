@@ -1479,10 +1479,7 @@ GOTO: 標籤 %s 找不到.
 您是否想讓 DOSBox-X 存取您真實電腦中的網路磁碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-您認真要讓 DOSBox-X 存取位於您真實電腦中硬碟機 %c [Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-您是否想讓 DOSBox-X 存取您真實電腦中的硬碟機 %c [Y/N]?
+您是否真的想讓 DOSBox-X 存取您真實電腦中的硬碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 錯誤的命令或檔名 - "%s"
