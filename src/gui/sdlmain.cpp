@@ -9926,18 +9926,18 @@ bool DOSBOX_parse_argv() {
         else if (optname == "opencaptures") {
             if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) {
 #if defined(LINUX)
-		    control->opt_opencaptures = "xdg-open";
+                control->opt_opencaptures = "xdg-open";
 #else
-            return false;
+                return false;
 #endif
 	    }
         }
         else if (optname == "opensaves") {
             if (!control->cmdline->NextOptArgv(control->opt_opensaves)) {
 #if defined(LINUX)
-		    control->opt_opensaves = "xdg-open";
+                control->opt_opensaves = "xdg-open";
 #else
-            return false;
+                return false;
 #endif
 	    }
         }
