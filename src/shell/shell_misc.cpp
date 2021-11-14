@@ -360,8 +360,8 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 		DOS_WriteFile(STDOUT, (uint8_t *)&line[pos], &len);
 		pos++;
 	}
-    if (delete_flag && str_index >= str_len)
-        return 0;
+	if (delete_flag && str_index >= str_len)
+		return 0;
 	RemoveAllChar(line, str_len);
 	pos = delete_flag ? str_index : str_index - count;
 	while(pos < str_len - count) {
@@ -1153,23 +1153,25 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
+		uint8_t c;uint16_t n;
 		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
-			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+			if(!mountwarning && type!=DRIVE_NO_ROOT_DIR) goto continue_1;
+			if(type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
 first_1:
 			if(type==DRIVE_CDROM) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE"),toupper(name[0]));
 			else if(type==DRIVE_REMOTE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK"),toupper(name[0]));
-			else if((type==DRIVE_FIXED)||(type==DRIVE_RAMDISK)) WriteOut(MSG_Get(mountwarning?"SHELL_EXECUTE_DRIVE_ACCESS_FIXED":"SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS"),toupper(name[0]));
+			else if(type==DRIVE_FIXED||type==DRIVE_RAMDISK||type==DRIVE_UNKNOWN) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
 			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 
 first_2:
-		uint8_t c;uint16_t n=1;
+		n=1;
 		DOS_ReadFile (STDIN,&c,&n);
 		do switch (c) {
 			case 'n':			case 'N':
@@ -1419,8 +1421,7 @@ bool DOS_Shell::hasExecutableExtension(const char* name)
 {
     auto extension = strrchr(name, '.');
     if (!extension) return false;
-    return (strcasecmp(extension, com_ext) || strcasecmp(extension, exe_ext) ||
-            strcasecmp(extension, bat_ext));
+    return (!strcasecmp(extension, com_ext) || !strcasecmp(extension, exe_ext) || !strcasecmp(extension, bat_ext));
 }
 
 char * DOS_Shell::Which(char * name) {

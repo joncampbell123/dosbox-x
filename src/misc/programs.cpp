@@ -94,8 +94,8 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans), resetFontSize(void);
 void EMS_Startup(Section* sec), EMS_DoShutDown(), UpdateDefaultPrinterFont(), RebootLanguage(std::string filename, bool confirm=false);
+void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans), resetFontSize(void), ttf_reset_colors(void);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1580,6 +1580,8 @@ next:
                                 ttf_setlines(0, 0);
                                 lastset=0;
 #endif
+							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
+                                if (!strlen(section->Get_string("colors"))) ttf_reset_colors();
 							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
 #if defined(USE_TTF)
                                 const char *wpstr=section->Get_string("wp");

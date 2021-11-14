@@ -139,13 +139,15 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb, del_flag;
-extern bool         sync_time, enableime, gbk;
+extern bool         sync_time, enableime;
 extern int          freesizecap;
 extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
+bool                gbk = false;
+bool                chinasea = false;
 bool                jp_ega = false;
 bool                want_fm_towns = false;
 
@@ -1063,7 +1065,9 @@ void DOSBOX_RealInit() {
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
 #endif
     }
-    gbk = dosv_section->Get_bool("gbk");
+    Section_prop *ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+    gbk = ttf_section->Get_bool("gbk");
+    chinasea = ttf_section->Get_bool("chinasea");
     dos.loaded_codepage = cp;
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
@@ -2096,10 +2100,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese DOS/V emulation or TTF output.");
-    Pbool->SetBasic(true);
-
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables the Japanese yen symbol at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
@@ -2789,6 +2789,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set to true, the cursor blinks for the TTF output; setting it to false will turn the blinking off.\n"
                       "You can also change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
+
+	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese TTF output or DOS/V emulation.");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("chinasea",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enables the ChinaSea extension (in addition to the standard Big5 charset) for the Traditional Chinese TTF output or DOS/V emulation.");
+    Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("If set, enables FEP control to function for Japanese DOS/V applications, and changes the blinking of character attributes to high brightness.");
@@ -4081,7 +4089,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("keep private area on boot",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+    Pstring->Set_help("If set to true, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If false, unmap and discard the private area when you boot an operating system.\n"
+            "If set to auto, DOSBox-X will unmap and discard the private area while booting to a guest system unless Glide passthrough is enabled (useful for Windows 9x Glide support).\n");
 
     Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
@@ -4103,16 +4112,16 @@ void DOSBOX_SetupConfigSections(void) {
 			"Similarly, FAT32 disk images will be supported with a reported DOS version of 7.1 or higher.\n");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(lfn_settings);
+    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
+                      "If set to autostart, the builtin VER command won't activate/deactivate LFN support according to the reported DOS version.");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Load the DOSBox-X command shell into the upper memory when the UMB is available.\n"
                       "If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
-    Pstring->SetBasic(true);
-
-    Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(lfn_settings);
-    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
-                      "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
@@ -4125,7 +4134,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("mountwarning",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
+    Pbool->Set_help("If set, a warning message will be displayed while trying to auto-mount your Windows host drives.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
@@ -4137,7 +4146,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(autofix_settings);
-    Pstring->Set_help("If set to true or both, DOSBox-X will show messages when trying to automatically fix the \"Packed file is corrupt\" error.\n"
+    Pstring->Set_help("If set to true or both, DOSBox-X shows messages while trying to automatically fix the \"Packed file is corrupt\" error.\n"
                       "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
                       "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
     Pstring->SetBasic(true);

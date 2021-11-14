@@ -476,7 +476,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_IMGMOUNT
-イメージをマウントするためには,  [34;1mMOUNT[0m ではなく[34;1mIMGMOUNT[0m を使ってください。
+イメージをマウントするためには, [34;1mMOUNT[0m ではなく[34;1mIMGMOUNT[0m を使ってください。
 
 .
 :PROGRAM_MOUNT_ILL_TYPE
@@ -561,7 +561,7 @@ MOUNTのその他の使用例:
 警告: / をマウントすることは推奨されません。
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-PhysFS ドライブのマウントに失敗しました。
+アーカイブファイルを使用して PhysFS ドライブをマウントできませんでした。
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1027,7 +1027,7 @@ BIOSTEST image_file
 
 .
 :PROGRAM_IMGMOUNT_MOUNT
-ディレクトリをマウントするためには[34;1mIMGMOUNT[0m ではなく[34;1mMOUNT[0mコマンドを使ってください。
+ディレクトリをマウントするためには, [34;1mIMGMOUNT[0m ではなく [34;1mMOUNT[0m を使ってください。
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED
@@ -1476,11 +1476,7 @@ DOSBox-X に実際のリムーバブルドライブ %c へのアクセスを許�
 DOSBox-X に実際のネットワークドライブ %c へのアクセスを許可しますか [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-本当に DOSBox-X に実機のハードディスク %c の全てにアクセスできるように
-しますか[Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-DOSBox-X に実機のハードディスク %c へのアクセスを許可しますか[Y/N]?
+本当に DOSBox-X に実機のハードディスク %c へのアクセスを許可しますか[Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 コマンドまたはファイル名が無効です - "%s"
@@ -2662,7 +2658,7 @@ Direct3D ピクセルシェーダの選択...
 OpenGL(GLSL)シェーダの選択...
 .
 :MENU:load_ttf_font
-TrueTypeフォント(TTF)の選択...
+TrueTypeフォント(TTF/OTF)の選択...
 .
 :MENU:SoundMenu
 サウンド

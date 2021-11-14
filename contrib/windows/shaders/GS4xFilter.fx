@@ -35,7 +35,7 @@ const float min_w = 0.05;   // min filter weigth
 const float lum_add = 0.33; // effects smoothing
 
 string preprocessTechique : PREPROCESSTECHNIQUE = "GS4xFilter";
-string combineTechique : COMBINETECHNIQUE =  "linear";
+string combineTechique : COMBINETECHNIQUE =  "lin";
 
 
 VERTEX_STUFF4 PASS1_VERTEX (float3 p : POSITION, float2 tc : TEXCOORD0)
@@ -135,7 +135,7 @@ technique GS4xFilter
 }
 
 
-technique linear
+technique lin
 {
    pass P0
    {

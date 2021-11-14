@@ -29,7 +29,7 @@
 float scaling   : SCALING = 1.1;
 
 string preprocessTechique : PREPROCESSTECHNIQUE = "soft";
-string combineTechique : COMBINETECHNIQUE =  "linear";
+string combineTechique : COMBINETECHNIQUE =  "lin";
 
 
 VERTEX_STUFF4 PASS1_VERTEX (float3 p : POSITION, float2 tc : TEXCOORD0)
@@ -112,7 +112,7 @@ technique soft
     }  
 }
 
-technique linear
+technique lin
 {
    pass P0
    {

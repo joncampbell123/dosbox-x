@@ -397,6 +397,12 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1700:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
+        {// Norton Utilities 8.0 installer checks this before continue
+            char psp_name[9];
+            DOS_MCB psp_mcb(dos.psp()-1);
+            psp_mcb.GetFileName(psp_name);
+            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E) || !strcmp(psp_name, "UNERASE") || !strcmp(psp_name, "UNFORMAT")) return false;
+        }
 		reg_al = 1;
 		reg_ah = 1;
 		return true;

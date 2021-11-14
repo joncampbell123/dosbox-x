@@ -851,9 +851,12 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
     GFX_LosingFocus();
     GFX_ReleaseMouse();
     for (unsigned int idrive=0; idrive<2; idrive++) {
-        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
-        if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
-        MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
+        if (Drives[idrive]) {
+            fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
+            if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
+            MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
+        } else if (imageDiskList[idrive])
+            MenuBrowseFDImage('A'+idrive, ++num, -1);
     }
 #if !defined(HX_DOS)
     if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
@@ -4024,6 +4027,15 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
+        } else if (IS_EGAVGA_ARCH) {
+            alt_rgb *rgbcolors = (alt_rgb*)render.pal.rgb;
+            std::string str = "";
+            char value[30];
+            for (int i = 0; i < 16; i++) {
+                sprintf(value,"#%02x%02x%02x",rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                str+=std::string(value)+" ";
+            }
+            if (str.size()) setColors(str.c_str(),-1);
         }
         SetBlinkRate(ttf_section);
         const char *wpstr=ttf_section->Get_string("wp");
@@ -8533,7 +8545,7 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
-    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200). If empty, the window will be centered.");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
@@ -10971,7 +10983,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the GLSL shader setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11053,7 +11065,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the TrueType font setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11104,7 +11116,7 @@ void Load_mapper_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the mapper file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11157,7 +11169,7 @@ void Restart_config_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the config file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11198,7 +11210,7 @@ void Restart_language_file() {
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
+           The full path should be given to the language file setting unless it's just
            the same base path it was given: <cwd>\shaders in which case just cut it
            down to the filename. */
         const char* name = lTheOpenFileName;
@@ -11765,11 +11777,15 @@ bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 #endif
 
+void ttf_reset_colors() {
+    SetVal("ttf", "colors", "");
+    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+}
+
 bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    SetVal("ttf", "colors", "");
-    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+    ttf_reset_colors();
     return true;
 }
 
@@ -14280,7 +14296,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #ifdef USE_TTF
             {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF)...").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF/OTF)...").
                     set_callback_function(vid_select_ttf_font_menu_callback);
             }
 #endif

@@ -108,8 +108,7 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
-
-bool gbk = false;
+extern bool gbk;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
@@ -138,7 +137,7 @@ bool isKanji2(uint8_t chr) {
 #else
     if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
 #endif
-        return chr >= 0x40 && chr <= 0xfe;
+        return chr >= (dos.loaded_codepage == 936 && !gbk? 0xa1 : 0x40) && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
 }

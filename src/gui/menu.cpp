@@ -499,7 +499,7 @@ static const char *def_menu_video[] =
 #endif
     "VideoPC98Menu",
     "Video3dfxMenu",
-#if defined(C_D3DSHADERS) || defined(C_OPENGL)
+#if defined(C_D3DSHADERS) || defined(C_OPENGL) || defined(USE_TTF)
     "--",
 #endif
 #ifdef C_D3DSHADERS

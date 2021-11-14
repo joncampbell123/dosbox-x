@@ -8,9 +8,13 @@
     for property names. Also, if an option cannot be
     changed at run-time, DOSBox-X will ask whether to
     restart itself to apply the new setting. (Wengier)
+  - The setting "mountwarning = false" will now silence
+    more warning messages during mounting. (Wengier)
   - The code page setting of "country" option will now
     be ignored for PC-98, JEGA and DOS/V modes. These
     modes will enforce the desired code page. (Wengier)
+  - Improved auto-detection of box-drawing characters
+    when using DBCS code pages. (Wengier)
   - Applied UTF-8 conversions to file browse dialog
     boxes for selecting files containing Unicode
     characters (e.g. CJK characters). (Wengier)
@@ -18,12 +22,23 @@
     will now display a message box showing the saved
     file name when the recording has been completed.
     The full paths will also be logged. (Wengier)
+  - Added confirmation message while trying to load a
+    Direct3D pixel shader which may not be needed or
+    may have undesired effect. (Wengier)
   - Added warning message if the Japanese PC-98 or JEGA
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
   - Added a TrueType font selection page into Windows
     installer, which will show when TrueType font (TTF)
     output is selected for new installations. (Wengier)
+  - Added ability to change floppy images with drive
+    number (0 or 1) only. (Wengier)
+  - Added config option "chinasea" (in [ttf] section)
+    which when set to true allows ChinaSea (中國海字集)
+    extension of the Big5 charset for the Traditional
+    Chinese TTF output (requiring a TTF font supporting
+    the ChinaSea code points). Also moved "gbk" config
+    option from [dosv] to [ttf] section. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)
@@ -49,9 +64,20 @@
     of 8, rather than reading it from address 485h.
     Fixes corrupt graphics in the PC Booter version
     of Apple Panic. (Allofich)
+  - Fixed underflow when INT 13 AH=2 called for
+    sector 0. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
+  - Fixed possible freeze when shutting down Windows 9x
+    after changing a CD image from the menu. (Wengier)
+  - Fixed TTF color issue with some DOS GUI programs by
+    initializing the color scheme when with default
+    COLORS= setting in EGA or VGA mode. (Wengier)
+  - Fixed some Direct3D pixel shaders not working (such
+    as GS2x and CRT-geom-blend). (Wengier & depaljas)
   - Fixed config option windowposition=x,y not working
     in Linux/macOS SDL1 builds. (Wengier)
+  - Fixed "DIR>NUL" freeze/crash when only disk or CD
+    images are mounted. (nanshiki)
   - Make memory B0000-B7FFF unmapped for the CGA
     emulation. Fixes "Backgammon 5.0" detecting that
     an MDA is also present when using CGA. (Allofich)

@@ -580,7 +580,7 @@ Aviso: Montar / no está recomendado.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-No se ha podido montar la unidad PhysFS.
+No se ha podido montar la unidad PhysFS avec le fichier d'archive.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1483,17 +1483,13 @@ Debes ←[31mmontarla←[0m antes. Teclea ←[1;33mintro←[0m or ←[1;33mintro
 ¿Deseas permitir a DOSBox-X acceder a tu unidad de disquete real %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?
+¿Quiere dar acceso a DOSBox-X a su unidad extraíble real? %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
 ¿Deseas permitir a DOSBox-X acceder a tu unidad de red real %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-¿Realmente quieres otorgar a DOSBox-X acceso a todo
-en tu disco duro real %c [Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-¿Quieres dar a DOSBox-X acceso a tu disco duro real %c [Y/N]?
+¿Realmente quieres dar a DOSBox-X acceso a tu disco duro real %c [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Comando o nombre de archivo incorrecto - "%s"
@@ -2685,7 +2681,7 @@ Selecciona Direct3D pixel shader...
 Selecciona OpenGL (GLSL) shader...
 .
 :MENU:load_ttf_font
-Selecciona fuente TrueType (TTF)...
+Selecciona fuente TrueType (TTF/OTF)...
 .
 :MENU:SoundMenu
 Sonido

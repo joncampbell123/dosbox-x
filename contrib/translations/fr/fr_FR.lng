@@ -578,7 +578,7 @@ Avertissement : Le montage de / n'est pas recommandé.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-Échec du montage du lecteur PhysFS.
+Échec du montage du lecteur PhysFS avec le fichier d'archive.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -1490,11 +1490,7 @@ Voulez-vous donner à DOSBox-X l'accès à votre lecteur amovible réel %c [Y/N]
 Voulez-vous donner à DOSBox-X l'accès à votre lecteur réseau réel %c [Y/N] ?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-Voulez-vous vraiment donner à DOSBox-X l'accès à tout
-sur votre disque dur réel %c [Y/N] ?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-Voulez-vous donner à DOSBox-X l'accès à votre vrai disque dur %c [Y/N] ?
+Voulez-vous vraiment ddonner à DOSBox-X l'accès à votre vrai disque dur %c [Y/N] ?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 Mauvaise commande ou mauvais nom de fichier - "%s"
@@ -2689,7 +2685,7 @@ Sélectionner un pixel shader Direct3D...
 Sélectionner un shader OpenGL (GLSL)...
 .
 :MENU:load_ttf_font
-Sélectionner une police TrueType (TTF)...
+Sélectionner une police TrueType (TTF/OTF)...
 .
 :MENU:SoundMenu
 Son

@@ -661,12 +661,13 @@ public:
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
+	bool loadImage();
 	bool readSector(uint8_t *buffer, uint32_t sector);
+	void setFileName(const char* fileName);
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
     int  readDirEntry(isoDirEntry* de, const uint8_t* data);
-	bool loadImage();
 	bool lookupSingle(isoDirEntry *de, const char *name, uint32_t sectorStart, uint32_t length);
 	bool lookup(isoDirEntry *de, const char *path);
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);

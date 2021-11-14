@@ -132,7 +132,7 @@ extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
 extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
-extern std::string autosave_name[10];
+extern std::string failName, autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
 uint8_t *GetDbcsFont(Bitu code);
@@ -3329,7 +3329,50 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 202 && c2 == 202 && c3 == 202 && c4 == 202) || (c1 == 203 && c2 == 203 && c3 == 203 && c4 == 203) || (c1 == 206 && c2 == 206 && c3 == 206 && c4 == 206) ||
     (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
     (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
-    (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220);
+    (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 240 && c2 == 240 && c3 == 240 && c4 == 240) ||
+    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208);
+}
+
+bool connectLeft(uint8_t c, bool db, bool line) {
+    if (db) return !line && (c == 200 || c == 201 || c == 202 || c == 203) || c == 204 || c == 205 || c == 206;
+    else return !line && (c == 192 || c == 193 || c == 194 || c == 218) || c == 195 || c == 196 || c == 197;
+}
+
+bool connectRight(uint8_t c, bool db, bool line) {
+    if (db) return (!line && (c == 187 || c == 188 || c == 202 || c == 203)) || c == 185 || c == 205 || c == 206;
+    else return (!line && (c == 191 || c == 193 || c == 194 || c == 217)) || c == 180 || c == 196 || c == 197;
+}
+
+bool connectUp(uint8_t c, bool db) {
+    if (db) return c == 182 || c == 183 || c == 185 || c == 186 || c == 187 || c == 199 || c == 201 || c == 203 || c == 204 || c == 206 || c == 210 || c == 214 || c == 215;
+    else return c == 179 || c == 180 || c == 181 || c == 184 || c == 191 || c == 194 || c == 195 || c == 197 || c == 198 || c == 209 || c == 213 || c == 216 || c == 218;
+}
+
+bool connectDown(uint8_t c, bool db) {
+    if (db) return c == 182 || c == 185 || c == 186 || c == 188 || c == 189 || c == 199 || c == 200 || c == 202 || c == 204 || c == 206 || c == 208 || c == 211 || c == 215;
+    else return c == 179 || c == 180 || c == 181 || c == 190 || c == 192 || c == 193 || c == 195 || c == 197 || c == 198 || c == 207 || c == 212 || c == 216 || c == 217;
+}
+
+bool isBDV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, bool first) {
+    return (c1 == 179 && connectUp(b4, false) && c2 == 179 || (c3 == 193 || c3 == 197) && c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 193 && connectRight(first?c6:b3, false, false) && connectLeft(first?b3:c6, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true) || c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false)) ||
+           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false)) && (c2 == 179 || c2 == 180 && connectLeft(first?b2:c5, true, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false))) ||
+           ((c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 || c2 == 195 && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true))) ||
+           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false) || c1 == 194 && connectLeft(first?b1:c4, false, false) && connectRight(first?c4:b1, false, false) || c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 && c3 == 179 && connectDown(b5, false) || (c1 == 194 || c1 == 197) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true) && c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true))) ||
+           (c1 == 179 && connectUp(b4, false) && (c2 == 180 && connectLeft(first?b2:c5, false, true) || c2 == 195 && connectRight(first?c5:b2, false, true) || c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true)) && c3 == 179 && connectDown(b5, false)) ||
+           ((c1 == 186 && connectUp(b4, true) && c2 == 186 || (c3 == 202 || c3 == 206) && c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true) && c2 == 206 && connectLeft(first?b2:c5, true, true) && connectRight(first?c5:b2, true, true)) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 202 && connectRight(first?c6:b3, true, false) && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true) || c3 == 206 && connectRight(first?c6:b3, true, true) && connectRight(first?c6:b3, true, true))) ||
+           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false)) && (c2 == 185 && connectLeft(first?b2:c5, true, true) || c2 == 186) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false))) ||
+           ((c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true)) && (c2 == 186 || c2 == 204 && connectLeft(first?b2:c5, true, true)) && (c3 == 186 && connectDown(b5, true) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true))) ||
+           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false) || c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 203 && connectLeft(first?b1:c4, true, false) && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true) || c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true)) && (c2 == 186 && c3 == 186 && connectDown(b5, true) || (c1 == 203 || c1 == 206) && c2 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c5:b2, true, true) && c3 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c6:b3, true, true))) ||
+           (c1 == 186 && connectUp(b4, true) && (c2 == 185 && connectLeft(first?b2:c5, true, true) || c2 == 204 && connectRight(first?c5:b2, true, true) || c2 == 206 && connectLeft(first?b2:c5, true, true) && connectRight(first?c5:b2, true, true)) && c3 == 186 && connectDown(b5, true));
+}
+
+bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7, uint8_t b8, uint8_t b9, uint8_t b10) {
+#if defined(USE_TTF)
+    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
+#endif
+    if ((c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) && c1 >= 176 && c1 <= 178) return true;
+    if ((c1 < 179 || c1 > 218 || c2 < 179 || c2 > 218 || c3 < 179 || c3 > 218) && (c4 < 179 || c4 > 218 || c5 < 179 || c5 > 218 || c6 < 179 || c6 > 218)) return false;
+    return isBDV(c1, c2, c3, c4, c5, c6, b1, b2, b3, b7, b8, true) || isBDV(c4, c5, c6, c1, c2, c3, b4, b5, b6, b9, b10, false);
 }
 
 bool isDBCSCP() {
@@ -3967,6 +4010,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
+                    uint16_t last = 0;
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
@@ -3977,11 +4021,19 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
+                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                               (*draw).unicode = 1;
+                               (*draw).chr = last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                            }
+                            last = 0;
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && (*(vidmem+2) & 0xFF) >= 0x40) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2)) && !(autoboxdraw &&
+                        ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add), col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col?*(vidmem-2+2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4+2*vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add):0, row?*(vidmem+2-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+2+3*vga.draw.address_add):0)) ||
+                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, row > 1?*(vidmem-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2*vga.draw.address_add):0, row > 1?*(vidmem+2-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2+2*vga.draw.address_add):0)) ||
+                        (row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+2-2*vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), col?*(vidmem-2-2*vga.draw.address_add):0, col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col < ttf.cols-2?*(vidmem+4-2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col?*(vidmem+4):0, row > 2?*(vidmem-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add):0, row > 2?*(vidmem+2-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+2+vga.draw.address_add):0))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
@@ -4002,10 +4054,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
                                     } else {
-                                        (*draw).doublewide=1;
+                                        (*draw).doublewide = 1;
                                         dbw=true;
                                         dex=false;
                                     }
@@ -4034,6 +4087,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             } else {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
+                    uint16_t last = 0;
                     for (int i=0; i<txtMaxCols; i++) bd[i] = false;
                     dbw=dex=false;
                     for (Bitu col=0;col < ttf.cols;col++) {
@@ -4042,11 +4096,19 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
+                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                               (*draw).unicode = 1;
+                               (*draw).chr = last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                            }
+                            last = 0;
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && (*(vidmem+1) & 0xFF) >= 0x40) {
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1)) && !(autoboxdraw &&
+                        ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add), col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col?*(vidmem-1+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add/2):0, row?*(vidmem+1-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+1+3*vga.draw.address_add/2):0)) ||
+                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add)/2, (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
+                        (row > 1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), *(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), col?*(vidmem-1-vga.draw.address_add):0, col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col?*(vidmem+2):0, row > 2?*(vidmem-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add/2):0, row > 2?*(vidmem+1-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+1+vga.draw.address_add/2):0))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
@@ -4067,10 +4129,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
                                     } else {
-                                        (*draw).doublewide=1;
+                                        (*draw).doublewide = 1;
                                         dbw=true;
                                         dex=false;
                                     }

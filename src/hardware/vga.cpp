@@ -195,6 +195,7 @@ extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
 extern bool                         pc98_256kb_boundary;
 extern bool                         want_fm_towns;
+extern bool                         enveten;
 
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
@@ -1447,6 +1448,7 @@ bool debugpollvga_rtp_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item *
 void VGA_Init() {
     Bitu i,j;
 
+    enveten = false;
     vga.mode=M_ERROR;           //For first init
     vga.other.mcga_mode_control = 0;
 

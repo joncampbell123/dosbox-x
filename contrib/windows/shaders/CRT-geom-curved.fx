@@ -122,16 +122,16 @@
   float2 bkwtrans(float2 xy)
   {
     float c = intersect(xy);
-    float2 point = c*xy;
-    point -= -R*sinangle;
-    point /= R;
+    float2 pnt = c*xy;
+    pnt -= -R*sinangle;
+    pnt /= R;
     float2 tang = sinangle/cosangle;
-    float2 poc = point/cosangle;
+    float2 poc = pnt/cosangle;
     float A = dot(tang,tang)+1.0;
     float B = -2.0*dot(poc,tang);
     float C = dot(poc,poc)-1.0;
     float a = (-B+sqrt(B*B-4.0*A*C))/(2.0*A);
-    float2 uv = (point-a*sinangle)/cosangle;
+    float2 uv = (pnt-a*sinangle)/cosangle;
     float r = R*acos(a);
     return uv*r/sin(r/R);
   }

@@ -382,7 +382,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	else if(type==DRIVE_REMOTE)
 		drive_warn += " your real network drive ";
 	else
-		drive_warn += " everything on your real drive ";
+		drive_warn += " your real hard drive ";
 
 	if (mountwarning && MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
 
@@ -493,7 +493,7 @@ void MenuBrowseCDImage(char drive, int num) {
 
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
 #if !defined(HX_DOS)
-        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
+        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
         if (!tinyfd_messageBox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -509,16 +509,22 @@ void MenuBrowseCDImage(char drive, int num) {
     lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","",14,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
-        uint8_t mediaid = 0xF8;
-        int error = -1;
-        qmount = true;
-        DOS_Drive* newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
-        qmount = false;
-        if (error) {
-            tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
-            return;
+        isoDrive *cdrom = dynamic_cast<isoDrive*>(Drives[drive-'A']);
+        DOS_Drive *newDrive = NULL;
+        if (cdrom && dos_kernel_disabled) {
+            cdrom->setFileName(lTheOpenFileName);
+        } else {
+            uint8_t mediaid = 0xF8;
+            int error = -1;
+            newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+            if (error) {
+                tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
+                chdir( Temp_CurrentDir );
+                return;
+            }
+            cdrom = dynamic_cast<isoDrive*>(newDrive);
         }
-        DriveManager::ChangeDisk(drive-'A', newDrive);
+        if (cdrom) DriveManager::ChangeDisk(drive-'A', cdrom);
 	}
 	chdir( Temp_CurrentDir );
 #endif
@@ -532,10 +538,10 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 		return;
 	}
 
-    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9)) {
+    if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
 #if !defined(HX_DOS)
-        std::string image = type==1?"El Torito floppy image":(type==2?"RAM floppy image":Drives[drive-'A']->GetInfo()+9);
-        std::string drive_warn = "Floppy drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n"+image+"\n\nDo you want to change the floppy disk image now?";
+        std::string image = type==1||type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL?"El Torito floppy image":(type==2||type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL?"RAM floppy image":(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
+        std::string drive_warn = "Floppy drive "+(type==-1?std::string(1, drive-'A'+'0'):(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":"))+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
         if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -557,9 +563,26 @@ void MenuBrowseFDImage(char drive, int num, int type) {
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
         if (!newDrive->created_successfully) {
             tinyfd_messageBox("Error","Could not mount the selected floppy disk image.","ok","error", 1);
+            chdir( Temp_CurrentDir );
             return;
         }
-        DriveManager::ChangeDisk(drive-'A', newDrive);
+        if (newDrive) {
+            if (type>-1)
+                DriveManager::ChangeDisk(drive-'A', newDrive);
+            else if (newDrive->loadedDisk) {
+                if (imageDiskList[drive-'A']) {
+                    imageDiskList[drive-'A']->Release();
+                    imageDiskList[drive-'A'] = newDrive->loadedDisk;
+                    imageDiskList[drive-'A']->Addref();
+                    imageDiskChange[drive-'A'] = true;
+                }
+                if (swapInDisksSpecificDrive == drive-'A' && diskSwap[swapPosition]) {
+                    diskSwap[swapPosition]->Release();
+                    diskSwap[swapPosition] = newDrive->loadedDisk;
+                    diskSwap[swapPosition]->Addref();
+                }
+            }
+        }
 	}
 	chdir( Temp_CurrentDir );
 #endif
@@ -1353,7 +1376,7 @@ public:
                     case 3  :   WriteOut(MSG_Get("MSCDEX_ERROR_PATH"));             break;
                     case 4  :   WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
                     case 5  :   WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
-                    case 10 :   WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));    break;
+                    case 10 :   WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"));break;
                     default :   WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));          break;
                 }
                 if (error && error!=5) {
@@ -1375,7 +1398,7 @@ public:
                     int error = 0;
 					newdrive=new physfsDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
                     if (error) {
-                        if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));
+                        if (!quiet) {WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"));}
                         delete newdrive;
                         return;
                     }
@@ -1809,8 +1832,8 @@ public:
 
         cmd->FindString("-boothax",boothax_str,true);
 
-        if (boothax_str == "msdos") // WARNING: For MS-DOS only, or the real-mode portion of Windows 95/98/ME.
-            boothax = BOOTHAX_MSDOS; // do NOT use while in the graphical portion of Windows 95/98/ME especially a DOS VM.
+        if (boothax_str == "msdos") // WARNING: For MS-DOS only, including MS-DOS 7/8 included in Windows 95/98/ME.
+            boothax = BOOTHAX_MSDOS; // do NOT use while in the graphical interface of Windows 95/98/ME especially a DOS VM.
         else if (boothax_str == "")
             boothax = BOOTHAX_NONE;
         else {
@@ -4048,7 +4071,7 @@ public:
 void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut("Rescans for changes on mounted drives made on the host by clearing caches.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
 		return;
 	}
     bool all = false, quiet = false;
@@ -7902,7 +7925,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_WIN","Warning: Mounting C:\\ is not recommended.\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","Warning: Mounting / is not recommended.\n");
-	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive.\n");
+	MSG_Add("PROGRAM_MOUNT_PHYSFS_ERROR","Failed to mount the PhysFS drive with the archive file.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_MIXED_BASE","The overlay needs to be specified using the same addressing as the underlying drive. No mixing of relative and absolute paths.");

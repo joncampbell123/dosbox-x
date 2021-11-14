@@ -25,6 +25,7 @@
 #include "mapper.h"
 #include "support.h"
 #include "control.h"
+#include "ide.h"
 
 bool wild_match(const char *haystack, char *needle) {
 	size_t max, i;
@@ -279,14 +280,24 @@ void DriveManager::AppendDisk(int drive, DOS_Drive* disk) {
 void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     DriveInfo& driveInfo = driveInfos[drive];
     if (Drives[drive]==NULL||disk==NULL||!driveInfo.disks.size()) return;
+    isoDrive *cdrom = dynamic_cast<isoDrive*>(Drives[drive]);
+    signed char index=-1;
+    bool slave=false;
+    if (cdrom) IDE_CDROM_Detach_Ret(index,slave,drive);
     strcpy(disk->curdir,driveInfo.disks[driveInfo.currentDisk]->curdir);
     disk->Activate();
     disk->UpdateDPB(currentDrive);
+    if (cdrom && dos_kernel_disabled) cdrom->loadImage();
     driveInfo.disks[driveInfo.currentDisk] = disk;
     fatDrive *old = dynamic_cast<fatDrive*>(Drives[drive]);
     Drives[drive] = disk;
+    if (cdrom && index>-1) IDE_CDROM_Attach(index,slave,drive);
     Drives[drive]->EmptyCache();
     Drives[drive]->MediaChange();
+    if (cdrom && !dos_kernel_disabled) {
+        IDE_CDROM_Detach_Ret(index,slave,drive);
+        if (index>-1) IDE_CDROM_Attach(index,slave,drive);
+    }
     fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
     if (drive<2 && fdp && fdp->loadedDisk) {
         if (imageDiskList[drive]) {
