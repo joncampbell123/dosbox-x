@@ -617,7 +617,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_HELP
-减少可用的常规内存或 XMS/EMS 内存.
+通过减少可用内存将程序加载到第一个 64 KB 以上内存区域.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{程序}] [{选项}]
 LOADFIX -f [-xms] [-ems]
@@ -625,7 +625,7 @@ LOADFIX -f [-xms] [-ems]
   -xms        从 XMS 内存中而不是常规内存中分配内存
   -ems        从 EMS 内存中而不是常规内存中分配内存
   -{ram}      指定要分配的内存大小（单位:千字节)
-                 常规内存默认为 64kb ; XMS或EMS内存默认为 1MB
+              常规内存默认为 64KB ; XMS或EMS内存默认为 1MB
   -a          自动分配足够的内存以充满低端 64KB 内存
   -f (或 -d)  释放此前分配的内存
   {程序}      运行指定的程序

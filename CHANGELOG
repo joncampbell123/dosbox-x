@@ -34,7 +34,7 @@
   - Added ability to change floppy images with drive
     number (0 or 1) only. (Wengier)
   - Added config option "chinasea" (in [ttf] section)
-    which when set to true allows ChinaSea (中國海字集)
+    which when set to "true" allows ChinaSea (中國海字集)
     extension of the Big5 charset for the Traditional
     Chinese TTF output (requiring a TTF font supporting
     the ChinaSea code points). Also moved "gbk" config

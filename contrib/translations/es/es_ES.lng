@@ -623,7 +623,7 @@ Error de asignacion de memoria.
 
 .
 :PROGRAM_LOADFIX_HELP
-Reduce la cantidad de memoria convencional o XMS/EMS disponible.
+Charge un programme au-dessus des 64 premiers Ko de mémoire en réduisant la mémoire disponible.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
 LOADFIX -f [-xms] [-ems]
@@ -631,7 +631,7 @@ LOADFIX -f [-xms] [-ems]
   -xms        Asigna memoria de XMS en lugar de memoria convencional
   -ems        Asigna memoria de EMS en lugar de memoria convencional
   -{ram}      Especifica la cantidad de memoria para asignar en KB
-                 Por defecto 64 kb para memoria base; 1 MB para XMS/EMS
+              Por defecto 64 KB para memoria base; 1 MB para XMS/EMS
   -a          Auto asigna suficiente memoria para llenar los 64 KB más bajos
   -f (o -d)   Libera memoria previamente asignada
   {program}   Ejecuta el programa especificado

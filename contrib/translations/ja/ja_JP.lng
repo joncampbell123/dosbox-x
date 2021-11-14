@@ -605,7 +605,7 @@ Overlay %s を %c ドライブにマウントしました。
 .
 
 :PROGRAM_LOADFIX_HELP
-使用可能なコンベンショナルメモリ・XMS/EMSメモリの量を減らします。
+使用可能なメモリを減らして、最初の64KBメモリより上にプログラムをロードします。
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
 LOADFIX -f [-xms] [-ems]
@@ -613,7 +613,7 @@ LOADFIX -f [-xms] [-ems]
   -xms        コンベンショナルメモリよりも XMSメモリを確保する
   -ems        コンベンショナルメモリよりも EMSメモリを確保する
   -{ram}      確保するメモリ量を KB で指定する。
-                 デフォルトはコンベンショナルメモリ 64kb; XMS/EMS メモリ 1MB
+              デフォルトはコンベンショナルメモリ 64KB; XMS/EMS メモリ 1MB
   -a          最も低位の64KBメモリを埋めるのに必要なメモリを自動確保
   -f (or -d)  確保したメモリを解放
   {program}   指定のプログラムを実行

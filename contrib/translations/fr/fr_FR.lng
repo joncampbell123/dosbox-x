@@ -621,18 +621,18 @@ Erreur d'allocation de mémoire.
 
 .
 :PROGRAM_LOADFIX_HELP
-Réduit la quantité de mémoire conventionnelle ou XMS/EMS disponible.
+Charge un programme au-dessus des 64 premiers Ko de mémoire en réduisant la mémoire disponible.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{programme}] [{options}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms Alloue de la mémoire à partir de XMS plutôt que de la mémoire conventionnelle
-  -ems Alloue la mémoire de l'EMS plutôt que la mémoire conventionnelle
+  -xms        Alloue de la mémoire à partir de XMS plutôt que de la mémoire conventionnelle
+  -ems        Alloue la mémoire de l'EMS plutôt que la mémoire conventionnelle
   -{ram}      Spécifie la quantité de mémoire à allouer en Ko
-                 La valeur par défaut est de 64 Ko pour la mémoire conventionnelle et de 1 Mo pour la mémoire XMS/EMS.
-  -a Alloue automatiquement assez de mémoire pour remplir la mémoire la plus basse de 64 Ko
-  -f (ou -d) Libère la mémoire précédemment allouée
-  {programme}   Exécute le programme spécifié
+              La valeur par défaut est de 64 Ko pour la mémoire conventionnelle et de 1 Mo pour la mémoire XMS/EMS
+  -a          Alloue automatiquement assez de mémoire pour remplir la mémoire la plus basse de 64 Ko
+  -f (ou -d)  Libère la mémoire précédemment allouée
+  {programme} Exécute le programme spécifié
   {options}   Options du programme (s'il y en a)
   
 Exemples :

@@ -1008,7 +1008,14 @@ public:
 
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Displays or changes the current sound mixer volumes.\n\nMIXER [/GUI|/NOSHOW] [/LISTMIDI [handler]] [MASTER volume] [RECORD volume]\n");
+			WriteOut("Displays or changes the current sound mixer volumes.\n\n"
+                    "MIXER [/GUI|/NOSHOW] [/LISTMIDI [handler]] [channel volume]\n\n"
+                    "  /GUI      Displays a dialog box showing the sound volumes.\n"
+                    "  /NOSHOW   Does not show volumes when making changes to channel volumes.\n"
+                    "  /LISTMIDI Lists and shows options for the current MIDI device handler.\n"
+                    "            You can also add a handler name to show the specified handler.\n"
+                    "  channel   A sound channel name (such as MASTER, RECORD, and SPKR).\n"
+                    "  volume    An integer between 0 and 100 representing the sound volume.\n");
             return;
 		}
         if(cmd->FindString("/LISTMIDI",temp_line,true)) {
