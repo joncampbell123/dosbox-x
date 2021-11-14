@@ -7893,7 +7893,9 @@ void GFX_Events() {
 #endif
                 SetPriority(sdl.priority.nofocus);
                 GFX_LosingFocus();
-                CPU_Enable_SkipAutoAdjust();
+                if( sdl.priority.nofocus != PRIORITY_LEVEL_PAUSE ) {
+                    CPU_Enable_SkipAutoAdjust();
+                }
                 break;
             default:
                 ;
