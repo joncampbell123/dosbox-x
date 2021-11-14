@@ -9926,10 +9926,22 @@ bool DOSBOX_parse_argv() {
             if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
         }
         else if (optname == "opencaptures") {
-            if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
+            if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) {
+#if defined(LINUX)
+                control->opt_opencaptures = "xdg-open";
+#else
+                return false;
+#endif
+	    }
         }
         else if (optname == "opensaves") {
-            if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
+            if (!control->cmdline->NextOptArgv(control->opt_opensaves)) {
+#if defined(LINUX)
+                control->opt_opensaves = "xdg-open";
+#else
+                return false;
+#endif
+	    }
         }
         else if (optname == "eraseconf") {
             control->opt_eraseconf = true;
