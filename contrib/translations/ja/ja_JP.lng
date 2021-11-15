@@ -360,21 +360,26 @@ DOSBox-X configuration に含まれるセクション:
 .
 :PROGRAM_CONFIG_SECURE_ON
 セキュア・モードに変更しました。
+
 .
 :PROGRAM_CONFIG_SECURE_DISALLOW
 セキュア・モードではこの操作はできません。
 .
 :PROGRAM_CONFIG_SECTION_ERROR
 セクション %s は存在しません。
+
 .
 :PROGRAM_CONFIG_VALUE_ERROR
 "%s" はプロパティ %s の有効な値ではありません。
+
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
 他のセクションに同じプロパティ名があるかもしれません。
+
 .
 :PROGRAM_CONFIG_GET_SYNTAX
 文法が違います: config -get "セクション プロパティ".
+
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
 
@@ -485,6 +490,7 @@ MOUSE [/?] [/U] [/V]
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
 %c ドライブにはすでに %sがマウントされています。
+
 .
 :PROGRAM_MOUNT_USAGE
 ホストのディレクトリやドライブをDOSBox-X のドライブとしてマウントします。
