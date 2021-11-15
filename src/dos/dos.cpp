@@ -420,7 +420,7 @@ static void DOS_AddDays(uint8_t days) {
 #endif
 
 // TODO: Make this configurable.
-//       (This can be controlled with the setting "hard drive data rate limit")
+//       (This can be controlled with the settings "hard drive data rate limit" and "floppy drive data rate limit")
 //       Additionally, allow this to vary per-drive so that
 //       Drive D: can be as slow as a 2X IDE CD-ROM drive in PIO mode
 //       Drive C: can be as slow as a IDE drive in PIO mode and
@@ -429,11 +429,21 @@ static void DOS_AddDays(uint8_t days) {
 // This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
 // This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
 int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
+int floppy_data_rate;
 
-void diskio_delay(Bits value/*bytes*/) {
-    if (disk_data_rate != 0) {
-        double scalar = (double)value / disk_data_rate;
-        double endtime = PIC_FullIndex() + (scalar * 1000);
+void diskio_delay(Bits value/*bytes*/, int type = -1) {
+    if ((type == 0 && floppy_data_rate != 0) || (type != 0 && disk_data_rate != 0)) {
+        double scalar;
+        double endtime;
+
+        if(type == 0) { // Floppy
+            scalar = (double)value / floppy_data_rate; 
+            endtime = PIC_FullIndex() + (scalar * 1000);
+        }
+        else { // Hard drive or CD-ROM
+            scalar = (double)value / disk_data_rate;
+            endtime = PIC_FullIndex() + (scalar * 1000);
+        }
 
         /* MS-DOS will most likely enable interrupts in the course of
          * performing disk I/O */
@@ -1701,7 +1711,10 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(2048);
+            if (DOS_GetDefaultDrive() < 2)
+                diskio_delay(2048,0); // Floppy
+            else
+                diskio_delay(2048);
 			force_sfn = false;
             break;
         case 0x3d:      /* OPEN Open existing file */
@@ -1767,7 +1780,10 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(1024);
+            if(DOS_GetDefaultDrive() < 2)
+                diskio_delay(1024,0); // Floppy
+            else
+                diskio_delay(1024);
 			force_sfn = false;
             break;
 		}
@@ -1784,7 +1800,10 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(512);
+            if(DOS_GetDefaultDrive() < 2)
+                diskio_delay(512, 0); // Floppy
+            else
+                diskio_delay(512);
             break;
         case 0x3f:      /* READ Read from file or device */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1849,7 +1868,10 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(reg_ax);
+                if(DOS_GetDefaultDrive() < 2)
+                    diskio_delay(reg_ax,0); // Floppy
+                else
+                    diskio_delay(reg_ax);
                 dos.echo=false;
                 break;
             }
@@ -1882,7 +1904,10 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(reg_ax);
+                if(DOS_GetDefaultDrive() < 2)
+                    diskio_delay(reg_ax,0); // Floppy
+                else
+                    diskio_delay(reg_ax);
                 break;
             }
         case 0x41:                  /* UNLINK Delete file */
@@ -1896,7 +1921,10 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
 			force_sfn = false;
-            diskio_delay(1024);
+            if(DOS_GetDefaultDrive() < 2)
+                diskio_delay(1024,0); // Floppy
+            else
+                diskio_delay(1024);
             break;
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1910,7 +1938,10 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(32);
+                if(DOS_GetDefaultDrive() < 2)
+                    diskio_delay(32,0); // Floppy
+                else
+                    diskio_delay(32);
                 break;
             }
         case 0x43:                  /* Get/Set file attributes */
@@ -3623,6 +3654,7 @@ public:
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
+        ::floppy_data_rate = section->Get_int("floppy drive data rate limit");
         if (::disk_data_rate < 0) {
             extern bool pcibus_enable;
 
@@ -3630,6 +3662,9 @@ public:
                 ::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
             else
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
+        }
+        if(::floppy_data_rate < 0) {
+            ::floppy_data_rate = 5000; // Slow enough so that PC Booter game title screens that depend on floppy drive speed will show for a few seconds
         }
 		maxfcb=100;
 		DOS_FILES=200;

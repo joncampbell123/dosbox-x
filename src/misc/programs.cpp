@@ -55,7 +55,7 @@ Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -94,8 +94,8 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-void EMS_Startup(Section* sec), EMS_DoShutDown(), UpdateDefaultPrinterFont(), RebootLanguage(std::string filename, bool confirm=false);
-void DOSBOX_UnlockSpeed2( bool pressed ), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans), resetFontSize(void), ttf_reset_colors(void);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
+void EMS_Startup(Section* sec), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1674,6 +1674,23 @@ next:
                                 SetBlinkRate(section);
                                 mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
 #endif
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
+                                if (gbk != section->Get_bool("gbk")) {
+                                    gbk = !gbk;
+                                    if (dos.loaded_codepage!=950) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
+#if defined(USE_TTF)
+                                    if (TTF_using()) resetFontSize();
+#endif
+                                }
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
+                                if (chinasea != section->Get_bool("chinasea")) {
+                                    chinasea = !chinasea;
+                                    if (!chinasea) makestdcp950table();
+                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
+#if defined(USE_TTF)
+                                    if (TTF_using()) resetFontSize();
+#endif
+                                }
 							}
                         } else if (!strcasecmp(pvars[0].c_str(), "render")) {
                             if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {

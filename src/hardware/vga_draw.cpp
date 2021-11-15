@@ -3890,7 +3890,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
-        int width, height;
+        int width, height, res;
         uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
@@ -4021,9 +4021,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
-                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                            if (col && (last == 0x2014 || last == 0x2261 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546 || last == 0x2550 || last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C || last == 0x256D || last == 0x2570)) {
                                (*draw).unicode = 1;
-                               (*draw).chr = last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                               (*draw).chr = last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C ? 0x2550 : (last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 || last == 0x256D || last == 0x2570 ? 0x2500 : (last >= 0x250f && last != 0x2550 ? 0x2501 : last));
                             }
                             last = 0;
                             dbw=dex=false;
@@ -4053,7 +4053,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                    res = width = 0;
+                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (!width) (*draw).chr=' ';
                                         last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
@@ -4096,9 +4099,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
                             (*draw).chr = ' ';
-                            if (col && (last == 0x2014 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546)) {
+                            if (col && (last == 0x2014 || last == 0x2261 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546 || last == 0x2550 || last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C || last == 0x256D || last == 0x2570)) {
                                (*draw).unicode = 1;
-                               (*draw).chr = last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 ? 0x2500 : (last >= 0x250f ? 0x2501 : last);
+                               (*draw).chr = last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C ? 0x2550 : (last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 || last == 0x256D || last == 0x2570 ? 0x2500 : (last >= 0x250f && last != 0x2550 ? 0x2501 : last));
                             }
                             last = 0;
                             dbw=dex=false;
@@ -4128,7 +4131,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                    res = width = 0;
+                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (!width) (*draw).chr=' ';
                                         last = (*draw).chr;
                                         dbw=false;
                                         dex=true;

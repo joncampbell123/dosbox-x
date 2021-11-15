@@ -53,6 +53,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "contextmenu"; Description: "Add ""Run/Open with DOSBox-X"" context menu for Windows Explorer"
 Name: "commonoption"; Description: "Write common config options (instead of all) to the configuration file"
+Name: "drivedelay"; Description: "Emulate the slowness of floppy drive and hard drive data transfers"; Flags: unchecked
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -394,7 +395,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
-  tsection, vsection, found1, found2: Boolean;
+  tsection, vsection, found1, found2, found3, found4: Boolean;
   refname, section, line, linetmp, lineold, linenew, SetupType: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -445,7 +446,19 @@ begin
             FileLines[i] := linetmp+' 3';
             found2 := True;
           end;
-          if found1 and found2 then
+          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'hard drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line)));
+            FileLines[i] := linetmp+' 0';
+            found3 := True;
+          end;
+          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'floppy drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line)));
+            FileLines[i] := linetmp+' 0';
+            found4 := True;
+          end;
+          if found1 and found2 and (IsTaskSelected('drivedelay') or (found3 and found4)) then
             break;
         end
       end;
@@ -747,6 +760,19 @@ begin
                   FileLinesave.add(linetmp + '= 3');
                   continue;
                 end;
+                if (CompareText(section, 'dos') = 0) and ((CompareText(Trim(linetmp), 'hard drive data rate limit') = 0) or (CompareText(Trim(linetmp), 'floppy drive data rate limit') = 0)) then
+                begin
+                  if IsTaskSelected('drivedelay') and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '0') then
+                  begin
+                    FileLinesave.add(linetmp + '= -1');
+                    continue;
+                  end;
+                  if not IsTaskSelected('drivedelay') and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '-1') then
+                  begin
+                    FileLinesave.add(linetmp + '= 0');
+                    continue;
+                  end;
+                end;
                 if not ((adv = 1) and IsTaskSelected('commonoption') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = Trim(Copy(linenew, Pos('=', linenew) + 1, Length(linenew)))) or ((CompareText(Trim(linetmp), 'drive z hide files') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM')))) then
                   FileLinesave.add(linetmp + '= ' + Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))));
                 FileLines.Delete(j);
@@ -758,6 +784,8 @@ begin
               linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
               if (CompareText(Trim(linetmp), 'file access tries') = 0) then
                 linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 1) + '3';
+              if not IsTaskSelected('drivedelay') and ((CompareText(Trim(linetmp), 'hard drive data rate limit') = 0) or (CompareText(Trim(linetmp), 'floppy drive data rate limit') = 0)) then
+                linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 2) + '0';
               FileLinesave.add(linenew);
             end
           end

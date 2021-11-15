@@ -621,7 +621,7 @@ Bellek ayırma hatası.
 
 .
 :PROGRAM_LOADFIX_HELP
-Geleneksel veya XMS/EMS belleğin miktarını azaltır.
+Kullanılabilir belleği azaltarak bir programı bir bellek bölgesinin üzerine yükler.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{seçenekler}]
 LOADFIX -f [-xms] [-ems]
@@ -629,7 +629,7 @@ LOADFIX -f [-xms] [-ems]
   -xms        Geleneksel bellek yerine XMS'den ayırır
   -ems        Geleneksel bellek yerine EMS'den ayırır
   -{ram}      Ayrılacak bellek miktarını KB türünden belirtir
-                Geleneksel bellek için 64kb; XMS/EMS için 1MB ayrılır.
+              Geleneksel bellek için 64kb; XMS/EMS için 1MB ayrılır.
   -a          En düşük 64KB belleği doldurmak için kendiliğinden bellek ayırır
   -f (or -d)  Daha önceden ayrılan belleği boşaltır
   {program}   Belirtilen programı çalıştırır
@@ -2630,6 +2630,9 @@ Yazdırma için geçerli TTF yazıtipini kullan
 .
 :MENU:ttf_halfwidthkana
 ÇJK: Yarım genişlikli Japonca Katakana'ya izin ver
+.
+:MENU:ttf_extcharset
+ÇJK: Genişletilmiş Çince karakter kümesini etkinleştir
 .
 :MENU:VideoPC98Menu
 PC-98 seçenekleri
