@@ -2804,7 +2804,7 @@ nextfile:
 			nchars = 0;
 			if (nlines == LINES) {
 				WriteOut("-- More -- %s (%u) --",word,linecount);
-				if (PAUSED()==3) return;
+				if (PAUSED()==3) {DOS_CloseFile(handle);return;}
 				WriteOut("\n");
 				nlines=0;
 			}

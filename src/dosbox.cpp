@@ -2791,11 +2791,11 @@ void DOSBOX_SetupConfigSections(void) {
                       "You can also change the blinking rate by setting an integer between 1 (fastest) and 7 (slowest), or 0 for no cursor.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("gbk",Property::Changeable::OnlyAtStart,false);
+	Pbool = secprop->Add_bool("gbk",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enables the GBK extension (in addition to the standard GB2312 charset) for the Simplified Chinese TTF output or DOS/V emulation.");
     Pbool->SetBasic(true);
 
-	Pbool = secprop->Add_bool("chinasea",Property::Changeable::OnlyAtStart,false);
+	Pbool = secprop->Add_bool("chinasea",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enables the ChinaSea extension (in addition to the standard Big5 charset) for the Traditional Chinese TTF output (use a font containing such characters).");
     Pbool->SetBasic(true);
 
