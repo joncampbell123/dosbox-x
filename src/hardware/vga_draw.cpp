@@ -3890,7 +3890,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
-        int width, height;
+        int width, height, res;
         uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
@@ -4053,7 +4053,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                    res = width = 0;
+                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (!width) (*draw).chr=' ';
                                         last = (*draw).chr;
                                         dbw=false;
                                         dex=true;
@@ -4128,7 +4131,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
-                                    if (ttf.SDL_font && TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height) >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                    res = width = 0;
+                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (!width) (*draw).chr=' ';
                                         last = (*draw).chr;
                                         dbw=false;
                                         dex=true;

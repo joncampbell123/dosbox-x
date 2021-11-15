@@ -36,8 +36,8 @@
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
     extension of the Big5 charset for the Traditional
-    Chinese TTF output (requiring a TTF font supporting
-    the ChinaSea code points). Also moved "gbk" config
+    Chinese TTF output (with the use of a TTF/OTF font
+    containing such characters). And moved "gbk" config
     option from [dosv] to [ttf] section. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM

@@ -55,7 +55,7 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
-extern bool usesystemcursor, del_flag;
+extern bool usesystemcursor, dbcs_sbcs, del_flag;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -763,7 +763,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 #if defined(USE_TTF)
     ttfuse = ttf.inUse;
     ttfcols = ttf.cols;
-    if (ttfuse&&isDBCSCP()&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
+    if (ttfuse&&isDBCSCP()&&dbcs_sbcs&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
             if ((int)y>=r1&&(int)y<=r2)
@@ -883,12 +883,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 #if defined(USE_TTF)
     ttfuse = ttf.inUse;
     ttfcols = ttf.cols;
-    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP())) {
+    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP()&&dbcs_sbcs)) {
         ttf_cell *newAC = newAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (unsigned int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP())&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
+                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP()&&dbcs_sbcs)&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[rtl?ttf.cols-x-1:x].selected = select?1:0;
             newAC += ttf.cols;
         }
