@@ -1677,6 +1677,7 @@ next:
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
                                 if (gbk != section->Get_bool("gbk")) {
                                     gbk = !gbk;
+                                    if (dos.loaded_codepage!=950) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
                                     if (TTF_using()) resetFontSize();
 #endif
@@ -1685,6 +1686,7 @@ next:
                                 if (chinasea != section->Get_bool("chinasea")) {
                                     chinasea = !chinasea;
                                     if (!chinasea) makestdcp950table();
+                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
                                     if (TTF_using()) resetFontSize();
 #endif

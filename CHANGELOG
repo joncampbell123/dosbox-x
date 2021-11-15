@@ -33,6 +33,10 @@
     output is selected for new installations. (Wengier)
   - Added ability to change floppy images with drive
     number (0 or 1) only. (Wengier)
+  - Added menu item "Enable extended Chinese character
+    set" in "TTF options" to toggle the setting for the
+    Simplified Chinese (GBK extension) and Traditional
+    Chinese (ChinaSea extension). (Wengier)
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
     extension of the Big5 charset for the Traditional

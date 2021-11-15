@@ -2636,6 +2636,9 @@ CJK : Détection automatique des caractères de type "box-drawing".
 :MENU:ttf_halfwidthkana
 CJK : Autoriser les Katakana japonais en demi-largeur
 .
+:MENU:ttf_extcharset
+CJK : Activer le jeu de caractères chinois étendu
+.
 :MENU:VideoPC98Menu
 PC-98
 .

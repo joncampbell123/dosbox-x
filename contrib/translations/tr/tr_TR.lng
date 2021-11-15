@@ -2631,6 +2631,9 @@ Yazdırma için geçerli TTF yazıtipini kullan
 :MENU:ttf_halfwidthkana
 ÇJK: Yarım genişlikli Japonca Katakana'ya izin ver
 .
+:MENU:ttf_extcharset
+ÇJK: Genişletilmiş Çince karakter kümesini etkinleştir
+.
 :MENU:VideoPC98Menu
 PC-98 seçenekleri
 .

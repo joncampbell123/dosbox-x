@@ -2629,6 +2629,9 @@ CJK: Auto-detect box-drawing characters
 :MENU:ttf_halfwidthkana
 CJK: Allow half-width Japanese Katakana
 .
+:MENU:ttf_extcharset
+CJK: Enable extended Chinese character set
+.
 :MENU:VideoPC98Menu
 PC-98 options
 .

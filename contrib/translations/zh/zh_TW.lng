@@ -2605,6 +2605,9 @@ TTF 文字處理器: FastEdit
 :MENU:ttf_halfwidthkana
 中日韓文字: 允許半形日文片假名
 .
+:MENU:ttf_extcharset
+中日韓文字: 啟用擴展中文字元集
+.
 :MENU:VideoPC98Menu
 PC-98 選項
 .

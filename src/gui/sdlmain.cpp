@@ -67,7 +67,7 @@ extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool use_quick_reboot;
 extern bool force_load_state;
-extern bool force_conversion;
+extern bool force_conversion, gbk, chinasea;
 extern bool pc98_force_ibm_layout, clearline;
 extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
@@ -292,7 +292,7 @@ void d3d_init(void);
 #endif
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
-void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse();
+void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse(), makestdcp950table();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 bool isDBCSCP(), InitCodePage();
 int GetNumScreen();
@@ -4347,6 +4347,7 @@ void change_output(int output) {
     mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)));
 #endif
 
     if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
@@ -5371,10 +5372,11 @@ int setTTFCodePage() {
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif
-        if(IS_JEGA_ARCH) {
-            memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
-        }
+        if(IS_JEGA_ARCH) memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
         if (cp == 932 && halfwidthkana) resetFontSize();
+        if (cp == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
+        else if (cp == 950) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+        else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
         return notMapped;
     } else
         return -1;
@@ -11779,6 +11781,27 @@ bool ttf_halfwidth_katakana_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     return true;
 }
 
+bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950)) {
+        systemmessagebox("Warning", "This function is only available for the Chinese code pages (936 or 950).", "ok","warning", 1);
+        return true;
+    }
+    if (dos.loaded_codepage==936) {
+        gbk=!gbk;
+        SetVal("ttf", "gbk", gbk?"true":"false");
+        mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
+    } else if (dos.loaded_codepage==950) {
+        chinasea=!chinasea;
+        if (!chinasea) makestdcp950table();
+        SetVal("ttf", "chinasea", chinasea?"true":"false");
+        mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+    }
+    resetFontSize();
+    return true;
+}
+
 #if C_PRINTER
 bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -14260,6 +14283,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_auto_boxdraw_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_halfwidthkana").set_text("CJK: Allow half-width Japanese Katakana").
                     set_callback_function(ttf_halfwidth_katakana_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_extcharset").set_text("CJK: Enable extended Chinese character set").
+                    set_callback_function(ttf_extend_charset_callback);
             }
 #endif
             {
@@ -14905,6 +14930,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)));
 #endif
 #if C_PRINTER
         mainMenu.get_item("print_textscreen").enable(!IS_PC98_ARCH);

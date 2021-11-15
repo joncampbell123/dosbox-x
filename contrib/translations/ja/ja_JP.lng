@@ -2609,6 +2609,9 @@ CJK: 罫線文字を自動検出
 :MENU:ttf_halfwidthkana
 CJK: 日本語半角カナ文字を使用
 .
+:MENU:ttf_extcharset
+CJK: 拡張漢字セットを有効にする
+.
 :MENU:VideoPC98Menu
 PC-98 オプション
 .

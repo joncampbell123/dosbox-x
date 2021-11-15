@@ -2587,13 +2587,16 @@ TTF 字处理软件: FastEdit
 使用当前 TTF 字体进行打印
 .
 :MENU:ttf_dbcs_sbcs
-中日韩: 切换双字节/单字节模式
+中日韩文字: 切换双字节/单字节模式
 .
 :MENU:ttf_autoboxdraw
-中日韩: 自动检测制表符
+中日韩文字: 自动检测制表符
 .
 :MENU:ttf_halfwidthkana
-中日韩: 允许半角日文片假名
+中日韩文字: 允许半角日文片假名
+.
+:MENU:ttf_extcharset
+中日韩文字: 启用扩展中文字符集
 .
 :MENU:VideoPC98Menu
 PC-98 选项
