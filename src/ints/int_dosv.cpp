@@ -108,7 +108,7 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
-extern bool gbk;
+extern bool gbk, chinasea;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
@@ -124,9 +124,11 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
-        return (chr >= (gbk?0x81:0xa1) && chr <= 0xfe);
-    else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || IS_CDOSV || IS_KDOSV)
-        return (chr >= 0x81 && chr <= 0xfe);
+        return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
+    else if (dos.loaded_codepage == 950 || IS_CDOSV)
+        return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc6 && chr <= 0xc8);
+    else if (dos.loaded_codepage == 949 || IS_KDOSV)
+        return chr >= 0x81 && chr <= 0xfe;
     else
         return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
 }

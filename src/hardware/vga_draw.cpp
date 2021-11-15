@@ -3330,7 +3330,8 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
     (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 240 && c2 == 240 && c3 == 240 && c4 == 240) ||
-    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208);
+    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208) ||
+    (c1 == 205 && c2 == 91 && c3 == 254 && c4 == 93) || (c1 == 91 && c2 == 254 && c3 == 93 && c4 == 205);
 }
 
 bool connectLeft(uint8_t c, bool db, bool line) {
@@ -4038,6 +4039,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (col == ttf.cols - 6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+2) == 91 && (uint8_t)*(vidmem+6) == 93 && (uint8_t)*(vidmem+8) == 205)
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }
@@ -4116,6 +4119,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (col == ttf.cols - 6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+1) == 91 && (uint8_t)*(vidmem+3) == 93 && (uint8_t)*(vidmem+4) == 205)
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }
