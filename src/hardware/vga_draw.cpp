@@ -4039,7 +4039,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (col == ttf.cols - 6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+2) == 91 && (uint8_t)*(vidmem+6) == 93 && (uint8_t)*(vidmem+8) == 205)
+                                else if (ttf.cols >= 80 && col == 80-6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+2) == 91 && (uint8_t)*(vidmem+6) == 93 && (uint8_t)*(vidmem+8) == 205)
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
@@ -4119,7 +4119,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (col == ttf.cols - 6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+1) == 91 && (uint8_t)*(vidmem+3) == 93 && (uint8_t)*(vidmem+4) == 205)
+                                else if (ttf.cols >= 80 && col == 80-6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+1) == 91 && (uint8_t)*(vidmem+3) == 93 && (uint8_t)*(vidmem+4) == 205)
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
                                 else if (!bd[col])
                                     boxdefault=true;

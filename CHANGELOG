@@ -1,7 +1,8 @@
 0.83.20
   - Added IMGSWAP command to swap disks for drives.
-    e.g. "IMGSWAP A 2" to swap A: drive to the 2nd
-    swap position. (Wengier)
+    e.g. "IMGSWAP D" to swap C: drive to the next swap
+    position, and "IMGSWAP A 3" to swap A: drive to
+    the 3nd swap position. (Wengier)
   - The CAPMOUSE command without a paramter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive
@@ -34,9 +35,9 @@
   - Added ability to change floppy images with drive
     number (0 or 1) only. (Wengier)
   - Added menu item "Enable extended Chinese character
-    set" in "TTF options" to toggle the setting for the
-    Simplified Chinese (GBK extension) and Traditional
-    Chinese (ChinaSea extension). (Wengier)
+    set" in "Video" => "TTF options" to toggle setting
+    for the Simplified Chinese (GBK extension) and
+    Traditional Chinese (ChinaSea extension). (Wengier)
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
     extension of the Big5 charset for the Traditional
