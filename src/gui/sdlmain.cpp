@@ -9346,7 +9346,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void CopyClipboard(int all) {
 #ifdef WIN32
-    if (dos.loaded_codepage != 950 || !chinasea) {
+    if (!isDBCSCP()) {
         CopyClipboardW(all);
         return;
     }
