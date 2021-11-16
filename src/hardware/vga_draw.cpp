@@ -3330,7 +3330,8 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
     (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 240 && c2 == 240 && c3 == 240 && c4 == 240) ||
-    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208) ||
+    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208) || (c1 == 254 && c2 == 177 && c3 == 177 && c4 == 177) ||
+    (c1 == 177 && c2 == 254 && c3 == 177 && c4 == 177) || (c1 == 177 & c2 == 177 && c3 == 254 && c4 == 177) || (c1 == 177 & c2 == 177 && c3 == 177 && c4 == 254) ||
     ((c1 == 196 || c1 == 205) && c2 == 91 && (c3 == 15 || c3 == 49 || c3 == 254) && c4 == 93) || (c1 == 91 && (c2 == 15 || c2 == 49 || c2 == 254) && c3 == 93 && (c4 == 196 || c4 == 205));
 }
 
@@ -4061,7 +4062,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 uname[1]=0;
                                 if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
-                                if (uname[0]!=0&&uname[1]==0) {
+                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
+                                    boxdefault=false;
+                                else if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     res = width = 0;
@@ -4121,7 +4124,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             dbw=dex=false;
                         } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1)) && !(autoboxdraw &&
                         ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add), col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col?*(vidmem-1+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add/2):0, row?*(vidmem+1-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+1+3*vga.draw.address_add/2):0)) ||
-                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add)/2, (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
+                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
                         (row > 1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), *(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), col?*(vidmem-1-vga.draw.address_add):0, col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col?*(vidmem+2):0, row > 2?*(vidmem-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add/2):0, row > 2?*(vidmem+1-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+1+vga.draw.address_add/2):0))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
@@ -4141,7 +4144,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 uname[1]=0;
                                 if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
-                                if (uname[0]!=0&&uname[1]==0) {
+                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-2)==177||(uint8_t)*(vidmem-2)==254)&&(uint8_t)*(vidmem-1)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-2)==176&&(uint8_t)*(vidmem-1)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
+                                    boxdefault=false;
+                                else if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     res = width = 0;
