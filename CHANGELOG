@@ -94,6 +94,9 @@
     hard drive delay, and make it slower than before
     by default. It is adjustable via the "floppy drive
     data rate limit" config option. (Allofich)
+  - Always return bit 6 of port 61h as set for PC and as
+    clear for PCjr and Tandy. Allows Zaxxon to load in
+    PC mode. (Allofich)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
