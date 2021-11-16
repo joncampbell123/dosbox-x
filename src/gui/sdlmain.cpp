@@ -373,10 +373,10 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 
 }
 #endif
+extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
 extern bool sync_time, manualtime, addovl;
-extern bool bootguest, bootfast, bootvm;
-extern int bootdrive, resolveopt;
+extern bool bootguest, bootfast, bootvm, morelen;
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 void VFILE_Remove(const char *name,const char *dir = "");
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
@@ -9363,6 +9363,7 @@ void CopyClipboard(int all) {
     std::string result="";
     std::istringstream iss(text);
     char temp[4096];
+    morelen=true;
     for (std::string token; std::getline(iss, token); ) {
         if (CodePageGuestToHostUTF8(temp,token.c_str()))
             result+=temp;
@@ -9370,6 +9371,7 @@ void CopyClipboard(int all) {
             result+=token;
         result+=std::string(1, 10);
     }
+    morelen=false;
     if (result.size()&&result.back()==10) result.pop_back();
 #if defined(C_SDL2)
     SDL_SetClipboardText(result.c_str());
