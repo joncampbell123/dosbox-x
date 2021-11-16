@@ -9309,7 +9309,33 @@ void PasteClipboard(bool bPressed) {
 #endif
 #endif
 
-#if defined (WIN32)
+#if defined(C_SDL2) || defined(MACOSX)
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+void CopyClipboard(int all) {
+	uint16_t len=0;
+	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
+    unsigned int k=0;
+    for (unsigned int i=0; i<len; i++)
+        if (text[i]&&text[i]!=13)
+            text[k++]=text[i];
+    text[k]=0;
+    std::string result="";
+    std::istringstream iss(text);
+    char temp[4096];
+    for (std::string token; std::getline(iss, token); ) {
+        if (CodePageGuestToHostUTF8(temp,token.c_str()))
+            result+=temp+std::string(1, 10);
+        else
+            result+=token+std::string(1, 10);
+    }
+    if (result.size()&&result.back()==10) result.pop_back();
+#if defined(C_SDL2)
+    SDL_SetClipboardText(result.c_str());
+#else
+    SetClipboard(result);
+#endif
+}
+#elif defined (WIN32)
 void CopyClipboard(int all) {
 	uint16_t len=0;
 	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
@@ -9326,7 +9352,9 @@ void CopyClipboard(int all) {
 		CloseClipboard();
 	}
 }
+#endif
 
+#ifdef WIN32
 static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     switch (event) {
     case CTRL_SHUTDOWN_EVENT:
@@ -9339,31 +9367,6 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     default: //pass to the next handler
         return FALSE;
     }
-}
-
-#elif defined(C_SDL2) || defined(MACOSX)
-typedef char host_cnv_char_t;
-host_cnv_char_t *CodePageGuestToHost(const char *s);
-void CopyClipboard(int all) {
-	uint16_t len=0;
-	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
-    unsigned int k=0;
-    for (unsigned int i=0; i<len; i++)
-        if (text[i]&&text[i]!=13)
-            text[k++]=text[i];
-    text[k]=0;
-    std::string result="";
-    std::istringstream iss(text);
-    for (std::string token; std::getline(iss, token); ) {
-        char* uname = CodePageGuestToHost(token.c_str());
-        result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
-    }
-    if (result.size()&&result.back()==10) result.pop_back();
-#if defined(C_SDL2)
-    SDL_SetClipboardText(result.c_str());
-#else
-    SetClipboard(result);
-#endif
 }
 #endif
 
