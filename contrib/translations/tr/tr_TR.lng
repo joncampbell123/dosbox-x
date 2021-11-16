@@ -934,7 +934,7 @@ Kullanılabilir PCjr kartuş komutları: %s
 Bir PCjr kartuş komutu bulunamadı
 .
 :PROGRAM_LOADROM_HELP
-Belirtilen ROM kalıp dosyasını yükler.
+Carga el archivo de imagen ROM especificado para BIOS de video o IBM BASIC.
 
 LOADROM ROM_file
 

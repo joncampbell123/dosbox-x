@@ -919,7 +919,7 @@ leading colon write protect image = true
 找不到 PCjr cartridge commandos
 .
 :PROGRAM_LOADROM_HELP
-載入指定的 ROM 映像檔.
+載入指定的影像 BIOS 或 IBM BASIC ROM 映像檔.
 
 LOADROM 映像檔
 

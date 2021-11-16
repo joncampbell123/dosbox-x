@@ -933,7 +933,7 @@ Comandos de cartucho PCjr disponibles:%s
 No se han encontrado comandos de cartucho PCjr
 .
 :PROGRAM_LOADROM_HELP
-Carga la imagen ROM indicada.
+Carga el archivo de imagen ROM especificado para BIOS de video o IBM BASIC.
 
 LOADROM ROM_file
 

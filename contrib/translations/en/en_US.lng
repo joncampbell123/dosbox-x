@@ -932,7 +932,7 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-Loads the specified ROM image file.
+Loads the specified ROM image file for video BIOS or IBM BASIC.
 
 LOADROM ROM_file
 

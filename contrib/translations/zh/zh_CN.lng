@@ -919,7 +919,7 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-调用指定的 ROM 镜像文件.
+调用指定的视频 BIOS 或 IBM BASIC ROM 镜像文件.
 
 LOADROM 镜像文件
 

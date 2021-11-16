@@ -919,7 +919,7 @@ PCjr カートリッジが見つかりましたが、マシンがPCjrではあ�
 PCjr cartridge commandos が見つかりません。
 .
 :PROGRAM_LOADROM_HELP
-指定のROM イメージファイルを読み込みます。
+ビデオBIOSまたはIBMBASIC用に指定されたROMイメージファイルをロードします。
 
 LOADROM ROM_file
 
