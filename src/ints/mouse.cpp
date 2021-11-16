@@ -816,7 +816,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                     uint16_t prevres=mem_readw(where-(ttfuse&&rtl?-2:2));
                     if (!((prevres & 0xFF00u) != 0u && (prevres & 0xFCu) != 0x08u && prevres==result))
                         text[len++]=result;
-                } else
+                } else if (result)
                     text[len++]=result;
             } else if (IS_DOSV) {
                 if (lead2) lead2=false;
