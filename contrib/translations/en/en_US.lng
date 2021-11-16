@@ -2127,7 +2127,7 @@ COUNTRY [nnn]
 
   nnn   Specifies a country code.
 
-Date and time formats will be affacted by the specified country code.
+Date and time formats will be affected by the specified country code.
 
 .
 :SHELL_CMD_CTTY_HELP

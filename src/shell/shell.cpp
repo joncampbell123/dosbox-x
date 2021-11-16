@@ -1525,7 +1525,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHCP_MISSING", "ASCII characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
-	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affected by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device        The terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
@@ -1542,7 +1542,7 @@ void SHELL_Init() {
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();
-	/* Setup the startup CS:IP to kill the last running machine when exitted */
+	/* Setup the startup CS:IP to kill the last running machine when exited */
 	RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
 	SegSet16(cs,RealSeg(newcsip));
 	reg_ip=RealOff(newcsip);
