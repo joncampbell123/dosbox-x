@@ -1000,7 +1000,7 @@ static uint8_t * gen_create_branch_long(BranchTypes type) {
 }
 
 static void gen_fill_branch_long(uint8_t * data,uint8_t * from=cache.pos) {
-	*(uint32_t*)data=(from-data-4);
+	*((uint32_t*)data) = (from-data-4);
 }
 
 static uint8_t * gen_create_jump(uint8_t * to=0) {

@@ -106,7 +106,6 @@ static void dyn_fpu_esc0(){
 	if (decode.modrm.val >= 0xc0) { 
 		dyn_fpu_top();
 		Bitu group=(decode.modrm.val >> 3) & 7;
-		//Bitu sub=(decode.modrm.val & 7);
 		switch (group){
 		case 0x00:		//FADD ST,STi /
 			gen_call_function((void*)&FPU_FADD,"%Drd%Drd",DREG(TMPB),DREG(EA));
@@ -436,7 +435,6 @@ static void dyn_fpu_esc3(){
 static void dyn_fpu_esc4(){
 	dyn_get_modrm();  
 	Bitu group=(decode.modrm.val >> 3) & 7;
-	//Bitu sub=(decode.modrm.val & 7);
 	if (decode.modrm.val >= 0xc0) { 
 		dyn_fpu_top();
 		switch(group){
