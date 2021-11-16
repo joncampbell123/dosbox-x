@@ -3331,7 +3331,15 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 240 && c2 == 240 && c3 == 240 && c4 == 240) ||
     (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208) ||
-    (c1 == 205 && c2 == 91 && c3 == 254 && c4 == 93) || (c1 == 91 && c2 == 254 && c3 == 93 && c4 == 205);
+    ((c1 == 196 || c1 == 205) && c2 == 91 && (c3 == 15 || c3 == 49 || c3 == 254) && c4 == 93) || (c1 == 91 && (c2 == 15 || c2 == 49 || c2 == 254) && c3 == 93 && (c4 == 196 || c4 == 205));
+}
+
+// Workaround for Turbo Pascal, Turbo C/C++ 3, and DOS Navigator 2
+bool CheckBoxDrawLast(Bitu col, uint8_t chr0, uint8_t chr1, uint8_t chr2, uint8_t chr3, uint8_t chr4, uint8_t chr5, uint8_t chr6, uint8_t chr7, uint8_t chr8) {
+    return (col == 71 && (chr0 == 196 || chr0 == 205) && (chr1 == 196 || chr1 == 205) && (chr3 == 196 || chr3 == 205) && chr4 == 91 && (chr5 == 15 || chr5 == 18 || chr5 == 24) && chr6 == 93 && (chr7 == 196 || chr7 == 205) && ((chr7 == 205 && chr8 == 187) || (chr7 == 196 && chr8 == 191))) ||
+           (col == 72 && (chr0 == 196 || chr0 == 205) && (chr2 == 196 || chr2 == 205) && chr3 == 91 && (chr4 == 15 || chr4 == 18 || chr4 == 24) && chr5 == 93 && (chr6 == 196 || chr6 == 205) && ((chr6 == 205 && chr7 == 187) || (chr6 == 196 && chr7 == 191))) ||
+           (col == 73 && (chr1 == 196 || chr1 == 205) && chr2 == 91 && (chr3 == 15 || chr3 == 18 || chr3 == 24) && chr4 == 93 && (chr5 == 196 || chr5 == 205) && ((chr5 == 205 && chr6 == 187) || (chr5 == 196 && chr6 == 191))) ||
+           (col == 74 && chr0 == 91 && (chr2 == 15 || chr2 == 18 || chr2 == 24) && chr3 == 93 && (chr4 == 196 || chr4 == 205) && ((chr4 == 205 && chr5 == 187) || (chr4 == 196 && chr5 == 191)));
 }
 
 bool connectLeft(uint8_t c, bool db, bool line) {
@@ -4039,8 +4047,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (ttf.cols >= 80 && col == 80-6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+2) == 91 && (uint8_t)*(vidmem+6) == 93 && (uint8_t)*(vidmem+8) == 205)
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
+                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10), *(vidmem+12), *(vidmem+14), *(vidmem+16)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }
@@ -4119,8 +4127,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (ttf.cols >= 80 && col == 80-6 && (uint8_t)((*draw).chr) == 205 && (uint8_t)*(vidmem+1) == 91 && (uint8_t)*(vidmem+3) == 93 && (uint8_t)*(vidmem+4) == 205)
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=true;
+                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+1), *(vidmem+2), *(vidmem+3), *(vidmem+4), *(vidmem+5), *(vidmem+6), *(vidmem+7), *(vidmem+8)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }

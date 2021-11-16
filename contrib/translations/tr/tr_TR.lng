@@ -2113,7 +2113,7 @@ Etkin kod sayfası: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF yazıtipinde tanımlanmamış karakterler: %d
+TTF yazıtipinde tanımlanmamış ASCII karakterler: %d
 
 .
 :SHELL_CMD_CHCP_INVALID

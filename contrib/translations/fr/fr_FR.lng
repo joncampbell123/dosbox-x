@@ -2116,7 +2116,7 @@ Page de code active : %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-Caractères non définis dans la police TTF : %d
+Caractères ASCII non définis dans la police TTF : %d
 
 .
 :SHELL_CMD_CHCP_INVALID

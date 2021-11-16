@@ -2111,7 +2111,7 @@ Active code page: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-Characters not defined in TTF font: %d
+ASCII characters not defined in TTF font: %d
 
 .
 :SHELL_CMD_CHCP_INVALID

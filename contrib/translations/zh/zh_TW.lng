@@ -2059,7 +2059,7 @@ CHCP [nnn [檔案]]
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF 字型中未定義的字元數: %d
+TTF 字型中未定義的 ASCII 字元數: %d
 
 .
 :SHELL_CMD_CHCP_INVALID

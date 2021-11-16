@@ -2099,7 +2099,7 @@ TrueType フォント出力への変更をサポートするコードページ:
 
 .
 :SHELL_CMD_CHCP_MISSING
-指定の TTF フォント内に文字が定義されていません。: %d
+指定の TTF フォント内に ASCII 文字が定義されていません: %d
 
 .
 :SHELL_CMD_CHCP_INVALID

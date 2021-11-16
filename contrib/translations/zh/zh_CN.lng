@@ -2049,7 +2049,7 @@ TrueType 字体输出方式所支持的代码页包括:
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF 字体中未定义的字符数: %d
+TTF 字体中未定义的 ASCII 字符数: %d
 
 .
 :SHELL_CMD_CHCP_INVALID

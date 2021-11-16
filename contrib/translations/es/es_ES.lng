@@ -2188,7 +2188,7 @@ Type ←[33;1mHELP command←[0m or ←[33;1mcommand /?←[0m for help informati
 
 .
 :SHELL_CMD_CHCP_MISSING
-Characters not defined in TTF font: %d
+Caracteres ASCII no definidos en fuente TTF: %d
 
 .
 :MENU:mapper_reset
