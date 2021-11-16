@@ -733,7 +733,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readb_checked_dcx86_pagefault : mem_readb_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_readb_checked_dcx86_pagefault : mem_readb_checked_dcx86)) - (char*)cache_rwtox(cache.pos) - 4));
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 
@@ -828,8 +828,8 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	}
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	if (dword) cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readd_checked_dcx86_pagefault : mem_readd_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
-	else cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_readw_checked_dcx86_pagefault : mem_readw_checked_dcx86)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	if (dword) cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_readd_checked_dcx86_pagefault : mem_readd_checked_dcx86)) - (char*)cache_rwtox(cache.pos) - 4));
+	else cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_readw_checked_dcx86_pagefault : mem_readw_checked_dcx86)) - (char*)cache_rwtox(cache.pos) - 4));
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 
@@ -897,7 +897,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked)) - (char*)cache_rwtox(cache.pos) - 4));
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addb(0x5a);		// pop edx
@@ -941,8 +941,8 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	cache_addb(0x50+genreg->index);
 	cache_addb(0x50);	// push eax
 	cache_addb(0xe8);
-	if (dword) cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
-	else cache_addd(((uint32_t)&(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked)) - (uint32_t)cache_rwtox(cache.pos)-4);
+	if (dword) cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked)) - (char*)cache_rwtox(cache.pos) - 4));
+	else cache_addd((uint32_t)((char*)(&(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked)) - (char*)cache_rwtox(cache.pos) - 4));
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addb(0x5a);		// pop edx
