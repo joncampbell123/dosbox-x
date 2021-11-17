@@ -3094,6 +3094,9 @@ Turbo (快轉模式)
 :MENU:cputype_ppro_slow
 奔騰 Pro
 .
+:MENU:cputype_experimental
+實驗 CPU
+.
 :MENU:debug_pageflip
 頁面翻轉偵錯行
 .

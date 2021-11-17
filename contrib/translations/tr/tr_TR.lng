@@ -3120,6 +3120,9 @@ Pentium MMX
 :MENU:cputype_ppro_slow
 Pentium Pro
 .
+:MENU:cputype_experimental
+Deneysel
+.
 :MENU:debug_pageflip
 Hata ayıklama satırı sayfasını çevir
 .

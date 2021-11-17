@@ -3084,6 +3084,9 @@ DOS 命令
 :MENU:cputype_ppro_slow
 奔腾 Pro
 .
+:MENU:cputype_experimental
+实验 CPU
+.
 :MENU:debug_pageflip
 页面翻转调试行
 .

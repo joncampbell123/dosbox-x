@@ -3104,6 +3104,9 @@ Pentium MMX
 :MENU:cputype_ppro_slow
 Pentium Pro
 .
+:MENU:cputype_experimental
+実験用 CPU
+.
 :MENU:debug_pageflip
 デバッグ用ライン表示 (CRTCレジスタ書込み)
 .
