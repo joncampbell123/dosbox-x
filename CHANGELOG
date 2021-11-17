@@ -98,9 +98,9 @@
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
   - PC-98 EGC emulation: Add generic ope_xx handler for
-    the remaining block of undefined/undocumented EGC ROPs.
-    This fixes "Atomic Punker" which uses EGC ROP 0xBE
-    for sprite rendering.
+    the remaining block of undefined/undocumented EGC
+    ROPs. This fixes "Atomic Punker" which uses EGC ROP
+    0xBE for sprite rendering. (joncampbell123)
 0.83.19
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
