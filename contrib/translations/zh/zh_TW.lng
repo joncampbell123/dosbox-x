@@ -1289,6 +1289,10 @@ ECHO 狀態為開.
 ECHO 狀態為關.
 
 .
+:SHELL_INVALID_PARAMETER
+無效的參數 - %s
+
+.
 :SHELL_ILLEGAL_SWITCH
 無效的參數 - %s
 
@@ -1541,6 +1545,14 @@ SUBST 命令只能掛載本機磁碟機.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: 命令列參數錯誤.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text 目前狀態為開.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text 目前狀態為關.
 
 .
 :SHELL_STARTUP_TITLE

@@ -1306,6 +1306,10 @@ ECHO is off.
 Invalid switch - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Invalid parameter - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Required parameter missing.
 
@@ -1551,6 +1555,14 @@ The specified drive or path is invalid.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: There is an error in your command line.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text is currently enabled.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text is currently disabled.
 
 .
 :SHELL_STARTUP_TITLE

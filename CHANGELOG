@@ -26,7 +26,7 @@
   - Added confirmation message while trying to load a
     Direct3D pixel shader which may not be needed or
     may have undesired effect. (Wengier)
-  - Added warning message if the Japanese PC-98 or JEGA
+  - Added warning message if DOS/V or Japanese PC-98/AX
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
   - Added a TrueType font selection page into Windows

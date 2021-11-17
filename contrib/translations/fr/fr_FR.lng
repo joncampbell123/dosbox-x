@@ -1304,6 +1304,10 @@ ECHO est désactivé.
 Commutateur non valide - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Paramètre invalide - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Paramètre requis manquant.
 
@@ -1549,6 +1553,14 @@ Le lecteur ou le chemin d'accès spécifié n'est pas valide.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST : Il y a une erreur dans votre ligne de commande.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text est actuellement activé.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text est actuellement désactivé.
 
 .
 :SHELL_STARTUP_TITLE

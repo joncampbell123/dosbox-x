@@ -1297,6 +1297,10 @@ ECHO は <OFF> です。
 無効なスイッチ - %s
 
 .
+:SHELL_INVALID_PARAMETER
+無効なパラメーター - %s
+
+.
 :SHELL_MISSING_PARAMETER
 パラメータが足りません。
 
@@ -1541,6 +1545,14 @@ SUBST はローカルドライブにのみ使用可能です。
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: コマンドラインにエラーがあります。
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text は現在有効になっています。
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text は現在無効になっています。
 
 .
 :SHELL_STARTUP_TITLE

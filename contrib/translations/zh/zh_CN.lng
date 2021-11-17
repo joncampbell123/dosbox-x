@@ -1293,6 +1293,10 @@ ECHO状态为关.
 开关非法 - %s
 
 .
+:SHELL_INVALID_PARAMETER
+非法参数 - %s
+
+.
 :SHELL_MISSING_PARAMETER
 缺少必要的参数.
 
@@ -1534,6 +1538,14 @@ SUBST 命令只能挂载本地驱动器.
 .
 :SHELL_CMD_SUBST_INVALID_PATH
 指定的驱动器或目录非法.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text 当前状态为开.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text 当前状态为关.
 
 .
 :SHELL_CMD_SUBST_FAILURE

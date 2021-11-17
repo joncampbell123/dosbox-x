@@ -1303,6 +1303,10 @@ Carácter de control inesperado: Dec %03u y Hex %#04x.
 Parámetro no válido - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Parámetro no válido - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Falta un parámetro requerido.
 
@@ -1548,6 +1552,14 @@ La ruta o unidad especificada no es válida.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: Hay un error en tu línea de comando.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text está habilitado actualmente.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text está actualmente deshabilitado.
 
 .
 :SHELL_STARTUP_TITLE

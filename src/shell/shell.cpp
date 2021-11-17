@@ -1199,6 +1199,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
+	MSG_Add("SHELL_INVALID_PARAMETER","Invalid parameter - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
@@ -1268,6 +1269,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_NOT_LOCAL","It is only possible to use SUBST on local drives.\n");
 	MSG_Add("SHELL_CMD_SUBST_INVALID_PATH","The specified drive or path is invalid.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
+	MSG_Add("SHELL_CMD_VTEXT_ON","DOS/V V-text is currently enabled.\n");
+	MSG_Add("SHELL_CMD_VTEXT_OFF","DOS/V V-text is currently disabled.\n");
 
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";

@@ -1306,6 +1306,10 @@ ECHO kapalı.
 Geçersiz anahtar - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Geçersiz parametre - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Gereken parametre eksik.
 
@@ -1551,6 +1555,14 @@ Belirtilen sürücü veya yol geçersiz.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: Komut satırınızda bir hata var.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text şu anda etkin.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text şu anda devre dışı.
 
 .
 :SHELL_STARTUP_TITLE
