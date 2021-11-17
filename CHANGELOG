@@ -104,6 +104,9 @@
     the remaining block of undefined/undocumented EGC
     ROPs. This fixes "Atomic Punker" which uses EGC ROP
     0xBE for sprite rendering. (joncampbell123)
+  - Integrated commits from mainline (Allofich)
+    - Add proper opl3 handling of the waveform select
+    to dbopl.
 0.83.19
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
