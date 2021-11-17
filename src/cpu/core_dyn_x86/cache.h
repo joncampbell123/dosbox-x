@@ -116,7 +116,7 @@ public:
 		addr&=4095;
 		if (host_readb(hostmem+addr)==(uint8_t)val) return;
 		host_writeb(hostmem+addr,val);
-		if (!*(uint8_t*)&write_map[addr]) {
+		if ((*(uint8_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
@@ -136,7 +136,7 @@ public:
 		addr&=4095;
 		if (host_readw(hostmem+addr)==(uint16_t)val) return;
 		host_writew(hostmem+addr,val);
-		if (!*(uint16_t*)&write_map[addr]) {
+		if ((*(uint16_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
@@ -156,7 +156,7 @@ public:
 		addr&=4095;
 		if (host_readd(hostmem+addr)==(uint32_t)val) return;
 		host_writed(hostmem+addr,val);
-		if (!*(uint32_t*)&write_map[addr]) {
+		if ((*(uint32_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
@@ -175,7 +175,7 @@ public:
 		}
 		addr&=4095;
 		if (host_readb(hostmem+addr)==(uint8_t)val) return false;
-		if (!*(uint8_t*)&write_map[addr]) {
+		if ((*(uint8_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
@@ -201,7 +201,7 @@ public:
 		}
 		addr&=4095;
 		if (host_readw(hostmem+addr)==(uint16_t)val) return false;
-		if (!*(uint16_t*)&write_map[addr]) {
+		if ((*(uint16_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
@@ -227,7 +227,7 @@ public:
 		}
 		addr&=4095;
 		if (host_readd(hostmem+addr)==(uint32_t)val) return false;
-		if (!*(uint32_t*)&write_map[addr]) {
+		if ((*(uint32_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();

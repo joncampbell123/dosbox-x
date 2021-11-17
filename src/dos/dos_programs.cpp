@@ -8120,7 +8120,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
-    MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file.\n\nLOADROM ROM_file\n");
+    MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_SPECIFY_FILE","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_CANT_OPEN","ROM file not accessible.\n");

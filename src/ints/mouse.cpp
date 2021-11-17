@@ -766,7 +766,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
     if (ttfuse&&isDBCSCP()&&dbcs_sbcs&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
-            if ((int)y>=r1&&(int)y<=r2)
+            if ((int)y>=r1&&(int)y<=r2) {
                 for (unsigned int x = 0; x < ttf.cols; x++)
                     if ((int)x>=c1&&(int)x<=c2&&curAC[rtl?ttf.cols-x-1:x].selected) {
                         if ((int)x==c1&&c1>0&&curAC[rtl?ttf.cols-x-1:x].skipped&&!curAC[rtl?ttf.cols-x-2:x-1].selected&&curAC[rtl?ttf.cols-x-2:x-1].doublewide) {
@@ -780,6 +780,12 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                             text[len++]=result;
                         }
                     }
+                while (len>0&&text[len-1]==32) text[--len]=0;
+                if (y<r2) {
+                    text[len++]='\r';
+                    text[len++]='\n';
+                }
+            }
             curAC += ttf.cols;
         }
     } else
@@ -810,7 +816,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                     uint16_t prevres=mem_readw(where-(ttfuse&&rtl?-2:2));
                     if (!((prevres & 0xFF00u) != 0u && (prevres & 0xFCu) != 0x08u && prevres==result))
                         text[len++]=result;
-                } else
+                } else if (result)
                     text[len++]=result;
             } else if (IS_DOSV) {
                 if (lead2) lead2=false;

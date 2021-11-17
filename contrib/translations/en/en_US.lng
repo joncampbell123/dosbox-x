@@ -932,7 +932,7 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-Loads the specified ROM image file.
+Loads the specified ROM image file for video BIOS or IBM BASIC.
 
 LOADROM ROM_file
 
@@ -1306,6 +1306,10 @@ ECHO is off.
 Invalid switch - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Invalid parameter - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Required parameter missing.
 
@@ -1551,6 +1555,14 @@ The specified drive or path is invalid.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: There is an error in your command line.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text is currently enabled.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text is currently disabled.
 
 .
 :SHELL_STARTUP_TITLE
@@ -3117,6 +3129,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_experimental
+Experimental
 .
 :MENU:debug_pageflip
 Page flip debug line

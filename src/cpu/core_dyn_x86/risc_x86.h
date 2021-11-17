@@ -57,7 +57,7 @@ public:
 		dynreg->genreg=this;
 		if ((!stale) && (dynreg->flags & (DYNFLG_LOAD|DYNFLG_ACTIVE))) {
 			cache_addw(0x058b+(index << (8+3)));		//Mov reg,[data]
-			cache_addd((uint32_t)dynreg->data);
+			cache_addd((uintptr_t)dynreg->data);
 		}
 		dynreg->flags|=DYNFLG_ACTIVE;
 	}
@@ -65,7 +65,7 @@ public:
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) IllegalOption("GenReg->Save");
 		dynreg->flags&=~DYNFLG_CHANGED;
 		cache_addw(0x0589+(index << (8+3)));		//Mov [data],reg
-		cache_addd((uint32_t)dynreg->data);
+		cache_addd((uintptr_t)dynreg->data);
 	}
 	void Release(void) {
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) return;
@@ -307,7 +307,7 @@ static void gen_load_host(void * data,DynReg * dr1,Bitu size) {
 		IllegalOption("gen_load_host");
 	}
 	cache_addb(0x5+(gr1->index<<3));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
@@ -321,7 +321,7 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 		IllegalOption("gen_mov_host");
 	}
 	cache_addb(0x5+((gr1->index+di1)<<3));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
@@ -335,7 +335,7 @@ static void gen_save_host(void * data,DynReg * dr1,Bitu size,Bitu di1=0) {
 		IllegalOption("gen_save_host");
 	}
 	cache_addb(0x5+((gr1->index+di1)<<3));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
@@ -409,7 +409,7 @@ static void gen_dop_byte_imm_mem(DualOps op,DynReg * dr1,uint8_t di1,void* data)
 	dr1->flags|=DYNFLG_CHANGED;
 nochange:
 	cache_addw(tmp+((gr1->index+di1)<<11));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 }
 
 static void gen_sop_byte(SingleOps op,DynReg * dr1,uint8_t di1) {
@@ -497,7 +497,7 @@ static void gen_lea_imm_mem(DynReg * ddr,DynReg * dsr,void* data) {
 	GenReg * gdr=FindDynReg(ddr);
 	uint8_t rm_base=(gdr->index << 3);
 	cache_addw(0x058b+(rm_base<<8));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	GenReg * gsr=FindDynReg(dsr);
 	cache_addb(0x8d);		//LEA
 	cache_addb(rm_base+0x44);
@@ -590,7 +590,7 @@ static void gen_dop_word_imm_mem(DualOps op,bool dword,DynReg * dr1,void* data) 
 nochange:
 	if (!dword) cache_addb(0x66);
 	cache_addw(tmp+(gr1->index<<11));
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 }
 
 static void gen_dop_word_var(DualOps op,bool dword,DynReg * dr1,void* drd) {
@@ -613,7 +613,7 @@ static void gen_dop_word_var(DualOps op,bool dword,DynReg * dr1,void* drd) {
 	}
 	if (!dword) cache_addb(0x66);
 	cache_addw(tmp|(0x05+((gr1->index)<<3))<<8);
-	cache_addd((uint32_t)drd);
+	cache_addd((uintptr_t)drd);
 }
 
 static void gen_imul_word(bool dword,DynReg * dr1,DynReg * dr2) {
@@ -886,7 +886,7 @@ static void gen_call_function(void * func,char const* ops,...) {
 		DynRegs[G_ESP].genreg->Save();
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
-	cache_addd((uint32_t)func - (uint32_t)cache_rwtox(cache.pos)-4);
+	cache_addd((uintptr_t)func - (uintptr_t)cache_rwtox(cache.pos) - (uintptr_t)4);
 	/* Restore the params of the stack */
 	if (paramcount) {
 		cache_addw(0xc483);				//add ESP,imm byte
@@ -961,9 +961,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
 	switch (write_size) {
-		case 1: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 2: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
-		case 4: cache_addd((uint32_t)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked) - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 1: cache_addd((uintptr_t)(use_dynamic_core_with_paging ? mem_writeb_checked_pagefault : mem_writeb_checked) - (uintptr_t)cache_rwtox(cache.pos) - (uintptr_t)4); break;
+		case 2: cache_addd((uintptr_t)(use_dynamic_core_with_paging ? mem_writew_checked_pagefault : mem_writew_checked) - (uintptr_t)cache_rwtox(cache.pos) - (uintptr_t)4); break;
+		case 4: cache_addd((uintptr_t)(use_dynamic_core_with_paging ? mem_writed_checked_pagefault : mem_writed_checked) - (uintptr_t)cache_rwtox(cache.pos) - (uintptr_t)4); break;
 		default: IllegalOption("gen_call_write");
 	}
 
@@ -1000,7 +1000,7 @@ static uint8_t * gen_create_branch_long(BranchTypes type) {
 }
 
 static void gen_fill_branch_long(uint8_t * data,uint8_t * from=cache.pos) {
-	*(uint32_t*)data=(from-data-4);
+	*((uint32_t*)data) = (from-data-4);
 }
 
 static uint8_t * gen_create_jump(uint8_t * to=0) {
@@ -1031,7 +1031,7 @@ static void gen_fill_short_jump(uint8_t * data, uint8_t * to=cache.pos) {
 
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 	cache_addb(0xa1);
-	cache_addd((uint32_t)ptr);
+	cache_addd((uintptr_t)ptr);
 	cache_addb(0xff);		//JMP EA
 	if (!imm) {			//NO EBP
 		cache_addb(0x20);
@@ -1062,13 +1062,13 @@ static void gen_load_flags(DynReg * dynreg) {
 
 static void gen_save_host_direct(void * data,Bits imm) {
 	cache_addw(0x05c7);		//MOV [],dword
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	cache_addd(imm);
 }
 
 static void gen_test_host_byte(void * data, uint8_t imm) {
 	cache_addw(0x05f6); // test [],byte
-	cache_addd((uint32_t)data);
+	cache_addd((uintptr_t)data);
 	cache_addb(imm);
 }
 
@@ -1086,7 +1086,7 @@ static void gen_return(BlockReturn retcode) {
 static void gen_return_fast(BlockReturn retcode,bool ret_exception=false) {
 	if (GCC_UNLIKELY(x86gen.flagsactive)) IllegalOption("gen_return_fast");
 	cache_addw(0x0d8b);			//MOV ECX, the flags
-	cache_addd((uint32_t)&cpu_regs.flags);
+	cache_addd((uintptr_t)&cpu_regs.flags);
 	if (!ret_exception) {
 		cache_addw(0xc483);			//ADD ESP,4
 		cache_addb(0x4);

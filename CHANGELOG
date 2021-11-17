@@ -26,7 +26,7 @@
   - Added confirmation message while trying to load a
     Direct3D pixel shader which may not be needed or
     may have undesired effect. (Wengier)
-  - Added warning message if the Japanese PC-98 or JEGA
+  - Added warning message if DOS/V or Japanese PC-98/AX
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
   - Added a TrueType font selection page into Windows
@@ -76,6 +76,8 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
+  - Fixed copying full-screen or multi-line text from a
+    DBCS codepage in TTF output or PC98 mode. (Wengier)
   - Fixed TTF color issue with some DOS GUI programs by
     initializing the color scheme when with default
     COLORS= setting in EGA or VGA mode. (Wengier)
@@ -92,13 +94,16 @@
     hard drive delay, and make it slower than before
     by default. It is adjustable via the "floppy drive
     data rate limit" config option. (Allofich)
+  - Always return bit 6 of port 61h as set for PC and as
+    clear for PCjr and Tandy. Allows Zaxxon to load in
+    PC mode. (Allofich)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
   - PC-98 EGC emulation: Add generic ope_xx handler for
-    the remaining block of undefined/undocumented EGC ROPs.
-    This fixes "Atomic Punker" which uses EGC ROP 0xBE
-    for sprite rendering.
+    the remaining block of undefined/undocumented EGC
+    ROPs. This fixes "Atomic Punker" which uses EGC ROP
+    0xBE for sprite rendering. (joncampbell123)
   - Integrated commits from mainline (Allofich)
     - Add proper opl3 handling of the waveform select
     to dbopl.
