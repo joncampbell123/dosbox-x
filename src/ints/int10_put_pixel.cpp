@@ -74,6 +74,20 @@ void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 		}
 	}
 	break;
+	case M_DCGA:
+	{
+		uint16_t off = (y >> 2) * 80 + (x >> 3);
+		off += 8 * 1024 * (y & 3);
+		uint8_t old = real_readb(0xb800, off);
+		if (color & 0x80) {
+			color &= 1;
+			old ^= color << ((7-(x&7)));
+		} else {
+			old = (old & cga_masks2[x&7]) | ((color & 1) << ((7 - (x & 7))));
+		}
+		real_writeb(0xb800, off, old);
+	}
+	break;
 	case M_CGA2:
         if (machine == MCH_MCGA && real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) == 0x11) {
             uint16_t off=y*80+(x>>3);
@@ -213,6 +227,14 @@ void INT10_GetPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t * color) {
 			if (y&1) off+=8*1024;
 			uint8_t val=real_readb(0xb800,off);
 			*color=(val>>((3-(x&3))*2)) & 3 ;
+		}
+		break;
+	case M_DCGA:
+		{
+			uint16_t off = (y >> 2) * 80 + (x >> 3);
+			off += 8 * 1024 * (y & 3);
+			uint8_t val=real_readb(0xb800, off);
+			*color=(val>>(((7-(x&7))))) & 1;
 		}
 		break;
 	case M_CGA2:
