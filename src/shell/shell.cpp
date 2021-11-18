@@ -513,7 +513,7 @@ const char *ParseMsg(const char *msg) {
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
-        if (!ANSI_SYS_installed()) {
+        if (!ANSI_SYS_installed() || J3_IsJapanese()) {
             msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
