@@ -49,6 +49,7 @@
 #define DBCS16_LEN 65536 * 32
 #define DBCS24_LEN 65536 * 72
 #define SBCS24_LEN 256 * 48
+#define	GAIJI_COUNT	16
 
 #if defined(LINUX) && C_X11
 static Display *font_display;
@@ -74,6 +75,11 @@ uint8_t jfont_dbcs_24[DBCS24_LEN];//65536 * 24 * 3
 uint8_t jfont_cache_dbcs_14[65536];
 uint8_t jfont_cache_dbcs_16[65536];
 uint8_t jfont_cache_dbcs_24[65536];
+
+static uint8_t jfont_yen[32];
+static uint8_t jfont_kana[32*64];
+static uint8_t jfont_kanji[96];
+static uint16_t gaiji_seg;
 
 typedef struct {
     char id[ID_LEN];
@@ -109,6 +115,7 @@ extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
 extern bool gbk, chinasea;
+extern int bootdrive;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
@@ -1675,5 +1682,439 @@ void DOSV_Setup()
 		} else {
 			phys_writeb(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 4, 0xcb);
 		}
+	}
+}
+
+#define KANJI_ROM_PAGE		(0xE0000/4096)
+
+static uint16_t j3_timer;
+static uint8_t j3_cursor_stat;
+static uint16_t j3_cursor_x;
+static uint16_t j3_cursor_y;
+static uint16_t j3_font_offset;
+
+static uint16_t jis2shift(uint16_t jis)
+{
+	uint16_t high, low;
+	high = jis >> 8;
+	low = jis & 0xff;
+	if(high & 0x01) {
+		low += 0x1f;
+	} else {
+		low += 0x7d;
+	}
+	if(low >= 0x7f) {
+		low++;
+	}
+	high = ((high - 0x21) >> 1) + 0x81;
+	if(high >= 0xa0) {
+		high += 0x40;
+	}
+	return (high << 8) + low;
+}
+
+static uint16_t shift2jis(uint16_t sjis)
+{
+	uint16_t high, low;
+	high = sjis >> 8;
+	low = sjis & 0xff;
+	if(high > 0x9f) {
+		high -= 0xb1;
+	} else {
+		high -= 0x71;
+	}
+	high <<= 1;
+	high++;
+	if(low > 0x7f) {
+		low--;
+	}
+	if(low >= 0x9e) {
+		low -= 0x7d;
+		high++;
+	} else {
+		low -= 0x1f;
+	}
+	return (high << 8) + low;
+}
+
+Bitu INT60_Handler(void)
+{
+	switch (reg_ah) {
+	case 0x01:
+		reg_dx = jis2shift(reg_dx);
+		break;
+	case 0x02:
+		reg_dx = shift2jis(reg_dx);
+		break;
+	case 0x03:
+		{
+			uint16_t code = (reg_al & 0x01) ? jis2shift(reg_dx) : reg_dx;
+			SegSet16(es, 0xe000);
+			if(reg_al & 0x02) {
+				uint8_t *src = GetDbcs24Font(code);
+				uint8_t *dest = jfont_kanji;
+				for(Bitu y = 0 ; y < 24 ; y++) {
+					*dest++ = *src++;
+					*dest++ = *src++;
+					*dest++ = *src++;
+					dest++;
+				}
+				reg_si = 0x0000;
+			} else {
+				// yen
+				if(code == 0x80da) {
+					reg_si = 0x0780;
+				} else if(code >= 0x8540 && code <= 0x857E) {
+					reg_si = 0x6c20 + (code - 0x8540) * 32;
+				} else {
+					uint16_t *src = (uint16_t *)GetDbcsFont(code);
+					uint16_t *dest = (uint16_t *)jfont_kanji;
+					for(Bitu y = 0 ; y < 16 ; y++) {
+						*dest++ = *src++;
+					}
+					reg_si = 0x0000;
+				}
+			}
+			reg_al = 0;
+		}
+		break;
+	case 0x05:
+		break;
+	case 0x0c:
+		if(reg_al == 0xff) {
+			reg_al = 25 - real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_LINE_COUNT);
+		} else {
+			uint8_t line = 25 - reg_al;
+			real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_LINE_COUNT, line);
+			line--;
+			real_writeb(BIOSMEM_SEG, BIOSMEM_NB_ROWS, line);
+		}
+		break;
+	case 0x0e:
+		SegSet16(es, GetTextSeg());
+		reg_bx = 0;
+		break;
+	case 0x0f:
+		if(reg_al == 0x00) {
+			reg_ax = 0;
+		} else if(reg_al == 0x01) {
+			DOS_ClearKeyMap();
+		}
+		break;
+	case 0x10:
+		if(reg_al == 0x00) {
+			SegSet16(es, 0xf000);
+			reg_bx = j3_font_offset;
+		}
+		break;
+	default:
+		LOG(LOG_BIOS,LOG_ERROR)("INT60:Unknown call %4X",reg_ax);
+	}
+	return CBRET_NONE;
+}
+
+Bitu INT6F_Handler(void)
+{
+	switch(reg_ah) {
+	case 0x01:
+	case 0x02:
+	case 0x03:
+	case 0x04:
+	case 0x05:
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+		SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+		IME_SetEnable(TRUE);
+#endif
+		break;
+	case 0x0b:
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+		SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+		IME_SetEnable(FALSE);
+#endif
+		break;
+	case 0x66:
+		{
+			reg_al = 0x00;
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+			int onoff;
+			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+				if(onoff) {
+					reg_al = 0x01;
+				}
+			}
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+			if(IME_GetEnable()) {
+				reg_al = 0x01;
+			}
+#endif
+		}
+		break;
+	}
+	return CBRET_NONE;
+}
+
+class KanjiRomPageHandler : public PageHandler {
+private:
+	uint8_t bank;
+	Bitu GetKanji16(Bitu addr) {
+		Bitu total = bank * 0x10000 + addr;
+		uint16_t code, offset;
+		if(total < 0x10420) {
+			total -= 0x10000;
+			offset = 0x3a60;
+		} else if(total < 0x20000) {
+			total -= 0x10420;
+			offset = 0x3b21;
+		} else if(total < 0x30000) {
+			total -= 0x20000;
+			offset = 0x5020;
+		} else if(total < 0x30820) {
+			total -= 0x30000;
+			offset = 0x6540;
+		} else if(total < 0x40000) {
+			total -= 0x30820;
+			offset = 0x6621;
+		} else if(total < 0x40420) {
+			total -= 0x40000;
+			offset = 0x7a60;
+		} else if(total < 0x41be0) {
+			total -= 0x40420;
+			offset = 0x7b21;
+		} else {
+			return 0;
+		}
+		code = offset + (total / 0xc00) * 0x100 + ((total % 0xc00) / 32);
+		code = jis2shift(code);
+		GetDbcsFont(code);
+		return code * 32 + (total % 32);
+	}
+	Bitu GetKanji24(Bitu addr) {
+		Bitu total = bank * 0x10000 + addr;
+		Bitu rest;
+		uint16_t code, offset;
+		if(total >= 0x40060 && total < 0x42460) {
+			total -= 0x40060;
+			offset = 0x2021;
+		} else if(total < 0x54460) {
+			total -= 0x42460;
+			offset = 0x2121;
+		} else if(total < 0x55c00) {
+			total -= 0x54460;
+			offset = 0x2921;
+		} else if(total < 0x100000) {
+			total -= 0x58060;
+			offset = 0x3021;
+		} else {
+			return 0;
+		}
+		code = offset + (total / 0x2400) * 0x100 + (total % 0x2400) / 96;
+		code = jis2shift(code);
+		GetDbcs24Font(code);
+		rest = total % 4;
+		if(rest != 3) {
+			return code * 72 + ((total % 96) / 4) * 3 + rest;
+		}
+		return 0;
+	}
+public:
+	KanjiRomPageHandler() {
+		flags = PFLAG_HASROM;
+		bank = 0;
+	}
+	uint8_t readb(PhysPt addr) {
+		uint16_t code;
+		Bitu offset;
+		if(bank == 0) {
+			if(addr >= 0xe0000 && addr < 0xe0060) {
+				return jfont_kanji[addr - 0xe0000];
+			} else if(addr >= 0xe0780 && addr < 0xe07a0) {
+				return jfont_yen[addr - 0xe0780];
+			} else if(addr >= 0xe0c20 && addr < 0xe6be0) {
+				offset = addr - 0xe0c20;
+				code = 0x2121 + (offset / 0xc00) * 0x100 + ((offset % 0xc00) / 32);
+				code = jis2shift(code);
+				GetDbcsFont(code);
+				return jfont_dbcs_16[code * 32 + (addr % 32)];
+			} else if(addr >= 0xe6c20 && addr < 0xe7400) {
+				return jfont_kana[addr - 0xe6c20];
+			} else {
+				offset = addr - 0xe8020;
+				code = 0x3021 + (offset / 0xc00) * 0x100 + ((offset % 0xc00) / 32);
+				code = jis2shift(code);
+				GetDbcsFont(code);
+				return jfont_dbcs_16[code * 32 + (addr % 32)];
+			}
+		} else if((bank >= 1 && bank <= 3) || (bank == 4 && addr < 0xe0060)) {
+			return jfont_dbcs_16[GetKanji16(addr - 0xe0000)];
+		} else {
+			return jfont_dbcs_24[GetKanji24(addr - 0xe0000)];
+		}
+		return 0;
+	}
+	uint16_t readw(PhysPt addr) {
+		uint16_t code;
+		Bitu offset;
+		if(bank == 0) {
+			if(addr >= 0xe0000 && addr < 0xe0060) {
+				return *(uint16_t *)&jfont_kanji[addr - 0xe0000];
+			} else if(addr >= 0xe0780 && addr < 0xe07a0) {
+				return *(uint16_t *)&jfont_yen[addr - 0xe0780];
+			} else if(addr >= 0xe0c20 && addr < 0xe6be0) {
+				offset = addr - 0xe0c20;
+				code = 0x2121 + (offset / 0xc00) * 0x100 + ((offset % 0xc00) / 32);
+				code = jis2shift(code);
+				GetDbcsFont(code);
+				return *(uint16_t *)&jfont_dbcs_16[code * 32 + (addr % 32)];
+			} else if(addr >= 0xe6c20 && addr < 0xe7400) {
+				return *(uint16_t *)&jfont_kana[addr - 0xe6c20];
+			} else {
+				offset = addr - 0xe8020;
+				code = 0x3021 + (offset / 0xc00) * 0x100 + ((offset % 0xc00) / 32);
+				code = jis2shift(code);
+				GetDbcsFont(code);
+				return *(uint16_t *)&jfont_dbcs_16[code * 32 + (addr % 32)];
+			}
+		} else if((bank >= 1 && bank <= 3) || (bank == 4 && addr < 0xe1be0)) {
+			return *(uint16_t *)&jfont_dbcs_16[GetKanji16(addr - 0xe0000)];
+		} else {
+			return *(uint16_t *)&jfont_dbcs_24[GetKanji24(addr - 0xe0000)];
+		}
+		return 0;
+	}
+	uint32_t readd(PhysPt addr) {
+		return 0;
+	}
+	void writeb(PhysPt addr,uint8_t val){
+		if((val & 0x80) && val != 0xff) {
+			bank = val & 0x7f;
+		}
+	}
+	void writew(PhysPt addr,uint16_t val){
+	}
+	void writed(PhysPt addr,uint32_t val){
+	}
+};
+KanjiRomPageHandler kanji_rom_handler;
+
+uint16_t GetGaijiSeg()
+{
+	return gaiji_seg;
+}
+
+void INT60_J3_Setup()
+{
+	uint16_t code;
+
+	gaiji_seg = DOS_GetMemory(GAIJI_COUNT * 2, "J-3100 Gaiji area");
+
+	PhysPt fontdata = Real2Phys(int10.rom.font_16);
+	for(code = 0 ; code < 256 ; code++) {
+		for(int y = 0 ; y < 16 ; y++) {
+			if(code >= 0x20 && code < 0x80) {
+				phys_writeb(0xf0000 + j3_font_offset + code * 16 + y, jfont_sbcs_16[code * 16 + y]);
+				if(code == 0x5c) {
+					jfont_yen[y * 2] = jfont_sbcs_16[code * 16 + y];
+					jfont_yen[y * 2 + 1] = jfont_sbcs_16[code * 16 + y];
+				}
+			} else {
+				phys_writeb(0xf0000 + j3_font_offset + code * 16 + y, mem_readb(fontdata + code * 16 + y));
+				if(code >= 0xa1 && code <= 0xdf) {
+					jfont_kana[(code - 0xa1) * 32 + y * 2] = jfont_sbcs_16[code * 16 + y];
+					jfont_kana[(code - 0xa1) * 32 + y * 2 + 1] = jfont_sbcs_16[code * 16 + y];
+				}
+			}
+		}
+	}
+	MEM_SetPageHandler(KANJI_ROM_PAGE, 16, &kanji_rom_handler);
+}
+
+static void J3_CursorXor(Bitu x, Bitu y)
+{
+	uint16_t end = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_TYPE);
+	uint16_t start = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_TYPE + 1);
+	uint16_t off;
+
+	if(start != 0x20 && start <= end) {
+		y += start;
+		off = (y >> 2) * 80 + 8 * 1024 * (y & 3) + x;
+		while(start <= end) {
+			real_writeb(0xb800, off, real_readb(0xb800, off) ^ 0xff);
+			if(j3_cursor_stat == 2) {
+				real_writeb(0xb800, off + 1, real_readb(0xb800, off + 1) ^ 0xff);
+			}
+			off += 0x2000;
+			if(off >= 0x8000) {
+				off -= 0x8000;
+				off += 80;
+			}
+			start++;
+		}
+	}
+}
+
+void J3_OffCursor()
+{
+	if(j3_cursor_stat) {
+		J3_CursorXor(j3_cursor_x, j3_cursor_y);
+		j3_cursor_stat = 0;
+	}
+}
+
+void INT8_J3()
+{
+	SetIMPosition();
+
+	j3_timer++;
+	if((j3_timer & 0x03) == 0) {
+		if((real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_BLINK) & 0x01) == 0 || j3_cursor_stat == 0) {
+			uint16_t x = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS);
+			uint16_t y = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + 1) * 16;
+			if(j3_cursor_stat == 0) {
+				uint8_t attr = GetKanjiAttr();
+				if(attr == 0) {
+					j3_cursor_stat = 1;
+				} else {
+					j3_cursor_stat = 1;
+					if(attr == 1) {
+						j3_cursor_stat = 2;
+					}
+				}
+				j3_cursor_x = x;
+				j3_cursor_y = y;
+				J3_CursorXor(x, y);
+			} else {
+				J3_CursorXor(x, y);
+				j3_cursor_stat = 0;
+			}
+		}
+	}
+}
+
+bool J3_IsJapanese()
+{
+	if(IS_J3100 && real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) == 0x74) {
+		return true;
+	}
+	return false;
+}
+
+void J3_SetBiosArea(uint16_t mode)
+{
+	if(mode == 0x74) {
+		if(bootdrive < 0) {
+			real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, 0x01);
+			if(real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_LINE_COUNT) == 0) {
+				real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_LINE_COUNT, 25);		// line count
+			}
+			real_writew(BIOSMEM_J3_SEG, BIOSMEM_J3_CODE_SEG, GetTextSeg());
+			real_writew(BIOSMEM_J3_SEG, BIOSMEM_J3_CODE_OFFSET, 0);
+			real_writew(BIOSMEM_J3_SEG, BIOSMEM_J3_BLINK, 0x00);
+			real_writew(BIOSMEM_SEG, BIOSMEM_CURSOR_TYPE, 0x0f0f);
+		}
+		real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_SCROLL, 0x01);		// soft scroll
+	} else {
+		real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, 0x00);
 	}
 }
