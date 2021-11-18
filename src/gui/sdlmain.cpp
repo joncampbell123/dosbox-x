@@ -11469,8 +11469,8 @@ bool toOutput(const char *what) {
         } else if (window_was_maximized) {
 #if defined(WIN32)
             ShowWindow(GetHWND(), SW_RESTORE);
-#else
-            // Todo: How about Linux and macOS
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
 #endif
         }
 #if !defined(C_SDL2)

@@ -39,6 +39,7 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
+extern bool window_was_maximized;
 extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
 extern bool allow_vesa_lowres_modes;
@@ -1220,6 +1221,13 @@ void ttf_switch_on(bool ss=true) {
         CALLBACK_RunRealInt(0x2F);
         if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
         reg_ax=oldax;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_RESTORE);
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
+#endif
+        }
         bool OpenGL_using(void), gl = OpenGL_using();
         change_output(10);
         SetVal("sdl", "output", "ttf");
