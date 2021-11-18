@@ -2358,6 +2358,19 @@ static void dyn_iret(void) {
 	dyn_closeblock();
 }
 
+#if !(C_DEBUG)
+static void dyn_interrupt(Bitu num) {
+	gen_protectflags();
+	dyn_flags_gen_to_host();
+	dyn_reduce_cycles();
+	dyn_set_eip_last_end(DREG(TMPW));
+	dyn_save_critical_regs();
+	dyn_call_function_pagefault_check((void*)&CPU_Interrupt,"%Id%Id%Drd",num,CPU_INT_SOFTWARE,DREG(TMPW));
+	gen_return_fast(BR_Normal);
+	dyn_closeblock();
+}
+#endif
+
 static bool dyn_io_writeB(Bitu port,uint8_t val) {
 	bool ex = CPU_IO_Exception(port,1);
 	if (!ex) IO_WriteB(port,val);

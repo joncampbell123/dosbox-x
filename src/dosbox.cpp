@@ -2072,15 +2072,18 @@ void DOSBOX_SetupConfigSections(void) {
 
 	//For loading FONTX CJK fonts
 	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+                    "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+                    "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.\n"
+                    "Loading the ASC24/ASCFONT.24C/ASCFONT.24D font files (the latter two from the ETen Chinese DOS system) is also supported.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");

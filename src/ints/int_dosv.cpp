@@ -126,7 +126,7 @@ bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
         return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
     else if (dos.loaded_codepage == 950 || IS_CDOSV)
-        return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc6 && chr <= 0xc8);
+        return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc7 && chr <= 0xc8);
     else if (dos.loaded_codepage == 949 || IS_KDOSV)
         return chr >= 0x81 && chr <= 0xfe;
     else
@@ -174,7 +174,7 @@ void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp)
     }
 }
 
-static bool LoadFontxFile(const char *fname, int height = 16) {
+static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
     fontx_h head;
     fontxTbl *table;
     Bitu code;
@@ -200,7 +200,35 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 #endif
 	}
 	if (getfontx2header(mfile, &head) != 0) {
-		if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
+        if (!dbcs) {
+            fseek(mfile, 0L, SEEK_END);
+            long int sz = ftell(mfile);
+            rewind(mfile);
+            if (sz == 256 * 15) {
+                if (height == 16)
+                    for(int i = 0 ; i < 256 ; i++) fread(&jfont_sbcs_16[i * 16], sizeof(uint8_t), 15, mfile);
+                else if(height == 19)
+                    for(int i = 0 ; i < 256 ; i++) fread(&jfont_sbcs_19[i * 19 + 2], sizeof(uint8_t), 15, mfile);
+                if (height == 16 || height == 19) {
+                    fclose(mfile);
+                    return true;
+                }
+            } else if (sz == SBCS16_LEN) {
+                if(height == 16)
+                    for(int i = 0 ; i < 256 ; i++) fread(&jfont_sbcs_16[i * 16], sizeof(uint8_t), 16, mfile);
+                else if(height == 19)
+                    for(int i = 0 ; i < 256 ; i++) fread(&jfont_sbcs_19[i * 19 + 1], sizeof(uint8_t), 16, mfile);
+                if (height == 16 || height == 19) {
+                    fclose(mfile);
+                    return true;
+                }
+            }
+            else if (sz == SBCS24_LEN && height == 24) {
+                fread(jfont_sbcs_24, sizeof(uint8_t), SBCS24_LEN, mfile);
+                fclose(mfile);
+                return true;
+            }
+		} else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
             fseek(mfile, 0L, SEEK_END);
             long int sz = ftell(mfile);
             rewind(mfile);
@@ -210,28 +238,32 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
                 if (!fontdata14) {fclose(mfile);return false;}
                 fread(fontdata14, sizeof(uint8_t), sz, mfile);
                 fontsize14 = sizeof(uint8_t)*sz;
+                fclose(mfile);
+                return true;
             } else if (height==16) {
                 if (!sz||((sz%15)&&(sz%16))) {fclose(mfile);return false;}
                 fontdata16 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata16) {fclose(mfile);return false;}
                 fread(fontdata16, sizeof(uint8_t), sz, mfile);
                 fontsize16 = sizeof(uint8_t)*sz;
+                fclose(mfile);
+                return true;
             } else if (height==24) {
                 if (!sz||(sz%24)) {fclose(mfile);return false;}
                 fontdata24 = (uint8_t *)malloc(sizeof(uint8_t)*sz);
                 if (!fontdata24) {fclose(mfile);return false;}
                 fread(fontdata24, sizeof(uint8_t), sz, mfile);
                 fontsize24 = sizeof(uint8_t)*sz;
+                fclose(mfile);
+                return true;
             }
-            fclose(mfile);
-            return true;
         }
 		fclose(mfile);
 		LOG_MSG("MSG: no correct FONTX2 header found\n");
 		return false;
     }
 	// switch whether the font is DBCS or not
-	if (head.type == 1) {
+	if (head.type == 1 && dbcs) {
 		if (head.width == 14 && head.height == 14) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
@@ -242,8 +274,7 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 					jfont_cache_dbcs_14[code] = 1;
 				}
 			}
-		}
-		else if (head.width == 16 && head.height == 16) {
+		} else if (head.width == 16 && head.height == 16) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -253,8 +284,7 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 					jfont_cache_dbcs_16[code] = 1;
 				}
 			}
-		}
-		else if (head.width == 24 && head.height == 24) {
+		} else if (head.width == 24 && head.height == 24) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -264,14 +294,13 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 					jfont_cache_dbcs_24[code] = 1;
 				}
 			}
-		}
-		else {
+		} else {
 			fclose(mfile);
 			LOG_MSG("MSG: FONTX2 DBCS font size is not correct\n");
 			return false;
 		}
 	}
-    else {
+    else if (!dbcs) {
 		if (head.width == 8 && head.height == 19 && height == 19) {
 			fread(jfont_sbcs_19, sizeof(uint8_t), SBCS19_LEN, mfile);
 		} else if (head.width == 8 && head.height == 16) {
@@ -283,11 +312,14 @@ static bool LoadFontxFile(const char *fname, int height = 16) {
 				for(int i = 0 ; i < 256 ; i++) {
 					fread(&jfont_sbcs_19[i * 19 + 1], sizeof(uint8_t), 16, mfile);
 				}
+			} else {
+				fclose(mfile);
+				LOG_MSG("MSG: FONTX2 SBCS font size is not correct\n");
+				return false;
 			}
-		} else if (head.width == 12 && head.height == 24) {
+		} else if (head.width == 12 && head.height == 24 && height == 24) {
 			fread(jfont_sbcs_24, sizeof(uint8_t), SBCS24_LEN, mfile);
-		}
-		else {
+		} else {
 			fclose(mfile);
 			LOG_MSG("MSG: FONTX2 SBCS font size is not correct\n");
 			return false;
@@ -985,7 +1017,7 @@ void JFONT_Init() {
 	if (pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
-		if(!LoadFontxFile(path.c_str(), 19)) {
+		if(!LoadFontxFile(path.c_str(), 19, false)) {
 			if(!MakeSbcs19Font()) {
 				LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 #if defined(LINUX)
@@ -1005,13 +1037,13 @@ void JFONT_Init() {
 	if(pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
-		LoadFontxFile(path.c_str());
+		LoadFontxFile(path.c_str(), 16, true);
 	}
 	pathprop = section->Get_path("fontxdbcs14");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
-		LoadFontxFile(path.c_str(), 14);
+		LoadFontxFile(path.c_str(), 14, true);
 	}
 	if(IS_DOSV) {
 #if defined(USE_TTF)
@@ -1021,7 +1053,7 @@ void JFONT_Init() {
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
-			if(!LoadFontxFile(path.c_str())) {
+			if(!LoadFontxFile(path.c_str(), 16, false)) {
 				if(!MakeSbcs16Font()) {
 					LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
 #if defined(LINUX)
@@ -1041,13 +1073,13 @@ void JFONT_Init() {
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
-			LoadFontxFile(path.c_str(), 24);
+			LoadFontxFile(path.c_str(), 24, true);
 		}
 		pathprop = section->Get_path("fontxsbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
-			if(!LoadFontxFile(path.c_str())) {
+			if(!LoadFontxFile(path.c_str(), 24, false)) {
 				if(!MakeSbcs24Font()) {
 					LOG_MSG("MSG: SBCS 12x24 font file path is not specified.\n");
 				}
