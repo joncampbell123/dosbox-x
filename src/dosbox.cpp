@@ -1043,11 +1043,14 @@ void DOSBOX_RealInit() {
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
-    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = dos.set_j3100_enabled = false;
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
     del_flag = dosv_section->Get_bool("del");
-    if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "jp")) {
+        dos.set_jdosv_enabled = true;
+        if(dosv_section->Get_bool("j3100")) dos.set_j3100_enabled = true;
+    }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
     if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
@@ -2131,6 +2134,10 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("j3100",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If dosv=jp and this option is enabled, the J-3100 will be emulated.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
