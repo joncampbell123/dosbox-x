@@ -222,8 +222,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
                     fclose(mfile);
                     return true;
                 }
-            }
-            else if (sz == SBCS24_LEN && height == 24) {
+            } else if (sz == SBCS24_LEN && height == 24) {
                 fread(jfont_sbcs_24, sizeof(uint8_t), SBCS24_LEN, mfile);
                 fclose(mfile);
                 return true;
@@ -261,10 +260,10 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 		fclose(mfile);
 		LOG_MSG("MSG: no correct FONTX2 header found\n");
 		return false;
-    }
+	}
 	// switch whether the font is DBCS or not
 	if (head.type == 1 && dbcs) {
-		if (head.width == 14 && head.height == 14) {
+		if (head.width == 14 && head.height == 14 && height == 14) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -274,7 +273,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 					jfont_cache_dbcs_14[code] = 1;
 				}
 			}
-		} else if (head.width == 16 && head.height == 16) {
+		} else if (head.width == 16 && head.height == 16 && height == 16) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -284,7 +283,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 					jfont_cache_dbcs_16[code] = 1;
 				}
 			}
-		} else if (head.width == 24 && head.height == 24) {
+		} else if (head.width == 24 && head.height == 24 && height == 24) {
 			size = getc(mfile);
 			table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
 			readfontxtbl(table, size, mfile);
@@ -300,7 +299,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 			return false;
 		}
 	}
-    else if (!dbcs) {
+	else if (!dbcs) {
 		if (head.width == 8 && head.height == 19 && height == 19) {
 			fread(jfont_sbcs_19, sizeof(uint8_t), SBCS19_LEN, mfile);
 		} else if (head.width == 8 && head.height == 16) {
@@ -324,7 +323,8 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 			LOG_MSG("MSG: FONTX2 SBCS font size is not correct\n");
 			return false;
 		}
-    }
+	}
+	//LOG_MSG("Loaded FONTX2 file (width %d and height %d): %s\n", head.width, head.height, fname);
 	fclose(mfile);
 	return true;
 
