@@ -111,6 +111,8 @@ void change_output(int output);
 void runBoot(const char *str);
 void SetIMPosition(void);
 bool isDBCSCP();
+Bitu INT60_Handler(void);
+Bitu INT6F_Handler(void);
 #if defined(USE_TTF)
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
@@ -5512,7 +5514,9 @@ static Bitu INT8_Handler(void) {
         SetIMPosition();
 #endif
     } else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
-		INT8_DOSV();
+        INT8_DOSV();
+    } else if(J3_IsJapanese()) {
+        INT8_J3();
     } else if (IS_DOS_CJK) {
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
         SetIMPosition();
@@ -7843,7 +7847,8 @@ private:
                 real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
             }
             for (uint16_t ct=0x68;ct<0x70;ct++) {
-                real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
+                if(!IS_J3100 || ct != 0x6f)
+                    real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
             }
 
             // default handler for IRQ 2-7
@@ -9629,6 +9634,14 @@ public:
         // INT 18h: Enter BASIC
         // Non-IBM BIOS would display "NO ROM BASIC" here
         callback[15].Install(&INT18_Handler,CB_IRET,"int 18");
+
+        if(IS_J3100) {
+            callback[16].Install(&INT60_Handler,CB_IRET,"Int 60 Bios");
+            callback[16].Set_RealVec(0x60);
+
+            callback[17].Install(&INT6F_Handler,CB_INT6F_ATOK,"Int 6F Bios");
+            callback[17].Set_RealVec(0x6f);
+        }
 
         init_vm86_fake_io();
 
