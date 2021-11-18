@@ -85,6 +85,8 @@ VideoModeBlock ModeList_VGA[]={
 { 0x013  ,M_VGA    ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x2000 ,100 ,449 ,80 ,400 ,_REPEAT1   },
 
 { 0x019  ,M_TEXT   ,720 ,688, 80 ,43, 9, 16 ,1 ,0xB8000 ,0x4000, 100, 688, 80, 688, 0   },
+/* Olivetti M24, AT&T 6300 */
+{ 0x040  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
 { 0x043  ,M_TEXT   ,640 ,480, 80 ,60, 8,  8 ,2 ,0xB8000 ,0x4000, 100 ,525 ,80 ,480 ,0   },
 { 0x054  ,M_TEXT   ,1056,344, 132,43, 8,  8 ,1 ,0xB8000 ,0x4000, 160, 449, 132,344, 0   },
 { 0x055  ,M_TEXT   ,1056,400, 132,25, 8, 16 ,1 ,0xB8000 ,0x2000, 160, 449, 132,400, 0   },
@@ -96,6 +98,9 @@ VideoModeBlock ModeList_VGA[]={
 { 0x069  ,M_LIN8   ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0	},
 /* Alias of mode 102 */
 { 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,128 ,663 ,100,600 ,0	},
+
+/* Toshiba T3100, J-3100 */
+{ 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
 
 /* Follow vesa 1.2 for first 0x20 */
 { 0x100  ,M_LIN8   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0   },
@@ -376,7 +381,12 @@ VideoModeBlock ModeList_VGA_Tseng[]={
 { 0x038  ,M_LIN8   ,1024 ,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,800 ,128,768 , 0 },/* ET4000 only */
 { 0x03D  ,M_LIN4   ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0xA000, 160 ,1152,160,1024, 0 },/* newer ET4000 */
 { 0x03E  ,M_LIN4   ,1280, 960,160,60 ,8 ,16 ,1 ,0xA0000 ,0xA000, 160 ,1024,160,960 , 0 },/* Definicon only */ 
+/* Olivetti M24, AT&T 6300 */
+{ 0x040  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
 { 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0xA000, 128 ,663 ,100,600 , 0 },/* newer ET4000 */
+
+/* Toshiba T3100, J-3100 */
+{ 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
 
 // Sierra SC1148x Hi-Color DAC modes
 { 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _REPEAT1 },
@@ -407,6 +417,9 @@ VideoModeBlock ModeList_VGA_Paradise[]={
 { 0x012  ,M_EGA    ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
 { 0x013  ,M_VGA    ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x2000 ,100 ,449 ,80 ,400 ,_REPEAT1 },
 
+/* Olivetti M24, AT&T 6300 */
+{ 0x040  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
+
 { 0x054  ,M_TEXT   ,1056 ,688, 132,43, 8, 9, 1, 0xB0000, 0x4000, 192, 720, 132,688, 0 },
 { 0x055  ,M_TEXT   ,1056 ,400, 132,25, 8, 16,1, 0xB0000, 0x2000, 192, 449, 132,400, 0 },
 { 0x056  ,M_TEXT   ,1056 ,688, 132,43, 8, 9, 1, 0xB0000, 0x4000, 192, 720, 132,688, 0 },
@@ -416,6 +429,9 @@ VideoModeBlock ModeList_VGA_Paradise[]={
 { 0x05D  ,M_LIN4   ,1024, 768, 128,48 ,8, 16,1, 0xA0000, 0x10000,128 ,800 ,128,768 ,0 }, // documented only on C00 upwards
 { 0x05E  ,M_LIN8   ,640 , 400, 80 ,25, 8, 16,1, 0xA0000, 0x10000,100 ,449 ,80 ,400, 0 },
 { 0x05F  ,M_LIN8   ,640 , 480, 80 ,30, 8, 16,1, 0xA0000, 0x10000,100 ,525 ,80 ,480, 0 },
+
+/* Toshiba T3100, J-3100 */
+{ 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
 
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
@@ -763,6 +779,7 @@ static void FinishSetMode(bool clearmem) {
                 break;
             }
             // fall-through
+		case M_DCGA:
 		case M_CGA2:
             if (machine == MCH_MCGA && CurMode->mode == 0x11) {
                 for (uint16_t ct=0;ct<32*1024;ct++) {
@@ -770,7 +787,7 @@ static void FinishSetMode(bool clearmem) {
                 }
             }
             else {
-                for (uint16_t ct=0;ct<16*1024;ct+=2) {
+                for (uint16_t ct=0;ct<((CurMode->type == M_DCGA)?32:16)*1024;ct+=2) {
                     real_writew( 0xb800,ct,0x0000);
                 }
             }
@@ -1436,6 +1453,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		seq_data[4]|=0x01;				//Alpanumeric
 		seq_data[4]&=~0x04;				//odd/even enable
 		break;
+	case M_DCGA:
 	case M_CGA2:
 		if (IS_EGAVGA_ARCH) {
 			seq_data[2]|=0x1;			//Enable plane 0. Most VGA cards treat it as a 640x200 variant of the MCGA 2-color mode, with bit 13 remapped for interlace
@@ -1647,6 +1665,10 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	case M_LIN32:
 		underline=0x60;			//Seems to enable the every 4th clock on my s3
 		break;
+	case M_DCGA:
+		max_scanline&=~0x80;
+		max_scanline|=0x03;
+		break;
 	default:
 	    /* do NOT apply this to VESA BIOS modes */
 		if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
@@ -1711,6 +1733,9 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	uint8_t mode_control=0;
 
 	switch (CurMode->type) {
+	case M_DCGA:
+		mode_control=0xc4;
+		break;
 	case M_CGA2:
 		mode_control=0xc2; // 0x06 sets address wrap.
 		break;
@@ -1829,6 +1854,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		gfx_data[0x6]|=0x0f;		//graphics mode at at 0xb800=0xbfff
 		if (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
 		break;
+	case M_DCGA:
 	case M_CGA2:
 		gfx_data[0x6]|=0x0d;		//graphics mode at at 0xb800=0xbfff, chain odd/even disabled
 		break;
@@ -1903,6 +1929,7 @@ att_text16:
 			att_data[0x06]=0x14;		//Odd Color 6 yellow/brown.
 		}
 		break;
+	case M_DCGA:
 	case M_CGA2:
 		att_data[0x10]=0x01;		//Color Graphics
 		att_data[0]=0x0;
@@ -1974,6 +2001,7 @@ att_text16:
 				}
 			}
 			break;
+		case M_DCGA:
 		case M_CGA2:
 		case M_CGA4:
 		case M_TANDY16:
@@ -2053,6 +2081,7 @@ dac_text16:
 	}
 	/* Setup some special stuff for different modes */
 	switch (CurMode->type) {
+	case M_DCGA:
 	case M_CGA2:
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x1e);
 		break;
@@ -2182,6 +2211,10 @@ dac_text16:
 		modeData.htotal = CurMode->htotal;
 		modeData.vtotal = CurMode->vtotal;
 		svga.set_video_mode(crtc_base, &modeData);
+	}
+
+	if(IS_J3100) {
+		J3_SetBiosArea(mode);
 	}
 
     INT10_ToggleBlinkingBit(blinking?1:0);
