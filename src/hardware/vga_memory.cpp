@@ -2418,6 +2418,7 @@ void VGA_SetupHandlers(void) {
 	case M_TEXT:
 	case M_CGA2:
 	case M_CGA4:
+	case M_DCGA:
         /* EGA/VGA emulate CGA modes as chained */
         /* fall through */
 	case M_LIN8:
