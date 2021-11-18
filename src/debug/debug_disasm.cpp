@@ -368,7 +368,7 @@ static char const *f0[]     = { 0, 0, 0, 0, 0, 0, 0, 0};
 static char const *fop_8[]  = { "*fld st,%GF" };
 static char const *fop_9[]  = { "*fxch st,%GF" };
 static char const *fop_10[] = { "fnop", 0, 0, 0, 0, 0, 0, 0 };
-static char const *fop_11[]  = { "*fst st,%GF" };
+static char const *fop_11[] = { "*fstp st,%GF" };
 static char const *fop_12[] = { "fchs", "fabs", 0, 0, "ftst", "fxam", 0, 0 };
 static char const *fop_13[] = { "fld1", "fldl2t", "fldl2e", "fldpi",
                    "fldlg2", "fldln2", "fldz", 0 };
@@ -377,7 +377,7 @@ static char const *fop_14[] = { "f2xm1", "fyl2x", "fptan", "fpatan",
 static char const *fop_15[] = { "fprem", "fyl2xp1", "fsqrt", "fsincos",
                    "frndint", "fscale", "fsin", "fcos" };
 static char const *fop_21[] = { 0, "fucompp", 0, 0, 0, 0, 0, 0 };
-static char const *fop_28[] = { "[fneni]", "[fndis]", "fclex", "finit", "[fnsetpm]", "[frstpm]", 0, 0 };
+static char const *fop_28[] = { "[fneni]", "[fndisi]", "fclex", "finit", "[fnsetpm]", "[frstpm]", 0, 0 };
 static char const* fop_29[] = { "*fucomi %GF" };
 static char const* fop_30[] = { "*fcomi %GF" };
 static char const *fop_32[] = { "*fadd %GF,st" };
@@ -403,6 +403,9 @@ static char const *fop_53[] = { "*fsubp %GF,st" };
 static char const *fop_54[] = { "*fdivrp %GF,st" };
 static char const *fop_55[] = { "*fdivp %GF,st" };
 static char const *fop_56[] = { "*ffreep %GF" };
+static char const *fop_57[] = { "*fxch %GF" };
+static char const *fop_58[] = { "*fstp %GF" };
+static char const *fop_59[] = { "*fstp %GF" };
 static char const *fop_60[] = { "fstsw ax", 0, 0, 0, 0, 0, 0, 0 };
 static char const* fop_61[] = { "*fucomip %GF" };
 static char const* fop_62[] = { "*fcomip %GF" };
@@ -415,7 +418,7 @@ static char const **fspecial[] = { /* 0=use st(i), 1=undefined 0 in fop_* means 
   fop_32, fop_33, fop_34, fop_35, fop_36, fop_37, fop_38, fop_39,
   fop_40, fop_41, fop_42, fop_43, fop_44, fop_45, f0, f0,
   fop_48, fop_49, fop_50, fop_51, fop_52, fop_53, fop_54, fop_55,
-  fop_56, f0, f0, f0, fop_60, fop_61, fop_62, f0,
+  fop_56, fop_57, fop_58, fop_59, fop_60, fop_61, fop_62, f0,
 };
 
 static const char *floatops[] = { /* assumed " %EF" at end of each.  mod != 3 only */
@@ -423,16 +426,16 @@ static const char *floatops[] = { /* assumed " %EF" at end of each.  mod != 3 on
        "fsub", "fsubr", "fdiv", "fdivr",
 /*08*/ "fld", 0, "fst", "fstp",
        "fldenv", "fldcw", "fstenv", "fstcw",
-/*16*/ "fiadd", "fimul", "ficomw", "ficompw",
+/*16*/ "fiadd", "fimul", "ficom", "ficomp",
        "fisub", "fisubr", "fidiv", "fidivr",
 /*24*/ "fild", "fisttp", "fist", "fistp",
-       "frstor", "fldt", 0, "fstpt",
+       0, "fldt", 0, "fstpt",
 /*32*/ "faddq", "fmulq", "fcomq", "fcompq",
        "fsubq", "fsubrq", "fdivq", "fdivrq",
 /*40*/ "fldq", "fisttpq", "fstq", "fstpq",
-       0, 0, "fsave", "fstsw",
+       "frstor", 0, "fsave", "fstsw",
 /*48*/ "fiaddw", "fimulw", "ficomw", "ficompw",
-       "fisubw", "fisubrw", "fidivw", "fidivr",
+       "fisubw", "fisubrw", "fidivw", "fidivrw",
 /*56*/ "fildw", "fisttpw", "fistw", "fistpw",
        "fbldt", "fildq", "fbstpt", "fistpq"
 };
@@ -811,16 +814,11 @@ static void floating_point(int e1)
 {
   int esc = e1*8 + REG(modrm());
 
-  if ((MOD(modrm()) == 3)&&fspecial[esc]) {
-    if (fspecial[esc][0]) {
-      if (fspecial[esc][0][0] == '*') {
-        ua_str(fspecial[esc][0]+1);
-      } else {
-        ua_str(fspecial[esc][RM(modrm())]);
-      }
+  if ((MOD(modrm()) == 3) && fspecial[esc]) {
+    if (fspecial[esc][0] && fspecial[esc][0][0] == '*') {
+      ua_str(fspecial[esc][0]+1);
     } else {
-      ua_str(floatops[esc]);
-      ua_str(" %EF");
+      ua_str(fspecial[esc][RM(modrm())]);
     }
   } else {
     ua_str(floatops[esc]);
