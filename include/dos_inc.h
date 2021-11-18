@@ -45,6 +45,7 @@ struct CommandTail{
 #define IS_KDOSV (dos.set_kdosv_enabled)
 #define IS_CDOSV (dos.set_cdosv_enabled)
 #define IS_PDOSV (dos.set_pdosv_enabled)
+#define IS_J3100 (dos.set_j3100_enabled)
 
 #define	EXT_DEVICE_BIT				0x0200
 
@@ -767,6 +768,7 @@ struct DOS_Block {
     bool set_jdosv_enabled = false;
     bool set_kdosv_enabled = false;
     bool set_pdosv_enabled = false;
+    bool set_j3100_enabled = false;
     bool im_enable_flag;
     uint16_t dcp;	// Device command packet
 };
