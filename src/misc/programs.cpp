@@ -95,7 +95,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
-void EMS_Startup(Section* sec), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1302,7 +1302,7 @@ next:
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
                 if (applynew) RebootLanguage("");
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "dosv")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1692,6 +1692,9 @@ next:
 #endif
                                 }
 							}
+						} else if (!strcasecmp(pvars[0].c_str(), "dosv")) {
+                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
+                                DOSV_SetConfig(section);
                         } else if (!strcasecmp(pvars[0].c_str(), "render")) {
                             if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
 #if C_OPENGL
