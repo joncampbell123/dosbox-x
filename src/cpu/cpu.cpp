@@ -69,6 +69,7 @@ bool do_seg_limits = false;
 
 bool enable_fpu = true;
 bool enable_msr = true;
+bool enable_syscall = true;
 bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
@@ -2956,6 +2957,7 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (enable_syscall) reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 		} else {
 			return false;
 		}
@@ -3516,7 +3518,8 @@ public:
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
-        enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
+		enable_syscall=section->Get_bool("enable syscall");
+		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -4094,6 +4097,19 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	/* then restore EAX:EDX */
 	reg_eax = old_eax;
 	reg_edx = old_edx;
+}
+
+/* pentium II fast system call */
+bool CPU_SYSENTER() {
+	if (!enable_syscall) return false;
+	LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
+	return false; /* TODO */
+}
+
+bool CPU_SYSEXIT() {
+	if (!enable_syscall) return false;
+	LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
+	return false; /* TODO */
 }
 
 /* pentium machine-specific registers */

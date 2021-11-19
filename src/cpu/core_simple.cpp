@@ -144,6 +144,8 @@ static INLINE uint32_t Fetchd() {
 
 bool CPU_RDMSR();
 bool CPU_WRMSR();
+bool CPU_SYSENTER();
+bool CPU_SYSEXIT();
 
 #include "instructions.h"
 #include "core_normal/support.h"

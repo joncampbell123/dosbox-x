@@ -26,6 +26,8 @@
 
 bool CPU_RDMSR();
 bool CPU_WRMSR();
+bool CPU_SYSENTER();
+bool CPU_SYSEXIT();
 
 #define PRE_EXCEPTION { }
 
