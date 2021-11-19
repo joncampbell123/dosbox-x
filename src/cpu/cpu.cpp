@@ -3530,6 +3530,12 @@ public:
 		std::string core(section->Get_string("core"));
 		cpudecoder=&CPU_Core_Normal_Run;
 		safe_strncpy(core_mode,core.c_str(),15);
+
+		if (enable_syscall && !enable_msr) {
+			UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("syscall (SYSENTER/SYSEXIT) requires that model specific registers (RDMSR/WRMSR) are enabled");
+			enable_syscall = false;
+		}
+
 		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
