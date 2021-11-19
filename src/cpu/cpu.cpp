@@ -2947,11 +2947,15 @@ bool CPU_CPUID(void) {
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
 			reg_eax=0x632;		/* intel pentium II */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else {
 			return false;
 		}
