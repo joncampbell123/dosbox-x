@@ -202,13 +202,13 @@ system to limit what the DOSBox-X executable is allowed to do.
 DOSBox-X aims to be a fully-featured DOS emulation package, but there are
 some things the design as implemented now cannot accomodate.
 
-* Pentium II or higher CPU level emulation.
+* Pentium III or higher CPU level emulation.
 
-  DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
+  DOSBox-X contains code only to emulate the 8088 through the Pentium II.
   Real DOS systems (MS-DOS and compatibles) also work best with these CPUs.
 
-  If Pentium II or higher emulation is desired, consider using Bochs
-  or QEMU instead. DOSBox-X may eventually develop Pentium II emulation,
+  If Pentium III or higher emulation is desired, consider using Bochs
+  or QEMU instead. DOSBox-X may eventually develop Pentium III emulation,
   if wanted by the DOSBox-X community in general.
 
 * Emulation of PC hardware 2001 or later.

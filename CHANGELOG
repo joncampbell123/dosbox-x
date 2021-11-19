@@ -8,6 +8,11 @@
     later. (joncampbell123).
   - Added Pentium II cputype, to begin development
     of such emulation. (joncampbell123)
+  - Added support for DCGA and Toshiba J-3100 emulation
+    modes. The J-3100 emulation can be enabled with the
+    options "dosv=jp" & "j3100=true" in [dosv] section.
+    There is also DCGA command which can enter DCGA
+    from other video modes. (nanshiki)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
