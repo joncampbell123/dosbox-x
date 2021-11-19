@@ -1,4 +1,10 @@
 0.83.20
+  - Add MSR register 0x0000001B to Pentium II
+    emulation. DOSBox-X does not emulate a local
+    APIC but Windows Millenium Edition assumes that
+    MSR is present and reads/writes it on startup
+    if DOSBox-X reports itself as a Pentium II.
+    (joncampbell123)
   - While CPU "debug spew" is silenced by default,
     remove silencing for RDMSR/WRMSR and
     SYSENTER/SYSEXIT debug messages (joncampbell123).

@@ -4128,6 +4128,13 @@ bool CPU_RDMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
+		case 0x0000001b: /* Local APIC */
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
+			 *      instead of, you know, using CPUID */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
+			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
@@ -4146,6 +4153,15 @@ bool CPU_WRMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
+		case 0x0000001b: /* Local APIC */
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
+			 *      instead of, you know, using CPUID. It will also set the enable bit, even if
+			 *      this register was 0x00000000 when it booted. Fortunately, Windows ME still
+			 *      runs properly if we silently ignore the write and leave it 0x00000000. */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
+			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
+			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
