@@ -298,8 +298,8 @@ static void PC98_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,
     MEM_BlockCopy(dest+0x2000,src+0x2000,(Bitu)(cright-cleft)*2u);
 }
 
-static void DCGA_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
-	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+static void DCGA_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
+	uint8_t cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 	PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/4)+cleft);
 	PhysPt src=base+((CurMode->twidth*rold)*(cheight/4)+cleft);
 	Bitu copy=(cright-cleft);
@@ -314,8 +314,8 @@ static void DCGA_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
 	}
 }
 
-static void DCGA_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
-	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+static void DCGA_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,uint8_t attr) {
+	uint8_t cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 	PhysPt dest=base+((CurMode->twidth*row)*(cheight/4)+cleft);
 	Bitu copy=(cright-cleft);
 	Bitu nextline=CurMode->twidth;
@@ -546,7 +546,7 @@ static uint16_t font_net_data[2][16] = {
 	{ 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000 }
 };
 
-void WriteCharDCGASbcs(uint16_t col, uint16_t row, Bit8u chr, Bit8u attr)
+void WriteCharDCGASbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
 {
 	Bitu x, y, off, net, pos;
 	uint8_t data;
