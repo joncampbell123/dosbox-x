@@ -14,11 +14,11 @@
   - The code page setting of "country" option will now
     be ignored for PC-98, JEGA and DOS/V modes. These
     modes will enforce the desired code page. (Wengier)
-  - Added support for loading ASC16/ASCFONT.15/ASC24/
-    ASCFONT.24C/ASCFONT.24D font files from the UCDOS/
-    ETen Chinese DOS systems for the config options
-    "fontxsbcs", "fontxsbcs16" and "fontxdbcs24" in
-    the [dosv] section for DOS/V systems. (Wengier)
+  - Added support for loading the ASC16/ASCFONT.15/
+    ASC24/ASCFONT.24? font files from the UCDOS/ETen
+    Chinese DOS systems for the options "fontxsbcs",
+    "fontxsbcs16" and "fontxdbcs24" in [dosv] section
+    of the config file for DOS/V systems. (Wengier)
   - Improved auto-detection of box-drawing characters
     when using DBCS code pages. (Wengier)
   - Applied UTF-8 conversions to file browse dialog

@@ -222,7 +222,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
                     fclose(mfile);
                     return true;
                 }
-            } else if (sz == SBCS24_LEN && height == 24) {
+            } else if ((sz == SBCS24_LEN || sz == 16384) && height == 24) {
                 fread(jfont_sbcs_24, sizeof(uint8_t), SBCS24_LEN, mfile);
                 fclose(mfile);
                 return true;

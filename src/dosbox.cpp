@@ -1463,7 +1463,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("compresssaveparts", Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, DOSBox-X will compress components of saved states.");
+    Pbool->Set_help("If set, DOSBox-X will compress components of saved states to save space.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -2083,7 +2083,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.\n"
-                    "Loading the ASC24/ASCFONT.24C/ASCFONT.24D font files (the latter two from the ETen Chinese DOS system) is also supported.");
+                    "Loading the ASC24 and ASCFONT.24? font files (the latter from the ETen Chinese DOS system) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
