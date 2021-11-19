@@ -2137,7 +2137,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("j3100",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("If dosv=jp and this option is enabled, the J-3100 will be emulated.");
+	Pbool->Set_help("With dosv=jp and this option enabled, the Toshiba J-3100 will be emulated.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
