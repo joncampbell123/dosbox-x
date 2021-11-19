@@ -1895,7 +1895,7 @@ void EMS_PickPageFrame(void) {
      * IBM PC emulation can put the page frame at 0xE000 (as DOSBox has always done).
      * PC-98 emulation needs to move the page frame down because 0xE000 is taken by the 4th EGC bitplane.
      * J-3100 emulation needs to move the page frame down because  0xE000 is used in Kanji ROM. */
-    EMM_PAGEFRAME =      (IS_PC98_ARCH | IS_J3100) ? 0xD000 : 0xE000;
+    EMM_PAGEFRAME =      (IS_PC98_ARCH || IS_J3100) ? 0xD000 : 0xE000;
     EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
 }
 
