@@ -48,7 +48,12 @@ dyncore_flags_t         dyncore_flags = 0;
 
 #if defined(CPU_DEBUG_SPEW)
 # define _LOG LOG
+# define UNBLOCKED_LOG LOG
 #else
+class UNBLOCKED_LOG : public LOG {
+public:
+	UNBLOCKED_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
+};
 class _LOG : public LOG { // HACK
 public:
 	_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
@@ -69,6 +74,7 @@ bool do_seg_limits = false;
 
 bool enable_fpu = true;
 bool enable_msr = true;
+bool enable_syscall = true;
 bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
@@ -279,6 +285,9 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_ii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII).
+        refresh_item(mainMenu);
     mainMenu.get_item("cputype_experimental").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
         refresh_item(mainMenu);
@@ -315,6 +324,8 @@ const char *GetCPUType() {
         return "Pentium MMX";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
         return "Pentium Pro";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII)
+        return "Pentium II";
     else
         return "Mixed/other x86";
 }
@@ -2929,19 +2940,29 @@ bool CPU_CPUID(void) {
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (PMMX) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
 			reg_eax=0x612;		/* intel pentium pro */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			reg_eax=0x632;		/* intel pentium II */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (enable_syscall) reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 		} else {
 			return false;
 		}
@@ -3375,6 +3396,8 @@ public:
             set_text("Pentium MMX").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_ii").
+            set_text("Pentium II").set_callback_function(CpuType_ByName);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
             set_text("Experimental").set_callback_function(CpuType_ByName);
@@ -3500,12 +3523,19 @@ public:
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
-        enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
+		enable_syscall=section->Get_bool("enable syscall");
+		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
 		cpudecoder=&CPU_Core_Normal_Run;
 		safe_strncpy(core_mode,core.c_str(),15);
+
+		if (enable_syscall && !enable_msr) {
+			UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("syscall (SYSENTER/SYSEXIT) requires that model specific registers (RDMSR/WRMSR) are enabled");
+			enable_syscall = false;
+		}
+
 		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
@@ -3656,9 +3686,11 @@ public:
 #endif
 		} else if (cputype == "ppro_slow") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
- 		}
-        if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow"))
-            LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
+		} else if (cputype == "pentium_ii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
+		}
+		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
+			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
 
 		/* WARNING */
 		if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
@@ -3668,7 +3700,7 @@ public:
 			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
-        /* because of the way the BIOS writes certain entry points, a reboot is required
+		/* because of the way the BIOS writes certain entry points, a reboot is required
          * if changing between specific levels of CPU. These entry points will fault the
          * CPU otherwise. */
         bool reboot_now = false;
@@ -4078,13 +4110,26 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	reg_edx = old_edx;
 }
 
+/* pentium II fast system call */
+bool CPU_SYSENTER() {
+	if (!enable_syscall) return false;
+	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
+	return false; /* TODO */
+}
+
+bool CPU_SYSEXIT() {
+	if (!enable_syscall) return false;
+	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
+	return false; /* TODO */
+}
+
 /* pentium machine-specific registers */
 bool CPU_RDMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
 	}
 
@@ -4102,7 +4147,7 @@ bool CPU_WRMSR() {
 
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
 	}
 
