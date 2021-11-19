@@ -98,6 +98,7 @@ const char* const mode_texts[M_MAX] = {
     "M_PC98",
     "M_FM_TOWNS",       // 20 STUB
     "M_PACKED4",
+    "M_DCGA",
     "M_ERROR"
 };
 
@@ -3826,6 +3827,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     case M_HERC_GFX:
     case M_CGA4:
     case M_CGA2:
+    case M_DCGA:
         vga.draw.address=(vga.draw.address*2u)&0x1fffu;
         break;
     case M_AMSTRAD: // Base address: No difference?
@@ -4295,6 +4297,7 @@ void VGA_CheckScanLength(void) {
     case M_CGA2:
     case M_CGA4:
     case M_CGA16:
+    case M_DCGA:
     case M_AMSTRAD: // Next line.
         if (IS_EGAVGA_ARCH)
             vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
@@ -4822,6 +4825,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case M_CGA16:
         case M_CGA2:
         case M_CGA4:
+        case M_DCGA:
         case M_PC98:
         case M_TEXT:
             if (!vga_alt_new_mode) {
@@ -5068,6 +5072,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             }
         }
         break;
+    case M_DCGA:
     case M_CGA2:
         // CGA 2-color mode on EGA/VGA is just EGA 16-color planar mode with one bitplane enabled and a
         // color palette to match. Therefore CGA 640x200 2-color mode can be rendered correctly using

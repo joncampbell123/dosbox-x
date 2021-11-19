@@ -7559,10 +7559,9 @@ void SetIMPosition() {
         } else {
 #endif
             rect.x = x * width;
+            rect.y = y * height - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeight;
-#else
-            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0));
+            rect.y += mainMenu.menuBarHeight;
 #endif
 #if defined(USE_TTF)
         }
