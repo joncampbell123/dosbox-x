@@ -114,6 +114,7 @@
   - Integrated commits from mainline (Allofich)
     - Add proper opl3 handling of the waveform select
     to dbopl.
+    - Correct disassembly of some FPU instructions.
 0.83.19
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to
