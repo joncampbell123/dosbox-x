@@ -1609,6 +1609,9 @@ Y puedes hacer más cosas en DOSBox-X con la ←[33mbarra de menús desplegables
 - lanzar ←[33mHerramienta de configuración←[37m ←[31mF11 ←[37m+ ←[31mC←[37m←[37m / ←[33mEditor de Mapper←[37m ←[31mF11 ←[37m+ ←[31mM←[37m    ←[37m
 - subir o bajar la velocidad de emulación: ←[31mF11 ←[37m+ ←[31mMAS←[37m←[37m sube / ←[31mF11 ←[37m+ ←[31mMENOS←[37m baja←[37m
 .
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+.
 :SHELL_STARTUP_CGA
 Modo compuesto de CGA soportado. Usa ←[31mCtrl+F8←[37m para activarlo o desactivarlo. 
 Ajuste de matiz ←[31mCtrl+Shift+[F7/F8]←[37m. Usa ←[31mCtrl+F7←[37m para modo CGA nuevo/viejo.  

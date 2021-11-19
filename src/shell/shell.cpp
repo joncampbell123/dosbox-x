@@ -655,7 +655,10 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
+                if (IS_DOSV) {
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_DOSV"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
                     WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 } else if (machine == MCH_HERC || machine == MCH_MDA) {
@@ -1316,6 +1319,7 @@ void SHELL_Init() {
             std::string("- launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m\n") +
             std::string("- increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
             (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m")).c_str());
+    MSG_Add("SHELL_STARTUP_DOSV","\033[32mDOS/V mode\033[37m is now active. Try also \033[32mTTF CJK mode\033[37m for a general DOS emulation.");
     MSG_Add("SHELL_STARTUP_CGA", "Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF.\nUse \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model. ");
     MSG_Add("SHELL_STARTUP_CGA_MONO","Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,      \nand \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                         ");
     MSG_Add("SHELL_STARTUP_HERC","Use \033[31mCtrl+F7\033[37m to cycle through white, amber, and green monochrome color.      \nUse \033[31mCtrl+F8\033[37m to toggle horizontal blending (only in graphics mode).          ");

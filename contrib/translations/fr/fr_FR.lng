@@ -1608,6 +1608,9 @@ Vous pouvez effectuer des tâches par l'intermédiaire des menus ←[33mdéroula
 - ←[33ml'outil de configuration avec ←[37m←[31mF11 ←[37m+ ←[31mC←[37m←[37m, ←[33ml'éditeur de mappages avec ←[37m←[31mF11 ←[37m+ ←[31mM ←[37m←[37m
 - régler la vitesse d'émulation avec ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m ou ←[31mF11 ←[37m+ ←[31mMoins←[37m ←[37m             
 .
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+.
 :SHELL_STARTUP_CGA
 Le mode composite CGA est pris en charge. Utilisez ←[31mCtrl+F8←[37m pour régler      
 la sortie composite sur ON/OFF. Utilisez ←[31mCtrl+Shift+[F7/F8]←[37m pour modifier   

@@ -1610,6 +1610,9 @@ You can also complete various tasks in DOSBox-X through the ←[33mdrop-down men
 - launch ←[33mConfiguration Tool←[37m using ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
 - increase or decrease the emulation speed with ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m
 .
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+.
 :SHELL_STARTUP_CGA
 Composite CGA mode is supported. Use ←[31mCtrl+F8←[37m to set composite output ON/OFF.
 Use ←[31mCtrl+Shift+[F7/F8]←[37m to change hue; ←[31mCtrl+F7←[37m selects early/late CGA model. 

@@ -1610,6 +1610,9 @@ Komutların listesini görmek için ←[32mHELP←[37m, kısa bir giriş için �
 -←[31mF11←[37m+←[31mC←[37m←[37m ←[33mYapılandırma aracı←[37m'nı, ←[31mF11←[37m+←[31mM←[37m←[37m ←[33mEşlem düzenleyici←[37m'yi çalıştırır.        
 -←[31mF11←[37m+←[31martı←[37m←[37m veya ←[31mF11←[37m+←[31meksi←[37m←[37m düğmeleri ile öykünme hızını artırın veya azaltın.  
 .
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+.
 :SHELL_STARTUP_CGA
 Kompozit CGA kipi desteklenmektedir. ←[31mCtrl+F8←[37m kullanarak kompozit çıkışı açın/kapatın.
 Renk tonunu değiştirmek için ←[31mCtrl+Shift+[F7/F8]←[37m kullanın; ←[31mCtrl+F7←[37m eski/yeni CGA modelini seçer. 
