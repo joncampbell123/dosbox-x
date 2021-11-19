@@ -50,6 +50,7 @@
 #include "regs.h"
 #include "timer.h"
 #include "render.h"
+#include "jfont.h"
 #include "../libs/physfs/physfs.h"
 #include "../libs/physfs/physfs.c"
 #include "../libs/physfs/physfs_archiver_7z.c"
@@ -141,8 +142,8 @@ static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
 static std::string hostname = "";
-extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea;
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, halfwidthkana;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
@@ -272,8 +273,14 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
-            ic <<= 8U;
-            ic += (unsigned char)(*s++);
+            if (morelen && !(dos.loaded_codepage==932 && (halfwidthkana || IS_PC98_ARCH || IS_JEGA_ARCH)) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
+                MT wc = cp437_to_unicode[ic];
+                if (utf8_encode(&d,df,(uint32_t)wc) < 0) return false;
+                continue;
+            } else {
+                ic <<= 8U;
+                ic += (unsigned char)(*s++);
+            }
         }
 
         MT rawofs = hitbl[ic >> 6];

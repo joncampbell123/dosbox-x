@@ -1541,7 +1541,13 @@ static Bitu DOS_21Handler(void) {
             reg_bx=RealOff(dos.dta());
             break;
         case 0x30:      /* Get DOS Version */
-            if (reg_al==0) reg_bh=0xFF;     /* Fake Microsoft DOS */
+            if (reg_al==0) {
+                if(IS_J3100) {
+                    reg_bh=0x29;     /* Fake Toshiba DOS */
+                } else {
+                    reg_bh=0xFF;     /* Fake Microsoft DOS */
+                }
+            }
             if (reg_al==1 && DOS_IS_IN_HMA()) reg_bh=0x10;      /* DOS is in HMA? */
             reg_al=dos.version.major;
             reg_ah=dos.version.minor;
@@ -3579,32 +3585,48 @@ static Bitu DOS_29Handler(void)
 					break;
 				case '>':
 					break;
-				case 'p':/* reassign keys (needs strings) */
-					{
-						/*uint16_t src, dst;
-						i = 0;
-						if(int29h_data.ansi.data[i] == 0) {
-							i++;
-							src = int29h_data.ansi.data[i++] << 8;
-						} else {
-							src = int29h_data.ansi.data[i++];
-						}
-						if(int29h_data.ansi.data[i] == 0) {
-							i++;
-							dst = int29h_data.ansi.data[i++] << 8;
-						} else {
-							dst = int29h_data.ansi.data[i++];
-						}
-						DOS_SetConKey(src, dst);*/
-						ClearAnsi29h();
-					}
-					break;
 				case '"':
 					if(!int29h_data.ansi.key) {
 						int29h_data.ansi.key = true;
 						int29h_data.ansi.numberofarg = 0;
 					}
 					break;
+				case 'h':
+				case 'l':
+				case 'p':
+					if(J3_IsJapanese()) {
+						if(reg_al == 'h') {
+							if(int29h_data.ansi.data[int29h_data.ansi.numberofarg] == 5) {
+								// disable cursor
+								int29h_data.keepcursor = real_readw(BIOSMEM_SEG, BIOSMEM_CURSOR_TYPE);
+								INT10_SetCursorShape(0x20, 0x0f);
+							}
+						} else if(reg_al == 'l') {
+							if(int29h_data.ansi.data[int29h_data.ansi.numberofarg] == 5) {
+								// enable cursor
+								INT10_SetCursorShape(int29h_data.keepcursor >> 8, int29h_data.keepcursor & 0xff);
+							}
+						} else if(reg_al == 'p') {
+							/* reassign keys (needs strings) */
+							uint16_t src, dst;
+							i = 0;
+							if(int29h_data.ansi.data[i] == 0) {
+								i++;
+								src = int29h_data.ansi.data[i++] << 8;
+							} else {
+								src = int29h_data.ansi.data[i++];
+							}
+							if(int29h_data.ansi.data[i] == 0) {
+								i++;
+								dst = int29h_data.ansi.data[i++] << 8;
+							} else {
+								dst = int29h_data.ansi.data[i++];
+							}
+							DOS_SetConKey(src, dst);
+						}
+						ClearAnsi29h();
+						break;
+					}
 				case 'i':/* printer stuff */
 				default:
 					LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[", reg_al);
@@ -4134,6 +4156,8 @@ public:
         if (IS_JEGA_ARCH) {
             INT10_AX_SetCRTBIOSMode(0x51);
             INT16_AX_SetKBDBIOSMode(0x51);
+        } else if (IS_J3100) {
+            INT60_J3_Setup();
         }
 #if defined(USE_TTF)
 		if(IS_DOSV || ttf_dosv) {
@@ -4141,7 +4165,10 @@ public:
 		if(IS_DOSV) {
 #endif
 			DOSV_Setup();
-			if(IS_DOSV) {
+			if(IS_J3100) {
+				INT10_SetVideoMode(0x74);
+				SetTrueVideoMode(0x74);
+			} else if(IS_DOSV) {
 				INT10_DOSV_SetCRTBIOSMode(0x03);
 			}
 		}

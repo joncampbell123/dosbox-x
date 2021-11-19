@@ -6829,6 +6829,23 @@ static void VTEXT_ProgramStart(Program * * make) {
     *make=new VTEXT;
 }
 
+class DCGA : public Program {
+public:
+    void Run(void);
+};
+
+void DCGA::Run()
+{
+    uint16_t oldax=reg_ax;
+    reg_ax = 0x74;
+    CALLBACK_RunRealInt(0x10);
+    reg_ax = oldax;
+}
+
+static void DCGA_ProgramStart(Program * * make) {
+    *make=new DCGA;
+}
+
 class TEXT80X25 : public Program {
 public:
     void Run(void);
@@ -8120,7 +8137,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
-    MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file.\n\nLOADROM ROM_file\n");
+    MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_SPECIFY_FILE","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_CANT_OPEN","ROM file not accessible.\n");
@@ -8371,6 +8388,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
     if (IS_DOSV)
         PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 }

@@ -739,6 +739,20 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 	case CB_CPM:
 		phys_writeb(physAddress+0x00,(uint8_t)0x9C);		//PUSHF
 		return CALLBACK_SetupExtra(callback,CB_INT21,physAddress+1,use_cb)+1;
+	case CB_INT6F_ATOK:
+		phys_writeb(physAddress+0x00,(uint8_t)0xEB);		// jmp
+		phys_writeb(physAddress+0x01,(uint8_t)0x06);		// 108
+		phys_writeb(physAddress+0x03,(uint8_t)'A');
+		phys_writeb(physAddress+0x04,(uint8_t)'T');
+		phys_writeb(physAddress+0x05,(uint8_t)'O');
+		phys_writeb(physAddress+0x06,(uint8_t)'K');
+		if (use_cb) {
+			phys_writeb(physAddress+0x08,(uint8_t)0xFE);	//GRP 4
+			phys_writeb(physAddress+0x09,(uint8_t)0x38);	//Extra Callback instruction
+			phys_writew(physAddress+0x0a,(uint16_t)callback);		//The immediate word
+		}
+		phys_writeb(physAddress+0x0c,(uint8_t)0xCF);		//An IRET Instruction
+		return 13;
 	default:
 		E_Exit("CALLBACK:Setup:Illegal type %u",(unsigned int)type);
 	}

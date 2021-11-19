@@ -933,7 +933,7 @@ Comandos de cartucho PCjr disponibles:%s
 No se han encontrado comandos de cartucho PCjr
 .
 :PROGRAM_LOADROM_HELP
-Carga la imagen ROM indicada.
+Carga el archivo de imagen ROM especificado para BIOS de video o IBM BASIC.
 
 LOADROM ROM_file
 
@@ -1303,6 +1303,10 @@ Carácter de control inesperado: Dec %03u y Hex %#04x.
 Parámetro no válido - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Parámetro no válido - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Falta un parámetro requerido.
 
@@ -1550,6 +1554,14 @@ La ruta o unidad especificada no es válida.
 SUBST: Hay un error en tu línea de comando.
 
 .
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text está habilitado actualmente.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text está actualmente deshabilitado.
+
+.
 :SHELL_STARTUP_TITLE
 Bienvenido a DOSBox-X!
 .
@@ -1596,6 +1608,9 @@ Y puedes hacer más cosas en DOSBox-X con la ←[33mbarra de menús desplegables
 - conmutar entre ventana normal y pantalla completa con el atajo ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m   
 - lanzar ←[33mHerramienta de configuración←[37m ←[31mF11 ←[37m+ ←[31mC←[37m←[37m / ←[33mEditor de Mapper←[37m ←[31mF11 ←[37m+ ←[31mM←[37m    ←[37m
 - subir o bajar la velocidad de emulación: ←[31mF11 ←[37m+ ←[31mMAS←[37m←[37m sube / ←[31mF11 ←[37m+ ←[31mMENOS←[37m baja←[37m
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
 .
 :SHELL_STARTUP_CGA
 Modo compuesto de CGA soportado. Usa ←[31mCtrl+F8←[37m para activarlo o desactivarlo. 
@@ -2188,7 +2203,7 @@ Type ←[33;1mHELP command←[0m or ←[33;1mcommand /?←[0m for help informati
 
 .
 :SHELL_CMD_CHCP_MISSING
-Characters not defined in TTF font: %d
+Caracteres ASCII no definidos en fuente TTF: %d
 
 .
 :MENU:mapper_reset

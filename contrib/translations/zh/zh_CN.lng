@@ -919,7 +919,7 @@ Available PCjr cartridge commandos:%s
 No PCjr cartridge commandos found
 .
 :PROGRAM_LOADROM_HELP
-调用指定的 ROM 镜像文件.
+调用指定的视频 BIOS 或 IBM BASIC ROM 镜像文件.
 
 LOADROM 镜像文件
 
@@ -1293,6 +1293,10 @@ ECHO状态为关.
 开关非法 - %s
 
 .
+:SHELL_INVALID_PARAMETER
+非法参数 - %s
+
+.
 :SHELL_MISSING_PARAMETER
 缺少必要的参数.
 
@@ -1536,6 +1540,14 @@ SUBST 命令只能挂载本地驱动器.
 指定的驱动器或目录非法.
 
 .
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text 当前状态为开.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text 当前状态为关.
+
+.
 :SHELL_CMD_SUBST_FAILURE
 SUBST: 命令行参数错误.
 
@@ -1560,6 +1572,9 @@ SUBST: 命令行参数错误.
 - 切换窗口和全屏模式： [31mF11 [37m+ [31mF[37m [37m                                             
 - 打开 [33m配置工具[37m： [31mF11 [37m+ [31mC[37m[37m； [33m按键编辑[37m: [31mF11 [37m+ [31mM[37m  [37m                             
 - 提高或降低模拟速度： [31mF11 [37m+ [31m加号[37m[37m 或 [31mF11 [37m+ [31m减号[37m   [37m                          
+.
+:SHELL_STARTUP_DOSV
+[32mDOS/V 模式[37m正在运行中。 您亦可以使用[32m中/日/韩 TTF 模式[37m来模拟标准的 DOS 环境。 
 .
 :SHELL_STARTUP_CGA
 支持 CGA 合成模式. 按 [31mCtrl+F8[37m 键启用或禁用合成输出.                         
@@ -2049,7 +2064,7 @@ TrueType 字体输出方式所支持的代码页包括:
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF 字体中未定义的字符数: %d
+TTF 字体中未定义的 ASCII 字符数: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
@@ -3083,6 +3098,9 @@ DOS 命令
 .
 :MENU:cputype_ppro_slow
 奔腾 Pro
+.
+:MENU:cputype_experimental
+实验 CPU
 .
 :MENU:debug_pageflip
 页面翻转调试行

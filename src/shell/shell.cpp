@@ -513,7 +513,7 @@ const char *ParseMsg(const char *msg) {
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
-        if (!ANSI_SYS_installed()) {
+        if (!ANSI_SYS_installed() || J3_IsJapanese()) {
             msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
@@ -655,7 +655,10 @@ void DOS_Shell::Prepare(void) {
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                 WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
+                if (IS_DOSV) {
+                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_DOSV"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+                } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
                     WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
                     WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
                 } else if (machine == MCH_HERC || machine == MCH_MDA) {
@@ -1199,6 +1202,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
+	MSG_Add("SHELL_INVALID_PARAMETER","Invalid parameter - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_MISSING_FILE","The following file is missing or corrupted: %s\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Invalid directory - %s\n");
@@ -1268,6 +1272,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_NOT_LOCAL","It is only possible to use SUBST on local drives.\n");
 	MSG_Add("SHELL_CMD_SUBST_INVALID_PATH","The specified drive or path is invalid.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
+	MSG_Add("SHELL_CMD_VTEXT_ON","DOS/V V-text is currently enabled.\n");
+	MSG_Add("SHELL_CMD_VTEXT_OFF","DOS/V V-text is currently disabled.\n");
 
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
@@ -1313,6 +1319,7 @@ void SHELL_Init() {
             std::string("- launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m\n") +
             std::string("- increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
             (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m")).c_str());
+    MSG_Add("SHELL_STARTUP_DOSV","\033[32mDOS/V mode\033[37m is now active. Try also \033[32mTTF CJK mode\033[37m for a general DOS emulation.");
     MSG_Add("SHELL_STARTUP_CGA", "Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF.\nUse \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model. ");
     MSG_Add("SHELL_STARTUP_CGA_MONO","Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,      \nand \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                         ");
     MSG_Add("SHELL_STARTUP_HERC","Use \033[31mCtrl+F7\033[37m to cycle through white, amber, and green monochrome color.      \nUse \033[31mCtrl+F8\033[37m to toggle horizontal blending (only in graphics mode).          ");
@@ -1522,10 +1529,10 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\n\n  nnn   Specifies a code page number.\n  file  Specifies a code page file.\n\nSupported code pages for changing in the TrueType font output:\n\n437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
-	MSG_Add("SHELL_CMD_CHCP_MISSING", "Characters not defined in TTF font: %d\n");
+	MSG_Add("SHELL_CMD_CHCP_MISSING", "ASCII characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
-	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affected by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device        The terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
@@ -1542,7 +1549,7 @@ void SHELL_Init() {
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();
-	/* Setup the startup CS:IP to kill the last running machine when exitted */
+	/* Setup the startup CS:IP to kill the last running machine when exited */
 	RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
 	SegSet16(cs,RealSeg(newcsip));
 	reg_ip=RealOff(newcsip);

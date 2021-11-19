@@ -64,6 +64,7 @@ Bitu INT10_Handler(void) {
 	//      like the Windows 95 boot logo or INT 10h virtualization in Windows 3.1/9x/ME
 	//      within the DOS "box" will not work properly.
 	if(IS_DOSV && DOSV_CheckCJKVideoMode() && reg_ah != 0x03) DOSV_OffCursor();
+	else if(J3_IsJapanese()) J3_OffCursor();
 	INT10_SetCurMode();
 
 	switch (reg_ah) {
@@ -94,9 +95,9 @@ Bitu INT10_Handler(void) {
 			}
 			DOSV_FillScreen();
 		} else {
-			if(reg_al == 0x74)
-				break;
 			INT10_SetVideoMode(reg_al);
+			if(reg_al == 0x74 && IS_J3100)
+				DOSV_FillScreen();
 		}
 		Mouse_AfterNewVideoMode(true);
 		break;
@@ -1037,6 +1038,24 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x82:// Set/Read the scroll mode when the video mode is JEGA graphic mode
+		if (J3_IsJapanese()) {
+			if(reg_al == 0x00) {
+				// scroll mode
+				reg_al = real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_SCROLL);
+				if(reg_bl == 0x00 || reg_bl == 0x01) {
+					real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_SCROLL, 0x01);
+				}
+			} else if(reg_al == 0x04) {
+				// cursor blink
+				reg_al = real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_BLINK);
+				if(reg_bl == 0x00 || reg_bl == 0x01) {
+					real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_BLINK, reg_bl);
+				}
+			} else if(reg_al == 0x05) {
+				reg_bl = 0x01;
+			}
+			break;
+		}
 		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
 		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 82xxh is called.");
 		switch (reg_al) {
@@ -1057,6 +1076,12 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x83:// Read the video RAM address and virtual text video RAM
+		if (J3_IsJapanese()) {
+			// AX=graphics offset, BX=text offset
+			reg_ax = 0;
+			reg_bx = 0;
+			break;
+		}
 		//Out: AX=base address of video RAM, ES:BX=base address of virtual text video RAM
 		if(INT10_AX_GetCRTBIOSMode() == 0x01) break;//exit if CRT BIOS is in US mode
 		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 83xxh is called.");
@@ -1072,6 +1097,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 		default:
 			LOG(LOG_INT10,LOG_ERROR)("Unhandled AX Function %X",reg_al);
 			break;
+		}
+		break;
+	case 0x85:
+		if (J3_IsJapanese()) {
+			// Get attr
+			reg_al = GetKanjiAttr();
+		}
+		break;
+	case 0x88:
+		if (J3_IsJapanese()) {
+			// gaiji font table
+			reg_bx = 0x0000;
+			SegSet16(es, GetGaijiSeg());
 		}
 		break;
 	case 0xf0:

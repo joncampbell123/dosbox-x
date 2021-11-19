@@ -402,7 +402,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 		} else
 			WriteOut("INT 2Fh hook was already set up.\n");
 	} else if (*args)
-		WriteOut("Invalid parameter - %s\n", args);
+		WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), args);
 }
 #endif
 
@@ -424,9 +424,11 @@ void DOS_Shell::CMD_CLS(char * args) {
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
        WriteOut("\033[2J");
    else {
+      uint16_t oldax=reg_ax;
       if (IS_DOSV && DOSV_CheckCJKVideoMode()) reg_ax = GetTrueVideoMode();
       else reg_ax=(uint16_t)CurMode->mode;
       CALLBACK_RunRealInt(0x10);
+      reg_ax=oldax;
    } 
 }
 
@@ -771,7 +773,7 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 		return;
 	}
     if (!*args) {
-		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"),rem);
+		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
 		return;
 	}
 
@@ -3387,7 +3389,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			if (*word=='=') word=trim(word+1);
 			if (isdigit(*word)) {
 				if (*args) {
-					WriteOut("Invalid parameter - %s\n", args);
+					WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), args);
 					return;
 				}
 				if (set_ver(word))
@@ -3397,7 +3399,7 @@ void DOS_Shell::CMD_VER(char *args) {
 				return;
 			}
 			if (*word) {
-				WriteOut("Invalid parameter - %s\n", word);
+				WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), word);
 				return;
 			}
 		}
@@ -4166,9 +4168,9 @@ void DOS_Shell::CMD_VTEXT(char *args)
 		else if(!strcasecmp(word, "0"))
 			new_mode = 0x03;
 		else {
-            WriteOut("Invalid parameter - %s\n", word);
-            return;
-        }
+			WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), word);
+			return;
+		}
 		if(new_mode != 0xff) {
             reg_ax = new_mode;
             CALLBACK_RunRealInt(0x10);
@@ -4176,6 +4178,5 @@ void DOS_Shell::CMD_VTEXT(char *args)
 		}
 	}
 	uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);
-	WriteOut("DOS/V V-text is currently %s. Video mode is %02xh.\n", mode == 0x70?"enabled":"disabled", mode);
+	WriteOut(MSG_Get(mode == 0x70?"SHELL_CMD_VTEXT_ON":"SHELL_CMD_VTEXT_OFF"));
 }
-

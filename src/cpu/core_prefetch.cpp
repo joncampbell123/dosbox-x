@@ -161,6 +161,8 @@ static uint32_t Fetchd() {
 
 bool CPU_RDMSR();
 bool CPU_WRMSR();
+bool CPU_SYSENTER();
+bool CPU_SYSEXIT();
 
 #define Push_16 CPU_Push16
 #define Push_32 CPU_Push32

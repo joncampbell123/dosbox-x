@@ -934,7 +934,7 @@ Kullanılabilir PCjr kartuş komutları: %s
 Bir PCjr kartuş komutu bulunamadı
 .
 :PROGRAM_LOADROM_HELP
-Belirtilen ROM kalıp dosyasını yükler.
+Carga el archivo de imagen ROM especificado para BIOS de video o IBM BASIC.
 
 LOADROM ROM_file
 
@@ -1306,6 +1306,10 @@ ECHO kapalı.
 Geçersiz anahtar - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Geçersiz parametre - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Gereken parametre eksik.
 
@@ -1553,6 +1557,14 @@ Belirtilen sürücü veya yol geçersiz.
 SUBST: Komut satırınızda bir hata var.
 
 .
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text şu anda etkin.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text şu anda devre dışı.
+
+.
 :SHELL_STARTUP_TITLE
 DOSBox-X'e hoş geldiniz!
 .
@@ -1597,6 +1609,9 @@ Komutların listesini görmek için ←[32mHELP←[37m, kısa bir giriş için �
 -←[31mF11←[37m+←[31mF←[37m←[37m kestirmesini kullanarak pencereli/tam ekran kip arasında geçiş yapın.
 -←[31mF11←[37m+←[31mC←[37m←[37m ←[33mYapılandırma aracı←[37m'nı, ←[31mF11←[37m+←[31mM←[37m←[37m ←[33mEşlem düzenleyici←[37m'yi çalıştırır.        
 -←[31mF11←[37m+←[31martı←[37m←[37m veya ←[31mF11←[37m+←[31meksi←[37m←[37m düğmeleri ile öykünme hızını artırın veya azaltın.  
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
 .
 :SHELL_STARTUP_CGA
 Kompozit CGA kipi desteklenmektedir. ←[31mCtrl+F8←[37m kullanarak kompozit çıkışı açın/kapatın.
@@ -2113,7 +2128,7 @@ Etkin kod sayfası: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF yazıtipinde tanımlanmamış karakterler: %d
+TTF yazıtipinde tanımlanmamış ASCII karakterler: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
@@ -3119,6 +3134,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_experimental
+Deneysel
 .
 :MENU:debug_pageflip
 Hata ayıklama satırı sayfasını çevir

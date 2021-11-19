@@ -64,6 +64,25 @@ void ReadVTRAMChar(uint16_t col, uint16_t row, uint16_t * result);
 void SetVTRAMChar(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr);
 void WriteCharJ(uint16_t col, uint16_t row, uint8_t page, uint8_t chr, uint8_t attr, bool useattr);
 
+/* J-3100 */
+#define BIOSMEM_J3_SEG			0x40
+
+#define BIOSMEM_J3_MODE			0xD0
+#define BIOSMEM_J3_LINE_COUNT	0xD4
+#define BIOSMEM_J3_GRAPH_ADDR	0xD6
+#define BIOSMEM_J3_CODE_SEG		0xDA
+#define BIOSMEM_J3_CODE_OFFSET	0xD8
+#define BIOSMEM_J3_SCROLL		0xE2
+#define BIOSMEM_J3_BLINK		0xE9
+
+void J3_OffCursor();
+bool J3_IsJapanese();
+void INT8_J3();
+void INT60_J3_Setup();
+uint8_t GetKanjiAttr();
+uint16_t GetGaijiSeg();
+void J3_SetBiosArea(uint16_t mode);
+
 enum DOSV_VTEXT_MODE {
 	DOSV_VGA,				// 80x25
 	DOSV_VTEXT_VGA,			// 80x30

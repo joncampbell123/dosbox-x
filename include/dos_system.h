@@ -32,6 +32,8 @@
 #define DOS_DIRDEPTH 8u
 #define DOS_PATHLENGTH 255u
 #define DOS_TEMPSIZE 1024u
+#define DOSERR_FUNCTION_NUMBER_INVALID 1
+void DOS_SetError(uint16_t code);
 
 enum {
     CPM_COMPAT_OFF=0,
@@ -74,7 +76,7 @@ public:
 	virtual bool	Seek(uint32_t * pos,uint32_t type)=0;
 	virtual bool	Close()=0;
 	/* ert, 20100711: Locking extensions */
-	virtual bool    LockFile(uint8_t mode, uint32_t pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
+	virtual bool    LockFile(uint8_t mode, uint32_t pos, uint16_t size) { (void)mode; (void)pos; (void)size; DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);return false; };
 	virtual uint16_t	GetInformation(void)=0;
 	virtual void	SetName(const char* _name)	{ delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
 	virtual char*	GetName(void)				{ return name; };

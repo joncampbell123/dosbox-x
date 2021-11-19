@@ -449,7 +449,7 @@ bool Virtual_Drive::FileExists(const char* name){
             (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
             strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
             strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)))
-            return true;
+            return !cur_file->isdir;
 		cur_file=cur_file->next;
 	}
 	return false;
@@ -457,10 +457,16 @@ bool Virtual_Drive::FileExists(const char* name){
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
     unsigned int onpos=0;
-    if (*_dir) for (unsigned int i=1; i<vfpos; i++) {
-        if (!strcasecmp(vfsnames[i], _dir)||!strcasecmp(vfnames[i], _dir)) {
-            onpos=i;
-            break;
+    if (*_dir) {
+        if (FileExists(_dir)) {
+            DOS_SetError(DOSERR_FILE_NOT_FOUND);
+            return false;
+        }
+        for (unsigned int i=1; i<vfpos; i++) {
+            if (!strcasecmp(vfsnames[i], _dir)||!strcasecmp(vfnames[i], _dir)) {
+                onpos=i;
+                break;
+            }
         }
     }
 	uint8_t attr;char pattern[CROSS_LEN];

@@ -932,7 +932,7 @@ Commandos de cartouches PCjr disponibles:%s
 Aucun commando de cartouches PCjr trouvé
 .
 :PROGRAM_LOADROM_HELP
-Charge le fichier image ROM spécifié.
+Charge le fichier image ROM spécifié pour le BIOS vidéo ou IBM BASIC.
 
 LOADROM ROM_file
 
@@ -1304,6 +1304,10 @@ ECHO est désactivé.
 Commutateur non valide - %s
 
 .
+:SHELL_INVALID_PARAMETER
+Paramètre invalide - %s
+
+.
 :SHELL_MISSING_PARAMETER
 Paramètre requis manquant.
 
@@ -1551,6 +1555,14 @@ Le lecteur ou le chemin d'accès spécifié n'est pas valide.
 SUBST : Il y a une erreur dans votre ligne de commande.
 
 .
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text est actuellement activé.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text est actuellement désactivé.
+
+.
 :SHELL_STARTUP_TITLE
 Bienvenue sur DOSBox-X !             
 .
@@ -1595,6 +1607,9 @@ Vous pouvez effectuer des tâches par l'intermédiaire des menus ←[33mdéroula
 - passer du mode fenêtré au plein écran avec les touches ←[31mF11 ←[37m+ ←[31mF←[37m            ←[37m
 - ←[33ml'outil de configuration avec ←[37m←[31mF11 ←[37m+ ←[31mC←[37m←[37m, ←[33ml'éditeur de mappages avec ←[37m←[31mF11 ←[37m+ ←[31mM ←[37m←[37m
 - régler la vitesse d'émulation avec ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m ou ←[31mF11 ←[37m+ ←[31mMoins←[37m ←[37m             
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
 .
 :SHELL_STARTUP_CGA
 Le mode composite CGA est pris en charge. Utilisez ←[31mCtrl+F8←[37m pour régler      
@@ -2116,7 +2131,7 @@ Page de code active : %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-Caractères non définis dans la police TTF : %d
+Caractères ASCII non définis dans la police TTF : %d
 
 .
 :SHELL_CMD_CHCP_INVALID
@@ -3125,6 +3140,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_experimental
+Expérimental
 .
 :MENU:debug_pageflip
 Ligne de débogage du retournement de page

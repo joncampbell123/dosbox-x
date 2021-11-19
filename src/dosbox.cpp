@@ -1043,11 +1043,14 @@ void DOSBOX_RealInit() {
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
-    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = dos.set_j3100_enabled = false;
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
     del_flag = dosv_section->Get_bool("del");
-    if (!strcasecmp(dosvstr, "jp")) dos.set_jdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "jp")) {
+        dos.set_jdosv_enabled = true;
+        if(dosv_section->Get_bool("j3100")) dos.set_j3100_enabled = true;
+    }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
     if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
@@ -1182,7 +1185,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "experimental", 0};
+    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "experimental", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
@@ -1324,7 +1327,7 @@ void DOSBOX_SetupConfigSections(void) {
     SDLNetInited = false;
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
-    Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
+    Pstring = secprop->Add_path("language",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or a DOS code page.\n"
                       "You can set code page either in the language file or with \"country\" setting in [config] section.");
     Pstring->SetBasic(true);
@@ -1463,7 +1466,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("compresssaveparts", Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, DOSBox-X will compress components of saved states.");
+    Pbool->Set_help("If set, DOSBox-X will compress components of saved states to save space.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -1958,7 +1961,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
                     "This is a form of memory access in 256-color mode that existed for a short\n"
                     "time before later PC-9821 models removed it. This option must be enabled\n"
-                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
+                    "to use DOSBox-X with Windows 3.1 and its built-in 256-color driver.");
 
     Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
@@ -2055,7 +2058,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("dosv",&Null_Init,true);
 
-    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
+    Pstring = secprop->Add_string("dosv",Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(dosv_settings);
     Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for use with games or software\n"
             "originating from East Asia (China, Japan, Korea) that use the double byte character set (DBCS) encodings and DOS/V extensions\n"
@@ -2072,15 +2075,18 @@ void DOSBOX_SetupConfigSections(void) {
 
 	//For loading FONTX CJK fonts
 	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+                    "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+                    "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.");
+	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.\n"
+                    "Loading the ASC24 and ASCFONT.24? font files (the latter from the ETen Chinese DOS system) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
@@ -2116,18 +2122,22 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", 0};
-	Pstring = secprop->Add_path("vtext1",Property::Changeable::OnlyAtStart,"svga");
+	Pstring = secprop->Add_path("vtext1",Property::Changeable::WhenIdle,"svga");
 	Pstring->Set_values(vtext_settings);
 	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 1\" for this mode.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("vtext2",Property::Changeable::OnlyAtStart,"xga");
+	Pstring = secprop->Add_path("vtext2",Property::Changeable::WhenIdle,"xga");
 	Pstring->Set_values(vtext_settings);
 	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 2\" for this mode.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
+    Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("j3100",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("With dosv=jp and this option enabled, the Toshiba J-3100 will be emulated.");
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
@@ -2520,6 +2530,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable cmpxchg8b",Property::Changeable::Always,true);
     Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
             "You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
+
+    Pbool = secprop->Add_bool("enable syscall",Property::Changeable::Always,true);
+    Pbool->Set_help("Allow SYSENTER/SYSEXIT instructions. This option is only meaningful when cputype=pentium_ii.\n");
 
     Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
     Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
@@ -4121,8 +4134,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
-    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
-                      "If set to autostart, the builtin VER command won't activate/deactivate LFN support according to the reported DOS version.");
+    Pstring->Set_help("Enable long filename support. If set to auto (default), LFN support is enabled if the reported DOS version is at least 7.0.\n"
+                      "If set to autostart, the built-in VER command won't activate/deactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("shellhigh",Property::Changeable::OnlyAtStart,"auto");

@@ -98,6 +98,7 @@ const char* const mode_texts[M_MAX] = {
     "M_PC98",
     "M_FM_TOWNS",       // 20 STUB
     "M_PACKED4",
+    "M_DCGA",
     "M_ERROR"
 };
 
@@ -3330,12 +3331,22 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
     (c1 == 216 && c2 == 216 && c3 == 216 && c4 == 216) || (c1 == 221 && c2 == 221 && c3 == 221 && c4 == 221) || (c1 == 219 && c2 == 219 && c3 == 219 && c4 == 219) ||
     (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 219) || (c1 == 220 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 222 && c2 == 222 && c3 == 222 && c4 == 222) ||
     (c1 == 223 && c2 == 223 && c3 == 223 && c4 == 223) || (c1 == 223 && c2 == 220 && c3 == 220 && c4 == 220) || (c1 == 240 && c2 == 240 && c3 == 240 && c4 == 240) ||
-    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208);
+    (c1 == 207 && c2 == 207 && c3 == 207 && c4 == 207) || (c1 == 208 && c2 == 208 && c3 == 208 && c4 == 208) || (c1 == 254 && c2 == 177 && c3 == 177 && c4 == 177) ||
+    (c1 == 177 && c2 == 254 && c3 == 177 && c4 == 177) || (c1 == 177 && c2 == 177 && c3 == 254 && c4 == 177) || (c1 == 177 && c2 == 177 && c3 == 177 && c4 == 254) ||
+    ((c1 == 196 || c1 == 205) && c2 == 91 && (c3 == 15 || c3 == 49 || c3 == 254) && c4 == 93) || (c1 == 91 && (c2 == 15 || c2 == 49 || c2 == 254) && c3 == 93 && (c4 == 196 || c4 == 205));
+}
+
+// Workaround for Turbo Pascal, Turbo C/C++ 3, and DOS Navigator 2
+bool CheckBoxDrawLast(Bitu col, uint8_t chr0, uint8_t chr1, uint8_t chr2, uint8_t chr3, uint8_t chr4, uint8_t chr5, uint8_t chr6, uint8_t chr7, uint8_t chr8) {
+    return (col == 71 && (chr0 == 196 || chr0 == 205) && (chr1 == 196 || chr1 == 205) && (chr3 == 196 || chr3 == 205) && chr4 == 91 && (chr5 == 15 || chr5 == 18 || chr5 == 24) && chr6 == 93 && (chr7 == 196 || chr7 == 205) && ((chr7 == 205 && chr8 == 187) || (chr7 == 196 && chr8 == 191))) ||
+           (col == 72 && (chr0 == 196 || chr0 == 205) && (chr2 == 196 || chr2 == 205) && chr3 == 91 && (chr4 == 15 || chr4 == 18 || chr4 == 24) && chr5 == 93 && (chr6 == 196 || chr6 == 205) && ((chr6 == 205 && chr7 == 187) || (chr6 == 196 && chr7 == 191))) ||
+           (col == 73 && (chr1 == 196 || chr1 == 205) && chr2 == 91 && (chr3 == 15 || chr3 == 18 || chr3 == 24) && chr4 == 93 && (chr5 == 196 || chr5 == 205) && ((chr5 == 205 && chr6 == 187) || (chr5 == 196 && chr6 == 191))) ||
+           (col == 74 && chr0 == 91 && (chr2 == 15 || chr2 == 18 || chr2 == 24) && chr3 == 93 && (chr4 == 196 || chr4 == 205) && ((chr4 == 205 && chr5 == 187) || (chr4 == 196 && chr5 == 191)));
 }
 
 bool connectLeft(uint8_t c, bool db, bool line) {
-    if (db) return !line && (c == 200 || c == 201 || c == 202 || c == 203) || c == 204 || c == 205 || c == 206;
-    else return !line && (c == 192 || c == 193 || c == 194 || c == 218) || c == 195 || c == 196 || c == 197;
+    if (db) return (!line && (c == 200 || c == 201 || c == 202 || c == 203)) || c == 204 || c == 205 || c == 206;
+    else return (!line && (c == 192 || c == 193 || c == 194 || c == 218)) || c == 195 || c == 196 || c == 197;
 }
 
 bool connectRight(uint8_t c, bool db, bool line) {
@@ -3353,16 +3364,21 @@ bool connectDown(uint8_t c, bool db) {
     else return c == 179 || c == 180 || c == 181 || c == 190 || c == 192 || c == 193 || c == 195 || c == 197 || c == 198 || c == 207 || c == 212 || c == 216 || c == 217;
 }
 
+bool connectHalf(uint8_t cl, uint8_t cr, bool first) {
+    if (!first) {uint8_t tmp=cr;cr=cl;cl=tmp;}
+    return cr == 183 || cr == 184 || (cr >= 187 && cr <= 191) || (cl >= 192 && cl <= 194) || (cr >= 193 && cr <= 194) || (cl >= 200 && cl <= 203) || (cr >= 202 && cr <= 203) || (cl >= 207 && cl <= 210) || (cr >= 207 && cr <= 210) || (cl >= 211 && cl <= 214) || cr == 217 || cl == 218;
+}
+
 bool isBDV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, bool first) {
-    return (c1 == 179 && connectUp(b4, false) && c2 == 179 || (c3 == 193 || c3 == 197) && c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 193 && connectRight(first?c6:b3, false, false) && connectLeft(first?b3:c6, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true) || c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false)) ||
-           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false)) && (c2 == 179 || c2 == 180 && connectLeft(first?b2:c5, true, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false))) ||
-           ((c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 || c2 == 195 && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true))) ||
-           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false) || c1 == 194 && connectLeft(first?b1:c4, false, false) && connectRight(first?c4:b1, false, false) || c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 && c3 == 179 && connectDown(b5, false) || (c1 == 194 || c1 == 197) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true) && c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true))) ||
+    return (c1 == 179 && connectUp(b4, false) && c2 == 179 && !connectHalf(b2, c5, first) || (c3 == 193 || c3 == 197) && c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 193 && connectRight(first?c6:b3, false, false) && connectLeft(first?b3:c6, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true) || c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false)) ||
+           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false)) && (c2 == 179 && !connectHalf(b2, c5, first) || c2 == 180 && connectLeft(first?b2:c5, true, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 180 && connectLeft(first?b3:c6, false, true) || c3 == 217 && connectLeft(first?b3:c6, false, false))) ||
+           ((c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 && !connectHalf(b2, c5, first) || c2 == 195 && connectRight(first?c5:b2, false, true)) && (c3 == 179 && connectDown(b5, false) || c3 == 192 && connectRight(first?c6:b3, false, false) || c3 == 195 && connectRight(first?c6:b3, false, true))) ||
+           ((c1 == 180 && connectLeft(first?b1:c4, false, true) || c1 == 191 && connectLeft(first?b1:c4, false, false) || c1 == 194 && connectLeft(first?b1:c4, false, false) && connectRight(first?c4:b1, false, false) || c1 == 195 && connectRight(first?c4:b1, false, true) || c1 == 197 && connectLeft(first?b1:c4, false, true) && connectRight(first?c4:b1, false, true) || c1 == 218 && connectRight(first?c4:b1, false, false)) && (c2 == 179 && !connectHalf(b2, c5, first) && c3 == 179 && connectDown(b5, false) || (c1 == 194 || c1 == 197) && c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true) && c3 == 197 && connectLeft(first?b3:c6, false, true) && connectRight(first?c6:b3, false, true))) ||
            (c1 == 179 && connectUp(b4, false) && (c2 == 180 && connectLeft(first?b2:c5, false, true) || c2 == 195 && connectRight(first?c5:b2, false, true) || c2 == 197 && connectLeft(first?b2:c5, false, true) && connectRight(first?c5:b2, false, true)) && c3 == 179 && connectDown(b5, false)) ||
-           ((c1 == 186 && connectUp(b4, true) && c2 == 186 || (c3 == 202 || c3 == 206) && c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true) && c2 == 206 && connectLeft(first?b2:c5, true, true) && connectRight(first?c5:b2, true, true)) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 202 && connectRight(first?c6:b3, true, false) && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true) || c3 == 206 && connectRight(first?c6:b3, true, true) && connectRight(first?c6:b3, true, true))) ||
-           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false)) && (c2 == 185 && connectLeft(first?b2:c5, true, true) || c2 == 186) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false))) ||
-           ((c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true)) && (c2 == 186 || c2 == 204 && connectLeft(first?b2:c5, true, true)) && (c3 == 186 && connectDown(b5, true) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true))) ||
-           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false) || c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 203 && connectLeft(first?b1:c4, true, false) && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true) || c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true)) && (c2 == 186 && c3 == 186 && connectDown(b5, true) || (c1 == 203 || c1 == 206) && c2 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c5:b2, true, true) && c3 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c6:b3, true, true))) ||
+           ((c1 == 186 && connectUp(b4, true) && c2 == 186 && !connectHalf(b2, c5, first) || (c3 == 202 || c3 == 206) && c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true) && c2 == 206 && connectLeft(first?b2:c5, true, true) && connectRight(first?c5:b2, true, true)) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 202 && connectRight(first?c6:b3, true, false) && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true) || c3 == 206 && connectRight(first?c6:b3, true, true) && connectRight(first?c6:b3, true, true))) ||
+           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false)) && (c2 == 185 && connectLeft(first?b2:c5, true, true) || c2 == 186 && !connectHalf(b2, c5, first)) && (c3 == 185 && connectLeft(first?b3:c6, true, true) || c3 == 186 && connectDown(b5, true) || c3 == 188 && connectLeft(first?b3:c6, true, false))) ||
+           ((c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true)) && (c2 == 186 && !connectHalf(b2, c5, first) || c2 == 204 && connectLeft(first?b2:c5, true, true)) && (c3 == 186 && connectDown(b5, true) || c3 == 200 && connectRight(first?c6:b3, true, false) || c3 == 204 && connectRight(first?c6:b3, true, true))) ||
+           ((c1 == 185 && connectLeft(first?b1:c4, true, true) || c1 == 187 && connectLeft(first?b1:c4, true, false) || c1 == 201 && connectRight(first?c4:b1, true, false) || c1 == 203 && connectLeft(first?b1:c4, true, false) && connectRight(first?c4:b1, true, false) || c1 == 204 && connectRight(first?c4:b1, true, true) || c1 == 206 && connectLeft(first?b1:c4, true, true) && connectRight(first?c4:b1, true, true)) && (c2 == 186 && !connectHalf(b2, c5, first) && c3 == 186 && connectDown(b5, true) || (c1 == 203 || c1 == 206) && c2 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c5:b2, true, true) && c3 == 206 && connectLeft(first?b3:c6, true, true) && connectRight(first?c6:b3, true, true))) ||
            (c1 == 186 && connectUp(b4, true) && (c2 == 185 && connectLeft(first?b2:c5, true, true) || c2 == 204 && connectRight(first?c5:b2, true, true) || c2 == 206 && connectLeft(first?b2:c5, true, true) && connectRight(first?c5:b2, true, true)) && c3 == 186 && connectDown(b5, true));
 }
 
@@ -3811,6 +3827,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     case M_HERC_GFX:
     case M_CGA4:
     case M_CGA2:
+    case M_DCGA:
         vga.draw.address=(vga.draw.address*2u)&0x1fffu;
         break;
     case M_AMSTRAD: // Base address: No difference?
@@ -4038,6 +4055,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10), *(vidmem+12), *(vidmem+14), *(vidmem+16)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }
@@ -4050,7 +4069,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 uname[1]=0;
                                 if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
-                                if (uname[0]!=0&&uname[1]==0) {
+                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
+                                    boxdefault=false;
+                                else if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     res = width = 0;
@@ -4110,12 +4131,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             dbw=dex=false;
                         } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1)) && !(autoboxdraw &&
                         ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add), col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col?*(vidmem-1+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add/2):0, row?*(vidmem+1-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+1+3*vga.draw.address_add/2):0)) ||
-                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add)/2, (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
+                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
                         (row > 1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), *(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), col?*(vidmem-1-vga.draw.address_add):0, col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col?*(vidmem+2):0, row > 2?*(vidmem-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add/2):0, row > 2?*(vidmem+1-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+1+vga.draw.address_add/2):0))))) {
                             bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
                             if (!boxdefault && col<ttf.cols-3) {
                                 if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
                                     bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+1), *(vidmem+2), *(vidmem+3), *(vidmem+4), *(vidmem+5), *(vidmem+6), *(vidmem+7), *(vidmem+8)))
+                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
                                 else if (!bd[col])
                                     boxdefault=true;
                             }
@@ -4128,7 +4151,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                 uname[1]=0;
                                 if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
                                 CodePageGuestToHostUTF16(uname,text);
-                                if (uname[0]!=0&&uname[1]==0) {
+                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-2)==177||(uint8_t)*(vidmem-2)==254)&&(uint8_t)*(vidmem-1)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-2)==176&&(uint8_t)*(vidmem-1)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
+                                    boxdefault=false;
+                                else if (uname[0]!=0&&uname[1]==0) {
                                     (*draw).chr=uname[0];
                                     (*draw).unicode=1;
                                     res = width = 0;
@@ -4272,6 +4297,7 @@ void VGA_CheckScanLength(void) {
     case M_CGA2:
     case M_CGA4:
     case M_CGA16:
+    case M_DCGA:
     case M_AMSTRAD: // Next line.
         if (IS_EGAVGA_ARCH)
             vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
@@ -4799,6 +4825,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case M_CGA16:
         case M_CGA2:
         case M_CGA4:
+        case M_DCGA:
         case M_PC98:
         case M_TEXT:
             if (!vga_alt_new_mode) {
@@ -5045,6 +5072,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             }
         }
         break;
+    case M_DCGA:
     case M_CGA2:
         // CGA 2-color mode on EGA/VGA is just EGA 16-color planar mode with one bitplane enabled and a
         // color palette to match. Therefore CGA 640x200 2-color mode can be rendered correctly using

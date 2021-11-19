@@ -919,7 +919,7 @@ PCjr カートリッジが見つかりましたが、マシンがPCjrではあ�
 PCjr cartridge commandos が見つかりません。
 .
 :PROGRAM_LOADROM_HELP
-指定のROM イメージファイルを読み込みます。
+ビデオBIOSまたはIBMBASIC用に指定されたROMイメージファイルをロードします。
 
 LOADROM ROM_file
 
@@ -1297,6 +1297,10 @@ ECHO は <OFF> です。
 無効なスイッチ - %s
 
 .
+:SHELL_INVALID_PARAMETER
+無効なパラメーター - %s
+
+.
 :SHELL_MISSING_PARAMETER
 パラメータが足りません。
 
@@ -1543,6 +1547,14 @@ SUBST はローカルドライブにのみ使用可能です。
 SUBST: コマンドラインにエラーがあります。
 
 .
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text は現在有効になっています。
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text は現在無効になっています。
+
+.
 :SHELL_STARTUP_TITLE
 DOSBox-Xへようこそ !
 .
@@ -1588,6 +1600,9 @@ DOSBox-Xへようこそ !
 - 全画面表示とウィンドウ表示の切替 [31mF11 [37m+ [31mF[37m                                  [37m
 - [33m設定ツール[37m の起動 [31mF11 [37m+ [31mC[37m[37m, [33mマッパーエディタ[37m の起動 [31mF11 [37m+ [31mM[37m                [37m
 - エミュレーション速度の調整 [31mF11 [37m+ [31mプラス[37m[37m または [31mF11 [37m+ [31mマイナス[37m             [37m
+.
+:SHELL_STARTUP_DOSV
+[32mDOS/V モード[37mが実行中。 一般的なDOS環境には [32mTTF CJK モード[37mもお試しください。 
 .
 :SHELL_STARTUP_CGA
 コンポジット CGA モード [31mCtrl+F8[37m でコンポジット出力ON/OFFを切り替えます。
@@ -2099,7 +2114,7 @@ TrueType フォント出力への変更をサポートするコードページ:
 
 .
 :SHELL_CMD_CHCP_MISSING
-指定の TTF フォント内に文字が定義されていません。: %d
+指定の TTF フォント内に ASCII 文字が定義されていません: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
@@ -3103,6 +3118,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_experimental
+実験用 CPU
 .
 :MENU:debug_pageflip
 デバッグ用ライン表示 (CRTCレジスタ書込み)

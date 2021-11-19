@@ -1,7 +1,28 @@
 0.83.20
+  - Add MSR register 0x0000001B to Pentium II
+    emulation. DOSBox-X does not emulate a local
+    APIC but Windows Millenium Edition assumes that
+    MSR is present and reads/writes it on startup
+    if DOSBox-X reports itself as a Pentium II.
+    (joncampbell123)
+  - While CPU "debug spew" is silenced by default,
+    remove silencing for RDMSR/WRMSR and
+    SYSENTER/SYSEXIT debug messages (joncampbell123).
+  - Added Pentium II SYSENTER/SYSEXIT instructions
+    to normal core and debugger disassembler. The
+    instructions are stubs at this time to be added
+    later. (joncampbell123).
+  - Added Pentium II cputype, to begin development
+    of such emulation. (joncampbell123)
+  - Added support for DCGA and Toshiba J-3100 emulation
+    modes. The J-3100 emulation can be enabled with the
+    options "dosv=jp" & "j3100=true" in [dosv] section.
+    There is also DCGA command which can enter DCGA
+    from other video modes. (nanshiki)
   - Added IMGSWAP command to swap disks for drives.
-    e.g. "IMGSWAP A 2" to swap A: drive to the 2nd
-    swap position. (Wengier)
+    e.g. "IMGSWAP D" to swap C: drive to the next swap
+    position, and "IMGSWAP A 3" to swap A: drive to
+    the 3nd swap position. (Wengier)
   - The CAPMOUSE command without a paramter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive
@@ -13,6 +34,11 @@
   - The code page setting of "country" option will now
     be ignored for PC-98, JEGA and DOS/V modes. These
     modes will enforce the desired code page. (Wengier)
+  - Added support for loading the ASC16/ASCFONT.15/
+    ASC24/ASCFONT.24? font files from the UCDOS/ETen
+    Chinese DOS systems for the options "fontxsbcs",
+    "fontxsbcs16" and "fontxdbcs24" in [dosv] section
+    of the config file for DOS/V systems. (Wengier)
   - Improved auto-detection of box-drawing characters
     when using DBCS code pages. (Wengier)
   - Applied UTF-8 conversions to file browse dialog
@@ -25,7 +51,7 @@
   - Added confirmation message while trying to load a
     Direct3D pixel shader which may not be needed or
     may have undesired effect. (Wengier)
-  - Added warning message if the Japanese PC-98 or JEGA
+  - Added warning message if DOS/V or Japanese PC-98/AX
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
   - Added a TrueType font selection page into Windows
@@ -34,9 +60,9 @@
   - Added ability to change floppy images with drive
     number (0 or 1) only. (Wengier)
   - Added menu item "Enable extended Chinese character
-    set" in "TTF options" to toggle the setting for the
-    Simplified Chinese (GBK extension) and Traditional
-    Chinese (ChinaSea extension). (Wengier)
+    set" in "Video" => "TTF options" to toggle setting
+    for the Simplified Chinese (GBK extension) and
+    Traditional Chinese (ChinaSea extension). (Wengier)
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
     extension of the Big5 charset for the Traditional
@@ -75,6 +101,8 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
+  - Fixed copying full-screen or multi-line text from a
+    DBCS codepage in TTF output or PC98 mode. (Wengier)
   - Fixed TTF color issue with some DOS GUI programs by
     initializing the color scheme when with default
     COLORS= setting in EGA or VGA mode. (Wengier)
@@ -82,6 +110,8 @@
     as GS2x and CRT-geom-blend). (Wengier & depaljas)
   - Fixed config option windowposition=x,y not working
     in Linux/macOS SDL1 builds. (Wengier)
+  - Fixed copying files from the virtual drive Z: not
+    working when using the 4DOS shell. (Wengier)
   - Fixed "DIR>NUL" freeze/crash when only disk or CD
     images are mounted. (nanshiki)
   - Make memory B0000-B7FFF unmapped for the CGA
@@ -91,13 +121,20 @@
     hard drive delay, and make it slower than before
     by default. It is adjustable via the "floppy drive
     data rate limit" config option. (Allofich)
+  - Always return bit 6 of port 61h as set for PC and as
+    clear for PCjr and Tandy. Allows Zaxxon to load in
+    PC mode. (Allofich)
   - Video emulation for PC-98 mode (for 400-line modes)
     is now 16:10 instead of 4:3. 480-line PC-98 modes
     are still 4:3. (joncampbell123)
   - PC-98 EGC emulation: Add generic ope_xx handler for
-    the remaining block of undefined/undocumented EGC ROPs.
-    This fixes "Atomic Punker" which uses EGC ROP 0xBE
-    for sprite rendering.
+    the remaining block of undefined/undocumented EGC
+    ROPs. This fixes "Atomic Punker" which uses EGC ROP
+    0xBE for sprite rendering. (joncampbell123)
+  - Integrated commits from mainline (Allofich)
+    - Add proper opl3 handling of the waveform select
+    to dbopl.
+    - Correct disassembly of some FPU instructions.
 0.83.19
   - Reorganized the "List network interfaces" and "List
     printer devices" dialogs (under the "Help" menu) to

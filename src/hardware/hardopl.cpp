@@ -128,7 +128,7 @@ void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
 	hwopl_dirty=true;
 
 	// map the port
-	LOG_MSG("Port mappings hardware -> DOSBox:");
+	LOG_MSG("Port mappings hardware -> DOSBox-X:");
 
 	if(isCMS) {
 		logfp=OpenCaptureFile("Portlog",".portlog.txt");

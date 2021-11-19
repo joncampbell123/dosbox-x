@@ -198,7 +198,6 @@ struct Chip {
 	//This is used as the base counter for vibrato and tremolo
 	uint32_t lfoCounter = 0;
 	uint32_t lfoAdd = 0;
-	
 
 	uint32_t noiseCounter = 0;
 	uint32_t noiseAdd = 0;
@@ -226,6 +225,8 @@ struct Chip {
 	uint8_t waveFormMask = 0;
 	//0 or -1 when enabled
 	int8_t opl3Active;
+	//Running in opl3 mode
+	const bool opl3Mode;
 
 	//Return the maximum amount of samples before and LFO change
 	uint32_t ForwardLFO( uint32_t samples );
@@ -244,7 +245,7 @@ struct Chip {
 	void Generate( uint32_t samples );
 	void Setup( uint32_t rate );
 
-	Chip();
+	Chip( bool opl3Mode );
 };
 
 struct Handler : public Adlib::Handler {
@@ -256,6 +257,8 @@ struct Handler : public Adlib::Handler {
 	virtual void SaveState( std::ostream& stream );
 	virtual void LoadState( std::istream& stream );
 
+	Handler(bool opl3Mode) : chip(opl3Mode) {
+	}
 };
 
 

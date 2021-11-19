@@ -335,6 +335,33 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (ttail>=end) {
         ttail=start;
     }
+    if(J3_IsJapanese()) {
+        if((code & 0xff) == 0xe0) {
+            if((code & 0xff00) >= 0x3b00 && (code & 0xff00) <= 0x5300) {
+                code &= 0xff00;
+            } else if((code & 0xff00) == 0x7300) {
+                code = 0x4b00;
+            } else if((code & 0xff00) == 0x7400) {
+                code = 0x4d00;
+            } else if((code & 0xff00) == 0x7500) {
+                code = 0x4f00;
+            } else if((code & 0xff00) == 0x7600) {
+                code = 0x4900;
+            } else if((code & 0xff00) == 0x7700) {
+                code = 0x4700;
+            } else if((code & 0xff00) == 0x8400) {
+                code = 0x5100;
+            } else if((code & 0xff00) == 0x8d00) {
+                code = 0x4800;
+            } else if((code & 0xff00) == 0x9100) {
+                code = 0x5000;
+            } else if((code & 0xff00) == 0x9200) {
+                code = 0x5200;
+            } else if((code & 0xff00) == 0x9300) {
+                code = 0x5300;
+            }
+        }
+    }
     /* Check for buffer Full */
     //TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
     if (ttail==head) {
@@ -1352,6 +1379,37 @@ Bitu INT16_Handler(void) {
     case 0x55:
         /* Weird call used by some dos apps */
         LOG(LOG_BIOS,LOG_NORMAL)("INT16:55:Word TSR compatible call");
+        break;
+    case 0xf5:
+        // J-3100 set key data
+        if(J3_IsJapanese()) {
+            if(BIOS_AddKeyToBuffer(reg_bx)) {
+                reg_ax = 0x0000;
+            } else {
+                // buffer full
+                reg_ax = 0xffff;
+            }
+        }
+        break;
+    case 0xf6:
+        // J-3100 check key buffer
+        if(J3_IsJapanese()) {
+            uint16_t size, head, tail;
+            size = mem_readw(BIOS_KEYBOARD_BUFFER_END) - mem_readw(BIOS_KEYBOARD_BUFFER_START);
+            head = mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+            tail = mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+            reg_ax = 0;
+            if(tail > head) {
+                reg_ax = (tail - head) / 2;
+            } else if(tail < head) {
+                reg_ax = (tail + size - head) / 2;
+            }
+            if(reg_ax == size / 2) {
+                reg_ax = 0xffff;
+            }
+            // J-3100 machine code(dummy)
+            reg_bx = 0x6a74;
+        }
         break;
     default:
         LOG(LOG_BIOS,LOG_ERROR)("INT16:Unhandled call %02X",reg_ah);

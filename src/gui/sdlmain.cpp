@@ -373,10 +373,10 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 
 }
 #endif
+extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
 extern bool sync_time, manualtime, addovl;
-extern bool bootguest, bootfast, bootvm;
-extern int bootdrive, resolveopt;
+extern bool bootguest, bootfast, bootvm, morelen;
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 void VFILE_Remove(const char *name,const char *dir = "");
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
@@ -4347,7 +4347,7 @@ void change_output(int output) {
     mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)));
+    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea))).refresh_item(mainMenu);
 #endif
 
     if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
@@ -7559,10 +7559,9 @@ void SetIMPosition() {
         } else {
 #endif
             rect.x = x * width;
+            rect.y = y * height - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)) + mainMenu.menuBarHeight;
-#else
-            rect.y = y * height - (IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0));
+            rect.y += mainMenu.menuBarHeight;
 #endif
 #if defined(USE_TTF)
         }
@@ -9309,8 +9308,8 @@ void PasteClipboard(bool bPressed) {
 #endif
 #endif
 
-#if defined (WIN32)
-void CopyClipboard(int all) {
+#ifdef WIN32
+void CopyClipboardW(int all) {
 	uint16_t len=0;
 	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
@@ -9340,30 +9339,48 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
         return FALSE;
     }
 }
+#endif
 
-#elif defined(C_SDL2) || defined(MACOSX)
-typedef char host_cnv_char_t;
-host_cnv_char_t *CodePageGuestToHost(const char *s);
+#if defined(C_SDL2) || defined(MACOSX)
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void CopyClipboard(int all) {
+#ifdef WIN32
+    if (!isDBCSCP()) {
+        CopyClipboardW(all);
+        return;
+    }
+#endif
 	uint16_t len=0;
 	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
+#ifndef WIN32
     unsigned int k=0;
     for (unsigned int i=0; i<len; i++)
         if (text[i]&&text[i]!=13)
             text[k++]=text[i];
     text[k]=0;
+#endif
     std::string result="";
     std::istringstream iss(text);
+    char temp[4096];
+    morelen=true;
     for (std::string token; std::getline(iss, token); ) {
-        char* uname = CodePageGuestToHost(token.c_str());
-        result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
+        if (CodePageGuestToHostUTF8(temp,token.c_str()))
+            result+=temp;
+        else
+            result+=token;
+        result+=std::string(1, 10);
     }
+    morelen=false;
     if (result.size()&&result.back()==10) result.pop_back();
 #if defined(C_SDL2)
     SDL_SetClipboardText(result.c_str());
 #else
     SetClipboard(result);
 #endif
+}
+#elif defined (WIN32)
+void CopyClipboard(int all) {
+    CopyClipboardW(all);
 }
 #endif
 
@@ -11451,8 +11468,8 @@ bool toOutput(const char *what) {
         } else if (window_was_maximized) {
 #if defined(WIN32)
             ShowWindow(GetHWND(), SW_RESTORE);
-#else
-            // Todo: How about Linux and macOS
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
 #endif
         }
 #if !defined(C_SDL2)

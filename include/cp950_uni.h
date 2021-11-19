@@ -3401,8 +3401,10 @@ const uint16_t cp950ext_to_unicode_raw[24128] = {
 	0xe302,0xe303,0xe304,0xe305,0xe306,0xe307,0xe308,0xe309, /* 0xFEF0-0xFEF7 */
 	0xe30a,0xe30b,0xe30c,0xe30d,0xe30e,0xe30f,0xe310,0x0000, /* 0xFEF8-0xFEFF */
 };
+bool madecp950 = false;
 uint16_t cp950_to_unicode_raw[16704];
 void makestdcp950table() {
+    if (madecp950) return;
     for (int i=0; i<64*2; i++)
         cp950_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
     for (int i=64*2; i<64*114; i++)
@@ -3424,6 +3426,7 @@ void makestdcp950table() {
     cp950_to_unicode_raw[64*260+59] = 0x256e;
     cp950_to_unicode_raw[64*260+60] = 0x2570;
     cp950_to_unicode_raw[64*260+61] = 0x256f;
+    madecp950 = true;
 };
 const uint16_t cp950_to_unicode_hitbl[1024] = {
 	0x0000, /* 0x0000-0x003F */

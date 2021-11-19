@@ -919,7 +919,7 @@ leading colon write protect image = true
 找不到 PCjr cartridge commandos
 .
 :PROGRAM_LOADROM_HELP
-載入指定的 ROM 映像檔.
+載入指定的影像 BIOS 或 IBM BASIC ROM 映像檔.
 
 LOADROM 映像檔
 
@@ -1289,6 +1289,10 @@ ECHO 狀態為開.
 ECHO 狀態為關.
 
 .
+:SHELL_INVALID_PARAMETER
+無效的參數 - %s
+
+.
 :SHELL_ILLEGAL_SWITCH
 無效的參數 - %s
 
@@ -1538,6 +1542,14 @@ SUBST 命令只能掛載本機磁碟機.
 .
 :SHELL_CMD_SUBST_FAILURE
 SUBST: 命令列參數錯誤.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text 目前狀態為開.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text 目前狀態為關.
 
 .
 :SHELL_STARTUP_TITLE
@@ -2056,7 +2068,7 @@ CHCP [nnn [檔案]]
 
 .
 :SHELL_CMD_CHCP_MISSING
-TTF 字型中未定義的字元數: %d
+TTF 字型中未定義的 ASCII 字元數: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
@@ -2156,6 +2168,9 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 [32mDOSBox-X project [33mhttps://dosbox-x.com/     [36mComplete DOS emulations[37m
 [32mDOSBox-X guide   [33mhttps://dosbox-x.com/wiki[37m [36mDOS, Windows 3.x and 9x[37m
 [32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
+.
+:SHELL_STARTUP_DOSV
+[32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。 
 .
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
@@ -3090,6 +3105,9 @@ Turbo (快轉模式)
 .
 :MENU:cputype_ppro_slow
 奔騰 Pro
+.
+:MENU:cputype_experimental
+實驗 CPU
 .
 :MENU:debug_pageflip
 頁面翻轉偵錯行

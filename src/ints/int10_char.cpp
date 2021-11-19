@@ -298,6 +298,39 @@ static void PC98_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,
     MEM_BlockCopy(dest+0x2000,src+0x2000,(Bitu)(cright-cleft)*2u);
 }
 
+static void DCGA_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
+	uint8_t cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+	PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/4)+cleft);
+	PhysPt src=base+((CurMode->twidth*rold)*(cheight/4)+cleft);
+	Bitu copy=(cright-cleft);
+	Bitu nextline=CurMode->twidth;
+	for (Bitu i=0;i<cheight/4U;i++) {
+		MEM_BlockCopy(dest,src,copy);
+		MEM_BlockCopy(dest+8*1024,src+8*1024,copy);
+		MEM_BlockCopy(dest+8*1024*2,src+8*1024*2,copy);
+		MEM_BlockCopy(dest+8*1024*3,src+8*1024*3,copy);
+
+		dest+=nextline;src+=nextline;
+	}
+}
+
+static void DCGA_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,uint8_t attr) {
+	uint8_t cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+	PhysPt dest=base+((CurMode->twidth*row)*(cheight/4)+cleft);
+	Bitu copy=(cright-cleft);
+	Bitu nextline=CurMode->twidth;
+	attr = 0x00;
+	for (Bitu i=0;i<cheight/4U;i++) {
+		for (Bitu x=0;x<copy;x++) {
+			mem_writeb(dest+x,attr);
+			mem_writeb(dest+8*1024+x,attr);
+			mem_writeb(dest+8*1024*2+x,attr);
+			mem_writeb(dest+8*1024*3+x,attr);
+		}
+		dest+=nextline;
+	}
+}
+
 static void DOSV_Text_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew) {
 	Bitu textcopy = (cright - cleft);
 	Bitu dest = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 2 * rnew + cleft * 2;
@@ -508,7 +541,94 @@ void DOSV_FillScreen() {
     for (int i=0; i<nrows; i++) DOSV_Text_FillRow(0,ncols,i,7);
 }
 
-void WriteCharDOSVSbcs24(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
+static uint16_t font_net_data[2][16] = {
+	{ 0x2449, 0x0000, 0x0000, 0x2449, 0x0000, 0x0000, 0x2449, 0x0000, 0x0000, 0x2449, 0x0000, 0x0000, 0x2449, 0x0000, 0x0000, 0x2449 },
+	{ 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000, 0x0000, 0x4444, 0x0000, 0x0000 }
+};
+
+void WriteCharDCGASbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
+{
+	Bitu x, y, off, net, pos;
+	uint8_t data;
+	uint8_t *font;
+	RealPt fontdata;
+
+	if(J3_IsJapanese()) {
+		font = GetSbcsFont(chr);
+	} else {
+		fontdata = RealGetVec(0x43);
+		fontdata = RealMake(RealSeg(fontdata), RealOff(fontdata) + chr * 16);
+	}
+	net = ((attr & 0xf0) == 0xe0) ? 1 : 0;
+	pos = 0;
+	x = col;
+	y = row * 16;
+	off = (y >> 2) * 80 + 8 * 1024 * (y & 3) + x;
+	for(uint8_t h = 0 ; h < 16 ; h++) {
+		if(J3_IsJapanese()) {
+			data = *font++;
+		} else {
+			data = mem_readb(Real2Phys(fontdata++));
+		}
+		if((attr & 0x07) == 0x00) {
+			data ^= 0xff;
+		}
+		if(attr & 0x80) {
+			if(attr & 0x70) {
+				data |= (font_net_data[net][pos++] & 0xff);
+			} else {
+				data ^= real_readb(0xb800, off);
+			}
+		}
+		if(h == 15 && (attr & 0x08) == 0x08) {
+			data = 0xff;
+		}
+		real_writeb(0xb800, off, data);
+		off += 0x2000;
+		if(off >= 0x8000) {
+			off -= 0x8000;
+			off += 80;
+		}
+	}
+}
+
+void WriteCharDCGADbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
+{
+	Bitu x, y, off, net, pos;
+	uint16_t data;
+	uint16_t *font;
+
+	net = ((attr & 0xf0) == 0xe0) ? 1 : 0;
+	pos = 0;
+	font = (uint16_t *)GetDbcsFont(chr);
+	x = col;
+	y = row * 16;
+	off = (y >> 2) * 80 + 8 * 1024 * (y & 3) + x;
+	for(uint8_t h = 0 ; h < 16 ; h++) {
+		data = *font++;
+		if((attr & 0x07) == 0x00) {
+			data ^= 0xffff;
+		}
+		if(attr & 0x80) {
+			if(attr & 0x70) {
+				data |= font_net_data[net][pos++];
+			} else {
+				data ^= real_readw(0xb800, off);
+			}
+		}
+		if(h == 15 && (attr & 0x08) == 0x08) {
+			data = 0xffff;
+		}
+		real_writew(0xb800, off, data);
+		off += 0x2000;
+		if(off >= 0x8000) {
+			off -= 0x8000;
+			off += 80;
+		}
+	}
+}
+
+void WriteCharDOSVSbcs24(uint8_t col, uint8_t row, uint8_t chr, uint8_t attr)
 {
 	uint8_t back, data, select;
 	uint8_t *font;
@@ -1056,6 +1176,7 @@ void WriteCharTopView(uint16_t off, int count) {
 void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page) {
     /* Do some range checking */
     if(IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
+    else if(J3_IsJapanese()) J3_OffCursor();
     if (CurMode->type!=M_TEXT) page=0xff;
     BIOS_NCOLS;BIOS_NROWS;
     if(rul>rlr) return;
@@ -1105,6 +1226,12 @@ void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t n
             PC98_CopyRow(cul,clr,start,start+nlines,base);break;
         case M_TEXT:
             TEXT_CopyRow(cul,clr,start,start+nlines,base);break;
+        case M_DCGA:
+            DCGA_CopyRow(cul,clr,start,start+nlines,base);
+            if(J3_IsJapanese()) {
+                DOSV_Text_CopyRow(cul,clr,start,start+nlines);
+            }
+            break;
         case M_CGA2:
             if (machine == MCH_MCGA && CurMode->mode == 0x11)
                 MCGA2_CopyRow(cul,clr,start,start+nlines,base);
@@ -1155,6 +1282,12 @@ filling:
             PC98_FillRow(cul,clr,start,base,attr);break;
         case M_TEXT:
             TEXT_FillRow(cul,clr,start,base,attr);break;
+        case M_DCGA:
+            DCGA_FillRow(cul,clr,start,base,attr);
+            if(J3_IsJapanese()) {
+                DOSV_Text_FillRow(cul,clr,start,attr);
+            }
+            break;
         case M_CGA2:
             if (machine == MCH_MCGA && CurMode->mode == 0x11)
                 MCGA2_FillRow(cul,clr,start,base,attr);
@@ -1301,6 +1434,7 @@ void INT10_GetCursorPos(uint8_t *row, uint8_t*col, const uint8_t page)
 
 void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
     if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
+    else if(J3_IsJapanese()) J3_OffCursor();
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
     if (IS_PC98_ARCH) {
@@ -1353,6 +1487,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
         return;
     case M_CGA4:
     case M_CGA2:
+    case M_DCGA:
     case M_TANDY16:
         split_chr = true;
         switch (machine) {
@@ -1567,6 +1702,30 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
                 if (useattr) {
                     mem_writeb(where+0x2000,attr);
                 }
+            }
+        }
+        return;
+    case M_DCGA:
+        {
+            if(J3_IsJapanese()) {
+                J3_OffCursor();
+                real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE) | 0x20);
+                uint16_t seg = GetTextSeg();
+                real_writeb(seg, row * 80 * 2 + col * 2, chr);
+                if(useattr) {
+                    real_writeb(seg, row * 80 * 2 + col * 2 + 1, attr);
+                }
+                if (isKanji1(chr) && prevchr == 0) {
+                    prevchr = chr;
+                } else if (isKanji2(chr) && prevchr != 0) {
+                    WriteCharDCGADbcs(col - 1, row, (prevchr << 8) | chr, attr);
+                    prevchr = 0;
+                    return;
+                }
+            }
+            WriteCharDCGASbcs(col, row, chr, attr);
+            if(J3_IsJapanese()) {
+                real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE) & 0xdf);
             }
         }
         return;
