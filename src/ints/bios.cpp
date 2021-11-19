@@ -9009,7 +9009,10 @@ startfunction:
                     break;
                 case CPU_ARCHTYPE_PPROSLOW:
                     cpuType = "Pentium Pro";
-                    break;
+		    break;
+		case CPU_ARCHTYPE_PENTIUMII:
+		    cpuType = "Pentium II";
+		    break;
                 case CPU_ARCHTYPE_MIXED:
                     cpuType = "Auto (mixed)";
                     break;

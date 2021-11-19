@@ -279,6 +279,9 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_ii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII).
+        refresh_item(mainMenu);
     mainMenu.get_item("cputype_experimental").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
         refresh_item(mainMenu);
@@ -315,6 +318,8 @@ const char *GetCPUType() {
         return "Pentium MMX";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
         return "Pentium Pro";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII)
+        return "Pentium II";
     else
         return "Mixed/other x86";
 }
@@ -2929,16 +2934,21 @@ bool CPU_CPUID(void) {
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (PMMX) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
 			reg_eax=0x612;		/* intel pentium pro */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			reg_eax=0x632;		/* intel pentium II */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
@@ -3375,6 +3385,8 @@ public:
             set_text("Pentium MMX").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_ii").
+            set_text("Pentium II").set_callback_function(CpuType_ByName);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
             set_text("Experimental").set_callback_function(CpuType_ByName);
@@ -3656,9 +3668,11 @@ public:
 #endif
 		} else if (cputype == "ppro_slow") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
- 		}
-        if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow"))
-            LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
+		} else if (cputype == "pentium_ii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
+		}
+		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
+			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
 
 		/* WARNING */
 		if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
@@ -3668,7 +3682,7 @@ public:
 			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
-        /* because of the way the BIOS writes certain entry points, a reboot is required
+		/* because of the way the BIOS writes certain entry points, a reboot is required
          * if changing between specific levels of CPU. These entry points will fault the
          * CPU otherwise. */
         bool reboot_now = false;
