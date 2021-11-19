@@ -2173,7 +2173,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 [32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_DOSV
-[32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m以模擬標準的 DOS 環境。 
+[32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。 
 .
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             

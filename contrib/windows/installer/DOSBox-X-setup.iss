@@ -395,7 +395,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
-  tsection, vsection, found1, found2, found3, found4: Boolean;
+  tsection, vsection, dosvcn, dosvtw, dosvset, found1, found2, found3, found4: Boolean;
   refname, section, line, linetmp, lineold, linenew, SetupType: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -657,22 +657,50 @@ begin
         FileLinesnew := TStringList.Create;
         FileLinesnew.LoadFromFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
         FileLinesave := TStringList.Create;
+        section := '';
         tsection := False;
         vsection := False;
+        dosvcn := False;
+        dosvtw := False;
+        dosvset := False;
+        if not FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
+          dosvset:= True;
         for j := 0 to FileLinesold.Count - 1 do
         begin
           lineold := Trim(FileLinesold[j]);
-          if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'ttf') then
+          if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') then
           begin
-            tsection := True;
-            if (vsection) then
-              break;
+            section := Copy(lineold, 2, Length(lineold)-2);
+            if (CompareText(section, 'ttf') = 0) then
+            begin
+              tsection := True;
+              if (vsection and dosvset) then
+                break;
+            end
+            else if(CompareText(section, 'video') = 0) then
+            begin
+              vsection := True;
+              if (tsection and dosvset) then
+                break;
+            end
           end
-          else if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'video') then
+          else if not dosvset and (CompareText(section, 'dosv') = 0) and (Length(lineold)>0) and (Copy(lineold, 1, 1) <> '#') then
           begin
-            vsection := True;
-            if (tsection) then
-              break;
+            linetmp := Copy(lineold, 1, Pos('=', lineold) - 1);
+            if (CompareText(Trim(linetmp), 'dosv') = 0) then
+            begin
+              dosvset := True;
+              linetmp := Copy(lineold, Pos('=', lineold) + 1, Length(lineold));
+              msg:='Your existing DOSBox-X is configured for the Chinese DOS/V mode. Do you want to change it to the Chinese TrueType font (TTF) mode for a general DOS emulation environment?';
+              if ((CompareText(Trim(linetmp), 'cn') = 0) or (CompareText(Trim(linetmp), 'chs') = 0)) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDYES) then
+              begin
+                dosvcn := True;
+              end
+              else if ((CompareText(Trim(linetmp), 'tw') = 0) or (CompareText(Trim(linetmp), 'cht') = 0)) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDYES) then
+                dosvtw := True;
+              if (tsection and vsection) then
+                break;
+            end
           end
         end;
         section := '';
@@ -701,9 +729,31 @@ begin
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
                     if (Length(lineold)>0) or (FileLines.Count>0) then
+                    begin
+                      linetmp := Copy(FileLinesold[k], 1, Pos('=', FileLinesold[k]) - 1);
+                      if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
+                      begin
+                        FileLinesold[k] := linetmp + '= 86,936';
+                      end
+                      else if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
+                      begin
+                        FileLinesold[k] := linetmp + '= 886,950';
+                      end;
                       FileLinesave.add(FileLinesold[k]);
+                    end;
                     if (Length(lineold)>0) then
+                    begin
+                      linetmp := Copy(lineold, 1, Pos('=', lineold) - 1);
+                      if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
+                      begin
+                        lineold := linetmp + '= 86,936';
+                      end
+                      else if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
+                      begin
+                        lineold := linetmp + '= 886,950';
+                      end;
                       FileLines.add(lineold);
+                    end
                   end
                   else if (Length(lineold)>0) and (Copy(lineold, 1, 1) <> '#') then
                     FileLines.add(lineold);
@@ -715,7 +765,18 @@ begin
           else if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
           begin
             if (FileLines.Count=0) then
+            begin
+              linetmp := Copy(FileLinesnew[i], 1, Pos('=', FileLinesnew[i]) - 1);
+              if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
+              begin
+                FileLinesnew[i] := linetmp + '= 86,936';
+              end
+              else if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
+              begin
+                FileLinesnew[i] := linetmp + '= 886,950';
+              end;
               FileLinesave.add(FileLinesnew[i]);
+            end;
             continue;
           end
           else if (Length(linenew)=0) or ((Copy(linenew, 1, 1) = '#') and (Copy(linenew, 1, 14) <> '#DOSBOX-X-ADV:') and (Copy(linenew, 1, 18) <> '#DOSBOX-X-ADV-SEE:')) then
@@ -773,6 +834,16 @@ begin
                     continue;
                   end;
                 end;
+                if (CompareText(section, 'sdl') = 0) and (CompareText(Trim(linetmp), 'output') = 0) and (dosvcn or dosvtw) then
+                begin
+                  FileLinesave.add(linetmp + '= ttf');
+                  continue;
+                end;
+                if (CompareText(section, 'dosv') = 0) and (CompareText(Trim(linetmp), 'dosv') = 0) and ((CompareText(Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))), 'cn') = 0) and dosvcn) or ((CompareText(Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))), 'tw') = 0) and dosvtw) then
+                begin
+                  FileLinesave.add(linetmp + '= off');
+                  continue;
+                end;
                 if not ((adv = 1) and IsTaskSelected('commonoption') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = Trim(Copy(linenew, Pos('=', linenew) + 1, Length(linenew)))) or ((CompareText(Trim(linetmp), 'drive z hide files') = 0) and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM')))) then
                   FileLinesave.add(linetmp + '= ' + Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))));
                 FileLines.Delete(j);
@@ -782,6 +853,14 @@ begin
             if (res = 0) and ((adv = 0) or not IsTaskSelected('commonoption')) then
             begin
               linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
+              if (CompareText(Trim(linetmp), 'output') = 0) and (dosvcn or dosvtw) then
+                linenew := linetmp + '= ttf';
+              if (CompareText(Trim(linetmp), 'dosv') = 0) and (dosvcn or dosvtw) then
+                linenew := linetmp + '= off';
+              if (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
+                linenew := linetmp + '= 86,936';
+              if (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
+                linenew := linetmp + '= 886,950';
               if (CompareText(Trim(linetmp), 'file access tries') = 0) then
                 linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 1) + '3';
               if not IsTaskSelected('drivedelay') and ((CompareText(Trim(linetmp), 'hard drive data rate limit') = 0) or (CompareText(Trim(linetmp), 'floppy drive data rate limit') = 0)) then
