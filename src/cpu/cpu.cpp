@@ -48,7 +48,12 @@ dyncore_flags_t         dyncore_flags = 0;
 
 #if defined(CPU_DEBUG_SPEW)
 # define _LOG LOG
+# define UNBLOCKED_LOG LOG
 #else
+class UNBLOCKED_LOG : public LOG {
+public:
+	UNBLOCKED_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
+};
 class _LOG : public LOG { // HACK
 public:
 	_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
@@ -4102,13 +4107,13 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 /* pentium II fast system call */
 bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
-	LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
+	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
 	return false; /* TODO */
 }
 
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
-	LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
+	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
 	return false; /* TODO */
 }
 
@@ -4118,7 +4123,7 @@ bool CPU_RDMSR() {
 
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
 	}
 
@@ -4136,7 +4141,7 @@ bool CPU_WRMSR() {
 
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
 	}
 
