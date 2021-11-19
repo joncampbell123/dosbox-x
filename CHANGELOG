@@ -1,4 +1,7 @@
 0.83.20
+  - While CPU "debug spew" is silenced by default,
+    remove silencing for RDMSR/WRMSR and
+    SYSENTER/SYSEXIT debug messages (joncampbell123).
   - Added Pentium II SYSENTER/SYSEXIT instructions
     to normal core and debugger disassembler. The
     instructions are stubs at this time to be added
