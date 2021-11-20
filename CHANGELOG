@@ -15,9 +15,9 @@
     development of such emulation. (joncampbell123)
   - Added support for DCGA and Toshiba J-3100 emulation
     modes. The J-3100 emulation can be enabled with the
-    options "dosv=jp" & "j3100=true" in [dosv] section.
-    There is also DCGA command which can enter DCGA
-    from other video modes. (nanshiki)
+    options "dosv=jp" with a non-off setting of "j3100"
+    in [dosv] section. There is also DCGA command which
+    can enter DCGA from other video modes. (nanshiki)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
@@ -118,7 +118,7 @@
   - Make memory B0000-B7FFF unmapped for the CGA
     emulation. Fixes "Backgammon 5.0" detecting that
     an MDA is also present when using CGA. (Allofich)
-  - Make floppy I/O delay separataly configurable from
+  - Make floppy I/O delay separately configurable from
     hard drive delay, and make it slower than before
     by default. It is adjustable via the "floppy drive
     data rate limit" config option. (Allofich)

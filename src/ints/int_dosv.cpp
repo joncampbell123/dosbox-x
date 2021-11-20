@@ -648,13 +648,12 @@ uint8_t *GetDbcsFont(Bitu code)
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
                 if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
                 else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                code = c;
                 if (offset>-1) {
-                    code = c;
                     memcpy(&jfont_dbcs_16[code * 32], fontdata16+offset, 30);
                     jfont_cache_dbcs_16[code] = 1;
                     return &jfont_dbcs_16[code * 32];
                 }
-                code = c;
             }
         }
 		if(code >= 0x849f && code <= 0x84be) {
@@ -713,14 +712,13 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
                 if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
                 else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                code = c;
                 if (offset>-1) {
-                    code = c;
                     memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
                     jfont_cache_dbcs_14[code] = 1;
                     is14 = true;
                     return &jfont_dbcs_14[code * 28];
                 }
-                code = c;
             }
         }
         if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
@@ -1701,7 +1699,10 @@ static uint16_t j3_timer;
 static uint8_t j3_cursor_stat;
 static uint16_t j3_cursor_x;
 static uint16_t j3_cursor_y;
+static Bitu j3_text_color;
+static Bitu j3_back_color;
 static uint16_t j3_font_offset;
+static uint16_t j3_machine_code = 0;
 
 static uint16_t jis2shift(uint16_t jis)
 {
@@ -2099,6 +2100,77 @@ void INT8_J3()
 				j3_cursor_stat = 0;
 			}
 		}
+	}
+}
+
+enum J3_COLOR {
+	colorLcdBlue,
+	colorLcdWhite,
+	colorPlasma,
+	colorNormal,
+	colorMax
+};
+
+static Bitu text_color_list[colorMax] = {
+	0x3963f7, 0x3a4b51, 0xff321b, 0xffffff
+};
+
+static Bitu back_color_list[colorMax] = {
+	0xbed7d4, 0xeaf3f2, 0x6a1d22, 0x000000
+};
+
+static struct J3_MACHINE_LIST {
+	char *name;
+	uint16_t code;
+	enum J3_COLOR color;
+} j3_machine_list[] = {
+	{ "gt", 0x3130, colorPlasma },
+	{ "sgt", 0xfc27, colorPlasma },
+	{ "gx", 0xfc2d, colorPlasma },
+	{ "gl", 0xfc2b, colorLcdBlue },
+	{ "sl", 0xfc2c, colorLcdBlue },
+	{ "sgx", 0xfc26, colorPlasma },
+	{ "ss", 0x3131, colorLcdBlue },
+	{ "gs", 0xfc2a, colorLcdBlue },
+	{ "sx", 0xfc36, colorLcdBlue },
+	{ "sxb", 0xfc36, colorLcdBlue },
+	{ "sxw", 0xfc36, colorLcdWhite },
+	{ "sxp", 0xfc36, colorPlasma },
+	{ "ez", 0xfc87, colorLcdWhite },
+	{ "zs", 0xfc25, colorNormal },
+	{ "zx", 0xfc4e, colorNormal },
+	{ NULL, 0, colorMax }
+};
+
+Bit16u J3_GetMachineCode() {
+	return j3_machine_code;
+}
+
+void J3_SetType(std::string type) {
+	j3_machine_code = ConvHexWord((char *)type.c_str());
+	if(j3_machine_code == 0) j3_machine_code = 0x6a74;
+	enum J3_COLOR j3_color = colorNormal;
+	for(Bitu count = 0 ; j3_machine_list[count].name != NULL ; count++) {
+		if(type == j3_machine_list[count].name) {
+			j3_machine_code = j3_machine_list[count].code;
+			j3_color = j3_machine_list[count].color;
+			break;
+		}
+	}
+	j3_back_color = back_color_list[j3_color];
+	j3_text_color = text_color_list[j3_color];
+}
+
+void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b)
+{
+	if(no == 0) {
+		r = (j3_back_color >> 18) & 0x3f;
+		g = (j3_back_color >> 10) & 0x3f;
+		b = (j3_back_color >> 2) & 0x3f;
+	} else {
+		r = (j3_text_color >> 18) & 0x3f;
+		g = (j3_text_color >> 10) & 0x3f;
+		b = (j3_text_color >> 2) & 0x3f;
 	}
 }
 

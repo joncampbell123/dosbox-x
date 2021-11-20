@@ -121,7 +121,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper(), JFONT_Init();
+extern void         AddSaveStateMapper(), JFONT_Init(), J3_SetType(std::string type);
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -1049,7 +1049,11 @@ void DOSBOX_RealInit() {
     del_flag = dosv_section->Get_bool("del");
     if (!strcasecmp(dosvstr, "jp")) {
         dos.set_jdosv_enabled = true;
-        if(dosv_section->Get_bool("j3100")) dos.set_j3100_enabled = true;
+        std::string j3100str = dosv_section->Get_string("j3100");
+        if(j3100str != "off") {
+            dos.set_j3100_enabled = true;
+            if (j3100str != "on") J3_SetType(j3100str);
+        }
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
@@ -1208,6 +1212,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
+    const char* j3100_settings[] = { "on", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", "off", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -2136,9 +2141,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
     Pbool->SetBasic(true);
 
-	Pbool = secprop->Add_bool("j3100",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("With dosv=jp and this option enabled, the Toshiba J-3100 will be emulated.");
-    Pbool->SetBasic(true);
+	Pstring = secprop->Add_string("j3100",Property::Changeable::OnlyAtStart,"off");
+	Pstring->Set_values(j3100_settings);
+	Pstring->Set_help("With dosv=jp and a non-off setting of this option, the Toshiba J-3100 will be emulated according to the specified type.");
+    Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
