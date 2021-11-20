@@ -149,6 +149,7 @@ int                 boothax = BOOTHAX_NONE;
 bool                gbk = false;
 bool                chinasea = false;
 bool                jp_ega = false;
+bool                j3100_start = false;
 bool                want_fm_towns = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -1043,16 +1044,18 @@ void DOSBOX_RealInit() {
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
-    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = dos.set_j3100_enabled = false;
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = dos.set_j3100_enabled = j3100_start = false;
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
     del_flag = dosv_section->Get_bool("del");
     if (!strcasecmp(dosvstr, "jp")) {
         dos.set_jdosv_enabled = true;
-        std::string j3100str = dosv_section->Get_string("j3100");
-        if(j3100str != "off" && j3100str != "0") {
+        std::string j3100mode = dosv_section->Get_string("j3100");
+        std::string j3100type = dosv_section->Get_string("j3100type");
+        if(j3100mode != "off" && j3100mode != "0") {
             dos.set_j3100_enabled = true;
-            if (j3100str != "on" && j3100str != "1") J3_SetType(j3100str);
+            if (j3100mode != "manual") j3100_start = true;
+            if (j3100type != "default") J3_SetType(j3100type);
         }
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
@@ -1212,7 +1215,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
-    const char* j3100_settings[] = { "off", "on", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", "1", "0", 0 };
+    const char* j3100_settings[] = { "off", "on", "auto", "manual", "0", "1", "2", 0 };
+    const char* j3100_types[] = { "default", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -2143,7 +2147,13 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("j3100",Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_values(j3100_settings);
-	Pstring->Set_help("With dosv=jp and a non-off setting of this option, the Toshiba J-3100 will be emulated according to the specified type.");
+	Pstring->Set_help("With the setting dosv=jp and a non-off value of this option, the Toshiba J-3100 machine will be emulated with DCGA support.\n"
+                    "Setting to \"on\" or \"auto\" starts J-3100 automatically, and with the setting \"manual\" you can enter J-3100 mode with DCGA command.");
+    Pstring->SetBasic(true);
+
+	Pstring = secprop->Add_string("j3100type",Property::Changeable::OnlyAtStart,"default");
+	Pstring->Set_values(j3100_types);
+	Pstring->Set_help("Specifies the machine type for the Toshiba J-3100 emulation if enabled.");
     Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);

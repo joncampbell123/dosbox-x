@@ -59,11 +59,12 @@
 #endif
 
 static bool first_run=true;
-extern bool use_quick_reboot, enable_config_as_shell_commands;
 extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
+extern bool use_quick_reboot, j3100_start;
+extern bool enable_config_as_shell_commands;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
@@ -4165,7 +4166,7 @@ public:
 		if(IS_DOSV) {
 #endif
 			DOSV_Setup();
-			if(IS_J3100) {
+			if(IS_J3100 && j3100_start) {
 				INT10_SetVideoMode(0x74);
 				SetTrueVideoMode(0x74);
 			} else if(IS_DOSV) {

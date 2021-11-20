@@ -2005,7 +2005,7 @@ att_text16:
 			}
 			break;
 		case M_DCGA:
-			if (J3_GetMachineCode()) {
+			if (IS_J3100 && J3_GetMachineCode()) {
 				uint8_t r, g, b;
 				uint8_t vmode = GetTrueVideoMode();
 				J3_GetPalette(0, r, g, b);
