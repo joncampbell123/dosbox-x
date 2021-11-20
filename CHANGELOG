@@ -113,6 +113,8 @@
     working when using the 4DOS shell. (Wengier)
   - Fixed "DIR>NUL" freeze/crash when only disk or CD
     images are mounted. (nanshiki)
+  - Fixed display glitches in the game "Continuing
+    adventures of Cyberbox". (Wengier)
   - Make memory B0000-B7FFF unmapped for the CGA
     emulation. Fixes "Backgammon 5.0" detecting that
     an MDA is also present when using CGA. (Allofich)

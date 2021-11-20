@@ -642,15 +642,19 @@ uint8_t *GetDbcsFont(Bitu code)
                     jfont_cache_dbcs_16[code] = 1;
                     return &jfont_dbcs_16[code * 32];
                 }
-            } else if (dos.loaded_codepage == 950 && !(fontsize16%15) && isKanji1(code/0x100)) {
+            } if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950) && !(fontsize16%15) && isKanji1(code/0x100)) {
+                Bitu c = code;
+                if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
                 if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
                 else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
                 if (offset>-1) {
+                    code = c;
                     memcpy(&jfont_dbcs_16[code * 32], fontdata16+offset, 30);
                     jfont_cache_dbcs_16[code] = 1;
                     return &jfont_dbcs_16[code * 32];
                 }
+                code = c;
             }
         }
 		if(code >= 0x849f && code <= 0x84be) {
