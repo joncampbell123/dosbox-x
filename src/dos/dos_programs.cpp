@@ -8356,6 +8356,9 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
         PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
+    }
+
+	if (IS_VGA_ARCH) {
 		PROGRAMS_MakeFile("80X60.COM", TEXT80X60_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("80X50.COM", TEXT80X50_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("80X43.COM", TEXT80X43_ProgramStart,"/TEXTUTIL/");
@@ -8364,6 +8367,7 @@ void DOS_SetupPrograms(void) {
 		PROGRAMS_MakeFile("132X50.COM", TEXT132X50_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("132X43.COM", TEXT132X43_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("132X25.COM", TEXT132X25_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
 	}
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
@@ -8388,7 +8392,6 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
     if (IS_DOSV)
         PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 }

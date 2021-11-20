@@ -1737,21 +1737,18 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
 	}
 
-	/* don't register 50 unless VGA */
-	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
-
-	/* don't register 28.com unless EGA/VGA */
-	if (IS_VGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
-	else if (IS_EGA_ARCH)
-		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
+	if (IS_VGA_ARCH) {
+        VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
+    } else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
 
     if (IS_VGA_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
