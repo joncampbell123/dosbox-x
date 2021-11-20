@@ -39,7 +39,7 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
-Bit16u J3_GetMachineCode();
+uint16_t J3_GetMachineCode();
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b);
 extern bool window_was_maximized;
 extern bool enable_vga_8bit_dac;

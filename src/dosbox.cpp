@@ -1050,9 +1050,9 @@ void DOSBOX_RealInit() {
     if (!strcasecmp(dosvstr, "jp")) {
         dos.set_jdosv_enabled = true;
         std::string j3100str = dosv_section->Get_string("j3100");
-        if(j3100str != "off") {
+        if(j3100str != "off" && j3100str != "0") {
             dos.set_j3100_enabled = true;
-            if (j3100str != "on") J3_SetType(j3100str);
+            if (j3100str != "on" && j3100str != "1") J3_SetType(j3100str);
         }
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
@@ -1212,7 +1212,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
-    const char* j3100_settings[] = { "on", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", "off", 0 };
+    const char* j3100_settings[] = { "off", "on", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", "1", "0", 0 };
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };

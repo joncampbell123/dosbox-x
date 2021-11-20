@@ -2142,7 +2142,7 @@ static struct J3_MACHINE_LIST {
 	{ NULL, 0, colorMax }
 };
 
-Bit16u J3_GetMachineCode() {
+uint16_t J3_GetMachineCode() {
 	return j3_machine_code;
 }
 
