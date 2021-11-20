@@ -395,7 +395,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
-  tsection, vsection, dosvcn, dosvtw, dosvset, found1, found2, found3, found4: Boolean;
+  tsection, vsection, addcp, dosvcn, dosvtw, dosvset, found1, found2, found3, found4: Boolean;
   refname, section, line, linetmp, lineold, linenew, SetupType: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -663,6 +663,7 @@ begin
         dosvcn := False;
         dosvtw := False;
         dosvset := False;
+        addcp := True;
         if not FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
           dosvset:= True;
         for j := 0 to FileLinesold.Count - 1 do
@@ -695,9 +696,13 @@ begin
               if ((CompareText(Trim(linetmp), 'cn') = 0) or (CompareText(Trim(linetmp), 'chs') = 0)) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDYES) then
               begin
                 dosvcn := True;
+                addcp := False;
               end
               else if ((CompareText(Trim(linetmp), 'tw') = 0) or (CompareText(Trim(linetmp), 'cht') = 0)) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDYES) then
+              begin
                 dosvtw := True;
+                addcp := False;
+              end;
               if (tsection and vsection) then
                 break;
             end
@@ -733,10 +738,12 @@ begin
                       linetmp := Copy(FileLinesold[k], 1, Pos('=', FileLinesold[k]) - 1);
                       if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
                       begin
+                        addcp := True;
                         FileLinesold[k] := linetmp + '= 86,936';
                       end
                       else if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
                       begin
+                        addcp := True;
                         FileLinesold[k] := linetmp + '= 886,950';
                       end;
                       FileLinesave.add(FileLinesold[k]);
@@ -764,15 +771,17 @@ begin
           end
           else if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
           begin
-            if (FileLines.Count=0) then
+            linetmp := Copy(FileLinesnew[i], 1, Pos('=', FileLinesnew[i]) - 1);
+            if (FileLines.Count=0) or (not addcp and (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0)) then
             begin
-              linetmp := Copy(FileLinesnew[i], 1, Pos('=', FileLinesnew[i]) - 1);
               if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
               begin
+                addcp := True;
                 FileLinesnew[i] := linetmp + '= 86,936';
               end
               else if (CompareText(section, 'config') = 0) and (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then
               begin
+                addcp := True;
                 FileLinesnew[i] := linetmp + '= 886,950';
               end;
               FileLinesave.add(FileLinesnew[i]);
@@ -839,6 +848,16 @@ begin
                   FileLinesave.add(linetmp + '= ttf');
                   continue;
                 end;
+                if (CompareText(section, 'dosbox') = 0) and (CompareText(Trim(linetmp), 'language') = 0) and (SetupType <> 'compact') and dosvcn then
+                begin
+                  FileLinesave.add(linetmp + '= zh_CN');
+                  continue;
+                end;
+                if (CompareText(section, 'dosbox') = 0) and (CompareText(Trim(linetmp), 'language') = 0) and (SetupType <> 'compact') and dosvtw then
+                begin
+                  FileLinesave.add(linetmp + '= zh_TW');
+                  continue;
+                end;
                 if (CompareText(section, 'dosv') = 0) and (CompareText(Trim(linetmp), 'dosv') = 0) and ((CompareText(Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))), 'cn') = 0) and dosvcn) or ((CompareText(Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))), 'tw') = 0) and dosvtw) then
                 begin
                   FileLinesave.add(linetmp + '= off');
@@ -857,6 +876,10 @@ begin
                 linenew := linetmp + '= ttf';
               if (CompareText(Trim(linetmp), 'dosv') = 0) and (dosvcn or dosvtw) then
                 linenew := linetmp + '= off';
+              if (CompareText(Trim(linetmp), 'language') = 0) and (SetupType <> 'compact') and dosvcn then
+                linenew := linetmp + '= zh_CN';
+              if (CompareText(Trim(linetmp), 'language') = 0) and (SetupType <> 'compact') and dosvtw then
+                linenew := linetmp + '= zh_TW';
               if (CompareText(Trim(linetmp), 'country') = 0) and dosvcn then
                 linenew := linetmp + '= 86,936';
               if (CompareText(Trim(linetmp), 'country') = 0) and dosvtw then

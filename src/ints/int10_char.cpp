@@ -1942,7 +1942,7 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
         cur_row++;
     }
     // Do we need to scroll ?
-    if(cur_row>=nrows) {
+    if(cur_row==nrows) {
         //Fill with black on non-text modes
         uint8_t fill = 0;
         if (IS_PC98_ARCH && CurMode->type == M_TEXT) {

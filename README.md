@@ -219,7 +219,7 @@ some things the design as implemented now cannot accommodate.
   for hardware made before that point.
 
   Contributers are free to focus on emulating hardware within the
-  timeframe between 1980 and 2000/2001 of their choice.
+  time frame between 1980 and 2000/2001 of their choice.
 
 * Windows guest emulation, Windows XP or later.
 
@@ -227,7 +227,7 @@ some things the design as implemented now cannot accommodate.
   focus primarily on Windows 1.0 through Windows ME (Millenium Edition),
   and then on Windows NT through Windows 2000. Windows XP and later
   versions are not a priority and will not be considered at this time.
-  These Windows versions are not based on DOS.
+  These versions of Windows are not based on DOS.
 
   If you need to run Windows XP and later, please consider using
   QEMU, Bochs, VirtualBox, or VMware.

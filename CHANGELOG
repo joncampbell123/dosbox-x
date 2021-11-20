@@ -1,19 +1,18 @@
 0.83.20
   - Add MSR register 0x0000001B to Pentium II
-    emulation. DOSBox-X does not emulate a local
-    APIC but Windows Millenium Edition assumes that
-    MSR is present and reads/writes it on startup
-    if DOSBox-X reports itself as a Pentium II.
-    (joncampbell123)
+    emulation. DOSBox-X does not emulate a local APIC
+    but Windows ME assumes that MSR is present and
+    reads/writes it on startup if DOSBox-X reports
+    itself as a Pentium II. (joncampbell123)
   - While CPU "debug spew" is silenced by default,
     remove silencing for RDMSR/WRMSR and
     SYSENTER/SYSEXIT debug messages (joncampbell123).
   - Added Pentium II SYSENTER/SYSEXIT instructions
     to normal core and debugger disassembler. The
     instructions are stubs at this time to be added
-    later. (joncampbell123).
-  - Added Pentium II cputype, to begin development
-    of such emulation. (joncampbell123)
+    later. (joncampbell123)
+  - Added support for Pentium II cputype, to begin
+    development of such emulation. (joncampbell123)
   - Added support for DCGA and Toshiba J-3100 emulation
     modes. The J-3100 emulation can be enabled with the
     options "dosv=jp" & "j3100=true" in [dosv] section.
@@ -23,7 +22,7 @@
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
-  - The CAPMOUSE command without a paramter now shows
+  - The CAPMOUSE command without a parameter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive
     for property names. Also, if an option cannot be
