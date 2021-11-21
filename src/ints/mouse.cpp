@@ -1943,8 +1943,11 @@ void MOUSE_Startup(Section *sec) {
     Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
     RealPt i33loc=0;
+    extern bool serialMouseEmulated;
 
-    /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
+    if (MouseTypeNone() && !serialMouseEmulated) {
+        return;
+    }
 
     en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
 

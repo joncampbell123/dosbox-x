@@ -145,6 +145,8 @@
     the remaining block of undefined/undocumented EGC
     ROPs. This fixes "Atomic Punker" which uses EGC ROP
     0xBE for sprite rendering. (joncampbell123)
+  - Don't run mouse setup code if there is no emulated
+    mouse. (Allofich)
   - Integrated commits from mainline (Allofich)
     - Add proper opl3 handling of the waveform select
     to dbopl.
