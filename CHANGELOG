@@ -14,10 +14,17 @@
   - Added support for Pentium II cputype, to begin
     development of such emulation. (joncampbell123)
   - Added support for DCGA and Toshiba J-3100 emulation
-    modes. The J-3100 emulation can be enabled with the
-    options "dosv=jp" with a non-off setting of "j3100"
-    in [dosv] section. There is also DCGA command which
-    can enter DCGA from other video modes. (nanshiki)
+    modes by importing code from DOSVAXJ3 by nanshiki.
+    The J-3100 emulation mode can be enabled with the
+    option "dosv=jp" along with a non-off setting of
+    "j3100" option in [dosv] section. For example, with
+    "j3100=on" or "j3100=auto" (and "dosv=jp") J-3100
+    system will be enabled and activated at start. With
+    "j3100=manual" (and "dosv=jp") J-3100 system will
+    be enabled and not activated at start, but there is
+    now a DCGA command to enter DCGA (either English or
+    J-3100 DCGA, depending on if J-3100 is enabled)
+    mode from other video modes. (nanshiki)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
@@ -64,9 +71,10 @@
     Traditional Chinese (ChinaSea extension). (Wengier)
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
-    extension of the Big5 charset for the Traditional
-    Chinese TTF output. This requires the use of a
-    TTF/OTF font containing such extended characters;
+    and Big5-2003 extension of the original Big5-1984
+    charset for the Traditional Chinese TTF output.
+    This requires the use of a TTF/OTF font containing
+    such extended characters to correctly render them;
     the included SarasaGothicFixed TTF font is updated
     to support such characters. Also moved "gbk" config
     option from [dosv] to [ttf] section. (Wengier)
@@ -103,7 +111,8 @@
   - Fixed copying full-screen or multi-line text from a
     DBCS codepage in TTF output or PC98 mode. (Wengier)
   - Fixed possible crash at start with getsysfont=true
-    on Traditional Chinese Windows systems. (Wengier)
+    when a font may not be obtained on some Chinese
+    Windows systems. (Wengier)
   - Fixed TTF color issue with some DOS GUI programs by
     initializing the color scheme when with default
     COLORS= setting in EGA or VGA mode. (Wengier)
@@ -115,6 +124,8 @@
     working when using the 4DOS shell. (Wengier)
   - Fixed "DIR>NUL" freeze/crash when only disk or CD
     images are mounted. (nanshiki)
+  - Fixed BIOS screen when resetting the machine with a
+    non-TTF output and DOS/V mode enabled. (Wengier)
   - Fixed display glitches in the game "Continuing
     adventures of Cyberbox". (Wengier)
   - Make memory B0000-B7FFF unmapped for the CGA

@@ -2825,7 +2825,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("chinasea",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Enables the ChinaSea extension (in addition to the standard Big5 charset) for the Traditional Chinese TTF output (use a font containing such characters).");
+	Pbool->Set_help("Enables the ChinaSea and Big5-2003 extension (in addition to the standard Big5-1984 charset) for the Traditional Chinese TTF output.\n"
+                     "A TTF/OTF font containing such characters (such as the included SarasaGothicFixed TTF font) is needed to correctly render ChinaSea characters.");
     Pbool->SetBasic(true);
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
