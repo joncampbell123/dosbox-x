@@ -2153,7 +2153,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("j3100type",Property::Changeable::OnlyAtStart,"default");
 	Pstring->Set_values(j3100_types);
-	Pstring->Set_help("Specifies the machine type for the Toshiba J-3100 emulation if enabled.");
+	Pstring->Set_help("Specifies the Toshiba J-3100 machine type if J-3100 mode is enabled. The color palette will be changed with different machine types.");
     Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);

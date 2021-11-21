@@ -38,8 +38,10 @@ struct CommandTail{
 #pragma pack ()
 #endif
 
-#define IS_DOS_JAPANESE (mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)
-#define IS_DOS_CJK ((mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0xFE))
+extern bool dos_kernel_disabled;
+
+#define IS_DOS_JAPANESE (!dos_kernel_disabled && mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)
+#define IS_DOS_CJK (!dos_kernel_disabled && ((mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0xFE)))
 #define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_cdosv_enabled || dos.set_pdosv_enabled)
 #define IS_JDOSV (dos.set_jdosv_enabled)
 #define IS_KDOSV (dos.set_kdosv_enabled)
