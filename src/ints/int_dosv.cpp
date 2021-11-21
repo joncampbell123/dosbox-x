@@ -547,7 +547,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 		GetTextMetrics(hdc, &tm);
 		GLYPHMETRICS gm;
 		CONST MAT2 mat = { {0,1},{0,0},{0,0},{0,1} };
-		DWORD size = GetGlyphOutline(hdc, code, GGO_BITMAP, &gm, 0, NULL, &mat);
+		long size = GetGlyphOutline(hdc, code, GGO_BITMAP, &gm, 0, NULL, &mat);
 		if(size > 0) {
 			char *fontbuff = new char[size];
 			memset(fontbuff, 0, size);
@@ -587,10 +587,13 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 				}
 			}
 			delete [] fontbuff;
+			SelectObject(hdc, old_font);
+			ReleaseDC(NULL, hdc);
+		} else {
+			SelectObject(hdc, old_font);
+			ReleaseDC(NULL, hdc);
+			return false;
 		}
-		SelectObject(hdc, old_font);
-		ReleaseDC(NULL, hdc);
-
 		return true;
 	}
 #endif
@@ -1000,6 +1003,7 @@ void JFONT_Init() {
 #if defined(LINUX) && C_X11
 	setlocale(LC_CTYPE,"");
 #endif
+    bool reinit = jfont_init;
 	jfont_init = true;
     if (fontdata14) {
         free(fontdata14);
@@ -1029,7 +1033,7 @@ void JFONT_Init() {
 #endif
 
 	Prop_path* pathprop = section->Get_path("fontxsbcs");
-	if (pathprop) {
+	if (pathprop && !reinit) {
 		std::string path=pathprop->realpath;
 		ResolvePath(path);
 		if(!LoadFontxFile(path.c_str(), 19, false)) {
@@ -1044,7 +1048,7 @@ void JFONT_Init() {
 			if(!CheckEmptyData(&jfont_sbcs_19[0x7f * 19], 19))
 				memcpy(&jfont_sbcs_19[0x5c * 19], &jfont_sbcs_19[0x7f * 19], 19);
 		}
-	} else {
+	} else if (!reinit) {
 		if(!MakeSbcs19Font())
 			LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 	}
@@ -1065,7 +1069,7 @@ void JFONT_Init() {
 		autoboxdraw = true;
 #endif
 		pathprop = section->Get_path("fontxsbcs16");
-		if(pathprop) {
+		if(pathprop && !reinit) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
 			if(!LoadFontxFile(path.c_str(), 16, false)) {
@@ -1079,7 +1083,7 @@ void JFONT_Init() {
 				if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
 					memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
 			}
-		} else {
+		} else if (!reinit) {
 			if(!MakeSbcs16Font()) {
 				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
 			}
@@ -1091,7 +1095,7 @@ void JFONT_Init() {
 			LoadFontxFile(path.c_str(), 24, true);
 		}
 		pathprop = section->Get_path("fontxsbcs24");
-		if(pathprop) {
+		if(pathprop && !reinit) {
 			std::string path=pathprop->realpath;
 			ResolvePath(path);
 			if(!LoadFontxFile(path.c_str(), 24, false)) {
@@ -1102,7 +1106,7 @@ void JFONT_Init() {
 				if(!CheckEmptyData(&jfont_sbcs_24[0x7f * 2 * 24], 2 * 24))
 					memcpy(&jfont_sbcs_24[0x5c * 2 * 24], &jfont_sbcs_24[0x7f * 2 * 24], 2 * 24);
 			}
-		} else {
+		} else if (!reinit) {
 			if(!MakeSbcs24Font()) {
 				LOG_MSG("MSG: SBCS 12x24 font file path is not specified.\n");
 			}

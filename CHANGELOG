@@ -102,6 +102,8 @@
     after changing a CD image from the menu. (Wengier)
   - Fixed copying full-screen or multi-line text from a
     DBCS codepage in TTF output or PC98 mode. (Wengier)
+  - Fixed possible crash at start with getsysfont=true
+    on Traditional Chinese Windows systems. (Wengier)
   - Fixed TTF color issue with some DOS GUI programs by
     initializing the color scheme when with default
     COLORS= setting in EGA or VGA mode. (Wengier)
