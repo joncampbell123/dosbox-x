@@ -2147,7 +2147,7 @@ static struct J3_MACHINE_LIST {
 };
 
 uint16_t J3_GetMachineCode() {
-	return j3_machine_code;
+	return j3_machine_code == 0 ? 0x6a74 : j3_machine_code;
 }
 
 void J3_SetType(std::string type) {
