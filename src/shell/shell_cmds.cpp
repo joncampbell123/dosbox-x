@@ -4172,9 +4172,11 @@ void DOS_Shell::CMD_VTEXT(char *args)
 			return;
 		}
 		if(new_mode != 0xff) {
+            uint16_t oldax=reg_ax;
             reg_ax = new_mode;
             CALLBACK_RunRealInt(0x10);
 			if(new_mode == 0x78) new_mode = 0x70;
+			reg_ax = oldax;
 		}
 	}
 	uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);

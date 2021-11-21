@@ -2453,6 +2453,15 @@ public:
 				uint16_t s = (uint16_t)strlen(msg);
 				DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
 			}
+            if (IS_DOSV) {
+                uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);
+                if (mode == 3 || mode == 0x70 || mode == 0x72 || mode == 0x78) {
+                    uint16_t oldax=reg_ax;
+                    reg_ax = 0x12;
+                    CALLBACK_RunRealInt(0x10);
+                    reg_ax = oldax;
+                }
+            }
 
             if (IS_PC98_ARCH) {
                 for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
