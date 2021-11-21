@@ -3295,7 +3295,8 @@ public:
 		reg_ebp=0;
 		reg_esp=0;
 
-		do_seg_limits = section->Get_bool("segment limits");
+        if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+            do_seg_limits = section->Get_bool("segment limits");
 	
 		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
 		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ds] = false;
