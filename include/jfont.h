@@ -81,6 +81,7 @@ void INT8_J3();
 void INT60_J3_Setup();
 uint8_t GetKanjiAttr();
 uint16_t GetGaijiSeg();
+uint16_t J3_GetMachineCode();
 void J3_SetBiosArea(uint16_t mode);
 
 enum DOSV_VTEXT_MODE {
