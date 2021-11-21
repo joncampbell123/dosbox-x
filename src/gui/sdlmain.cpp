@@ -338,7 +338,7 @@ bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables, loadlang;
+extern bool resetreq, enable_dbcs_tables;
 extern uint8_t ccount;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
@@ -375,8 +375,8 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 #endif
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
-extern bool sync_time, manualtime, addovl;
-extern bool bootguest, bootfast, bootvm, morelen;
+extern bool bootguest, bootfast, bootvm, addovl;
+extern bool sync_time, manualtime, morelen, loadlang;
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 void VFILE_Remove(const char *name,const char *dir = "");
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
