@@ -87,6 +87,11 @@ extern bool auto_determine_dynamic_core_paging;
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
+/* SYSENTER/SYSEXIT */
+uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
+uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
+uint32_t cpu_sep_eip = 0;		/* MSR 0x176h value of EIP */
+
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -4128,12 +4133,14 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 /* pentium II fast system call */
 bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
-	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
+	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
+	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED CS=%04x EIP=%08x ESP=%08x",cpu_sep_cs,cpu_sep_eip,cpu_sep_esp);
 	return false; /* TODO */
 }
 
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
+	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
 	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
 	return false; /* TODO */
 }
@@ -4146,10 +4153,26 @@ bool CPU_RDMSR() {
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
 			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_cs;
+			break;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_esp;
+			break;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_eip;
+			break;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
@@ -4173,10 +4196,23 @@ bool CPU_WRMSR() {
 			 *      instead of, you know, using CPUID. It will also set the enable bit, even if
 			 *      this register was 0x00000000 when it booted. Fortunately, Windows ME still
 			 *      runs properly if we silently ignore the write and leave it 0x00000000. */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
 			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
 			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
+			break;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_esp = reg_esp;
+			break;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_eip = reg_eip;
+			break;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
