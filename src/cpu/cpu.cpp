@@ -4134,15 +4134,65 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
-	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED CS=%04x EIP=%08x ESP=%08x",cpu_sep_cs,cpu_sep_eip,cpu_sep_esp);
-	return false; /* TODO */
+
+	SETFLAGBIT(VM,false);
+	SETFLAGBIT(IF,false);
+
+	reg_eip = cpu_sep_eip;
+	reg_esp = cpu_sep_esp;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs & 0xFFFC);
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+	cpu.cpl = 0;
+
+	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 8; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+
+	// DEBUG
+//	DEBUG_EnableDebugger();
+
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
 }
 
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
-	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
-	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
-	return false; /* TODO */
+	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
+
+	/* Yes, really. Read Intel's documentation */
+	reg_eip = reg_edx;
+	reg_esp = reg_ecx;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs | 3);
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+	cpu.cpl = 3;
+
+	Segs.val[ss] = (cpu_sep_cs | 3) + 8; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+
+	// DEBUG
+//	DEBUG_EnableDebugger();
+
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
 }
 
 /* pentium machine-specific registers */
