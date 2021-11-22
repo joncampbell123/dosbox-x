@@ -4135,6 +4135,8 @@ bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
 
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+
 	SETFLAGBIT(VM,false);
 	SETFLAGBIT(IF,false);
 
@@ -4158,7 +4160,7 @@ bool CPU_SYSENTER() {
 	cpu.stack.big = true;
 
 	// DEBUG
-//	DEBUG_EnableDebugger();
+	DEBUG_EnableDebugger();
 
 	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
@@ -4167,6 +4169,8 @@ bool CPU_SYSENTER() {
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
+
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
 	/* Yes, really. Read Intel's documentation */
 	reg_eip = reg_edx;
@@ -4189,7 +4193,7 @@ bool CPU_SYSEXIT() {
 	cpu.stack.big = true;
 
 	// DEBUG
-//	DEBUG_EnableDebugger();
+	DEBUG_EnableDebugger();
 
 	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
@@ -4212,17 +4216,17 @@ bool CPU_RDMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
 			reg_eax = cpu_sep_cs;
-			break;
+			return true;
 		case 0x00000175: /* SYSENTER ESP stack pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
 			reg_eax = cpu_sep_esp;
-			break;
+			return true;
 		case 0x00000176: /* SYSENTER EIP instruction pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
 			reg_eax = cpu_sep_eip;
-			break;
+			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
@@ -4254,15 +4258,15 @@ bool CPU_WRMSR() {
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
-			break;
+			return true;
 		case 0x00000175: /* SYSENTER ESP stack pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_esp = reg_esp;
-			break;
+			return true;
 		case 0x00000176: /* SYSENTER EIP instruction pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_eip = reg_eip;
-			break;
+			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
