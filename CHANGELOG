@@ -1,4 +1,6 @@
 0.83.20
+  - 8086 and 80186 CPU types no longer check segment
+    limits. (joncampbell123)
   - Add MSR register 0x0000001B to Pentium II
     emulation. DOSBox-X does not emulate a local APIC
     but Windows ME assumes that MSR is present and
