@@ -174,8 +174,6 @@ static GetEAHandler EATable[512]={
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0
 };
 
-extern bool do_seg_limits;
-
 #define GetEADirect(sz)						\
 	PhysPt eaa;						\
 	if (TEST_PREFIX_ADDR)					\
