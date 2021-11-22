@@ -625,11 +625,14 @@ Bitu GetConvertedCode(Bitu code, int codepage) {
     if (CodePageGuestToHostUTF16(uname,text)) {
         int cp = dos.loaded_codepage;
         dos.loaded_codepage = codepage;
-        if (CodePageHostToGuestUTF16(text,uname))
+        if (CodePageHostToGuestUTF16(text,uname)) {
             code = (text[0] & 0xff) * 0x100 + (text[1] & 0xff);
+            dos.loaded_codepage = cp;
+            return code;
+        }
         dos.loaded_codepage = cp;
     }
-    return code;
+    return 0;
 }
 
 uint8_t *GetDbcsFont(Bitu code)
@@ -649,8 +652,10 @@ uint8_t *GetDbcsFont(Bitu code)
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
-                if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
-                else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                if (code) {
+                    if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
+                    else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                }
                 code = c;
                 if (offset>-1) {
                     memcpy(&jfont_dbcs_16[code * 32], fontdata16+offset, 30);
@@ -667,8 +672,10 @@ uint8_t *GetDbcsFont(Bitu code)
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
 		} else {
-			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
+			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
 				code = GetConvertedCode(code, 932);
+				if (!code) return jfont_dbcs;
+			}
 			int p = NAME_LEN+ID_LEN+3;
 			uint8_t size = JPNZN16X[p++];
 			fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
@@ -713,8 +720,10 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
-                if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
-                else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                if (code) {
+                    if (ser >= 472 && ser <= 5872) offset = (ser-472)*30;
+                    else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*30+162030;
+                }
                 code = c;
                 if (offset>-1) {
                     memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
@@ -730,8 +739,10 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
             is14 = true;
             return jfont_dbcs;
         } else {
-            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950))
+            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
                 code = GetConvertedCode(code, 932);
+                if (!code) return jfont_dbcs;
+            }
             int p = NAME_LEN+ID_LEN+3;
             uint8_t size = SHMZN14X[p++];
             fontxTbl *table = (fontxTbl *)calloc(size, sizeof(fontxTbl));
