@@ -4160,7 +4160,7 @@ bool CPU_SYSENTER() {
 	cpu.stack.big = true;
 
 	// DEBUG
-	DEBUG_EnableDebugger();
+//	DEBUG_EnableDebugger();
 
 	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
@@ -4193,7 +4193,7 @@ bool CPU_SYSEXIT() {
 	cpu.stack.big = true;
 
 	// DEBUG
-	DEBUG_EnableDebugger();
+//	DEBUG_EnableDebugger();
 
 	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
@@ -4244,6 +4244,8 @@ bool CPU_RDMSR() {
 bool CPU_WRMSR() {
 	if (!enable_msr) return false;
 
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("WRMSR ECX=%08x EDX:EAX=%08x:%08x",reg_ecx,reg_edx,reg_eax);
+
 	switch (reg_ecx) {
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
@@ -4261,11 +4263,11 @@ bool CPU_WRMSR() {
 			return true;
 		case 0x00000175: /* SYSENTER ESP stack pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
-			cpu_sep_esp = reg_esp;
+			cpu_sep_esp = reg_eax;
 			return true;
 		case 0x00000176: /* SYSENTER EIP instruction pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
-			cpu_sep_eip = reg_eip;
+			cpu_sep_eip = reg_eax;
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
