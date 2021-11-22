@@ -4284,34 +4284,34 @@ bool CPU_WRMSR() {
 
 /* NTS: Hopefully by implementing this Windows ME can stop randomly crashing when cputype=pentium */
 void CPU_CMPXCHG8B(PhysPt eaa) {
-    uint32_t hi,lo;
+	uint32_t hi,lo;
 
-    /* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
-    hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
-    lo = (uint32_t)mem_readd(eaa);
+	/* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
+	hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
+	lo = (uint32_t)mem_readd(eaa);
 
-    LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
-        (unsigned long)reg_edx,
-        (unsigned long)reg_eax,
-        (unsigned long)reg_ecx,
-        (unsigned long)reg_ebx,
-        (unsigned long)eaa,
-        (unsigned long)hi,
-        (unsigned long)lo);
+	LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
+		(unsigned long)reg_edx,
+		(unsigned long)reg_eax,
+		(unsigned long)reg_ecx,
+		(unsigned long)reg_ebx,
+		(unsigned long)eaa,
+		(unsigned long)hi,
+		(unsigned long)lo);
 
-    /* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
-     * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
-     * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
-    if (reg_edx == hi && reg_eax == lo) {
-        mem_writed(eaa+(PhysPt)4,reg_ecx);
-        mem_writed(eaa,          reg_ebx);
+	/* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
+	 * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
+	 * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
+	if (reg_edx == hi && reg_eax == lo) {
+		mem_writed(eaa+(PhysPt)4,reg_ecx);
+		mem_writed(eaa,          reg_ebx);
 		SETFLAGBIT(ZF,true);
-    }
-    else {
+	}
+	else {
 		SETFLAGBIT(ZF,false);
-        reg_edx = hi;
-        reg_eax = lo;
-    }
+		reg_edx = hi;
+		reg_eax = lo;
+	}
 }
 
 namespace
