@@ -8119,7 +8119,10 @@ void GFX_Events() {
                 }
 #endif
                 // Hankaku/Zenkaku
-                if(event.key.keysym.scancode == 0x35) break;
+                if(event.key.keysym.scancode == 0x35) {
+                    MAPPER_CheckKeyboardLayout();
+                    if (isJPkeyboard) break;
+                }
             }
 #endif
 #if defined (MACOSX)

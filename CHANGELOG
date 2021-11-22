@@ -126,6 +126,8 @@
     images are mounted. (nanshiki)
   - Fixed BIOS screen when resetting the machine with a
     non-TTF output and DOS/V mode enabled. (Wengier)
+  - Fixed the key `/~ not working when IME is enabled
+    on a non-Japanese keyboard. (Wengier)
   - Fixed display glitches in the game "Continuing
     adventures of Cyberbox". (Wengier)
   - Make memory B0000-B7FFF unmapped for the CGA
