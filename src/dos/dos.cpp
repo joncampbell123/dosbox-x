@@ -3687,7 +3687,7 @@ public:
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
         if(::floppy_data_rate < 0) {
-            ::floppy_data_rate = 5000; // Slow enough so that PC Booter game title screens that depend on floppy drive speed will show for a few seconds
+            ::floppy_data_rate = 22400; // 175 kbps
         }
 		maxfcb=100;
 		DOS_FILES=200;
