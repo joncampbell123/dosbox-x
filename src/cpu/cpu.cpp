@@ -4158,6 +4158,8 @@ bool CPU_SYSENTER() {
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
 	cpu.stack.big = true;
+	cpu.stack.mask=0xffffffff;
+	cpu.stack.notmask=0x00000000;
 
 	// DEBUG
 //	DEBUG_EnableDebugger();
@@ -4191,6 +4193,8 @@ bool CPU_SYSEXIT() {
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
 	cpu.stack.big = true;
+	cpu.stack.mask=0xffffffff;
+	cpu.stack.notmask=0x00000000;
 
 	// DEBUG
 //	DEBUG_EnableDebugger();
