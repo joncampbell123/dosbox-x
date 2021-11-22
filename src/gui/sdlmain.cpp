@@ -63,6 +63,7 @@ extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
 extern bool ticksLocked;
+extern bool isJPkeyboard;
 extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool use_quick_reboot;
@@ -292,8 +293,9 @@ void d3d_init(void);
 #endif
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
-void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse(), makestdcp950table();
+void GFX_ReleaseMouse(), makestdcp950table();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
+void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
 int GetNumScreen();
 extern SHELL_Cmd cmd_list[];
@@ -8132,7 +8134,6 @@ void GFX_Events() {
 #endif
         default:
             gfx_in_mapper = true;
-            void MAPPER_CheckEvent(SDL_Event * event);
             MAPPER_CheckEvent(&event);
             gfx_in_mapper = false;
         }
@@ -8491,14 +8492,16 @@ void GFX_Events() {
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
             if(dos.im_enable_flag) {
-                if(event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) {
+                if(event.key.keysym.scancode == 0x94) {
                     break;
+                } else if(event.key.keysym.scancode == 0x29) {
+                    MAPPER_CheckKeyboardLayout();
+                    if (isJPkeyboard) break;
                 } else if(event.key.keysym.scancode == 0x70) {
                     event.type = SDL_KEYDOWN;
                 }
             }
 #endif
-            void MAPPER_CheckEvent(SDL_Event * event);
             MAPPER_CheckEvent(&event);
         }
     }
