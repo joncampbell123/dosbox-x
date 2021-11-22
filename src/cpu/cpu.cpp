@@ -4188,7 +4188,7 @@ bool CPU_SYSEXIT() {
 	cpu.code.big = true;
 	cpu.cpl = 3;
 
-	Segs.val[ss] = (cpu_sep_cs | 3) + 0x8; /* Yes, really. Look it up in Intel's documentation */
+	Segs.val[ss] = (cpu_sep_cs | 3) + 0x18; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
