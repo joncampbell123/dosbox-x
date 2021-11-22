@@ -72,11 +72,13 @@
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
     and Big5-2003 extension of the original Big5-1984
-    charset for the Traditional Chinese TTF output.
-    This requires the use of a TTF/OTF font containing
-    such extended characters to correctly render them;
-    the included SarasaGothicFixed TTF font is updated
-    to support such characters. Also moved "gbk" config
+    charset for Traditional Chinese TTF output. This
+    requires the use of a TTF/OTF font containing such
+    extended characters to correctly render them; the
+    included SarasaGothicFixed TTF font is updated to
+    support such characters.Certain Traditional Chinese
+    DOS software like the Hyper Editor 5.03 (漢書5) makes
+    use of ChinaSea characters. Also moved "gbk" config
     option from [dosv] to [ttf] section. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
