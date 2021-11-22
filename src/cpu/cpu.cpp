@@ -2956,13 +2956,28 @@ bool CPU_CPUID(void) {
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
-			reg_eax=0x632;		/* intel pentium II */
+			/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
+			/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
+			 *
+			 * "The SYSENTER and SYSEXIT instructions were introduced into the IA-32 architecture in the Pentium II processor."
+			 *
+			 * "An operating system that qualifies the SEP flag must also qualify the processor family and model to ensure that
+			 * the SYSENTER/SYSEXIT instructions are actually present"
+			 *
+			 * "When the CPUID instruction is executed on the Pentium Pro processor (model 1), the processor returns a the SEP
+			 * flag as set, but does not support the SYSENTER/SYSEXIT instructions."
+			 *
+			 * Therefore, always return with bit 11 (SEP) set whether or not SYSCALL is enabled because Intel made a stupid mistake.
+			 *
+			 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
+			 * follows this rule, and the Linux kernel does too */
+			reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-			if (enable_syscall) reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
 		} else {
 			return false;
 		}
