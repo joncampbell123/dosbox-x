@@ -4216,6 +4216,13 @@ bool CPU_RDMSR() {
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
 			return true;
+		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
+			// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
+			reg_edx = 0;
+			reg_eax = 0x333;
+			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
@@ -4260,6 +4267,15 @@ bool CPU_WRMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
 			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
+			return true;
+		case 0x00000079: /* Intel microcode update (EDX:EAX contains a virtual memory address of a microcode blob) */
+			/* NTS: Windows ME, if it sees a Pentium II stepping 3 or higher, will attempt to do a microcode update at startup. Why? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Guest is attempting to update microcode (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x0000008b: /* Intel microcode revision... why is Windows ME writing this register before reading it? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
