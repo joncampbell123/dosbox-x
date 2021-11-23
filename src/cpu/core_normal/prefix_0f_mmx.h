@@ -1064,3 +1064,23 @@
 		dest->ud.d1 = src.ud.d0;
 		break;
 	}
+	CASE_0F_MMX(0x70)												/* PSHUFW Pq,Qq,imm8 */
+	{
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
+		GetRM;
+		uint8_t imm8 = Fetchb();
+		MMX_reg* dest=lookupRMregMM[rm];
+		MMX_reg src;
+		if (rm>=0xc0) {
+			src.q=reg_mmx[rm&7]->q;
+		} else {
+			GetEAa;
+			src.q = LoadMq(eaa);
+		}
+		dest->uw.w0 = src.uwa[ imm8     &3u]; /* uwa[0] is uw.w0, see MMX_reg union */
+		dest->uw.w1 = src.uwa[(imm8>>2u)&3u];
+		dest->uw.w2 = src.uwa[(imm8>>4u)&3u];
+		dest->uw.w3 = src.uwa[(imm8>>6u)&3u];
+		break;
+	}
+
