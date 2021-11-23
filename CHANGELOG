@@ -1,4 +1,10 @@
 0.83.20
+  - Added code to normal core to flush paging TLB
+    whenever handing a non-recursive guest page fault.
+    The guest OS will likely update the page tables
+    to resolve the fault. The Linux kernel will
+    constantly get "stuck" whenever you run a command
+    without this change. (joncampbell123)
   - Added MSRs related to Intel microcode because both
     Linux and Windows ME probe those MSRs if Pentium II
     emulation reports stepping 3 model 3. The microcode
