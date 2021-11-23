@@ -408,6 +408,7 @@ static Bitu Normal_Loop(void) {
 
         ret = 0;
         FillFlags();
+        paging.cr2=pf.lin_addr;
         dosbox_allow_nonrecursive_page_fault = false;
         CPU_Exception(EXCEPTION_PF, pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
