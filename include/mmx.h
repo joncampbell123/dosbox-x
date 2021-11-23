@@ -21,6 +21,8 @@
 
 #if C_FPU
 
+#include <stddef.h>
+
 typedef union {
 
 	uint64_t q;
@@ -36,13 +38,17 @@ typedef union {
 	} sd;
 	static_assert(sizeof(sd) == 8, "MMX packing error");
 
-	struct {
+	struct uw_t {
 		uint16_t w0,w1,w2,w3;
 	} uw;
 	static_assert(sizeof(uw) == 8, "MMX packing error");
 
 	uint16_t uwa[4]; /* for PSHUFW */
 	static_assert(sizeof(uwa) == 8, "MMX packing error");
+	static_assert(offsetof(uw_t,w0) == 0, "MMX packing error");
+	static_assert(offsetof(uw_t,w1) == 2, "MMX packing error");
+	static_assert(offsetof(uw_t,w2) == 4, "MMX packing error");
+	static_assert(offsetof(uw_t,w3) == 6, "MMX packing error");
 
 	struct {
 		int16_t w0,w1,w2,w3;
