@@ -4135,7 +4135,7 @@ bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
 
-	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
 	CPU_SetCPL(0);
 
@@ -4165,7 +4165,7 @@ bool CPU_SYSENTER() {
 	// DEBUG
 //	DEBUG_EnableDebugger();
 
-	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
 }
 
@@ -4173,7 +4173,7 @@ bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
 
-	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
 	/* Yes, really. Read Intel's documentation */
 	reg_eip = reg_edx;
@@ -4201,7 +4201,7 @@ bool CPU_SYSEXIT() {
 	// DEBUG
 //	DEBUG_EnableDebugger();
 
-	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
 	return true;
 }
 
@@ -4301,6 +4301,7 @@ bool CPU_WRMSR() {
 }
 
 /* NTS: Hopefully by implementing this Windows ME can stop randomly crashing when cputype=pentium */
+/* NTS: Linux kernels compiled for "i686" rely on this instruction too. */
 void CPU_CMPXCHG8B(PhysPt eaa) {
 	uint32_t hi,lo;
 
@@ -4308,6 +4309,7 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 	hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
 	lo = (uint32_t)mem_readd(eaa);
 
+#if 0 // it works, shut up now
 	LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
 		(unsigned long)reg_edx,
 		(unsigned long)reg_eax,
@@ -4316,6 +4318,7 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 		(unsigned long)eaa,
 		(unsigned long)hi,
 		(unsigned long)lo);
+#endif
 
 	/* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
 	 * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
