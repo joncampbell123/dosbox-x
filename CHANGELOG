@@ -1,4 +1,8 @@
 0.83.20
+  - Added MMX instruction PSHUFW and added typecasts
+    to some MMX instructions in case compilers cannot
+    properly shift uint64_t by uint8_t otherwise.
+    (joncampbell123)
   - Added code to normal core to flush paging TLB
     whenever handing a non-recursive guest page fault.
     The guest OS will likely update the page tables
