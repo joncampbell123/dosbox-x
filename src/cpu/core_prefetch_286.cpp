@@ -34,6 +34,14 @@ bool CPU_WRMSR();
 bool CPU_SYSENTER();
 bool CPU_SYSEXIT();
 
+/* wrap original variable name in inline function prior to #define, use inline function name in redefine of do_seg_limits */
+static inline bool _seg_limit_check(void) {
+	return do_seg_limits;
+}
+
+/* Do not emulate segment limit exceptions on 80186, DO emulate on 286. */
+#define do_seg_limits (_seg_limit_check() && CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+
 #define PRE_EXCEPTION { }
 
 #define CPU_CORE CPU_ARCHTYPE_286

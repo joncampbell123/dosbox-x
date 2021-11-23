@@ -288,8 +288,10 @@ static char const *second[] = {
   0,                  0,                 0,                0,
   0,                  0,                 0,                0,
 /* 4 */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  "cmovo %Gv,%Ev",    "cmovno %Gv,%Ev",  "cmovc %Gv,%Ev",  "cmovnc %Gv,%Ev",
+  "cmovz %Gv,%Ev",    "cmovnz %Gv,%Ev",  "cmovbe %Gv,%Ev", "cmovnbe %Gv,%Ev",
+  "cmovs %Gv,%Ev",    "cmovns %Gv,%Ev",  "cmovp %Gv,%Ev",  "cmovnp %Gv,%Ev",
+  "cmovl %Gv,%Ev",    "cmovge %Gv,%Ev",  "cmovle %Gv,%Ev", "cmovg %Gv,%Ev",
 /* 5 */
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,

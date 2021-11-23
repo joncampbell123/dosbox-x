@@ -1,4 +1,21 @@
 0.83.20
+  - Added code to normal core to flush paging TLB
+    whenever handing a non-recursive guest page fault.
+    The guest OS will likely update the page tables
+    to resolve the fault. The Linux kernel will
+    constantly get "stuck" whenever you run a command
+    without this change. (joncampbell123)
+  - Added MSRs related to Intel microcode because both
+    Linux and Windows ME probe those MSRs if Pentium II
+    emulation reports stepping 3 model 3. The microcode
+    MSRs are silently ignored. (joncampbell123)
+  - CPUID for Pentium II will now report stepping 3
+    and model 3 which is a minimum requirement for OSes
+    to attempt to use SYSENTER/SYSEXIT (joncampbell123)
+  - Added MSRs for SYSENTER/SYSEXIT (joncampbell123)
+  - Implemented Pentium II SYSENTER/SYSEXIT (joncampbell123)
+  - 8086 and 80186 CPU types no longer check segment
+    limits. (joncampbell123)
   - Add MSR register 0x0000001B to Pentium II
     emulation. DOSBox-X does not emulate a local APIC
     but Windows ME assumes that MSR is present and
