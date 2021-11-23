@@ -4137,6 +4137,8 @@ bool CPU_SYSENTER() {
 
 	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
+	CPU_SetCPL(0);
+
 	SETFLAGBIT(VM,false);
 	SETFLAGBIT(IF,false);
 
@@ -4151,7 +4153,6 @@ bool CPU_SYSENTER() {
 	Segs.limit[cs] = 0xFFFFFFFF;
 	Segs.expanddown[cs] = false;
 	cpu.code.big = true;
-	cpu.cpl = 0;
 
 	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x8; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
@@ -4186,7 +4187,6 @@ bool CPU_SYSEXIT() {
 	Segs.limit[cs] = 0xFFFFFFFF;
 	Segs.expanddown[cs] = false;
 	cpu.code.big = true;
-	cpu.cpl = 3;
 
 	Segs.val[ss] = (cpu_sep_cs | 3) + 0x18; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
@@ -4195,6 +4195,8 @@ bool CPU_SYSEXIT() {
 	cpu.stack.big = true;
 	cpu.stack.mask=0xffffffff;
 	cpu.stack.notmask=0x00000000;
+
+	CPU_SetCPL(3);
 
 	// DEBUG
 //	DEBUG_EnableDebugger();
