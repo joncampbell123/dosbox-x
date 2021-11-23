@@ -1367,18 +1367,6 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\libs\fluidsynth\fluid_ringbuffer.c" />
     <ClCompile Include="..\src\libs\fluidsynth\fluid_settings.c" />
     <ClCompile Include="..\src\libs\fluidsynth\fluid_sys.c" />
-    <ClCompile Include="..\tests\drives_tests.cpp" />
-    <ClCompile Include="..\tests\shell_cmds_tests.cpp" />
-    <ClCompile Include="..\tests\gmock\gmock-cardinalities.cc" />
-    <ClCompile Include="..\tests\gmock\gmock-internal-utils.cc" />
-    <ClCompile Include="..\tests\gmock\gmock-spec-builders.cc" />
-    <ClCompile Include="..\tests\gmock\gmock.cc" />
-    <ClCompile Include="..\tests\gtest\gtest-death-test.cc" />
-    <ClCompile Include="..\tests\gtest\gtest-filepath.cc" />
-    <ClCompile Include="..\tests\gtest\gtest-port.cc" />
-    <ClCompile Include="..\tests\gtest\gtest-printers.cc" />
-    <ClCompile Include="..\tests\gtest\gtest-test-part.cc" />
-    <ClCompile Include="..\tests\gtest\gtest.cc" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />

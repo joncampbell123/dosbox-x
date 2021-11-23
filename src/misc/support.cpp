@@ -482,4 +482,3 @@ void E_Exit(const char * format,...) {
     }
 	exit(0);
 }
-

@@ -18,22 +18,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* This sample shows how to write a simple unit test for dosbox-staging using
- * Google C++ testing framework.
- *
- * Read Google Test Primer for reference of most available features, macros,
- * and guidance about writing unit tests:
- *
- * https://github.com/google/googletest/blob/master/googletest/docs/primer.md#googletest-primer
- */
-
-/* Include necessary header files; order of headers should be as follows:
- *
- * 1. Header declaring functions/classes being tested
- * 2. <gtest/gtest.h>, which declares the testing framework
- * 3. Additional system headers (if needed)
- * 4. Additional dosbox-staging headers (if needed)
- */
+#if C_DEBUG
 
 #include "shell.h"
 
@@ -190,3 +175,4 @@ TEST_F(DOS_Shell_CMDSTest, CMD_ECHO_space_handling)
 }
 
 } // namespace
+#endif

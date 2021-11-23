@@ -9854,7 +9854,7 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#ifdef _MSC_VER
+#if C_DEBUG
         else if (optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
@@ -15141,7 +15141,9 @@ fresh_boot:
         dos_kernel_shutdown = false;
         guest_msdos_mcb_chain = (uint16_t)(~0u);
 
+#if C_DEBUG
         if (control->opt_test) ::testing::InitGoogleTest(&argc, argv);
+#endif
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */

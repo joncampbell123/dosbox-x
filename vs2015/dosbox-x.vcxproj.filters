@@ -127,15 +127,6 @@
     <Filter Include="Sources\hardware\RetroWaveLib">
       <UniqueIdentifier>{2a582629-0964-4559-9992-810e70c2f6ce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{a94f678b-7e8c-4167-b529-88e333f4eee9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\gtest">
-      <UniqueIdentifier>{8918f1db-46a7-4ce3-9591-a99ab10c9832}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\gmock">
-      <UniqueIdentifier>{b063c4e7-b3ff-4324-bb7e-0b0cee524642}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -1574,42 +1565,6 @@
     </ClCompile>
     <ClCompile Include="..\src\ints\int_dosv.cpp">
       <Filter>Sources\ints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\drives_tests.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\shell_cmds_tests.cpp">
-      <Filter>tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest-port.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest-filepath.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest-printers.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest-test-part.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gtest\gtest-death-test.cc">
-      <Filter>tests\gtest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gmock\gmock-spec-builders.cc">
-      <Filter>tests\gmock</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gmock\gmock.cc">
-      <Filter>tests\gmock</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gmock\gmock-cardinalities.cc">
-      <Filter>tests\gmock</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tests\gmock\gmock-internal-utils.cc">
-      <Filter>tests\gmock</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
