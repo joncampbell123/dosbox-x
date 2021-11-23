@@ -100,6 +100,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 #include <algorithm> // std::transform
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <gtest/gtest.h>
 #ifdef WIN32
 # include <signal.h>
 # include <process.h>
@@ -9853,6 +9854,14 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
+#ifdef _MSC_VER
+        else if (optname == "tests" || optname == "gtest_list_tests") {
+            putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
+            control->opt_test = true;
+            control->opt_noconsole = false;
+            control->opt_console = true;
+        }
+#endif
         else if (optname == "exit") {
             control->opt_exit = true;
         }
@@ -13185,7 +13194,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 
     /* default do not prompt if -conf, -userconf, -defaultconf, or -defaultdir is used */
-    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || workdiropt == "noprompt")) {
+    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
         control->opt_promptfolder = 0;
     }
 
@@ -15131,6 +15140,8 @@ fresh_boot:
         reboot_machine = false;
         dos_kernel_shutdown = false;
         guest_msdos_mcb_chain = (uint16_t)(~0u);
+
+        if (control->opt_test) ::testing::InitGoogleTest(&argc, argv);
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */

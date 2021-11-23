@@ -452,7 +452,7 @@ int makedir(const char *newdir)
   buffer = (char*)malloc(len+1);
         if (buffer==NULL)
         {
-                printf("Error allocating memory\n");
+                LOG_MSG("Error allocating memory\n");
                 return UNZ_INTERNALERROR;
         }
   strcpy(buffer,newdir);
@@ -477,7 +477,7 @@ int makedir(const char *newdir)
       *p = 0;
       if ((mymkdir(buffer) == -1) && (errno == ENOENT))
         {
-          printf("couldn't create directory %s\n",buffer);
+          LOG_MSG("Could not create directory %s\n",buffer);
           free(buffer);
           return 0;
         }
@@ -542,7 +542,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
 
     if (err!=UNZ_OK)
     {
-        printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
+        LOG_MSG("Error %d with zipfile in unzGetCurrentFileInfo\n",err);
         return err;
     }
 
@@ -550,7 +550,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     buf = malloc(size_buf);
     if (buf==NULL)
     {
-        printf("Error allocating memory\n");
+        LOG_MSG("Error allocating memory\n");
         return UNZ_INTERNALERROR;
     }
 
@@ -566,7 +566,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     {
         if ((*popt_extract_without_path)==0)
         {
-            printf("creating directory: %s\n",filename_inzip);
+            LOG_MSG("Creating directory: %s\n",filename_inzip);
             mymkdir(filename_inzip);
         }
     }
@@ -585,7 +585,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
         err = unzOpenCurrentFilePassword(uf,password);
         if (err!=UNZ_OK)
         {
-            printf("error %d with zipfile in unzOpenCurrentFilePassword\n",err);
+            LOG_MSG("Error %d with zipfile in unzOpenCurrentFilePassword\n",err);
         }
 
         if (((*popt_overwrite)==0) && (err==UNZ_OK))
@@ -601,7 +601,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
                     char answer[128];
                     int ret;
 
-                    printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
+                    LOG_MSG("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
                     ret = scanf("%1s",answer);
                     if (ret != 1)
                     {
@@ -637,26 +637,26 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
 
             if (fout==NULL)
             {
-                printf("error opening %s\n",write_filename);
+                LOG_MSG("error opening %s\n",write_filename);
             }
         }
 
         if (fout!=NULL)
         {
-            printf(" extracting: %s\n",write_filename);
+            LOG_MSG(" Extracting: %s\n",write_filename);
 
             do
             {
                 err = unzReadCurrentFile(uf,buf,size_buf);
                 if (err<0)
                 {
-                    printf("error %d with zipfile in unzReadCurrentFile\n",err);
+                    LOG_MSG("Error %d with zipfile in unzReadCurrentFile\n",err);
                     break;
                 }
                 if (err>0)
                     if (fwrite(buf,err,1,fout)!=1)
                     {
-                        printf("error in writing extracted file\n");
+                        LOG_MSG("Error in writing extracted file\n");
                         err=UNZ_ERRNO;
                         break;
                     }
@@ -675,7 +675,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
             err = unzCloseCurrentFile (uf);
             if (err!=UNZ_OK)
             {
-                printf("error %d with zipfile in unzCloseCurrentFile\n",err);
+                LOG_MSG("Error %d with zipfile in unzCloseCurrentFile\n",err);
             }
         }
         else
@@ -697,7 +697,7 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
 
     err = unzGetGlobalInfo64(uf,&gi);
     if (err!=UNZ_OK) {
-        printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+        LOG_MSG("Error %d with zipfile in unzGetGlobalInfo \n",err);
         return 0;
     }
 
@@ -713,7 +713,7 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
             err = unzGoToNextFile(uf);
             if (err!=UNZ_OK)
             {
-                printf("error %d with zipfile in unzGoToNextFile\n",err);
+                LOG_MSG("Error %d with zipfile in unzGoToNextFile\n",err);
                 break;
             }
         }
@@ -728,7 +728,7 @@ int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without
     (void)err;
     if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
     {
-        printf("file %s not found in the zipfile\n",filename);
+        LOG_MSG("File %s not found in the zipfile\n",filename);
         return 2;
     }
 
@@ -781,10 +781,10 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, c
 
     if (uf==NULL)
     {
-        //printf("Cannot open %s\n",zipfilename,zipfilename);
+        //LOG_MSG("Cannot open %s\n",zipfilename,zipfilename);
         return 1;
     }
-    //printf("%s opened\n",filename_try);
+    //LOG_MSG("%s opened\n",filename_try);
 
 	if (opt_do_extract==1)
     {
@@ -792,7 +792,7 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, c
 		char *ret=getcwd(cCurrentPath, sizeof(cCurrentPath));
         if (opt_extractdir && chdir(dirname))
         {
-          printf("Error changing into %s, aborting\n", dirname);
+          LOG_MSG("Error changing into %s, aborting\n", dirname);
           exit(-1);
         }
 
@@ -907,7 +907,7 @@ int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigne
             if (size_read < size_buf)
                 if (feof(fin)==0)
             {
-                printf("error in reading %s\n",filenameinzip);
+                LOG_MSG("Error in reading %s\n",filenameinzip);
                 err = ZIP_ERRNO;
             }
 
@@ -921,7 +921,7 @@ int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigne
         fclose(fin);
 
     *result_crc=calculate_crc;
-    printf("file %s crc %lx\n", filenameinzip, calculate_crc);
+    LOG_MSG("File %s crc %lx\n", filenameinzip, calculate_crc);
     return err;
 }
 
@@ -937,7 +937,7 @@ int isLargeFile(const char* filename)
     pos = FTELLO_FUNC(pFile);
     (void)n;
 
-                printf("File : %s is %lld bytes\n", filename, pos);
+                LOG_MSG("File : %s is %lld bytes\n", filename, pos);
 
     if(pos >= 0xffffffff)
      largeFile = 1;
@@ -967,7 +967,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
     buf = malloc(size_buf);
     if (buf==NULL)
     {
-        //printf("Error allocating memory\n");
+        //LOG_MSG("Error allocating memory\n");
         return ZIP_INTERNALERROR;
     }
 
@@ -984,11 +984,11 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
 
         if (zf == NULL)
         {
-            //printf("error opening %s\n",savefile);
+            //LOG_MSG("Error opening %s\n",savefile);
             err= ZIP_ERRNO;
         }
         else
-            //printf("creating %s\n",savefile);
+            //LOG_MSG("Creating %s\n",savefile);
 
             {
                 FILE *fin = NULL;
@@ -1047,7 +1047,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                                  password,crcFile, zip64);
 
                 if (err != ZIP_OK) {
-                    //printf("error in opening %s in zipfile\n",filenameinzip);
+                    //LOG_MSG("Error in opening %s in zipfile\n",filenameinzip);
 				}
                 else
                 {
@@ -1055,7 +1055,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                     if (fin==NULL)
                     {
                         err=ZIP_ERRNO;
-                        //printf("error in opening %s for reading\n",filenameinzip);
+                        //LOG_MSG("Error in opening %s for reading\n",filenameinzip);
                     }
                 }
 
@@ -1067,7 +1067,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                         if (size_read < size_buf)
                             if (feof(fin)==0)
                         {
-                            //printf("error in reading %s\n",filenameinzip);
+                            //LOG_MSG("Error in reading %s\n",filenameinzip);
                             err = ZIP_ERRNO;
                         }
 
@@ -1076,7 +1076,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                             err = zipWriteInFileInZip (zf,buf,size_read);
                             if (err<0)
                             {
-                                //printf("error in writing %s in the zipfile\n",
+                                //LOG_MSG("Error in writing %s in the zipfile\n",
                                 //                 filenameinzip);
                             }
 
@@ -1092,14 +1092,14 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                 {
                     err = zipCloseFileInZip(zf);
                     if (err!=ZIP_OK) {
-                        //printf("error in closing %s in the zipfile\n",
+                        //LOG_MSG("Error in closing %s in the zipfile\n",
                         //            filenameinzip);
 					}
                 }
             }
         errclose = zipClose(zf,NULL);
         if (errclose != ZIP_OK) {
-            //printf("error in closing %s\n",savefile);
+            //LOG_MSG("Error in closing %s\n",savefile);
 		}
     }
 

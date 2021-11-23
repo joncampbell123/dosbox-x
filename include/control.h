@@ -47,6 +47,7 @@ public:
     Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
         startup_params.emplace_back(cmdline->GetFileName());
         cmdline->FillVector(startup_params);
+        opt_test = false;
         opt_exit = false;
         opt_debug = false;
         opt_nogui = false;
@@ -150,6 +151,7 @@ public:
     bool opt_debug;
     bool opt_nogui;
     bool opt_exit;
+    bool opt_test;
 };
 
 #endif

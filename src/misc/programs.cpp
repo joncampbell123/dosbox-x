@@ -233,6 +233,25 @@ void Program::WriteOut(const char * format,...) {
 //	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
+void Program::WriteOut(const char *format, const char *arguments) {
+	char buf[2048];
+	sprintf(buf,format,arguments);
+
+	uint16_t size = (uint16_t)strlen(buf);
+	dos.internal_output=true;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
+		if (buf[i] == 0xA && last_written_character != 0xD) {
+			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
+		}
+		last_written_character = (char)(out = (uint8_t)buf[i]);
+		DOS_WriteFile(STDOUT,&out,&s);
+	}
+	dos.internal_output=false;
+
+//	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
+}
+
 void Program::WriteOut_NoParsing(const char * format) {
 	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;

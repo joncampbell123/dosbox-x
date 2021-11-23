@@ -102,6 +102,7 @@ public:
 	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
 	Bitu GetEnvCount(void);                             //! Return the number of enviormental variables
 	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
+	virtual void WriteOut(const char *format, const char * arguments);
 	void WriteOut(const char * format,...);				//! Write to standard output 
 	void WriteOut_NoParsing(const char * format);		//! Write to standard output, no parsing
 	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP

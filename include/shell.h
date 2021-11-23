@@ -323,6 +323,8 @@ public:
 	void CMD_INT2FDBG(char * args);
 #endif
 
+	virtual bool execute_shell_cmd(char *name, char *arguments);
+
 	/* The shell's variables */
 	uint16_t input_handle;
 	BatchFile * bf;                     //! Batch file to execute

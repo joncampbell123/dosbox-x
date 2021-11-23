@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <gtest/gtest.h>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -70,7 +71,7 @@ void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
-void CALLBACK_DeAllocate(Bitu in);
+void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
@@ -1843,6 +1844,13 @@ void SHELL_Run() {
         }
     }
 
+    if (control->opt_test) {
+        RUN_ALL_TESTS();
+#if defined(WIN32)
+        DOSBox_ConsolePauseWait();
+#endif
+        return;
+    }
 	i4dos=false;
 	if (altshell) {
         if (strstr(name, "4DOS.COM")) i4dos=true;

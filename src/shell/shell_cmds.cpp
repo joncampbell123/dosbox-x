@@ -116,6 +116,11 @@ SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 };
 
+const char *GetCmdName(int i) {
+    size_t n = sizeof(cmd_list)/sizeof(cmd_list[0])-1;
+    return i>n?NULL:cmd_list[i].name;
+}
+
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
 extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
 extern unsigned long freec;
@@ -194,6 +199,19 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 
 bool enable_config_as_shell_commands = false;
 
+bool DOS_Shell::execute_shell_cmd(char *name, char *arguments) {
+	SHELL_Cmd shell_cmd = {};
+	uint32_t cmd_index=0;
+	while (cmd_list[cmd_index].name) {
+		if (strcasecmp(cmd_list[cmd_index].name,name)==0) {
+			(this->*(cmd_list[cmd_index].handler))(arguments);
+			return true;
+		}
+		cmd_index++;
+	}
+	return false;
+}
+
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
     char* orign_cmd_line = line;
@@ -215,14 +233,7 @@ __do_command_begin:
 //		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
 		if ((*line == '.') ||(*line == '\\')) {  //allow stuff like cd.. and dir.exe cd\kees
 			*cmd_write=0;
-			uint32_t cmd_index=0;
-			while (cmd_list[cmd_index].name) {
-				if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
-					(this->*(cmd_list[cmd_index].handler))(line);
-			 		return;
-				}
-				cmd_index++;
-			}
+			if (execute_shell_cmd(cmd_buffer,line)) return;
 		}
 		*cmd_write++=*line++;
 	}
@@ -241,14 +252,8 @@ __do_command_begin:
     }
 
 /* Check the internal list */
-	uint32_t cmd_index=0;
-	while (cmd_list[cmd_index].name) {
-		if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
-			(this->*(cmd_list[cmd_index].handler))(line);
-			return;
-		}
-		cmd_index++;
-	}
+	if (execute_shell_cmd(cmd_buffer,line)) return;
+
 /* This isn't an internal command execute it */
 	char ldir[CROSS_LEN], *p=ldir;
 	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
