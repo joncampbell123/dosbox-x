@@ -171,6 +171,7 @@ static int addr32bit=0;
         w - word
 +       x - sign extended byte
 	F - use floating regs in mod/rm
+	Q - qword
 	1-8 - group number, esc value, etc
 */
 
@@ -363,7 +364,7 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
   { 0,                0,                 0,                0,
     "bt",             "bts",             "btr",            "btc"           },
 /* 8 */
-  { 0,                "cmpxchg8b %Ed",   0,                0,                // FIXME: Need a modifier to specify QWORD
+  { 0,                "cmpxchg8b %EQ",   0,                0,
     0,                0,                 0,                0               }
 };
 
@@ -754,7 +755,10 @@ static void do_modrm(char subtype)
     return;
   }
   if (must_do_size) {
-    if (wordop) {
+    if (subtype == 'Q') {
+	  ua_str("qword ");
+    }
+    else if (wordop) {
       if (addrsize==32 || opsize==32) {       /* then must specify size */
 		ua_str("dword ");
       } else {
