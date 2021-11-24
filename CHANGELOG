@@ -1,4 +1,7 @@
 0.83.20
+  - Added MOVD, MOVQ, and EMMS instructions to debugger
+    disassembler and support for the disassembler to
+    represent MMX registers. (joncampbell123)
   - Added MMX instruction PSHUFW and added typecasts
     to some MMX instructions in case compilers cannot
     properly shift uint64_t by uint8_t otherwise.
