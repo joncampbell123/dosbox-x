@@ -259,8 +259,10 @@ TEST_F(DOS_FilesTest, DOS_MakeName_No_SlashSlash)
 }
 
 // Exhaustive test of all good chars
-/*TEST_F(DOS_FilesTest, DOS_MakeName_GoodChars)
+TEST_F(DOS_FilesTest, DOS_MakeName_GoodChars)
 {
+	safe_strcpy(Drives[25]->curdir, "");
+	bool oldlfn = uselfn;
 	unsigned char start_letter = 'A';
 	unsigned char start_number = '0';
 	std::vector<unsigned char> symbols{'$', '#',  '@',  '(',  ')', '!', '%',
@@ -275,15 +277,16 @@ TEST_F(DOS_FilesTest, DOS_MakeName_No_SlashSlash)
 				        static_cast<unsigned char>(start_number + ni),
 				        c,
 				};
-				std::string test_input(reinterpret_cast<char *>(
-				                               input_array),
-				                       3);
-				assert_DOS_MakeName(test_input.c_str(), true,
-				                    test_input, 25);
+				std::string test_input(reinterpret_cast<char *>(input_array), 3);
+				uselfn = false;
+				assert_DOS_MakeName(test_input.c_str(), true, test_input, 25);
+				uselfn = true;
+				assert_DOS_MakeName(test_input.c_str(), true, test_input, 25);
 			}
 		}
 	}
-}*/
+	uselfn = oldlfn;
+}
 
 TEST_F(DOS_FilesTest, DOS_MakeName_Colon_Illegal_Paths)
 {

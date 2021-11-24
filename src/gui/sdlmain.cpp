@@ -3961,6 +3961,27 @@ void CheckTTFLimit() {
     }
 }
 
+void SetOutputSwitch(const char *outputstr) {
+#if C_DIRECT3D
+        if (!strcasecmp(outputstr, "direct3d"))
+            switchoutput = 6;
+        else
+#endif
+#if C_OPENGL
+        if (!strcasecmp(outputstr, "openglpp"))
+            switchoutput = 5;
+        else if (!strcasecmp(outputstr, "openglnb"))
+            switchoutput = 4;
+        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
+            switchoutput = 3;
+        else
+#endif
+        if (!strcasecmp(outputstr, "surface"))
+            switchoutput = 0;
+        else
+            switchoutput = -1;
+}
+
 #define MIN_PTSIZE 9
 bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
@@ -4069,26 +4090,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         autoboxdraw = ttf_section->Get_bool("autoboxdraw");
         halfwidthkana = ttf_section->Get_bool("halfwidthkana");
         ttf_dosv = ttf_section->Get_bool("dosvfunc");
-        const char *outputstr=ttf_section->Get_string("outputswitch");
-#if C_DIRECT3D
-        if (!strcasecmp(outputstr, "direct3d"))
-            switchoutput = 6;
-        else
-#endif
-#if C_OPENGL
-        if (!strcasecmp(outputstr, "openglpp"))
-            switchoutput = 5;
-        else if (!strcasecmp(outputstr, "openglnb"))
-            switchoutput = 4;
-        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
-            switchoutput = 3;
-        else
-#endif
-        if (!strcasecmp(outputstr, "surface"))
-            switchoutput = 0;
-        else
-            switchoutput = -1;
-
+        SetOutputSwitch(ttf_section->Get_string("outputswitch"));
         rtl = ttf_section->Get_bool("righttoleft");
         ttf.lins = ttf_section->Get_int("lins");
         ttf.cols = ttf_section->Get_int("cols");

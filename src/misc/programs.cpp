@@ -95,7 +95,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1599,6 +1599,8 @@ next:
                                 ttf_setlines(0, 0);
                                 lastset=0;
 #endif
+							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
+                                SetOutputSwitch(section->Get_string("outputswitch"));
 							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
                                 if (!strlen(section->Get_string("colors"))) ttf_reset_colors();
 							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
