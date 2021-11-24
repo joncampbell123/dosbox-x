@@ -303,7 +303,7 @@ static char const *second[] = {
   "punpckhbw %GM,%EM","punpckhwd %GM,%EM","punpckhdq %GM,%EM","packssdw %GM,%EM",
   0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
-  0,                  0,                 0,                "%g9",
+  0,                  0,                 "%g:",            "%g9",
   "pcmpeqb %GM,%EM",  "pcmpeqw %GM,%EM", "pcmpeqd %GM,%EM","emms",
   0,                  0,                 0,                0,
   0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
@@ -379,7 +379,10 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
     0,                0,                 0,                0               },
 /* 9 */
   { 0,                0,                 "psrlq %EM,%Ib",  0,
-    0,                0,                 "psllq %EM,%Ib",  0               }
+    0,                0,                 "psllq %EM,%Ib",  0               },
+/* : (NTS: this is '0'+10 in ASCII) */
+  { 0,                0,                 "psrld %EM,%Ib",  0,
+    "psrad %EM,%Ib",  0,                 "pslld %EM,%Ib",  0               }
 
 };
 
