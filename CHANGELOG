@@ -1,4 +1,6 @@
 0.83.20
+  - Added most Pentium-level MMX instructions to debugger
+    disassembler (joncampbell123)
   - Added MOVD, MOVQ, and EMMS instructions to debugger
     disassembler and support for the disassembler to
     represent MMX registers. (joncampbell123)
