@@ -298,11 +298,15 @@ static char const *second[] = {
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
 /* 6 */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, "movd %GM,%Ed", "movq %GM,%EM",
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                0,
+  0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
-  0, 0, 0, 0, 0, 0, 0, "emms",
-  0, 0, 0, 0, 0, 0, "movd %Ed,%GM", "movq %EM,%GM",
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                "emms",
+  0,                  0,                 0,                0,
+  0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
 /* 8 */
   "jo %Jv",           "jno %Jv",         "jb %Jv",         "jnb %Jv",
   "jz %Jv",           "jnz %Jv",         "jbe %Jv",        "ja %Jv",
@@ -329,14 +333,20 @@ static char const *second[] = {
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0,                  "psrlw %GM,%EM",   "psrld %GM,%EM",  "psrlq %GM,%EM",
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                "pand %GM,%EM",
+  0,                  0,                 0,                "pandn %GM,%EM",
 /* e */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0,                  "psraw %GM,%EM",   "psrad %GM,%EM",  0,
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                "por %GM,%EM",
+  0,                  0,                 0,                "pxor %GM,%EM",
 /* f */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0,                  "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                0,
+  0,                  0,                 0,                0
 };
 
 static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
