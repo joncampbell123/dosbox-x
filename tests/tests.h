@@ -1,6 +1,6 @@
 #if C_DEBUG
 
-// The following includes necessary GTest/GMock source files for unit tests.
+// The following includes necessary gTest/gMock source files for unit tests.
 // Launch DOSBox-X with -tests option in debug builds to run unit tests.
 
 #include "gmock/gmock.cc"
