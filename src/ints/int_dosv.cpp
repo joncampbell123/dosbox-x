@@ -2090,7 +2090,9 @@ void J3_OffCursor()
 
 void INT8_J3()
 {
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
+#endif
 
 	j3_timer++;
 	if((j3_timer & 0x03) == 0) {

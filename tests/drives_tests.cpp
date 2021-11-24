@@ -18,8 +18,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#if C_DEBUG
-
 #include "../src/dos/drives.h"
 
 #include <gtest/gtest.h>
@@ -55,8 +53,16 @@ TEST(WildFileCmp, WildDotWild)
 
 TEST(WildFileCmp, WildcardNoExt)
 {
+    bool oldlfn = uselfn;
+    uselfn = false;
     EXPECT_EQ(false, WildFileCmp("TEST.EXE", "*"));
     EXPECT_EQ(false, WildFileCmp(".EXE", "*"));
+    EXPECT_EQ(false, WildFileCmp("TEST.BAK", "T*"));
+    uselfn = true;
+    EXPECT_EQ(true, WildFileCmp("TEST.EXE", "*"));
+    EXPECT_EQ(true, WildFileCmp(".EXE", "*"));
+    EXPECT_EQ(true, WildFileCmp("TEST.BAK", "T*"));
+    uselfn = oldlfn;
     EXPECT_EQ(true, WildFileCmp("TEST", "*"));
     EXPECT_EQ(true, WildFileCmp("TEST", "T*"));
     EXPECT_EQ(false, WildFileCmp("TEST", "Z*"));
@@ -80,7 +86,7 @@ TEST(WildFileCmp, QuestionMark)
 TEST(Set_Label, Daggerfall)
 {
     std::string output = run_Set_Label("Daggerfall", false);
-    EXPECT_EQ("DAGGERFA.LL", output);
+    EXPECT_EQ("DAGGERFALL", output);
 }
 TEST(Set_Label, DaggerfallCD)
 {
@@ -91,7 +97,7 @@ TEST(Set_Label, DaggerfallCD)
 TEST(Set_Label, LongerThan11)
 {
     std::string output = run_Set_Label("a123456789AAA", false);
-    EXPECT_EQ("A1234567.89A", output);
+    EXPECT_EQ("A123456789A", output);
 }
 TEST(Set_Label, LongerThan11CD)
 {
@@ -148,4 +154,3 @@ TEST(Set_Label, InvalidCharsEndingDotCD)
 }
 
 } // namespace
-#endif
