@@ -95,7 +95,7 @@ void DOS_SetDefaultDrive(uint8_t drive) {
 }
 
 bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive) {
-	if(!name || *name == 0 || *name == ' ') {
+	if(!name || *name == 0 || *name == ' ' || *name == '\n' || *name == ':') {
 		/* Both \0 and space are seperators and
 		 * empty filenames report file not found */
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
@@ -1513,7 +1513,7 @@ static void DTAExtendNameVolumeLabel(const char* const name, char* const filenam
     while (i < 3) ext[i++] = ' ';
 }
 
-static void DTAExtendName(char * const name,char * const filename,char * const ext) {
+void DTAExtendName(char * const name,char * const filename,char * const ext) {
 	char * find=strchr(name,'.');
 	if (find && find!=name) {
 		strcpy(ext,find+1);

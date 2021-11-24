@@ -468,6 +468,10 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
                 break;
             }
         }
+        if (!onpos) {
+            DOS_SetError(DOSERR_PATH_NOT_FOUND);
+            return false;
+        }
     }
 	uint8_t attr;char pattern[CROSS_LEN];
 	dta.GetSearchParams(attr,pattern,false);

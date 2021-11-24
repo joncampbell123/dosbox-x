@@ -39,7 +39,6 @@
 #include "jfont.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
-#include "../../tests/tests.h"
 #include <unistd.h>
 #include <time.h>
 #include <string>
