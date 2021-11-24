@@ -9817,7 +9817,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -noconsole                              Do not show logging console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
-            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");
+            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
+            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -9860,6 +9861,8 @@ bool DOSBOX_parse_argv() {
             control->opt_test = true;
             control->opt_noconsole = false;
             control->opt_console = true;
+            control->opt_nomenu = true;
+            control->opt_fastlaunch = true;
         }
 #endif
         else if (optname == "exit") {

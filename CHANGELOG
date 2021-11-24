@@ -45,7 +45,12 @@
     be enabled and not activated at start, but there is
     now a DCGA command to enter DCGA (either English or
     J-3100 DCGA, depending on if J-3100 is enabled)
-    mode from other video modes. (nanshiki)
+    mode from other video modes. (nanshiki & Wengier)
+  - Added support for unit tests based on GoogleTest
+    framework (GTest/GMock) to ensure code stability.
+    Unit tests can be started with command-line option
+    -tests in the debug builds. Some unit tests are
+    ported from DOSBox Staging. (Wengier)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
