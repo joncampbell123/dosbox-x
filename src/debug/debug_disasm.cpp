@@ -171,6 +171,8 @@ static int addr32bit=0;
         w - word
 +       x - sign extended byte
 	F - use floating regs in mod/rm
+	M - use MMX regs in mod/rm
+	Q - qword
 	1-8 - group number, esc value, etc
 */
 
@@ -297,10 +299,10 @@ static char const *second[] = {
   0, 0, 0, 0, 0, 0, 0, 0,
 /* 6 */
   0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, "movd %GM,%Ed", "movq %GM,%EM",
 /* 7 */
-  0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, "emms",
+  0, 0, 0, 0, 0, 0, "movd %Ed,%GM", "movq %EM,%GM",
 /* 8 */
   "jo %Jv",           "jno %Jv",         "jb %Jv",         "jnb %Jv",
   "jz %Jv",           "jnz %Jv",         "jbe %Jv",        "ja %Jv",
@@ -323,7 +325,7 @@ static char const *second[] = {
   "bsf %Gv,%Ev",      "bsr %Gv,%Ev",     "movsx %Gv,%Eb",  "movsx %Gv,%Ew",
 /* c */
   "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    0,                0,
-  0,                  0,                 0,                0,
+  0,                  0,                 0,                "%g8",
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
@@ -361,7 +363,10 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
     "smsw %Ew",       0,                 "lmsw %Ew",       "invlpg"        },
 /* 7 */
   { 0,                0,                 0,                0,
-    "bt",             "bts",             "btr",            "btc"           }
+    "bt",             "bts",             "btr",            "btc"           },
+/* 8 */
+  { 0,                "cmpxchg8b %EQ",   0,                0,
+    0,                0,                 0,                0               }
 };
 
 /* zero here means invalid.  If first entry starts with '*', use st(i) */
@@ -677,6 +682,10 @@ static void reg_name(int regnum, char size)
     uprintf("st(%d)", regnum);
     return;
   }
+  if (size == 'M') { /* MMX register */
+    uprintf("mm%d", regnum);
+    return;
+  }
   if ((((size == 'c') || (size == 'v')) && (opsize == 32)) || (size == 'd'))
     uputchar('e');
   if ((size=='q' || size == 'b' || size=='c') && !wordop) {
@@ -751,7 +760,10 @@ static void do_modrm(char subtype)
     return;
   }
   if (must_do_size) {
-    if (wordop) {
+    if (subtype == 'Q') {
+	  ua_str("qword ");
+    }
+    else if (wordop) {
       if (addrsize==32 || opsize==32) {       /* then must specify size */
 		ua_str("dword ");
       } else {
