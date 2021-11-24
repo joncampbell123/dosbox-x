@@ -171,6 +171,7 @@ static int addr32bit=0;
         w - word
 +       x - sign extended byte
 	F - use floating regs in mod/rm
+	M - use MMX regs in mod/rm
 	Q - qword
 	1-8 - group number, esc value, etc
 */
