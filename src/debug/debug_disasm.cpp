@@ -298,13 +298,13 @@ static char const *second[] = {
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
 /* 6 */
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                0,
+  "punpcklbw %GM,%EM","punpcklwd %GM,%EM","punpckldq %GM,%EM","packsswb %GM,%EM",
+  "pcmpgtb %GM,%EM",  "pcmpgtw %GM,%EM", "pcmpgtd %GM,%EM","packuswb %GM,%EM",
+  "punpckhbw %GM,%EM","punpckhwd %GM,%EM","punpckhdq %GM,%EM","packssdw %GM,%EM",
   0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
   0,                  0,                 0,                0,
-  0,                  0,                 0,                "emms",
+  "pcmpeqb %GM,%EM",  "pcmpeqw %GM,%EM", "pcmpeqd %GM,%EM","emms",
   0,                  0,                 0,                0,
   0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
 /* 8 */
@@ -334,19 +334,19 @@ static char const *second[] = {
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
   0,                  "psrlw %GM,%EM",   "psrld %GM,%EM",  "psrlq %GM,%EM",
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                "pand %GM,%EM",
-  0,                  0,                 0,                "pandn %GM,%EM",
+  "paddq %GM,%EM",    "pmullw %GM,%EM",  0,                0,
+  "psubusb %GM,%EM",  "psubusw %GM,%EM", 0,                "pand %GM,%EM",
+  "paddusb %GM,%EM",  "paddusw %GM,%EM", 0,                "pandn %GM,%EM",
 /* e */
   0,                  "psraw %GM,%EM",   "psrad %GM,%EM",  0,
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                "por %GM,%EM",
-  0,                  0,                 0,                "pxor %GM,%EM",
+  0,                  "pmulhw %GM,%EM",  0,                0,
+  "psubsb %GM,%EM",   "psubsw %GM,%EM",  0,                "por %GM,%EM",
+  "paddsb %GM,%EM",   "paddsw %GM,%EM",  0,                "pxor %GM,%EM",
 /* f */
   0,                  "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                0
+  0,                  "pmaddwd %GM,%EM", 0,                0,
+  "psubb %GM,%EM",    "psubw %GM,%EM",   "psubd %GM,%EM",  0,
+  "paddb %GM,%EM",    "paddw %GM,%EM",   "paddd %GM,%EM",  0
 };
 
 static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
