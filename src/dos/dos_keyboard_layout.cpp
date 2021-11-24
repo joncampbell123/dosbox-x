@@ -1293,6 +1293,11 @@ public:
 					wants_dos_codepage = (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV ? 932 : (IS_KDOSV ? 949 : (IS_CDOSV ? 950 : (IS_PDOSV ? 936 : 437))));
 					break;
 				case 1033: // US, CP 437
+#if defined(HX_DOS)
+                    layoutname = "us";
+                    wants_dos_codepage = (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV ? 932 : (IS_KDOSV ? 949 : (IS_CDOSV ? 950 : (IS_PDOSV ? 936 : 437))));
+                    break;
+#endif
 					return;
 				case 1032: // Greece, CP 869, Alt CP 813
 					layoutname = "gk";
