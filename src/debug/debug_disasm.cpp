@@ -298,10 +298,10 @@ static char const *second[] = {
   0, 0, 0, 0, 0, 0, 0, 0,
 /* 6 */
   0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, "movd %GM,%Ed", "movq %GM,%EM",
 /* 7 */
   0, 0, 0, 0, 0, 0, 0, "emms",
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, "movd %Ed,%GM", "movq %EM,%GM",
 /* 8 */
   "jo %Jv",           "jno %Jv",         "jb %Jv",         "jnb %Jv",
   "jz %Jv",           "jnz %Jv",         "jbe %Jv",        "ja %Jv",
@@ -679,6 +679,10 @@ static void reg_name(int regnum, char size)
 {
   if (size == 'F') { /* floating point register? */
     uprintf("st(%d)", regnum);
+    return;
+  }
+  if (size == 'M') { /* MMX register */
+    uprintf("mm%d", regnum);
     return;
   }
   if ((((size == 'c') || (size == 'v')) && (opsize == 32)) || (size == 'd'))
