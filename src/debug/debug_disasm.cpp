@@ -323,7 +323,7 @@ static char const *second[] = {
   "bsf %Gv,%Ev",      "bsr %Gv,%Ev",     "movsx %Gv,%Eb",  "movsx %Gv,%Ew",
 /* c */
   "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    0,                0,
-  0,                  0,                 0,                0,
+  0,                  0,                 0,                "%g8",
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
@@ -361,7 +361,10 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
     "smsw %Ew",       0,                 "lmsw %Ew",       "invlpg"        },
 /* 7 */
   { 0,                0,                 0,                0,
-    "bt",             "bts",             "btr",            "btc"           }
+    "bt",             "bts",             "btr",            "btc"           },
+/* 8 */
+  { 0,                "cmpxchg8b %Ed",   0,                0,                // FIXME: Need a modifier to specify QWORD
+    0,                0,                 0,                0               }
 };
 
 /* zero here means invalid.  If first entry starts with '*', use st(i) */
