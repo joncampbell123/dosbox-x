@@ -222,6 +222,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
             togo--;
         }
         output[labelPos] = 0;
+        if((labelPos > 0) && (output[labelPos-1] == '.') && labelPos == 9) output[labelPos-1] = 0;
         return;
     }
 
@@ -252,8 +253,6 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 	if((labelPos > 0) && (output[labelPos-1] == '.') && !(cdrom && labelPos ==9))
 		output[labelPos-1] = 0;
 }
-
-
 
 DOS_Drive::DOS_Drive() {
     nocachedir=false;
